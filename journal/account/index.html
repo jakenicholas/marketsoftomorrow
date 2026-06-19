@@ -39,6 +39,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .xpline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute)}.xpline b{color:var(--gold);font-weight:500}
 .miniCard{position:relative;overflow:hidden;border-radius:16px;background:#101218;border:1px solid var(--hair);padding:18px;height:100%;min-height:180px;display:flex;flex-direction:column;justify-content:space-between}
 .miniCard::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(167,139,250,.30),transparent);pointer-events:none}
+.miniCard::before{content:"";position:absolute;top:-25%;left:-75%;width:55%;height:150%;z-index:3;pointer-events:none;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.06) 38%,rgba(255,255,255,.32) 50%,rgba(255,255,255,.06) 62%,transparent);animation:cardGlare 5.5s ease-in-out infinite}
+@keyframes cardGlare{0%{left:-75%}14%{left:135%}100%{left:135%}}
 .mcTop{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:9px}
 .mc-logo{height:30px;width:auto;display:block;filter:brightness(0) invert(1)}
 .mcMarket{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
@@ -71,6 +73,17 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .lrow{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--hair);border-radius:14px;margin-bottom:10px;text-decoration:none;color:inherit}
 .lrow:hover{border-color:var(--hair2)}.lrow .lt{flex:1;min-width:0}.lrow .lt b{font-size:14.5px;font-weight:500;color:#fff;display:block}.lrow .lt span{font-size:12px;color:var(--mute)}.lrow .go{color:var(--mute);font-size:17px}
 .empty{text-align:center;color:var(--mute);padding:48px 20px;border:1px dashed var(--hair);border-radius:16px;font-size:14px}.empty a{color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.gc{display:block;text-decoration:none;color:inherit;border:1px solid var(--hair);border-radius:16px;overflow:hidden;background:var(--card);transition:transform .2s,border-color .2s,box-shadow .2s}
+.gc:hover{transform:translateY(-4px);border-color:var(--hair2);box-shadow:0 16px 42px rgba(0,0,0,.45)}
+.gc-img{aspect-ratio:16/10;width:100%;object-fit:cover;display:block;background:#14161a}
+.gc-ph{background:linear-gradient(135deg,#16181d,#101218)}
+.gc-b{padding:14px 16px}
+.gc-cat{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+.gc-t{font-family:var(--serif);font-size:16px;font-weight:600;color:#fff;line-height:1.28}
+.geolist{position:absolute;left:0;right:0;top:100%;margin-top:5px;background:#14161a;border:1px solid var(--hair2);border-radius:10px;overflow:hidden;z-index:6;box-shadow:0 16px 38px rgba(0,0,0,.55)}
+.geoitem{padding:10px 13px;font-size:13px;color:#ECEAE5;cursor:pointer}
+.geoitem:hover{background:rgba(255,255,255,.06)}
 .frm{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .f label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
 .f input,.f select{width:100%;background:#14161a;border:1px solid var(--hair);border-radius:10px;color:#ECEAE5;font-family:var(--sans);font-size:14px;padding:11px 12px}
@@ -87,7 +100,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <body>
 <header class="hdr"><div class="wrap">
   <a href="/" aria-label="Markets of Tomorrow"><img class="tmwlogo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of Tomorrow"></a>
-  <div class="hdr-r"><span class="who" id="who"></span><a class="x" href="/" aria-label="Back to site"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2 L12 12 M12 2 L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a></div>
+  <div class="hdr-r"><a class="x" href="/" aria-label="Back to site"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2 L12 12 M12 2 L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a></div>
 </div></header>
 
 <nav class="tabs"><div class="wrap">
@@ -144,7 +157,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="f"><label>Last name</label><input id="pf_last"></div>
         <div class="f"><label>Profession</label><input id="pf_prof"></div>
         <div class="f"><label>Company</label><input id="pf_co"></div>
-        <div class="f"><label>Home market</label><input id="pf_based" placeholder="Florida, Tennessee, Miami&hellip;"></div>
+        <div class="f" style="position:relative"><label>Home market</label><input id="pf_based" placeholder="Search a city or place&hellip;" autocomplete="off"><div class="geolist" id="pf_geo" hidden></div></div>
       </div>
       <div class="aActions"><button class="btn primary" id="btnSave">Save profile</button><span class="savemsg" id="saveMsg"></span></div>
     </div>
@@ -246,34 +259,54 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   }
   function whenMember(cb){ getMember().then(cb); }
 
-  var lists={loaded:false,loading:false};
+  // favorites live in Memberstack member JSON (not the event log) — same source the site modal uses
+  var _mjP=null;
+  function getMJ(){ if(_mjP) return _mjP; _mjP=new Promise(function(res){ getMember().then(function(mem){ var m=ms(); if(mem&&m&&m.getMemberJSON){ m.getMemberJSON().then(function(r){res((r&&r.data)||{});}).catch(function(){res({});}); } else res({}); }); }); return _mjP; }
+  function projectSlugify(t){return String(t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,'');}
+  function mapSlug(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+  function humanize(slug){return String(slug||'').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function gcard(href,img,kicker,title){return '<a class="gc" href="'+esc(href)+'" target="_blank" rel="noopener">'+(img?'<img class="gc-img" src="'+esc(img)+'" loading="lazy" alt="">':'<div class="gc-img gc-ph"></div>')+'<div class="gc-b">'+(kicker?'<div class="gc-cat">'+esc(kicker)+'</div>':'')+'<div class="gc-t">'+esc(title)+'</div></div></a>';}
+
+  var _wlDone=false,_svDone=false;
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});
     var id=b.getAttribute('data-tab');
     document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
-    if(id==='watchlist'||id==='saved') loadLists();
+    if(id==='watchlist') loadWatch();
+    if(id==='saved') loadSaved();
   })});
 
-  function humanize(slug){return String(slug||'').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
-  function loadLists(){
-    if(lists.loaded||lists.loading) return; lists.loading=true;
-    whenMember(function(mem){
-      var id=mem&&mem.id;
-      if(!id){ lists.loading=false; $('watchList').innerHTML='<div class="empty">Couldn\'t load your watchlist &mdash; try a refresh.</div>'; $('savedList').innerHTML='<div class="empty">Couldn\'t load your saved articles &mdash; try a refresh.</div>'; return; }
-      Promise.all([
-        fetch(WORKER+'/member-lists?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():{watchlist:[],saved:[]}}).catch(function(){return{watchlist:[],saved:[]}}),
-        fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})
-      ]).then(function(res){
-        lists.loaded=true; lists.loading=false;
-        var d=res[0],P=res[1],bySlug={}; P.forEach(function(p){if(p.Slug)bySlug[String(p.Slug).toLowerCase()]=p});
-        var wl=(d.watchlist||[]).map(function(w){var p=bySlug[String(w.slug).toLowerCase()]||{};return{slug:w.slug,title:w.title||p.Title||humanize(w.slug),city:w.city||p.City||''}});
-        $('wlCount').textContent=wl.length+' tracked';
-        $('watchList').innerHTML=wl.length?wl.map(function(w){return '<a class="lrow" href="https://www.oftmw.com/project/'+encodeURIComponent(w.slug)+'/"><div class="lt"><b>'+w.title+'</b>'+(w.city?'<span>'+w.city+'</span>':'')+'</div><span class="go">↗</span></a>'}).join(''):'<div class="empty">No tracked projects yet. Star projects on the <a href="/map">map</a> to build your watchlist.</div>';
-        var sv=d.saved||[]; $('svCount').textContent=sv.length+' articles';
-        $('savedList').innerHTML=sv.length?sv.map(function(a){return '<a class="lrow" href="https://www.oftmw.com/post/'+encodeURIComponent(a.slug)+'/"><div class="lt"><b>'+(a.title||humanize(a.slug))+'</b></div><span class="go">↗</span></a>'}).join(''):'<div class="empty">No saved articles yet.</div>';
-      });
-    });
+  function loadWatch(){
+    if(_wlDone) return; _wlDone=true;
+    Promise.all([getMJ(), fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})]).then(function(out){
+      var j=out[0]||{}, arr=out[1]||[];
+      var favs=Array.isArray(j.favorites)?j.favorites.filter(function(s){return typeof s==='string'&&s}):[];
+      var bySlug={}; arr.forEach(function(p){var s=projectSlugify(p.Title); if(s&&!bySlug[s])bySlug[s]=p;});
+      $('wlCount').textContent=favs.length+(favs.length===1?' project':' projects');
+      if(!favs.length){ $('watchList').innerHTML='<div class="empty">No tracked projects yet. Star projects on the <a href="https://www.oftmw.com/map" target="_blank" rel="noopener">map</a> to build your watchlist.</div>'; return; }
+      $('watchList').innerHTML='<div class="grid">'+favs.map(function(slug){
+        var p=bySlug[slug]||{}; var msl=p.Title?mapSlug(p.Title):slug.replace(/-/g,'');
+        return gcard('https://www.oftmw.com/map/?project='+encodeURIComponent(msl), p.ImageURL||p.Image2||'', p.City||'', p.Title||humanize(slug));
+      }).join('')+'</div>';
+    }).catch(function(){ _wlDone=false; $('watchList').innerHTML='<div class="empty">Couldn\'t load your watchlist &mdash; try a refresh.</div>'; });
   }
+
+  function loadSaved(){
+    if(_svDone) return; _svDone=true;
+    getMJ().then(function(j){
+      var favs=Array.isArray(j.article_favorites)?j.article_favorites.filter(function(s){return typeof s==='string'&&s}):[];
+      $('svCount').textContent=favs.length+' saved';
+      if(!favs.length){ $('savedList').innerHTML='<div class="empty">No saved articles yet. Tap the heart on any <a href="https://www.oftmw.com/journal" target="_blank" rel="noopener">journal</a> article to save it here.</div>'; return; }
+      Promise.all(favs.map(function(slug){return fetch(WORKER+'/posts/by-slug/'+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){return j&&j.post?j.post:null}).catch(function(){return null});})).then(function(posts){
+        $('savedList').innerHTML='<div class="grid">'+favs.map(function(slug,i){
+          var p=posts[i]||{}; var cat=p.main_category||(Array.isArray(p.categories)&&p.categories[0])||'';
+          return gcard('https://www.oftmw.com/post/'+encodeURIComponent(slug)+'/', p.cover_image||p.image||'', cat, p.title||humanize(slug));
+        }).join('')+'</div>';
+      });
+    }).catch(function(){ _svDone=false; $('savedList').innerHTML='<div class="empty">Couldn\'t load your saved articles &mdash; try a refresh.</div>'; });
+  }
+  function stateFromPlace(pn){ if(!pn) return ''; var parts=String(pn).split(',').map(function(s){return s.trim()}).filter(Boolean); if(parts.length>=2 && /^(united states|usa|united kingdom|uk|canada|mexico|méxico)$/i.test(parts[parts.length-1])) parts.pop(); return parts[parts.length-1]||''; }
 
   function ms(){return window.$memberstackDom}
   $('btnPw').addEventListener('click',function(){var m=ms();try{if(m&&m.openModal){m.openModal('FORGOT_PASSWORD').catch(function(){try{m.openModal('RESET_PASSWORD')}catch(e){}});return}}catch(e){}alert('Use “Forgot password” on the login screen to reset.')});
@@ -287,7 +320,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('saveMsg').textContent='Saving…';
     m.updateMember({customFields:cf}).then(function(){
       $('saveMsg').textContent='Saved ✓';
-      var cm=$('cardMarket'); if(cm){cm.textContent=based;cm.style.display=based?'':'none';}
+      var cm=$('cardMarket'); var st=stateFromPlace(based); if(cm){cm.textContent=st;cm.style.display=st?'':'none';}
       var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim(); if(nm){$('nm').textContent=nm;$('cardName').textContent=nm.toUpperCase();$('av').textContent=ini(nm);}
       setTimeout(function(){$('saveMsg').textContent='';},2500);
     }).catch(function(){ $('saveMsg').textContent='Could not save'; });
@@ -298,18 +331,49 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     var cf=mem.customFields||{};
     var email=(mem.auth&&mem.auth.email)||mem.email;
     var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim();
-    var market=cf['based']||null;
-    if(email){ $('acctEmail').textContent=email; $('who').textContent=email; }
+    var market=cf['based']?stateFromPlace(cf['based']):null;
+    if(email){ $('acctEmail').textContent=email; }
     $('pf_first').value=cf['first-name']||''; $('pf_last').value=cf['last-name']||'';
     $('pf_prof').value=cf['profession']||''; $('pf_co').value=cf['company-name']||'';
     $('pf_based').value=cf['based']||'';
-    fetch(WORKER+'/member-stats?id='+encodeURIComponent(mem.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
+    Promise.all([
+      fetch(WORKER+'/member-stats?id='+encodeURIComponent(mem.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}),
+      getMJ()
+    ]).then(function(out){
+      var d=out[0], j=out[1]||{};
       var base=Object.assign({},DEMO);
       if(d&&!d.error) base=Object.assign(base,d);
       base.name=nm||(d&&d.name)||base.name; base.market=market||null;
+      var wl=Array.isArray(j.favorites)?j.favorites.length:0;
+      base.stats=Object.assign({},base.stats,{saved:wl});
       render(base);
-    }).catch(function(){ if(nm){var b=Object.assign({},DEMO,{name:nm,market:market||null});render(b);} });
+    });
   });
+
+  // Home market — live place suggestions via Mapbox (same as the signup lightbox)
+  (function(){
+    var TOKEN='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+    var inp=$('pf_based'), list=$('pf_geo'); if(!inp||!list) return;
+    var timer,hideT;
+    function hide(){ list.hidden=true; list.innerHTML=''; }
+    inp.addEventListener('input',function(){
+      var q=inp.value.trim(); clearTimeout(timer);
+      if(q.length<2){ hide(); return; }
+      timer=setTimeout(function(){
+        fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/'+encodeURIComponent(q)+'.json?access_token='+TOKEN+'&autocomplete=true&types=place,region,district&limit=5')
+          .then(function(r){return r.json()}).then(function(d){
+            var feats=(d&&d.features)||[]; if(!feats.length){ hide(); return; }
+            list.innerHTML=feats.map(function(f){return '<div class="geoitem" data-pn="'+esc(f.place_name||'')+'">'+esc(f.place_name||'')+'</div>';}).join('');
+            list.hidden=false;
+          }).catch(hide);
+      },250);
+    });
+    list.addEventListener('mousedown',function(e){
+      var it=e.target.closest&&e.target.closest('.geoitem'); if(!it) return;
+      e.preventDefault(); inp.value=it.getAttribute('data-pn')||it.textContent; hide();
+    });
+    inp.addEventListener('blur',function(){ clearTimeout(hideT); hideT=setTimeout(hide,160); });
+  })();
 })();
 </script>
 </body>
