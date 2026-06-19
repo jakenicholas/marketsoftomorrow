@@ -334,6 +334,47 @@
   .atlas-dash-top{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-bottom:18px}
   .atlas-dash-top .atlas-panel{margin-bottom:0}
   @media(max-width:900px){.atlas-dash-top{grid-template-columns:1fr}}
+
+  /* ── Rich project-card grid (Overview) — ported from generate_market_pages.py ── */
+  .apcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+  @media(max-width:560px){.apcards{grid-template-columns:1fr}}
+  .apcards .card{display:flex;flex-direction:column;background:#111;border-radius:14px;overflow:hidden;transition:transform .15s,border-color .15s;border:1px solid transparent;position:relative}
+  .apcards .card:hover{transform:translateY(-2px);border-color:rgba(167,139,250,.3)}
+  .apcards .card-link{display:block;text-decoration:none;color:inherit}
+  .apcards .card-firms-wrap{padding:0 20px 20px}
+  .apcards .card-feat-badge{position:absolute;top:10px;right:10px;z-index:2;width:22px;height:22px;border-radius:5px;background:var(--gold);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .apcards .card-feat-badge svg{width:12px;height:12px;fill:#0a0a0a}
+  .apcards .card-img{height:220px;background-size:cover;background-position:center;position:relative}
+  .apcards .card-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.45) 100%)}
+  .apcards .card-body{padding:18px 20px 4px}
+  .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:6px}
+  .apcards .card-loc{font-family:var(--sans);font-size:13px;color:var(--mute-2);margin-bottom:14px}
+  .apcards .pm-tl{margin-bottom:14px}
+  .apcards .pm-tl-date{text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
+  .apcards .pm-tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
+  .apcards .pm-tl-grad{position:absolute;inset:0;background:linear-gradient(90deg,#3a2f6b,#7C5CE0 38%,#A78BFA 64%,#1FDF67)}
+  .apcards .pm-tl-empty{position:absolute;top:0;bottom:0;right:0;background:#0d0f0e;box-shadow:inset 2px 0 3px rgba(0,0,0,.6)}
+  .apcards .pm-tl-knob{position:absolute;top:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0a0a;font-size:9.5px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;z-index:2;font-family:var(--sans);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+  .apcards .pm-tl-stages{display:flex;gap:3px;margin-top:10px}
+  .apcards .pm-tl-stage{flex:1;font-size:7.5px;letter-spacing:.02em;text-transform:uppercase;color:rgba(255,255,255,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;font-family:var(--sans)}
+  .apcards .pm-tl-stage:first-child{text-align:left}
+  .apcards .pm-tl-stage:last-child{text-align:right}
+  .apcards .pm-tl-stage.done{color:rgba(255,255,255,.5)}
+  .apcards .pp-minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px;margin-top:14px;margin-bottom:14px}
+  .apcards .pp-mini{padding:10px 11px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+  .apcards .pp-mini .v{font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:-.02em;color:var(--white);white-space:nowrap}
+  .apcards .pp-mini .k{font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:5px;white-space:nowrap}
+  .apcards .pp-firms{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .apcards .pp-firm{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;text-decoration:none;color:inherit;display:block;transition:border-color .15s}
+  .apcards .pp-firm:hover{border-color:rgba(31,223,103,.35)}
+  .apcards .pp-firm .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+  .apcards .pp-firm .v{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--white);margin-top:4px;line-height:1.25}
+  .apcards .pp-firm .go{display:inline-block;margin-top:7px;font-family:var(--sans);font-size:11px;color:var(--green)}
+  .apcards .pp-firm-empty{cursor:default}
+  .apcards .pp-firm-empty:hover{border-color:rgba(255,255,255,.08)}
+  .apcards-more-wrap{text-align:center;margin-top:20px}
+  .apcards-more{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--purple-soft);background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:11px 26px;cursor:pointer;transition:background .15s,border-color .15s}
+  .apcards-more:hover{background:rgba(167,139,250,.16);border-color:rgba(167,139,250,.5)}
   .atlas-ph{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 16px;display:flex;align-items:center;gap:9px;justify-content:space-between;font-weight:600}
   .atlas-ph .lbl{display:flex;align-items:center;gap:9px}
   .atlas-ph .hint{font-size:9px;letter-spacing:.06em;color:var(--mute);font-weight:400;text-transform:none}
@@ -1599,6 +1640,162 @@
         </section>`;
     }
 
+    // ── Rich project-card grid (Overview) — the full markets-page card,
+    //    rendered client-side from window.allProjectFeatures, filtered to the
+    //    Market Calculator. Mirrors generate_market_pages.py card_html exactly.
+    let _pcardShown = 24;
+    const PCARD_STEP = 24;
+    function _pcSlug(t) {
+      return (t || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
+    }
+    function _pcNum(n) {
+      if (n == null || n === '') return '';
+      const v = parseInt(n, 10);
+      return isNaN(v) ? '' : v.toLocaleString();
+    }
+    function _pcYear(s) {
+      const m = String(s || '').match(/^(\d{4})/);
+      return m ? m[1] : '';
+    }
+    function _pcMonYear(s) {
+      const m = String(s || '').match(/^(\d{4})(?:-(\d{2}))?/);
+      if (!m) return '';
+      const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return m[2] ? `${MON[+m[2]-1] || ''} ${m[1]}` : m[1];
+    }
+    function _pcStatusIdx(delivery) {
+      const s = (delivery || '').toString().toLowerCase();
+      if (s.includes('now open') || s === 'open' || s.includes('complete') || s.includes('delivered')) return 4;
+      if (s.includes('opening') || s.includes('coming')) return 3;
+      if (s.includes('construction')) return 2;
+      if (s.includes('breaking')) return 1;
+      return 0;
+    }
+    // Client port of progress_bar_html — five-stage gradient meter, knob at the
+    // active stage's anchor. Pct anchors match generate_pages.py (5/20/40/78/100).
+    function buildCardProgress(p) {
+      const STAGES = ['Announced', 'Breaking Ground', 'Construction', 'Opening Soon', 'Now Open'];
+      const ANCHOR = [5, 20, 40, 78, 100];
+      const ai = _pcStatusIdx(p.delivery);
+      const complete = ai >= 4;
+      const pct = complete ? 100 : ANCHOR[ai];
+      const glow = complete ? '31,223,103' : '167,139,250';
+      const accent = complete ? '#1FDF67' : '#B9A6FF';
+      const stages = STAGES.map((label, i) => {
+        const on = !complete && i === ai;
+        const cls = on ? 'on' : ((complete || i < ai) ? 'done' : '');
+        const style = on ? ` style="color:${accent};font-weight:800;text-shadow:0 0 12px rgba(${glow},.5)"` : '';
+        return `<span class="pm-tl-stage ${cls}"${style}>${label}</span>`;
+      }).join('');
+      const sub = complete ? 'Delivered' : (p.deliveryDate ? 'Est. ' + _pcMonYear(p.deliveryDate) : '');
+      const dateHtml = sub ? `<div class="pm-tl-date">${escapeHtml(sub)}</div>` : '';
+      const knobLeft = pct >= 98 ? 'calc(100% - 18px)' : pct + '%';
+      return `<div class="pm-tl">${dateHtml}
+        <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
+          <div class="pm-tl-empty" style="left:${pct}%"></div>
+          <div class="pm-tl-knob" style="left:${knobLeft};box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(${glow},.42),0 0 12px rgba(${glow},.55)">${pct}%</div>
+        </div>
+        <div class="pm-tl-stages">${stages}</div>
+      </div>`;
+    }
+    function _pcMini(label, value) {
+      if (!value) return '';
+      return `<div class="pp-mini"><div class="v">${escapeHtml(value)}</div><div class="k">${escapeHtml(label)}</div></div>`;
+    }
+    function _pcFirm(label, firm) {
+      const name = (firm && firm.name) ? firm.name : '';
+      if (!name) {
+        return `<div class="pp-firm pp-firm-empty"><div class="k">${label}</div><div class="v" style="opacity:.45">—</div></div>`;
+      }
+      const inner = `<div class="k">${label}</div><div class="v">${escapeHtml(name)}</div><span class="go">View firm profile →</span>`;
+      const slug = (firm && firm.slug) ? firm.slug : '';
+      return slug
+        ? `<a class="pp-firm" href="https://www.oftmw.com/firm/${encodeURIComponent(slug)}/">${inner}</a>`
+        : `<div class="pp-firm">${inner}</div>`;
+    }
+    function pcardHtml(p) {
+      const title = escapeHtml(p.title || '');
+      const slug = _pcSlug(p.title || '');
+      const href = slug ? `${MAP_ORIGIN}/projects/${encodeURIComponent(slug)}/` : '#';
+      const featured = !!p.featured;
+      const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
+      const loc = [p.city, type].filter(Boolean).map(escapeHtml).join(' · ');
+      const featStar = featured
+        ? '<span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span>'
+        : '';
+      const imgStyle = p.image ? `background-image:url('${escapeHtml(p.image)}')` : 'background:#1a1d1a';
+      const minis = [
+        _pcMini('Start', _pcYear(p.startDate)),
+        _pcMini('Completion', _pcYear(p.deliveryDate) || _pcMonYear(p.deliveryDate)),
+        _pcMini('Units', _pcNum(p.units)),
+        _pcMini('Floors', String(p.floors || '').trim()),
+      ].join('');
+      const minisHtml = minis ? `<div class="pp-minis">${minis}</div>` : '';
+      const firms = `<div class="pp-firms">${_pcFirm('Developer', (p.developers || [])[0])}${_pcFirm('Architect', (p.architects || [])[0])}</div>`;
+      return `<div class="card${featured ? ' featured' : ''}"${featured ? ' data-featured="1"' : ''}>
+        <a class="card-link" href="${escapeHtml(href)}" aria-label="Open ${title}">
+          <div class="card-img" style="${imgStyle}">${featStar}</div>
+          <div class="card-body">
+            <div class="card-title">${title}</div>
+            <div class="card-loc">${loc}</div>
+            ${buildCardProgress(p)}
+            ${minisHtml}
+          </div>
+        </a>
+        <div class="card-firms-wrap">${firms}</div>
+      </div>`;
+    }
+    function filterProjectsByCalc() {
+      const features = window.allProjectFeatures || [];
+      if (!features.length) return null;
+      const cityToState = buildCityStateMap();
+      const st = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const ci = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
+      const ty = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
+      const yr = currentYearFilter ? parseInt(currentYearFilter, 10) : null;
+      return features.map(f => f.properties).filter(p => {
+        if (st && (cityToState[p.city] || 'Other') !== st) return false;
+        if (ci && p.city !== ci) return false;
+        if (ty) { const pty = ((p.projectType || '').split(',')[0] || '').trim(); if (pty !== ty) return false; }
+        if (yr) { const dy = parseInt(String(p.deliveryDate || '').slice(0, 4), 10); if (!dy || dy > yr) return false; }
+        return true;
+      });
+    }
+    function renderProjectCards() {
+      const list = filterProjectsByCalc();
+      if (list === null) {
+        return `<section class="atlas-section"><div class="atlas-section-head"><div>
+            <h2 class="atlas-section-title">Tracked projects</h2>
+            <p class="atlas-section-sub">Loading the pipeline&hellip;</p>
+          </div></div><div class="atlas-tl-empty">Projects loading&hellip;</div></section>`;
+      }
+      const dval = (p) => { const m = String(p.deliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/); return m ? (+m[1]) * 12 + (m[2] ? +m[2] - 1 : 11) : Infinity; };
+      const sorted = list.slice().sort((a, b) => {
+        if (!!b.featured - !!a.featured) return (!!b.featured) - (!!a.featured);
+        return dval(a) - dval(b);
+      });
+      const total = sorted.length;
+      if (!total) {
+        return `<section class="atlas-section"><div class="atlas-section-head"><div>
+            <h2 class="atlas-section-title">Tracked projects</h2>
+            <p class="atlas-section-sub">No projects match the current filter.</p>
+          </div></div></section>`;
+      }
+      const shown = sorted.slice(0, _pcardShown);
+      const cards = shown.map(pcardHtml).join('');
+      const moreBtn = total > shown.length
+        ? `<div class="apcards-more-wrap"><button class="apcards-more" type="button" data-pcard-more="1">Show all ${total} projects</button></div>`
+        : '';
+      return `<section class="atlas-section">
+        <div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Tracked projects</h2>
+          <p class="atlas-section-sub">Every project in the filter, with live construction status — ${total} tracked.</p>
+        </div></div>
+        <div class="apcards">${cards}</div>
+        ${moreBtn}
+      </section>`;
+    }
+
     function renderFootnote() {
       const total = (atlasData.hero_stats && atlasData.hero_stats.total_projects) || '';
       return `<div class="atlas-foot-note">
@@ -2121,6 +2318,7 @@
           renderHeadlineTiles(),
           renderScale(),
           renderDashGrid(),
+          renderProjectCards(),
           renderLeaderboardSection(),
           renderCoverageAndComing(),
           renderFootnote()
@@ -2202,6 +2400,7 @@
         else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; }
         currentTypeFilter = (cat && cat.value) ? cat.value : 'ALL';
         currentYearFilter = (yr && yr.value) ? yr.value : '';
+        _pcardShown = PCARD_STEP;
         Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
         const y = window.pageYOffset;
         renderAll();
@@ -2211,6 +2410,16 @@
       if (calcForm) {
         calcForm.addEventListener('submit', function(e) { e.preventDefault(); applyCalc(); });
         ['ac-place', 'ac-cat', 'ac-year'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', applyCalc); });
+      }
+      // Project-card grid "show all" — reveal the full filtered set.
+      const pcardMore = document.querySelector('[data-pcard-more]');
+      if (pcardMore) {
+        pcardMore.addEventListener('click', function() {
+          _pcardShown = Infinity;
+          const y = window.pageYOffset;
+          renderAll();
+          window.scrollTo({ top: y, behavior: 'auto' });
+        });
       }
       // Leaderboard tab switching
       document.querySelectorAll('.atlas-lb-tab').forEach(btn => {
@@ -2351,15 +2560,13 @@
 
     function init() {
       loadAtlasData().then(() => {
-        // If the initial view is the timeline, we also need the project list
-        // before the first render shows real rows.
-        if (currentAtlasView === 'timeline') {
-          renderAll();  // hero + loading placeholder
-          return ensureProjectsLoaded().then(() => {
-            if (atlasData && currentAtlasView === 'timeline') renderAll();
-          });
+        if (!atlasData) return;
+        renderAll();  // instant data panels (timeline hero / overview cards show a loading state)
+        // Both views need the project list — the Overview for its card grid,
+        // the timeline for its rows. Fetch once, then re-render to fill them in.
+        if (!(window.allProjectFeatures && window.allProjectFeatures.length)) {
+          ensureProjectsLoaded().then(() => { if (atlasData) renderAll(); });
         }
-        if (atlasData) renderAll();
       }).catch(() => {});
     }
 
