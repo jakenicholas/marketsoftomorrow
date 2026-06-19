@@ -2688,6 +2688,11 @@
   if (location.hash === TMW_HASH){
     setTimeout(function(){ open(''); }, 0);
   }
+  // Also open when the hash becomes #search at runtime (e.g. a dropdown link
+  // sets it on the current page) — not just on initial load.
+  window.addEventListener('hashchange', function(){
+    if (location.hash === TMW_HASH && !root.classList.contains('open')) open('');
+  });
 
   scrim.addEventListener('click', close);
   closeBtn.addEventListener('click', close);

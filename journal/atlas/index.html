@@ -1129,7 +1129,7 @@
     // Default to the Overview ('stats') view — it renders instantly from
     // atlas.json alone (no projects-flat.json dependency), so the page is
     // never stuck on a loading state.
-    let currentAtlasView = 'stats';
+    let currentAtlasView = (new URLSearchParams(location.search).get('aview') === 'timeline') ? 'timeline' : 'stats';
     let currentLbKey = 'developers'; // active leaderboard tab — preserved across re-renders
     let currentTimelineStatus = 'all';
     let currentTimelineFeatured = false;

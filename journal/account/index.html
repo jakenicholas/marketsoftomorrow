@@ -346,6 +346,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     if(id==='watchlist') loadWatch();
     if(id==='saved') loadSaved();
   })});
+  // Deep-link a tab via the hash (e.g. /account#watchlist), on load + change.
+  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(['overview','watchlist','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
+  tabFromHash(); window.addEventListener('hashchange',tabFromHash);
 
   function loadWatch(){
     if(_wlDone) return; _wlDone=true;

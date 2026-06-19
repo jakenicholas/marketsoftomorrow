@@ -1268,18 +1268,18 @@
       '<div>' +
         '<a class="tmw-mm-item" href="/markets/"><span class="tmw-mm-ic green">' + ic('<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>') + '</span><span class="tmw-mm-tx"><b>Tracked Markets<em class="fpro">FREE</em></b><i>173 cities, every project we watch.</i></span></a>' +
         '<a class="tmw-mm-item" href="/firm/"><span class="tmw-mm-ic green">' + ic('<path d="M3 21h18M6 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16M14 21V9h3a1 1 0 0 1 1 1v11M9 8h2M9 12h2M9 16h2"/>') + '</span><span class="tmw-mm-tx"><b>Developers &amp; Architects<em class="fpro">FREE</em></b><i>953 firms, ranked by pipeline.</i></span></a>' +
-        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/"><span class="tmw-mm-ic">' + ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>') + '</span><span class="tmw-mm-tx"><b>Openings Tracker<em class="ppro">PRO</em></b><i>What&apos;s opening next, by date.</i></span></a>' +
+        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/?aview=timeline"><span class="tmw-mm-ic">' + ic('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>') + '</span><span class="tmw-mm-tx"><b>Openings Tracker<em class="ppro">PRO</em></b><i>What&apos;s opening next, by date.</i></span></a>' +
       '</div>' +
       '<div class="tmw-mm-h tmw-mm-h-span" style="margin-top:16px">Pro tools</div>' +
       '<div>' +
         '<a class="tmw-mm-item" href="' + U + '"><span class="tmw-mm-ic">' + ic('<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>') + '</span><span class="tmw-mm-tx"><b>Interactive Map<em>PRO</em></b><i>396 projects across 40+ markets.</i></span></a>' +
-        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/"><span class="tmw-mm-ic">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas<em>PRO</em></b><i>Every tracked project on one canvas.</i></span></a>' +
+        '<a class="tmw-mm-item" href="https://www.oftmw.com/atlas/?aview=overview"><span class="tmw-mm-ic">' + ic('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') + '</span><span class="tmw-mm-tx"><b>The Atlas<em>PRO</em></b><i>Leaderboards, momentum &amp; coverage.</i></span></a>' +
       '</div>' +
       '<div class="tmw-mm-pro"><div class="tmw-mm-pro-grid">' +
-        pro(HEX_IC, 'TMW Intelligence', 'Completion forecasts &amp; confidence.', 'feature:intelligence') +
-        pro(EYE_IC, 'Watchlist', 'Track projects, get notified.', 'feature:watchlist') +
+        '<a class="tmw-mm-item" href="#search" data-dbopen="search"><span class="tmw-mm-ic">' + ic(HEX_IC) + '</span><span class="tmw-mm-tx"><b>TMW Intelligence<em>PRO</em></b><i>Ask anything &mdash; forecasts &amp; answers.</i></span></a>' +
+        '<a class="tmw-mm-item" href="/account#watchlist"><span class="tmw-mm-ic">' + ic(EYE_IC) + '</span><span class="tmw-mm-tx"><b>Watchlist<em>PRO</em></b><i>Your tracked projects.</i></span></a>' +
         pro(CMP_IC, 'Compare', 'Stack any projects side-by-side.', 'feature:compare', 'https://www.oftmw.com/map/?compare=new') +
-        pro(PULSE_IC, 'Pulse', 'A live feed of every new project.', 'feature:pulse') +
+        '<a class="tmw-mm-item" href="#" data-dbopen="pulse"><span class="tmw-mm-ic">' + ic(PULSE_IC) + '</span><span class="tmw-mm-tx"><b>Pulse<em>PRO</em></b><i>A live feed of every new project.</i></span></a>' +
       '</div></div>' +
       '<a class="tmw-mm-cta" href="' + UP + '" data-paywall="go-pro"><span class="t">Explore the map free. <em>Go Pro for the intelligence.</em></span><span class="go">Go Pro →</span></a>' +
     '</div>';
@@ -1331,6 +1331,22 @@
   function wirePaywallTiles() {
     if (_pwWired) return; _pwWired = true;
     document.addEventListener('click', function (e) {
+      // Database-dropdown action tiles: open the search lightbox or pulse pop
+      // on the current page (close the open mega-menu first).
+      var dbo = e.target.closest && e.target.closest('[data-dbopen]');
+      if (dbo) {
+        e.preventDefault(); e.stopPropagation();
+        var openFm = document.querySelector('.tmw-fm.open'); if (openFm) openFm.classList.remove('open');
+        var act = dbo.getAttribute('data-dbopen');
+        if (act === 'search') {
+          if (location.hash === '#search') { try { window.dispatchEvent(new HashChangeEvent('hashchange')); } catch (_) {} }
+          else { location.hash = '#search'; }
+        } else if (act === 'pulse') {
+          var bell = document.getElementById('tmw-pulse-bell'), pop = document.getElementById('tmw-pulse-pop');
+          if (bell && (!pop || pop.hidden)) bell.click();
+        }
+        return;
+      }
       var el = e.target.closest && e.target.closest('[data-paywall]');
       if (!el) return;
       if (window._isPaidMember) return;
