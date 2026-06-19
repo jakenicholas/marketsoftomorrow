@@ -1134,9 +1134,9 @@
       const cities = Object.keys(cityC).filter(c => cityC[c] >= 2).sort((a, b) => cityC[b] - cityC[a]);
       const placeVal = (currentStateFilter && currentStateFilter !== 'ALL') ? ('st:' + currentStateFilter)
                      : (currentCityFilter && currentCityFilter !== 'ALL') ? ('ci:' + currentCityFilter) : '';
-      const stateOpts = states.map(s => `<option value="st:${escapeHtml(s.code)}"${placeVal === 'st:' + s.code ? ' selected' : ''}>${escapeHtml(s.label)} (${s.count})</option>`).join('');
-      const cityOpts = cities.map(c => `<option value="ci:${escapeHtml(c)}"${placeVal === 'ci:' + c ? ' selected' : ''}>${escapeHtml(c)} (${cityC[c]})</option>`).join('');
-      const catOpts = types.map(t => `<option value="${escapeHtml(t.type)}"${currentTypeFilter === t.type ? ' selected' : ''}>${escapeHtml(t.type)} (${t.count})</option>`).join('');
+      const stateOpts = states.map(s => `<option value="st:${escapeHtml(s.code)}"${placeVal === 'st:' + s.code ? ' selected' : ''}>${escapeHtml(s.label)}</option>`).join('');
+      const cityOpts = cities.map(c => `<option value="ci:${escapeHtml(c)}"${placeVal === 'ci:' + c ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
+      const catOpts = types.map(t => `<option value="${escapeHtml(t.type)}"${currentTypeFilter === t.type ? ' selected' : ''}>${escapeHtml(t.type)}</option>`).join('');
       const nowY = new Date().getFullYear();
       const yearOpts = [nowY, nowY + 1, nowY + 2, nowY + 4].map(y => `<option value="${y}"${String(currentYearFilter) === String(y) ? ' selected' : ''}>By end of ${y}</option>`).join('');
       return `
@@ -2090,8 +2090,8 @@
         sections.push(renderStateFilter(), stickyhead, renderTimelineSection());
       } else {
         sections.push(
-          renderStateFilter(),
           renderIntelHeader(),
+          renderStateFilter(),
           stickyhead,
           renderHeadlineTiles(),
           renderDashGrid(),
@@ -2383,19 +2383,28 @@
       return t;
     }
     function expired() { return (Date.now() - trialStart()) >= TRIAL_MS; }
+    function isPro() {
+      try {
+        if (window._isPaidMember) return true;
+        if (window.tmwAuth && window.tmwAuth.paid) return true;
+        if (localStorage.getItem('tmw_auth_state') === 'pro') return true;
+      } catch (e) {}
+      return false;
+    }
     function start() {
-      if (window._isPaidMember) return;          // never gate Pro members
+      if (isPro()) return;                        // never gate Pro members
       trialStart();                              // stamp the 24h clock on first visit
       if (expired() && typeof window.tmwShowPaywall === 'function') {
         window.tmwShowPaywall('atlas', { hard: false });
       }
     }
-    // Wait for Memberstack to resolve _isPaidMember first (so a Pro member is
-    // never briefly blocked), capped at ~4s in case it never loads.
+    // Decide only once auth is actually RESOLVED (tmwAuth.ready), not merely when
+    // _isPaidMember is defined — it's pre-set to false before Memberstack resolves,
+    // which was briefly gating Pro members. Cached pro state short-circuits.
     function ready(cb) {
-      if (typeof window._isPaidMember !== 'undefined') return cb();
+      if (isPro() || (window.tmwAuth && window.tmwAuth.ready)) return cb();
       var n = 0, t = setInterval(function () {
-        if (typeof window._isPaidMember !== 'undefined' || ++n > 40) { clearInterval(t); cb(); }
+        if ((window.tmwAuth && window.tmwAuth.ready) || isPro() || ++n > 50) { clearInterval(t); cb(); }
       }, 100);
     }
     function boot() { ready(start); }
