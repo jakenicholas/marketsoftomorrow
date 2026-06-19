@@ -1754,14 +1754,19 @@
   var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
   var btn=document.createElement('button'); btn.type='button'; btn.className='tmw-mfollow';
   if(hero.tagName==='H1'&&hero.parentNode){ hero.parentNode.insertBefore(btn, hero.nextSibling); } else { hero.appendChild(btn); }
-  var following=false, busy=false;
+  // Cache the followed list locally so the button paints the right label
+  // instantly on load (no Follow→Following flicker while Memberstack resolves).
+  var CK='tmw_mkt_follows';
+  function rc(){ try{ var a=JSON.parse(localStorage.getItem(CK)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  function wc(l){ try{ localStorage.setItem(CK, JSON.stringify(l||[])); }catch(e){} }
+  var following=rc().indexOf(slug)>=0, busy=false;
   function paint(){ btn.classList.toggle('on',following); btn.innerHTML=following?(CHECK+'Following'):(STAR+'Follow '+name); btn.setAttribute('aria-pressed',following?'true':'false'); }
   paint();
   function getJSON(m){ return m.getMemberJSON().then(function(r){return (r&&r.data)||{};}); }
   function signIn(){ var x=ms(); if(x&&x.openModal)return x.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
   function postEvent(mem){ try{ var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:'market_followed',props:{market:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }catch(e){} }
   // initial state once Memberstack + member resolve
-  (function wait(t){ t=t||0; var x=ms(); if(x&&x.getCurrentMember){ x.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem) return; getJSON(x).then(function(j){ var list=Array.isArray(j.markets_followed)?j.markets_followed:[]; following=list.indexOf(slug)>=0; paint(); }); }).catch(function(){}); return; } if(++t>40)return; setTimeout(function(){wait(t);},250); })();
+  (function wait(t){ t=t||0; var x=ms(); if(x&&x.getCurrentMember){ x.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem) return; getJSON(x).then(function(j){ var list=Array.isArray(j.markets_followed)?j.markets_followed:[]; wc(list); var nowF=list.indexOf(slug)>=0; if(nowF!==following){ following=nowF; paint(); } }); }).catch(function(){}); return; } if(++t>40)return; setTimeout(function(){wait(t);},250); })();
   btn.addEventListener('click',function(){
     if(busy) return; var x=ms();
     if(!x||!x.getCurrentMember) return signIn();
@@ -1769,10 +1774,13 @@
       var mem=r&&r.data; if(!mem) return signIn();
       busy=true; btn.disabled=true;
       getJSON(x).then(function(j){
-        var list=Array.isArray(j.markets_followed)?j.markets_followed.slice():[];
-        var i=list.indexOf(slug),on; if(i>=0){list.splice(i,1);on=false;}else{list.push(slug);on=true;}
+        var prev=Array.isArray(j.markets_followed)?j.markets_followed.slice():[];
+        var i=prev.indexOf(slug), on=(i<0), list=prev.slice();
+        if(on) list.push(slug); else list.splice(i,1);
         j.markets_followed=list;
-        x.updateMemberJSON({json:j}).then(function(){ following=on; busy=false; btn.disabled=false; paint(); if(on)postEvent(mem); }).catch(function(){ busy=false; btn.disabled=false; });
+        // optimistic: flip + cache immediately so it feels instant
+        following=on; wc(list); paint();
+        x.updateMemberJSON({json:j}).then(function(){ busy=false; btn.disabled=false; if(on)postEvent(mem); }).catch(function(){ following=!on; wc(prev); paint(); busy=false; btn.disabled=false; });
       }).catch(function(){ busy=false; btn.disabled=false; });
     }).catch(function(){ busy=false; btn.disabled=false; });
   });
