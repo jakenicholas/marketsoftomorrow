@@ -5914,6 +5914,43 @@ async function handleContribution(request, env, origin) {
   return json({ ok: true, status: 'pending', xp: type === 'add' ? 50 : 25 }, {}, env, origin);
 }
 
+// ── Article comments — Reader-level (lvl≥2) members publish; everyone reads ──
+function ensureCommentsTable(env) {
+  return env.DB.prepare(`CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_slug TEXT, member_id TEXT, member_name TEXT, body TEXT, ts INTEGER, status TEXT DEFAULT 'visible')`).run();
+}
+// GET /comments?post=<slug> — visible comments for a post, newest first. Public.
+async function handleGetComments(env, origin, url) {
+  if (!env.DB) return json({ comments: [] }, {}, env, origin);
+  const slug = String(url.searchParams.get('post') || '').slice(0, 200);
+  if (!slug) return json({ error: 'post required' }, { status: 400 }, env, origin);
+  try {
+    await ensureCommentsTable(env);
+    const rs = await env.DB.prepare(`SELECT id, member_name, body, ts FROM comments WHERE post_slug = ? AND status = 'visible' ORDER BY ts DESC LIMIT 200`).bind(slug).all();
+    return json({ comments: (rs.results || []).map(r => ({ id: r.id, name: r.member_name || 'Member', body: r.body, ts: r.ts })) }, {}, env, origin);
+  } catch (e) { return json({ error: 'comments: ' + e.message }, { status: 500 }, env, origin); }
+}
+// POST /comment { member_id, post, body, member_name? } — publish a comment.
+// Server gate: Reader level (lvl≥2). (Pro is gated client-side at the UI.)
+async function handlePostComment(request, env, origin) {
+  if (!env.DB) return json({ error: 'no db' }, { status: 500 }, env, origin);
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const id = String((b && b.member_id) || '').slice(0, 120);
+  const slug = String((b && b.post) || '').slice(0, 200);
+  const body = String((b && b.body) || '').replace(/[<>]/g, '').trim().slice(0, 1500);
+  const name = String((b && b.member_name) || '').trim().slice(0, 80) || null;
+  if (!id || !slug || body.length < 2) return json({ error: 'member_id, post, body required' }, { status: 400 }, env, origin);
+  try {
+    await ensureCommentsTable(env);
+    let lvl = 1; try { const st = await computeMemberGameStats(env, id); lvl = (st && st.level) || 1; } catch {}
+    if (lvl < 2) return json({ error: 'level', message: 'Reach Reader level to comment.' }, { status: 403 }, env, origin);
+    const ts = Math.floor(Date.now() / 1000);
+    const res = await env.DB.prepare(`INSERT INTO comments (post_slug, member_id, member_name, body, ts, status) VALUES (?,?,?,?,?, 'visible')`).bind(slug, id, name, body, ts).run();
+    try { await env.DB.prepare(`INSERT INTO events (ts, member_id, member_name, event_name, path, props_json) VALUES (?,?,?,?,?,?)`).bind(ts, id, name, 'comment_posted', '/post/' + slug, JSON.stringify({ slug })).run(); } catch {}
+    const cid = (res && res.meta && res.meta.last_row_id) || null;
+    return json({ ok: true, comment: { id: cid, name: name || 'Member', body, ts } }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+
 export default {
   async fetch(request, env) {
     const url    = new URL(request.url);
@@ -6070,6 +6107,12 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/contribution') {
         return await handleContribution(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/comments') {
+        return await handleGetComments(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/comment') {
+        return await handlePostComment(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);

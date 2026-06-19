@@ -39,6 +39,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
     const bodyEl = document.getElementById('article-body-content');
     if (bodyEl) { try { upgradeBodyImages(bodyEl); hookGalleries(bodyEl); hookLightbox(bodyEl); } catch (e) {} }
     try { loadReadNext(post, post.slug); } catch (e) {}
+    try { initComments(post.slug, post); } catch (e) {}
     trackView(post.slug);
     return;
   }
@@ -83,6 +84,7 @@ async function loadArticle(slug) {
     renderArticle(post);
     if (post && post.status && post.status !== 'published') markDraftPreview();
     loadReadNext(post, slug);
+    try { initComments(slug, post); } catch (e) {}
   } catch (err) {
     console.error('[article] load failed:', err);
     renderArticleEmpty(
@@ -1254,3 +1256,86 @@ function escapeAttr(s) { return escapeHtml(s); }
   // If they bounce fast, don't bother.
   window.addEventListener('pagehide', function () { clearTimeout(t); });
 })();
+
+// ===================================================================
+// ARTICLE COMMENTS — everyone reads; PRO members at Reader level (lvl≥2)
+// publish. Self-contained: injects its own CSS + mounts after #read-next.
+// ===================================================================
+function initComments(slug, post) {
+  if (!slug || window.__tmwComments) return; window.__tmwComments = true;
+  var WORKER = WORKER_URL;
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+  function ago(ts){var s=Math.floor(Date.now()/1000)-ts;if(s<60)return'just now';var m=Math.floor(s/60);if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';var d=Math.floor(h/24);if(d<30)return d+'d ago';return new Date(ts*1000).toLocaleDateString();}
+  var CSS='.tmw-cmt{max-width:720px;margin:44px auto 8px;padding:0 24px;font-family:Inter,system-ui,sans-serif;color:#ECEAE5}'
+    +'.tmw-cmt-h{font-family:Fraunces,Georgia,serif;font-size:24px;font-weight:600;color:#fff;margin:0 0 20px}'
+    +'.tmw-cmt-h span{color:#9AA39C;font-size:17px;font-weight:400}'
+    +'.tmw-cmt-box{display:flex;gap:12px;margin-bottom:26px}'
+    +'.tmw-cmt-av{width:38px;height:38px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:600;font-size:15px;background:rgba(255,255,255,.05);color:#9AA39C}'
+    +'.tmw-cmt-av.me{background:rgba(230,197,116,.14);color:#e6c574}'
+    +'.tmw-cmt-boxr{flex:1}'
+    +'.tmw-cmt-box textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#ECEAE5;font-family:Inter,sans-serif;font-size:14px;padding:12px 14px;resize:vertical;min-height:74px}'
+    +'.tmw-cmt-box textarea:focus{outline:none;border-color:rgba(230,197,116,.5)}'
+    +'.tmw-cmt-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:10px}'
+    +'.tmw-cmt-actions span{font-size:12.5px;color:#9AA39C;margin-right:auto}'
+    +'.tmw-cmt-post{appearance:none;border:none;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,#f0d68a,#e6c574);color:#4a3708}'
+    +'.tmw-cmt-post:disabled{opacity:.6;cursor:default}'
+    +'.tmw-cmt-list{display:flex;flex-direction:column;gap:18px}'
+    +'.tmw-cmt-item{display:flex;gap:12px}'
+    +'.tmw-cmt-bd{flex:1;min-width:0}'
+    +'.tmw-cmt-meta{display:flex;align-items:baseline;gap:9px;margin-bottom:4px}'
+    +'.tmw-cmt-meta b{font-size:13.5px;font-weight:600;color:#fff}'
+    +'.tmw-cmt-meta span{font-size:11.5px;color:#9AA39C}'
+    +'.tmw-cmt-txt{font-size:14px;line-height:1.55;color:#d6d8d2;white-space:pre-wrap;word-wrap:break-word}'
+    +'.tmw-cmt-empty{color:#9AA39C;font-size:14px;padding:8px 0}'
+    +'.tmw-cmt-lock{position:relative;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:22px 22px 22px;background:rgba(255,255,255,.02);margin-bottom:26px;overflow:hidden}'
+    +'.tmw-cmt-pro{position:absolute;top:16px;right:16px;font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:#4a3708;background:linear-gradient(135deg,#f0d68a,#e6c574);border-radius:999px;padding:3px 9px}'
+    +'.tmw-cmt-lt{font-family:Fraunces,serif;font-size:17px;font-weight:600;color:#fff;margin-bottom:5px}'
+    +'.tmw-cmt-ls{font-size:13.5px;color:#9AA39C;line-height:1.5;max-width:80%;margin-bottom:14px}'
+    +'.tmw-cmt-cta{appearance:none;border:1px solid rgba(230,197,116,.45);cursor:pointer;background:rgba(230,197,116,.08);color:#e6c574;font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border-radius:10px}'
+    +'.tmw-cmt-cta:hover{background:rgba(230,197,116,.14)}';
+  if(!document.getElementById('tmw-cmt-css')){var st=document.createElement('style');st.id='tmw-cmt-css';st.textContent=CSS;document.head.appendChild(st);}
+
+  var anchor=document.getElementById('read-next')||document.querySelector('article')||document.getElementById('article-root');
+  var wrap=document.createElement('section'); wrap.className='tmw-cmt'; wrap.id='tmw-cmt';
+  wrap.innerHTML='<h2 class="tmw-cmt-h">Comments <span id="tmw-cmt-n"></span></h2><div id="tmw-cmt-compose"></div><div id="tmw-cmt-list" class="tmw-cmt-list"><div class="tmw-cmt-empty">Loading…</div></div>';
+  if(anchor&&anchor.parentNode){ anchor.parentNode.insertBefore(wrap, anchor.nextSibling); } else { document.body.appendChild(wrap); }
+  var listEl=wrap.querySelector('#tmw-cmt-list'), nEl=wrap.querySelector('#tmw-cmt-n'), composeEl=wrap.querySelector('#tmw-cmt-compose');
+
+  function itemHTML(c,when){return '<div class="tmw-cmt-av">'+esc((c.name||'M').slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-bd"><div class="tmw-cmt-meta"><b>'+esc(c.name||'Member')+'</b><span>'+(when||ago(c.ts))+'</span></div><div class="tmw-cmt-txt">'+esc(c.body)+'</div></div>';}
+  function renderList(items){ if(!items.length){listEl.innerHTML='<div class="tmw-cmt-empty">No comments yet — be the first.</div>';nEl.textContent='';return;} nEl.textContent='('+items.length+')'; listEl.innerHTML=items.map(function(c){return '<div class="tmw-cmt-item">'+itemHTML(c)+'</div>';}).join(''); }
+  function prepend(c){ var e=listEl.querySelector('.tmw-cmt-empty'); if(e)listEl.innerHTML=''; var div=document.createElement('div'); div.className='tmw-cmt-item'; div.innerHTML=itemHTML(c,'just now'); listEl.insertBefore(div,listEl.firstChild); nEl.textContent='('+listEl.querySelectorAll('.tmw-cmt-item').length+')'; }
+
+  fetch(WORKER+'/comments?post='+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():{comments:[]}}).then(function(d){renderList((d&&d.comments)||[]);}).catch(function(){listEl.innerHTML='<div class="tmw-cmt-empty">Couldn’t load comments.</div>';});
+
+  var ms=window.$memberstackDom;
+  function lockBox(t,s,cta,act){ composeEl.innerHTML='<div class="tmw-cmt-lock"><span class="tmw-cmt-pro">PRO</span><div class="tmw-cmt-lt">'+esc(t)+'</div><div class="tmw-cmt-ls">'+esc(s)+'</div><button class="tmw-cmt-cta" type="button">'+esc(cta)+'</button></div>'; var b=composeEl.querySelector('.tmw-cmt-cta'); if(b&&act)b.addEventListener('click',act); }
+  function goPro(){ if(window.tmwShowPaywall)return window.tmwShowPaywall('comments'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); location.href='https://www.oftmw.com/map/?upgrade=1'; }
+  function signIn(){ if(ms&&ms.openModal)return ms.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+
+  if(!ms||!ms.getCurrentMember){ lockBox('Join the conversation','Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.','Sign in',signIn); return; }
+  ms.getCurrentMember().then(function(r){
+    var m=r&&r.data;
+    if(!m){ lockBox('Join the conversation','Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.','Sign in',signIn); return; }
+    var plans=(m.planConnections)||[]; var paid=plans.some(function(p){return p.active===true||p.status==='ACTIVE';});
+    var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
+    if(!paid){ lockBox('Commenting is a PRO feature','Go PRO to share your take. Everyone can read; PRO members at Reader level can post.','Go PRO',goPro); return; }
+    fetch(WORKER+'/member-stats?id='+encodeURIComponent(m.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(st){
+      var lvl=(st&&st.level)||1;
+      if(lvl<2){ lockBox('Almost there','Reach Reader level (read ~30 articles) to unlock commenting.','View your progress',function(){location.href='/account';}); return; }
+      showComposer(m.id,name);
+    }).catch(function(){ showComposer(m.id,name); });
+  }).catch(function(){ lockBox('Join the conversation','Sign in and go PRO to comment.','Sign in',signIn); });
+
+  function showComposer(id,name){
+    composeEl.innerHTML='<div class="tmw-cmt-box"><div class="tmw-cmt-av me">'+esc(name.slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-boxr"><textarea id="tmw-cmt-ta" rows="3" maxlength="1500" placeholder="Add a comment…"></textarea><div class="tmw-cmt-actions"><span id="tmw-cmt-msg"></span><button class="tmw-cmt-post" id="tmw-cmt-post" type="button">Post comment</button></div></div></div>';
+    var ta=composeEl.querySelector('#tmw-cmt-ta'),btn=composeEl.querySelector('#tmw-cmt-post'),msg=composeEl.querySelector('#tmw-cmt-msg');
+    btn.addEventListener('click',function(){
+      var body=(ta.value||'').trim(); if(body.length<2){ta.focus();return;}
+      btn.disabled=true; msg.textContent='Posting…';
+      fetch(WORKER+'/comment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:id,post:slug,body:body,member_name:name})})
+        .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+        .then(function(res){ btn.disabled=false; if(res.ok&&res.j&&res.j.comment){prepend(res.j.comment);ta.value='';msg.textContent='';} else {msg.textContent=(res.j&&res.j.message)||'Could not post.';} })
+        .catch(function(){ btn.disabled=false; msg.textContent='Could not post.'; });
+    });
+  }
+}
