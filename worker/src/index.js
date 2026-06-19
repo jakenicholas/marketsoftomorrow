@@ -5813,7 +5813,7 @@ async function computeMemberGameStats(env, memberId) {
   ).bind(memberId).all();
   const rows = rs.results || [];
   const arts = new Set(), saved = new Set(), markets = new Set(), days = new Set();
-  let visits = 0, reach = 0, shares = 0, feedback = 0, intel = 0, cSub = 0, cAcc = 0, name = null, email = null, earliest = null;
+  let visits = 0, reach = 0, shares = 0, feedback = 0, intel = 0, cSub = 0, cAcc = 0, comments = 0, name = null, email = null, earliest = null;
   for (const r of rows) {
     let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
     if (r.member_name && !name) name = r.member_name;
@@ -5828,6 +5828,7 @@ async function computeMemberGameStats(env, memberId) {
       case 'partner_checkin': visits++; break;
       case 'share_posted': shares++; reach += Number(p.reach) || 0; break;
       case 'article_feedback': feedback++; break;
+      case 'comment_posted': comments++; break;
       case 'contribution': cSub++; if (p.status === 'accepted') cAcc++; break;
       case 'contribution_accepted': cAcc++; break;
       case 'intel_query': intel++; break;
@@ -5835,7 +5836,7 @@ async function computeMemberGameStats(env, memberId) {
   }
   const streak = _gameStreak(days);
   const a = arts.size, sv = saved.size, mk = markets.size;
-  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
+  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
   if (streak >= 7) xp += 25; if (streak >= 30) xp += 150;
   const lvl = levelForXp(xp);
   const rec = await ensureMemberRecord(env, memberId, email, earliest);
@@ -5843,7 +5844,7 @@ async function computeMemberGameStats(env, memberId) {
     memberNo: rec ? rec.member_no : null,
     since: (rec && rec.joined_at) ? new Date(rec.joined_at * 1000).getUTCFullYear() : null,
     founding: !!(rec && rec.founding), market: (rec && rec.market) || null,
-    stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv } };
+    stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv, comments } };
 }
 
 // GET /member-lists?id= — a member's watchlist (tracked projects) + saved/read
