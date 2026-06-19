@@ -111,6 +111,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .sday.today{box-shadow:0 0 0 3px rgba(167,139,250,.22),0 0 14px rgba(230,197,116,.55)}
 @media(max-width:820px){.streak{gap:4px}.sday{font-size:7px}}
 .streak-ttl{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--gold);text-shadow:0 0 18px rgba(230,197,116,.5)}
+.qhelp{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;border:1px solid var(--hair2);color:var(--mute);font-family:var(--sans);font-size:11px;font-weight:600;cursor:help;position:relative;vertical-align:2px;margin-left:9px;transition:color .15s,border-color .15s}
+.qhelp:hover{color:#ECEAE5;border-color:var(--mute)}
+.qtip{position:absolute;bottom:calc(100% + 11px);left:50%;transform:translateX(-50%);width:248px;background:#14161a;border:1px solid var(--hair2);border-radius:12px;padding:13px 15px;font-family:var(--sans);font-size:12.5px;font-weight:400;line-height:1.5;color:var(--mute);text-transform:none;letter-spacing:0;box-shadow:0 18px 44px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .15s;z-index:9;text-align:left}
+.qtip b{color:#ECEAE5;font-weight:600}
+.qhelp:hover .qtip,.qhelp:focus .qtip{opacity:1;visibility:visible}
 .mchips{display:flex;flex-wrap:wrap;gap:10px}
 .mchip{appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:14px;font-weight:500;color:#ECEAE5;background:var(--card);border:1px solid var(--hair);border-radius:999px;padding:9px 16px;transition:border-color .15s,background .15s}
 .mchip:hover{border-color:var(--hair2)}
@@ -172,7 +177,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <div class="sechead"><h2>Your markets</h2><span class="lbl">Follow to tailor your feed</span></div>
     <div class="mktsearch"><input id="mktSearch" placeholder="Search markets &mdash; cities, states, countries, types&hellip;" autocomplete="off"><div class="mktresults" id="mktResults" hidden></div></div>
     <div class="mchips" id="mktChips"></div>
-    <div class="sechead"><h2>Daily streak</h2><span class="streak-ttl" id="streakLbl">&nbsp;</span></div>
+    <div class="sechead"><h2>Daily streak <span class="qhelp" tabindex="0" aria-label="What is a streak?">?<span class="qtip">Your streak counts every day you stop by Markets of Tomorrow. Visit <b>oftmw.com</b> once a day to keep it going &mdash; miss a day and it resets to zero.</span></span></h2><span class="streak-ttl" id="streakLbl">&nbsp;</span></div>
     <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
     <div class="ladder" id="ladder"></div>

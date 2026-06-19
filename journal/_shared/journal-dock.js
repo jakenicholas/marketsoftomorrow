@@ -1777,3 +1777,48 @@
     }).catch(function(){ busy=false; btn.disabled=false; });
   });
 })();
+
+// ===================================================================
+// ACHIEVEMENT TOASTS — when a member newly unlocks an achievement, a
+// toast fires on the next page load (any journal page). Compares the
+// server's achievement set to a per-member localStorage snapshot;
+// first run stores silently so existing unlocks don't spam.
+// ===================================================================
+(function () {
+  if (window.__tmwAchToast) return; window.__tmwAchToast = true;
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  var ACH = { founding:{n:'Founding Member',xp:100}, reader:{n:'Reader',xp:0}, globetrotter:{n:'Globetrotter',xp:150}, tastemaker:{n:'Tastemaker',xp:300}, centurion:{n:'Centurion',xp:250}, contributor:{n:'Contributor',xp:200} };
+  var STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+  var CSS = '#tmw-ach-wrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2147483000;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}'
+    +'.tmw-ach{display:flex;align-items:center;gap:13px;min-width:300px;max-width:390px;padding:14px 18px;border-radius:16px;background:rgba(16,18,24,.92);border:1px solid rgba(230,197,116,.35);box-shadow:0 0 30px rgba(230,197,116,.22),0 18px 50px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-family:Inter,system-ui,sans-serif;color:#ECEAE5;transform:translateY(22px);opacity:0;transition:transform .42s cubic-bezier(.2,.9,.3,1),opacity .42s;pointer-events:auto}'
+    +'.tmw-ach.in{transform:translateY(0);opacity:1}'
+    +'.tmw-ach-ic{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(240,214,138,.95),rgba(230,197,116,.82));color:#4a3708;box-shadow:0 0 18px rgba(230,197,116,.4)}'
+    +'.tmw-ach-ic svg{width:21px;height:21px}'
+    +'.tmw-ach-bd{flex:1;min-width:0}'
+    +'.tmw-ach-k{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#e6c574;margin-bottom:3px}'
+    +'.tmw-ach-n{font-family:Fraunces,Georgia,serif;font-size:17px;font-weight:600;color:#fff;line-height:1.1}'
+    +'.tmw-ach-xp{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:#42EB81;text-shadow:0 0 12px rgba(31,223,103,.4);flex:0 0 auto}';
+  function ensureCss(){ if(!document.getElementById('tmw-ach-css')){var s=document.createElement('style');s.id='tmw-ach-css';s.textContent=CSS;document.head.appendChild(s);} }
+  function toast(key){
+    var a=ACH[key]; if(!a) return; ensureCss();
+    var w=document.getElementById('tmw-ach-wrap'); if(!w){w=document.createElement('div');w.id='tmw-ach-wrap';document.body.appendChild(w);}
+    var el=document.createElement('div'); el.className='tmw-ach';
+    el.innerHTML='<div class="tmw-ach-ic">'+STAR+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">Achievement unlocked</div><div class="tmw-ach-n">'+a.n+'</div></div>'+(a.xp?'<div class="tmw-ach-xp">+'+a.xp+' XP</div>':'');
+    w.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('in'); });
+    setTimeout(function(){ el.classList.remove('in'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },420); }, 5400);
+  }
+  function check(id){
+    fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
+      if(!d||!d.achievements) return;
+      var now=Object.keys(d.achievements).filter(function(k){return d.achievements[k];});
+      var key='tmw_ach_'+id, prev=null;
+      try{ prev=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){}
+      if(!Array.isArray(prev)){ try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){} return; }
+      var fresh=now.filter(function(k){ return prev.indexOf(k)<0; });
+      try{ localStorage.setItem(key,JSON.stringify(now)); }catch(e){}
+      fresh.forEach(function(k,i){ setTimeout(function(){ toast(k); }, i*450); });
+    }).catch(function(){});
+  }
+  (function wait(t){ t=t||0; var m=window.$memberstackDom; if(m&&m.getCurrentMember){ m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(mem&&mem.id) check(mem.id); }).catch(function(){}); return; } if(++t>40) return; setTimeout(function(){wait(t);},250); })();
+})();

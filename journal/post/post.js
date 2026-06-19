@@ -921,18 +921,19 @@ function hookFavorite() {
   // outward share last). Links to Google's source-preference page,
   // which lets a reader make oftmw.com a preferred source in Search /
   // News surfaces. Opens in a new tab; no auth or JS state to wire.
+  // Comment counter — circle showing the live comment count; click jumps to the
+  // comments section. (Replaces the old Google-follow "+".)
   const followLink = document.createElement('a');
-  followLink.id = 'follow-google-btn';
-  followLink.className = 'share-ico follow-ico';
-  followLink.href = 'https://www.google.com/preferences/source?q=https://www.oftmw.com';
-  followLink.target = '_blank';
-  followLink.rel = 'noopener';
-  followLink.title = 'Follow Markets of Tomorrow on Google';
-  followLink.setAttribute('aria-label', 'Follow Markets of Tomorrow on Google');
+  followLink.id = 'cmt-count-btn';
+  followLink.className = 'share-ico cmt-count-ico';
+  followLink.href = '#tmw-cmt';
+  followLink.title = 'Jump to comments';
+  followLink.setAttribute('aria-label', 'View comments');
   followLink.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' +
     '</svg>';
+  followLink.addEventListener('click', function (e) { e.preventDefault(); var el = document.getElementById('tmw-cmt'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 
   const btn = document.createElement('button');
   btn.id = 'fav-btn';
@@ -1261,6 +1262,12 @@ function escapeAttr(s) { return escapeHtml(s); }
 // ARTICLE COMMENTS — everyone reads; PRO members at Reader level (lvl≥2)
 // publish. Self-contained: injects its own CSS + mounts after #read-next.
 // ===================================================================
+function setCmtCountBtn(n) {
+  var b = document.getElementById('cmt-count-btn'); if (!b) return;
+  n = n || 0;
+  b.innerHTML = '<span class="cc-num">' + n + '</span>';
+  b.title = n + ' comment' + (n === 1 ? '' : 's');
+}
 function initComments(slug, post) {
   if (!slug || window.__tmwComments) return; window.__tmwComments = true;
   var WORKER = WORKER_URL;
@@ -1304,8 +1311,13 @@ function initComments(slug, post) {
     +'.tmw-cmt-lt{font-family:Fraunces,serif;font-size:18px;font-weight:600;color:#fff;margin-bottom:6px}'
     +'.tmw-cmt-ls{font-size:13.5px;color:#9AA39C;line-height:1.55;max-width:78%;margin-bottom:16px}'
     +'.tmw-cmt-cta{appearance:none;border:none;cursor:pointer;background:linear-gradient(135deg,#c4b5fd,#A78BFA);color:#1a1340;font-family:Inter,sans-serif;font-size:13px;font-weight:600;padding:10px 20px;border-radius:10px;box-shadow:0 0 20px rgba(167,139,250,.35)}'
-    +'.tmw-cmt-cta:hover{box-shadow:0 0 28px rgba(167,139,250,.55)}';
+    +'.tmw-cmt-cta:hover{box-shadow:0 0 28px rgba(167,139,250,.55)}'
+    +'.cc-num{font-family:Inter,system-ui,sans-serif;font-size:12.5px;font-weight:700;line-height:1}';
   if(!document.getElementById('tmw-cmt-css')){var st=document.createElement('style');st.id='tmw-cmt-css';st.textContent=CSS;document.head.appendChild(st);}
+
+  // If a full-bleed project card is the last block of the article, drop its
+  // bottom margin so the gap to comments matches articles without a hero card.
+  try{ var bc=document.getElementById('article-body-content'); if(bc){ var pcs=bc.querySelectorAll('.tmw-pcard'); if(pcs.length){ var lp=pcs[pcs.length-1], n=lp, trailing=false; while((n=n.nextElementSibling)){ if((n.textContent||'').trim()||(n.querySelector&&n.querySelector('img'))){trailing=true;break;} } if(!trailing) lp.style.marginBottom='0'; } } }catch(e){}
 
   var wrap=document.createElement('section'); wrap.className='tmw-cmt'; wrap.id='tmw-cmt';
   wrap.innerHTML='<h2 class="tmw-cmt-h">Comments <span id="tmw-cmt-n"></span></h2><div id="tmw-cmt-compose"></div><div id="tmw-cmt-list" class="tmw-cmt-list"><div class="tmw-cmt-loading">Loading comments…</div></div>';
@@ -1317,8 +1329,8 @@ function initComments(slug, post) {
   function itemHTML(c,when){return '<div class="tmw-cmt-av">'+esc((c.name||'M').slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-bd"><div class="tmw-cmt-meta"><b>'+esc(c.name||'Member')+'</b><span class="t">'+(when||ago(c.ts))+'</span></div><div class="tmw-cmt-txt">'+esc(c.body)+'</div></div>';}
   function setCount(n){ nEl.textContent=n||''; nEl.style.display=n?'':'none'; }
   var EMPTY='<div class="tmw-cmt-empty"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><b>Start the conversation</b><span>Be the first to share a take on this story — your comment is public and joins the conversation.</span></div>';
-  function renderList(items){ if(!items.length){listEl.innerHTML=EMPTY;setCount(0);return;} setCount(items.length); listEl.innerHTML=items.map(function(c){return '<div class="tmw-cmt-item">'+itemHTML(c)+'</div>';}).join(''); }
-  function prepend(c){ var e=listEl.querySelector('.tmw-cmt-empty'); if(e)listEl.innerHTML=''; var div=document.createElement('div'); div.className='tmw-cmt-item'; div.innerHTML=itemHTML(c,'just now'); listEl.insertBefore(div,listEl.firstChild); setCount(listEl.querySelectorAll('.tmw-cmt-item').length); }
+  function renderList(items){ setCmtCountBtn(items.length); if(!items.length){listEl.innerHTML=EMPTY;setCount(0);return;} setCount(items.length); listEl.innerHTML=items.map(function(c){return '<div class="tmw-cmt-item">'+itemHTML(c)+'</div>';}).join(''); }
+  function prepend(c){ var e=listEl.querySelector('.tmw-cmt-empty'); if(e)listEl.innerHTML=''; var div=document.createElement('div'); div.className='tmw-cmt-item'; div.innerHTML=itemHTML(c,'just now'); listEl.insertBefore(div,listEl.firstChild); var _n=listEl.querySelectorAll('.tmw-cmt-item').length; setCount(_n); setCmtCountBtn(_n); }
 
   fetch(WORKER+'/comments?post='+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():{comments:[]}}).then(function(d){renderList((d&&d.comments)||[]);}).catch(function(){listEl.innerHTML='<div class="tmw-cmt-empty">Couldn’t load comments.</div>';});
 
