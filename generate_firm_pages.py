@@ -1009,7 +1009,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
       <div class="l">
         Get the full {e(title)} dataset, weekly Slippage Report, and the TMW Forecast on every project.
         <em>The part of Pro that pays for itself.</em>
-        <i>Markets of Tomorrow Pro · $24/mo</i>
+        <i>Markets of Tomorrow Pro · $9/mo</i>
       </div>
       <button class="go" id="firm-pro-cta">Go Pro →</button>
     </div>
