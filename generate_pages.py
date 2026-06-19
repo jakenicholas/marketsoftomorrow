@@ -2938,7 +2938,7 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
     multiple entities when the row lists "Dev A, Dev B" or "Arch A / Arch B"
     -- each gets a separate +1 count."""
     from collections import Counter, defaultdict
-    from datetime import date
+    from datetime import date, timedelta
 
     now = date.today()
     current_year = now.year
@@ -3234,21 +3234,21 @@ def build_atlas_json(rows, pulse_path='pulse.json', articles_archive=None):
                 'latest_date': latest,
             })
 
-    # --- Coming soon: projects delivering in the rest of THIS calendar year. ---
-    # Three buckets: next 30 days, 31-90 days, rest-of-year. This captures
-    # late-year deliveries (e.g. a November project from May) that wouldn't
-    # fit in a 120-day window.
+    # --- Coming soon: projects delivering within the next 7 months. ---
+    # Three buckets: next 30 days, 31-90 days, and the rest of the 7-month
+    # horizon. A rolling window (rather than rest-of-calendar-year) keeps the
+    # outlook consistent year-round, including deliveries that spill into Q1.
     coming_soon = []
     today = now
-    year_end = date(current_year, 12, 31)
+    horizon = today + timedelta(days=213)  # ~7 months
     for row in rows:
         delivery_date_str = (row.get('DeliveryDate','') or '').strip()
         d = _parse_iso_date(delivery_date_str)
         if not d:
             continue
         days_out = (d - today).days
-        # Must be in the future AND deliver before year-end
-        if days_out < 0 or d > year_end:
+        # Must be in the future AND deliver within the 7-month horizon
+        if days_out < 0 or d > horizon:
             continue
         status_label, _, _ = delivery_info((row.get('Delivery','') or '').strip())
         if status_label == 'Now Open':

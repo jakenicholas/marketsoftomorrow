@@ -326,6 +326,7 @@
   .atlas-tile.accent .n{color:var(--orange)}
   .atlas-tile.green .n{color:var(--green-soft)}
   .atlas-tile.purple .n{color:var(--purple-soft)}
+  .atlas-tile.blue .n{color:#4DABFF}
 
   /* ── Dashboard 2-col grid + panel headers ── */
   /* Dashboard rows — two equal columns, items stretch to a shared height. */
@@ -338,16 +339,20 @@
   /* ── Rich project-card grid (Overview) — ported from generate_market_pages.py ── */
   .apcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
   @media(max-width:560px){.apcards{grid-template-columns:1fr}}
-  .apcards .card{display:flex;flex-direction:column;background:#111;border-radius:14px;overflow:hidden;transition:transform .15s,border-color .15s;border:1px solid transparent;position:relative}
+  .apcards .card{display:flex;flex-direction:column;height:100%;background:#111;border-radius:14px;overflow:hidden;transition:transform .15s,border-color .15s;border:1px solid transparent;position:relative}
   .apcards .card:hover{transform:translateY(-2px);border-color:rgba(167,139,250,.3)}
-  .apcards .card-link{display:block;text-decoration:none;color:inherit}
-  .apcards .card-firms-wrap{padding:0 20px 20px}
+  /* card-link grows to fill the (equal-height) card so the firm row below it
+     always sits flush to the bottom — empty space collects above the firms. */
+  .apcards .card-link{display:flex;flex-direction:column;flex:1 1 auto;text-decoration:none;color:inherit}
+  .apcards .card-firms-wrap{padding:0 20px 20px;margin-top:auto}
   .apcards .card-feat-badge{position:absolute;top:10px;right:10px;z-index:2;width:22px;height:22px;border-radius:5px;background:var(--gold);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .apcards .card-feat-badge svg{width:12px;height:12px;fill:#0a0a0a}
   .apcards .card-img{height:220px;background-size:cover;background-position:center;position:relative}
   .apcards .card-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.45) 100%)}
   .apcards .card-body{padding:18px 20px 4px}
-  .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:6px}
+  /* Clamp to two lines and reserve that height so one- and two-line titles
+     keep the meter, stat tiles and firm cards aligned across the row. */
+  .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
   .apcards .card-loc{font-family:var(--sans);font-size:13px;color:var(--mute-2);margin-bottom:14px}
   .apcards .pm-tl{margin-bottom:14px}
   .apcards .pm-tl-date{text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
@@ -1489,13 +1494,12 @@
       const s = core.scale || {};
       const fmt = n => Number(n || 0).toLocaleString();
       const tiles = [
-        { n: fmt(h.total_projects), l: 'Projects tracked', c: '' },
         { n: fmt(h.under_construction), l: 'Under construction', c: 'accent' },
-        { n: fmt(statusDistCount('Opening Soon')), l: 'Opening soon', c: '' },
+        { n: fmt(statusDistCount('Opening Soon')), l: 'Opening soon', c: 'blue' },
         { n: fmt(statusDistCount('Now Open')), l: 'Now open', c: 'green' },
         { n: fmt(s.units), l: 'Units in pipeline', c: 'purple' },
-        { n: fmt(s.keys), l: 'Hotel keys', c: '' },
-        { n: fmt(s.floors), l: 'Floors planned', c: '' },
+        { n: fmt(s.keys), l: 'Hotel keys', c: 'purple' },
+        { n: fmt(s.floors), l: 'Floors planned', c: 'purple' },
       ];
       return `<div class="atlas-tiles">${tiles.map(t =>
         `<div class="atlas-tile ${t.c}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join('')}</div>`;
@@ -1803,7 +1807,7 @@
       const shown = sorted.slice(0, _pcardShown);
       const cards = shown.map(pcardHtml).join('');
       const moreBtn = total > shown.length
-        ? `<div class="apcards-more-wrap"><button class="apcards-more" type="button" data-pcard-more="1">Show all ${total} projects</button></div>`
+        ? `<div class="apcards-more-wrap"><button class="apcards-more" type="button" data-pcard-more="1">Load more projects</button></div>`
         : '';
       return `<section class="atlas-section">
         <div class="atlas-section-head"><div>
@@ -1933,11 +1937,10 @@
       if (!data.length) return '';
       const buckets = { '30d': [], '90d': [], 'rest': [] };
       data.forEach(p => { if (buckets[p.bucket]) buckets[p.bucket].push(p); });
-      const yearLabel = new Date().getFullYear();
       const bucketLabels = {
         '30d':  'Next 30 days',
         '90d':  'Next 90 days',
-        'rest': `Later in ${yearLabel}`,
+        'rest': 'Within 7 months',
       };
       const sections = ['30d', '90d', 'rest'].map(key => {
         if (!buckets[key].length) return '';
@@ -1971,7 +1974,7 @@
           <div class="atlas-section-head">
             <div>
               <h2 class="atlas-section-title">Coming soon</h2>
-              <p class="atlas-section-sub">Projects delivering through year-end.</p>
+              <p class="atlas-section-sub">Projects delivering in the next 7 months.</p>
             </div>
           </div>
           <div class="atlas-panel atlas-coming-panel">${sections}</div>
@@ -2440,11 +2443,11 @@
         calcForm.addEventListener('submit', function(e) { e.preventDefault(); applyCalc(); });
         ['ac-place', 'ac-cat', 'ac-year'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', applyCalc); });
       }
-      // Project-card grid "show all" — reveal the full filtered set.
+      // Project-card grid "load more" — reveal the next batch.
       const pcardMore = document.querySelector('[data-pcard-more]');
       if (pcardMore) {
         pcardMore.addEventListener('click', function() {
-          _pcardShown = Infinity;
+          _pcardShown += PCARD_STEP;
           const y = window.pageYOffset;
           renderAll();
           window.scrollTo({ top: y, behavior: 'auto' });
