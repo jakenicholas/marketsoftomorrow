@@ -711,9 +711,20 @@ def render_page(firm, firm_projects, stats, coverage_items):
         f"{stats['in_progress']} active, {stats['completed']} completed."
     )
 
-    # Render every active project for this firm; soft paywall locks past the free cap.
-    firm_all_cards = [market_card_html(p) for p in active_sorted]
-    grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(firm_all_cards, len(active_sorted), MARKET_ROOT_URL)
+    # Source of truth: render EVERY tracked project (matches the "N tracked"
+    # headline) so the paywall counts are consistent. Now Open projects sort
+    # last; featured-then-soonest within the active set, so the free six lead.
+    all_sorted = sorted(
+        firm_projects,
+        key=lambda p: (
+            normalize_status(p.get('Delivery', '')) == 'open',
+            (p.get('Featured') or '').strip().lower() != 'featured',
+            -(parse_year(p.get('DeliveryDate', '')) or 0),
+            p.get('Title', ''),
+        ),
+    )
+    firm_all_cards = [market_card_html(p) for p in all_sorted]
+    grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(firm_all_cards, len(all_sorted), MARKET_ROOT_URL)
     paywall_head = PAYWALL_HEAD + (PAYWALL_JSONLD if locked_n else '')
 
     # Stats strip — 5 cards (tracked / UC / BG / OS / NO), gold/amber tint as in market pages

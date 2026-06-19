@@ -198,7 +198,6 @@ def paywall_grid(cards, total, root_url, free_n=PAYWALL_FREE_N):
     locked = len(locked_cards)
     grid = '<div class="grid tmw-project-grid">\n' + '\n'.join(free_cards) + '\n      </div>'
     if locked:
-        plural = 's' if locked != 1 else ''
         grid += (
             f'\n      <div class="tmw-locked" data-locked-count="{locked}">'
             '\n        <div class="grid tmw-project-grid tmw-locked-grid">\n'
@@ -206,9 +205,9 @@ def paywall_grid(cards, total, root_url, free_n=PAYWALL_FREE_N):
             '\n        </div>'
             '\n        <div class="tmw-gate"><div class="tmw-gate-inner">'
             '<span class="tmw-gate-badge">★ TMW Pro</span>'
-            f'<h3 class="tmw-gate-title">Unlock {locked} more project{plural}</h3>'
-            '<p class="tmw-gate-sub">See the full pipeline — live status, delivery dates, '
-            'units and the developer &amp; architect on every project. Free shows the first six.</p>'
+            f'<h3 class="tmw-gate-title">Unlock all {total} projects</h3>'
+            f'<p class="tmw-gate-sub">Free shows the first {free_n}. Go Pro to see all {total} — '
+            'live status, delivery dates, units and the developer &amp; architect on every one.</p>'
             '<button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button>'
             '</div></div>'
             '\n      </div>'
@@ -718,11 +717,13 @@ def render_page(
     # The featured "X of Y we're watching closely" grid hides Now Open —
     # they're delivered, not being tracked. Stats strip + most-active-firm
     # panels keep the full bucket so the total scope is still visible.
-    active_projects = _exclude_completed(projects)
-    total_count = len(active_projects)
-    # Render EVERY active project (the page is the source of truth); the soft
-    # paywall shows the first PAYWALL_FREE_N free and locks the rest in-DOM.
-    all_cards = [card_html(p) for p in active_projects]
+    # The page is the source of truth — render EVERY tracked project so the
+    # grid/paywall counts match the "N tracked" headline stat. Now Open projects
+    # sort to the end (stable sort keeps the existing featured-first order) so the
+    # free six are the active, in-the-news ones.
+    grid_projects = sorted(projects, key=lambda p: (p.get('Delivery') or '').strip() == 'Now Open')
+    total_count = len(grid_projects)
+    all_cards = [card_html(p) for p in grid_projects]
     grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(all_cards, total_count, ROOT_URL)
     firms_html = top_firms_html(projects)
     stats_html = stats_strip_html(projects)
