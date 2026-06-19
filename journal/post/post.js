@@ -1295,10 +1295,11 @@ function initComments(slug, post) {
     +'.tmw-cmt-cta:hover{background:rgba(230,197,116,.14)}';
   if(!document.getElementById('tmw-cmt-css')){var st=document.createElement('style');st.id='tmw-cmt-css';st.textContent=CSS;document.head.appendChild(st);}
 
-  var anchor=document.getElementById('read-next')||document.querySelector('article')||document.getElementById('article-root');
   var wrap=document.createElement('section'); wrap.className='tmw-cmt'; wrap.id='tmw-cmt';
   wrap.innerHTML='<h2 class="tmw-cmt-h">Comments <span id="tmw-cmt-n"></span></h2><div id="tmw-cmt-compose"></div><div id="tmw-cmt-list" class="tmw-cmt-list"><div class="tmw-cmt-empty">Loading…</div></div>';
-  if(anchor&&anchor.parentNode){ anchor.parentNode.insertBefore(wrap, anchor.nextSibling); } else { document.body.appendChild(wrap); }
+  var rn=document.getElementById('read-next');
+  if(rn&&rn.parentNode){ rn.parentNode.insertBefore(wrap, rn); }
+  else { var art=document.querySelector('article')||document.getElementById('article-root'); if(art&&art.parentNode){ art.parentNode.insertBefore(wrap, art.nextSibling); } else { document.body.appendChild(wrap); } }
   var listEl=wrap.querySelector('#tmw-cmt-list'), nEl=wrap.querySelector('#tmw-cmt-n'), composeEl=wrap.querySelector('#tmw-cmt-compose');
 
   function itemHTML(c,when){return '<div class="tmw-cmt-av">'+esc((c.name||'M').slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-bd"><div class="tmw-cmt-meta"><b>'+esc(c.name||'Member')+'</b><span>'+(when||ago(c.ts))+'</span></div><div class="tmw-cmt-txt">'+esc(c.body)+'</div></div>';}
@@ -1307,15 +1308,27 @@ function initComments(slug, post) {
 
   fetch(WORKER+'/comments?post='+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():{comments:[]}}).then(function(d){renderList((d&&d.comments)||[]);}).catch(function(){listEl.innerHTML='<div class="tmw-cmt-empty">Couldn’t load comments.</div>';});
 
-  var ms=window.$memberstackDom;
   function lockBox(t,s,cta,act){ composeEl.innerHTML='<div class="tmw-cmt-lock"><span class="tmw-cmt-pro">PRO</span><div class="tmw-cmt-lt">'+esc(t)+'</div><div class="tmw-cmt-ls">'+esc(s)+'</div><button class="tmw-cmt-cta" type="button">'+esc(cta)+'</button></div>'; var b=composeEl.querySelector('.tmw-cmt-cta'); if(b&&act)b.addEventListener('click',act); }
   function goPro(){ if(window.tmwShowPaywall)return window.tmwShowPaywall('comments'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); location.href='https://www.oftmw.com/map/?upgrade=1'; }
-  function signIn(){ if(ms&&ms.openModal)return ms.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  function signIn(){ var m=window.$memberstackDom; if(m&&m.openModal)return m.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  var signedOut='Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.';
 
-  if(!ms||!ms.getCurrentMember){ lockBox('Join the conversation','Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.','Sign in',signIn); return; }
-  ms.getCurrentMember().then(function(r){
-    var m=r&&r.data;
-    if(!m){ lockBox('Join the conversation','Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.','Sign in',signIn); return; }
+  // Memberstack loads async — poll for it + the member before deciding (never falsely "sign in")
+  (function resolveMember(t){ t=t||0;
+    var m=window.$memberstackDom;
+    if(m&&m.getCurrentMember){
+      m.getCurrentMember().then(function(r){
+        var mem=r&&r.data;
+        if(mem) return gate(mem);
+        if(++t<6) return setTimeout(function(){resolveMember(t);},400);
+        lockBox('Join the conversation',signedOut,'Sign in',signIn);
+      }).catch(function(){ if(++t<6) return setTimeout(function(){resolveMember(t);},400); lockBox('Join the conversation',signedOut,'Sign in',signIn); });
+      return;
+    }
+    if(++t>40){ lockBox('Join the conversation',signedOut,'Sign in',signIn); return; }
+    setTimeout(function(){resolveMember(t);},250);
+  })();
+  function gate(m){
     var plans=(m.planConnections)||[]; var paid=plans.some(function(p){return p.active===true||p.status==='ACTIVE';});
     var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
     if(!paid){ lockBox('Commenting is a PRO feature','Go PRO to share your take. Everyone can read; PRO members at Reader level can post.','Go PRO',goPro); return; }
@@ -1324,7 +1337,7 @@ function initComments(slug, post) {
       if(lvl<2){ lockBox('Almost there','Reach Reader level (read ~30 articles) to unlock commenting.','View your progress',function(){location.href='/account';}); return; }
       showComposer(m.id,name);
     }).catch(function(){ showComposer(m.id,name); });
-  }).catch(function(){ lockBox('Join the conversation','Sign in and go PRO to comment.','Sign in',signIn); });
+  }
 
   function showComposer(id,name){
     composeEl.innerHTML='<div class="tmw-cmt-box"><div class="tmw-cmt-av me">'+esc(name.slice(0,1).toUpperCase())+'</div><div class="tmw-cmt-boxr"><textarea id="tmw-cmt-ta" rows="3" maxlength="1500" placeholder="Add a comment…"></textarea><div class="tmw-cmt-actions"><span id="tmw-cmt-msg"></span><button class="tmw-cmt-post" id="tmw-cmt-post" type="button">Post comment</button></div></div></div>';

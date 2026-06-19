@@ -1725,3 +1725,55 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
   else go();
 })();
+
+// ===================================================================
+// MARKET FOLLOW — gold-glow "Follow <city>" button on /markets/<slug>/
+// landing pages. Persists to Memberstack member JSON (markets_followed),
+// the same store the account dashboard reads. Self-contained.
+// ===================================================================
+(function () {
+  if (window.__tmwMFollow) return;
+  var m = location.pathname.match(/^\/markets\/([^\/]+)\/?$/);
+  if (!m) return;
+  var slug = decodeURIComponent(m[1]).toLowerCase();
+  if (!slug || slug === 'index.html') return;
+  var hero = document.querySelector('.hero h1') || document.querySelector('.hero');
+  if (!hero) return;
+  window.__tmwMFollow = true;
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  function humanize(s){return String(s||'').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});}
+  function ms(){return window.$memberstackDom;}
+  var CSS='.tmw-mfollow{display:inline-flex;align-items:center;gap:9px;margin-top:22px;cursor:pointer;appearance:none;font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:600;color:#4a3708;background:linear-gradient(135deg,#f0d68a,#e6c574);border:none;border-radius:999px;padding:11px 22px;box-shadow:0 0 22px rgba(230,197,116,.45);transition:transform .15s,box-shadow .2s,background .2s}'
+    +'.tmw-mfollow:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(230,197,116,.65)}'
+    +'.tmw-mfollow.on{background:rgba(230,197,116,.10);color:#e6c574;border:1px solid rgba(230,197,116,.5);box-shadow:0 0 18px rgba(230,197,116,.25);padding:10px 21px}'
+    +'.tmw-mfollow[disabled]{opacity:.6;cursor:default}'
+    +'.tmw-mfollow svg{width:15px;height:15px;flex:none}';
+  if(!document.getElementById('tmw-mfollow-css')){var st=document.createElement('style');st.id='tmw-mfollow-css';st.textContent=CSS;document.head.appendChild(st);}
+  var name=humanize(slug);
+  var STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+  var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  var btn=document.createElement('button'); btn.type='button'; btn.className='tmw-mfollow';
+  if(hero.tagName==='H1'&&hero.parentNode){ hero.parentNode.insertBefore(btn, hero.nextSibling); } else { hero.appendChild(btn); }
+  var following=false, busy=false;
+  function paint(){ btn.classList.toggle('on',following); btn.innerHTML=following?(CHECK+'Following'):(STAR+'Follow '+name); btn.setAttribute('aria-pressed',following?'true':'false'); }
+  paint();
+  function getJSON(m){ return m.getMemberJSON().then(function(r){return (r&&r.data)||{};}); }
+  function signIn(){ var x=ms(); if(x&&x.openModal)return x.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  function postEvent(mem){ try{ var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:'market_followed',props:{market:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }catch(e){} }
+  // initial state once Memberstack + member resolve
+  (function wait(t){ t=t||0; var x=ms(); if(x&&x.getCurrentMember){ x.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem) return; getJSON(x).then(function(j){ var list=Array.isArray(j.markets_followed)?j.markets_followed:[]; following=list.indexOf(slug)>=0; paint(); }); }).catch(function(){}); return; } if(++t>40)return; setTimeout(function(){wait(t);},250); })();
+  btn.addEventListener('click',function(){
+    if(busy) return; var x=ms();
+    if(!x||!x.getCurrentMember) return signIn();
+    x.getCurrentMember().then(function(r){
+      var mem=r&&r.data; if(!mem) return signIn();
+      busy=true; btn.disabled=true;
+      getJSON(x).then(function(j){
+        var list=Array.isArray(j.markets_followed)?j.markets_followed.slice():[];
+        var i=list.indexOf(slug),on; if(i>=0){list.splice(i,1);on=false;}else{list.push(slug);on=true;}
+        j.markets_followed=list;
+        x.updateMemberJSON({json:j}).then(function(){ following=on; busy=false; btn.disabled=false; paint(); if(on)postEvent(mem); }).catch(function(){ busy=false; btn.disabled=false; });
+      }).catch(function(){ busy=false; btn.disabled=false; });
+    }).catch(function(){ busy=false; btn.disabled=false; });
+  });
+})();
