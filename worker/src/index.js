@@ -1145,25 +1145,45 @@ async function handleActivity(env, origin, url) {
     .split(',').map(s => s.trim()).filter(Boolean).slice(0, 12);
   let where, binds;
   if (evParam.length) {
-    where = `event_name IN (${evParam.map(() => '?').join(',')})`;
+    // A chip filter is active — show the raw rows for exactly those event
+    // types so the chip count/labels are accurate (no collapsing).
+    where = `ev.event_name IN (${evParam.map(() => '?').join(',')})`;
     binds = evParam.slice();
   } else {
-    where = `event_name != 'watchlist_snapshot'`;
+    // Default feed — strip the noise that made one user action look like several
+    // rows ("double querying"):
+    //   • watchlist_snapshot — state-sync, fires every page load
+    //   • intel_answer — system bookkeeping for the nightly review (member
+    //     'system:smart-answer'); the user's own intel_query already represents
+    //     the ask, and the answer log has its own /intel-answers view
+    //   • funnel:%  — funnel-analysis beacons (read separately by the Funnel tile)
+    //   • the redundant 'search' half of a smart query: when an intelligence ask
+    //     logged both a 'search' and an 'intel_query' for the same visitor + query
+    //     within ~2 min, suppress the 'search' so one ask = one row. Plain nav
+    //     searches that never triggered Intelligence still show.
+    where = `ev.event_name NOT IN ('watchlist_snapshot','intel_answer')
+      AND ev.event_name NOT LIKE 'funnel:%'
+      AND NOT (ev.event_name = 'search' AND EXISTS (
+        SELECT 1 FROM events iq
+        WHERE iq.event_name = 'intel_query'
+          AND iq.member_id = ev.member_id
+          AND json_extract(iq.props_json, '$.q') = json_extract(ev.props_json, '$.q')
+          AND ABS(iq.ts - ev.ts) <= 120))`;
     binds = [];
   }
   const rs = await env.DB.prepare(
-    `SELECT ts, member_id, email, member_name, plan, event_name, path, props_json
-     FROM events
+    `SELECT ev.ts, ev.member_id, ev.email, ev.member_name, ev.plan, ev.event_name, ev.path, ev.props_json
+     FROM events ev
      WHERE ${where}
-     ORDER BY ts DESC
+     ORDER BY ev.ts DESC
      LIMIT ? OFFSET ?`
   ).bind(...binds, limit, offset).all();
   // Total only when asked (the paginated "All Activity" view) — keeps the live
-  // feed's cheap query unchanged.
+  // feed's cheap query unchanged. Same WHERE so pagination math stays correct.
   let total = null;
   if (url.searchParams.get('total') === '1') {
     const t = await env.DB.prepare(
-      `SELECT COUNT(*) AS n FROM events WHERE ${where}`
+      `SELECT COUNT(*) AS n FROM events ev WHERE ${where}`
     ).bind(...binds).first();
     total = (t && t.n) || 0;
   }
@@ -5407,7 +5427,8 @@ async function handleJournalActive(env, origin) {
       const ev = await env.DB.prepare(
         `SELECT ts, member_name, event_name, path, props_json
          FROM events
-         WHERE ts > ?1 AND event_name NOT IN ('page_view','watchlist_snapshot')
+         WHERE ts > ?1 AND event_name NOT IN ('page_view','watchlist_snapshot','intel_answer')
+           AND event_name NOT LIKE 'funnel:%'
          ORDER BY ts DESC LIMIT 40`
       ).bind(cut).all();
       evItems = (ev.results || []).map(r => {
@@ -5422,6 +5443,19 @@ async function handleJournalActive(env, origin) {
           country: p.country || null,
           ago: Math.max(0, now - (r.ts || now)),
         };
+      });
+      // Collapse the redundant 'search' half of a smart query (mirrors the
+      // /activity feed): drop a 'search' item when an 'intel_query' for the same
+      // query is present in this batch, so one ask shows as one live row.
+      const intelQs = new Set(
+        evItems.filter(e => e.event_name === 'intel_query')
+          .map(e => { try { return (JSON.parse(e.props_json || '{}').q) || ''; } catch (_) { return ''; } })
+          .filter(Boolean)
+      );
+      evItems = evItems.filter(e => {
+        if (e.event_name !== 'search') return true;
+        let q = ''; try { q = (JSON.parse(e.props_json || '{}').q) || ''; } catch (_) {}
+        return !(q && intelQs.has(q));
       });
     } catch (_) {}
     const feed = reads.concat(evItems).sort((a, b) => a.ago - b.ago).slice(0, 40);
