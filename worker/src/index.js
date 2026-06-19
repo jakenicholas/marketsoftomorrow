@@ -5782,17 +5782,43 @@ function _gameStreak(daySet) {
 }
 function _reachStr(n) { n = Number(n) || 0; return n >= 1000 ? (Math.round(n / 100) / 10) + 'k' : String(n); }
 
+// Member registry — sequential member numbers, assigned once per member_id.
+// The founder email is always #001; everyone else takes the next number from
+// #002 up (so #001 stays reserved). Founding status = the first 50.
+const FOUNDER_EMAIL = 'jakenicholas.mgmt@gmail.com';
+async function ensureMembersTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS members (
+    member_id TEXT PRIMARY KEY, email TEXT, member_no INTEGER,
+    joined_at INTEGER, founding INTEGER DEFAULT 0, market TEXT)`).run();
+}
+async function ensureMemberRecord(env, memberId, email, joinedTs) {
+  try { await ensureMembersTable(env); } catch { return null; }
+  try {
+    let row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
+    if (row) return row;
+    let no;
+    if (email && email.toLowerCase() === FOUNDER_EMAIL) no = 1;
+    else { const mx = await env.DB.prepare('SELECT MAX(member_no) AS m FROM members').first(); no = Math.max(1, (mx && mx.m) || 1) + 1; }
+    const joined = joinedTs || Math.floor(Date.now() / 1000);
+    await env.DB.prepare('INSERT OR IGNORE INTO members (member_id, email, member_no, joined_at, founding, market) VALUES (?,?,?,?,?,?)')
+      .bind(memberId, email || null, no, joined, no <= 50 ? 1 : 0, null).run();
+    row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
+    return row || { member_no: no, joined_at: joined, founding: no <= 50 ? 1 : 0, market: null };
+  } catch { return null; }
+}
+
 async function computeMemberGameStats(env, memberId) {
   const rs = await env.DB.prepare(
-    `SELECT event_name, ts, member_name, path, props_json FROM events WHERE member_id = ? LIMIT 20000`
+    `SELECT event_name, ts, member_name, email, path, props_json FROM events WHERE member_id = ? LIMIT 20000`
   ).bind(memberId).all();
   const rows = rs.results || [];
   const arts = new Set(), saved = new Set(), markets = new Set(), days = new Set();
-  let visits = 0, reach = 0, shares = 0, feedback = 0, intel = 0, cSub = 0, cAcc = 0, name = null;
+  let visits = 0, reach = 0, shares = 0, feedback = 0, intel = 0, cSub = 0, cAcc = 0, name = null, email = null, earliest = null;
   for (const r of rows) {
     let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
     if (r.member_name && !name) name = r.member_name;
-    if (r.ts) days.add(Math.floor(r.ts / 86400));
+    if (r.email && !email) email = r.email;
+    if (r.ts) { days.add(Math.floor(r.ts / 86400)); if (earliest === null || r.ts < earliest) earliest = r.ts; }
     const path = r.path || '';
     switch (r.event_name) {
       case 'page_view': if (/^\/(journal\/)?post\//.test(path)) arts.add(path.replace(/\/+$/, '')); break;
@@ -5812,8 +5838,43 @@ async function computeMemberGameStats(env, memberId) {
   let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 5;
   if (streak >= 7) xp += 25; if (streak >= 30) xp += 150;
   const lvl = levelForXp(xp);
+  const rec = await ensureMemberRecord(env, memberId, email, earliest);
   return { name, xp, level: lvl.lvl, tier: lvl.tier,
+    memberNo: rec ? rec.member_no : null,
+    since: (rec && rec.joined_at) ? new Date(rec.joined_at * 1000).getUTCFullYear() : null,
+    founding: !!(rec && rec.founding), market: (rec && rec.market) || null,
     stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv } };
+}
+
+// GET /member-lists?id= — a member's watchlist (tracked projects) + saved/read
+// articles, for the account dashboard tabs. Computed from their event log.
+async function handleMemberLists(env, origin, url) {
+  if (!env.DB) return json({ watchlist: [], saved: [] }, {}, env, origin);
+  const id = String(url.searchParams.get('id') || '').slice(0, 120);
+  if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+  try {
+    const rs = await env.DB.prepare(`SELECT event_name, ts, path, props_json FROM events WHERE member_id = ? ORDER BY ts DESC LIMIT 5000`).bind(id).all();
+    const rows = rs.results || [];
+    let watch = null; const favs = new Set(), removed = new Set(), arts = [], seen = new Set();
+    for (const r of rows) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      if (r.event_name === 'watchlist_snapshot' && !watch) {
+        const list = p.slugs || p.watchlist || p.projects || p.items;
+        if (Array.isArray(list)) watch = list.map(x => typeof x === 'string' ? { slug: x } : { slug: x.slug || x.Slug, title: x.title || x.Title, city: x.city || x.City }).filter(x => x.slug);
+      }
+      if (r.event_name === 'favorite_added') { const s = p.slug || p.project_slug; if (s) favs.add(s); }
+      if (r.event_name === 'favorite_removed') { const s = p.slug || p.project_slug; if (s) removed.add(s); }
+      if (r.event_name === 'page_view') {
+        const path = r.path || '';
+        if (/^\/(journal\/)?post\//.test(path)) {
+          const slug = path.replace(/\/+$/, '').replace(/^.*\/post\//, '');
+          if (slug && !seen.has(slug) && arts.length < 40) { seen.add(slug); arts.push({ slug, title: p.title || null, ts: r.ts }); }
+        }
+      }
+    }
+    if (!watch) watch = [...favs].filter(s => !removed.has(s)).map(s => ({ slug: s }));
+    return json({ watchlist: watch || [], saved: arts }, {}, env, origin);
+  } catch (e) { return json({ error: 'lists: ' + e.message }, { status: 500 }, env, origin); }
 }
 
 // GET /member-stats?id=<memberId> — a member's own XP/level/stats for the account
@@ -6000,6 +6061,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/member-stats') {
         return await handleMemberStats(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/member-lists') {
+        return await handleMemberLists(env, origin, url);
       }
       if (request.method === 'POST' && url.pathname === '/article-feedback') {
         return await handleArticleFeedback(request, env, origin);

@@ -11,27 +11,38 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a;
-  --purple:#A78BFA; --purple-glow:#B9A6FF; --ink:#070807; --mute:#9AA39C;
-  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
-  --card:rgba(255,255,255,.025); --serif:'Fraunces',Georgia,serif;
-  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --mono:'JetBrains Mono',monospace;
+  --green:#1FDF67;--green-soft:#42EB81;--gold:#e6c574;--gold-soft:#f0d68a;
+  --purple:#A78BFA;--purple-glow:#B9A6FF;--ink:#070807;--mute:#9AA39C;
+  --hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);--card:rgba(255,255,255,.025);
+  --serif:'Fraunces',Georgia,serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--mono:'JetBrains Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;position:relative;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(800px 500px at 18% -8%, rgba(167,139,250,.16), transparent 60%),
-             radial-gradient(700px 460px at 92% 4%, rgba(230,197,116,.08), transparent 60%)}
-.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px 80px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(820px 520px at 16% -10%,rgba(167,139,250,.16),transparent 60%),radial-gradient(720px 460px at 94% 2%,rgba(230,197,116,.08),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
 .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 30px}
-.brand{font-family:var(--serif);font-weight:600;font-size:18px;letter-spacing:-.01em}
-.brand b{color:#fff} .brand i{font-style:normal;color:var(--mute)}
-.x{width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);background:var(--card);color:#ECEAE5;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:18px;transition:border-color .15s,background .15s}
-.x:hover{border-color:var(--hair2);background:rgba(255,255,255,.05)}
-
-.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin:0 0 16px}
 .card{background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:24px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+/* header / footer logo */
+.hdr{position:relative;z-index:2;border-bottom:1px solid var(--hair)}
+.hdr .wrap{display:flex;align-items:center;justify-content:space-between;padding:18px 24px}
+.tmw-logo-lockup{display:inline-flex;align-items:center;gap:11px;text-decoration:none}
+.tmw-hex-badge svg{width:30px;height:30px;display:block}
+.tmw-hex-spinner{transform-box:fill-box;transform-origin:center;animation:hexspin 9s linear infinite}
+.tmw-wordmark svg{height:16px;width:auto;display:block}
+.wm-fill path{fill:#ECEAE5}
+@keyframes hexspin{to{transform:rotate(360deg)}}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.hdr-r .who{font-size:13px;color:var(--mute)}
+.x{width:36px;height:36px;border-radius:50%;border:1px solid var(--hair);background:var(--card);color:#ECEAE5;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px}
+.x:hover{border-color:var(--hair2);background:rgba(255,255,255,.05)}
+/* tabs */
+.tabs{position:relative;z-index:2;border-bottom:1px solid var(--hair);margin-bottom:28px}
+.tabs .wrap{display:flex;gap:6px;padding:0 24px}
+.tab{appearance:none;background:none;border:none;color:var(--mute);font-family:var(--sans);font-size:14px;font-weight:500;padding:15px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.tab:hover{color:#ECEAE5}
+.tab.on{color:#fff;border-bottom-color:var(--gold)}
+/* hero */
+.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin:0 0 16px}
 .idrow{display:flex;align-items:center;gap:14px;margin-bottom:22px}
 .av{width:60px;height:60px;border-radius:50%;background:#1a1d22;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--gold);flex:0 0 auto;box-shadow:0 0 22px rgba(230,197,116,.22)}
 .nm{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1;color:#fff}
@@ -43,7 +54,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--purple-glow));box-shadow:0 0 18px rgba(167,139,250,.55)}
 .xpline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute)}
 .xpline b{color:var(--gold);font-weight:500}
-
 .miniCard{position:relative;overflow:hidden;border-radius:16px;background:#101218;border:1px solid var(--hair);padding:18px;height:100%;min-height:180px;display:flex;flex-direction:column;justify-content:space-between}
 .miniCard::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(167,139,250,.30),transparent);pointer-events:none}
 .mcL{position:relative;z-index:1}
@@ -52,19 +62,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .mcName{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.5px;color:#fff}
 .mcNo{font-family:var(--mono);font-size:11px;color:var(--mute)}
 .proPill{position:absolute;right:14px;top:14px;z-index:2;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:4px 10px}
-
 .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
 .stat{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:15px 14px}
 .stat .v{font-family:var(--serif);font-size:25px;font-weight:600;line-height:1;color:#fff}
 .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:8px}
-
 .sechead{display:flex;align-items:baseline;justify-content:space-between;margin:34px 0 16px}
 .sechead h2{font-family:var(--serif);font-size:22px;font-weight:600;color:#fff}
-
-.ladder{position:relative;padding-left:8px}
-.lv{display:grid;grid-template-columns:54px 1fr;gap:16px;padding:0 0 6px;position:relative}
-.lv::before{content:"";position:absolute;left:26px;top:46px;bottom:-6px;width:2px;background:var(--hair)}
-.lv:last-child::before{display:none}
+.ladder .lv{display:grid;grid-template-columns:54px 1fr;gap:16px;position:relative}
+.ladder .lv::before{content:"";position:absolute;left:26px;top:46px;bottom:-6px;width:2px;background:var(--hair)}
+.ladder .lv:last-child::before{display:none}
 .lvnode{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:18px;font-weight:600;background:#101218;border:1.5px solid var(--hair);color:var(--mute);position:relative;z-index:1}
 .lv.done .lvnode{border-color:rgba(31,223,103,.5);color:var(--green-soft);background:rgba(31,223,103,.06)}
 .lv.cur .lvnode{border-color:var(--purple);color:#fff;background:rgba(167,139,250,.14);box-shadow:0 0 0 4px rgba(167,139,250,.12),0 0 26px rgba(167,139,250,.45)}
@@ -75,84 +81,139 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .lvbody .t{flex:1}
 .lvtier{font-family:var(--serif);font-size:17px;font-weight:600;color:#fff}
 .lvunlock{font-size:12.5px;color:var(--mute);margin-top:3px}
-.lvxp{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--mute);white-space:nowrap}
-.lv.cur .lvxp{color:var(--purple-glow)}
 .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap}
 .tag.done{color:var(--green-soft);background:rgba(31,223,103,.08)}
 .tag.cur{color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold))}
 .tag.lock{color:var(--mute);background:rgba(255,255,255,.05)}
-
 .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .bdg{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:13px 14px}
 .bi{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:var(--serif);font-weight:600;font-size:15px}
 .bi.on{background:rgba(230,197,116,.12);color:var(--gold);box-shadow:0 0 18px rgba(230,197,116,.2)}
 .bi.off{background:rgba(255,255,255,.04);color:var(--mute)}
-.bn{font-size:13.5px;font-weight:500;color:#fff} .bd{font-size:11.5px;color:var(--mute);margin-top:2px}
-
-.earn{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+.bn{font-size:13.5px;font-weight:500;color:#fff}.bd{font-size:11.5px;color:var(--mute);margin-top:2px}
+.earn{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .ecard{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:16px}
 .ecard .ev{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--gold)}
-.ecard .et{font-size:14px;font-weight:500;color:#fff;margin:8px 0 3px}
-.ecard .es{font-size:12px;color:var(--mute)}
-
-@media(max-width:820px){
-  .hero{grid-template-columns:1fr} .stats{grid-template-columns:repeat(3,1fr)}
-  .badges,.earn{grid-template-columns:1fr}
-}
+.ecard .et{font-size:14px;font-weight:500;color:#fff;margin:8px 0 3px}.ecard .es{font-size:12px;color:var(--mute)}
+/* lists */
+.lrow{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--hair);border-radius:14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:border-color .15s}
+.lrow:hover{border-color:var(--hair2)}
+.lrow .lt{flex:1;min-width:0}
+.lrow .lt b{font-size:14.5px;font-weight:500;color:#fff;display:block}
+.lrow .lt span{font-size:12px;color:var(--mute)}
+.lrow .go{color:var(--mute);font-size:17px}
+.empty{text-align:center;color:var(--mute);padding:48px 20px;border:1px dashed var(--hair);border-radius:16px;font-size:14px}
+.empty a{color:var(--gold)}
+/* account */
+.arow{display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--hair)}
+.arow:last-child{border-bottom:none}
+.arow .k{font-size:13px;color:var(--mute)}
+.arow .v{font-size:14px;color:#fff}
+.btn{appearance:none;font-family:var(--sans);font-size:13px;font-weight:500;padding:9px 16px;border-radius:10px;border:1px solid var(--hair2);background:var(--card);color:#ECEAE5;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{background:rgba(255,255,255,.05)}
+.btn.danger{border-color:rgba(226,75,74,.4);color:#f0a0a0}
+.btn.danger:hover{background:rgba(226,75,74,.08)}
+.aActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}
+.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}
+.ftr .cp{font-size:12px;color:var(--mute)}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.badges,.earn{grid-template-columns:1fr}.tabs .wrap{overflow-x:auto}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand"><b>MARKETS</b> <i>of</i> <b>TOMORROW</b></div>
-    <a class="x" href="/" aria-label="Close">&times;</a>
-  </div>
+<header class="hdr"><div class="wrap">
+  <a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow" id="logoH"></a>
+  <div class="hdr-r"><span class="who" id="who"></span><a class="x" href="/" aria-label="Back to site">&times;</a></div>
+</div></header>
 
-  <div class="hero">
+<nav class="tabs"><div class="wrap">
+  <button class="tab on" data-tab="overview">Overview</button>
+  <button class="tab" data-tab="watchlist">Watchlist</button>
+  <button class="tab" data-tab="saved">Saved articles</button>
+  <button class="tab" data-tab="account">Account</button>
+</div></nav>
+
+<main class="wrap">
+  <section data-tab-panel="overview">
+    <div class="hero">
+      <div class="card">
+        <div class="idrow"><div class="av" id="av">JN</div><div><div class="nm" id="nm">Jacob Nicholas</div><div class="sub" id="subId">No. 001</div><div class="tierbadge" id="tierbadge">&#9670; Local</div></div></div>
+        <div class="lbl">Level <span id="lvNum">3</span></div>
+        <div class="lvln" id="lvName"><span>Local</span></div>
+        <div class="bar"><i id="xpFill" style="width:50%"></i></div>
+        <div class="xpline"><span id="xpNow"><b>1,352</b> XP</span><span id="xpNext">448 to Insider</span></div>
+      </div>
+      <div class="miniCard"><span class="proPill">PRO</span>
+        <div class="mcL flockup">FLORIDA<br><span class="of">OF</span><br>TMW</div>
+        <div class="mcL"><div class="mcName" id="cardName">JACOB NICHOLAS</div><div class="mcNo" id="cardNo">MEMBER No. 001 &middot; SINCE 2026</div></div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
+    <div class="ladder" id="ladder"></div>
+    <div class="sechead"><h2>Achievements</h2></div>
+    <div class="badges" id="badges"></div>
+    <div class="sechead"><h2>Earn the most</h2></div>
+    <div class="earn">
+      <div class="ecard"><div class="ev">+500</div><div class="et">Visit a partner</div><div class="es">Check in at a member experience or event &mdash; the biggest points.</div></div>
+      <div class="ecard"><div class="ev">+400</div><div class="et">Add to the map</div><div class="es">Suggest a project or firm. Verified additions earn the most of any contribution.</div></div>
+      <div class="ecard"><div class="ev">+20</div><div class="et">Leave feedback</div><div class="es">Private notes on articles &mdash; help shape what we cover.</div></div>
+    </div>
+  </section>
+
+  <section data-tab-panel="watchlist" hidden>
+    <div class="sechead"><h2>Your watchlist</h2><span class="lbl" id="wlCount">&nbsp;</span></div>
+    <div id="watchList"><div class="empty">Loading&hellip;</div></div>
+  </section>
+
+  <section data-tab-panel="saved" hidden>
+    <div class="sechead"><h2>Saved articles</h2><span class="lbl" id="svCount">&nbsp;</span></div>
+    <div id="savedList"><div class="empty">Loading&hellip;</div></div>
+  </section>
+
+  <section data-tab-panel="account" hidden>
+    <div class="sechead"><h2>Account &amp; security</h2></div>
     <div class="card">
-      <div class="idrow">
-        <div class="av" id="av">JN</div>
-        <div>
-          <div class="nm" id="nm">Jacob Nicholas</div>
-          <div class="sub" id="sub">No. 014 &middot; Founding Member</div>
-          <div class="tierbadge" id="tierbadge">&#9670; Florida Insider</div>
-        </div>
-      </div>
-      <div class="lbl">Level <span id="lvNum">4</span></div>
-      <div class="lvln" id="lvName">Florida <span>Insider</span></div>
-      <div class="bar"><i id="xpFill" style="width:54%"></i></div>
-      <div class="xpline"><span id="xpNow"><b>2,450</b> XP</span><span id="xpNext">550 to Tastemaker</span></div>
-    </div>
-    <div class="miniCard">
-      <span class="proPill">PRO</span>
-      <div class="mcL flockup">FLORIDA<br><span class="of">OF</span><br>TMW</div>
-      <div class="mcL">
-        <div class="mcName" id="cardName">JACOB NICHOLAS</div>
-        <div class="mcNo" id="cardNo">MEMBER No. 014 &middot; SINCE 2026</div>
+      <div class="arow"><span class="k">Email</span><span class="v" id="acctEmail">&mdash;</span></div>
+      <div class="arow"><span class="k">Member</span><span class="v" id="acctNo">No. 001 &middot; Founding</span></div>
+      <div class="arow"><span class="k">Plan</span><span class="v">PRO &middot; active</span></div>
+      <div class="aActions">
+        <button class="btn" id="btnPw">Change password</button>
+        <button class="btn" id="btnPlan">Manage / cancel plan</button>
+        <button class="btn danger" id="btnOut">Sign out</button>
       </div>
     </div>
-  </div>
+  </section>
+</main>
 
-  <div class="stats" id="stats"></div>
-
-  <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">Top 8% of members</span></div>
-  <div class="ladder" id="ladder"></div>
-
-  <div class="sechead"><h2>Achievements</h2></div>
-  <div class="badges" id="badges"></div>
-
-  <div class="sechead"><h2>Earn the most</h2></div>
-  <div class="earn">
-    <div class="ecard"><div class="ev">+500</div><div class="et">Visit a partner</div><div class="es">Check in at a member experience or event &mdash; the biggest points.</div></div>
-    <div class="ecard"><div class="ev">+400</div><div class="et">Add to the map</div><div class="es">Suggest a project or firm. Verified additions earn the most of any contribution.</div></div>
-    <div class="ecard"><div class="ev">+20</div><div class="et">Leave feedback</div><div class="es">Private notes on articles &mdash; help shape what we cover.</div></div>
-  </div>
-</div>
+<footer class="ftr"><div class="wrap">
+  <a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow" id="logoF"></a>
+  <span class="cp">&copy; <span id="yr">2026</span> Markets of Tomorrow</span>
+</div></footer>
 
 <script src="/_shared/journal-auth.js" defer></script>
 <script>
 (function(){
   var WORKER='https://tmw.jake-ab7.workers.dev';
+  var HEX='<div class="tmw-hex-badge"><svg viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></div>';
+  var WORDMARK='<div class="tmw-wordmark"><svg viewBox="100 60 900 410"><g class="wm-fill">'+
+    '<path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/>'+
+    '<path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/>'+
+    '<path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/>'+
+    '<path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/>'+
+    '<path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/>'+
+    '<path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/>'+
+    '<path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/>'+
+    '<path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/>'+
+    '<path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/>'+
+    '<path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/>'+
+    '<path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/>'+
+    '<path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>'+
+    '</g></svg></div>';
+  document.getElementById('logoH').innerHTML=HEX+WORDMARK;
+  document.getElementById('logoF').innerHTML=HEX+WORDMARK;
+  try{ document.getElementById('yr').textContent=new Date().getFullYear(); }catch(e){}
+
   var LEVELS=[
     {lvl:1,tier:'Reader',xp:0,unlock:'Read everything · ad-supported'},
     {lvl:2,tier:'Member',xp:300,unlock:'Article commenting unlocked'},
@@ -163,72 +224,97 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
     {lvl:7,tier:'Authority',xp:10000,unlock:'Advisory access · concierge intel'},
     {lvl:8,tier:'Luminary',xp:18000,unlock:'Founding-circle status'}
   ];
-  var DEMO={name:'Jacob Nicholas',memberNo:14,since:2026,founding:true,xp:2450,market:'Florida',
-    rankPct:8,stats:{articles:312,markets:5,visits:18,reach:'47.2k',streak:24,saved:36}};
+  var DEMO={name:'Jacob Nicholas',memberNo:1,since:2026,founding:true,xp:1352,market:null,
+    stats:{articles:66,markets:0,visits:0,reach:'0',streak:26,saved:5}};
   var BADGES=[
     {on:true,ic:'★',n:'Founding Member',d:'One of the first 50'},
     {on:true,ic:'✎',n:'Bookworm',d:'100 articles read'},
-    {on:true,ic:'◈',n:'Globetrotter',d:'5 markets followed'},
-    {on:false,ic:'◉',n:'Tastemaker',d:'47.2k / 50k reach'},
-    {on:false,ic:'⚑',n:'Centurion',d:'18 / 25 visits'},
+    {on:false,ic:'◈',n:'Globetrotter',d:'Follow 5 markets'},
+    {on:false,ic:'◉',n:'Tastemaker',d:'50k reach'},
+    {on:false,ic:'⚑',n:'Centurion',d:'25 visits'},
     {on:false,ic:'✦',n:'Contributor',d:'Get an edit accepted'}
   ];
-  function initials(n){return (n||'').split(/\s+/).map(function(s){return s[0]}).join('').slice(0,2).toUpperCase()||'TMW'}
+  function $(id){return document.getElementById(id)}
+  function ini(n){return (n||'').split(/\s+/).map(function(s){return s[0]}).join('').slice(0,2).toUpperCase()||'TMW'}
   function fmt(n){return Number(n).toLocaleString()}
-  function levelOf(xp){var c=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)c=LEVELS[i]}return c}
+  function lvlOf(xp){var c=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)c=LEVELS[i]}return c}
+  function tierName(L,m){return (L.lvl===4&&m.market)?(m.market+' Insider'):L.tier}
 
   function render(m){
-    var cur=levelOf(m.xp), idx=cur.lvl-1, next=LEVELS[idx+1];
-    var tierName=(cur.lvl===4?(m.market+' Insider'):cur.tier);
-    document.getElementById('av').textContent=initials(m.name);
-    document.getElementById('nm').textContent=m.name;
-    document.getElementById('sub').innerHTML='No. '+String(m.memberNo).padStart(3,'0')+(m.founding?' · Founding Member':'');
-    document.getElementById('tierbadge').innerHTML='&#9670; '+tierName;
-    document.getElementById('lvNum').textContent=cur.lvl;
-    document.getElementById('lvName').innerHTML=(cur.lvl===4?(m.market+' <span>Insider</span>'):'<span>'+cur.tier+'</span>');
-    document.getElementById('cardName').textContent=m.name.toUpperCase();
-    document.getElementById('cardNo').textContent='MEMBER No. '+String(m.memberNo).padStart(3,'0')+' · SINCE '+m.since;
-    document.getElementById('rankLbl').textContent='Top '+m.rankPct+'% of members';
-    if(next){
-      var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));
-      document.getElementById('xpFill').style.width=pct+'%';
-      document.getElementById('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;
-    } else { document.getElementById('xpFill').style.width='100%'; document.getElementById('xpNext').textContent='Max level'; }
-    document.getElementById('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
-
-    var S=m.stats, tiles=[['articles','articles read'],['markets','markets followed'],['visits','venue visits'],['reach','reach generated'],['streak','day streak'],['saved','projects saved']];
-    document.getElementById('stats').innerHTML=tiles.map(function(t){
-      return '<div class="stat"><div class="v">'+(typeof S[t[0]]==='number'?fmt(S[t[0]]):S[t[0]])+'</div><div class="k">'+t[1]+'</div></div>';
+    var cur=lvlOf(m.xp),next=LEVELS[cur.lvl];
+    $('av').textContent=ini(m.name); $('nm').textContent=m.name;
+    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding Member':'');
+    $('tierbadge').innerHTML='&#9670; '+tierName(cur,m);
+    $('lvNum').textContent=cur.lvl;
+    $('lvName').innerHTML=(cur.lvl===4&&m.market)?(m.market+' <span>Insider</span>'):'<span>'+cur.tier+'</span>';
+    $('cardName').textContent=(m.name||'').toUpperCase();
+    $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(3,'0')+' · SINCE '+(m.since||2026);
+    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding':'');
+    if(next){var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));$('xpFill').style.width=pct+'%';$('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;}
+    else{$('xpFill').style.width='100%';$('xpNext').textContent='Max level';}
+    $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
+    var S=m.stats,T=[['articles','articles read'],['markets','markets followed'],['visits','venue visits'],['reach','reach generated'],['streak','day streak'],['saved','projects saved']];
+    $('stats').innerHTML=T.map(function(t){return '<div class="stat"><div class="v">'+(typeof S[t[0]]==='number'?fmt(S[t[0]]):S[t[0]])+'</div><div class="k">'+t[1]+'</div></div>'}).join('');
+    $('ladder').innerHTML=LEVELS.map(function(L){
+      var st=L.lvl<cur.lvl?'done':L.lvl===cur.lvl?'cur':'lock';
+      var tag=st==='done'?'<span class="tag done">Unlocked</span>':st==='cur'?'<span class="tag cur">You are here</span>':'<span class="tag lock">'+fmt(L.xp)+' XP</span>';
+      return '<div class="lv '+st+'"><div class="lvnode">'+(st==='done'?'✓':L.lvl)+'</div><div class="lvbody"><div class="t"><div class="lvtier">'+tierName(L,m)+'</div><div class="lvunlock">'+L.unlock+'</div></div>'+tag+'</div></div>';
     }).join('');
-
-    document.getElementById('ladder').innerHTML=LEVELS.map(function(L){
-      var state=L.lvl<cur.lvl?'done':L.lvl===cur.lvl?'cur':'lock';
-      var tn=(L.lvl===4?(m.market+' Insider'):L.tier);
-      var tag=state==='done'?'<span class="tag done">Unlocked</span>':state==='cur'?'<span class="tag cur">You are here</span>':'<span class="tag lock">'+fmt(L.xp)+' XP</span>';
-      return '<div class="lv '+state+'"><div class="lvnode">'+(state==='done'?'✓':L.lvl)+'</div>'+
-        '<div class="lvbody"><div class="t"><div class="lvtier">'+tn+'</div><div class="lvunlock">'+L.unlock+'</div></div>'+tag+'</div></div>';
-    }).join('');
-
-    document.getElementById('badges').innerHTML=BADGES.map(function(b){
-      return '<div class="bdg"><div class="bi '+(b.on?'on':'off')+'">'+b.ic+'</div><div><div class="bn">'+b.n+'</div><div class="bd">'+b.d+'</div></div></div>';
-    }).join('');
+    $('badges').innerHTML=BADGES.map(function(b){return '<div class="bdg"><div class="bi '+(b.on?'on':'off')+'">'+b.ic+'</div><div><div class="bn">'+b.n+'</div><div class="bd">'+b.d+'</div></div></div>'}).join('');
   }
-
   render(DEMO);
 
-  // Hydrate with the real member once auth + stats are ready. Falls back to the
-  // demo above so the page always renders. /member-stats lands in Phase 1.
-  function hydrate(){
-    var mem = window.tmwAuth && window.tmwAuth.member;
-    var id = mem && mem.id, name = mem && (mem.name || (mem.auth && mem.auth.email));
-    if(!id) return;
-    fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'})
-      .then(function(r){return r.ok?r.json():null}).then(function(d){
-        if(!d) { if(name) { var x=Object.assign({},DEMO,{name:name}); render(x); } return; }
-        render(Object.assign({},DEMO,d,{name:d.name||name||DEMO.name}));
-      }).catch(function(){});
+  // ── tabs ──
+  var lists={loaded:false};
+  document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});
+    var id=b.getAttribute('data-tab');
+    document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
+    if((id==='watchlist'||id==='saved')&&!lists.loaded) loadLists();
+  })});
+
+  function humanize(slug){return String(slug||'').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
+  function loadLists(){
+    var mem=window.tmwAuth&&window.tmwAuth.member, id=mem&&mem.id;
+    if(!id){ // demo / signed-out
+      $('watchList').innerHTML='<div class="empty">Sign in to see your tracked projects. Start a watchlist on the <a href="/map">map</a>.</div>';
+      $('savedList').innerHTML='<div class="empty">Sign in to see your saved articles.</div>'; lists.loaded=true; return;
+    }
+    lists.loaded=true;
+    Promise.all([
+      fetch(WORKER+'/member-lists?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():{watchlist:[],saved:[]}}).catch(function(){return{watchlist:[],saved:[]}}),
+      fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})
+    ]).then(function(res){
+      var d=res[0],P=res[1],bySlug={};
+      P.forEach(function(p){if(p.Slug)bySlug[String(p.Slug).toLowerCase()]=p});
+      var wl=(d.watchlist||[]).map(function(w){var p=bySlug[String(w.slug).toLowerCase()]||{};return{slug:w.slug,title:w.title||p.Title||humanize(w.slug),city:w.city||p.City||''}});
+      $('wlCount').textContent=wl.length+' tracked';
+      $('watchList').innerHTML=wl.length?wl.map(function(w){return '<a class="lrow" href="https://www.oftmw.com/project/'+encodeURIComponent(w.slug)+'/"><div class="lt"><b>'+w.title+'</b>'+(w.city?'<span>'+w.city+'</span>':'')+'</div><span class="go">↗</span></a>'}).join(''):'<div class="empty">No tracked projects yet. Star projects on the <a href="/map">map</a> to build your watchlist.</div>';
+      var sv=d.saved||[];
+      $('svCount').textContent=sv.length+' articles';
+      $('savedList').innerHTML=sv.length?sv.map(function(a){return '<a class="lrow" href="https://www.oftmw.com/post/'+encodeURIComponent(a.slug)+'/"><div class="lt"><b>'+(a.title||humanize(a.slug))+'</b></div><span class="go">↗</span></a>'}).join(''):'<div class="empty">No saved articles yet.</div>';
+    });
   }
-  var tries=0,iv=setInterval(function(){ if((window.tmwAuth&&window.tmwAuth.member)||++tries>20){clearInterval(iv);hydrate();} },300);
+
+  // ── account actions (Memberstack) ──
+  function ms(){return window.$memberstackDom}
+  $('btnPw').addEventListener('click',function(){var m=ms();try{if(m&&m.openModal){m.openModal('FORGOT_PASSWORD').catch(function(){try{m.openModal('RESET_PASSWORD')}catch(e){}});return}}catch(e){}alert('Password reset is available from the login screen — use “Forgot password”.')});
+  $('btnPlan').addEventListener('click',function(){var m=ms();try{if(m&&m.launchStripeCustomerPortal){m.launchStripeCustomerPortal();return}}catch(e){}alert('To manage or cancel your plan, contact support@oftmw.com or use the billing portal in your welcome email.')});
+  $('btnOut').addEventListener('click',function(){var m=ms();try{if(m&&m.logout){m.logout().then(function(){location.href='/'}).catch(function(){location.href='/'});return}}catch(e){}location.href='/'});
+
+  // ── hydrate with the real member ──
+  function hydrate(){
+    var mem=window.tmwAuth&&window.tmwAuth.member, id=mem&&mem.id;
+    var email=mem&&((mem.auth&&mem.auth.email)||mem.email);
+    var name=mem&&(mem.name||email);
+    if(email){ $('acctEmail').textContent=email; $('who').textContent=email; }
+    if(!id) return;
+    fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
+      if(!d||d.error){ if(name) render(Object.assign({},DEMO,{name:name})); return; }
+      render(Object.assign({},DEMO,d,{name:d.name||name||DEMO.name}));
+    }).catch(function(){});
+  }
+  var t=0,iv=setInterval(function(){ if((window.tmwAuth&&window.tmwAuth.member)||++t>22){clearInterval(iv);hydrate();} },300);
 })();
 </script>
 </body>
