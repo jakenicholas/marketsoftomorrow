@@ -112,6 +112,11 @@ PAYWALL_CSS = """
       -webkit-mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
               mask-image: linear-gradient(180deg,#000 0%,#000 32%,transparent 100%);
     }
+    /* Locked cards stay in the DOM (SEO) but are skipped by the renderer until
+       scrolled near — defers their offscreen background-image loads so big
+       rollup pages don't pay a Core Web Vitals tax. Safe for indexing:
+       content-visibility:auto content is still parsed/rendered for crawlers. */
+    .tmw-locked-grid .card { content-visibility: auto; contain-intrinsic-size: 0 560px; }
     .tmw-gate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
     .tmw-gate-inner {
       text-align: center; max-width: 460px;
