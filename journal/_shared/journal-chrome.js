@@ -79,21 +79,14 @@
     '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
       '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
         '<p class="blurb">A powerhouse news network + data platform for hospitality, real estate, and lifestyle &mdash; powered by a real-time project database and TMW Intelligence, our AI for predictive forecasting.</p></div>' +
-      '<div><h4>Focus Markets</h4><ul>' +
-        '<li><a href="/">Global</a></li><li><a href="/?market=hotels">Hotels</a></li>' +
-        '<li><a href="/?market=florida">Florida</a></li><li><a href="/?market=new-york">New York</a></li>' +
-        '<li><a href="/?market=tennessee">Tennessee</a></li><li><a href="/?market=caribbean">Caribbean</a></li>' +
-        '<li><a href="/?market=rockies">Rockies</a></li></ul></div>' +
-      '<div><h4>Iconic Lists</h4><ul>' +
-        '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
-        '<li><a href="/hotels/">Hotels</a></li></ul>' +
-        // Data sits UNDER Iconic Lists in the same column (keeps the footer at
-        // four columns). SEO programmatic market hubs (91 indexable landing
-        // pages) lead; Map + Atlas sit alongside Tracked Markets.
-        '<h4 style="margin-top:22px">Data</h4><ul>' +
+      // Data takes the slot the Focus Markets column used to occupy.
+      '<div><h4>Data</h4><ul>' +
         '<li><a href="/markets/">Tracked Markets</a></li>' +
         '<li><a href="https://www.oftmw.com/map">Map</a></li>' +
         '<li><a href="https://www.oftmw.com/atlas">Atlas</a></li></ul></div>' +
+      '<div><h4>Iconic Lists</h4><ul>' +
+        '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
+        '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
       '<div><h4>Company</h4><ul>' +
         '<li><a href="/media/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li>' +

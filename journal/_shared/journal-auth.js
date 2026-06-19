@@ -701,6 +701,7 @@
     // Clean shared API for new consumers.
     var a = window.tmwAuth;
     a.signedIn = signedIn; a.paid = paid; a.member = member || null; a.ready = true;
+    try { document.documentElement.classList.toggle('tmw-paid', paid); } catch (_) {}
     for (var i = 0; i < _authSubs.length; i++) { try { _authSubs[i](a); } catch (e) {} }
   }
 
@@ -803,6 +804,7 @@
     // flash. Memberstack still confirms via applyState() and corrects if stale.
     try {
       var cached = localStorage.getItem('tmw_auth_state');
+      try { document.documentElement.classList.toggle('tmw-paid', cached === 'pro'); } catch (_) {}
       if (cached === 'in' || cached === 'pro') {
         btn.classList.add('signed-in');
         if (cached === 'pro') {

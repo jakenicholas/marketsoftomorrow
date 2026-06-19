@@ -755,6 +755,8 @@
     // journal, where Database is just one nav item among many.
     'html.tmw-surf-journal nav.main .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
     'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    // Pro members never need the in-dropdown Go Pro CTA.
+    'html.tmw-paid .tmw-mm-cta[data-paywall="go-pro"]{display:none !important}',
 
     // ── Rank-page CTA (Book a table / Website): subtle gold-glow text, no fill.
     '.btn-cta{background:transparent !important; color:var(--gold-soft) !important; padding:8px 0 !important; border-radius:0 !important; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32)}',
@@ -1823,8 +1825,10 @@
   }
   function toast(key){ var a=ACH[key]; if(!a) return; pushToast({kicker:'Achievement unlocked', name:a.n, sub:(a.xp?'+'+a.xp+' XP':'')}); }
   function toastLevel(lvl,tier){ pushToast({kicker:'Level up', name:'Level '+lvl+(tier?' · '+tier:''), icon:LVLUP, lvl:true}); }
-  // Console test helper: run tmwToastTest() on any oftmw.com page to preview both toasts.
-  window.tmwToastTest = function(){ toast('globetrotter'); setTimeout(function(){ toastLevel(4,'Insider'); }, 800); };
+  var FLAME = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c4.4 0 8-3.3 8-7.8 0-2.9-1.4-5.2-2.8-7-.3-.4-.9-.3-1.1.2-.5 1.4-1.5 2.3-2.3 2-.9-.3-.6-2-.4-3.7.2-2-.2-4-2.5-6-.4-.3-.9 0-1 .5-.2 2-1 3.4-2.2 4.8C5.8 8.6 4 11 4 15.2 4 19.7 7.6 23 12 23z"/></svg>';
+  function toastStreak(n){ pushToast({kicker:'Daily streak', name:n+'-day streak', sub:'+10 XP', icon:FLAME}); }
+  // Console test helper: run tmwToastTest() on any oftmw.com page to preview the toasts.
+  window.tmwToastTest = function(){ toast('globetrotter'); setTimeout(function(){ toastLevel(4,'Insider'); }, 800); setTimeout(function(){ toastStreak(12); }, 1600); };
   function check(id){
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){
       if(!d) return;
@@ -1842,6 +1846,13 @@
         if(isNaN(plvl)){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
         else if(d.level>plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} setTimeout(function(){ toastLevel(d.level,d.tier); }, 200); }
         else if(d.level!==plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
+      }
+      // daily-streak visit toast — once per calendar day, from day 2 onward
+      var sk_streak=(d.stats&&d.stats.streak)||0;
+      if(sk_streak>=2){
+        var sd=new Date(), ymd=sd.getFullYear()+'-'+(sd.getMonth()+1)+'-'+sd.getDate(), stk='tmw_streak_toast_'+id, lastDay=null;
+        try{ lastDay=localStorage.getItem(stk); }catch(e){}
+        if(lastDay!==ymd){ try{ localStorage.setItem(stk,ymd); }catch(e){} setTimeout(function(){ toastStreak(sk_streak); }, 600); }
       }
     }).catch(function(){});
   }
