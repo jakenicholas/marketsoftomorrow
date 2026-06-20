@@ -5825,65 +5825,75 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
   } catch { return null; }
 }
 
-// GET  /admin/member-number?email=…[&number=N] → inspect (dry run, no writes):
-//   show the member's current registry row + who holds N right now.
-// POST /admin/member-number  { email, number } → assign that member_no to the
-//   member (by email), SWAPPING with whoever currently holds it. `founding`
-//   (member_no <= 50) is recomputed for both. Admin-gated; #001 stays the
-//   founder. A D1 batch makes the swap atomic.
+// Admin: assign / swap member registry numbers. (Registry rows often have a
+// null email — it's only backfilled from a member's events — so number lookups
+// are the reliable key.)
+//   GET  ?number=N         → inspect the row at #N (dry run)
+//   GET  ?email=…          → inspect row(s) for that email
+//   POST { from, to, email? } → SWAP #from and #to (the row at #from lands on
+//                            #to). Optional email is stamped on the row that
+//                            ends at #to (handy to backfill a null-email row).
+//   POST { email, number } → assign #number to the member with that email,
+//                            swapping with the current holder.
+// `founding` (member_no <= 50) is recomputed for every moved row. D1 batch =
+// atomic. Admin-token gated; #001 stays the founder.
 async function handleMemberNumber(req, env, origin, url) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   await ensureMembersTable(env);
+  const COLS = 'member_id, email, member_no, founding, joined_at';
+  const byNo = (n) => env.DB.prepare(`SELECT ${COLS} FROM members WHERE member_no = ?`).bind(n).first();
+  const byId = (id) => env.DB.prepare(`SELECT ${COLS} FROM members WHERE member_id = ?`).bind(id).first();
+  const fnd = (n) => (n <= 50 ? 1 : 0);
 
-  const isPost = req.method === 'POST';
-  let email = '', number = null;
-  if (isPost) {
-    let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
-    email = String(body.email || '').trim().toLowerCase();
-    number = (body.number != null) ? parseInt(body.number, 10) : null;
-  } else {
-    email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+  if (req.method !== 'POST') {
+    const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
     const n = url.searchParams.get('number');
-    number = (n != null) ? parseInt(n, 10) : null;
-  }
-  if (!email) return json({ error: 'email required' }, { status: 400 }, env, origin);
-
-  const targets = (await env.DB.prepare(
-    'SELECT member_id, email, member_no, founding, joined_at FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC'
-  ).bind(email).all()).results || [];
-  const target = targets[0] || null;
-  const holder = (number >= 1)
-    ? await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_no = ?').bind(number).first()
-    : null;
-
-  if (!isPost) {
-    return json({ mode: 'inspect', email, requested_number: number, target,
-      duplicate_rows: targets.length > 1 ? targets : undefined,
-      current_holder_of_number: holder || null }, {}, env, origin);
+    const number = (n != null) ? parseInt(n, 10) : null;
+    const byEmail = email ? ((await env.DB.prepare(`SELECT ${COLS} FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC`).bind(email).all()).results || []) : [];
+    return json({ mode: 'inspect', email: email || null, number: (number >= 1) ? number : null,
+      by_email: byEmail, at_number: (number >= 1) ? (await byNo(number)) : null }, {}, env, origin);
   }
 
-  if (!(number >= 1)) return json({ error: 'number (>= 1) required' }, { status: 400 }, env, origin);
-  if (!target) return json({ error: 'no member with that email is in the registry yet',
-    email, hint: 'the members row is created on first authenticated activity; have them sign in once, then retry' }, { status: 404 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const from = (body.from != null) ? parseInt(body.from, 10) : null;
+  const to = (body.to != null) ? parseInt(body.to, 10) : null;
+  const stampEmail = body.email ? String(body.email).trim().toLowerCase() : null;
+
+  // ── Mode 1: direct number swap (#from ↔ #to) ──
+  if (from >= 1 && to >= 1) {
+    if (from === to) return json({ error: 'from and to are the same' }, { status: 400 }, env, origin);
+    const rowFrom = await byNo(from);
+    const rowTo = await byNo(to);
+    if (!rowFrom) return json({ error: `no member at #${from}` }, { status: 404 }, env, origin);
+    const before = { from: rowFrom, to: rowTo || null };
+    const stmts = [
+      stampEmail
+        ? env.DB.prepare('UPDATE members SET member_no = ?, founding = ?, email = ? WHERE member_id = ?').bind(to, fnd(to), stampEmail, rowFrom.member_id)
+        : env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?').bind(to, fnd(to), rowFrom.member_id),
+    ];
+    if (rowTo) stmts.push(env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?').bind(from, fnd(from), rowTo.member_id));
+    await env.DB.batch(stmts);
+    return json({ ok: true, swapped: !!rowTo, before,
+      after: { at_to: await byId(rowFrom.member_id), at_from: rowTo ? await byId(rowTo.member_id) : null } }, {}, env, origin);
+  }
+
+  // ── Mode 2: assign #number to the member with this email ──
+  const email = body.email ? String(body.email).trim().toLowerCase() : '';
+  const number = (body.number != null) ? parseInt(body.number, 10) : null;
+  if (!email || !(number >= 1)) return json({ error: 'provide { from, to } to swap numbers, or { email, number } to assign' }, { status: 400 }, env, origin);
+  const target = await env.DB.prepare(`SELECT ${COLS} FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC`).bind(email).first();
+  if (!target) return json({ error: 'no member with that email in the registry (its email may be null — use { from, to } by number instead)', email }, { status: 404 }, env, origin);
   if (target.member_no === number) return json({ ok: true, noop: true, message: 'already #' + number, target }, {}, env, origin);
-
-  const before = { target: { ...target }, holder: holder ? { ...holder } : null };
+  const holder = await byNo(number);
+  const before = { target, holder: holder || null };
   const targetOld = target.member_no;
-  const stmts = [
-    env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?')
-      .bind(number, number <= 50 ? 1 : 0, target.member_id),
-  ];
-  if (holder) stmts.push(env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?')
-    .bind(targetOld, targetOld <= 50 ? 1 : 0, holder.member_id));
+  const stmts = [env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?').bind(number, fnd(number), target.member_id)];
+  if (holder) stmts.push(env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?').bind(targetOld, fnd(targetOld), holder.member_id));
   await env.DB.batch(stmts);
-
-  const after = {
-    target: await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_id = ?').bind(target.member_id).first(),
-    holder: holder ? await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_id = ?').bind(holder.member_id).first() : null,
-  };
-  return json({ ok: true, swapped: !!holder, before, after }, {}, env, origin);
+  return json({ ok: true, swapped: !!holder, before,
+    after: { target: await byId(target.member_id), holder: holder ? await byId(holder.member_id) : null } }, {}, env, origin);
 }
 
 async function computeMemberGameStats(env, memberId) {
