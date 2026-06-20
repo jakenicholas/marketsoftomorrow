@@ -1838,6 +1838,11 @@
     var w=document.getElementById('tmw-ach-wrap'); if(!w){w=document.createElement('div');w.id='tmw-ach-wrap';document.body.appendChild(w);}
     var el=document.createElement('div'); el.className='tmw-ach'+(o.lvl?' lvl':'');
     el.innerHTML='<div class="tmw-ach-ic">'+(o.icon||STAR)+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">'+o.kicker+'</div><div class="tmw-ach-n">'+o.name+'</div></div>'+(o.sub?'<div class="tmw-ach-xp">'+o.sub+'</div>':'');
+    // Tapping any toast takes you to your account (the climb / rewards live there).
+    el.style.cursor='pointer'; el.setAttribute('role','link'); el.setAttribute('tabindex','0');
+    function goAccount(){ try{ location.href=(o.href||'/account/'); }catch(e){} }
+    el.addEventListener('click',goAccount);
+    el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goAccount(); } });
     w.appendChild(el);
     requestAnimationFrame(function(){ el.classList.add('in'); });
     setTimeout(function(){ el.classList.remove('in'); setTimeout(function(){ if(el.parentNode)el.parentNode.removeChild(el); },420); }, 5400);

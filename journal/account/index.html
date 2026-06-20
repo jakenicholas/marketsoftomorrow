@@ -149,6 +149,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .lnk{appearance:none;background:none;border:none;cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--gold);padding:0}
 .lnk:hover{text-decoration:underline}.lnk.muted{color:var(--mute)}.lnk:disabled{opacity:.5;cursor:default;text-decoration:none}
 #emailEdit{display:inline-flex;align-items:center;gap:8px}
+#emailEdit[hidden]{display:none}
 .iconbtn{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--hair2);background:rgba(255,255,255,.04);color:var(--mute);cursor:pointer;padding:0}
 .iconbtn:hover{background:rgba(255,255,255,.08);color:#fff}
 .iconbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -265,7 +266,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var LEVELS=[
     {lvl:1,tier:'Newcomer',xp:0,unlock:'Welcome'},
     {lvl:2,tier:'Reader',xp:300,unlock:'Read ~30 Articles: Unlocks Article Commenting'},
-    {lvl:3,tier:'Local',xp:900,unlock:'Unlock Project Database Suggestions (We\'ll Add This Feature Soon)'},
+    {lvl:3,tier:'Local',xp:900,unlock:'Unlock Project Database Suggestions'},
     {lvl:4,tier:'Insider',xp:1800,unlock:'Member Nights, Exclusive Invites And More'},
     {lvl:5,tier:'Tastemaker',xp:3000,unlock:'Free Markets of Tomorrow Merch Gift Bag'},
     {lvl:6,tier:'Curator',xp:5500,unlock:'Creator Tier &middot; Comped Experiences'},
