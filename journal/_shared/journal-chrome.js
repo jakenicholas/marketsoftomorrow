@@ -364,20 +364,23 @@
         if (!document.getElementById('tmw-gate-css')) {
           var gst = document.createElement('style'); gst.id = 'tmw-gate-css';
           gst.textContent =
+            // NB: distinct class from the generator's project-grid paywall
+            // (.tmw-gate-inner there is a 460px-capped card) — name collision
+            // was clamping this full-section wrapper. Keep this namespace unique.
             '.tmw-gated{position:relative}' +
-            '.tmw-gate-inner{display:block;width:100%}' +
-            '.tmw-gated .tmw-gate-inner{filter:blur(7px);pointer-events:none;user-select:none;-webkit-user-select:none;opacity:.85}' +
+            '.tmw-bng-inner{display:block;width:100%;max-width:none}' +
+            '.tmw-gated .tmw-bng-inner{filter:blur(7px);pointer-events:none;user-select:none;-webkit-user-select:none;opacity:.85}' +
             '.tmw-gate-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:2}' +
             '.tmw-gate-card{max-width:420px;text-align:center;background:rgba(20,20,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(230,197,116,.4);border-radius:16px;padding:26px 28px;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}' +
             '.tmw-gate-eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#f0d68a;margin-bottom:9px}' +
             '.tmw-gate-h{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:19px;line-height:1.25;color:#fff;margin:0 0 6px}' +
-            '.tmw-gate-sub{font-size:13px;line-height:1.5;color:#C2C9C3;margin:0 0 16px}' +
+            '.tmw-bng-sub{font-size:13px;line-height:1.5;color:#C2C9C3;margin:0 0 16px}' +
             '.tmw-gate-btn{display:inline-block;background:#FFD300;color:#0a0a0a;border:0;border-radius:999px;padding:11px 22px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' +
             '.tmw-gate-btn:hover{background:#ffdf3a}';
           document.head.appendChild(gst);
         }
 
-        var inner = document.createElement('div'); inner.className = 'tmw-gate-inner';
+        var inner = document.createElement('div'); inner.className = 'tmw-bng-inner';
         while (sec.firstChild) inner.appendChild(sec.firstChild);
         sec.appendChild(inner);
         var place = (window.TMW_FUNNEL_OPTS && window.TMW_FUNNEL_OPTS.eyebrow || '').split(' · ')[0] || 'this market';
@@ -386,7 +389,7 @@
           '<div class="tmw-gate-card">' +
             '<div class="tmw-gate-eyebrow">TMW Pro</div>' +
             '<h3 class="tmw-gate-h">Unlock the full ' + (place === 'this market' ? 'market' : place) + ' data</h3>' +
-            '<p class="tmw-gate-sub">Delivery forecasts, the full pipeline by phase, and developer breakdowns are a Pro feature.</p>' +
+            '<p class="tmw-bng-sub">Delivery forecasts, the full pipeline by phase, and developer breakdowns are a Pro feature.</p>' +
             '<button class="tmw-gate-btn" type="button" data-tmw-paywall="feature:intelligence">Unlock with Pro</button>' +
           '</div>';
         sec.appendChild(ov);
