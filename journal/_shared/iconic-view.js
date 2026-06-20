@@ -30,11 +30,11 @@
 
   if (!document.getElementById('iconic-view-styles')) {
     var css =
-      '.iv-toggle{display:inline-flex; gap:4px; padding:4px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px}' +
-      '.iv-btn{width:36px; height:30px; display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--mute-2); border-radius:999px; cursor:pointer; transition:background .18s, color .18s; padding:0}' +
-      '.iv-btn:hover{color:var(--gold-soft)}' +
-      '.iv-btn.on{background:var(--gold); color:var(--ink)}' +
-      '.iv-btn.on:hover{color:var(--ink)}' +
+      '.iv-toggle{display:inline-flex; gap:3px; padding:3px 3px 3px 6px; background:transparent; border:0; border-left:1px solid var(--hair); border-radius:0; margin-left:3px}' +
+      '.iv-btn{width:34px; height:30px; display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--mute-2); border-radius:9px; cursor:pointer; transition:background .18s, color .18s, box-shadow .18s; padding:0}' +
+      '.iv-btn:hover{color:var(--purple-glow)}' +
+      '.iv-btn.on{background:linear-gradient(180deg, rgba(167,139,250,.30), rgba(167,139,250,.08)); color:var(--white); box-shadow:0 0 16px rgba(167,139,250,.42)}' +
+      '.iv-btn.on:hover{color:var(--white)}' +
       '.iv-btn svg{width:16px; height:16px}' +
       '.iv-btn .iv-t{font-family:var(--serif); font-weight:700; font-size:16px; line-height:1}' +
       '.iv-sheet{margin-top:10px; border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.015)}' +
@@ -165,7 +165,7 @@
       '<button class="iv-btn on" data-v="card" title="Card view" aria-label="Card view">' + IMG_CARD + '</button>' +
       '<button class="iv-btn" data-v="text" title="List view" aria-label="List view"><span class="iv-t">T</span></button>' +
       '<button class="iv-btn" data-v="map"  title="Map view" aria-label="Map view">' + IMG_MAP + '</button>';
-    actions.appendChild(tg);
+    (document.querySelector('.tabs-bar .ctlbar') || actions).appendChild(tg);
 
     // Text sheet
     var sheet = document.createElement('div');

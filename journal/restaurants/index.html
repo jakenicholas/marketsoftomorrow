@@ -183,17 +183,26 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 }
 
 /* ============== TAB CONTROL ============== */
-.tabs-bar{background:rgba(13,15,14,.6); border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:18px 0; margin-top:30px}
-.tabs-bar .wrap{display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap}
-.tabs{display:flex; gap:6px; padding:5px; background:rgba(255,255,255,.04); border:1px solid var(--hair); border-radius:999px}
-.tab-btn{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:9px 18px; border-radius:999px; color:var(--mute-2); transition:all .2s; font-weight:600}
+.tabs-bar{background:linear-gradient(180deg, rgba(20,23,20,.6), rgba(7,8,7,.5)); border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:16px 0; margin-top:30px}
+.tabs-bar .wrap{display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap}
+.tabs{display:flex; gap:4px; padding:4px; background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:999px}
+.tab-btn{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:9px 18px; border-radius:999px; color:var(--mute-2); transition:color .2s, background .2s, box-shadow .2s; font-weight:600}
 .tab-btn:hover{color:var(--white)}
-.tab-btn.on{background:var(--white); color:var(--ink); font-weight:700}
-.tab-btn .tb-count{margin-left:7px; font-size:10px; opacity:.65}
-.tabs-bar .actions{display:flex; gap:10px; align-items:center}
-.tabs-bar .sort{appearance:none; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 32px 9px 14px; border-radius:999px; cursor:pointer;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%239AA39C' stroke-width='1.2' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center}
-.tabs-bar .sort:focus{outline:none; border-color:var(--green)}
+.tab-btn.on{color:var(--white); font-weight:700; background:linear-gradient(180deg, rgba(167,139,250,.22), rgba(167,139,250,.05)); box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 18px rgba(167,139,250,.22)}
+.tab-btn .tb-count{margin-left:7px; font-size:10px; opacity:.6}
+.tabs-bar .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.ctlbar{display:inline-flex; align-items:center; background:linear-gradient(180deg, #17161c, #0d0d0f); border:1px solid var(--hair-2); border-radius:13px; padding:4px}
+.tabs-bar .sort{appearance:none; background:transparent; border:0; color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:8px 30px 8px 13px; border-radius:10px; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%23B9A6FF' stroke-width='1.3' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 11px center; transition:background-color .15s, color .15s}
+.tabs-bar .sort:hover{background-color:rgba(255,255,255,.05); color:var(--white)}
+.tabs-bar .sort:focus{outline:none; background-color:rgba(167,139,250,.12); color:var(--white)}
+@media(max-width:760px){
+  .tabs-bar .wrap{flex-direction:column; align-items:stretch; gap:12px}
+  .tabs{justify-content:space-between}
+  .tab-btn{flex:1; text-align:center; padding:10px 6px; letter-spacing:.12em}
+  .tabs-bar .actions{justify-content:space-between}
+  .ctlbar{flex:1; justify-content:space-between}
+}
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
 .edit-toggle:hover{border-color:var(--gold); color:var(--gold-soft)}
 .edit-toggle.on{background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:700}
@@ -438,11 +447,13 @@ footer .tmw-wordmark{width:118px}
       <button class="tab-btn" data-tab="about" role="tab">About</button>
     </div>
     <div class="actions">
+      <div class="ctlbar">
       <select class="sort" id="sortSel" aria-label="Sort">
         <option value="rank">Sort · Editor's rank</option>
         <option value="alpha">Sort · A–Z</option>
         <option value="region">Sort · By region</option>
       </select>
+      </div>
       <button class="edit-toggle" id="editToggle" title="Edit this page">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z"/></svg>
         <span id="editToggleLabel">Edit</span>
