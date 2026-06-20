@@ -208,7 +208,7 @@
     })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
-      if (data && data.answer) return { ok: true, answer: data.answer };
+      if (data && data.answer) return { ok: true, answer: data.answer, hero: data.hero || null };
       return { ok: false, answer: null };
     })
     .catch(function (e) { return { ok: false, answer: null, error: e }; });
