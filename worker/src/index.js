@@ -5942,6 +5942,83 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
 //                            swapping with the current holder.
 // `founding` (member_no <= 50) is recomputed for every moved row. D1 batch =
 // atomic. Admin-token gated; #001 stays the founder.
+// GET /m/<no> — public membership verification page. The QR code on the
+// member card encodes this URL, so scanning a card lands here and confirms the
+// holder is a genuine Markets of TMW member. No PII is shown — only the public
+// facts (member number, founding status, join year). Returns 404-styled page
+// for numbers we don't have on file. Optional ?t=<sig> is accepted for a future
+// signed/expiring token (verified when present) but not yet required.
+async function handleMemberVerify(env, url) {
+  const no = parseInt(url.pathname.split('/')[2] || '0', 10);
+  let row = null;
+  try {
+    if (env.DB && no > 0) {
+      row = await env.DB.prepare('SELECT member_no, joined_at, founding FROM members WHERE member_no = ?')
+        .bind(no).first();
+    }
+  } catch (_) { row = null; }
+
+  // Optional signed token: if a ?t= is supplied, verify it; an invalid token
+  // downgrades the page to "unverified" even if the number exists, so a forged
+  // token can't pass. Absent token = legacy/plain link, still allowed for now.
+  let tokenState = 'none';
+  const t = url.searchParams.get('t');
+  if (t) {
+    const secret = previewSecret(env);
+    const payload = await verifyPayload(t, secret).catch(() => null);
+    tokenState = payload && Number(payload.no) === no ? 'valid' : 'invalid';
+  }
+
+  const ok = !!row && tokenState !== 'invalid';
+  const noStr = String(no || 0).padStart(3, '0');
+  const founding = row ? (row.founding ? true : no <= 50) : false;
+  let year = null;
+  try { if (row && row.joined_at) year = new Date(row.joined_at).getFullYear(); } catch (_) {}
+  const line = ok
+    ? `Member No.&nbsp;${noStr}${founding ? ' &middot; Founding Member' : ''}${year ? ' &middot; Since ' + year : ''}`
+    : 'This membership could not be verified.';
+  const statusWord = ok ? 'VERIFIED' : 'NOT FOUND';
+  const accent = ok ? '#34d27b' : '#e0696a';
+
+  const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>${ok ? 'Member No. ' + noStr : 'Membership'} &middot; Markets of TMW</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(120% 130% at 30% 0%,#1c1c20,#0c0c0e 55%,#050506);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:#ECEAE5}
+.card{width:100%;max-width:420px;text-align:center;background:rgba(16,18,24,.7);
+  border:1px solid rgba(230,197,116,.28);border-radius:20px;padding:38px 30px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.logo{height:34px;margin:0 auto 22px;display:block;filter:brightness(0) invert(1)}
+.status{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
+  letter-spacing:.28em;color:${accent};margin-bottom:18px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:${accent};margin-right:8px;vertical-align:middle}
+.no{font-family:'Fraunces',Georgia,serif;font-size:46px;font-weight:600;line-height:1;color:#fff;margin:0 0 6px}
+.sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.08em;color:#9AA39C;margin-bottom:24px}
+.pill{display:inline-block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:700;
+  letter-spacing:.2em;color:#4a3708;background:linear-gradient(135deg,#f0d68a,#e6c574);border-radius:999px;padding:6px 14px}
+.foot{margin-top:26px;font-size:12px;color:#6b6f74}
+.foot a{color:#e6c574;text-decoration:none}
+@font-face{font-family:'Fraunces';src:local('Georgia')}
+</style></head>
+<body><div class="card">
+  <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
+  <div class="status"><span class="dot"></span>${statusWord}</div>
+  ${ok ? `<div class="no">No.&nbsp;${noStr}</div>` : `<div class="no" style="font-size:30px">&mdash;</div>`}
+  <div class="sub">${line}</div>
+  ${ok ? '<span class="pill">MARKETS OF TMW &middot; PRO</span>' : ''}
+  <div class="foot">${ok ? 'A verified member of <a href="https://oftmw.com">Markets of Tomorrow</a>.' : 'Visit <a href="https://oftmw.com">oftmw.com</a> to learn more.'}</div>
+</div></body></html>`;
+
+  return new Response(page, {
+    status: ok ? 200 : 404,
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
 async function handleMemberNumber(req, env, origin, url) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -6220,6 +6297,11 @@ export default {
         const gdeps = { json, requireAdminToken, signPayload, verifyPayload, handleMediaServe };
         const gr = await handleGallery(request, env, url, origin, gdeps);
         if (gr) return gr;
+      }
+
+      // ── Public member-card verification (the QR target on the card) ──────
+      if (request.method === 'GET' && /^\/m\/\d{1,6}$/.test(url.pathname)) {
+        return await handleMemberVerify(env, url);
       }
 
       // ── GitHub-OAuth login (public — these mint/verify the session) ──────

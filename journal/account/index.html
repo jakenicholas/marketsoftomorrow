@@ -28,7 +28,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .tabs .wrap{display:flex;gap:6px;padding:0 24px}
 .tab{appearance:none;background:none;border:none;color:var(--mute);font-family:var(--sans);font-size:14px;font-weight:500;padding:15px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab:hover{color:#ECEAE5}.tab.on{color:#fff;border-bottom-color:var(--gold)}
-.hero{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin:0 0 16px}
+.hero{display:grid;grid-template-columns:1fr 1.5fr;gap:18px;margin:0 0 16px}
 .idrow{display:flex;align-items:center;gap:14px;margin-bottom:22px}
 .av{width:60px;height:60px;border-radius:50%;background:#1a1d22;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--gold);flex:0 0 auto;box-shadow:0 0 22px rgba(230,197,116,.22)}
 .nm{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1;color:#fff}.sub{font-size:13px;color:var(--mute);margin-top:4px}
@@ -37,17 +37,21 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .bar{height:9px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:16px 0 10px}
 .bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--purple-glow));box-shadow:0 0 18px rgba(167,139,250,.55)}
 .xpline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute)}.xpline b{color:var(--gold);font-weight:500}
-.miniCard{position:relative;overflow:hidden;border-radius:16px;background:#101218;border:1px solid var(--hair);padding:18px;height:100%;min-height:180px;display:flex;flex-direction:column;justify-content:space-between}
-.miniCard::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(167,139,250,.30),transparent);pointer-events:none}
+.miniCard{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:600px;aspect-ratio:1.586;border:1px solid rgba(255,255,255,.08);background:repeating-linear-gradient(122deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),radial-gradient(120% 130% at 30% 0%,#1c1c20 0%,#0c0c0e 55%,#050506 100%)}
+.miniCard::after{content:none}
 .miniCard::before{content:"";position:absolute;top:-35%;left:-95%;width:75%;height:170%;z-index:3;pointer-events:none;transform:skewX(-20deg);filter:blur(13px);background:linear-gradient(90deg,transparent,rgba(255,255,255,.04) 28%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.04) 72%,transparent);animation:cardGlare 7s ease-in-out infinite}
 @keyframes cardGlare{0%{left:-95%}40%{left:155%}100%{left:155%}}
-.mcTop{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:9px}
-.mc-logo{height:30px;width:auto;display:block;filter:brightness(0) invert(1)}
-.mcMarket{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
-.mcB{position:relative;z-index:1}
-.mcName{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.5px;color:#fff}.mcNo{font-family:var(--mono);font-size:11px;color:var(--mute)}
-.proPill{position:absolute;right:14px;top:14px;z-index:2;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:4px 10px}
-.proPill.free{color:var(--mute);background:rgba(255,255,255,.07);border:1px solid var(--hair)}
+.mcInner{position:absolute;top:0;left:0;width:560px;height:353px;transform-origin:top left;z-index:1}
+.mcDump{position:absolute;left:26px;top:70px;margin:0;font-family:var(--mono);font-size:9px;line-height:14.4px;letter-spacing:.2px;white-space:pre}
+.mcScrim{position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(180deg,rgba(5,5,6,0) 0%,rgba(5,5,6,.55) 42%,rgba(5,5,6,.95) 100%)}
+.mcWord{position:absolute;left:26px;top:22px;width:78px}
+.mcWord svg{width:100%;height:auto;display:block}
+.mcPro{position:absolute;right:26px;top:22px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--gold)}
+.mcPro.free{color:var(--mute)}
+.mcName{position:absolute;left:28px;bottom:42px;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.01em;line-height:1;color:#f3f1ec}
+.mcNo{position:absolute;left:28px;bottom:24px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:#8d9098}
+.mcQR{position:absolute;right:24px;bottom:20px;width:88px;height:88px;border-radius:10px;background:rgba(8,8,10,.66);border:1px solid rgba(255,255,255,.15);box-shadow:0 2px 12px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+.mcQR svg{width:70px;height:70px;display:block}
 .plan-right{display:inline-flex;align-items:center;gap:14px}
 .goprochip{appearance:none;cursor:pointer;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border:none;border-radius:999px;padding:6px 13px;box-shadow:0 0 14px rgba(230,197,116,.4)}
 .planpill{display:inline-block;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:3px 10px;vertical-align:middle}
@@ -183,9 +187,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         <div class="bar"><i id="xpFill" style="width:50%"></i></div>
         <div class="xpline"><span id="xpNow"><b>1,352</b> XP</span><span id="xpNext">448 to Insider</span></div>
       </div>
-      <div class="miniCard"><span class="proPill" id="proPill">PRO</span>
-        <div class="mcTop"><img class="mc-logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of Tomorrow"><span class="mcMarket" id="cardMarket">Florida</span></div>
-        <div class="mcB"><div class="mcName" id="cardName">JACOB NICHOLAS</div><div class="mcNo" id="cardNo">MEMBER No. 001 &middot; SINCE 2026</div></div>
+      <div class="miniCard" id="miniCard">
+        <div class="mcInner" id="mcInner">
+          <pre class="mcDump" id="cardDump"></pre>
+          <div class="mcScrim"></div>
+          <div class="mcWord"><svg viewBox="100 60 900 410"><g fill="#ffffff"><path d="M233.5,220.4l1.1-105.9-.4-.4-30.2,106.3h-23.9l-30.6-107.2,1.1,107.2h-33.3V79h46.4l28.1,93.1h.4l27.7-93.1h46.6v141.4h-33.3Z"/><path d="M383.6,220.4l-6.9-20.5h-49.1l-7.5,20.5h-38.8l56.8-141.4h28.5l56.2,141.4h-39.2ZM352.6,123.1l-.6-.2-14.5,48.4h29.6l-14.5-48.2Z"/><path d="M504.9,220.4l-32.7-45.7h-.4v45.7h-34.6V79h46.3c14.7,0,26,1.9,33.4,5.2,15.3,6.9,26,23.5,26,43.6s-13.4,40.7-35.2,44.5l38.4,48.2h-41.3ZM485.3,150.1c14.3,0,23.1-6.7,23.1-20.3s-9.2-19.1-22.7-19.1h-13.8v39.4h13.4Z"/><path d="M641,220.4l-38.6-61.2h-.4v61.2h-36.1V79h36.1v63.6h.4l39.9-63.6h37.8l-46.8,70.5,49.9,70.9h-42.2Z"/><path d="M697.2,220.4V79h78.6v31.7h-44v22h42.6v31.7h-42.6v24.3h44v31.7h-78.6Z"/><path d="M815.1,220.4v-109.7h-27.9v-31.7h91.7v31.7h-27.7v109.7h-36.1Z"/><path d="M948.9,120.3c-1.5-10.1-5.7-13.8-12.8-13.8s-12.4,4.8-12.4,11.1,7.6,12.2,23.1,18.9c31.2,13.4,39,24.7,39,43.2,0,27.3-18.7,43.4-49.3,43.4s-51-16.1-51-46.4v-3.1h35.9c.2,11.7,5.9,19.3,14.9,19.3s13.6-5.9,13.6-13.6c0-11.3-15.7-16.2-28.5-21.4-23.1-9.4-33.6-21.6-33.6-39.9s23.3-41.7,49.3-41.7,17.6,2.1,25,5.9c15.1,7.8,22.4,19.1,22.6,38h-35.7Z"/><path d="M333.7,452.5v-169.1h-43v-48.9h141.4v48.9h-42.7v169.1h-55.7Z"/><path d="M633.3,452.5l1.8-163.2-.6-.6-46.5,163.8h-36.8l-47.1-165.3,1.8,165.3h-51.3v-218h71.6l43.3,143.5h.6l42.7-143.5h71.9v218h-51.3Z"/><path d="M881.6,452.5l-32.7-141.1h-.6l-32.7,141.1h-50.4l-56.3-218h56.6l29.2,141.7h.6l32.1-141.7h42.7l31.5,142.3h.6l29.8-142.3h56.3l-57.7,218h-48.9Z"/><path d="M111.8,281.1c0-27.9,20.1-48.8,47.4-48.8s47.6,20.3,47.6,46.1-20.7,47.3-46.5,47.3-48.5-18-48.5-44.6ZM183.8,279.2c0-14.1-10.1-26.6-24.6-26.6s-24.4,12-24.4,26.3,10.1,26.8,24.8,26.8,24.2-12,24.2-26.4Z"/><path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/></g></svg></div>
+          <span class="mcPro" id="proPill">PRO</span>
+          <div class="mcName" id="cardName">JAKE NICHOLAS</div>
+          <div class="mcNo" id="cardNo">MEMBER No. 001 &middot; SINCE 2026</div>
+          <div class="mcQR"><svg id="cardQR" viewBox="0 0 29 29"></svg></div>
+        </div>
       </div>
     </div>
     <div class="stats" id="stats"></div>
@@ -259,6 +270,42 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <span class="cp">&copy; <span id="yr">2026</span> Markets of Tomorrow</span>
 </div></footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+/* Member card: data-dump face + per-member scannable QR.
+   The 560x353 design canvas (.mcInner) is scaled to whatever width the card
+   renders at, so the layout stays pixel-locked at any size. */
+(function(){
+  var CODES=["LAX","WPB","LON","MIA","NYC","TYO","CHI","SLC","AUS","BNA","PAR","DXB","HKG","SIN","MIL","ASP","SFO","BOS","SEA","DFW","ATL","DEN","LAS","GVA","ZRH","MAD","ROM","SYD","DOH","SJD","JFK","LHR","CDG","HND","ORD","PBI","NAS","PHX","SAN","AUH","IST","BCN","VCE","MUC","AMS","VIE","CPH","DUB","MEX","SCL","BOM","DEL","BKK","ICN","PEK","MEL","CPT","TLV","RUH","JED","YYZ","YVR","HNL","MCO","NCE","LIS","ATH","PRG","KEF","NAP","MNL"];
+  var msg="THE FUTURE IS HERE WEST PALM BEACH NASHVILLE MIAMI PARIS TOKYO LONDON CHICAGO LOS ANGELES HAWAII SALT LAKE CITY AUSTIN ASPEN MANHATTAN DUBAI SINGAPORE MILAN TMW~INTELLIGENCE ATLAS MAPPED BEFORE IT RISES ";
+  var GOLD={"THE":1,"FUTURE":1,"IS":1,"HERE":1,"ATLAS":1};
+  var COLS=32,ROWS=18,CW=57,LINEW=92;
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function sp(n){var s="";while(s.length<n)s+=" ";return s;}
+  function wrap(t,w){var a=t.toUpperCase().split(/\s+/),L=[],c="";for(var i=0;i<a.length;i++){if(!a[i])continue;if(c==="")c=a[i];else if((c+" "+a[i]).length<=w)c+=" "+a[i];else{L.push(c);c=a[i];}}if(c)L.push(c);return L;}
+  var aLines=wrap(msg+msg+msg+msg,COLS);
+  function colWord(w){if(w.indexOf("~")>=0)return '<span style="color:#E6C574">'+esc(w.replace(/~/g," "))+'</span>';return GOLD[w]?'<span style="color:#E6C574">'+esc(w)+'</span>':esc(w);}
+  function justify(line){var words=line.split(/\s+/).filter(Boolean);if(words.length<=1){var w=words[0]||"";return colWord(w)+sp(COLS-w.length);}var lw=0,i;for(i=0;i<words.length;i++)lw+=words[i].length;var gaps=words.length-1,total=COLS-lw;if(total<gaps)total=gaps;var base=Math.floor(total/gaps),extra=total%gaps,out="";for(i=0;i<words.length;i++){out+=colWord(words[i]);if(i<gaps)out+=sp(base+(i<extra?1:0));}return out;}
+  function bar(t){t=t+"  ";while(t.length<LINEW)t+="—";return t.slice(0,LINEW);}
+  var banners={0:"THE FUTURE IS HERE ",9:"TMW INTELLIGENCE · ATLAS · JOURNAL "};
+  var seed=20260620;function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+  var codeIdx=0;
+  function codefield(){var out="",vis=0;while(true){var tok=CODES[codeIdx++%CODES.length];if(vis+tok.length>CW)break;var op=(0.1+rnd()*0.22).toFixed(2);out+='<span style="color:rgba(228,230,234,'+op+')">'+tok+'</span>';vis+=tok.length;if(vis+1<=CW){out+=" ";vis++;}else break;}while(vis<CW){out+=" ";vis++;}return out;}
+  function buildDump(){var html="",ar=0;for(var r=0;r<ROWS;r++){if(banners[r]){html+='<span style="color:rgba(255,255,255,.55)">'+esc(bar(banners[r]))+'</span>\n';continue;}html+='<span>'+codefield()+'</span>   <span style="color:rgba(232,234,238,.62)">'+justify(aLines[ar%aLines.length])+'</span>\n';ar++;}return html;}
+  var dumpEl=document.getElementById("cardDump"); if(dumpEl) dumpEl.innerHTML=buildDump();
+
+  function scaleCard(){var c=document.getElementById("miniCard"),inner=document.getElementById("mcInner");if(!c||!inner||!c.clientWidth)return;inner.style.transform="scale("+(c.clientWidth/560)+")";}
+  scaleCard(); window.addEventListener("resize",scaleCard); window.addEventListener("load",scaleCard);
+  if(window.ResizeObserver){try{new ResizeObserver(scaleCard).observe(document.getElementById("miniCard"));}catch(e){}}
+  setTimeout(scaleCard,200); setTimeout(scaleCard,800);
+
+  /* QR target — swap to https://oftmw.com/m/ after the Wix cutover. */
+  var QBASE="https://tmw.jake-ab7.workers.dev/m/", lastNo=1, ns="http://www.w3.org/2000/svg";
+  function build(n){var svg=document.getElementById("cardQR");if(!svg||!window.qrcode)return;while(svg.firstChild)svg.removeChild(svg.firstChild);try{var qr=window.qrcode(0,"M");qr.addData(QBASE+String(n));qr.make();var cnt=qr.getModuleCount(),mg=2,T=cnt+mg*2;svg.setAttribute("viewBox","0 0 "+T+" "+T);for(var r=0;r<cnt;r++)for(var col=0;col<cnt;col++){if(qr.isDark(r,col)){var e=document.createElementNS(ns,"rect");e.setAttribute("x",col+mg);e.setAttribute("y",r+mg);e.setAttribute("width",1);e.setAttribute("height",1);e.setAttribute("fill","rgba(232,234,238,.94)");e.setAttribute("shape-rendering","crispEdges");svg.appendChild(e);}}}catch(e){}}
+  window.__tmwCardQR=function(no){lastNo=no||lastNo;build(lastNo);};
+  var tries=0;(function w(){if(window.qrcode){build(lastNo);return;}if(tries++<60)setTimeout(w,60);})();
+})();
+</script>
 <script src="/_shared/journal-auth.js" defer></script>
 <script>
 (function(){
@@ -299,6 +346,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('lvName').innerHTML='<span>'+cur.tier+'</span>';
     $('cardName').textContent=(m.name||'').toUpperCase();
     $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(3,'0')+' · SINCE '+(m.since||2026);
+    if(window.__tmwCardQR) window.__tmwCardQR(m.memberNo||1);
     var cm=$('cardMarket'); if(cm){ cm.textContent=m.market||''; cm.style.display=m.market?'':'none'; }
     $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding':'');
     if(next){var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));$('xpFill').style.width=pct+'%';$('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;}
