@@ -5985,7 +5985,7 @@ async function handleMemberVerify(env, url) {
   // launch year so the verify page matches the card's "SINCE 2026".
   if (!year || year < 2025) year = 2026;
   const line = ok
-    ? `${founding ? 'Founding Member' : 'Member'}${year ? ' &middot; Since ' + year : ''}`
+    ? `MEMBER No.&nbsp;${noStr} &middot; SINCE ${year}`
     : 'This membership could not be verified.';
   const statusWord = ok ? 'VERIFIED' : 'NOT FOUND';
   const accent = ok ? '#34d27b' : '#e0696a';
@@ -6017,8 +6017,7 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
 .status{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
   letter-spacing:.28em;color:${accent};margin-bottom:18px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:${accent};margin-right:8px;vertical-align:middle}
-.no{font-family:Georgia,'Times New Roman',serif;font-size:46px;font-weight:600;line-height:1;color:#fff;margin:0 0 4px}
-.name{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;color:#fff;letter-spacing:.01em;margin:0 0 10px}
+.name{font-family:Georgia,'Times New Roman',serif;font-size:40px;font-weight:600;line-height:1.05;color:#fff;letter-spacing:.01em;margin:0 0 8px}
 .sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-bottom:24px}
 .pill{display:inline-block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
   letter-spacing:.24em;color:#e6c574;background:transparent;border:1px solid rgba(230,197,116,.55);border-radius:9px;padding:8px 18px}
@@ -6030,8 +6029,7 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
   <div class="card">
     <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
     <div class="status"><span class="dot"></span>${statusWord}</div>
-    ${ok ? `<div class="no">No.&nbsp;${noStr}</div>` : `<div class="no" style="font-size:30px">&mdash;</div>`}
-    ${ok && name ? `<div class="name">${esc(name)}</div>` : ''}
+    ${ok ? `<div class="name">${name ? esc(name) : 'No.&nbsp;' + noStr}</div>` : `<div class="name" style="font-size:30px">&mdash;</div>`}
     <div class="sub">${line}</div>
     ${ok ? '<span class="pill">PRO</span>' : ''}
     <div class="foot">${ok ? 'A verified member of <a href="https://oftmw.com">Markets of Tomorrow</a>.' : 'Visit <a href="https://oftmw.com">oftmw.com</a> to learn more.'}</div>
