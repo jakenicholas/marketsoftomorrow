@@ -2332,7 +2332,7 @@
               foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
               if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
             }
-            fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink', token);
+            fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink', token, placeTerms);
             intelProjects = null; // handled above
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
@@ -2714,12 +2714,20 @@
   // swap the hero card and rebuild the journal list (so the new hero is excluded
   // and the old one rejoins the grid). Article heroes only — project-led queries
   // already track the DB lead, and a non-article id simply no-ops here.
-  function applyIntelHero(heroId, q, token){
+  function applyIntelHero(heroId, heroDoc, q, token){
     var id = String(heroId || '').trim(); if (!id) return;
     var a = null;
     for (var i = 0; i < ARTICLES.length; i++){
       var x = ARTICLES[i];
       if (x && (x.slug === id || x.link === id)){ a = x; break; }
+    }
+    // Body-discovered story not in the loaded set — synthesize it from the
+    // worker's heroDoc so we can still feature it (and add to ARTICLES so the
+    // journal grid lists it instead of dropping it).
+    if (!a && heroDoc && heroDoc.slug === id){
+      a = { slug: heroDoc.slug, title: heroDoc.title || '', cover_image: heroDoc.image || '',
+            excerpt: heroDoc.excerpt || '', published_iso: heroDoc.published_iso || '', link: heroDoc.link || '' };
+      ARTICLES.push(a);
     }
     if (!a || a === _heroArticleRef) return;
     _heroArticleRef = a;
@@ -2727,12 +2735,13 @@
     try { renderArticleSection(q, token, { fromBodyMerge: true }); } catch(_){}
   }
 
-  function fireIntelligence(q, topProjects, topArticles, place, topic, token){
+  function fireIntelligence(q, topProjects, topArticles, place, topic, token, placeTerms){
     var Core = window.TmwSearchCore;
     if (!Core) return;
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
+    // placeTerms lets the worker pull body-level matches from D1 for the place.
     var facts = (topic && Core.buildJournalFacts)
-      ? Core.buildJournalFacts(topArticles, place, topic)
+      ? Core.buildJournalFacts(topArticles, place, topic, placeTerms)
       : Core.buildIntelFacts(topProjects, topArticles, place);
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
@@ -2751,7 +2760,7 @@
           } catch(_){}
           // Let Intelligence's editorial pick drive the hero card — promote the
           // story it chose to feature over the blunt keyword-ranked one.
-          if (res.hero) applyIntelHero(res.hero, q, token);
+          if (res.hero) applyIntelHero(res.hero, res.heroDoc, q, token);
         } else if (res && res.error){
           slotIntel.innerHTML = intelPanelHtml('error', q);
         } else {

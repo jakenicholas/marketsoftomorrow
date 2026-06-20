@@ -5513,6 +5513,62 @@ async function logIntelAnswer(env, q, answer, compact) {
   } catch { /* best-effort */ }
 }
 
+// Grab a readable window of body text around the first topic cue so the model
+// sees the RELEVANT paragraph (e.g. the restaurant buried mid-article), not the lede.
+function topicSnippet(text, re) {
+  if (!text) return '';
+  const m = re.exec(text);
+  if (!m) return text.slice(0, 420);
+  const i = Math.max(0, m.index - 170);
+  return (i > 0 ? '…' : '') + text.slice(i, i + 500).trim() + '…';
+}
+
+// Pull candidate journal posts for a TOPIC answer straight from D1, matching the
+// place across title / excerpt / FULL BODY. This is the key to "see everything":
+// a restaurant opening buried in paragraph 4 of a HOTEL post (which carries no
+// food category and wouldn't survive the client's title/category filter) is
+// still found here, and the model gets the actual body snippet to reason over.
+// Returns slim fact rows (blurb = body snippet) + a docs map for hero rendering.
+async function retrieveTopicCandidates(env, placeTerms, topic) {
+  const terms = (placeTerms || [])
+    .map(t => String(t || '').toLowerCase().trim())
+    .filter(t => t.length >= 3).slice(0, 10);
+  if (!terms.length) return { top: [], docs: {} };
+  const ors = terms.map((_, i) =>
+    `(LOWER(title) LIKE ?${i + 1} OR LOWER(excerpt) LIKE ?${i + 1} OR LOWER(body_html) LIKE ?${i + 1})`).join(' OR ');
+  const params = terms.map(t => '%' + t + '%');
+  const rs = await env.DB.prepare(
+    `SELECT slug, title, excerpt, cover_image, body_html, published_at
+     FROM posts WHERE status = 'published' AND (${ors})
+     ORDER BY published_at DESC LIMIT 40`
+  ).bind(...params).all();
+  const rows = rs.results || [];
+  const isFoodTopic = /food|dining|drink|restaurant/i.test(String(topic || ''));
+  const DINING = /(restaurant|dining|eatery|steakhouse|michelin|trattoria|osteria|izakaya|omakase|tasting menu|cocktail|wine bar|food hall|brasserie|\bchef\b|\bmenu\b|cuisine)/i;
+  const top = [], docs = {};
+  for (const r of rows) {
+    const body = htmlToText(r.body_html || '');
+    const hay = (r.title || '') + ' ' + (r.excerpt || '') + ' ' + body;
+    // For a dining topic keep only posts that actually discuss dining anywhere in
+    // the body — so we surface the hotel post WITH a restaurant, not every hotel post.
+    if (isFoodTopic && !DINING.test(hay)) continue;
+    const snippet = topicSnippet(body, isFoodTopic ? DINING : /\S/) || (r.excerpt || '').slice(0, 300);
+    top.push({
+      id: r.slug, name: r.title || '', city: '', status: 'Article', type: topic || 'Journal',
+      delivery: r.published_at ? new Date(r.published_at * 1000).toISOString().slice(0, 10) : '',
+      district: false, blurb: snippet.slice(0, 700),
+    });
+    docs[r.slug] = {
+      slug: r.slug, title: r.title || '', image: wixImagesToR2(r.cover_image) || '',
+      excerpt: (r.excerpt || '').slice(0, 240),
+      published_iso: r.published_at ? new Date(r.published_at * 1000).toISOString() : '',
+      link: 'https://www.oftmw.com/post/' + (r.slug || '') + '/',
+    };
+    if (top.length >= 12) break;
+  }
+  return { top, docs };
+}
+
 async function handleSmartAnswer(request, env, origin) {
   const fail = (reason) => json({ answer: null, reason }, {}, env, origin);
   let body;
@@ -5536,6 +5592,7 @@ async function handleSmartAnswer(request, env, origin) {
     count: count,
     sort: facts.sort || null,
     topic: facts.topic ? String(facts.topic).slice(0, 40) : null,
+    place_terms: Array.isArray(facts.placeTerms) ? facts.placeTerms.slice(0, 10).map(t => String(t || '').slice(0, 40)) : null,
     place: facts.place || null,
     tallest: facts.tallest || null,
     largest: facts.largest || null,
@@ -5609,9 +5666,21 @@ async function handleSmartAnswer(request, env, origin) {
       // Capture cache HITS too — otherwise popular repeat queries (which answer
       // from cache) never get logged and the review routine sees "no traffic".
       await logIntelAnswer(env, q, data.answer, compact);
-      return json({ answer: data.answer, hero: data.hero || null, cached: true }, {}, env, origin);
+      return json({ answer: data.answer, hero: data.hero || null, heroDoc: data.heroDoc || null, cached: true }, {}, env, origin);
     }
   } catch { /* cache miss path */ }
+
+  // Topic answers: swap the client's thin (title/excerpt) candidates for
+  // body-comprehending ones pulled from D1, so the model reads full article
+  // bodies and can surface a venue mentioned deep inside an off-topic post
+  // (e.g. a new restaurant inside a hotel write-up). Falls back to client facts.
+  let heroDocs = {};
+  if (compact.topic && env.DB && compact.place_terms && compact.place_terms.length) {
+    try {
+      const r = await retrieveTopicCandidates(env, compact.place_terms, compact.topic);
+      if (r && r.top && r.top.length) { compact.top = r.top; heroDocs = r.docs || {}; }
+    } catch { /* fall back to client-provided facts */ }
+  }
 
   // JOURNAL-topic answers (e.g. food & drink) are synthesized from our ARTICLE
   // coverage, not the project database — TMW doesn't track restaurants as
@@ -5709,10 +5778,11 @@ async function handleSmartAnswer(request, env, origin) {
     answer = answer.slice(0, hm.index).trim();
   }
   if (!answer) return fail('empty');
+  const heroDoc = (hero && heroDocs[hero]) ? heroDocs[hero] : null;
 
   // Cache the synthesized answer + hero pick for 24h, keyed by the fact signature.
   try {
-    await cache.put(cacheKey, new Response(JSON.stringify({ answer, hero }), {
+    await cache.put(cacheKey, new Response(JSON.stringify({ answer, hero, heroDoc }), {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' },
     }));
   } catch { /* caching is best-effort */ }
@@ -5721,7 +5791,7 @@ async function handleSmartAnswer(request, env, origin) {
   // critique sufficiency and learn. Deduped + best-effort; never blocks.
   await logIntelAnswer(env, q, answer, compact);
 
-  return json({ answer, hero }, {}, env, origin);
+  return json({ answer, hero, heroDoc }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------

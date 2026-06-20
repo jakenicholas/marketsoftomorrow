@@ -178,7 +178,7 @@
   // Facts for a JOURNAL-led answer (e.g. food & drink) — the topic isn't tracked
   // in the project DB, so the answer is synthesized from our ARTICLES instead of
   // projects. `topic` flips the worker prompt into journal-editor voice.
-  function buildJournalFacts(articles, place, topic) {
+  function buildJournalFacts(articles, place, topic, placeTerms) {
     var rows = (articles || []).filter(function (a) { return a && a.title; }).slice(0, 12).map(function (a) {
       return {
         id: a.slug || a.link || '', name: a.title || '', city: '', status: 'Article', type: topic || 'Journal',
@@ -190,6 +190,7 @@
     return {
       count: rows.length, criteria: {}, sort: null,
       place: place || null, topic: topic || 'journal',
+      placeTerms: Array.isArray(placeTerms) ? placeTerms.slice(0, 10) : null,
       tallest: null, largest: null, residencesTotal: null, firstDelivery: null,
       dominantType: null, soonest: null, flagships: null,
       top: rows
