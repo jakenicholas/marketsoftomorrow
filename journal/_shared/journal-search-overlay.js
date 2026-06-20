@@ -2006,6 +2006,14 @@
   var _articlesShown = 0;
   var ARTICLES_BATCH = 10;
   var MAX_PROJECTS_GRID = 12;  // mirror /search/'s MAX_PROJECTS
+  // Confidence floor: a project that matches ONLY via a single description
+  // mention scores +2 (see scoreProject). That tier is noise — "Lady Bird Lake"
+  // surfacing for "palm beach gardens" because its blurb happens to contain a
+  // shared token. Require a hit on a real field (title/city/neighborhood/type/
+  // firm = 5+) so weak description-only matches never reach the grid, the hero,
+  // or the Intelligence context. When nothing clears the bar the overlay falls
+  // through to its honest empty state instead of padding with noise.
+  var MIN_PROJECT_SCORE = 3;
   var MAX_FIRMS  = 6;
   var MAX_CITIES = 6;
 
@@ -2096,7 +2104,7 @@
     var question = (Core ? Core.isQuestion : isQuestion)(q);
 
     var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
-                          .filter(function(x){ return x.s > 0; })
+                          .filter(function(x){ return x.s >= MIN_PROJECT_SCORE; })
                           .sort(function(a,b){ return b.s - a.s; });
     var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, stoks, full) }; })
                        .filter(function(x){ return x.s > 0; })
@@ -2269,6 +2277,18 @@
       sResults.removeAttribute('data-filter');
       _lastResultsTotal = 0;
       _lastResultKind = 'empty';
+      // Log the zero-result query — this is the single most valuable coverage
+      // signal (it feeds the worker's /search-gaps no_results bucket: firms,
+      // projects and places to add next). The success path logs further down,
+      // but this branch returns first, so without this a search that finds
+      // nothing would never be recorded. Now that the confidence floor drops
+      // weak description-only matches, more real gaps land here — so capturing
+      // them matters more, not less.
+      try {
+        if (window.tmwIntel && window.tmwIntel.trackSearch) {
+          window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
+        }
+      } catch(_){}
       setState('empty');
       return;
     }
