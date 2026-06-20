@@ -28,7 +28,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .tabs .wrap{display:flex;gap:6px;padding:0 24px}
 .tab{appearance:none;background:none;border:none;color:var(--mute);font-family:var(--sans);font-size:14px;font-weight:500;padding:15px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab:hover{color:#ECEAE5}.tab.on{color:#fff;border-bottom-color:var(--gold)}
-.hero{display:grid;grid-template-columns:1fr 1.5fr;gap:18px;margin:0 0 16px}
+.hero{display:grid;grid-template-columns:1fr 1.72fr;gap:18px;margin:0 0 16px}
 .idrow{display:flex;align-items:center;gap:14px;margin-bottom:22px}
 .av{width:60px;height:60px;border-radius:50%;background:#1a1d22;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--gold);flex:0 0 auto;box-shadow:0 0 22px rgba(230,197,116,.22)}
 .nm{font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1;color:#fff}.sub{font-size:13px;color:var(--mute);margin-top:4px}
@@ -37,21 +37,21 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .bar{height:9px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:16px 0 10px}
 .bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--purple-glow));box-shadow:0 0 18px rgba(167,139,250,.55)}
 .xpline{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute)}.xpline b{color:var(--gold);font-weight:500}
-.miniCard{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:600px;aspect-ratio:1.586;border:1px solid rgba(255,255,255,.08);background:repeating-linear-gradient(122deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),radial-gradient(120% 130% at 30% 0%,#1c1c20 0%,#0c0c0e 55%,#050506 100%)}
+.miniCard{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:660px;aspect-ratio:560/300;border:1px solid rgba(255,255,255,.08);background:repeating-linear-gradient(122deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),radial-gradient(120% 130% at 30% 0%,#1c1c20 0%,#0c0c0e 55%,#050506 100%)}
 .miniCard::after{content:none}
 .miniCard::before{content:"";position:absolute;top:-35%;left:-95%;width:75%;height:170%;z-index:3;pointer-events:none;transform:skewX(-20deg);filter:blur(13px);background:linear-gradient(90deg,transparent,rgba(255,255,255,.04) 28%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.04) 72%,transparent);animation:cardGlare 7s ease-in-out infinite}
 @keyframes cardGlare{0%{left:-95%}40%{left:155%}100%{left:155%}}
-.mcInner{position:absolute;top:0;left:0;width:560px;height:353px;transform-origin:top left;z-index:1}
-.mcDump{position:absolute;left:26px;top:70px;margin:0;font-family:var(--mono);font-size:9px;line-height:14.4px;letter-spacing:.2px;white-space:pre}
-.mcScrim{position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(180deg,rgba(5,5,6,0) 0%,rgba(5,5,6,.55) 42%,rgba(5,5,6,.95) 100%)}
-.mcWord{position:absolute;left:26px;top:22px;width:78px}
+.mcInner{position:absolute;top:0;left:0;width:560px;height:300px;transform-origin:top left;z-index:1}
+.mcDump{position:absolute;left:26px;top:54px;margin:0;font-family:var(--mono);font-size:9px;line-height:14.4px;letter-spacing:.2px;white-space:pre}
+.mcScrim{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,rgba(5,5,6,0) 0%,rgba(5,5,6,.55) 42%,rgba(5,5,6,.95) 100%)}
+.mcWord{position:absolute;left:26px;top:20px;width:74px}
 .mcWord svg{width:100%;height:auto;display:block}
-.mcPro{position:absolute;right:26px;top:22px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--gold)}
+.mcPro{position:absolute;right:24px;top:20px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--gold)}
 .mcPro.free{color:var(--mute)}
-.mcName{position:absolute;left:28px;bottom:42px;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.01em;line-height:1;color:#f3f1ec}
-.mcNo{position:absolute;left:28px;bottom:24px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:#8d9098}
-.mcQR{position:absolute;right:24px;bottom:20px;width:88px;height:88px;border-radius:10px;background:rgba(8,8,10,.66);border:1px solid rgba(255,255,255,.15);box-shadow:0 2px 12px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
-.mcQR svg{width:70px;height:70px;display:block}
+.mcName{position:absolute;left:28px;bottom:40px;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.01em;line-height:1;color:#f3f1ec}
+.mcNo{position:absolute;left:28px;bottom:22px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:#8d9098}
+.mcQR{position:absolute;right:22px;bottom:16px;width:80px;height:80px;border-radius:10px;background:rgba(8,8,10,.66);border:1px solid rgba(255,255,255,.15);box-shadow:0 2px 12px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+.mcQR svg{width:64px;height:64px;display:block}
 .plan-right{display:inline-flex;align-items:center;gap:14px}
 .goprochip{appearance:none;cursor:pointer;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border:none;border-radius:999px;padding:6px 13px;box-shadow:0 0 14px rgba(230,197,116,.4)}
 .planpill{display:inline-block;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:3px 10px;vertical-align:middle}
@@ -279,7 +279,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var CODES=["LAX","WPB","LON","MIA","NYC","TYO","CHI","SLC","AUS","BNA","PAR","DXB","HKG","SIN","MIL","ASP","SFO","BOS","SEA","DFW","ATL","DEN","LAS","GVA","ZRH","MAD","ROM","SYD","DOH","SJD","JFK","LHR","CDG","HND","ORD","PBI","NAS","PHX","SAN","AUH","IST","BCN","VCE","MUC","AMS","VIE","CPH","DUB","MEX","SCL","BOM","DEL","BKK","ICN","PEK","MEL","CPT","TLV","RUH","JED","YYZ","YVR","HNL","MCO","NCE","LIS","ATH","PRG","KEF","NAP","MNL"];
   var msg="THE FUTURE IS HERE WEST PALM BEACH NASHVILLE MIAMI PARIS TOKYO LONDON CHICAGO LOS ANGELES HAWAII SALT LAKE CITY AUSTIN ASPEN MANHATTAN DUBAI SINGAPORE MILAN TMW~INTELLIGENCE ATLAS MAPPED BEFORE IT RISES ";
   var GOLD={"THE":1,"FUTURE":1,"IS":1,"HERE":1,"ATLAS":1};
-  var COLS=32,ROWS=18,CW=57,LINEW=92;
+  var COLS=32,ROWS=13,CW=57,LINEW=92;
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function sp(n){var s="";while(s.length<n)s+=" ";return s;}
   function wrap(t,w){var a=t.toUpperCase().split(/\s+/),L=[],c="";for(var i=0;i<a.length;i++){if(!a[i])continue;if(c==="")c=a[i];else if((c+" "+a[i]).length<=w)c+=" "+a[i];else{L.push(c);c=a[i];}}if(c)L.push(c);return L;}
@@ -287,7 +287,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function colWord(w){if(w.indexOf("~")>=0)return '<span style="color:#E6C574">'+esc(w.replace(/~/g," "))+'</span>';return GOLD[w]?'<span style="color:#E6C574">'+esc(w)+'</span>':esc(w);}
   function justify(line){var words=line.split(/\s+/).filter(Boolean);if(words.length<=1){var w=words[0]||"";return colWord(w)+sp(COLS-w.length);}var lw=0,i;for(i=0;i<words.length;i++)lw+=words[i].length;var gaps=words.length-1,total=COLS-lw;if(total<gaps)total=gaps;var base=Math.floor(total/gaps),extra=total%gaps,out="";for(i=0;i<words.length;i++){out+=colWord(words[i]);if(i<gaps)out+=sp(base+(i<extra?1:0));}return out;}
   function bar(t){t=t+"  ";while(t.length<LINEW)t+="—";return t.slice(0,LINEW);}
-  var banners={0:"THE FUTURE IS HERE ",9:"TMW INTELLIGENCE · ATLAS · JOURNAL "};
+  var banners={0:"THE FUTURE IS HERE ",6:"TMW INTELLIGENCE · ATLAS · JOURNAL "};
   var seed=20260620;function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
   var codeIdx=0;
   function codefield(){var out="",vis=0;while(true){var tok=CODES[codeIdx++%CODES.length];if(vis+tok.length>CW)break;var op=(0.1+rnd()*0.22).toFixed(2);out+='<span style="color:rgba(228,230,234,'+op+')">'+tok+'</span>';vis+=tok.length;if(vis+1<=CW){out+=" ";vis++;}else break;}while(vis<CW){out+=" ";vis++;}return out;}

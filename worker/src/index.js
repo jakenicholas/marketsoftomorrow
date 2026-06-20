@@ -5949,12 +5949,19 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
 // for numbers we don't have on file. Optional ?t=<sig> is accepted for a future
 // signed/expiring token (verified when present) but not yet required.
 async function handleMemberVerify(env, url) {
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const no = parseInt(url.pathname.split('/')[2] || '0', 10);
-  let row = null;
+  let row = null, name = null;
   try {
     if (env.DB && no > 0) {
-      row = await env.DB.prepare('SELECT member_no, joined_at, founding FROM members WHERE member_no = ?')
+      row = await env.DB.prepare('SELECT member_id, member_no, joined_at, founding FROM members WHERE member_no = ?')
         .bind(no).first();
+      if (row && row.member_id) {
+        const nm = await env.DB.prepare(
+          'SELECT member_name FROM events WHERE member_id = ? AND member_name IS NOT NULL AND member_name != "" ORDER BY ts DESC LIMIT 1'
+        ).bind(row.member_id).first();
+        if (nm && nm.member_name) name = nm.member_name;
+      }
     }
   } catch (_) { row = null; }
 
@@ -5975,10 +5982,17 @@ async function handleMemberVerify(env, url) {
   let year = null;
   try { if (row && row.joined_at) year = new Date(row.joined_at).getFullYear(); } catch (_) {}
   const line = ok
-    ? `Member No.&nbsp;${noStr}${founding ? ' &middot; Founding Member' : ''}${year ? ' &middot; Since ' + year : ''}`
+    ? `${founding ? 'Founding Member' : 'Member'}${year ? ' &middot; Since ' + year : ''}`
     : 'This membership could not be verified.';
   const statusWord = ok ? 'VERIFIED' : 'NOT FOUND';
   const accent = ok ? '#34d27b' : '#e0696a';
+
+  // Faint full-page market-code field — the same texture as the member card,
+  // dropped behind everything at very low opacity.
+  const BG = ['LAX','WPB','LON','MIA','NYC','TYO','CHI','SLC','AUS','BNA','PAR','DXB','HKG','SIN','MIL','ASP','SFO','BOS','SEA','DFW','ATL','DEN','LAS','GVA','ZRH','MAD','ROM','SYD','DOH','SJD','JFK','LHR','CDG','HND','ORD','PBI','NAS','PHX','SAN','AUH','IST','BCN','VCE','MUC','AMS','VIE','CPH','DUB','MEX','SCL','BOM','DEL','BKK','ICN','PEK','MEL','CPT','TLV','RUH','JED','YYZ','YVR','HNL','MCO','NCE','LIS','ATH','PRG','KEF','NAP','MNL'];
+  let bgSeed = 7; const bgRnd = () => { bgSeed = (bgSeed * 1103515245 + 12345) & 0x7fffffff; return bgSeed / 0x7fffffff; };
+  let bg = '';
+  for (let r = 0; r < 60; r++) { let ln = ''; for (let c = 0; c < 46; c++) ln += BG[Math.floor(bgRnd() * BG.length)] + ' '; bg += ln + '\n'; }
 
   const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -5986,32 +6000,39 @@ async function handleMemberVerify(env, url) {
 <title>${ok ? 'Member No. ' + noStr : 'Membership'} &middot; Markets of TMW</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden;
   background:radial-gradient(120% 130% at 30% 0%,#1c1c20,#0c0c0e 55%,#050506);
   font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:#ECEAE5}
-.card{width:100%;max-width:420px;text-align:center;background:rgba(16,18,24,.7);
+.bg{position:fixed;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}
+.card{position:relative;z-index:1;width:100%;max-width:420px;text-align:center;background:rgba(14,14,18,.82);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   border:1px solid rgba(230,197,116,.28);border-radius:20px;padding:38px 30px;
   box-shadow:0 24px 70px rgba(0,0,0,.6)}
 .logo{height:34px;margin:0 auto 22px;display:block;filter:brightness(0) invert(1)}
 .status{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
   letter-spacing:.28em;color:${accent};margin-bottom:18px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:${accent};margin-right:8px;vertical-align:middle}
-.no{font-family:'Fraunces',Georgia,serif;font-size:46px;font-weight:600;line-height:1;color:#fff;margin:0 0 6px}
-.sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.08em;color:#9AA39C;margin-bottom:24px}
-.pill{display:inline-block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:700;
-  letter-spacing:.2em;color:#4a3708;background:linear-gradient(135deg,#f0d68a,#e6c574);border-radius:999px;padding:6px 14px}
+.no{font-family:Georgia,'Times New Roman',serif;font-size:46px;font-weight:600;line-height:1;color:#fff;margin:0 0 4px}
+.name{font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:600;color:#fff;letter-spacing:.01em;margin:0 0 10px}
+.sub{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-bottom:24px}
+.pill{display:inline-block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
+  letter-spacing:.24em;color:#e6c574;background:transparent;border:1px solid rgba(230,197,116,.55);border-radius:9px;padding:8px 18px}
 .foot{margin-top:26px;font-size:12px;color:#6b6f74}
 .foot a{color:#e6c574;text-decoration:none}
-@font-face{font-family:'Fraunces';src:local('Georgia')}
 </style></head>
-<body><div class="card">
-  <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
-  <div class="status"><span class="dot"></span>${statusWord}</div>
-  ${ok ? `<div class="no">No.&nbsp;${noStr}</div>` : `<div class="no" style="font-size:30px">&mdash;</div>`}
-  <div class="sub">${line}</div>
-  ${ok ? '<span class="pill">MARKETS OF TMW &middot; PRO</span>' : ''}
-  <div class="foot">${ok ? 'A verified member of <a href="https://oftmw.com">Markets of Tomorrow</a>.' : 'Visit <a href="https://oftmw.com">oftmw.com</a> to learn more.'}</div>
-</div></body></html>`;
+<body>
+  <pre class="bg" aria-hidden="true">${bg}</pre>
+  <div class="card">
+    <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
+    <div class="status"><span class="dot"></span>${statusWord}</div>
+    ${ok ? `<div class="no">No.&nbsp;${noStr}</div>` : `<div class="no" style="font-size:30px">&mdash;</div>`}
+    ${ok && name ? `<div class="name">${esc(name)}</div>` : ''}
+    <div class="sub">${line}</div>
+    ${ok ? '<span class="pill">PRO</span>' : ''}
+    <div class="foot">${ok ? 'A verified member of <a href="https://oftmw.com">Markets of Tomorrow</a>.' : 'Visit <a href="https://oftmw.com">oftmw.com</a> to learn more.'}</div>
+  </div>
+</body></html>`;
 
   return new Response(page, {
     status: ok ? 200 : 404,
