@@ -251,7 +251,11 @@
     { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort','beach resort','ski resort','spa resort','wellness retreat'] },
     { token:'Office',     label:'Office',             noun:'office',    syn:['office','workplace','corporate campus','headquarters','class a office'] },
     { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops','shopping center','shopping centre','outlet','plaza','lifestyle center','shoppes'] },
-    { token:'Eateries',   label:'Dining',             noun:'eatery',    syn:['restaurant','eatery','eateries','dining','food hall','culinary','steakhouse'] },
+    // NOTE: dining is NOT a tracked project type — restaurants/food & drink live
+    // in the JOURNAL (articles categorized "<region> Food & Drink"), not the
+    // project DB. So there is deliberately no Eateries/Dining type group: a food
+    // query must NOT filter projects to a dead bucket. Food vocabulary is routed
+    // to articles via the search overlay's synonym groups instead.
     { token:'Park',       label:'Park',               noun:'park',      syn:['park','green space','greenspace','promenade','linear park','public park'] },
     { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina','yacht','yacht club','harbor','harbour','boat slip'] },
     { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum','gallery','galleries','art museum'] },

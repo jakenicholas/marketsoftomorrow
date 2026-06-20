@@ -969,7 +969,11 @@
   var TOKEN_SYNONYM_GROUPS = [
     ['condo','condos','condominium','condominiums','residence','residences','residential','apartment','apartments','unit','units','home','homes','tower','towers','high-rise','highrise','skyscraper','penthouse','penthouses'],
     ['hotel','hotels','resort','resorts','inn','hospitality'],
-    ['restaurant','restaurants','eatery','eateries','dining','food-hall','foodhall'],
+    // Dining/F&B — TMW doesn't track restaurants as projects; these queries
+    // should surface JOURNAL articles (categorized "<region> Food & Drink").
+    // Synonym-matching is substring-based, so keep entries distinctive — no
+    // short ambiguous tokens like "bar" (would hit "harbor", "Barcelona").
+    ['restaurant','restaurants','eatery','eateries','dining','food','foods','drink','drinks','food-hall','foodhall','cuisine','culinary','cocktail','cocktails','chef','michelin','foodie','gastronomy','steakhouse'],
     ['office','offices','workplace','workspace','workspaces'],
     ['retail','shopping','mall','malls','shops','shop','store','stores','plaza'],
     ['airport','airports','terminal','terminals'],
