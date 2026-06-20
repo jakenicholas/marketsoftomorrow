@@ -1320,7 +1320,7 @@
     }
     return '<section class="tmw-ov-intel-panel">'
       +   '<div class="tmw-ov-intel-h">'
-      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +     '<span class="live">'+live+'</span>'
       +   '</div>'
@@ -1336,7 +1336,7 @@
   function intelGateHtml(){
     return '<section class="tmw-ov-intel-panel gate">'
       +   '<div class="tmw-ov-intel-h">'
-      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
@@ -1359,7 +1359,7 @@
       : '<b>'+esc(spot.name)+'</b> is a <b>Partner of Tomorrow</b> — '+esc(spot.catShort||'')+'. <span class="hl">'+esc(spot.tagline||'')+'</span>';
     var panel = '<section class="tmw-ov-intel-panel">'
       +   '<div class="tmw-ov-intel-h">'
-      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +     '<span class="live"><i></i>Live answer</span>'
       +   '</div>'
@@ -1536,7 +1536,7 @@
     }
     return '<section class="tmw-ov-intel-panel">'
       +   '<div class="tmw-ov-intel-h">'
-      +     '<span class="tmw-ov-intel-spark">'+ICON_SPARK+'</span>'
+      +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +     '<span class="live"><i></i>Live answer</span>'
       +   '</div>'
