@@ -111,23 +111,26 @@
     /* Card is now a vertical-stack container <div>. The clickable area is
        .card-link (image + body), with the firm-bubble row as a sibling
        below so the firm <a> tags don't get nested inside the card <a>. */
-    .card { display: flex; flex-direction: column; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
+    .card { display: flex; flex-direction: column; height:100%; background:#111; border-radius:14px; overflow:hidden; transition: transform .15s, border-color .15s; border:1px solid transparent; position:relative; }
     .card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,.3); }
     /* No gold-glow border on featured cards — the corner star badge is
        the only featured cue. Border-only featured projects were reading
        as the same visual weight as the active hover state. */
-    .card-link { display: block; text-decoration: none; color: inherit; }
-    .card-firms-wrap { padding: 0 20px 20px; }
+    .card-link { display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }
+    /* firm row pinned to the bottom so it lines up across every card in a row */
+    .card-firms-wrap { padding: 0 20px 20px; margin-top: auto; }
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
     .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
+    /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
+    .card-verified--empty { border:none; padding:0; height:31px; }
     .card-v-ico { width:14px; height:14px; display:inline-block; }
     .card-v-ico svg { width:100%; height:100%; }
 
@@ -217,7 +220,9 @@
     .copy b { font-weight: 500; color: var(--cream); }
 
     /* By-the-numbers — concrete scale grid for SEO + at-a-glance scanning */
-    .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+    .btn-grid { display: grid; width:100%; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+    @media (max-width: 980px) { .btn-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 560px) { .btn-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     .btn-cell { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 22px 22px; }
     .btn-cell .btn-val { font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }
     .btn-cell .btn-lbl { font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }
@@ -326,6 +331,8 @@
     html.tmw-paid .gopro-pill { display: none; }
     html.tmw-paid .tmw-free-only { display: none; }
     html.tmw-paid .tmw-paid-only { display: inline; }
+    .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
+    .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
 
   </style>
 </head>
@@ -798,6 +805,38 @@
         e.preventDefault();
         goPro();
       });
+
+      // Unlocked (Pro) members: reveal the rest of the grid 6 at a time instead
+      // of dumping the whole list. (Non-Pro keep the blurred Go-Pro gate.)
+      function setupLoadMore() {
+        if (!document.documentElement.classList.contains('tmw-paid')) return;
+        var locked = document.querySelector('.tmw-locked');
+        if (!locked || locked._lm) return; locked._lm = 1;
+        var grid = locked.querySelector('.tmw-locked-grid'); if (!grid) return;
+        var gate = locked.querySelector('.tmw-gate'); if (gate) gate.style.display = 'none';
+        var cards = Array.prototype.slice.call(grid.children); if (!cards.length) return;
+        var STEP = 6, shown = 0;
+        cards.forEach(function (c) { c.style.display = 'none'; });
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'tmw-loadmore';
+        function tick() {
+          var end = Math.min(cards.length, shown + STEP);
+          for (var i = shown; i < end; i++) cards[i].style.display = '';
+          shown = end;
+          if (shown >= cards.length) { btn.remove(); }
+          else { btn.textContent = 'Load more projects (' + (cards.length - shown) + ' left)'; }
+        }
+        btn.addEventListener('click', tick);
+        locked.parentNode.insertBefore(btn, locked.nextSibling);
+        tick();
+      }
+      if (document.readyState !== 'loading') setupLoadMore();
+      else document.addEventListener('DOMContentLoaded', setupLoadMore);
+      // tmw-paid can flip on after auth resolves — retry briefly.
+      var _t = 0, _iv = setInterval(function () {
+        if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
+        if (++_t > 20) clearInterval(_iv);
+      }, 400);
     })();
   </script>
 </body>

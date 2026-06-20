@@ -270,6 +270,8 @@
     html.tmw-paid .gopro-pill { display: none; }
     html.tmw-paid .tmw-free-only { display: none; }
     html.tmw-paid .tmw-paid-only { display: inline; }
+    .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
+    .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
 </style>
 </head>
 <body>
@@ -535,7 +537,7 @@
     <div class="card-body">
       <div class="card-title">The Vineta Hotel</div>
       <div class="card-loc">Palm Beach</div>
-      
+      <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Feb '26</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -555,7 +557,7 @@
     <div class="card-body">
       <div class="card-title">HAVN Residences &amp; Yacht Club</div>
       <div class="card-loc">Riviera Beach</div>
-      
+      <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '24</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -752,6 +754,38 @@
         e.preventDefault();
         goPro();
       });
+
+      // Unlocked (Pro) members: reveal the rest of the grid 6 at a time instead
+      // of dumping the whole list. (Non-Pro keep the blurred Go-Pro gate.)
+      function setupLoadMore() {
+        if (!document.documentElement.classList.contains('tmw-paid')) return;
+        var locked = document.querySelector('.tmw-locked');
+        if (!locked || locked._lm) return; locked._lm = 1;
+        var grid = locked.querySelector('.tmw-locked-grid'); if (!grid) return;
+        var gate = locked.querySelector('.tmw-gate'); if (gate) gate.style.display = 'none';
+        var cards = Array.prototype.slice.call(grid.children); if (!cards.length) return;
+        var STEP = 6, shown = 0;
+        cards.forEach(function (c) { c.style.display = 'none'; });
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'tmw-loadmore';
+        function tick() {
+          var end = Math.min(cards.length, shown + STEP);
+          for (var i = shown; i < end; i++) cards[i].style.display = '';
+          shown = end;
+          if (shown >= cards.length) { btn.remove(); }
+          else { btn.textContent = 'Load more projects (' + (cards.length - shown) + ' left)'; }
+        }
+        btn.addEventListener('click', tick);
+        locked.parentNode.insertBefore(btn, locked.nextSibling);
+        tick();
+      }
+      if (document.readyState !== 'loading') setupLoadMore();
+      else document.addEventListener('DOMContentLoaded', setupLoadMore);
+      // tmw-paid can flip on after auth resolves — retry briefly.
+      var _t = 0, _iv = setInterval(function () {
+        if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
+        if (++_t > 20) clearInterval(_iv);
+      }, 400);
     })();
   </script>
 </body>
