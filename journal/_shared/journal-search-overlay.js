@@ -2274,10 +2274,19 @@
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
       var cityHit = cityQuery;
-      var trigger = question || cityHit || foodIntent || areaHit || (strongAnchor && connectedProjects.length > 0);
+      // GUARDRAIL: a county/parish/borough named but uncovered (and it isn't a
+      // city/region/firm we know either) → answer honestly instead of dumping
+      // unrelated results.
+      var coverMiss = (Core && Core.coverageMiss) ? Core.coverageMiss(q, PROJECTS) : null;
+      var honestMiss = coverMiss && !areaHit && !cityHit && !strongAnchor;
+      var trigger = question || cityHit || foodIntent || areaHit || honestMiss || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
+        } else if (honestMiss){
+          slotIntel.innerHTML = intelPanelHtml('answer', q,
+            'We don’t track development' + (foodIntent ? ' or dining' : '') + ' in ' + coverMiss +
+            ' yet — it’s outside our current coverage. Try a market we follow, like Miami, Nashville, Austin or Charleston.');
         } else if (Core && totalHits > 0){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
           // For an anchor query, the projects we feed Intelligence are

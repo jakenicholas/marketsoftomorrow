@@ -366,42 +366,111 @@
   // member cities are the cities of every project in those counties. This lets
   // "palm beach county" fan out to West Palm Beach + Boca + Delray + Jupiter + …
   // instead of collapsing to the town of Palm Beach.
+  // Curated regions / metros / nicknames → the (state-scoped) counties they
+  // cover. County names repeat across states (Orange County is in FL, CA AND NY),
+  // so every match is keyed on County + state code. Counties listed that we don't
+  // cover are harmless. Bare single-city names are intentionally NOT here.
   var REGIONS = [
-    { name:'South Florida',    triggers:['south florida','sofla','tri-county'], counties:['Miami-Dade County','Broward County','Palm Beach County'], bbox:[25.13,27.00,-80.95,-80.05] },
-    { name:'The Palm Beaches', triggers:['the palm beaches','palm beaches'],    counties:['Palm Beach County'], bbox:[26.30,27.00,-80.95,-79.95] },
-    { name:'Treasure Coast',   triggers:['treasure coast'],                     counties:['Martin County','St. Lucie County','Indian River County'], bbox:[27.00,27.70,-80.70,-80.10] }
+    // — Florida —
+    { name:'South Florida',     state:'FL', triggers:['south florida','sofla','so fla','tri-county','tricounty'], counties:['Miami-Dade County','Broward County','Palm Beach County'] },
+    { name:'The Palm Beaches',  state:'FL', triggers:['the palm beaches','palm beaches'],            counties:['Palm Beach County'] },
+    { name:'Treasure Coast',    state:'FL', triggers:['treasure coast'],                             counties:['Martin County','St. Lucie County','Indian River County'] },
+    { name:'Space Coast',       state:'FL', triggers:['space coast'],                                counties:['Brevard County'] },
+    { name:'Tampa Bay',         state:'FL', triggers:['tampa bay','tampa metro','greater tampa'],    counties:['Hillsborough County','Pinellas County','Pasco County','Manatee County'] },
+    { name:'Southwest Florida', state:'FL', triggers:['southwest florida','swfl'],                   counties:['Lee County','Collier County'] },
+    { name:'Greater Orlando',   state:'FL', triggers:['greater orlando','orlando metro','central florida'], counties:['Orange County','Seminole County','Osceola County','Lake County'] },
+    { name:'Greater Jacksonville', state:'FL', triggers:['first coast','jacksonville metro','greater jacksonville'], counties:['Duval County','St. Johns County','Clay County','Nassau County'] },
+    { name:'The Florida Keys',  state:'FL', triggers:['florida keys','the keys'],                    counties:['Monroe County'] },
+    // — New York —
+    { name:'New York City',     state:'NY', triggers:['nyc','new york city','the five boroughs','five boroughs'], counties:['New York County','Kings County','Queens County','Bronx County','Richmond County'] },
+    { name:'Manhattan',         state:'NY', triggers:['manhattan'],                                  counties:['New York County'] },
+    { name:'Brooklyn',          state:'NY', triggers:['brooklyn'],                                   counties:['Kings County'] },
+    { name:'Queens (NYC)',      state:'NY', triggers:['queens nyc','queens new york'],               counties:['Queens County'] },
+    { name:'Long Island',       state:'NY', triggers:['long island'],                                counties:['Suffolk County','Nassau County'] },
+    { name:'Hudson Valley',     state:'NY', triggers:['hudson valley'],                              counties:['Dutchess County','Westchester County','Ulster County'] },
+    { name:'Buffalo / WNY',     state:'NY', triggers:['buffalo','western new york'],                 counties:['Erie County'] },
+    // — Tennessee —
+    { name:'Nashville Area',    state:'TN', triggers:['music city','middle tennessee','nashville metro','greater nashville'], counties:['Davidson County','Williamson County','Rutherford County','Wilson County','Maury County'] },
+    // — Texas —
+    { name:'Dallas–Fort Worth', state:'TX', triggers:['dallas-fort worth','dallas fort worth','dfw','the metroplex','metroplex','north texas'], counties:['Dallas County','Tarrant County','Collin County','Denton County'] },
+    { name:'Greater Austin',    state:'TX', triggers:['austin metro','greater austin','central texas'], counties:['Travis County','Williamson County','Hays County'] },
+    { name:'Greater Houston',   state:'TX', triggers:['houston metro','greater houston'],            counties:['Harris County','Fort Bend County','Montgomery County'] },
+    { name:'Texas Hill Country',state:'TX', triggers:['hill country','texas hill country'],          counties:['Gillespie County','Llano County','Kerr County','Blanco County','Kendall County'] },
+    // — California —
+    { name:'Southern California',state:'CA', triggers:['southern california','socal','so cal'],       counties:['Los Angeles County','Orange County','San Diego County','Riverside County','San Bernardino County','Ventura County'] },
+    { name:'Greater Los Angeles',state:'CA', triggers:['greater los angeles','la metro','los angeles metro'], counties:['Los Angeles County','Orange County'] },
+    { name:'SF Bay Area',       state:'CA', triggers:['bay area','sf bay area','san francisco bay'], counties:['San Francisco County','Alameda County','Santa Clara County','San Mateo County','Marin County','Contra Costa County','Napa County','Sonoma County'] },
+    { name:'Wine Country',      state:'CA', triggers:['wine country','napa valley'],                 counties:['Napa County','Sonoma County'] },
+    { name:'Greater San Diego', state:'CA', triggers:['san diego metro','greater san diego'],        counties:['San Diego County'] },
+    // — Illinois / Utah / SC / Colorado / Hawaii / Wyoming + others —
+    { name:'Chicagoland',       state:'IL', triggers:['chicagoland','chicago metro','greater chicago','chicago area'], counties:['Cook County','DuPage County','Lake County','Will County','Kane County'] },
+    { name:'Wasatch Front',     state:'UT', triggers:['wasatch front','salt lake metro','greater salt lake'], counties:['Salt Lake County','Utah County','Davis County','Weber County'] },
+    { name:'Park City Area',    state:'UT', triggers:['park city area','summit county utah'],         counties:['Summit County','Wasatch County'] },
+    { name:'Southern Utah',     state:'UT', triggers:['southern utah','greater zion','st george'],    counties:['Washington County'] },
+    { name:'The Lowcountry',    state:'SC', triggers:['lowcountry','low country','charleston metro','greater charleston'], counties:['Charleston County','Berkeley County','Dorchester County'] },
+    { name:'Upstate SC',        state:'SC', triggers:['upstate south carolina','the upstate','greenville metro'], counties:['Greenville County','Spartanburg County','Anderson County'] },
+    { name:'Denver Metro',      state:'CO', triggers:['denver metro','greater denver','front range'], counties:['Denver County','Arapahoe County','Jefferson County','Adams County','Douglas County'] },
+    { name:'Aspen / Roaring Fork', state:'CO', triggers:['aspen','roaring fork'],                     counties:['Pitkin County'] },
+    { name:'Steamboat Springs', state:'CO', triggers:['steamboat'],                                  counties:['Routt County'] },
+    { name:'Oahu',              state:'HI', triggers:['oahu','honolulu metro'],                       counties:['Honolulu County'] },
+    { name:'Kauai',             state:'HI', triggers:['kauai'],                                       counties:['Kauai County'] },
+    { name:'Jackson Hole',      state:'WY', triggers:['jackson hole'],                                counties:['Teton County'] },
+    { name:'Greater Pittsburgh',state:'PA', triggers:['pittsburgh metro','greater pittsburgh'],       counties:['Allegheny County'] },
+    { name:'Greater Cleveland', state:'OH', triggers:['cleveland metro','greater cleveland'],          counties:['Cuyahoga County'] },
+    { name:'Metro Detroit',     state:'MI', triggers:['metro detroit','detroit metro'],               counties:['Wayne County'] },
+    { name:'Kansas City Metro', state:'MO', triggers:['kansas city metro','greater kansas city'],      counties:['Jackson County'] },
+    { name:'Las Vegas Valley',  state:'NV', triggers:['las vegas valley','vegas','greater las vegas'], counties:['Clark County'] }
   ];
-  function _countySet(projects) {  // norm(County) -> display County, from stamped data
-    var m = {};
-    (projects || []).forEach(function (p) { var c = String(p.County || '').trim(); if (c) m[norm(c)] = c; });
-    return m;
+  // Whole-state handles (full name → every project in the state).
+  var STATES = [
+    { code:'FL', name:'Florida', triggers:['florida'] }, { code:'NY', name:'New York State', triggers:['new york state'] },
+    { code:'TN', name:'Tennessee', triggers:['tennessee'] }, { code:'TX', name:'Texas', triggers:['texas'] },
+    { code:'CA', name:'California', triggers:['california'] }, { code:'IL', name:'Illinois', triggers:['illinois'] },
+    { code:'UT', name:'Utah', triggers:['utah'] }, { code:'SC', name:'South Carolina', triggers:['south carolina'] },
+    { code:'HI', name:'Hawaii', triggers:['hawaii'] }, { code:'CO', name:'Colorado', triggers:['colorado'] },
+    { code:'WY', name:'Wyoming', triggers:['wyoming'] }, { code:'NV', name:'Nevada', triggers:['nevada'] },
+    { code:'PA', name:'Pennsylvania', triggers:['pennsylvania'] }, { code:'MI', name:'Michigan', triggers:['michigan'] },
+    { code:'MO', name:'Missouri', triggers:['missouri'] }, { code:'OH', name:'Ohio', triggers:['ohio'] },
+    { code:'PR', name:'Puerto Rico', triggers:['puerto rico'] }
+  ];
+  // norm(County) -> {county, state} for the DOMINANT state when a county name
+  // repeats (e.g. Orange County: FL vs CA), so a bare "orange county" resolves
+  // to wherever we cover most.
+  function _countySet(projects) {
+    var counts = {};
+    (projects || []).forEach(function (p) {
+      var c = String(p.County || '').trim(), st = String(p.CountyState || '').trim();
+      if (!c || !st) return;
+      var k = norm(c) + '|' + st;
+      if (!counts[k]) counts[k] = { county: c, state: st, n: 0 };
+      counts[k].n++;
+    });
+    var best = {};
+    Object.keys(counts).forEach(function (k) {
+      var e = counts[k], nc = norm(e.county);
+      if (!best[nc] || e.n > best[nc].n) best[nc] = { county: e.county, state: e.state, n: e.n };
+    });
+    return best;
   }
+  // A query resolves to an AREA — region, whole state, or a single county —
+  // returning { name, state, counties|null }. Longest trigger wins. `projects`
+  // supplies the data-driven county vocabulary.
   function detectArea(q, projects) {
     var full = norm(q), best = null;
-    REGIONS.forEach(function (r) {
-      r.triggers.forEach(function (t) {
-        if (full.indexOf(t) >= 0 && (!best || t.length > best.tlen)) {
-          best = { name: r.name, counties: r.counties, bbox: r.bbox, tlen: t.length };
-        }
-      });
-    });
-    var cs = _countySet(projects);   // data-driven: any county we cover
-    Object.keys(cs).forEach(function (nc) {
-      if (nc.length >= 5 && full.indexOf(nc) >= 0 && (!best || nc.length > best.tlen)) {
-        best = { name: cs[nc], counties: [cs[nc]], bbox: null, tlen: nc.length };
-      }
-    });
-    return best ? { name: best.name, counties: best.counties, bbox: best.bbox || null } : null;
+    function consider(name, state, counties, tlen) {
+      if (!best || tlen > best.tlen) best = { name: name, state: state, counties: counties, tlen: tlen };
+    }
+    REGIONS.forEach(function (r) { r.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider(r.name, r.state, r.counties, t.length); }); });
+    STATES.forEach(function (s) { s.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider(s.name, s.code, null, t.length); }); });
+    var cs = _countySet(projects);
+    Object.keys(cs).forEach(function (nc) { if (nc.length >= 5 && full.indexOf(nc) >= 0) consider(cs[nc].county, cs[nc].state, [cs[nc].county], nc.length); });
+    return best ? { name: best.name, state: best.state, counties: best.counties } : null;
   }
   function inArea(p, area) {
-    if (!area) return false;
-    var c = String(p.County || '').trim();
-    if (c && area.counties && area.counties.indexOf(c) >= 0) return true;
-    if (area.bbox) {
-      var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
-      return !isNaN(la) && !isNaN(ln) && la >= area.bbox[0] && la <= area.bbox[1] && ln >= area.bbox[2] && ln <= area.bbox[3];
-    }
-    return false;
+    if (!area || !area.state) return false;
+    if (String(p.CountyState || '') !== area.state) return false;
+    if (!area.counties) return true;  // whole state
+    return area.counties.indexOf(String(p.County || '').trim()) >= 0;
   }
   function citiesInArea(area, projects) {
     if (!area) return [];
@@ -410,6 +479,15 @@
       if (inArea(p, area)) { var c = String(p.City || '').split(',')[0].trim(); if (c) set[c] = 1; }
     });
     return Object.keys(set);
+  }
+  // GUARDRAIL: a county/parish/borough was explicitly named but we cover nothing
+  // there → return the place name (for an honest "no coverage" answer), else null.
+  function coverageMiss(q, projects) {
+    var full = norm(q);
+    var m = full.match(/\b([a-z][a-z .'-]*?)\s+(county|parish|borough)\b/);
+    if (!m) return null;
+    if (detectArea(q, projects)) return null;  // it resolved → we cover it
+    return (m[1] + ' ' + m[2]).replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
   // Build a normalized-city → display-city map from the projects array.
@@ -970,6 +1048,7 @@
     detectArea: detectArea,
     inArea: inArea,
     citiesInArea: citiesInArea,
+    coverageMiss: coverageMiss,
     askIntelligence: askIntelligence,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,
