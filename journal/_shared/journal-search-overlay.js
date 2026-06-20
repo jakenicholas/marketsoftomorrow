@@ -2154,10 +2154,21 @@
         var anchorNameTokens = anchorTitle.split(/[^a-z0-9]+/)
           .filter(function(t){ return t.length >= 4 && !GENERIC_NAME[t]; });
         var seen = {}; seen[strongAnchor.Title] = true;
+        // Rough great-circle distance (miles) from the anchor, used to weed out
+        // cross-metro "siblings". A degree of latitude is ~69 mi; longitude
+        // shrinks with latitude (~60 mi near 27°N). Exact enough to tell a
+        // same-metro sibling from a different-state coincidence.
+        var aLat = parseFloat(strongAnchor.Latitude), aLng = parseFloat(strongAnchor.Longitude);
+        function milesFromAnchor(p) {
+          var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
+          if (isNaN(aLat) || isNaN(aLng) || isNaN(la) || isNaN(ln)) return null;
+          var dLat = (la - aLat) * 69, dLng = (ln - aLng) * 60;
+          return Math.sqrt(dLat * dLat + dLng * dLng);
+        }
         var scored = [];
         PROJECTS.forEach(function (p) {
           if (seen[p.Title]) return;
-          var sc = 0;
+          var sc = 0, strong = false;
           var pDev  = (p.Developer || '').toLowerCase();
           var pCity = norm(p.City || '');
           var pTitle = norm(p.Title || '');
@@ -2165,13 +2176,27 @@
           // Same place + shared distinctive name token = district sibling. Rank
           // it ABOVE same-developer so the named district always leads.
           if (anchorNameTokens.length && pCity === anchorCity &&
-              anchorNameTokens.some(function (t) { return fieldHit(pTitle, t); })) sc += 35;
+              anchorNameTokens.some(function (t) { return fieldHit(pTitle, t); })) { sc += 35; strong = true; }
           if (anchorDevTokens.length && pCity === anchorCity &&
-              anchorDevTokens.some(function (t) { return pDev.indexOf(t) >= 0; })) sc += 30;
-          if (anchorTitle.length >= 6 && pDesc.indexOf(anchorTitle) >= 0) sc += 20;
+              anchorDevTokens.some(function (t) { return pDev.indexOf(t) >= 0; })) { sc += 30; strong = true; }
+          // Description names the anchor outright — an explicit, real connection.
+          if (anchorTitle.length >= 6 && pDesc.indexOf(anchorTitle) >= 0) { sc += 20; strong = true; }
+          // Weak signal: the description merely mentions a developer token. On
+          // its own this is the rule that used to leak cross-country matches.
           if (anchorDevTokens.length &&
               anchorDevTokens.some(function (t) { return pDesc.indexOf(t) >= 0; })) sc += 8;
-          if (sc > 0) scored.push({ p: p, s: sc });
+          if (sc > 0) {
+            var mi = milesFromAnchor(p);
+            if (mi != null && mi > 100) {
+              // Different metro: a weak-only link (a shared developer mentioned
+              // in the description) isn't a real sibling — drop it. A strong link
+              // (same-place, or an explicit name-drop) survives but is heavily
+              // down-weighted so it can never lead the connected set.
+              if (!strong) return;
+              sc = Math.max(1, Math.round(sc * 0.2));
+            }
+            scored.push({ p: p, s: sc });
+          }
         });
         scored.sort(function(a,b){ return b.s - a.s; });
         connectedProjects = scored.slice(0, 4).map(function (x) { return x.p; });
