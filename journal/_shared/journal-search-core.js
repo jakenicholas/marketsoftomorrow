@@ -237,26 +237,33 @@
     { phase:'tenant',         label:'Tenant signed',    verb:'signed a tenant',          syn:['anchor tenant','tenant signed','signed a lease'] },
     { phase:'bookings',       label:'Bookings open',    verb:'opened bookings',          syn:['bookings open','taking reservations','reservations open'] }
   ];
+  // Query vocabulary → project-type token. `syn` entries are matched with
+  // hasWord (auto-handles regular plurals + multi-word phrases), so only
+  // irregular plurals (universities, galleries, eateries) need spelling out.
+  // Keep every syn an UNAMBIGUOUS pointer to one type — a word that could mean
+  // two categories (bare "club", "center", "theater") is left out so a type
+  // query never narrows to the wrong bucket.
   var TYPE_GROUPS = [
-    { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium'] },
-    { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper'] },
-    { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home'] },
-    { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel'] },
-    { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort'] },
-    { token:'Office',     label:'Office',             noun:'office',    syn:['office'] },
-    { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops'] },
-    { token:'Eateries',   label:'Dining',             noun:'eatery',    syn:['restaurant','eatery','dining','food hall'] },
-    { token:'Park',       label:'Park',               noun:'park',      syn:['park'] },
-    { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina'] },
-    { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum'] },
-    { token:'Entertainment', label:'Entertainment',   noun:'venue',     syn:['entertainment'] },
-    { token:'Golf',       label:'Golf',               noun:'golf course', syn:['golf','golf course','country club'] },
-    { token:'Stadium',    label:'Stadium',            noun:'stadium',   syn:['stadium','arena','ballpark'] },
-    { token:'Education',  label:'Education',          noun:'school',    syn:['school','university','college','campus'] },
-    { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural'] },
-    { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use'] },
-    { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center'] },
-    { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport'] }
+    { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium','flat','penthouse','co-op','coop'] },
+    { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper','mid-rise','midrise'] },
+    { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home','multifamily','multi-family','rental','build-to-rent','senior living','active adult','assisted living'] },
+    { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel','boutique hotel','aparthotel','lodging','inn'] },
+    { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort','beach resort','ski resort','spa resort','wellness retreat'] },
+    { token:'Office',     label:'Office',             noun:'office',    syn:['office','workplace','corporate campus','headquarters','class a office'] },
+    { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops','shopping center','shopping centre','outlet','plaza','lifestyle center','shoppes'] },
+    { token:'Eateries',   label:'Dining',             noun:'eatery',    syn:['restaurant','eatery','eateries','dining','food hall','culinary','steakhouse'] },
+    { token:'Park',       label:'Park',               noun:'park',      syn:['park','green space','greenspace','promenade','linear park','public park'] },
+    { token:'Marina',     label:'Marina',             noun:'marina',    syn:['marina','yacht','yacht club','harbor','harbour','boat slip'] },
+    { token:'Museum',     label:'Museum',             noun:'museum',    syn:['museum','gallery','galleries','art museum'] },
+    { token:'Entertainment', label:'Entertainment',   noun:'venue',     syn:['entertainment','venue','amphitheater','amphitheatre','concert hall','nightlife','casino','theme park','water park'] },
+    { token:'Golf',       label:'Golf',               noun:'golf course', syn:['golf','golf course','country club','links','golf community','golf resort'] },
+    { token:'Stadium',    label:'Stadium',            noun:'stadium',   syn:['stadium','arena','ballpark','soccer stadium','sports complex'] },
+    { token:'Education',  label:'Education',          noun:'school',    syn:['school','university','universities','college','campus','academy','student housing','dormitory','dorm'] },
+    { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural','arts center','performing arts','cultural center','arts district'] },
+    { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use','live-work','town center','town centre','master-planned','master planned'] },
+    { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center','medical','healthcare','health system','clinic','medical campus'] },
+    { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport','terminal','aviation'] },
+    { token:'Travel',     label:'Travel',             noun:'transit hub', syn:['transit','train station','rail','transportation','transit hub','high-speed rail','metro station'] }
   ];
   var SORT_GROUPS = [
     { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
