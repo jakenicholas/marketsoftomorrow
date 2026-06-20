@@ -365,6 +365,7 @@
           var gst = document.createElement('style'); gst.id = 'tmw-gate-css';
           gst.textContent =
             '.tmw-gated{position:relative}' +
+            '.tmw-gate-inner{display:block;width:100%}' +
             '.tmw-gated .tmw-gate-inner{filter:blur(7px);pointer-events:none;user-select:none;-webkit-user-select:none;opacity:.85}' +
             '.tmw-gate-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:2}' +
             '.tmw-gate-card{max-width:420px;text-align:center;background:rgba(20,20,20,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(230,197,116,.4);border-radius:16px;padding:26px 28px;box-shadow:0 24px 60px rgba(0,0,0,.55);font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif}' +
