@@ -2123,9 +2123,17 @@
     // mentions 'Oracle campus')". Then Intelligence is fired with the
     // anchor + connected so the LLM can write the East-Bank-style
     // synthesis the user asked for.
+    // A bare place query ("palm beach gardens") is a PLACE search, not a
+    // project-name anchor: the user wants projects IN that place, not the
+    // "connected siblings" of a project whose title merely contains the city
+    // name. Detect it up front so we can skip the anchor mechanism — otherwise
+    // a same-developer/description-linked project two states away (e.g. an
+    // Austin tower) leaks into the grid via the connected-siblings injection.
+    // The Intelligence answer is unaffected: it runs off `cityHit` separately.
+    var cityQuery = detectCityQuery(q);
     var strongAnchor = null;
     var connectedProjects = [];
-    if (pScored.length && full.length >= 4) {
+    if (pScored.length && full.length >= 4 && !cityQuery) {
       var topTitle = norm(pScored[0].p.Title || '');
       if (topTitle.indexOf(full) >= 0) {
         strongAnchor = pScored[0].p;
@@ -2184,7 +2192,7 @@
       // connected sibling (so the LLM has real cross-project context to
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
-      var cityHit = detectCityQuery(q);
+      var cityHit = cityQuery;
       var trigger = question || cityHit || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
