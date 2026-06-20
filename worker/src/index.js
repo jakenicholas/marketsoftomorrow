@@ -5981,6 +5981,9 @@ async function handleMemberVerify(env, url) {
   const founding = row ? (row.founding ? true : no <= 50) : false;
   let year = null;
   try { if (row && row.joined_at) year = new Date(row.joined_at).getFullYear(); } catch (_) {}
+  // Founder/early rows can carry an epoch-0 join date (→ 1970); fall back to the
+  // launch year so the verify page matches the card's "SINCE 2026".
+  if (!year || year < 2025) year = 2026;
   const line = ok
     ? `${founding ? 'Founding Member' : 'Member'}${year ? ' &middot; Since ' + year : ''}`
     : 'This membership could not be verified.';
@@ -6001,14 +6004,15 @@ async function handleMemberVerify(env, url) {
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden;
-  background:radial-gradient(120% 130% at 30% 0%,#1c1c20,#0c0c0e 55%,#050506);
+  background:repeating-linear-gradient(122deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),radial-gradient(120% 130% at 30% 0%,#161618 0%,#0a0a0c 55%,#050506 100%);
   font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:#ECEAE5}
 .bg{position:fixed;inset:-2% -2% auto -2%;margin:0;z-index:0;pointer-events:none;white-space:pre;overflow:hidden;
-  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.045)}
-.card{position:relative;z-index:1;width:100%;max-width:420px;text-align:center;background:rgba(14,14,18,.82);
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  border:1px solid rgba(230,197,116,.28);border-radius:20px;padding:38px 30px;
-  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.7;letter-spacing:.5px;color:rgba(228,230,234,.04)}
+.card{position:relative;z-index:1;overflow:hidden;width:100%;max-width:420px;text-align:center;background:rgba(9,9,11,.92);
+  border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:38px 30px;
+  box-shadow:0 24px 70px rgba(0,0,0,.65),inset 0 0 80px rgba(0,0,0,.6)}
+.card::before{content:"";position:absolute;top:-35%;left:-95%;width:75%;height:170%;z-index:3;pointer-events:none;transform:skewX(-20deg);filter:blur(13px);background:linear-gradient(90deg,transparent,rgba(255,255,255,.04) 28%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.04) 72%,transparent);animation:cardGlare 7s ease-in-out infinite}
+@keyframes cardGlare{0%{left:-95%}40%{left:155%}100%{left:155%}}
 .logo{height:34px;margin:0 auto 22px;display:block;filter:brightness(0) invert(1)}
 .status{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:700;
   letter-spacing:.28em;color:${accent};margin-bottom:18px}
