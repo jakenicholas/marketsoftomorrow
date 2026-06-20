@@ -5848,6 +5848,28 @@ async function handleMemberNumber(req, env, origin, url) {
   const fnd = (n) => (n <= 50 ? 1 : 0);
 
   if (req.method !== 'POST') {
+    // ?list=1 → registry overview: what's taken, what's open, where new numbers start.
+    if (url.searchParams.get('list') || url.searchParams.get('summary')) {
+      const rows = (await env.DB.prepare('SELECT member_no, email, member_id FROM members ORDER BY member_no ASC').all()).results || [];
+      const taken = rows.map(r => r.member_no).filter(n => Number.isInteger(n));
+      const set = new Set(taken);
+      const max = taken.length ? Math.max(...taken) : 0;
+      const openBelowMax = [], foundingOpen = [];
+      for (let i = 1; i <= max; i++) if (!set.has(i)) openBelowMax.push(i);
+      for (let i = 1; i <= 50; i++) if (!set.has(i)) foundingOpen.push(i);
+      return json({
+        mode: 'list',
+        total_members: rows.length,
+        highest_assigned: max,
+        next_auto_assigned: max + 1,        // new signups get MAX(member_no)+1
+        founding_threshold: 50,             // member_no <= 50 = Founding Member
+        founding_taken: taken.filter(n => n <= 50).length,
+        founding_open: foundingOpen,        // free numbers within #001–#050
+        open_below_max: openBelowMax,       // gaps you could hand-assign
+        placeholders: rows.filter(r => !r.email).map(r => ({ member_no: r.member_no, member_id: r.member_id })),
+        occupied: taken
+      }, {}, env, origin);
+    }
     const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
     const n = url.searchParams.get('number');
     const number = (n != null) ? parseInt(n, 10) : null;
