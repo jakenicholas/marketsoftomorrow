@@ -5871,6 +5871,7 @@ async function handleMemberNumber(req, env, origin, url) {
         founding_open: foundingOpen,        // free numbers within #001–#050
         open_below_max: openBelowMax,       // gaps you could hand-assign
         placeholders: rows.filter(r => !r.email).map(r => ({ member_no: r.member_no, member_id: r.member_id })),
+        roster: rows.map(r => ({ member_no: r.member_no, email: r.email || null, member_id: r.member_id })),
         occupied: taken
       }, {}, env, origin);
     }
