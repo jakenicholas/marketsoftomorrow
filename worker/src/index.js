@@ -5810,6 +5810,10 @@ async function ensureMembersTable(env) {
     joined_at INTEGER, founding INTEGER DEFAULT 0, market TEXT)`).run();
 }
 async function ensureMemberRecord(env, memberId, email, joinedTs) {
+  // Anonymous, logged-out visitors carry an `anon:<device-id>` id. They must
+  // NOT consume a member number — only real Memberstack accounts (`mem_*`) get
+  // a registry seat. (Anon visitors were silently burning founding numbers.)
+  if (!memberId || String(memberId).indexOf('anon:') === 0) return null;
   try { await ensureMembersTable(env); } catch { return null; }
   try {
     let row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
@@ -5882,6 +5886,18 @@ async function handleMemberNumber(req, env, origin, url) {
   const from = (body.from != null) ? parseInt(body.from, 10) : null;
   const to = (body.to != null) ? parseInt(body.to, 10) : null;
   const stampEmail = body.email ? String(body.email).trim().toLowerCase() : null;
+
+  // ── Mode 0: delete a junk row by number (frees that seat). Safe by default —
+  //    refuses a row that has an email (a real member) unless { force:true }.
+  if (body.delete_number != null) {
+    const dn = parseInt(body.delete_number, 10);
+    if (!(dn >= 1)) return json({ error: 'delete_number must be >= 1' }, { status: 400 }, env, origin);
+    const row = await byNo(dn);
+    if (!row) return json({ error: `no member at #${dn}` }, { status: 404 }, env, origin);
+    if (row.email && !body.force) return json({ error: `#${dn} belongs to a real member (${row.email}); pass force:true to delete anyway`, row }, { status: 409 }, env, origin);
+    await env.DB.prepare('DELETE FROM members WHERE member_no = ?').bind(dn).run();
+    return json({ ok: true, deleted: row, note: 'seat freed — the auto-assigner never backfills gaps, so it stays open until you hand-assign it' }, {}, env, origin);
+  }
 
   // ── Mode 1: direct number swap (#from ↔ #to) ──
   if (from >= 1 && to >= 1) {
