@@ -1850,9 +1850,12 @@ function categoryCardHtml(t) {
   </a>`;
 }
 
-function featuredListCardHtml(l) {
+function featuredListCardHtml(l, i) {
+  // The first cards are visible as soon as the carousel renders, so load them
+  // eagerly (high priority) instead of waiting for a scroll — the rest stay lazy.
+  const eager = (i || 0) < 4;
   return `<a class="flist-card" href="${escapeAttr(l.url)}">
-    ${l.image ? `<img src="${escapeAttr(l.image)}" alt="" loading="lazy">` : ''}
+    ${l.image ? `<img src="${escapeAttr(l.image)}" alt="" loading="${eager ? 'eager' : 'lazy'}" ${eager ? 'fetchpriority="high" ' : ''}decoding="async">` : ''}
     <div class="flist-card-content">
       <div class="top">
         <h3>${escapeHtml(l.title)}</h3>
