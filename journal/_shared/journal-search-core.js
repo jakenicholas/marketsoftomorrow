@@ -356,43 +356,58 @@
     return la >= 24.3 && la <= 31.1 && ln >= -87.8 && ln <= -79.8;
   }
 
-  // Multi-city AREAS (county / metro / region). We only store lat/lng per
-  // project, so an area is a bounding box [latMin,latMax,lngMin,lngMax]; its
-  // member cities are DERIVED from the projects inside it. This lets "palm
-  // beach county" fan out to West Palm Beach + Boca + Delray + Jupiter + … (a
-  // dozen cities) instead of collapsing to the town of Palm Beach. Triggers are
-  // matched longest-first so "palm beach county" beats a bare "palm beach" city.
-  var AREAS = [
-    { name:'Palm Beach County', triggers:['palm beach county','palm beach co.','pbc'],                 bbox:[26.30,27.00,-80.95,-79.95] },
-    { name:'The Palm Beaches',  triggers:['the palm beaches','palm beaches'],                          bbox:[26.30,27.00,-80.95,-79.95] },
-    { name:'Miami-Dade County', triggers:['miami-dade county','miami-dade','miami dade','dade county'],bbox:[25.13,25.98,-80.90,-80.05] },
-    { name:'Broward County',    triggers:['broward county','broward'],                                 bbox:[25.95,26.33,-80.50,-80.05] },
-    { name:'South Florida',     triggers:['south florida','sofla','tri-county'],                       bbox:[25.13,27.00,-80.95,-80.05] },
-    { name:'Treasure Coast',    triggers:['treasure coast','martin county','st lucie county'],         bbox:[27.00,27.70,-80.70,-80.10] }
+  // Multi-city AREAS (county / metro / region). Each project is stamped with a
+  // `County` field (reverse-geocoded from lat/lng at build — see
+  // geocode_counties.py), so SINGLE counties resolve data-driven: any "<X>
+  // County" we actually have projects in is matched automatically, nationwide,
+  // with no table to maintain. Multi-county REGIONS (and a couple of high-traffic
+  // counties with a bbox fallback, so they still resolve before a project is
+  // geocoded) stay curated. An area resolves to a LIST of county names; its
+  // member cities are the cities of every project in those counties. This lets
+  // "palm beach county" fan out to West Palm Beach + Boca + Delray + Jupiter + …
+  // instead of collapsing to the town of Palm Beach.
+  var REGIONS = [
+    { name:'South Florida',    triggers:['south florida','sofla','tri-county'], counties:['Miami-Dade County','Broward County','Palm Beach County'], bbox:[25.13,27.00,-80.95,-80.05] },
+    { name:'The Palm Beaches', triggers:['the palm beaches','palm beaches'],    counties:['Palm Beach County'], bbox:[26.30,27.00,-80.95,-79.95] },
+    { name:'Treasure Coast',   triggers:['treasure coast'],                     counties:['Martin County','St. Lucie County','Indian River County'], bbox:[27.00,27.70,-80.70,-80.10] }
   ];
-  function detectArea(q) {
-    var full = norm(q), best = null;
-    for (var i = 0; i < AREAS.length; i++) {
-      var a = AREAS[i];
-      for (var j = 0; j < a.triggers.length; j++) {
-        var t = a.triggers[j];
-        if (full.indexOf(t) >= 0 && (!best || t.length > best.tlen)) {
-          best = { name: a.name, bbox: a.bbox, tlen: t.length };
-        }
-      }
-    }
-    return best ? { name: best.name, bbox: best.bbox } : null;
+  function _countySet(projects) {  // norm(County) -> display County, from stamped data
+    var m = {};
+    (projects || []).forEach(function (p) { var c = String(p.County || '').trim(); if (c) m[norm(c)] = c; });
+    return m;
   }
-  function inArea(p, bbox) {
-    if (!bbox) return false;
-    var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
-    return !isNaN(la) && !isNaN(ln) && la >= bbox[0] && la <= bbox[1] && ln >= bbox[2] && ln <= bbox[3];
+  function detectArea(q, projects) {
+    var full = norm(q), best = null;
+    REGIONS.forEach(function (r) {
+      r.triggers.forEach(function (t) {
+        if (full.indexOf(t) >= 0 && (!best || t.length > best.tlen)) {
+          best = { name: r.name, counties: r.counties, bbox: r.bbox, tlen: t.length };
+        }
+      });
+    });
+    var cs = _countySet(projects);   // data-driven: any county we cover
+    Object.keys(cs).forEach(function (nc) {
+      if (nc.length >= 5 && full.indexOf(nc) >= 0 && (!best || nc.length > best.tlen)) {
+        best = { name: cs[nc], counties: [cs[nc]], bbox: null, tlen: nc.length };
+      }
+    });
+    return best ? { name: best.name, counties: best.counties, bbox: best.bbox || null } : null;
+  }
+  function inArea(p, area) {
+    if (!area) return false;
+    var c = String(p.County || '').trim();
+    if (c && area.counties && area.counties.indexOf(c) >= 0) return true;
+    if (area.bbox) {
+      var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
+      return !isNaN(la) && !isNaN(ln) && la >= area.bbox[0] && la <= area.bbox[1] && ln >= area.bbox[2] && ln <= area.bbox[3];
+    }
+    return false;
   }
   function citiesInArea(area, projects) {
-    if (!area || !area.bbox) return [];
+    if (!area) return [];
     var set = {};
     (projects || []).forEach(function (p) {
-      if (inArea(p, area.bbox)) { var c = String(p.City || '').split(',')[0].trim(); if (c) set[c] = 1; }
+      if (inArea(p, area)) { var c = String(p.City || '').split(',')[0].trim(); if (c) set[c] = 1; }
     });
     return Object.keys(set);
   }

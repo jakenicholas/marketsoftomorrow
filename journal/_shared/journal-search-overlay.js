@@ -2186,7 +2186,7 @@
     // The Intelligence answer is unaffected: it runs off `cityHit` separately.
     var cityQuery = detectCityQuery(q);
     var foodIntent = isFoodQuery(q);   // dining = journal coverage, not projects
-    var areaHit = (Core && Core.detectArea) ? Core.detectArea(q) : null; // county/metro → many cities
+    var areaHit = (Core && Core.detectArea) ? Core.detectArea(q, PROJECTS) : null; // county/metro → many cities
     var strongAnchor = null;
     var connectedProjects = [];
     if (pScored.length && full.length >= 4 && !cityQuery) {
@@ -2319,7 +2319,7 @@
             intelProjects = null; // handled above
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
-            intelProjects = Core.inArea ? PROJECTS.filter(function(p){ return Core.inArea(p, areaHit.bbox); }) : [];
+            intelProjects = Core.inArea ? PROJECTS.filter(function(p){ return Core.inArea(p, areaHit); }) : [];
             intelPlace = areaHit.name;
           } else if (cityHit) {
             // Bare city query → city OVERVIEW: feed the whole city set so the

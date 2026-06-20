@@ -369,6 +369,14 @@ def main():
         flat.append(flatten(r, architect_names, developer_names))
     print(f"  ✓ Flattened {len(flat)} records ({skipped} skipped)")
 
+    # Stamp County + CountyState from lat/lng (cached; only new coords hit the
+    # FCC Census API). Lets the search resolve "X county" to all its cities.
+    try:
+        from geocode_counties import enrich
+        enrich(flat)
+    except Exception as e:
+        print(f"  ⚠ county enrich skipped: {e}")
+
     print(f"Writing {OUTPUT_PATH}...")
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
         json.dump(flat, f, indent=2, ensure_ascii=False)
