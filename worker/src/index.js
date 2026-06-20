@@ -5825,6 +5825,67 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
   } catch { return null; }
 }
 
+// GET  /admin/member-number?email=…[&number=N] → inspect (dry run, no writes):
+//   show the member's current registry row + who holds N right now.
+// POST /admin/member-number  { email, number } → assign that member_no to the
+//   member (by email), SWAPPING with whoever currently holds it. `founding`
+//   (member_no <= 50) is recomputed for both. Admin-gated; #001 stays the
+//   founder. A D1 batch makes the swap atomic.
+async function handleMemberNumber(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureMembersTable(env);
+
+  const isPost = req.method === 'POST';
+  let email = '', number = null;
+  if (isPost) {
+    let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+    email = String(body.email || '').trim().toLowerCase();
+    number = (body.number != null) ? parseInt(body.number, 10) : null;
+  } else {
+    email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+    const n = url.searchParams.get('number');
+    number = (n != null) ? parseInt(n, 10) : null;
+  }
+  if (!email) return json({ error: 'email required' }, { status: 400 }, env, origin);
+
+  const targets = (await env.DB.prepare(
+    'SELECT member_id, email, member_no, founding, joined_at FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC'
+  ).bind(email).all()).results || [];
+  const target = targets[0] || null;
+  const holder = (number >= 1)
+    ? await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_no = ?').bind(number).first()
+    : null;
+
+  if (!isPost) {
+    return json({ mode: 'inspect', email, requested_number: number, target,
+      duplicate_rows: targets.length > 1 ? targets : undefined,
+      current_holder_of_number: holder || null }, {}, env, origin);
+  }
+
+  if (!(number >= 1)) return json({ error: 'number (>= 1) required' }, { status: 400 }, env, origin);
+  if (!target) return json({ error: 'no member with that email is in the registry yet',
+    email, hint: 'the members row is created on first authenticated activity; have them sign in once, then retry' }, { status: 404 }, env, origin);
+  if (target.member_no === number) return json({ ok: true, noop: true, message: 'already #' + number, target }, {}, env, origin);
+
+  const before = { target: { ...target }, holder: holder ? { ...holder } : null };
+  const targetOld = target.member_no;
+  const stmts = [
+    env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?')
+      .bind(number, number <= 50 ? 1 : 0, target.member_id),
+  ];
+  if (holder) stmts.push(env.DB.prepare('UPDATE members SET member_no = ?, founding = ? WHERE member_id = ?')
+    .bind(targetOld, targetOld <= 50 ? 1 : 0, holder.member_id));
+  await env.DB.batch(stmts);
+
+  const after = {
+    target: await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_id = ?').bind(target.member_id).first(),
+    holder: holder ? await env.DB.prepare('SELECT member_id, email, member_no, founding FROM members WHERE member_id = ?').bind(holder.member_id).first() : null,
+  };
+  return json({ ok: true, swapped: !!holder, before, after }, {}, env, origin);
+}
+
 async function computeMemberGameStats(env, memberId) {
   const rs = await env.DB.prepare(
     `SELECT event_name, ts, member_name, email, path, props_json FROM events WHERE member_id = ? LIMIT 20000`
@@ -6081,6 +6142,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
+      }
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/member-number') {
+        return await handleMemberNumber(request, env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/timeline') {
         return await handleTimeline(env, origin, url);
