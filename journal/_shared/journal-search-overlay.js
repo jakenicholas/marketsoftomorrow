@@ -2172,6 +2172,7 @@
     // The Intelligence answer is unaffected: it runs off `cityHit` separately.
     var cityQuery = detectCityQuery(q);
     var foodIntent = isFoodQuery(q);   // dining = journal coverage, not projects
+    var areaHit = (Core && Core.detectArea) ? Core.detectArea(q) : null; // county/metro → many cities
     var strongAnchor = null;
     var connectedProjects = [];
     if (pScored.length && full.length >= 4 && !cityQuery) {
@@ -2259,7 +2260,7 @@
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
       var cityHit = cityQuery;
-      var trigger = question || cityHit || foodIntent || (strongAnchor && connectedProjects.length > 0);
+      var trigger = question || cityHit || foodIntent || areaHit || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
@@ -2272,11 +2273,42 @@
           if (foodIntent) {
             // Dining is journal coverage, not a project type — answer from our
             // Food & Drink articles (we post a lot), never the project pipeline.
-            var foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
-            if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
-            var foodPlace = cityHit || (cScored.length ? cScored[0].c.name : null);
+            var foodArts, foodPlace;
+            if (areaHit) {
+              // County/metro → fan out across ALL its cities (derived from the
+              // bbox), so "palm beach county" pulls Boca, Delray, Jupiter… not
+              // just the town of Palm Beach. Newest first. Match full city names
+              // AND a distinctive first-word alias (so "Delray"/"Boynton"/"Juno"
+              // in a headline still count), skipping generic geo words that would
+              // over-match ("Lake", "Palm", "West", "Beach").
+              var GEN_GEO = { lake:1,palm:1,west:1,east:1,north:1,south:1,beach:1,bay:1,port:1,fort:1,'new':1,san:1,santa:1,saint:1,st:1,the:1 };
+              var aTerms = [];
+              (Core.citiesInArea ? Core.citiesInArea(areaHit, PROJECTS) : []).forEach(function(c){
+                c = norm(c); if (!c) return;
+                if (aTerms.indexOf(c) < 0) aTerms.push(c);
+                var first = c.split(' ')[0];
+                if (first.length >= 4 && !GEN_GEO[first] && aTerms.indexOf(first) < 0) aTerms.push(first);
+              });
+              var aName = norm(areaHit.name);
+              foodArts = ARTICLES.filter(isFoodArticle).filter(function(a){
+                var hay = norm((a.title||'') + ' ' + (a.excerpt||'') + ' ' + (a.categories||[]).join(' '));
+                if (aName && hay.indexOf(aName) >= 0) return true;
+                for (var i = 0; i < aTerms.length; i++){ if (hay.indexOf(aTerms[i]) >= 0) return true; }
+                return false;
+              }).sort(function(a,b){ return String(b.published_iso||'').localeCompare(String(a.published_iso||'')); });
+              foodPlace = areaHit.name;
+            }
+            if (!areaHit || !foodArts.length) {
+              foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
+              if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
+              foodPlace = areaHit ? areaHit.name : (cityHit || (cScored.length ? cScored[0].c.name : null));
+            }
             fireIntelligence(q, [], foodArts.slice(0, 10), foodPlace, 'food & drink');
             intelProjects = null; // handled above
+          } else if (areaHit) {
+            // County/metro project overview — every project inside the bbox.
+            intelProjects = Core.inArea ? PROJECTS.filter(function(p){ return Core.inArea(p, areaHit.bbox); }) : [];
+            intelPlace = areaHit.name;
           } else if (cityHit) {
             // Bare city query → city OVERVIEW: feed the whole city set so the
             // answer covers the pipeline (count, dominant type, soonest opening,

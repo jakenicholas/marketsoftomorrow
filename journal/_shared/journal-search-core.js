@@ -356,6 +356,47 @@
     return la >= 24.3 && la <= 31.1 && ln >= -87.8 && ln <= -79.8;
   }
 
+  // Multi-city AREAS (county / metro / region). We only store lat/lng per
+  // project, so an area is a bounding box [latMin,latMax,lngMin,lngMax]; its
+  // member cities are DERIVED from the projects inside it. This lets "palm
+  // beach county" fan out to West Palm Beach + Boca + Delray + Jupiter + … (a
+  // dozen cities) instead of collapsing to the town of Palm Beach. Triggers are
+  // matched longest-first so "palm beach county" beats a bare "palm beach" city.
+  var AREAS = [
+    { name:'Palm Beach County', triggers:['palm beach county','palm beach co.','pbc'],                 bbox:[26.30,27.00,-80.95,-79.95] },
+    { name:'The Palm Beaches',  triggers:['the palm beaches','palm beaches'],                          bbox:[26.30,27.00,-80.95,-79.95] },
+    { name:'Miami-Dade County', triggers:['miami-dade county','miami-dade','miami dade','dade county'],bbox:[25.13,25.98,-80.90,-80.05] },
+    { name:'Broward County',    triggers:['broward county','broward'],                                 bbox:[25.95,26.33,-80.50,-80.05] },
+    { name:'South Florida',     triggers:['south florida','sofla','tri-county'],                       bbox:[25.13,27.00,-80.95,-80.05] },
+    { name:'Treasure Coast',    triggers:['treasure coast','martin county','st lucie county'],         bbox:[27.00,27.70,-80.70,-80.10] }
+  ];
+  function detectArea(q) {
+    var full = norm(q), best = null;
+    for (var i = 0; i < AREAS.length; i++) {
+      var a = AREAS[i];
+      for (var j = 0; j < a.triggers.length; j++) {
+        var t = a.triggers[j];
+        if (full.indexOf(t) >= 0 && (!best || t.length > best.tlen)) {
+          best = { name: a.name, bbox: a.bbox, tlen: t.length };
+        }
+      }
+    }
+    return best ? { name: best.name, bbox: best.bbox } : null;
+  }
+  function inArea(p, bbox) {
+    if (!bbox) return false;
+    var la = parseFloat(p.Latitude), ln = parseFloat(p.Longitude);
+    return !isNaN(la) && !isNaN(ln) && la >= bbox[0] && la <= bbox[1] && ln >= bbox[2] && ln <= bbox[3];
+  }
+  function citiesInArea(area, projects) {
+    if (!area || !area.bbox) return [];
+    var set = {};
+    (projects || []).forEach(function (p) {
+      if (inArea(p, area.bbox)) { var c = String(p.City || '').split(',')[0].trim(); if (c) set[c] = 1; }
+    });
+    return Object.keys(set);
+  }
+
   // Build a normalized-city → display-city map from the projects array.
   // Caller passes projects in (rather than a stale module-cached copy)
   // so different surfaces with different filtered project sets stay
@@ -911,6 +952,9 @@
     isQuestion: isQuestion,
     buildIntelFacts: buildIntelFacts,
     buildJournalFacts: buildJournalFacts,
+    detectArea: detectArea,
+    inArea: inArea,
+    citiesInArea: citiesInArea,
     askIntelligence: askIntelligence,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,
