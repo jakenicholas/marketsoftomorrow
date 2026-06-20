@@ -149,6 +149,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .lnk{appearance:none;background:none;border:none;cursor:pointer;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--gold);padding:0}
 .lnk:hover{text-decoration:underline}.lnk.muted{color:var(--mute)}.lnk:disabled{opacity:.5;cursor:default;text-decoration:none}
 #emailEdit{display:inline-flex;align-items:center;gap:8px}
+.iconbtn{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--hair2);background:rgba(255,255,255,.04);color:var(--mute);cursor:pointer;padding:0}
+.iconbtn:hover{background:rgba(255,255,255,.08);color:#fff}
+.iconbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .emailinput{font-family:var(--sans);font-size:14px;color:#fff;background:var(--card);border:1px solid var(--hair2);border-radius:8px;padding:7px 10px;min-width:230px;max-width:60vw}
 .emailinput:focus{outline:none;border-color:var(--gold)}
 .ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}.ftr .tmwlogo{height:30px}.ftr .cp{font-size:12px;color:var(--mute)}
@@ -229,7 +232,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="arow"><span class="k">Email</span>
         <span class="emailcell">
           <span class="v" id="acctEmail">&mdash;</span>
-          <button type="button" class="lnk" id="btnEditEmail">Edit</button>
+          <button type="button" class="iconbtn" id="btnEditEmail" aria-label="Edit email" title="Edit email"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
           <span id="emailEdit" hidden>
             <input id="emailInput" class="emailinput" type="email" autocomplete="email" spellcheck="false" aria-label="New email address">
             <button type="button" class="lnk" id="btnEmailSave">Save</button>
@@ -260,14 +263,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var WORKER='https://tmw.jake-ab7.workers.dev';
   try{ document.getElementById('yr').textContent=new Date().getFullYear(); }catch(e){}
   var LEVELS=[
-    {lvl:1,tier:'Newcomer',xp:0,unlock:'Welcome in &mdash; full access to read, ad-supported'},
-    {lvl:2,tier:'Reader',xp:300,unlock:'Read ~30 articles &mdash; unlocks article commenting'},
-    {lvl:3,tier:'Local',xp:900,unlock:'Perks &mdash; comped first visits'},
-    {lvl:4,tier:'Insider',xp:1800,unlock:'Priority booking &middot; member nights'},
-    {lvl:5,tier:'Tastemaker',xp:3000,unlock:'Creator tier &mdash; comped experiences for content'},
-    {lvl:6,tier:'Curator',xp:5500,unlock:'Contributions bylined &middot; early access'},
-    {lvl:7,tier:'Authority',xp:10000,unlock:'Advisory access &middot; concierge intel'},
-    {lvl:8,tier:'Luminary',xp:18000,unlock:'Founding-circle status'}
+    {lvl:1,tier:'Newcomer',xp:0,unlock:'Welcome'},
+    {lvl:2,tier:'Reader',xp:300,unlock:'Read ~30 Articles: Unlocks Article Commenting'},
+    {lvl:3,tier:'Local',xp:900,unlock:'Unlock Project Database Suggestions (We\'ll Add This Feature Soon)'},
+    {lvl:4,tier:'Insider',xp:1800,unlock:'Member Nights, Exclusive Invites And More'},
+    {lvl:5,tier:'Tastemaker',xp:3000,unlock:'Free Markets of Tomorrow Merch Gift Bag'},
+    {lvl:6,tier:'Curator',xp:5500,unlock:'Creator Tier &middot; Comped Experiences'},
+    {lvl:7,tier:'Authority',xp:10000,unlock:'Advisory Access &middot; Concierge Intel'},
+    {lvl:8,tier:'Luminary',xp:18000,unlock:'Founding-Circle Status'}
   ];
   var DEMO={name:'Jacob Nicholas',memberNo:1,since:2026,founding:true,xp:1352,market:'Florida',
     stats:{articles:66,markets:0,visits:0,reach:'0',streak:26,saved:5,comments:0}};
@@ -283,7 +286,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function ini(n){return (n||'').split(/\s+/).map(function(s){return s[0]}).join('').slice(0,2).toUpperCase()||'TMW'}
   function fmt(n){return Number(n).toLocaleString()}
   function lvlOf(xp){var c=LEVELS[0];for(var i=0;i<LEVELS.length;i++){if(xp>=LEVELS[i].xp)c=LEVELS[i]}return c}
-  function tierName(L,m){return (L.lvl===4&&m.market)?(m.market+' Insider'):L.tier}
+  function tierName(L,m){return L.tier}
 
   function render(m){
     var cur=lvlOf(m.xp),next=LEVELS[cur.lvl];
@@ -291,7 +294,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding Member':'');
     $('tierbadge').innerHTML='&#9670; '+tierName(cur,m);
     $('lvNum').textContent=cur.lvl;
-    $('lvName').innerHTML=(cur.lvl===4&&m.market)?(m.market+' <span>Insider</span>'):'<span>'+cur.tier+'</span>';
+    $('lvName').innerHTML='<span>'+cur.tier+'</span>';
     $('cardName').textContent=(m.name||'').toUpperCase();
     $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(3,'0')+' · SINCE '+(m.since||2026);
     var cm=$('cardMarket'); if(cm){ cm.textContent=m.market||''; cm.style.display=m.market?'':'none'; }
