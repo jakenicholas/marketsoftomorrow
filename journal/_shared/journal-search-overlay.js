@@ -1738,11 +1738,12 @@
       var smart = Core && Core.parseSmartQuery
         ? Core.parseSmartQuery(q, { firms: FIRMS, projects: PROJECTS })
         : null;
-      // Dining isn't a project type — it's journal coverage. Don't let a
-      // city+sort parse hijack a restaurant query into a project readout; drop
-      // to the text path, which answers from the Food & Drink articles. (A query
-      // that also names a real type or firm keeps its structured parse.)
-      if (smart && isFoodQuery(q) && !smart.firm && !(smart.types && smart.types.size)) {
+      // Dining isn't a project type — it's journal coverage. Route ANY food
+      // query to the text path, which answers from the Food & Drink articles.
+      // A coincidental firm match ("Nashville" → "The Nashville Predators") must
+      // NOT keep it in the project readout. Only an explicit project TYPE in the
+      // query ("hotels with restaurants") keeps the structured parse.
+      if (smart && isFoodQuery(q) && !(smart.types && smart.types.size)) {
         smart = null;
       }
       if (smart) {

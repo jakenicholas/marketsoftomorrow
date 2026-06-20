@@ -556,7 +556,7 @@
   // match quality (exact phrase > all distinctive tokens > one long token)
   // then by specificity (longer name), so "related ross" picks Related
   // Ross over Related Group, and "kengo kuma" picks Kengo Kuma.
-  function detectFirm(full, firms) {
+  function detectFirm(full, firms, cityWords) {
     if (!firms || !firms.length) return null;
     var best = null, bestScore = 0, bestLen = 0;
     for (var i = 0; i < firms.length; i++) {
@@ -565,14 +565,19 @@
       if (n.length < 4) continue;
       var sig = n.split(/\s+/).filter(function (t) { return t.length > 2 && !FIRM_STOP.has(t); });
       if (!sig.length) continue;
+      // A token that's already a matched CITY in this query is NOT a firm
+      // signal — "Nashville" the place must not match "Nashville <X>" the
+      // developer. Only the token-based rules use this filtered signal; an
+      // explicit full firm-name match still wins.
+      var fsig = cityWords ? sig.filter(function (t) { return !cityWords[t]; }) : sig;
       var score = 0;
       // Word-bounded full-name match — safe at 4+ chars because the leading
       // and trailing spaces enforce a true word boundary, so "Terra" can be
       // detected without falsely matching "terraform" or "Terrazza".
       if (n.length >= 4 && (' ' + full + ' ').indexOf(' ' + n + ' ') >= 0)                  score = 3;  // whole name, word-bounded
       else if (n.length >= 6 && full.indexOf(n) >= 0)                                       score = 2;  // whole name, substring
-      else if (sig.length >= 2 && sig.every(function (t) { return hasWord(full, t); }))     score = 2;  // all distinctive tokens
-      else if (sig.length === 1 && sig[0].length >= 6 && hasWord(full, sig[0]))             score = 1;  // one distinctive long token
+      else if (fsig.length >= 2 && fsig.every(function (t) { return hasWord(full, t); }))   score = 2;  // all distinctive tokens
+      else if (fsig.length === 1 && fsig[0].length >= 6 && hasWord(full, fsig[0]))          score = 1;  // one distinctive long token
       if (score && (score > bestScore || (score === bestScore && n.length > bestLen))) {
         best = f; bestScore = score; bestLen = n.length;
       }
@@ -714,7 +719,10 @@
     }
 
     var place = region || cities.length;
-    var firm = detectFirm(full, opts.firms || []);
+    // Tokens already matched as a CITY here can't double as a firm signal.
+    var cityWords = {};
+    cities.forEach(function (c) { norm(c).split(/\s+/).forEach(function (t) { if (t.length >= 4) cityWords[t] = 1; }); });
+    var firm = detectFirm(full, opts.firms || [], cityWords);
     var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0);
     // Geographic / firm anchor alone is enough to trigger smart. "projects
     // coming to nashville", "deals in florida", "show me kengo kuma" all
