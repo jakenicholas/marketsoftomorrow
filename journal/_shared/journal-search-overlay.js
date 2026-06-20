@@ -1025,8 +1025,14 @@
   var GEN_GEO_WORDS = { lake:1,palm:1,west:1,east:1,north:1,south:1,beach:1,bay:1,port:1,fort:1,'new':1,san:1,santa:1,saint:1,st:1,the:1,grand:1,old:1 };
   // Match terms for a place: its full normalized name + a distinctive first
   // word (so "Delray"/"Boynton"/"Juno" in a headline still count).
+  // New York City is ONE market — Manhattan and every borough roll up to it.
+  // A query for any borough (or "New York"/"NYC") matches content tagged with
+  // any of them, and the displayed place normalizes to "New York City".
+  var NYC_FAMILY = ['new york city','new york','nyc','manhattan','brooklyn','queens','the bronx','bronx','staten island'];
+  function nycPlace(name){ return NYC_FAMILY.indexOf(norm(name)) >= 0 ? 'New York City' : name; }
   function placeAliasTerms(name){
     var c = norm(name); if (!c) return [];
+    if (NYC_FAMILY.indexOf(c) >= 0) return NYC_FAMILY.slice();
     var out = [c], first = c.split(' ')[0];
     if (first.length >= 4 && !GEN_GEO_WORDS[first] && out.indexOf(first) < 0) out.push(first);
     return out;
@@ -2311,6 +2317,7 @@
               var fc = cityHit || (cScored.length ? cScored[0].c.name : null);
               if (fc) { foodPlace = fc; placeTerms = placeAliasTerms(fc); }
             }
+            if (foodPlace) foodPlace = nycPlace(foodPlace);
             var foodArts = [];
             if (placeTerms.length) {
               foodArts = ARTICLES.filter(isFoodArticle).filter(function(a){
@@ -2349,7 +2356,7 @@
           }
           // Food queries already fired (journal facts) inside the branch above.
           if (!foodIntent) {
-            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace, null, token);
+            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), nycPlace(intelPlace), null, token);
           }
         } else if (Core){
           slotIntel.innerHTML = intelPanelHtml('loading', q);

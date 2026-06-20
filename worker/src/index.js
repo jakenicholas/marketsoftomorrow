@@ -5622,10 +5622,13 @@ async function handleSmartAnswer(request, env, origin) {
   // rank. Appended to BOTH the journal and project system prompts.
   const HERO_DIRECTIVE =
     'AFTER the prose, on its own final line, output exactly: HERO: <id> — where <id> is the `id` of the single ' +
-    'item in `top` to feature as the headline card: the freshest, most newsworthy story that best fits the query ' +
-    'intent. If the query is about what is NEW / COMING / UPCOMING, prefer a genuinely new or not-yet-open item ' +
-    'over an older one even when the older one is bigger news (e.g. a long-open venue earning a new award). Use ' +
-    '"HERO: NONE" only if no single item is a strong standalone feature. Output nothing after that line.';
+    'item in `top` to feature as the headline card: the FRESHEST, most relevant story for the query, NOT merely ' +
+    'the most famous. Treat each item\'s `delivery` value as its recency (publish or opening date); for ' +
+    '"new"/"opening"/"coming"/"latest" queries the most recently published or soonest-opening venue should win. ' +
+    'Strongly prefer a brand-new or independent opening over an older, established, or chain venue even if the ' +
+    'latter is splashier — e.g. a national steakhouse chain must NOT outrank a just-opened local debut, and a ' +
+    'venue that has been open a while must NOT outrank one that opened in the last few weeks. Use "HERO: NONE" ' +
+    'only if no single item is a strong standalone feature. Output nothing after that line.';
   let system = compact.topic ?
     ('You are TMW Intelligence, the editorial voice of Markets of Tomorrow. The query is about ' +
      compact.topic.toUpperCase() + ', which we cover in our JOURNAL — these `top` items are ARTICLES we have ' +
