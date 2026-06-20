@@ -1013,9 +1013,23 @@
   }
   function isFoodArticle(a){
     if (!a) return false;
-    var hay = norm((a.categories || []).join(' ') + ' ' + (a.tags || []).join(' '));
-    return hay.indexOf('food') >= 0 || hay.indexOf('drink') >= 0 ||
-           hay.indexOf('dining') >= 0 || hay.indexOf('restaurant') >= 0;
+    var cats = norm((a.categories || []).join(' ') + ' ' + (a.tags || []).join(' '));
+    if (cats.indexOf('food') >= 0 || cats.indexOf('drink') >= 0 ||
+        cats.indexOf('dining') >= 0 || cats.indexOf('restaurant') >= 0) return true;
+    // Fallback for thinly-categorized posts: a clearly food-titled article.
+    return /(restaurant|eatery|food hall|steakhouse|michelin|trattoria|osteria|izakaya|omakase|cocktail bar|wine bar|tasting menu)/
+      .test(norm(a.title || ''));
+  }
+  // Generic geo words that must NOT become a standalone city alias ("lake",
+  // "palm", "west" would over-match). Used to derive a distinctive short form.
+  var GEN_GEO_WORDS = { lake:1,palm:1,west:1,east:1,north:1,south:1,beach:1,bay:1,port:1,fort:1,'new':1,san:1,santa:1,saint:1,st:1,the:1,grand:1,old:1 };
+  // Match terms for a place: its full normalized name + a distinctive first
+  // word (so "Delray"/"Boynton"/"Juno" in a headline still count).
+  function placeAliasTerms(name){
+    var c = norm(name); if (!c) return [];
+    var out = [c], first = c.split(' ')[0];
+    if (first.length >= 4 && !GEN_GEO_WORDS[first] && out.indexOf(first) < 0) out.push(first);
+    return out;
   }
 
   function scoreArticle(a, toks, full){
@@ -2273,37 +2287,35 @@
           if (foodIntent) {
             // Dining is journal coverage, not a project type — answer from our
             // Food & Drink articles (we post a lot), never the project pipeline.
-            var foodArts, foodPlace;
+            // Pull coverage for the PLACE comprehensively (every food article that
+            // mentions the city — not just ones matching the exact query tokens),
+            // newest first. A county fans out across all its cities.
+            var placeTerms = [], foodPlace = null;
             if (areaHit) {
-              // County/metro → fan out across ALL its cities (derived from the
-              // bbox), so "palm beach county" pulls Boca, Delray, Jupiter… not
-              // just the town of Palm Beach. Newest first. Match full city names
-              // AND a distinctive first-word alias (so "Delray"/"Boynton"/"Juno"
-              // in a headline still count), skipping generic geo words that would
-              // over-match ("Lake", "Palm", "West", "Beach").
-              var GEN_GEO = { lake:1,palm:1,west:1,east:1,north:1,south:1,beach:1,bay:1,port:1,fort:1,'new':1,san:1,santa:1,saint:1,st:1,the:1 };
-              var aTerms = [];
+              foodPlace = areaHit.name;
+              placeAliasTerms(areaHit.name).forEach(function(t){ placeTerms.push(t); });
               (Core.citiesInArea ? Core.citiesInArea(areaHit, PROJECTS) : []).forEach(function(c){
-                c = norm(c); if (!c) return;
-                if (aTerms.indexOf(c) < 0) aTerms.push(c);
-                var first = c.split(' ')[0];
-                if (first.length >= 4 && !GEN_GEO[first] && aTerms.indexOf(first) < 0) aTerms.push(first);
+                placeAliasTerms(c).forEach(function(t){ if (placeTerms.indexOf(t) < 0) placeTerms.push(t); });
               });
-              var aName = norm(areaHit.name);
+            } else {
+              var fc = cityHit || (cScored.length ? cScored[0].c.name : null);
+              if (fc) { foodPlace = fc; placeTerms = placeAliasTerms(fc); }
+            }
+            var foodArts = [];
+            if (placeTerms.length) {
               foodArts = ARTICLES.filter(isFoodArticle).filter(function(a){
                 var hay = norm((a.title||'') + ' ' + (a.excerpt||'') + ' ' + (a.categories||[]).join(' '));
-                if (aName && hay.indexOf(aName) >= 0) return true;
-                for (var i = 0; i < aTerms.length; i++){ if (hay.indexOf(aTerms[i]) >= 0) return true; }
+                for (var i = 0; i < placeTerms.length; i++){ if (placeTerms[i] && hay.indexOf(placeTerms[i]) >= 0) return true; }
                 return false;
               }).sort(function(a,b){ return String(b.published_iso||'').localeCompare(String(a.published_iso||'')); });
-              foodPlace = areaHit.name;
             }
-            if (!areaHit || !foodArts.length) {
+            if (!foodArts.length) {
+              // No place (or nothing matched) → fall back to the query-scored
+              // food articles so we still answer from the journal, never projects.
               foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
               if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
-              foodPlace = areaHit ? areaHit.name : (cityHit || (cScored.length ? cScored[0].c.name : null));
             }
-            fireIntelligence(q, [], foodArts.slice(0, 10), foodPlace, 'food & drink');
+            fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink');
             intelProjects = null; // handled above
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
