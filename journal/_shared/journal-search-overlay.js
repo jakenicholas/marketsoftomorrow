@@ -2325,7 +2325,7 @@
               foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
               if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
             }
-            fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink');
+            fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink', token);
             intelProjects = null; // handled above
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
@@ -2349,11 +2349,11 @@
           }
           // Food queries already fired (journal facts) inside the branch above.
           if (!foodIntent) {
-            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace);
+            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace, null, token);
           }
         } else if (Core){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
-          fireIntelligence(q, [], []);
+          fireIntelligence(q, [], [], null, null, token);
         } else {
           slotIntel.innerHTML = renderIntelCTA(q);
         }
@@ -2702,7 +2702,25 @@
     var Core = window.TmwSearchCore, target = Core.norm(cityDisp);
     return function(p){ return Core.norm(String(p.City||'').split(',')[0].trim()) === target; };
   }
-  function fireIntelligence(q, topProjects, topArticles, place, topic){
+  // /smart-answer returns hero = the slug of the story it leads with. When it
+  // names a journal article different from the keyword-ranked hero, promote it:
+  // swap the hero card and rebuild the journal list (so the new hero is excluded
+  // and the old one rejoins the grid). Article heroes only — project-led queries
+  // already track the DB lead, and a non-article id simply no-ops here.
+  function applyIntelHero(heroId, q, token){
+    var id = String(heroId || '').trim(); if (!id) return;
+    var a = null;
+    for (var i = 0; i < ARTICLES.length; i++){
+      var x = ARTICLES[i];
+      if (x && (x.slug === id || x.link === id)){ a = x; break; }
+    }
+    if (!a || a === _heroArticleRef) return;
+    _heroArticleRef = a;
+    slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="articles">' + renderArticleHero(a) + '</div>';
+    try { renderArticleSection(q, token, { fromBodyMerge: true }); } catch(_){}
+  }
+
+  function fireIntelligence(q, topProjects, topArticles, place, topic, token){
     var Core = window.TmwSearchCore;
     if (!Core) return;
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
@@ -2724,6 +2742,9 @@
             if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
             if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: facts.top.length, source: 'overlay' });
           } catch(_){}
+          // Let Intelligence's editorial pick drive the hero card — promote the
+          // story it chose to feature over the blunt keyword-ranked one.
+          if (res.hero) applyIntelHero(res.hero, q, token);
         } else if (res && res.error){
           slotIntel.innerHTML = intelPanelHtml('error', q);
         } else {

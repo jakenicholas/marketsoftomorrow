@@ -5542,6 +5542,7 @@ async function handleSmartAnswer(request, env, origin) {
     residences_total: facts.residencesTotal || null,
     first_delivery: facts.firstDelivery || null,
     top: facts.top.slice(0, 12).map(p => ({
+      id: String(p.id || '').slice(0, 100),
       name: String(p.name || '').slice(0, 80),
       city: String(p.city || '').slice(0, 60),
       status: String(p.status || '').slice(0, 40),
@@ -5608,7 +5609,7 @@ async function handleSmartAnswer(request, env, origin) {
       // Capture cache HITS too — otherwise popular repeat queries (which answer
       // from cache) never get logged and the review routine sees "no traffic".
       await logIntelAnswer(env, q, data.answer, compact);
-      return json({ answer: data.answer, cached: true }, {}, env, origin);
+      return json({ answer: data.answer, hero: data.hero || null, cached: true }, {}, env, origin);
     }
   } catch { /* cache miss path */ }
 
@@ -5616,7 +5617,16 @@ async function handleSmartAnswer(request, env, origin) {
   // coverage, not the project database — TMW doesn't track restaurants as
   // projects. Switch to a journal-editor voice and point the reader at what
   // we've actually published.
-  const system = compact.topic ?
+  // The model also picks the single best item to feature as the headline ("hero")
+  // card, so the UI's hero matches our editorial lead instead of a blunt keyword
+  // rank. Appended to BOTH the journal and project system prompts.
+  const HERO_DIRECTIVE =
+    'AFTER the prose, on its own final line, output exactly: HERO: <id> — where <id> is the `id` of the single ' +
+    'item in `top` to feature as the headline card: the freshest, most newsworthy story that best fits the query ' +
+    'intent. If the query is about what is NEW / COMING / UPCOMING, prefer a genuinely new or not-yet-open item ' +
+    'over an older one even when the older one is bigger news (e.g. a long-open venue earning a new award). Use ' +
+    '"HERO: NONE" only if no single item is a strong standalone feature. Output nothing after that line.';
+  let system = compact.topic ?
     ('You are TMW Intelligence, the editorial voice of Markets of Tomorrow. The query is about ' +
      compact.topic.toUpperCase() + ', which we cover in our JOURNAL — these `top` items are ARTICLES we have ' +
      'published (name = headline, blurb = excerpt, delivery = publish date), NOT database projects. Write a ' +
@@ -5660,6 +5670,7 @@ async function handleSmartAnswer(request, env, origin) {
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
       + 'lead and frame), but NEVER reuse their specific projects, numbers, or places:\n'
       + learnedExemplars.map((ex, i) => (i + 1) + '. Q: "' + ex.query + '" -> ' + ex.answer).join('\n') : '');
+  system += '\n\n' + HERO_DIRECTIVE;
 
   let answer = null;
   try {
@@ -5686,9 +5697,19 @@ async function handleSmartAnswer(request, env, origin) {
   }
   if (!answer) return fail('empty');
 
-  // Cache the synthesized answer for 24h, keyed by the fact signature.
+  // Pull the trailing "HERO: <id>" line the model appends and strip it from the
+  // user-facing prose. hero = the chosen feature id (or null for NONE/absent).
+  let hero = null;
+  const hm = answer.match(/(?:^|\n)[ \t]*HERO:[ \t]*([^\n]+?)[ \t]*$/i);
+  if (hm) {
+    hero = /^none$/i.test(hm[1].trim()) ? null : hm[1].trim();
+    answer = answer.slice(0, hm.index).trim();
+  }
+  if (!answer) return fail('empty');
+
+  // Cache the synthesized answer + hero pick for 24h, keyed by the fact signature.
   try {
-    await cache.put(cacheKey, new Response(JSON.stringify({ answer }), {
+    await cache.put(cacheKey, new Response(JSON.stringify({ answer, hero }), {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' },
     }));
   } catch { /* caching is best-effort */ }
@@ -5697,7 +5718,7 @@ async function handleSmartAnswer(request, env, origin) {
   // critique sufficiency and learn. Deduped + best-effort; never blocks.
   await logIntelAnswer(env, q, answer, compact);
 
-  return json({ answer }, {}, env, origin);
+  return json({ answer, hero }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------

@@ -153,7 +153,7 @@
     var top = projects.slice(0, 10).map(factRow);
     (topArticles || []).slice(0, 3).forEach(function (a) {
       top.push({
-        name: a.title || '', city: '', status: 'Article', type: '',
+        id: a.slug || a.link || '', name: a.title || '', city: '', status: 'Article', type: '',
         floors: null, units: null,
         delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0, 10) : '',
         district: false, blurb: String(a.excerpt || '').slice(0, 140)
@@ -181,7 +181,7 @@
   function buildJournalFacts(articles, place, topic) {
     var rows = (articles || []).filter(function (a) { return a && a.title; }).slice(0, 12).map(function (a) {
       return {
-        name: a.title || '', city: '', status: 'Article', type: topic || 'Journal',
+        id: a.slug || a.link || '', name: a.title || '', city: '', status: 'Article', type: topic || 'Journal',
         floors: null, units: null,
         delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0, 10) : '',
         district: false, blurb: String(a.excerpt || '').slice(0, 180)
@@ -990,7 +990,7 @@
   }
   // Enriched project shape shared by both fact-payload builders.
   function factRow(p) {
-    return { name: p.Title || '', city: p.City || '', status: p.Delivery || '', type: _primaryType(p),
+    return { id: p.Slug || '', name: p.Title || '', city: p.City || '', status: p.Delivery || '', type: _primaryType(p),
       floors: floorsOf(p) || null, units: unitsOf(p) || null, delivery: fmtDelivery(p) || '',
       district: _isDistrict(p), blurb: String(p.Description || '').slice(0, 140) };
   }
