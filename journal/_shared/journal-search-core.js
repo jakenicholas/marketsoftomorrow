@@ -269,6 +269,7 @@
     { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium','flat','penthouse','co-op','coop'] },
     { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper','mid-rise','midrise'] },
     { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home','multifamily','multi-family','rental','build-to-rent','senior living','active adult','assisted living'] },
+    { token:'Estates',    label:'Estates / Homes',    noun:'home',      syn:['estate','estates','single-family','single family','single-family home','house','houses','townhouse','townhouses','townhome','townhomes','villa','villas'] },
     { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel','boutique hotel','aparthotel','lodging','inn'] },
     { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort','beach resort','ski resort','spa resort','wellness retreat'] },
     { token:'Office',     label:'Office',             noun:'office',    syn:['office','workplace','corporate campus','headquarters','class a office'] },

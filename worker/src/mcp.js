@@ -439,7 +439,7 @@ const TOOLS = [
         longitude: { type: 'number' },
         description: { type: 'string', description: 'Short 1–2 sentence summary' },
         description_long: { type: 'string', description: 'Full descriptive paragraph' },
-        types: { type: 'array', items: { type: 'string' }, description: 'Project types — use ONLY the EXISTING TMW vocabulary (call list_project_types to see it; e.g. Residences, Hotel, Resort, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Cultural, Museum, Stadium, Education, Healthcare, Airport). Do NOT invent new tags: a destination resort property is "Resort" and a city hotel is "Hotel" (they are distinct categories), condos/apartments are "Residences", restaurants are "Eateries". Common synonyms are auto-mapped; anything unrecognized is dropped and reported back.' },
+        types: { type: 'array', items: { type: 'string' }, description: 'Project types — use ONLY the EXISTING TMW vocabulary (call list_project_types to see it; e.g. Residences, Estates, Hotel, Resort, Mixed-Use, Entertainment, Eateries, Retail, Office, Park, Marina, Golf, Cultural, Museum, Stadium, Education, Healthcare, Airport). Do NOT invent new tags: a destination resort property is "Resort" and a city hotel is "Hotel" (they are distinct categories), condos/apartments (a multi-unit building) are "Residences", but single-family homes / houses / townhomes / villas are "Estates" (NOT Residences), restaurants are "Eateries". Common synonyms are auto-mapped; anything unrecognized is dropped and reported back.' },
         preferred_type: { type: 'string', description: 'The single primary type (must be from the same existing vocabulary; defaults to the first of types).' },
         architects: { type: 'array', items: { type: 'string' }, description: 'Architect firm names. Each is matched against the firm registry (punctuation-insensitive) and bound to the canonical slug so established firms attach in the admin picker; names with no match are CREATED as new registry records (so they bind too). Use the real firm name (e.g. "Spina O\'Rourke + Partners"); search_firms can confirm existing ones first.' },
         developers: { type: 'array', items: { type: 'string' }, description: 'Developer firm names — matched to the firm registry like architects; existing firms bind to the picker and brand-new ones are created as registry records automatically.' },
@@ -1251,7 +1251,7 @@ const TYPE_SYNONYMS = {
   resorts: 'Resort', hotels: 'Hotel', 'boutique-hotel': 'Hotel', inn: 'Hotel',
   condominium: 'Residences', condominiums: 'Residences', condo: 'Residences', condos: 'Residences',
   apartment: 'Residences', apartments: 'Residences', residence: 'Residences', residential: 'Residences',
-  multifamily: 'Residences', townhomes: 'Residences', townhouse: 'Residences', housing: 'Residences',
+  multifamily: 'Residences', housing: 'Residences',
   restaurant: 'Eateries', restaurants: 'Eateries', dining: 'Eateries', eatery: 'Eateries', 'food-hall': 'Eateries',
   shopping: 'Retail', mall: 'Retail', shops: 'Retail', store: 'Retail', stores: 'Retail',
   offices: 'Office', commercial: 'Office', workplace: 'Office',
@@ -1265,6 +1265,10 @@ const TYPE_SYNONYMS = {
   airports: 'Airport',
   entertainment: 'Entertainment',
   'mixed use': 'Mixed-Use', mixeduse: 'Mixed-Use', 'mixed-use-development': 'Mixed-Use',
+  estate: 'Estates', estates: 'Estates', 'single-family': 'Estates', 'single family': 'Estates',
+  'single-family-home': 'Estates', 'single-family-homes': 'Estates', house: 'Estates', houses: 'Estates',
+  townhouse: 'Estates', townhouses: 'Estates', townhome: 'Estates', townhomes: 'Estates',
+  villa: 'Estates', villas: 'Estates',
 };
 async function loadCanonTypes() {
   const canon = new Map(); // lowercase -> canonical casing
