@@ -175,6 +175,27 @@
     };
   }
 
+  // Facts for a JOURNAL-led answer (e.g. food & drink) — the topic isn't tracked
+  // in the project DB, so the answer is synthesized from our ARTICLES instead of
+  // projects. `topic` flips the worker prompt into journal-editor voice.
+  function buildJournalFacts(articles, place, topic) {
+    var rows = (articles || []).filter(function (a) { return a && a.title; }).slice(0, 12).map(function (a) {
+      return {
+        name: a.title || '', city: '', status: 'Article', type: topic || 'Journal',
+        floors: null, units: null,
+        delivery: a.published_iso ? new Date(a.published_iso).toISOString().slice(0, 10) : '',
+        district: false, blurb: String(a.excerpt || '').slice(0, 180)
+      };
+    });
+    return {
+      count: rows.length, criteria: {}, sort: null,
+      place: place || null, topic: topic || 'journal',
+      tallest: null, largest: null, residencesTotal: null, firstDelivery: null,
+      dominantType: null, soonest: null, flagships: null,
+      top: rows
+    };
+  }
+
   // ── the /smart-answer LLM call ────────────────────────────────────
   // Returns a Promise that resolves to { ok, answer, error }. Caller is
   // responsible for debouncing keystrokes and discarding stale responses
@@ -889,6 +910,7 @@
     // Intelligence pipeline (question / LLM path)
     isQuestion: isQuestion,
     buildIntelFacts: buildIntelFacts,
+    buildJournalFacts: buildJournalFacts,
     askIntelligence: askIntelligence,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,

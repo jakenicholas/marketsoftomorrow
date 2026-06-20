@@ -5535,6 +5535,7 @@ async function handleSmartAnswer(request, env, origin) {
     criteria: facts.criteria || {},
     count: count,
     sort: facts.sort || null,
+    topic: facts.topic ? String(facts.topic).slice(0, 40) : null,
     place: facts.place || null,
     tallest: facts.tallest || null,
     largest: facts.largest || null,
@@ -5611,7 +5612,24 @@ async function handleSmartAnswer(request, env, origin) {
     }
   } catch { /* cache miss path */ }
 
-  const system =
+  // JOURNAL-topic answers (e.g. food & drink) are synthesized from our ARTICLE
+  // coverage, not the project database — TMW doesn't track restaurants as
+  // projects. Switch to a journal-editor voice and point the reader at what
+  // we've actually published.
+  const system = compact.topic ?
+    ('You are TMW Intelligence, the editorial voice of Markets of Tomorrow. The query is about ' +
+     compact.topic.toUpperCase() + ', which we cover in our JOURNAL — these `top` items are ARTICLES we have ' +
+     'published (name = headline, blurb = excerpt, delivery = publish date), NOT database projects. Write a ' +
+     'tight, insightful answer (1-3 sentences) that orients the reader to our coverage like an editor: the ' +
+     'freshest / most notable openings or stories' + (compact.place ? ' in ' + String(compact.place).slice(0,60) : '') +
+     ', named specifically.\n\n' +
+     'Hard rules:\n' +
+     '- Use ONLY the article facts provided (headlines + excerpts). Never invent a venue, dish, date, or place.\n' +
+     '- These are ARTICLES, not buildings — never call them "projects", never mention floors/units/keys or a ' +
+     'construction pipeline, and never say "tracked in our database".\n' +
+     '- Refer to places/venues by name exactly as they appear in the headlines/excerpts.\n' +
+     '- If the coverage is thin, say what we have plainly. Confident, concrete, editorial. No preamble, no ' +
+     'markdown, no bullets, no lists. Output only the answer prose.') :
     'You are TMW Intelligence, the analyst voice of Markets of Tomorrow — a real-estate development ' +
     'intelligence publication with sharp editorial instincts. You are given a search query and a set of ' +
     'VERIFIED facts from our project database. Write a tight, insightful answer (1-3 sentences) that reads ' +

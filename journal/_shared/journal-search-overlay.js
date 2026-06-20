@@ -997,6 +997,27 @@
     return false;
   }
 
+  // Dining / food & drink is JOURNAL coverage, not a tracked project type. A
+  // query carrying these intent words must be answered from our Food & Drink
+  // ARTICLES (we post a lot), never from the project pipeline — otherwise
+  // "new restaurants in west palm beach" wrongly reads out condos/hotels.
+  var FOOD_INTENT = {
+    restaurant:1, restaurants:1, eatery:1, eateries:1, dining:1, dine:1, diner:1,
+    food:1, foods:1, drink:1, drinks:1, cuisine:1, culinary:1, cocktail:1, cocktails:1,
+    chef:1, chefs:1, michelin:1, foodie:1, gastronomy:1, steakhouse:1, brunch:1, cafe:1
+  };
+  function isFoodQuery(q){
+    var toks = norm(q).split(/\s+/);
+    for (var i = 0; i < toks.length; i++){ if (FOOD_INTENT[toks[i]]) return true; }
+    return false;
+  }
+  function isFoodArticle(a){
+    if (!a) return false;
+    var hay = norm((a.categories || []).join(' ') + ' ' + (a.tags || []).join(' '));
+    return hay.indexOf('food') >= 0 || hay.indexOf('drink') >= 0 ||
+           hay.indexOf('dining') >= 0 || hay.indexOf('restaurant') >= 0;
+  }
+
   function scoreArticle(a, toks, full){
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
@@ -1703,6 +1724,13 @@
       var smart = Core && Core.parseSmartQuery
         ? Core.parseSmartQuery(q, { firms: FIRMS, projects: PROJECTS })
         : null;
+      // Dining isn't a project type — it's journal coverage. Don't let a
+      // city+sort parse hijack a restaurant query into a project readout; drop
+      // to the text path, which answers from the Food & Drink articles. (A query
+      // that also names a real type or firm keeps its structured parse.)
+      if (smart && isFoodQuery(q) && !smart.firm && !(smart.types && smart.types.size)) {
+        smart = null;
+      }
       if (smart) {
         renderStructuredSmart(q, smart, token);
         return;
@@ -2143,6 +2171,7 @@
     // Austin tower) leaks into the grid via the connected-siblings injection.
     // The Intelligence answer is unaffected: it runs off `cityHit` separately.
     var cityQuery = detectCityQuery(q);
+    var foodIntent = isFoodQuery(q);   // dining = journal coverage, not projects
     var strongAnchor = null;
     var connectedProjects = [];
     if (pScored.length && full.length >= 4 && !cityQuery) {
@@ -2230,7 +2259,7 @@
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
       var cityHit = cityQuery;
-      var trigger = question || cityHit || (strongAnchor && connectedProjects.length > 0);
+      var trigger = question || cityHit || foodIntent || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
@@ -2240,7 +2269,15 @@
           // the anchor + connected ones (dedup'd, capped at 5). For a
           // regular question we use the top-scored as before.
           var intelProjects, intelPlace = null;
-          if (cityHit) {
+          if (foodIntent) {
+            // Dining is journal coverage, not a project type — answer from our
+            // Food & Drink articles (we post a lot), never the project pipeline.
+            var foodArts = aScored.map(function(x){ return x.a; }).filter(isFoodArticle);
+            if (!foodArts.length) foodArts = aScored.map(function(x){ return x.a; });
+            var foodPlace = cityHit || (cScored.length ? cScored[0].c.name : null);
+            fireIntelligence(q, [], foodArts.slice(0, 10), foodPlace, 'food & drink');
+            intelProjects = null; // handled above
+          } else if (cityHit) {
             // Bare city query → city OVERVIEW: feed the whole city set so the
             // answer covers the pipeline (count, dominant type, soonest opening,
             // transformational anchors) — not just a coincidentally-named match.
@@ -2256,7 +2293,10 @@
           } else {
             intelProjects = pScored.slice(0, 5).map(function(x){ return x.p; });
           }
-          fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace);
+          // Food queries already fired (journal facts) inside the branch above.
+          if (!foodIntent) {
+            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), intelPlace);
+          }
         } else if (Core){
           slotIntel.innerHTML = intelPanelHtml('loading', q);
           fireIntelligence(q, [], []);
@@ -2321,8 +2361,15 @@
     // the database core and the most common search target.
     var heroProject = null, heroArticle = null, heroFirm = null;
     var heroCandidates = [];
-    if (pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
-    if (aScored.length && heroArticleEligible(aScored[0].a, full, toks)) heroCandidates.push({ kind:'article', s: aScored[0].s,        item: aScored[0].a });
+    // Food queries lead with a Food & Drink article, never a project.
+    if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
+    if (aScored.length) {
+      var heroArt = aScored[0].a;
+      if (foodIntent) { var fa = aScored.filter(function(x){ return isFoodArticle(x.a); })[0]; if (fa) heroArt = fa.a; }
+      if (foodIntent || heroArticleEligible(aScored[0].a, full, toks)) {
+        heroCandidates.push({ kind:'article', s: foodIntent ? 1e6 : aScored[0].s, item: heroArt });
+      }
+    }
     if (fScored.length && heroFirmEligible(fScored[0].f, full))          heroCandidates.push({ kind:'firm',    s: fScored[0].s,        item: fScored[0].f });
     heroCandidates.sort(function(a,b){ return b.s - a.s; });
     var hero = heroCandidates[0] || null;
@@ -2601,10 +2648,13 @@
     var Core = window.TmwSearchCore, target = Core.norm(cityDisp);
     return function(p){ return Core.norm(String(p.City||'').split(',')[0].trim()) === target; };
   }
-  function fireIntelligence(q, topProjects, topArticles, place){
+  function fireIntelligence(q, topProjects, topArticles, place, topic){
     var Core = window.TmwSearchCore;
     if (!Core) return;
-    var facts = Core.buildIntelFacts(topProjects, topArticles, place);
+    // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
+    var facts = (topic && Core.buildJournalFacts)
+      ? Core.buildJournalFacts(topArticles, place, topic)
+      : Core.buildIntelFacts(topProjects, topArticles, place);
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
