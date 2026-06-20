@@ -220,10 +220,8 @@
     .copy b { font-weight: 500; color: var(--cream); }
 
     /* By-the-numbers — concrete scale grid for SEO + at-a-glance scanning */
-    .btn-grid { display: grid; width:100%; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
-    @media (max-width: 980px) { .btn-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
-    @media (max-width: 560px) { .btn-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .btn-cell { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 22px 22px; }
+    .btn-grid { display: flex; flex-wrap: wrap; width: 100%; gap: 10px; }
+    .btn-cell { flex: 1 1 150px; min-width: 0; background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 22px 22px; }
     .btn-cell .btn-val { font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }
     .btn-cell .btn-lbl { font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright); margin-top: 10px; font-weight: 600; }
     .btn-cell .btn-sub { font-family: var(--sans); font-size: 12.5px; color: var(--mute); margin-top: 6px; line-height: 1.4; }
