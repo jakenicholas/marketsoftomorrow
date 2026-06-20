@@ -1317,11 +1317,11 @@
       "delivery_speculative": false
     },
     "mandarin-oriental-residences-west-palm-beach": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
       "range_low": 1.7,
       "range_high": 4.8,
-      "confidence": "medium",
+      "confidence": "high",
       "comparable_count": 15,
       "good_count": 4,
       "exact_count": 4,
@@ -1332,11 +1332,11 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Spina O'Rourke + Partners",
-        "count": 4,
-        "median_years": 2.27,
-        "stddev_years": 0.83,
+        "count": 3,
+        "median_years": 2.83,
+        "stddev_years": 0.53,
         "role": "architect",
-        "consistent": false,
+        "consistent": true,
         "blend_weight": 0.65
       },
       "source": "comparables",
@@ -1371,7 +1371,7 @@
           "distance_mi": 3.9
         }
       ],
-      "pattern_summary": "Among 15 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Adjusted to ~2.5 years for Spina O'Rourke + Partners's own track record (~2.3-year typical pace across 4 prior projects).",
+      "pattern_summary": "Among 15 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Spina O'Rourke + Partners delivers a consistent ~2.8-year pace across 3 projects, adjusting this estimate to ~2.9 years.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -1979,11 +1979,11 @@
       "delivery_speculative": false
     },
     "palm-beach-residences": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
       "range_low": 2.0,
       "range_high": 8.4,
-      "confidence": "medium",
+      "confidence": "high",
       "comparable_count": 9,
       "good_count": 3,
       "exact_count": 3,
@@ -1994,11 +1994,11 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Spina O'Rourke + Partners",
-        "count": 4,
-        "median_years": 2.27,
-        "stddev_years": 0.83,
+        "count": 3,
+        "median_years": 2.83,
+        "stddev_years": 0.53,
         "role": "architect",
-        "consistent": false,
+        "consistent": true,
         "blend_weight": 0.65
       },
       "source": "comparables",
@@ -2033,7 +2033,7 @@
           "distance_mi": 5.4
         }
       ],
-      "pattern_summary": "Among 9 residences projects in TMW's data, the median build time is 3 years (range 2–8.4). Adjusted to ~2.5 years for Spina O'Rourke + Partners's own track record (~2.3-year typical pace across 4 prior projects).",
+      "pattern_summary": "Among 9 residences projects in TMW's data, the median build time is 3 years (range 2–8.4). Spina O'Rourke + Partners delivers a consistent ~2.8-year pace across 3 projects, adjusting this estimate to ~2.9 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -3909,10 +3909,10 @@
       "range_high": 8.1,
       "confidence": "low",
       "comparable_count": 2,
-      "good_count": 1,
-      "exact_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.58,
+      "avg_match_score": 0.51,
       "avg_distance_km": 94.8,
       "avg_distance_mi": 58.9,
       "scale_used": true,
@@ -3934,7 +3934,7 @@
           "slug": "the-belgrove-resort-spa",
           "location": "West Palm Beach",
           "years": 8.1,
-          "score": 0.7,
+          "score": 0.55,
           "distance_km": 4.6,
           "distance_mi": 2.8
         },
@@ -10438,8 +10438,8 @@
     }
   },
   "stats": {
-    "high": 5,
-    "medium": 12,
+    "high": 7,
+    "medium": 10,
     "low": 45,
     "known_date": 358,
     "completed": 61,
