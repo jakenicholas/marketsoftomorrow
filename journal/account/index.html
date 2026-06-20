@@ -50,6 +50,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .proPill.free{color:var(--mute);background:rgba(255,255,255,.07);border:1px solid var(--hair)}
 .plan-right{display:inline-flex;align-items:center;gap:14px}
 .goprochip{appearance:none;cursor:pointer;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border:none;border-radius:999px;padding:6px 13px;box-shadow:0 0 14px rgba(230,197,116,.4)}
+.planpill{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:3px 9px;vertical-align:middle}
 .goprochip:hover{box-shadow:0 0 20px rgba(230,197,116,.6)}
 .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
 .stat{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:15px 14px}
@@ -243,7 +244,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         </span>
       </div>
       <div class="arow"><span class="k">Member</span><span class="v" id="acctNo">No. 001 &middot; Founding</span></div>
-      <div class="arow"><span class="k">Plan</span><span class="plan-right"><span class="v" id="acctPlan">PRO &middot; active</span><button class="goprochip" id="btnGoPro" type="button" hidden>Go Pro</button></span></div>
+      <div class="arow"><span class="k">Plan</span><span class="plan-right"><span class="v" id="acctPlan"><span class="planpill">PRO</span> &middot; ACTIVE</span><button class="goprochip" id="btnGoPro" type="button" hidden>Go Pro</button></span></div>
       <div class="aActions">
         <button class="btn" id="btnPw">Change password</button>
         <button class="btn" id="btnPlan">Manage / cancel plan</button>
@@ -457,7 +458,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   $('btnOut').addEventListener('click',function(){var m=ms();try{if(m&&m.logout){m.logout().then(function(){location.href='/'}).catch(function(){location.href='/'});return}}catch(e){}location.href='/'});
   function isPaid(m){ try{ return ((m&&m.planConnections)||[]).some(function(p){return p.active===true||p.status==='ACTIVE';}); }catch(e){ return false; } }
   function goPro(){ try{ if(typeof window.tmwShowPaywall==='function'){ window.tmwShowPaywall('account'); return; } }catch(e){} try{ if(typeof window.tmwAuthModal==='function'){ window.tmwAuthModal('upgrade'); return; } }catch(e){} location.href='https://www.oftmw.com/map/?upgrade=1'; }
-  function applyPlan(paid){ var pp=$('proPill'); if(pp){ pp.textContent=paid?'PRO':'FREE'; pp.classList.toggle('free',!paid); } var ap=$('acctPlan'); if(ap) ap.innerHTML=paid?'PRO &middot; active':'Free'; var gp=$('btnGoPro'); if(gp) gp.hidden=!!paid; var mp=$('btnPlan'); if(mp) mp.style.display=paid?'':'none'; }
+  function applyPlan(paid){ var pp=$('proPill'); if(pp){ pp.textContent=paid?'PRO':'FREE'; pp.classList.toggle('free',!paid); } var ap=$('acctPlan'); if(ap) ap.innerHTML=paid?'<span class="planpill">PRO</span> &middot; ACTIVE':'Free'; var gp=$('btnGoPro'); if(gp) gp.hidden=!!paid; var mp=$('btnPlan'); if(mp) mp.style.display=paid?'':'none'; }
   var _gp=$('btnGoPro'); if(_gp)_gp.addEventListener('click',goPro);
 
   // Inline email editor — change the login email via Memberstack updateMemberAuth.
