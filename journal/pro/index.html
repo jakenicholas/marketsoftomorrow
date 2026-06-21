@@ -38,11 +38,20 @@ body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-sm
 .goPro:hover{box-shadow:0 0 38px rgba(230,197,116,.6)}
 .goPro:active{transform:scale(.985)}
 .cta-sub{margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-.pro-h1 .gold{color:var(--gold)}
+.pro-title{display:flex;align-items:center;justify-content:center;gap:16px;margin:0 0 30px}
+.pro-hex{flex:0 0 auto;width:46px;height:46px;display:inline-block}
+.pro-hex svg{width:100%;height:100%;display:block;overflow:visible}
+.pro-title-tx{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5vw,52px);line-height:1;letter-spacing:-.02em;color:#fff;text-shadow:0 0 26px rgba(167,139,250,.55)}
+.pro-copy{max-width:660px;margin:28px auto 0;text-align:left}
+.pro-copy .lead{font-family:var(--serif);font-size:22px;font-weight:500;color:#fff;margin:0 0 16px}
+.pro-copy p{font-size:16px;line-height:1.7;color:#cfd3cd;margin:0 0 15px}
+.pro-copy p em{font-style:normal;color:#fff}
+.pro-copy .join{margin-top:8px;font-family:var(--mono);font-size:13px;letter-spacing:.03em;font-weight:700;color:var(--gold);cursor:pointer}
+.pro-copy .join:hover{color:var(--gold-soft)}
 .features{padding:6px 0 84px}
 .tmw-mm{display:grid;grid-template-columns:1fr;gap:14px;max-width:1000px;margin:0 auto}
 .tmw-mm-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
-.tmw-mm-pro-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 14px}
+.tmw-mm-pro-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .tmw-mm-item{display:flex;gap:12px;padding:10px;border-radius:12px;text-decoration:none;transition:background .18s}
 .tmw-mm-item:hover{background:rgba(255,255,255,.05)}
 .tmw-mm-ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#C4B5FD}
@@ -66,8 +75,10 @@ body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-sm
 
 <main class="wrap">
   <section class="pro-hero">
-    <p class="eyebrow">Markets of Tomorrow</p>
-    <h1 class="pro-h1">TMW <span class="gold">Pro</span></h1>
+    <h1 class="pro-title">
+      <span class="pro-hex"><svg viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>
+      <span class="pro-title-tx">TMW Pro</span>
+    </h1>
 
     <div class="videoWrap">
       <video id="proVid" autoplay muted loop playsinline preload="auto"
@@ -80,11 +91,12 @@ body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-sm
       </button>
     </div>
 
-    <p class="caption">Every tower, tracked from filing to topping-out &mdash; TMW Intelligence, Atlas, and the full pipeline, before the cranes arrive.</p>
-
-    <div class="cta-row">
-      <button class="goPro" id="goPro" type="button">Go Pro</button>
-      <div class="cta-sub">Unlock everything</div>
+    <div class="pro-copy">
+      <p class="lead">Introducing TMW Pro.</p>
+      <p>The world&rsquo;s smartest news network for luxury development and hospitality. A real-time database of every major project, powered by <em>TMW Intelligence</em>, our AI that forecasts what&rsquo;s coming to the markets you care about.</p>
+      <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network &mdash; reaching millions monthly &mdash; now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
+      <p>Follow cities, track architects and developers, stay ahead of the openings that matter. Everywhere.</p>
+      <p class="join" id="joinNow" role="button" tabindex="0">Join now to become a founder member at $9/mo or $90/yr &mdash; before July 1st</p>
     </div>
   </section>
 
@@ -109,6 +121,7 @@ body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-sm
 
 <script src="/_shared/journal-auth.js" defer></script>
 <script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
 <script>
 (function(){
   var v=document.getElementById('proVid'), um=document.getElementById('unmute');
@@ -133,8 +146,9 @@ body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-sm
     if(typeof window.tmwShowPaywall==='function') window.tmwShowPaywall('pro-landing');
     else window.location.href='https://www.oftmw.com/map/?upgrade=1';
   }
-  var g=document.getElementById('goPro'); if(g) g.addEventListener('click', goPro);
   var fc=document.getElementById('featCta'); if(fc) fc.addEventListener('click', function(e){ e.preventDefault(); goPro(); });
+  var jn=document.getElementById('joinNow');
+  if(jn){ jn.addEventListener('click', goPro); jn.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goPro(); } }); }
 })();
 </script>
 </body>
