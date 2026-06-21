@@ -55,7 +55,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .vidbtn:active{transform:scale(.94)}
 .vidbtn svg{width:18px; height:18px; display:block; fill:#fff}
 .vidbtn svg[hidden]{display:none}
-.pro-copy{max-width:660px; margin:30px auto 0; text-align:left}
+.pro-copy{max-width:660px; margin:30px auto 0; text-align:center}
 .pro-copy .lead{font-family:var(--serif); font-size:22px; font-weight:500; color:#fff; margin:0 0 16px}
 .pro-copy p{font-size:16px; line-height:1.7; color:var(--mute-2); margin:0 0 15px}
 .pro-copy p em{font-style:normal; color:#fff}
@@ -165,22 +165,20 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       </button>
     </div>
 
+    <div class="proof-eyebrow" style="margin-top:36px">A network reaching millions every month</div>
+    <div class="proof-grid">
+      <div class="proof-stat"><div class="pn">8.1M</div><div class="pl">Monthly social views</div></div>
+      <div class="proof-stat"><div class="pn">205K</div><div class="pl">Total followers</div></div>
+      <div class="proof-stat"><div class="pn">593,180</div><div class="pl">Monthly web impressions</div></div>
+      <div class="proof-stat"><div class="pn">15,700</div><div class="pl">Newsletter subscribers</div></div>
+    </div>
+
     <div class="pro-copy">
       <p class="lead">Introducing TMW Pro.</p>
       <p>The world&rsquo;s smartest news network for luxury development and hospitality. A real-time database of every major project, powered by <em>TMW Intelligence</em>, our AI that forecasts what&rsquo;s coming to the markets you care about.</p>
       <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network &mdash; reaching millions monthly &mdash; now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
       <p>Follow cities, track architects and developers, stay ahead of the openings that matter. Everywhere.</p>
       <p class="join" id="joinNow" role="button" tabindex="0">Join now to become a founder member at $9/mo or $90/yr &mdash; before July 1st</p>
-    </div>
-  </div></section>
-
-  <section class="proof"><div class="wrap">
-    <div class="proof-eyebrow">A network reaching millions every month</div>
-    <div class="proof-grid">
-      <div class="proof-stat"><div class="pn">8.1M</div><div class="pl">Monthly social views</div></div>
-      <div class="proof-stat"><div class="pn">205K</div><div class="pl">Total followers</div></div>
-      <div class="proof-stat"><div class="pn">593,180</div><div class="pl">Monthly web impressions</div></div>
-      <div class="proof-stat"><div class="pn">15,700</div><div class="pl">Newsletter subscribers</div></div>
     </div>
   </div></section>
 
@@ -204,14 +202,11 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
     </div>
   </section>
 
-  <!-- PARTNERS OF TOMORROW (shared, auto-mounted) -->
-  <div data-tmw-partners></div>
-
   <!-- PRICING -->
   <section class="pricing"><div class="wrap">
     <div class="pricing-head">
       <div class="eyebrow">Membership</div>
-      <h2>Keep the news free. Go deeper with Pro.</h2>
+      <h2>Keep the news free.<br>Go deeper with Pro.</h2>
     </div>
     <div class="price-grid">
       <div class="price-card">
@@ -249,7 +244,6 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/intelligence.js" defer></script>
-<script src="/_shared/partners.js" defer></script>
 <script>
 (function(){
   /* ---- hero video: autoplay, play/pause, auto-sound ---- */
