@@ -1254,7 +1254,7 @@ def render_firm_hub(summaries, out_path):
         (f'How many developers does Markets of Tomorrow track?',
          f'<b>{total_dev} development firms</b> with at least one active project. Top tracked: Related Group, Related Ross, Property Markets Group, Naftali Group.'),
         (f'Can I filter firms by city and project category?',
-         f'Yes — use the firm calculator above. Pick a role (architect / developer / both), a city where they\'re active, and a project category. The page hot-swaps to show matching firms with links to each firm\'s portfolio page.'),
+         f'Yes — use the firm calculator above. Pick a role (architect / developer), a city where they\'re active, and a project category. The page hot-swaps to show matching firms with links to each firm\'s portfolio page.'),
         (f'Are these firm pages updated automatically?',
          f'Hourly. The same cron pipeline that updates our project pages regenerates every firm page (and the leaderboards above) from the source-of-truth database. Project status changes propagate to firm pages within ~60 minutes.'),
         (f'What does each firm page show?',
@@ -1356,7 +1356,6 @@ def render_firm_hub(summaries, out_path):
               <option value="">Any role</option>
               <option value="architect">Architect</option>
               <option value="developer">Developer</option>
-              <option value="both">Both (architect + developer)</option>
             </select>
           </div>
           <div class="mc-field">
