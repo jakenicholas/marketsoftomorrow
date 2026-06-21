@@ -16,15 +16,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* Brand-true base — mirrors journal/index.html so the universal header/footer
-   render identically (chrome + dock read these vars). */
+/* Brand-true base — mirrors journal/index.html so the universal header/footer render identically. */
 :root{
   --ink:#070807; --ink-2:#0d0f0e; --panel:#141714; --panel-2:#1a1d1a; --panel-3:#222622;
   --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
   --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
   --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
   --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
-  --purple:#A78BFA; --purple-glow:#B9A6FF; --brick:#9E3B1B;
+  --purple:#A78BFA; --purple-glow:#B9A6FF; --purple-bright:#C4B5FD; --brick:#9E3B1B;
   --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --serif:'Fraunces',Georgia,serif;
   --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -43,7 +42,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
             radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.05), transparent 60%);}
 .wrap{position:relative; z-index:1; max-width:1240px; margin:0 auto; padding:0 28px}
 
-/* ── /pro hero (page-specific only) ───────────────────────────────── */
+/* ── hero ──────────────────────────────────────────────────────────── */
 .pro-hero{position:relative; z-index:1; padding:58px 0 18px; text-align:center}
 .pro-title{display:flex; align-items:center; justify-content:center; gap:16px; margin:0 0 30px}
 .pro-hex{flex:0 0 auto; width:46px; height:46px}
@@ -62,6 +61,86 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pro-copy p em{font-style:normal; color:#fff}
 .pro-copy .join{margin-top:10px; font-family:var(--mono); font-size:13px; letter-spacing:.02em; font-weight:700; color:var(--gold); cursor:pointer; display:inline-block}
 .pro-copy .join:hover{color:var(--gold-soft)}
+
+/* ── social-proof stats (from /media) ──────────────────────────────── */
+.proof{position:relative; z-index:1; padding:46px 0 10px}
+.proof-eyebrow{text-align:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); margin-bottom:22px}
+.proof-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:920px; margin:0 auto}
+.proof-stat{text-align:center; border:1px solid var(--hair); border-radius:14px; background:rgba(255,255,255,.02); padding:24px 16px}
+.proof-stat .pn{font-family:var(--serif); font-weight:600; font-size:clamp(26px,3vw,40px); color:var(--green-soft); letter-spacing:-.02em; line-height:1}
+.proof-stat .pl{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); margin-top:11px; line-height:1.4}
+@media(max-width:680px){.proof-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ── browse by market / category (from homepage) ───────────────────── */
+.mkt-section{padding:84px 0 80px; position:relative; overflow:hidden}
+.mkt-section::before{content:""; position:absolute; top:0; left:-10%; width:600px; height:600px; background:radial-gradient(closest-side, rgba(167,139,250,.05), transparent 70%); pointer-events:none}
+.mkt-wrap{position:relative; max-width:1320px; margin:0 auto; padding:0 28px}
+.mkt-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:28px; flex-wrap:wrap}
+.mkt-head .l{max-width:62ch}
+.mkt-head .eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:var(--sans); font-size:11px; font-weight:600; color:var(--purple-bright); margin-bottom:10px}
+.mkt-head .eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 10px var(--purple)}
+.mkt-head h2{font-family:var(--serif); font-weight:600; font-size:clamp(32px, 3.6vw, 46px); letter-spacing:-.022em; line-height:1.05; color:var(--white); margin-bottom:8px}
+.mkt-head .sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:16px; color:var(--mute-2); line-height:1.5}
+.mkt-head .r{padding-bottom:6px}
+.mkt-head .mkt-all{font-family:var(--sans); font-size:13px; font-weight:500; color:var(--purple-bright); padding:9px 14px; border:1px solid rgba(167,139,250,.32); border-radius:999px; transition:border-color .15s, background .15s, color .15s}
+.mkt-head .mkt-all:hover{border-color:var(--purple-bright); background:rgba(167,139,250,.08); color:var(--white)}
+.mkt-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:14px}
+@media(max-width:1080px){.mkt-grid{grid-template-columns:repeat(3, 1fr)}}
+@media(max-width:760px){ .mkt-grid{grid-template-columns:repeat(2, 1fr); gap:10px} .mkt-tile:nth-child(n+9){display:none} }
+.mkt-tile{position:relative; aspect-ratio:5/3.4; border-radius:14px; overflow:hidden; background:var(--panel-2); color:inherit; display:block; cursor:pointer; transition:transform .25s ease, box-shadow .25s ease; isolation:isolate}
+.mkt-tile:hover{transform:translateY(-2px); box-shadow:0 16px 36px rgba(167,139,250,.12)}
+.mkt-tile-img{position:absolute; inset:0; background-size:cover; background-position:center; transition:transform .6s ease}
+.mkt-tile:hover .mkt-tile-img{transform:scale(1.04)}
+.mkt-tile-veil{position:absolute; inset:0; background:linear-gradient(180deg, rgba(7,8,7,.05) 0%, rgba(7,8,7,.5) 55%, rgba(7,8,7,.94) 100%); pointer-events:none}
+.mkt-tile-body{position:absolute; inset:auto 0 0 0; z-index:2; padding:18px 18px 16px; color:var(--white)}
+.mkt-tile-name{font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:-.015em; line-height:1.1; color:var(--white); margin:0 0 4px; text-wrap:balance}
+.mkt-tile-meta{display:flex; align-items:baseline; gap:10px}
+.mkt-tile-sub{font-family:var(--sans); font-size:12.5px; color:var(--mute-2); margin:0; font-weight:400}
+.mkt-tile-count{margin-left:auto; flex:0 0 auto; display:inline-flex; align-items:center; gap:4px; font-family:var(--sans); font-size:12px; font-weight:600; color:var(--purple-glow); white-space:nowrap; transition:color .15s}
+.mkt-tile:hover .mkt-tile-count{color:var(--purple-bright)}
+@media(max-width:480px){ .mkt-tile-name{font-size:19px} .mkt-tile-sub{font-size:11.5px} .mkt-tile-count{font-size:11px} .mkt-tile-body{padding:14px 14px 12px} }
+.cat-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-top:30px; padding-top:22px; border-top:1px solid var(--hair)}
+.cat-head h3{font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:-.015em; color:var(--white); margin:0}
+.cat-all{font-family:var(--sans); font-size:13px; font-weight:500; color:var(--mute-2); white-space:nowrap; transition:color .15s}
+.cat-all:hover{color:var(--white)}
+.cat-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; margin-top:14px}
+.cat-card{display:flex; flex-direction:column; justify-content:center; min-height:104px; border:1px solid var(--hair); border-radius:14px; background:var(--ink-2); padding:16px 18px; color:inherit; transition:border-color .2s ease, transform .25s ease, background .2s ease}
+.cat-card:hover{background:var(--panel); border-color:rgba(167,139,250,.4); transform:translateY(-2px)}
+.cat-eye{font-family:var(--sans); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); margin:0 0 8px}
+.cat-name{font-family:var(--serif); font-weight:600; font-size:20px; letter-spacing:-.015em; line-height:1.1; color:var(--white); margin:0 0 10px; text-wrap:balance}
+.cat-count{display:inline-flex; align-items:center; gap:4px; font-family:var(--sans); font-size:12px; font-weight:600; color:var(--purple-glow); white-space:nowrap; transition:color .15s}
+.cat-card:hover .cat-count{color:var(--purple-bright)}
+.cat-card:nth-child(n+6){display:none}
+@media(max-width:1080px){ .cat-grid{grid-template-columns:repeat(3, 1fr)} .cat-card:nth-child(n+6){display:flex} .cat-card:nth-child(n+7){display:none} }
+@media(max-width:760px){ .cat-grid{grid-template-columns:repeat(2, 1fr); gap:10px} }
+@media(max-width:480px){ .cat-name{font-size:17px} .cat-count{font-size:11px} .cat-card{min-height:88px; padding:14px} }
+
+/* ── pricing tiers ─────────────────────────────────────────────────── */
+.pricing{position:relative; z-index:1; padding:78px 0 104px}
+.pricing-head{text-align:center; max-width:680px; margin:0 auto 42px}
+.pricing-head .eyebrow{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); margin-bottom:14px}
+.pricing-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(28px,3.6vw,42px); letter-spacing:-.02em; color:#fff}
+.price-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; max-width:860px; margin:0 auto; align-items:stretch}
+.price-card{position:relative; border:1px solid var(--hair); border-radius:18px; background:rgba(255,255,255,.02); padding:32px 28px; display:flex; flex-direction:column}
+.price-card.feat{border-color:rgba(230,197,116,.4); background:linear-gradient(180deg, rgba(167,139,250,.06), rgba(230,197,116,.04))}
+.pc-flag{position:absolute; top:-11px; left:28px; font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#1a1505; background:linear-gradient(135deg,var(--gold-soft),var(--gold)); border-radius:999px; padding:5px 12px}
+.pc-name{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); margin-bottom:14px}
+.pc-price{display:flex; align-items:baseline; gap:8px; margin-bottom:6px; flex-wrap:wrap}
+.pc-price .amt{font-family:var(--serif); font-weight:600; font-size:46px; line-height:1; color:#fff}
+.pc-price .per{font-family:var(--mono); font-size:13px; color:var(--mute)}
+.pc-price .alt{font-family:var(--mono); font-size:12px; color:var(--purple-glow); margin-left:auto}
+.pc-sub{font-size:14px; color:var(--mute-2); margin-bottom:22px}
+.pc-feat{list-style:none; margin:0 0 26px; padding:0; display:flex; flex-direction:column; gap:11px}
+.pc-feat li{position:relative; padding-left:24px; font-size:14px; line-height:1.45; color:var(--cream)}
+.pc-feat li::before{content:""; position:absolute; left:0; top:5px; width:14px; height:14px; border-radius:50%; background:rgba(31,223,103,.14); border:1px solid rgba(31,223,103,.4)}
+.pc-feat li::after{content:""; position:absolute; left:4.5px; top:9px; width:5px; height:2.5px; border-left:1.5px solid var(--green-soft); border-bottom:1.5px solid var(--green-soft); transform:rotate(-45deg)}
+.pc-btn{margin-top:auto; display:inline-flex; align-items:center; justify-content:center; text-align:center; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; padding:15px 20px; border-radius:11px; cursor:pointer}
+.pc-btn.gold{background:linear-gradient(135deg,var(--gold-soft),var(--gold)); color:#3a2c08; box-shadow:0 0 24px rgba(230,197,116,.35); transition:box-shadow .2s}
+.pc-btn.gold:hover{box-shadow:0 0 36px rgba(230,197,116,.55)}
+.pc-btn.ghost{background:transparent; border:1px solid var(--hair-2); color:var(--cream); transition:border-color .15s, color .15s}
+.pc-btn.ghost:hover{border-color:#fff; color:#fff}
+@media(max-width:720px){.price-grid{grid-template-columns:1fr}}
+
 @media(max-width:640px){.pro-hero{padding:34px 0 14px}.videoWrap{border-radius:14px}}
 </style>
 </head>
@@ -95,27 +174,95 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
     </div>
   </div></section>
 
-  <!-- TMW INTELLIGENCE (shared, synced — /_shared/intelligence.js) — title + live embed -->
+  <section class="proof"><div class="wrap">
+    <div class="proof-eyebrow">A network reaching millions every month</div>
+    <div class="proof-grid">
+      <div class="proof-stat"><div class="pn">8.1M</div><div class="pl">Monthly social views</div></div>
+      <div class="proof-stat"><div class="pn">205K</div><div class="pl">Total followers</div></div>
+      <div class="proof-stat"><div class="pn">593,180</div><div class="pl">Monthly web impressions</div></div>
+      <div class="proof-stat"><div class="pn">15,700</div><div class="pl">Newsletter subscribers</div></div>
+    </div>
+  </div></section>
+
+  <!-- TMW INTELLIGENCE (shared, synced — /_shared/intelligence.js) -->
   <div data-tmw-intel data-anchor="intelligence"></div>
+
+  <!-- BROWSE BY MARKET / CATEGORY (from homepage; data self-syncs hourly) -->
+  <section class="mkt-section" id="browse-by-market">
+    <div class="mkt-wrap">
+      <header class="mkt-head">
+        <div class="l">
+          <div class="eyebrow">Database · Live</div>
+          <h2>Browse by Market</h2>
+          <p class="sub">Every active development we're tracking, grouped by city. Pick yours.</p>
+        </div>
+        <div class="r"><a href="/markets/" class="mkt-all">All markets →</a></div>
+      </header>
+      <div class="mkt-grid" id="mkt-grid"></div>
+      <div class="cat-head"><h3>Browse by category</h3><a href="/markets/" class="cat-all">All categories →</a></div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+  </section>
+
+  <!-- PARTNERS OF TOMORROW (shared, auto-mounted) -->
+  <div data-tmw-partners></div>
+
+  <!-- PRICING -->
+  <section class="pricing"><div class="wrap">
+    <div class="pricing-head">
+      <div class="eyebrow">Membership</div>
+      <h2>Keep the news free. Go deeper with Pro.</h2>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="pc-name">Free</div>
+        <div class="pc-price"><span class="amt">$0</span><span class="per">forever</span></div>
+        <div class="pc-sub">The journal &amp; social network.</div>
+        <ul class="pc-feat">
+          <li>Every story, free forever</li>
+          <li>Tracked Markets &mdash; explore by city</li>
+          <li>Developers &amp; Architects directory</li>
+          <li>The Lists &amp; daily Pulse headlines</li>
+        </ul>
+        <a class="pc-btn ghost" href="/">Keep reading</a>
+      </div>
+      <div class="price-card feat">
+        <div class="pc-flag">Founder pricing · before July 1st</div>
+        <div class="pc-name">TMW Pro</div>
+        <div class="pc-price"><span class="amt">$9</span><span class="per">/mo</span><span class="alt">or $90/yr</span></div>
+        <div class="pc-sub">The full intelligence layer.</div>
+        <ul class="pc-feat">
+          <li>Everything in Free</li>
+          <li>The Interactive Map &mdash; every project, 40+ markets</li>
+          <li>TMW Intelligence &mdash; AI forecasts &amp; answers</li>
+          <li>The Atlas &mdash; leaderboards, momentum &amp; coverage</li>
+          <li>Openings Tracker, Watchlist &amp; Compare</li>
+          <li>Founder member status &amp; number</li>
+        </ul>
+        <button class="pc-btn gold" type="button" id="priceGoPro">Go Pro</button>
+      </div>
+    </div>
+  </div></section>
 </main>
 
 <script src="/_shared/journal-auth.js" defer></script>
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/intelligence.js" defer></script>
+<script src="/_shared/partners.js" defer></script>
 <script>
 (function(){
+  /* ---- hero video: autoplay, play/pause, auto-sound ---- */
   var v=document.getElementById('proVid'), pp=document.getElementById('playPause');
   var icPause=pp?pp.querySelector('.ic-pause'):null, icPlay=pp?pp.querySelector('.ic-play'):null;
   function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.hidden=!playing; if(icPlay)icPlay.hidden=playing; pp.setAttribute('aria-label',playing?'Pause':'Play'); }
-  // Try to autoplay WITH sound. Browsers usually block unmuted autoplay, so fall
-  // back to muted autoplay (still plays) and unmute on the first interaction.
   function tryPlay(){ if(!v)return; v.muted=false; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } }
   if(v){ tryPlay(); v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); syncIcon(); }
   function firstSound(){ if(v&&v.muted){ v.muted=false; v.play().catch(function(){}); } document.removeEventListener('click',firstSound); document.removeEventListener('touchstart',firstSound); }
   document.addEventListener('click',firstSound); document.addEventListener('touchstart',firstSound,{passive:true});
   if(pp) pp.addEventListener('click', function(e){ e.stopPropagation(); if(v.paused){ v.muted=false; v.play().catch(function(){}); } else { v.pause(); } });
 
+  /* ---- Go Pro ---- */
   function goPro(){
     try{ if(window.gtag) gtag('event','pro_landing_go_pro_clicked'); }catch(_){}
     if(typeof window.tmwShowPaywall==='function') window.tmwShowPaywall('pro-landing');
@@ -123,6 +270,45 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
   }
   var jn=document.getElementById('joinNow');
   if(jn){ jn.addEventListener('click', goPro); jn.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goPro(); } }); }
+  var pg=document.getElementById('priceGoPro'); if(pg) pg.addEventListener('click', goPro);
+
+  /* ---- Browse by Market / Category (from homepage; absolute JSON paths) ---- */
+  function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function escapeAttr(s){ return escapeHtml(s); }
+  function marketTileHtml(m){
+    var count=(typeof m.count==='number')?m.count:Number((String(m.ctaLabel||'').match(/\d+/)||[0])[0]||0);
+    return '<a class="mkt-tile" href="'+escapeAttr(m.url)+'">'+
+      (m.image?'<div class="mkt-tile-img" style="background-image:url(\''+escapeAttr(m.image)+'\')"></div>':'')+
+      '<div class="mkt-tile-veil"></div><div class="mkt-tile-body">'+
+      '<h3 class="mkt-tile-name">'+escapeHtml(m.location||m.title)+'</h3><div class="mkt-tile-meta">'+
+      (m.region?'<div class="mkt-tile-sub">'+escapeHtml(m.region)+'</div>':'')+
+      (count?'<span class="mkt-tile-count">'+count+' projects →</span>':'')+
+      '</div></div></a>';
+  }
+  function categoryCardHtml(t){
+    var count=(typeof t.count==='number')?t.count:Number((String(t.count||'').match(/\d+/)||[0])[0]||0);
+    return '<a class="cat-card" href="'+escapeAttr(t.url)+'"><div class="cat-eye">'+escapeHtml(t.eyebrow||'Worldwide')+'</div>'+
+      '<h3 class="cat-name">'+escapeHtml(t.label)+'</h3>'+(count?'<span class="cat-count">'+count+' tracked →</span>':'')+'</a>';
+  }
+  (async function loadBrowseByMarket(){
+    var section=document.getElementById('browse-by-market'); if(!section) return;
+    try{
+      var res=await fetch('/featured-markets.json',{cache:'no-store'}); if(!res.ok) throw 0;
+      var data=await res.json(); var lists=(data.lists||[]).filter(function(l){return l&&l.active!==false;});
+      if(!lists.length){ section.style.display='none'; return; }
+      section.querySelector('#mkt-grid').innerHTML=lists.slice(0,10).map(marketTileHtml).join('');
+    }catch(e){ section.style.display='none'; }
+  })();
+  (async function loadBrowseByCategory(){
+    var grid=document.getElementById('cat-grid'); if(!grid) return; var head=document.querySelector('.cat-head');
+    function hide(){ grid.style.display='none'; if(head) head.style.display='none'; }
+    try{
+      var res=await fetch('/featured-types.json',{cache:'no-store'}); if(!res.ok) throw 0;
+      var data=await res.json(); var types=(data.types||[]).filter(function(t){return t&&t.label;});
+      if(!types.length){ hide(); return; }
+      grid.innerHTML=types.slice(0,6).map(categoryCardHtml).join('');
+    }catch(e){ hide(); }
+  })();
 })();
 </script>
 </body>
