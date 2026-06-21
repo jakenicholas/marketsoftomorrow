@@ -30,8 +30,12 @@
 .tmw-intel .wrap{position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 32px}
 
 /* header */
-.tmw-intel .eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); font-weight:500; margin-bottom:22px}
-.tmw-intel .eyebrow .pip{width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 12px var(--purple); animation:tiPip 2.6s ease-in-out infinite}
+.tmw-intel .eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:.27em; color:rgba(255,255,255,.78); text-shadow:0 0 20px rgba(167,139,250,.45); margin-bottom:22px; opacity:0; transform:translateY(32px); transition:opacity .5s ease, transform .5s ease; will-change:opacity,transform}
+.tmw-intel .eyebrow.in{opacity:1; transform:translateY(0)}
+.tmw-intel .eyebrow.out{opacity:0; transform:translateY(-8px); transition:opacity .4s ease, transform .4s ease}
+.tmw-intel .eyebrow .ihex{flex:0 0 auto; width:13px; height:13px; display:inline-block}
+.tmw-intel .eyebrow .ihex svg{width:100%; height:100%; display:block; animation:tiHexSpin 3s linear infinite; transform-origin:50% 50%}
+@keyframes tiHexSpin{to{transform:rotate(360deg)}}
 @keyframes tiPip{0%,100%{opacity:.45; transform:scale(.85)}50%{opacity:1; transform:scale(1.15)}}
 .tmw-intel h2{font-family:var(--serif); font-weight:400; letter-spacing:-.012em; line-height:1.03; color:var(--white); font-size:clamp(36px,5vw,64px)}
 .tmw-intel h2 em{font-style:italic; color:var(--purple-glow); font-weight:400}
@@ -226,7 +230,7 @@
 
     <div class="shead">
       <div class="htxt">
-        <span class="eyebrow"><span class="pip"></span>TMW Intelligence</span>
+        <span class="eyebrow"><span class="ihex"><svg viewBox="0 0 100 100"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="8" stroke-linejoin="round"/></svg></span>TMW Intelligence</span>
         <h2>Not a map.<br>A live intelligence<br>layer on <em>every project.</em></h2>
         <p class="lede">Behind every pin: timelines, developers, architects, units, milestones &mdash; and a <b>predictive engine</b> that forecasts completion and surfaces comparable developments. The cities and firms moving right now, broken down however you need to see them.</p>
       </div>
@@ -376,6 +380,15 @@
     function $(s){ return root.querySelector(s); }
     function $all(s){ return root.querySelectorAll(s); }
     function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+    // Eyebrow reveal: slides up + fades in on enter, slides up + fades out on exit.
+    var _eb = $('.eyebrow');
+    if (_eb && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function(es){ es.forEach(function(en){
+        if (en.isIntersecting) { _eb.classList.add('in'); _eb.classList.remove('out'); }
+        else { _eb.classList.remove('in'); _eb.classList.add('out'); }
+      }); }, { threshold:0.01 }).observe(_eb);
+    } else if (_eb) { _eb.classList.add('in'); }
 
     var PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
     var PULSE_URL    = 'https://www.oftmw.com/map/pulse.json';

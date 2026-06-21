@@ -51,9 +51,11 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pro-title-tx{font-family:var(--sans); font-weight:700; font-size:clamp(32px,4.6vw,50px); line-height:1; letter-spacing:-.02em; color:#fff; text-shadow:0 0 26px rgba(167,139,250,.55)}
 .videoWrap{position:relative; width:100%; max-width:920px; margin:0 auto; aspect-ratio:16/9; border-radius:18px; overflow:hidden; border:1px solid var(--hair); box-shadow:0 30px 80px rgba(0,0,0,.6); background:#0c0c0e}
 .videoWrap video{width:100%; height:100%; object-fit:cover; display:block}
-.unmute{position:absolute; right:16px; bottom:16px; z-index:2; display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#0a0a0a; background:linear-gradient(135deg,var(--gold-soft),var(--gold)); border:0; border-radius:999px; padding:9px 16px; box-shadow:0 6px 20px rgba(0,0,0,.45)}
-.unmute svg{width:14px; height:14px; display:block}
-.unmute[hidden]{display:none}
+.vidbtn{position:absolute; right:16px; bottom:16px; z-index:2; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:rgba(8,8,10,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 16px rgba(0,0,0,.4); transition:background .15s, transform .05s}
+.vidbtn:hover{background:rgba(8,8,10,.82)}
+.vidbtn:active{transform:scale(.94)}
+.vidbtn svg{width:18px; height:18px; display:block; fill:#fff}
+.vidbtn svg[hidden]{display:none}
 .pro-copy{max-width:660px; margin:30px auto 0; text-align:left}
 .pro-copy .lead{font-family:var(--serif); font-size:22px; font-weight:500; color:#fff; margin:0 0 16px}
 .pro-copy p{font-size:16px; line-height:1.7; color:var(--mute-2); margin:0 0 15px}
@@ -75,12 +77,12 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
     </h1>
 
     <div class="videoWrap">
-      <video id="proVid" autoplay muted loop playsinline preload="auto">
+      <video id="proVid" autoplay loop playsinline preload="auto">
         <source src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0cf8086d3bb-Introducing_TMWPro_Desktop.mp4" type="video/mp4">
       </video>
-      <button class="unmute" id="unmute" type="button" aria-label="Tap for sound" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
-        Tap for sound
+      <button class="vidbtn" id="playPause" type="button" aria-label="Pause">
+        <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+        <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true" hidden><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
       </button>
     </div>
 
@@ -103,13 +105,16 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 <script src="/_shared/intelligence.js" defer></script>
 <script>
 (function(){
-  var v=document.getElementById('proVid'), um=document.getElementById('unmute');
-  function withSound(){ if(!v)return; v.muted=false; v.volume=1; var p=v.play(); if(p&&p.then){p.then(function(){ if(um) um.hidden=true; }).catch(function(){ v.muted=true; if(um) um.hidden=false; });} }
-  if(v){ v.play().catch(function(){}); setTimeout(withSound,250); setTimeout(function(){ if(v.muted && um) um.hidden=false; },900); }
-  function enableSound(){ withSound(); document.removeEventListener('click',enableSound); document.removeEventListener('touchstart',enableSound); }
-  if(um) um.addEventListener('click', function(e){ e.stopPropagation(); enableSound(); });
-  document.addEventListener('click', enableSound);
-  document.addEventListener('touchstart', enableSound, {passive:true});
+  var v=document.getElementById('proVid'), pp=document.getElementById('playPause');
+  var icPause=pp?pp.querySelector('.ic-pause'):null, icPlay=pp?pp.querySelector('.ic-play'):null;
+  function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.hidden=!playing; if(icPlay)icPlay.hidden=playing; pp.setAttribute('aria-label',playing?'Pause':'Play'); }
+  // Try to autoplay WITH sound. Browsers usually block unmuted autoplay, so fall
+  // back to muted autoplay (still plays) and unmute on the first interaction.
+  function tryPlay(){ if(!v)return; v.muted=false; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } }
+  if(v){ tryPlay(); v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); syncIcon(); }
+  function firstSound(){ if(v&&v.muted){ v.muted=false; v.play().catch(function(){}); } document.removeEventListener('click',firstSound); document.removeEventListener('touchstart',firstSound); }
+  document.addEventListener('click',firstSound); document.addEventListener('touchstart',firstSound,{passive:true});
+  if(pp) pp.addEventListener('click', function(e){ e.stopPropagation(); if(v.paused){ v.muted=false; v.play().catch(function(){}); } else { v.pause(); } });
 
   function goPro(){
     try{ if(window.gtag) gtag('event','pro_landing_go_pro_clicked'); }catch(_){}
