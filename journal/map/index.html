@@ -19087,19 +19087,19 @@
         if (titleEl && subEl) {
           if (triggerCtx === 'feature:watch') {
             titleEl.textContent = 'Watch this project';
-            subEl.textContent = 'Watching is a Pro feature. Track updates, get notified when status changes, and build your personal list.';
+            subEl.textContent = 'Watching is a Pro feature. Start your free 2-week trial to track updates and build your list.';
           } else if (triggerCtx === 'feature:compare') {
             titleEl.textContent = 'Build your comparison';
-            subEl.textContent = 'Side-by-side project comparisons are a Pro feature. Upgrade to stack any projects together.';
+            subEl.textContent = 'Side-by-side comparisons are a Pro feature. Start your free 2-week trial to stack any projects together.';
           } else if (triggerCtx === 'feature:share') {
             titleEl.textContent = 'Share with friends';
-            subEl.textContent = 'Sharing projects is a Pro feature. Upgrade to send any development to your network.';
+            subEl.textContent = 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.';
           } else if (triggerCtx === 'trial_ended') {
-            titleEl.textContent = 'Your 24-hour preview has ended';
-            subEl.textContent = 'Go Pro for unlimited access to every development on the Map of Tomorrow.';
+            titleEl.textContent = 'Try TMW Pro free for 2 weeks';
+            subEl.textContent = 'Open every project — plus the full Map, Atlas, and TMW Intelligence — free for 14 days, then it’s just:';
           } else {
-            titleEl.textContent = 'Unlock the full Map';
-            subEl.textContent = 'Subscribe for unlimited access to every development on the Map of Tomorrow.';
+            titleEl.textContent = 'Try TMW Pro free for 2 weeks';
+            subEl.textContent = 'Full access to the Map of Tomorrow, the Atlas, and TMW Intelligence — free for 14 days, then it’s just:';
           }
         }
         if (window.gtag) gtag('event', 'paywall_shown', {
@@ -20701,17 +20701,12 @@
       window.paywallCheck = function() {
         // Pro (paid) gets unlimited access.
         if (isPaidMember) return true;
-        // Everyone else (anonymous OR free signed-in) gets a 24-hour preview;
-        // after that, opening a project shows the Pro paywall. Signing up free
-        // does NOT extend the window (it's per-device, independent of sign-in).
-        if (trialExpired()) {
-          showSubscriptionPaywall('trial_ended');
-          return false;
-        }
-        return true;
+        // Browsing the map (pan / zoom / search) is free for everyone; opening a
+        // project — a Pro detail — offers the free 2-week trial. Soft + dismissible
+        // so they keep exploring the map. No 24h timer / click counter anymore.
+        showSubscriptionPaywall('trial_ended');
+        return false;
       };
-      // Stamp the trial start on first visit so the 24h begins even with no clicks.
-      getTrialStart();
 
       // ‚îÄ‚îÄ‚îÄ Init ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       waitForMemberstack(async (ms) => {
@@ -20728,7 +20723,7 @@
           setTimeout(async () => {
             try { if (ms.hideModal) await ms.hideModal(); } catch (e) { /* modal might not be open */ }
             await refreshMemberStatus();
-            if (isPaidMember || (isSignedIn && !trialExpired())) {
+            if (isPaidMember) {
               hideAllPaywalls();
             }
           }, 0);

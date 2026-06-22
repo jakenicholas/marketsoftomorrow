@@ -120,15 +120,15 @@
           try { window.tmwFunnelTrack && window.tmwFunnelTrack('subscribe_market', { email: email, source: SOURCE }); } catch (_) {}
           mark('subscribed');
           try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
-          // Step 2: offer a free account (add a password) — the SAME prompt the
-          // article funnel uses, so the next page picks up where they left off.
-          // alreadyLive reframes the copy when the email was already on the list.
-          var faHost = swapPanel();
-          var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); }, { alreadyLive: !!d.already_subscribed });
-          if (!offered) {
-            msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
-            setTimeout(function () { el.classList.remove('show'); }, 2600);
-          }
+          // Email captured — go straight to the free 2-week trial offer. The old
+          // password / profile steps are dropped; the trial checkout creates the
+          // account (email + password + card) itself.
+          swapPanel();
+          msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
+          setTimeout(function () {
+            el.classList.remove('show');
+            if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
+          }, 1400);
         } else { btn.disabled = false; btn.textContent = orig; }
       } catch (err) { btn.disabled = false; btn.textContent = orig; }
     });
@@ -195,14 +195,12 @@
   function run() {
     checkAuth(function (signedIn, paid) {
       if (paid) return;                              // Pro members are done
-      if (signedIn) { buildGoProMode(); return; }    // free member → Go-Pro pitch
       var subEmail = subscribedEmail();
-      if (subEmail) {                                // subscribed, no account → password step
-        try { if (sessionStorage.getItem('tmw-acct-skip')) return; } catch (e) {}
-        buildAccountMode(subEmail);
-      } else {
-        build();                                     // first-timer → email form
-      }
+      if (!signedIn && !subEmail) { build(); return; }   // first-timer → email capture
+      // Already on the list (or a free member) → straight to the free 2-week
+      // trial offer. Password/profile steps are gone; the trial checkout handles
+      // account creation.
+      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
     });
   }
 
