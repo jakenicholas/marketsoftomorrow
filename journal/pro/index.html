@@ -143,6 +143,54 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 @media(max-width:720px){.price-grid{grid-template-columns:1fr}}
 
 @media(max-width:640px){.pro-hero{padding:34px 0 14px}.videoWrap{border-radius:14px}}
+
+/* ── advanced / tech-forward layer ───────────────────────────────── */
+.reveal{opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1; transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}.reveal.d4{transition-delay:.32s}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1; transform:none; transition:none}}
+/* animated grid + pulse behind the hero */
+.pro-grid-bg{position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  background:linear-gradient(rgba(167,139,250,.06) 1px, transparent 1px) 0 0/46px 46px,
+            linear-gradient(90deg, rgba(167,139,250,.06) 1px, transparent 1px) 0 0/46px 46px;
+  -webkit-mask-image:radial-gradient(840px 480px at 50% 2%, #000, transparent 76%);
+  mask-image:radial-gradient(840px 480px at 50% 2%, #000, transparent 76%);
+  animation:proGrid 26s linear infinite}
+@keyframes proGrid{to{background-position:0 46px, 46px 0}}
+.pro-grid-bg::after{content:""; position:absolute; left:50%; top:-44%; width:780px; height:780px; transform:translateX(-50%); border-radius:50%;
+  background:radial-gradient(closest-side, rgba(167,139,250,.12), transparent 70%); animation:proPulse 6.5s ease-in-out infinite}
+@keyframes proPulse{0%,100%{opacity:.5; transform:translateX(-50%) scale(.92)}50%{opacity:1; transform:translateX(-50%) scale(1.06)}}
+.pro-eyebrow{position:relative; z-index:1; font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--purple-bright); margin-bottom:18px; display:inline-flex; align-items:center; gap:9px}
+.pro-eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 12px var(--purple); animation:proDot 1.8s ease-in-out infinite}
+@keyframes proDot{0%,100%{opacity:1}50%{opacity:.3}}
+.pro-title{position:relative; z-index:1}
+.pro-title-tx{animation:proGlow 3.2s ease-in-out infinite}
+@keyframes proGlow{0%,100%{text-shadow:0 0 22px rgba(167,139,250,.45)}50%{text-shadow:0 0 36px rgba(167,139,250,.85),0 0 66px rgba(167,139,250,.35)}}
+.pro-hero-sub{position:relative; z-index:1; font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(17px,2vw,23px); color:var(--mute-2); max-width:34ch; margin:0 auto 4px; line-height:1.45}
+/* capability ticker */
+.pro-ticker{position:relative; z-index:1; max-width:980px; margin:26px auto 30px; overflow:hidden; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:11px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.pro-ticker-track{display:inline-flex; white-space:nowrap; animation:proTicker 34s linear infinite; will-change:transform}
+.pro-ticker:hover .pro-ticker-track{animation-play-state:paused}
+@keyframes proTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.pro-ticker .tk{font-family:var(--mono); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-bright); padding:0 0 0 26px}
+.pro-ticker .tk::after{content:"\25C6"; margin-left:26px; color:rgba(167,139,250,.4); font-size:8px; position:relative; top:-1px}
+/* feature grid */
+.pro-features{position:relative; z-index:1; padding:46px 0 30px}
+.pf-head{text-align:center; max-width:680px; margin:0 auto 36px}
+.pf-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(28px,3.4vw,42px); letter-spacing:-.02em; color:#fff; margin-top:6px}
+.pf-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+@media(max-width:900px){.pf-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.pf-grid{grid-template-columns:1fr}}
+.pf-card{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.025); padding:26px 24px; overflow:hidden; transition:transform .25s ease, border-color .25s ease, background .25s ease}
+.pf-card::before{content:""; position:absolute; top:-40px; right:-40px; width:150px; height:150px; background:radial-gradient(closest-side, rgba(167,139,250,.18), transparent 70%); opacity:0; transition:opacity .3s}
+.pf-card:hover{transform:translateY(-4px); border-color:rgba(167,139,250,.42); background:rgba(167,139,250,.04)}
+.pf-card:hover::before{opacity:1}
+.pf-ic{position:relative; width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); margin-bottom:18px; box-shadow:0 0 18px rgba(167,139,250,.18)}
+.pf-ic svg{width:21px; height:21px; stroke:var(--purple-bright); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+.pf-card h3{position:relative; font-family:var(--serif); font-weight:600; font-size:20px; letter-spacing:-.01em; color:#fff; margin-bottom:8px}
+.pf-card p{position:relative; font-size:14px; line-height:1.6; color:var(--mute-2)}
+.pf-tag{position:relative; display:inline-block; margin-top:14px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--purple-glow); border:1px solid rgba(167,139,250,.3); border-radius:999px; padding:4px 10px}
 </style>
 </head>
 <body>
@@ -150,13 +198,18 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 <!-- NAV — injected by /_shared/journal-chrome.js (the single universal header used on every page). -->
 
 <main>
-  <section class="pro-hero"><div class="wrap">
-    <h1 class="pro-title">
+  <section class="pro-hero">
+    <div class="pro-grid-bg" aria-hidden="true"></div>
+    <div class="wrap">
+    <div class="pro-eyebrow reveal">The Intelligence Layer</div>
+    <h1 class="pro-title reveal d1">
       <span class="pro-hex"><svg viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>
       <span class="pro-title-tx">TMW Pro</span>
     </h1>
+    <p class="pro-hero-sub reveal d1">The smartest network for what&rsquo;s being built next &mdash; every project, every market, forecast by AI.</p>
+    <div class="pro-ticker reveal d2" aria-hidden="true"><div class="pro-ticker-track" id="proTicker"></div></div>
 
-    <div class="videoWrap">
+    <div class="videoWrap reveal d2">
       <video id="proVid" autoplay loop playsinline preload="auto">
         <source src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0cf8086d3bb-Introducing_TMWPro_Desktop.mp4" type="video/mp4">
       </video>
@@ -167,20 +220,33 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       </button>
     </div>
 
-    <div class="proof-eyebrow" style="margin-top:36px">A network reaching millions every month</div>
-    <div class="proof-grid">
+    <div class="proof-eyebrow reveal" style="margin-top:36px">A network reaching millions every month</div>
+    <div class="proof-grid reveal d1">
       <div class="proof-stat"><div class="pn">8.1M</div><div class="pl">Monthly social views</div></div>
       <div class="proof-stat"><div class="pn">205K</div><div class="pl">Total followers</div></div>
       <div class="proof-stat"><div class="pn">593,180</div><div class="pl">Monthly web impressions</div></div>
       <div class="proof-stat"><div class="pn">15,700</div><div class="pl">Newsletter subscribers</div></div>
     </div>
 
-    <div class="pro-copy">
+    <div class="pro-copy reveal">
       <p class="lead">Introducing TMW Pro.</p>
       <p>The world&rsquo;s smartest news network for luxury development and hospitality. A real-time database of every major project, powered by <em>TMW Intelligence</em>, our AI that forecasts what&rsquo;s coming to the markets you care about.</p>
       <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network &mdash; reaching millions monthly &mdash; now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
       <p>Follow cities, track architects and developers, stay ahead of the openings that matter. Everywhere.</p>
       <p class="join" id="joinNow" role="button" tabindex="0">Join now to become a founder member at $9/mo or $90/yr &mdash; before July 1st</p>
+    </div>
+  </div></section>
+
+  <!-- WHAT&rsquo;S INSIDE -->
+  <section class="pro-features"><div class="wrap">
+    <div class="pf-head reveal"><div class="pro-eyebrow">What&rsquo;s inside</div><h2>The full intelligence layer</h2></div>
+    <div class="pf-grid">
+        <div class="pf-card reveal d1"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"></polygon><line x1="8" y1="3" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="21"></line></svg></div><h3>The Interactive Map</h3><p>Every project across 40+ markets on one live, filterable map of what&rsquo;s being built next.</p><span class="pf-tag">Pro</span></div>
+        <div class="pf-card reveal d2"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2z"></path><circle cx="19" cy="4.5" r="1.1"></circle></svg></div><h3>TMW Intelligence</h3><p>Ask anything. Our AI forecasts what&rsquo;s coming and answers in plain English, with sources.</p><span class="pf-tag">AI</span></div>
+        <div class="pf-card reveal d3"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="20" x2="4" y2="12"></line><line x1="10" y1="20" x2="10" y2="6"></line><line x1="16" y1="20" x2="16" y2="9"></line><line x1="21" y1="20" x2="21" y2="3"></line></svg></div><h3>The Atlas</h3><p>Leaderboards, momentum scores, and coverage depth across every market we track.</p><span class="pf-tag">Pro</span></div>
+        <div class="pf-card reveal d1"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 3 14.6 8.6 20.8 9.3 16.2 13.5 17.5 19.6 12 16.4 6.5 19.6 7.8 13.5 3.2 9.3 9.4 8.6 12 3"></polygon></svg></div><h3>Watchlist</h3><p>Follow cities, developers, and projects &mdash; get pinged the moment they move forward.</p><span class="pf-tag">Pro</span></div>
+        <div class="pf-card reveal d2"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"></rect><rect x="14" y="4" width="7" height="16" rx="1"></rect></svg></div><h3>Compare</h3><p>Stack any projects side by side across cities, categories, and timelines.</p><span class="pf-tag">Pro</span></div>
+        <div class="pf-card reveal d3"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="3" x2="8" y2="6.5"></line><line x1="16" y1="3" x2="16" y2="6.5"></line></svg></div><h3>Openings Tracker</h3><p>Stay ahead of every opening that matters, the moment it&rsquo;s confirmed.</p><span class="pf-tag">Pro</span></div>
     </div>
   </div></section>
 
@@ -190,7 +256,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
   <!-- BROWSE BY MARKET / CATEGORY (from homepage; data self-syncs hourly) -->
   <section class="mkt-section" id="browse-by-market">
     <div class="mkt-wrap">
-      <header class="mkt-head">
+      <header class="mkt-head reveal">
         <div class="l">
           <div class="eyebrow">Database · Live</div>
           <h2>Browse by Market</h2>
@@ -206,12 +272,12 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 
   <!-- PRICING -->
   <section class="pricing"><div class="wrap">
-    <div class="pricing-head">
+    <div class="pricing-head reveal">
       <div class="eyebrow">Membership</div>
       <h2>Keep the news free.<br>Go deeper with Pro.</h2>
     </div>
     <div class="price-grid">
-      <div class="price-card">
+      <div class="price-card reveal d1">
         <div class="pc-name">Free</div>
         <div class="pc-price"><span class="amt">$0</span><span class="per">forever</span></div>
         <div class="pc-sub">The journal &amp; social network.</div>
@@ -223,7 +289,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         </ul>
         <a class="pc-btn ghost" href="/">Keep reading</a>
       </div>
-      <div class="price-card feat">
+      <div class="price-card feat reveal d2">
         <div class="pc-flag">Founder pricing · before July 1st</div>
         <div class="pc-name">TMW Pro</div>
         <div class="pc-price"><span class="amt">$9</span><span class="per">/mo</span><span class="alt">or $90/yr</span></div>
@@ -313,6 +379,14 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       grid.innerHTML=types.slice(0,6).map(categoryCardHtml).join('');
     }catch(e){ hide(); }
   })();
+})();
+</script>
+<script>
+(function(){
+  var caps=['TMW Intelligence','AI Forecasts','The Interactive Map','The Atlas','Watchlist','Compare','Openings Tracker','40+ Markets','Momentum Scores','Developer Tracking','Coverage Depth','Founder Status'];
+  var tk=document.getElementById('proTicker'); if(tk){ var row=caps.map(function(c){return '<span class="tk">'+c+'</span>';}).join(''); tk.innerHTML=row+row; }
+  if('IntersectionObserver' in window){ var rio=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); rio.unobserve(en.target); } }); },{threshold:.12, rootMargin:'0px 0px -8% 0px'}); document.querySelectorAll('.reveal').forEach(function(el){ rio.observe(el); }); }
+  else { document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); }); }
 })();
 </script>
 </body>
