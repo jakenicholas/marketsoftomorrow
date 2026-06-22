@@ -282,6 +282,24 @@
       document.body.appendChild(pwScript);
     }
 
+    // Auto-load the signup funnel on MOST pages so non-logged-in visitors get
+    // the email-capture / Go-Pro flow site-wide — not just on /markets/. The
+    // funnel itself decides what to show (email capture every page until an
+    // account exists; the Pro/trial upsell once per session). Excluded: pages
+    // with their own funnel or gating — /post/ (post.js has its own copy), the
+    // map & atlas (their own trial gates), and the account/legal pages.
+    (function loadFunnelOnMostPages() {
+      var p = location.pathname;
+      if (/^\/(post|account|terms|privacy|auth|map|atlas)(\/|$)/.test(p)) return;
+      if (p.indexOf('/markets/') === 0 || p === '/markets') return;   // handled by the contextual /markets/ block below
+      if (window.tmwSignupFunnel || document.querySelector('script[data-tmw-funnel-loader]')) return;
+      var fScript = document.createElement('script');
+      fScript.src = '/_shared/journal-signup-funnel.js';
+      fScript.defer = true;
+      fScript.setAttribute('data-tmw-funnel-loader', '');
+      document.body.appendChild(fScript);
+    })();
+
     // Market pages: make EVERY Pro affordance open the popup. Most market pages
     // already wire their #market-pro-cta button + a.pro-link, but some Pro-
     // members links (e.g. on state rollups) and the /markets/ index are plain

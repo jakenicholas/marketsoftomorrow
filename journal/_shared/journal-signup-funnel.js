@@ -34,6 +34,7 @@
   var MARKETS = ['florida', 'tennessee', 'newyork', 'caribbean', 'rockies', 'hotel'];
   var KEY = 'tmw-sub-lightbox-v1';
   var SUB_EMAIL_KEY = 'tmw-sub-email';
+  var GOPRO_SESSION_KEY = 'tmw-gopro-shown';   // sessionStorage: the Pro/trial upsell has fired this session
   var DELAY_MS = OPTS.delayMs || 3000;
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
@@ -127,7 +128,7 @@
           msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
           setTimeout(function () {
             el.classList.remove('show');
-            if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
+            showGoProOncePerSession();
           }, 1400);
         } else { btn.disabled = false; btn.textContent = orig; }
       } catch (err) { btn.disabled = false; btn.textContent = orig; }
@@ -191,16 +192,28 @@
     cb(false, false);
   }
 
+  // The TMW Pro / trial upsell is capped to ONCE per browser session. The email
+  // capture, by contrast, can reappear on most pages until an account exists.
+  function goProShownThisSession() { try { return sessionStorage.getItem(GOPRO_SESSION_KEY) === '1'; } catch (e) { return false; } }
+  function showGoProOncePerSession() {
+    if (goProShownThisSession()) return false;
+    if (typeof window.tmwShowPaywall !== 'function') return false;   // paywall not ready — don't burn the session slot
+    try { sessionStorage.setItem(GOPRO_SESSION_KEY, '1'); } catch (e) {}
+    window.tmwShowPaywall('go-pro');
+    return true;
+  }
+
   // ── Auto-trigger — same decision tree as the article funnel ──────────────
   function run() {
     checkAuth(function (signedIn, paid) {
       if (paid) return;                              // Pro members are done
       var subEmail = subscribedEmail();
-      if (!signedIn && !subEmail) { build(); return; }   // first-timer → email capture
-      // Already on the list (or a free member) → straight to the free 2-week
-      // trial offer. Password/profile steps are gone; the trial checkout handles
-      // account creation.
-      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('go-pro');
+      // Anonymous with no account yet → email capture. Shows on most pages,
+      // every visit, until they have an account (then signedIn flips true).
+      if (!signedIn && !subEmail) { build(); return; }
+      // Already a lead (email on file) or a signed-in free member → the TMW Pro
+      // trial upsell, but only ONCE per session so it isn't shown on every page.
+      showGoProOncePerSession();
     });
   }
 

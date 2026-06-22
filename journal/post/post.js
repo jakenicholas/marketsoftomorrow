@@ -1211,9 +1211,8 @@ function escapeAttr(s) { return escapeHtml(s); }
   // Standalone Step 4 lightbox -- shown to ALREADY-signed-in free members
   // who already completed Steps 1-3 in a past visit. Uses the same panel
   // shell as build()/buildAccountMode() so it slides up the same way.
-  // Per user request the pitch fires on EVERY article load (no session
-  // dedupe); the only guard is the singleton check below so two
-  // copies can't stack if something double-fires.
+  // Capped to once per session by the caller (shared 'tmw-gopro-shown' key);
+  // the singleton check below also stops two copies stacking on a double-fire.
   function buildGoProMode() {
     if (document.querySelector('.tmw-sub')) return false;
     var el = document.createElement('div');
@@ -1239,9 +1238,14 @@ function escapeAttr(s) { return escapeHtml(s); }
       // Pro members are done with us.
       if (paid) return;
       // Signed-in free members: skip the subscribe/account funnel entirely
-      // (they already did all that) and jump straight to the Step 4 pitch.
-      // Once-per-session via sessionStorage so it isn't annoying.
-      if (signedIn) { buildGoProMode(); return; }
+      // (they already did all that) and jump straight to the Go-Pro pitch —
+      // but only ONCE per session (shared 'tmw-gopro-shown' key, same cap the
+      // site-wide funnel uses) so it isn't shown on every article.
+      if (signedIn) {
+        try { if (sessionStorage.getItem('tmw-gopro-shown') === '1') return; } catch (e) {}
+        if (buildGoProMode()) { try { sessionStorage.setItem('tmw-gopro-shown', '1'); } catch (e) {} }
+        return;
+      }
       // Anon visitors fall through to the original 3-step funnel.
       var subEmail = subscribedEmail();
       if (subEmail) {
