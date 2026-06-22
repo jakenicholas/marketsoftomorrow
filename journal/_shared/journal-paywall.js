@@ -38,13 +38,15 @@
       // Map header font (Inter), not the journal\'s serif h2 — explicit so the
       // journal global "h2{font-family:var(--serif)}" rule can\'t win.
       '.paywall-title{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif !important; font-size:22px; font-weight:700; letter-spacing:-.01em; line-height:1.2; margin-bottom:8px}',
+      '.paywall-title-glow{color:#C4B5FD; animation:tmwProGlow 2.4s ease-in-out infinite}',
+      '@keyframes tmwProGlow{0%,100%{text-shadow:0 0 6px rgba(167,139,250,.4),0 0 14px rgba(167,139,250,.22)} 50%{text-shadow:0 0 12px rgba(167,139,250,.75),0 0 28px rgba(167,139,250,.5)}}',
       '.paywall-subtitle{font-size:13px; color:rgba(255,255,255,.55); line-height:1.5; margin-bottom:22px}',
       '.paywall-plans{display:flex; flex-direction:column; gap:10px; margin-bottom:18px}',
       '.paywall-plan{position:relative; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; color:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s, transform .1s; font-family:inherit}',
-      '.paywall-plan:hover{border-color:rgba(31,223,103,.5); background:rgba(255,255,255,.06)}',
+      '.paywall-plan:hover{border-color:rgba(167,139,250,.5); background:rgba(255,255,255,.06)}',
       '.paywall-plan:active{transform:scale(.99)}',
-      '.paywall-plan-annual{border-color:#1FDF67; background:rgba(31,223,103,.06)}',
-      '.paywall-plan-tag{position:absolute; top:-8px; right:14px; background:#1FDF67; color:#000; font-size:9px; font-weight:800; letter-spacing:.08em; padding:3px 8px; border-radius:20px}',
+      '.paywall-plan-annual{border-color:#A78BFA; background:rgba(167,139,250,.07); box-shadow:0 0 18px rgba(167,139,250,.28)}',
+      '.paywall-plan-tag{position:absolute; top:-8px; right:14px; background:#A78BFA; color:#0d0d0d; font-size:9px; font-weight:800; letter-spacing:.08em; padding:3px 8px; border-radius:20px; box-shadow:0 0 12px rgba(167,139,250,.5)}',
       '.paywall-plan-name{font-size:12px; font-weight:600; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px}',
       '.paywall-plan-price{font-size:26px; font-weight:700; line-height:1; margin-bottom:4px}',
       '.paywall-plan-per{font-size:13px; font-weight:500; color:rgba(255,255,255,.45); margin-left:2px}',
@@ -54,7 +56,7 @@
       '.paywall-feature{display:flex; align-items:center; gap:9px; font-size:12px; color:rgba(255,255,255,.7); text-align:left}',
       '.paywall-feature svg{flex-shrink:0}',
       // Yellow PRO pill (matches the avatar-dropdown Pro tag) in place of checks.
-      '.paywall-feature-pro-pill{flex-shrink:0; font-size:9px; font-weight:800; color:#000; background:#FFD300; padding:2px 7px; border-radius:4px; letter-spacing:.08em; text-transform:uppercase; line-height:1.2}',
+      '.paywall-feature-pro-pill{flex-shrink:0; font-size:9px; font-weight:800; color:#C4B5FD; background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.45); box-shadow:0 0 10px rgba(167,139,250,.4); padding:2px 7px; border-radius:4px; letter-spacing:.08em; text-transform:uppercase; line-height:1.2}',
       '.paywall-founding{display:flex; flex-direction:column; align-items:center; gap:4px; margin:0 0 14px; padding:12px 18px; border-radius:12px; background:rgba(255,211,0,.10); border:1px solid rgba(255,211,0,.32); text-align:center; box-shadow:0 0 14px rgba(255,211,0,.18); width:100%; box-sizing:border-box}',
       '.paywall-founding-eyebrow{font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#FFD300}',
       '.paywall-founding-body{font-size:12px; font-weight:500; color:rgba(255,255,255,.78); line-height:1.4}',
@@ -68,13 +70,16 @@
 
   var CHECK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
   var FEATURES = [
+    'Unlock the Development Map &amp; Atlas',
     'Unlimited project exploration',
-    'Access to TMW intelligence &amp; forecasts',
-    'Full project details',
-    'Create and follow your project watchlist',
+    'Unlimited access to TMW intelligence',
+    'Live construction timelines and updates',
+    'Follow your favorite markets &amp; projects',
     'Build and share project comparison sheets',
-    'Daily project update notifications',
-    'Architect &amp; developer pages'
+    'Explore architect &amp; developer pages',
+    'Unlock account rewards and member status',
+    'Unlimited article commenting',
+    'Unlock database suggestions'
   ];
 
   function build() {
@@ -90,8 +95,8 @@
       '<div class="paywall-card">' +
         '<button class="paywall-close" type="button" aria-label="Close">&times;</button>' +
         '<div class="paywall-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
-        '<h2 class="paywall-title">Try TMW Pro free for 2 weeks</h2>' +
-        '<p class="paywall-subtitle">Full access to the Map of Tomorrow, the Atlas, TMW Intelligence, and every project behind the journal — free for 14 days, then it’s just:</p>' +
+        '<h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>' +
+        '<p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
@@ -155,7 +160,7 @@
     if (titleEl && subEl) {
       var c = map[ctx];
       if (c) { titleEl.textContent = c[0]; subEl.textContent = c[1]; }
-      else { titleEl.textContent = 'Try TMW Pro free for 2 weeks'; subEl.textContent = 'Full access to the Map of Tomorrow, the Atlas, TMW Intelligence, and every project behind the journal — free for 14 days.'; }
+      else { titleEl.innerHTML = 'Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks'; subEl.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:'; }
     }
     if (window.gtag) gtag('event', 'paywall_shown', { 'trigger': ctx || 'go-pro', 'surface': 'journal' });
   }

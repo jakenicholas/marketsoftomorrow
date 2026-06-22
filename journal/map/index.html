@@ -5700,6 +5700,11 @@
     line-height: 1.2;
     margin-bottom: 8px;
   }
+  .paywall-title-glow { color: #C4B5FD; animation: tmwProGlow 2.4s ease-in-out infinite; }
+  @keyframes tmwProGlow {
+    0%, 100% { text-shadow: 0 0 6px rgba(167,139,250,0.4), 0 0 14px rgba(167,139,250,0.22); }
+    50%      { text-shadow: 0 0 12px rgba(167,139,250,0.75), 0 0 28px rgba(167,139,250,0.5); }
+  }
   .paywall-subtitle {
     font-size: 13px;
     color: rgba(255,255,255,0.55);
@@ -5725,25 +5730,27 @@
     font-family: inherit;
   }
   .paywall-plan:hover {
-    border-color: rgba(31,223,103,0.5);
+    border-color: rgba(167,139,250,0.5);
     background: rgba(255,255,255,0.06);
   }
   .paywall-plan:active { transform: scale(0.99); }
   .paywall-plan-annual {
-    border-color: #1FDF67;
-    background: rgba(31,223,103,0.06);
+    border-color: #A78BFA;
+    background: rgba(167,139,250,0.07);
+    box-shadow: 0 0 18px rgba(167,139,250,0.28);
   }
   .paywall-plan-tag {
     position: absolute;
     top: -8px;
     right: 14px;
-    background: #1FDF67;
-    color: #000;
+    background: #A78BFA;
+    color: #0d0d0d;
     font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.08em;
     padding: 3px 8px;
     border-radius: 20px;
+    box-shadow: 0 0 12px rgba(167,139,250,0.5);
   }
   .paywall-plan-name {
     font-size: 12px;
@@ -5793,8 +5800,10 @@
     flex-shrink: 0;
     font-size: 9px;
     font-weight: 800;
-    color: #000;
-    background: #FFD300;
+    color: #C4B5FD;
+    background: rgba(167,139,250,0.14);
+    border: 1px solid rgba(167,139,250,0.45);
+    box-shadow: 0 0 10px rgba(167,139,250,0.4);
     padding: 2px 7px;
     border-radius: 4px;
     letter-spacing: 0.08em;
@@ -18900,8 +18909,8 @@
             <div class="paywall-icon">
               <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
             </div>
-            <h2 class="paywall-title">Try TMW Pro free for 2 weeks</h2>
-            <p class="paywall-subtitle">Full access to the Map of Tomorrow, the Atlas, and TMW Intelligence — free for 14 days, then it’s just:</p>
+            <h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>
+            <p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>
             <div class="paywall-plans">
               <button class="paywall-plan paywall-plan-annual" data-price-id="${PRICE_ID_ANNUAL}">
                 <div class="paywall-plan-tag">BEST VALUE</div>
@@ -18917,14 +18926,16 @@
             </div>
             <div class="paywall-subtitle" style="font-size:11.5px; opacity:.7; margin:2px 0 14px; line-height:1.5;">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener" style="color:rgba(255,255,255,.85); text-decoration:underline;">See our Terms</a>.</div>
             <div class="paywall-features">
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlock the Development Map &amp; Atlas</div>
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlimited project exploration</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Access to TMW intelligence</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Full project details</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Create and follow your project watchlist</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlimited access to TMW intelligence</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Live construction timelines and updates</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Follow your favorite markets &amp; projects</div>
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Build and share project comparison sheets</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Daily project update notifications</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Architect &amp; Developer pages</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Read journal articles attached to every project</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Explore architect &amp; developer pages</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlock account rewards and member status</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlimited article commenting</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlock database suggestions</div>
             </div>
             <!-- Founding-member callout: rate-lock pitch, time-limited.
                  Sits between the feature list and the sign-in link. -->
@@ -18970,14 +18981,16 @@
         // Same 8 Pro features as the subscription paywall ‚Äî keeps the
         // value prop consistent across both walls.
         const proFeatures = [
+          'Unlock the Development Map &amp; Atlas',
           'Unlimited project exploration',
-          'Access to TMW intelligence',
-          'Full project details',
-          'Create and follow your project watchlist',
+          'Unlimited access to TMW intelligence',
+          'Live construction timelines and updates',
+          'Follow your favorite markets &amp; projects',
           'Build and share project comparison sheets',
-          'Daily project update notifications',
-          'Architect &amp; Developer pages',
-          'Read journal articles attached to every project',
+          'Explore architect &amp; developer pages',
+          'Unlock account rewards and member status',
+          'Unlimited article commenting',
+          'Unlock database suggestions',
         ];
         const proFeatureRows = proFeatures.map(label =>
           `<div class="paywall-feature">
@@ -19095,11 +19108,11 @@
             titleEl.textContent = 'Share with friends';
             subEl.textContent = 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.';
           } else if (triggerCtx === 'trial_ended') {
-            titleEl.textContent = 'Try TMW Pro free for 2 weeks';
-            subEl.textContent = 'Open every project — plus the full Map, Atlas, and TMW Intelligence — free for 14 days, then it’s just:';
+            titleEl.innerHTML = 'Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks';
+            subEl.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:';
           } else {
-            titleEl.textContent = 'Try TMW Pro free for 2 weeks';
-            subEl.textContent = 'Full access to the Map of Tomorrow, the Atlas, and TMW Intelligence — free for 14 days, then it’s just:';
+            titleEl.innerHTML = 'Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks';
+            subEl.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:';
           }
         }
         if (window.gtag) gtag('event', 'paywall_shown', {
