@@ -2636,20 +2636,12 @@
   </script>
 
   <!-- ───────────────────────────────────────────────────────────────────
-       ATLAS PAYWALL GATE — 24-hour preview for non-Pro users, shared with the
-       map (same `mot_trial_start` localStorage key) so the whole product is one
-       24h trial. After 24h, a Pro paywall nudges (soft — dismissible). Paid
-       members are never gated (Memberstack/_isPaidMember via journal-auth).
+       ATLAS PAYWALL GATE — the Atlas is a Pro feature. Non-Pro visitors are
+       offered the free 2-week trial (soft, dismissible so they can still glance).
+       Paid members are never gated (Memberstack/_isPaidMember via journal-auth).
        ─────────────────────────────────────────────────────────────────── -->
   <script>
   (function () {
-    var TRIAL_MS = 24 * 60 * 60 * 1000, KEY = 'mot_trial_start';
-    function trialStart() {
-      var t = parseInt(localStorage.getItem(KEY) || '0', 10);
-      if (!t) { t = Date.now(); try { localStorage.setItem(KEY, String(t)); } catch (e) {} }
-      return t;
-    }
-    function expired() { return (Date.now() - trialStart()) >= TRIAL_MS; }
     function isPro() {
       try {
         if (window._isPaidMember) return true;
@@ -2660,10 +2652,9 @@
     }
     function start() {
       if (isPro()) return;                        // never gate Pro members
-      trialStart();                              // stamp the 24h clock on first visit
-      if (expired() && typeof window.tmwShowPaywall === 'function') {
-        window.tmwShowPaywall('atlas', { hard: false });
-      }
+      // Atlas is a Pro feature — offer the free 2-week trial (soft + dismissible
+      // so non-members can still glance, but the trial is front-and-centre).
+      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('atlas', { hard: false });
     }
     // Decide only once auth is actually RESOLVED (tmwAuth.ready), not merely when
     // _isPaidMember is defined — it's pre-set to false before Memberstack resolves,
