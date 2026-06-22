@@ -179,6 +179,10 @@
           cancelUrl: window.location.href,
           successUrl: window.location.href.split('?')[0] + '?subscribed=1'
         });
+      } else if (window.tmwAuthModal) {
+        // Our own combined signup form (name → email → company → profession →
+        // based → password); on submit it routes to the Stripe Checkout trial.
+        window.tmwAuthModal('signup', { priceId: priceId });
       } else {
         await m.openModal('SIGNUP', { signup: { plans: [priceId] } });
       }

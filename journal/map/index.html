@@ -19176,8 +19176,11 @@
               cancelUrl: window.location.href,
               successUrl: window.location.href.split('?')[0] + '?subscribed=1'
             });
+          } else if (window.tmwAuthModal) {
+            // Our own combined signup form → routes to the Stripe Checkout trial on submit
+            window.tmwAuthModal('signup', { priceId: priceId });
           } else {
-            // Not signed in ‚Üí signup modal with plan attached, auto-routes to checkout after
+            // Fallback: Memberstack's signup modal with plan attached, auto-routes to checkout after
             await window.$memberstackDom.openModal('SIGNUP', {
               signup: { plans: [priceId] }
             });

@@ -98,6 +98,12 @@
       '.tmw-am-lock-sub{font-size:12.5px; color:rgba(255,255,255,.6); line-height:1.5; max-width:34ch; margin:0 auto 16px}',
       '.tmw-am-lockrows{display:flex; flex-direction:column; gap:8px; margin-bottom:18px; -webkit-mask-image:linear-gradient(#000 30%,transparent); mask-image:linear-gradient(#000 30%,transparent); pointer-events:none}',
       '.tmw-am-lockrow{height:44px; border-radius:11px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08)}',
+      // combined signup form — wider card + two-column field grid on desktop
+      '.tmw-am-card.signup{max-width:600px}',
+      '.tmw-am-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}',
+      '.tmw-am-grid .tmw-am-span{grid-column:1 / -1}',
+      '.tmw-am-req{color:#1FDF67; margin-left:3px; font-weight:700}',
+      '@media(max-width:600px){.tmw-am-card.signup{max-width:430px} .tmw-am-grid{grid-template-columns:1fr}}',
       '@media(max-width:560px){.tmw-am-wl{grid-template-columns:1fr}}',
       '@media(max-width:480px){.tmw-am-card{padding:30px 22px 24px}}'
     ].join('');
@@ -133,8 +139,22 @@
     return msg;
   }
 
+  // After auth completes, either send a buyer to Stripe Checkout (priceId from
+  // the paywall) or just close the modal.
+  function afterAuth(host, priceId) {
+    var m = ms();
+    if (priceId && m && m.purchasePlansWithCheckout) {
+      m.purchasePlansWithCheckout({
+        priceId: priceId,
+        cancelUrl: window.location.href,
+        successUrl: window.location.href.split('?')[0] + '?subscribed=1'
+      }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
+    } else { close(); }
+  }
+
   // ── login ───────────────────────────────────────────────────────────────
-  function viewLogin(host) {
+  function viewLogin(host, opts) {
+    opts = opts || {}; var priceId = opts.priceId || null;
     host.innerHTML =
       LOGO +
       '<h2>Log in to your account</h2>' +
@@ -148,7 +168,7 @@
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
       '<div class="tmw-am-alt">Don’t have an account? <a data-act="to-signup">Sign up</a></div>';
     wireEye(host);
-    host.querySelector('[data-act="to-signup"]').addEventListener('click', function () { viewSignup(host); });
+    host.querySelector('[data-act="to-signup"]').addEventListener('click', function () { viewSignup(host, opts); });
     host.querySelector('[data-act="forgot"]').addEventListener('click', function (e) {
       e.preventDefault();
       var email = (host.querySelector('input[name="email"]').value || '').trim();
@@ -160,7 +180,7 @@
     });
     host.querySelector('[data-act="google"]').addEventListener('click', function () {
       var m = ms(); if (!m) return;
-      m.loginWithProvider({ provider: 'google' }).then(close).catch(function (err) { setMsg(host, 'err', niceError(err)); });
+      m.loginWithProvider({ provider: 'google' }).then(function () { afterAuth(host, priceId); }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
     });
     host.querySelector('.tmw-am-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -170,50 +190,68 @@
       var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); btn.disabled = false; btn.textContent = 'Log in'; return; }
       m.loginMemberEmailPassword({ email: email, password: pw }).then(function () {
         try { if (window.gtag) window.gtag('event', 'login', { method: 'email' }); } catch (_) {}
-        close();
+        afterAuth(host, priceId);
       }).catch(function (err) { setMsg(host, 'err', niceError(err)); btn.disabled = false; btn.textContent = 'Log in'; });
     });
   }
 
   // ── signup ──────────────────────────────────────────────────────────────
-  function viewSignup(host) {
+  // One combined form (name → email → company → profession → based → password),
+  // two columns on desktop. Required: first, last, email, password. When opened
+  // from the paywall a priceId is passed → after signup we go straight to the
+  // Stripe Checkout trial; otherwise it's a plain free account.
+  function viewSignup(host, opts) {
+    opts = opts || {}; var priceId = opts.priceId || null;
+    var card = host.closest && host.closest('.tmw-am-card'); if (card) card.classList.add('signup');
+    var STAR = '<span class="tmw-am-req">*</span>';
     host.innerHTML =
       LOGO +
       '<h2>Create your account</h2>' +
       '<form class="tmw-am-form" novalidate>' +
-        '<div class="tmw-am-field"><label>Email Address</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div></div>' +
-        '<div class="tmw-am-field"><label>Password</label><div class="tmw-am-inp"><input name="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="tmw-am-eye" aria-label="Show password">' + EYE + '</button></div></div>' +
-        '<button type="submit" class="tmw-am-primary">Create account</button>' +
+        '<div class="tmw-am-grid">' +
+          '<div class="tmw-am-field"><label>First name' + STAR + '</label><div class="tmw-am-inp"><input name="first" autocomplete="given-name" placeholder="First name" required></div></div>' +
+          '<div class="tmw-am-field"><label>Last name' + STAR + '</label><div class="tmw-am-inp"><input name="last" autocomplete="family-name" placeholder="Last name" required></div></div>' +
+          '<div class="tmw-am-field"><label>Email Address' + STAR + '</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div></div>' +
+          '<div class="tmw-am-field"><label>Company name</label><div class="tmw-am-inp"><input name="company" autocomplete="organization" placeholder="Company name"></div></div>' +
+          '<div class="tmw-am-field"><label>Profession</label><div class="tmw-am-inp"><input name="profession" placeholder="Profession"></div></div>' +
+          '<div class="tmw-am-field"><label>Based</label><div class="tmw-am-geo"><div class="tmw-am-inp"><input name="based" autocomplete="off" placeholder="City"></div><div class="tmw-am-geolist" hidden></div></div></div>' +
+          '<div class="tmw-am-field tmw-am-span"><label>Password' + STAR + '</label><div class="tmw-am-inp"><input name="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="tmw-am-eye" aria-label="Show password">' + EYE + '</button></div></div>' +
+        '</div>' +
+        '<button type="submit" class="tmw-am-primary">' + (priceId ? 'Continue' : 'Create account') + '</button>' +
       '</form>' +
       '<div class="tmw-am-or">or</div>' +
       '<button type="button" class="tmw-am-google" data-act="google">' + GOOGLE_ICON + ' Continue with Google</button>' +
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
       '<div class="tmw-am-alt">Already have an account? <a data-act="to-login">Log in</a></div>';
-    wireEye(host);
-    host.querySelector('[data-act="to-login"]').addEventListener('click', function () { viewLogin(host); });
+    wireEye(host); wireGeo(host);
+    var resetBtn = function (btn) { btn.disabled = false; btn.textContent = priceId ? 'Continue' : 'Create account'; };
+    host.querySelector('[data-act="to-login"]').addEventListener('click', function () { viewLogin(host, opts); });
     host.querySelector('[data-act="google"]').addEventListener('click', function () {
       var m = ms(); if (!m) return;
-      m.signupWithProvider({ provider: 'google' }).then(close).catch(function (err) { setMsg(host, 'err', niceError(err)); });
+      m.signupWithProvider({ provider: 'google' }).then(function () { afterAuth(host, priceId); }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
     });
     host.querySelector('.tmw-am-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      var f = e.target, email = (f.email.value || '').trim(), pw = f.password.value || '';
+      var f = e.target;
+      var val = function (n) { var i = f.querySelector('input[name="' + n + '"]'); return (i && i.value || '').trim(); };
+      var first = val('first'), last = val('last'), email = val('email');
+      var company = val('company'), profession = val('profession'), based = val('based');
+      var pw = (f.querySelector('input[name="password"]').value) || '';
+      if (!first || !last) { setMsg(host, 'err', 'Enter your first and last name.'); return; }
       if (!email) { setMsg(host, 'err', 'Enter your email.'); return; }
-      if (pw.length < 8) { setMsg(host, 'err', 'Use at least 8 characters.'); return; }
+      if (pw.length < 8) { setMsg(host, 'err', 'Use a password of at least 8 characters.'); return; }
       var btn = f.querySelector('.tmw-am-primary'); btn.disabled = true; btn.textContent = 'Creating…'; setMsg(host, '', '');
-      var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); btn.disabled = false; btn.textContent = 'Create account'; return; }
-      m.signupMemberEmailPassword({ email: email, password: pw }).then(function () {
+      var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); resetBtn(btn); return; }
+      m.signupMemberEmailPassword({ email: email, password: pw, customFields: { 'first-name': first, 'last-name': last, 'company-name': company, 'profession': profession, 'based': based } }).then(function () {
         try { if (window.gtag) window.gtag('event', 'sign_up', { method: 'email' }); } catch (_) {}
-        // Hand to the profile step (reused from the newsletter funnel) if present.
-        if (typeof window.tmwProfileStep === 'function') {
-          var card = host.closest('.tmw-am-card'); if (card) { var x = card.querySelector('.tmw-am-x'); if (x) x.style.display = 'none'; }
-          window.tmwProfileStep(host, email, function () { close(); });
-        } else { close(); }
+        // best-effort sync to the newsletter/CRM worker (same shape as the profile step)
+        try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last, profession: profession, company_name: company, based: based }) }).catch(function () {}); } catch (_) {}
+        afterAuth(host, priceId);
       }).catch(function (err) {
         var nm = niceError(err);
         setMsg(host, 'err', /log in instead/.test(nm) ? 'That email already has an account. <a data-act="to-login">Log in</a>' : nm);
-        var ln = host.querySelector('.tmw-am-msg [data-act="to-login"]'); if (ln) ln.addEventListener('click', function () { viewLogin(host); });
-        btn.disabled = false; btn.textContent = 'Create account';
+        var ln = host.querySelector('.tmw-am-msg [data-act="to-login"]'); if (ln) ln.addEventListener('click', function () { viewLogin(host, opts); });
+        resetBtn(btn);
       });
     });
   }
@@ -472,14 +510,14 @@
     }).catch(function () { renderAccount(host, section, {}, '', false); });
   }
 
-  window.tmwAuthModal = function (view) {
+  window.tmwAuthModal = function (view, opts) {
     if (!ms()) return;
     var host = openShell();
     if (view === 'profile' || view === 'account') viewAccount(host, 'profile');
     else if (view === 'security') viewAccount(host, 'security');
     else if (view === 'watchlist') viewAccount(host, 'watchlist');
     else if (view === 'articles') viewAccount(host, 'articles');
-    else if (view === 'signup') viewSignup(host);
-    else viewLogin(host);
+    else if (view === 'signup') viewSignup(host, opts);
+    else viewLogin(host, opts);
   };
 })();
