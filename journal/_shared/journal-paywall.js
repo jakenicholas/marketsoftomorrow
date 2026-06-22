@@ -105,7 +105,7 @@
             '<div class="paywall-plan-note">14 days free</div>' +
           '</button>' +
         '</div>' +
-        '<div class="paywall-trial-note">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods.</div>' +
+        '<div class="paywall-trial-note">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener" style="color:rgba(255,255,255,.72); text-decoration:underline;">See our Terms</a>.</div>' +
         '<div class="paywall-features">' +
           FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +

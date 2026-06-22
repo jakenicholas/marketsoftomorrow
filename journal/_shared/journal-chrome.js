@@ -91,7 +91,8 @@
         '<li><a href="/media/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li>' +
         '<li><a href="/media/#cta">Contact</a></li>' +
-        '<li><a href="#" onclick="window.tmwFooterSubscribe(event);return false;">Subscribe</a></li></ul></div>' +
+        '<li><a href="#" onclick="window.tmwFooterSubscribe(event);return false;">Subscribe</a></li>' +
+        '<li><a href="/terms/">Terms</a></li></ul></div>' +
     '</div><div class="ft-bot"><div>&copy; <span id="tmw-yr"></span> Markets of Tomorrow</div>' +
       '<div>The Future is Here</div></div></div></footer>';
 
