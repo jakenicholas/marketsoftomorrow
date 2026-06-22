@@ -58,7 +58,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .vidbtn-mute{right:66px}
 .pro-copy{max-width:660px; margin:30px auto 0; text-align:center}
 .pro-copy .lead{font-family:var(--serif); font-size:22px; font-weight:500; color:#fff; margin:0 0 16px}
-.pro-copy p{font-size:16px; line-height:1.7; color:var(--mute-2); margin:0 0 15px}
+.pro-copy p:not(.join){font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(17px,1.9vw,21px); line-height:1.55; color:var(--mute-2); margin:0 0 16px}
 .pro-copy p em{font-style:normal; color:#fff}
 .pro-copy .join{margin-top:10px; font-family:var(--mono); font-size:13px; letter-spacing:.02em; font-weight:700; color:var(--gold); cursor:pointer; display:inline-block}
 .pro-copy .join:hover{color:var(--gold-soft)}
@@ -166,7 +166,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pro-title{position:relative; z-index:1}
 .pro-title-tx{animation:proGlow 3.2s ease-in-out infinite}
 @keyframes proGlow{0%,100%{text-shadow:0 0 22px rgba(167,139,250,.45)}50%{text-shadow:0 0 36px rgba(167,139,250,.85),0 0 66px rgba(167,139,250,.35)}}
-.pro-hero-sub{position:relative; z-index:1; font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(17px,2vw,23px); color:var(--mute-2); max-width:34ch; margin:0 auto 4px; line-height:1.45}
+.pro-hero-sub{position:relative; z-index:1; font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(17px,2vw,23px); color:var(--mute-2); max-width:600px; margin:0 auto 4px; line-height:1.45; text-wrap:balance}
 /* capability ticker */
 .pro-ticker{position:relative; z-index:1; max-width:980px; margin:26px auto 30px; overflow:hidden; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); padding:11px 0;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
@@ -267,6 +267,8 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       <div class="mkt-grid" id="mkt-grid"></div>
       <div class="cat-head"><h3>Browse by category</h3><a href="/markets/" class="cat-all">All categories →</a></div>
       <div class="cat-grid" id="cat-grid"></div>
+      <div class="cat-head"><h3>Browse by firm</h3><a href="/firm/" class="cat-all">All firms →</a></div>
+      <div class="cat-grid" id="firm-grid"></div>
     </div>
   </section>
 
@@ -382,6 +384,21 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       var data=await res.json(); var types=(data.types||[]).filter(function(t){return t&&t.label;});
       if(!types.length){ hide(); return; }
       grid.innerHTML=types.slice(0,6).map(categoryCardHtml).join('');
+    }catch(e){ hide(); }
+  })();
+  function firmCardHtml(t){
+    var count=(typeof t.count==='number')?t.count:Number((String(t.count||'').match(/\d+/)||[0])[0]||0);
+    return '<a class="cat-card" href="'+escapeAttr(t.url)+'"><div class="cat-eye">'+escapeHtml(t.eyebrow||'Firm')+'</div>'+
+      '<h3 class="cat-name">'+escapeHtml(t.label)+'</h3>'+(count?'<span class="cat-count">'+count+' project'+(count===1?'':'s')+' →</span>':'')+'</a>';
+  }
+  (async function loadBrowseByFirm(){
+    var grid=document.getElementById('firm-grid'); if(!grid) return; var head=grid.previousElementSibling;
+    function hide(){ grid.style.display='none'; if(head&&head.classList&&head.classList.contains('cat-head')) head.style.display='none'; }
+    try{
+      var res=await fetch('/featured-firms.json',{cache:'no-store'}); if(!res.ok) throw 0;
+      var data=await res.json(); var firms=(data.firms||[]).filter(function(f){return f&&f.label;});
+      if(!firms.length){ hide(); return; }
+      grid.innerHTML=firms.slice(0,6).map(firmCardHtml).join('');
     }catch(e){ hide(); }
   })();
 })();
