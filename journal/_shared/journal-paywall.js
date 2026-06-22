@@ -78,14 +78,15 @@
   var FEATURES = [
     'Unlock the Development Map &amp; Atlas',
     'Unlimited project exploration',
-    'Unlimited access to TMW intelligence',
-    'Live construction timelines and updates',
+    'Unlimited TMW Intelligence access',
+    'Live construction timelines &amp; updates',
     'Follow your favorite markets &amp; projects',
-    'Build and share project comparison sheets',
+    'Build &amp; share project comparison sheets',
     'Explore architect &amp; developer pages',
-    'Unlock account rewards and member status',
     'Unlimited article commenting',
-    'Unlock database suggestions'
+    'Suggest project edits (coming soon)',
+    'Openings Tracker &amp; Watchlist',
+    'Founder member status, number &amp; rewards'
   ];
 
   function build() {
