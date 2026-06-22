@@ -627,6 +627,15 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .gg.give li .gg-dot{background:#D50032; box-shadow:0 0 8px rgba(213,0,50,.6)}
 .gg.get li .gg-dot{background:var(--green); box-shadow:0 0 8px rgba(31,223,103,.6)}
 @media(max-width:760px){.giveget{grid-template-columns:1fr}}
+
+/* TMW Pro video embed (from /pro) */
+.videoWrap{position:relative; width:100%; max-width:920px; margin:0 auto; aspect-ratio:16/9; border-radius:18px; overflow:hidden; border:1px solid var(--hair); box-shadow:0 30px 80px rgba(0,0,0,.6); background:#0c0c0e}
+.videoWrap video{width:100%; height:100%; object-fit:cover; display:block}
+.vidbtn{position:absolute; right:16px; bottom:16px; z-index:2; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:rgba(8,8,10,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 16px rgba(0,0,0,.4); transition:background .15s, transform .05s}
+.vidbtn:hover{background:rgba(8,8,10,.82)}
+.vidbtn:active{transform:scale(.94)}
+.vidbtn svg{width:18px; height:18px; display:block; fill:#fff}
+.vidbtn svg[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -717,6 +726,15 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="eyebrow reveal">The Network</div>
       <h2 class="reveal d1">A powerhouse<br class="m-br"> <span class="nowrap">news network</span><br>for what's next</h2>
       <p class="lede reveal d2">A reach snapshot across <span class="hl-gold">every outlet</span> &mdash;<br class="m-br"> the audience, the engagement, and<br class="m-br"> the markets where it all lands.</p>
+    </div>
+    <div class="videoWrap reveal" style="margin:42px auto 6px">
+      <video id="proVid" autoplay loop playsinline preload="auto">
+        <source src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0cf8086d3bb-Introducing_TMWPro_Desktop.mp4" type="video/mp4">
+      </video>
+      <button class="vidbtn" id="playPause" type="button" aria-label="Pause">
+        <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+        <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true" hidden><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
+      </button>
     </div>
     <div class="headstats">
       <div class="statcard glass reveal d1"><div class="num">8.1M</div><div class="lab">Monthly social views</div></div>
@@ -1415,6 +1433,18 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
       setTimeout(function(){ el.classList.remove('flip'); },460);
     },2200);
   }
+})();
+</script>
+<script>
+(function(){
+  var v=document.getElementById('proVid'), pp=document.getElementById('playPause');
+  var icPause=pp?pp.querySelector('.ic-pause'):null, icPlay=pp?pp.querySelector('.ic-play'):null;
+  function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.hidden=!playing; if(icPlay)icPlay.hidden=playing; pp.setAttribute('aria-label',playing?'Pause':'Play'); }
+  function tryPlay(){ if(!v)return; v.muted=false; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } }
+  if(v){ tryPlay(); v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); syncIcon(); }
+  function firstSound(){ if(v&&v.muted){ v.muted=false; v.play().catch(function(){}); } document.removeEventListener('click',firstSound); document.removeEventListener('touchstart',firstSound); }
+  document.addEventListener('click',firstSound); document.addEventListener('touchstart',firstSound,{passive:true});
+  if(pp) pp.addEventListener('click', function(e){ e.stopPropagation(); if(v.paused){ v.muted=false; v.play().catch(function(){}); } else { v.pause(); } });
 })();
 </script>
 </body>
