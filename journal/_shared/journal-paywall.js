@@ -12,8 +12,8 @@
 (function () {
   if (window.tmwShowPaywall) return;                 // singleton
 
-  var PRICE_ID_MONTHLY = 'prc_monthly-86u0uyc';
-  var PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
+  var PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
+  var PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
 
   function ms() { return window.$memberstackDom; }
@@ -49,6 +49,7 @@
       '.paywall-plan-price{font-size:26px; font-weight:700; line-height:1; margin-bottom:4px}',
       '.paywall-plan-per{font-size:13px; font-weight:500; color:rgba(255,255,255,.45); margin-left:2px}',
       '.paywall-plan-note{font-size:11px; color:rgba(255,255,255,.5)}',
+      '.paywall-trial-note{font-size:11.5px; line-height:1.5; color:rgba(255,255,255,.5); margin:0 0 16px; max-width:340px; margin-left:auto; margin-right:auto}',
       '.paywall-features{display:flex; flex-direction:column; gap:8px; padding:14px 0; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:14px}',
       '.paywall-feature{display:flex; align-items:center; gap:9px; font-size:12px; color:rgba(255,255,255,.7); text-align:left}',
       '.paywall-feature svg{flex-shrink:0}',
@@ -89,21 +90,22 @@
       '<div class="paywall-card">' +
         '<button class="paywall-close" type="button" aria-label="Close">&times;</button>' +
         '<div class="paywall-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
-        '<h2 class="paywall-title">Unlock TMW Pro</h2>' +
-        '<p class="paywall-subtitle">One subscription unlocks the full Map of Tomorrow, intelligence, and every project behind the journal.</p>' +
+        '<h2 class="paywall-title">Try TMW Pro free for 2 weeks</h2>' +
+        '<p class="paywall-subtitle">Full access to the Map of Tomorrow, the Atlas, TMW Intelligence, and every project behind the journal — free for 14 days, then it’s just:</p>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
             '<div class="paywall-plan-name">Annual</div>' +
             '<div class="paywall-plan-price">$90<span class="paywall-plan-per">/year</span></div>' +
-            '<div class="paywall-plan-note">Just $7.50/month &middot; save 17%</div>' +
+            '<div class="paywall-plan-note">$7.50/month &middot; save 17% &middot; 14 days free</div>' +
           '</button>' +
           '<button class="paywall-plan paywall-plan-monthly" data-price-id="' + PRICE_ID_MONTHLY + '">' +
             '<div class="paywall-plan-name">Monthly</div>' +
             '<div class="paywall-plan-price">$9<span class="paywall-plan-per">/month</span></div>' +
-            '<div class="paywall-plan-note">Cancel anytime</div>' +
+            '<div class="paywall-plan-note">14 days free</div>' +
           '</button>' +
         '</div>' +
+        '<div class="paywall-trial-note">Pick a plan to start your free trial. It auto-renews at the price above when the 14 days end &middot; cancel anytime &middot; no refunds.</div>' +
         '<div class="paywall-features">' +
           FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +
@@ -144,16 +146,16 @@
     var titleEl = modal.querySelector('.paywall-title');
     var subEl = modal.querySelector('.paywall-subtitle');
     var map = {
-      'atlas': ['Unlock the full Atlas', 'You’ve reached the end of your free preview. The Atlas — every tracked project on one canvas — is a Pro feature. Subscribe to keep exploring.'],
-      'feature:intelligence': ['TMW Intelligence', 'Completion forecasts and the comparable-project engine are a Pro feature. Upgrade to unlock intelligence on every development.'],
-      'feature:watchlist': ['Start your watchlist', 'Watching projects is a Pro feature. Track the firms and projects you follow and get pinged when they move.'],
-      'feature:compare': ['Build your comparison', 'Side-by-side comparisons are a Pro feature. Stack any projects together across cities.'],
-      'feature:pulse': ['Live Pulse feed', 'The live feed of every new project and milestone is a Pro feature. Upgrade to follow the market in real time.']
+      'atlas': ['The full Atlas is a Pro feature', 'Every tracked project on one canvas. Start your free 2-week trial to explore the whole Atlas.'],
+      'feature:intelligence': ['TMW Intelligence is a Pro feature', 'Completion forecasts and the comparable-project engine. Start your free 2-week trial to unlock intelligence on every development.'],
+      'feature:watchlist': ['Watchlists are a Pro feature', 'Track the firms and projects you follow and get pinged when they move. Start your free 2-week trial.'],
+      'feature:compare': ['Comparisons are a Pro feature', 'Stack any projects side by side across cities. Start your free 2-week trial.'],
+      'feature:pulse': ['The live Pulse feed is a Pro feature', 'Follow every new project and milestone in real time. Start your free 2-week trial.']
     };
     if (titleEl && subEl) {
       var c = map[ctx];
       if (c) { titleEl.textContent = c[0]; subEl.textContent = c[1]; }
-      else { titleEl.textContent = 'Unlock TMW Pro'; subEl.textContent = 'One subscription unlocks the full Map of Tomorrow, intelligence, and every project behind the journal.'; }
+      else { titleEl.textContent = 'Try TMW Pro free for 2 weeks'; subEl.textContent = 'Full access to the Map of Tomorrow, the Atlas, TMW Intelligence, and every project behind the journal — free for 14 days.'; }
     }
     if (window.gtag) gtag('event', 'paywall_shown', { 'trigger': ctx || 'go-pro', 'surface': 'journal' });
   }
