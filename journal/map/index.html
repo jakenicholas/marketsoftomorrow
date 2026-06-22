@@ -5848,11 +5848,19 @@
     color: rgba(255,255,255,0.45);
   }
   .paywall-signin a {
-    color: #1FDF67;
+    color: #C4B5FD;
     text-decoration: none;
     font-weight: 600;
   }
   .paywall-signin a:hover { text-decoration: underline; }
+  /* Collapsible trial-terms disclosure (purple "See our terms" toggle). */
+  .paywall-terms { margin: 0 auto 16px; max-width: 360px; text-align: center; }
+  .paywall-terms summary { list-style: none; cursor: pointer; font-size: 12px; font-weight: 600; color: #C4B5FD; display: inline-flex; align-items: center; gap: 5px; user-select: none; }
+  .paywall-terms summary::-webkit-details-marker { display: none; }
+  .paywall-terms-arrow { font-size: 9px; transition: transform .2s; opacity: .85; }
+  .paywall-terms[open] .paywall-terms-arrow { transform: rotate(180deg); }
+  .paywall-terms-body { font-size: 11.5px; line-height: 1.5; color: rgba(255,255,255,0.5); margin-top: 10px; }
+  .paywall-terms-body a { color: #C4B5FD; text-decoration: underline; font-weight: 600; }
 
   /* Big green primary CTA used on the email signup wall */
   .paywall-cta-primary {
@@ -18924,7 +18932,10 @@
                 <div class="paywall-plan-note">14 days free</div>
               </button>
             </div>
-            <div class="paywall-subtitle" style="font-size:11.5px; opacity:.7; margin:2px 0 14px; line-height:1.5;">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener" style="color:rgba(255,255,255,.85); text-decoration:underline;">See our Terms</a>.</div>
+            <details class="paywall-terms">
+              <summary>See our terms<span class="paywall-terms-arrow">&#9662;</span></summary>
+              <div class="paywall-terms-body">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener">See our full terms</a>.</div>
+            </details>
             <div class="paywall-features">
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlock the Development Map &amp; Atlas</div>
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlimited project exploration</div>

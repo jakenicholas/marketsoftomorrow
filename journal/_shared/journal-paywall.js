@@ -51,7 +51,13 @@
       '.paywall-plan-price{font-size:26px; font-weight:700; line-height:1; margin-bottom:4px}',
       '.paywall-plan-per{font-size:13px; font-weight:500; color:rgba(255,255,255,.45); margin-left:2px}',
       '.paywall-plan-note{font-size:11px; color:rgba(255,255,255,.5)}',
-      '.paywall-trial-note{font-size:11.5px; line-height:1.5; color:rgba(255,255,255,.5); margin:0 0 16px; max-width:340px; margin-left:auto; margin-right:auto}',
+      '.paywall-terms{margin:0 auto 16px; max-width:360px; text-align:center}',
+      '.paywall-terms summary{list-style:none; cursor:pointer; font-size:12px; font-weight:600; color:#C4B5FD; display:inline-flex; align-items:center; gap:5px; user-select:none}',
+      '.paywall-terms summary::-webkit-details-marker{display:none}',
+      '.paywall-terms-arrow{font-size:9px; transition:transform .2s; opacity:.85}',
+      '.paywall-terms[open] .paywall-terms-arrow{transform:rotate(180deg)}',
+      '.paywall-terms-body{font-size:11.5px; line-height:1.5; color:rgba(255,255,255,.5); margin-top:10px}',
+      '.paywall-terms-body a{color:#C4B5FD; text-decoration:underline; font-weight:600}',
       '.paywall-features{display:flex; flex-direction:column; gap:8px; padding:14px 0; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:14px}',
       '.paywall-feature{display:flex; align-items:center; gap:9px; font-size:12px; color:rgba(255,255,255,.7); text-align:left}',
       '.paywall-feature svg{flex-shrink:0}',
@@ -61,7 +67,7 @@
       '.paywall-founding-eyebrow{font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#FFD300}',
       '.paywall-founding-body{font-size:12px; font-weight:500; color:rgba(255,255,255,.78); line-height:1.4}',
       '.paywall-signin{font-size:12px; color:rgba(255,255,255,.45)}',
-      '.paywall-signin a{color:#1FDF67; text-decoration:none; font-weight:600}',
+      '.paywall-signin a{color:#C4B5FD; text-decoration:none; font-weight:600}',
       '.paywall-signin a:hover{text-decoration:underline}',
       '@media(max-width:480px){.paywall-card{padding:24px 18px 18px; max-width:100%} .paywall-title{font-size:19px} .paywall-plan-price{font-size:22px}}'
     ].join('\n');
@@ -110,7 +116,10 @@
             '<div class="paywall-plan-note">14 days free</div>' +
           '</button>' +
         '</div>' +
-        '<div class="paywall-trial-note">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener" style="color:rgba(255,255,255,.72); text-decoration:underline;">See our Terms</a>.</div>' +
+        '<details class="paywall-terms">' +
+          '<summary>See our terms<span class="paywall-terms-arrow">&#9662;</span></summary>' +
+          '<div class="paywall-terms-body">Your 14-day trial is free — we securely save your card now but do not charge it during the trial. When the trial ends, your plan auto-renews at the price above and renews automatically each period until you cancel. Cancel anytime in your account settings; cancel before the trial ends and you are not charged. All payments are non-refundable, including partial periods. <a href="/terms/" target="_blank" rel="noopener">See our full terms</a>.</div>' +
+        '</details>' +
         '<div class="paywall-features">' +
           FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +
