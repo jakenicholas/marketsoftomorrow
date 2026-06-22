@@ -12,8 +12,8 @@
 (function () {
   if (window.tmwShowPaywall) return;                 // singleton
 
-  var PRICE_ID_MONTHLY = 'prc_monthly-86u0uyc';
-  var PRICE_ID_ANNUAL  = 'prc_annual-9i2e0eab';
+  var PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
+  var PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
 
   function ms() { return window.$memberstackDom; }
