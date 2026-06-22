@@ -48,13 +48,14 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pro-hex{flex:0 0 auto; width:46px; height:46px}
 .pro-hex svg{width:100%; height:100%; display:block; overflow:visible}
 .pro-title-tx{font-family:var(--sans); font-weight:700; font-size:clamp(32px,4.6vw,50px); line-height:1; letter-spacing:-.02em; color:#fff; text-shadow:0 0 26px rgba(167,139,250,.55)}
-.videoWrap{position:relative; width:100%; max-width:920px; margin:0 auto; aspect-ratio:16/9; border-radius:18px; overflow:hidden; border:1px solid var(--hair); box-shadow:0 30px 80px rgba(0,0,0,.6); background:#0c0c0e}
+.videoWrap{position:relative; width:100%; max-width:none; margin:0 auto; aspect-ratio:16/10.2; border-radius:18px; overflow:hidden; border:1px solid var(--hair); box-shadow:0 30px 80px rgba(0,0,0,.6); background:#0c0c0e}
 .videoWrap video{width:100%; height:100%; object-fit:cover; display:block}
 .vidbtn{position:absolute; right:16px; bottom:16px; z-index:2; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:rgba(8,8,10,.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 16px rgba(0,0,0,.4); transition:background .15s, transform .05s}
 .vidbtn:hover{background:rgba(8,8,10,.82)}
 .vidbtn:active{transform:scale(.94)}
 .vidbtn svg{width:18px; height:18px; display:block; fill:#fff}
 .vidbtn svg[hidden]{display:none}
+.vidbtn-mute{right:66px}
 .pro-copy{max-width:660px; margin:30px auto 0; text-align:center}
 .pro-copy .lead{font-family:var(--serif); font-size:22px; font-weight:500; color:#fff; margin:0 0 16px}
 .pro-copy p{font-size:16px; line-height:1.7; color:var(--mute-2); margin:0 0 15px}
@@ -65,7 +66,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 /* ── social-proof stats (from /media) ──────────────────────────────── */
 .proof{position:relative; z-index:1; padding:46px 0 10px}
 .proof-eyebrow{text-align:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); margin-bottom:22px}
-.proof-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:920px; margin:0 auto}
+.proof-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:none; margin:0 auto}
 .proof-stat{text-align:center; border:1px solid var(--hair); border-radius:14px; background:rgba(255,255,255,.02); padding:24px 16px}
 .proof-stat .pn{font-family:var(--serif); font-weight:600; font-size:clamp(26px,3vw,40px); color:var(--green-soft); letter-spacing:-.02em; line-height:1}
 .proof-stat .pl{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); margin-top:11px; line-height:1.4}
@@ -159,6 +160,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       <video id="proVid" autoplay loop playsinline preload="auto">
         <source src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0cf8086d3bb-Introducing_TMWPro_Desktop.mp4" type="video/mp4">
       </video>
+      <button class="vidbtn vidbtn-mute" id="muteBtn" type="button" aria-label="Unmute"><svg class="ic-soundon" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"></path></svg><svg class="ic-soundoff" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><line x1="16.5" y1="9.5" x2="21.5" y2="14.5" stroke="#fff" stroke-width="2" stroke-linecap="round"></line><line x1="21.5" y1="9.5" x2="16.5" y2="14.5" stroke="#fff" stroke-width="2" stroke-linecap="round"></line></svg></button>
       <button class="vidbtn" id="playPause" type="button" aria-label="Pause">
         <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
         <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true" hidden><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
@@ -252,9 +254,17 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
   function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.hidden=!playing; if(icPlay)icPlay.hidden=playing; pp.setAttribute('aria-label',playing?'Pause':'Play'); }
   function tryPlay(){ if(!v)return; v.muted=false; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } }
   if(v){ tryPlay(); v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); syncIcon(); }
-  function firstSound(){ if(v&&v.muted){ v.muted=false; v.play().catch(function(){}); } document.removeEventListener('click',firstSound); document.removeEventListener('touchstart',firstSound); }
+  var audioLocked=false;
+  function firstSound(){ if(!audioLocked&&v&&v.muted){ v.muted=false; v.play().catch(function(){}); } document.removeEventListener('click',firstSound); document.removeEventListener('touchstart',firstSound); }
   document.addEventListener('click',firstSound); document.addEventListener('touchstart',firstSound,{passive:true});
   if(pp) pp.addEventListener('click', function(e){ e.stopPropagation(); if(v.paused){ v.muted=false; v.play().catch(function(){}); } else { v.pause(); } });
+  var mb=document.getElementById('muteBtn');
+  var icOn=mb?mb.querySelector('.ic-soundon'):null, icOff=mb?mb.querySelector('.ic-soundoff'):null;
+  function syncMute(){ if(!mb||!v)return; if(icOn)icOn.hidden=v.muted; if(icOff)icOff.hidden=!v.muted; mb.setAttribute('aria-label',v.muted?'Unmute':'Mute'); }
+  function unmuteVid(){ if(audioLocked||!v)return; v.muted=false; var pr=v.play(); if(pr&&pr.catch){ pr.catch(function(){ v.muted=true; v.play().catch(function(){}); }); } syncMute(); }
+  if(v){ v.addEventListener('volumechange',syncMute); syncMute(); }
+  if(mb) mb.addEventListener('click', function(e){ e.stopPropagation(); audioLocked=true; v.muted=!v.muted; if(!v.muted){ v.play().catch(function(){}); } syncMute(); });
+  if(v && 'IntersectionObserver' in window){ var vio=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting && en.intersectionRatio>=.5) unmuteVid(); }); },{threshold:[0,.5,1]}); vio.observe(v); }
 
   /* ---- Go Pro ---- */
   function goPro(){
