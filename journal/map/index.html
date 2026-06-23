@@ -13606,17 +13606,43 @@
         let featLabels = [];
         function shortName(name){
           name = String(name||'').trim();
-          if (name.length <= 20) return name;
-          let cut = name.slice(0, 20);
-          const sp = cut.lastIndexOf(' ');
-          if (sp > 6) cut = cut.slice(0, sp);
-          return cut;
+          // Cut at the first comma — the lead-in is the brand: "Naples Beach
+          // Club, A Four Seasons Resort" -> "Naples Beach Club".
+          const comma = name.indexOf(',');
+          if (comma > 2) name = name.slice(0, comma).trim();
+          if (name.length > 20) {
+            let cut = name.slice(0, 20);
+            const sp = cut.lastIndexOf(' ');
+            if (sp > 6) cut = cut.slice(0, sp);
+            name = cut;
+          }
+          // Strip any leftover trailing punctuation/symbols (commas, dashes, &…).
+          return name.replace(/[\s,.;:!?&/\\-]+$/g, '');
         }
         function refreshFeatLabels(){
-          const show = map.getZoom() >= 5;
+          const z = map.getZoom();
           const selSlug = (window._selectedPinTitle && window.projectSlugify) ? window.projectSlugify(window._selectedPinTitle) : '';
-          featLabels.forEach(m=>{ const el = m.getElement(); const sel = selSlug && el.dataset.slug === selSlug;
-            el.style.display = (show && !sel) ? '' : 'none'; });
+          // Hard floor: never label at world/continental view.
+          if (z < 4) { featLabels.forEach(m=>{ m.getElement().style.display = 'none'; }); return; }
+          // Greedy de-collision: a label shows only if its pill box doesn't
+          // overlap one already shown. Stacked labels stay hidden until you zoom
+          // in enough to separate them; an isolated project labels right away.
+          // Sorted north→south so the winner of a cluster is stable.
+          const cw = map.getContainer().clientWidth, ch = map.getContainer().clientHeight;
+          const placed = [];
+          const ordered = featLabels.slice().sort((a,b)=> b.getLngLat().lat - a.getLngLat().lat);
+          ordered.forEach(m=>{
+            const el = m.getElement();
+            if (selSlug && el.dataset.slug === selSlug) { el.style.display = 'none'; return; }
+            const pt = map.project(m.getLngLat());
+            if (pt.x < -80 || pt.x > cw + 80 || pt.y < -40 || pt.y > ch + 80) { el.style.display = 'none'; return; }
+            const w = (el.textContent.length * 7) + 22, h = 26;
+            const cx = pt.x, bottom = pt.y - 13;            // pill sits above the point
+            const r = { l: cx - w/2, rt: cx + w/2, t: bottom - h, b: bottom };
+            const hit = placed.some(p => !(r.rt < p.l || r.l > p.rt || r.b < p.t || r.t > p.b));
+            if (hit) { el.style.display = 'none'; }
+            else { el.style.display = ''; placed.push(r); }
+          });
         }
         window._refreshFeatLabels = refreshFeatLabels;
         function buildFeaturedLabels(){
@@ -13636,6 +13662,7 @@
           refreshFeatLabels();
         }
         map.on('zoom', refreshFeatLabels);
+        map.on('move', refreshFeatLabels);
 
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
