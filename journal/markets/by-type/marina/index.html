@@ -137,7 +137,10 @@
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
     .card-v-ico { width:14px; height:14px; display:inline-block; }
-    .card-v-ico svg { width:100%; height:100%; }
+    /* Spinning TMW Intelligence hexagon — identical to the individual project pages. */
+    .card-v-ico svg { width:100%; height:100%; transform-origin:50% 50%; animation: cardVSpin 4.2s cubic-bezier(.16,1,.3,1) infinite; }
+    @keyframes cardVSpin { 0% { transform: rotate(0deg); } 55% { transform: rotate(810deg); } 70% { transform: rotate(900deg); } 100% { transform: rotate(1080deg); } }
+    @media (prefers-reduced-motion: reduce) { .card-v-ico svg { animation: none; } }
 
     /* Construction timeline (ported verbatim from generate_pages.py's
        project page hero panel — same look, same data) */
@@ -376,7 +379,7 @@
         <div class="card-title">Jack&#x27;s Bay Club &amp; Resort</div>
         <div class="card-loc">Bahamas</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -398,7 +401,7 @@
         <div class="card-title">Olara</div>
         <div class="card-loc">West Palm Beach · North Flagler Drive</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -420,7 +423,7 @@
         <div class="card-title">Amancaya</div>
         <div class="card-loc">Bahamas · Exumas</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -442,7 +445,7 @@
         <div class="card-title">Baccarat Residences Miami</div>
         <div class="card-loc">Miami · Brickell</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -464,7 +467,7 @@
         <div class="card-title">Banyan Tree Bimini</div>
         <div class="card-loc">Bahamas</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -486,7 +489,7 @@
         <div class="card-title">Continuum Waterfront District</div>
         <div class="card-loc">Miami</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -511,7 +514,7 @@
         <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
         <div class="card-loc">Caye Chapel · Caye Chapel (private island)</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -533,7 +536,7 @@
         <div class="card-title">Marina Village</div>
         <div class="card-loc">Riviera Beach · Marina District</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -555,7 +558,7 @@
         <div class="card-title">Pendry Barbados</div>
         <div class="card-loc">Saint Peter · Saint Peter, Platinum Coast</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -577,7 +580,7 @@
         <div class="card-title">Ritz-Carlton Reserve at Cotton Bay</div>
         <div class="card-loc">Bahamas</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -599,7 +602,7 @@
         <div class="card-title">Riverside Wharf</div>
         <div class="card-loc">Miami · Miami River</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -621,7 +624,7 @@
         <div class="card-title">Rosewood Half Moon Bay Antigua</div>
         <div class="card-loc">Half Moon Bay</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -643,7 +646,7 @@
         <div class="card-title">Royal Caribbean: Terminal G</div>
         <div class="card-loc">Miami</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -665,7 +668,7 @@
         <div class="card-title">Six Senses Residences Belize</div>
         <div class="card-loc">Belize · Emerald Caye</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -687,7 +690,7 @@
         <div class="card-title">The Green at Abaco Club</div>
         <div class="card-loc">Bahamas · Winding Bay</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -709,7 +712,7 @@
         <div class="card-title">The Ocean Club, Four Seasons Residences</div>
         <div class="card-loc">Bahamas · Paradise Island</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -731,7 +734,7 @@
         <div class="card-title">The Waterfront Daniel Island</div>
         <div class="card-loc">Charleston · Daniel Island</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -753,7 +756,7 @@
         <div class="card-title">175 Third Street</div>
         <div class="card-loc">New York City</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -775,7 +778,7 @@
         <div class="card-title">Southbank Residences</div>
         <div class="card-loc">Jacksonville · Southbank</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -797,7 +800,7 @@
         <div class="card-title">9900 West</div>
         <div class="card-loc">Bay Harbor Islands · Bay Harbor Islands</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -819,7 +822,7 @@
         <div class="card-title">Amanvari</div>
         <div class="card-loc">Los Cabos · Costa Palmas</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 weeks to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -841,7 +844,7 @@
         <div class="card-title">La Baia North</div>
         <div class="card-loc">Bay Harbour Islands · Bay Harbor Islands</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -863,7 +866,7 @@
         <div class="card-title">Montage Cay</div>
         <div class="card-loc">The Abacos</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -885,7 +888,7 @@
         <div class="card-title">PORT 32 Palm Beach Gardens</div>
         <div class="card-loc">Palm Beach Gardens</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -907,7 +910,7 @@
         <div class="card-title">The Ritz-Carlton Residences, Naples</div>
         <div class="card-loc">Naples</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -929,7 +932,7 @@
         <div class="card-title">Continuum 12000</div>
         <div class="card-loc">Miami</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -951,7 +954,7 @@
         <div class="card-title">Continuum 12000 Sport &amp; Wellness Residences</div>
         <div class="card-loc">North Miami</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -973,7 +976,7 @@
         <div class="card-title">Equinox Resort Anguilla Port Nimara</div>
         <div class="card-loc">The Valley · West End</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -995,7 +998,7 @@
         <div class="card-title">Faena Residences Miami</div>
         <div class="card-loc">Miami · Faena District</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1017,7 +1020,7 @@
         <div class="card-title">Jungle Island</div>
         <div class="card-loc">Miami · Watson Island</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1039,7 +1042,7 @@
         <div class="card-title">Marina Pointe: Luna</div>
         <div class="card-loc">Tampa · Westshore Marina District</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1061,7 +1064,7 @@
         <div class="card-title">Singer Island Gateway</div>
         <div class="card-loc">Riviera Beach</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1083,7 +1086,7 @@
         <div class="card-title">The Ritz-Carlton Residences, Fort Lauderdale Beach</div>
         <div class="card-loc">Fort Lauderdale · Fort Lauderdale Beach</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1105,7 +1108,7 @@
         <div class="card-title">Vista Harbor Residences</div>
         <div class="card-loc">Miami · Miami River</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1127,7 +1130,7 @@
         <div class="card-title">Alba</div>
         <div class="card-loc">West Palm Beach · North End</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jun '26</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1149,7 +1152,7 @@
         <div class="card-title">AQUA at Westshore Yacht Club</div>
         <div class="card-loc">Tampa</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Apr '26</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1171,7 +1174,7 @@
         <div class="card-title">Briland Club Residences &amp; Marina</div>
         <div class="card-loc">Harbour Island</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl">
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1193,7 +1196,7 @@
         <div class="card-title">Costas Palmas</div>
         <div class="card-loc">Baja California Sur</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
