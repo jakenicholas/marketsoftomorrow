@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-hotel-florence/" aria-label="Open Baccarat Hotel Florence">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/56aa84b7086e-Villa-Camerata.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Baccarat Hotel Florence</div>
-      <div class="card-loc">Florence · Camerata</div>
+      <div class="card-head">
+        <div class="card-title">Baccarat Hotel Florence</div>
+        <div class="card-loc">Florence · Camerata</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-danieli/" aria-label="Open Four Seasons Hotel Danieli">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/52719725a5be-four-seasons-hotel-danieli.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Hotel Danieli</div>
-      <div class="card-loc">Venice · Castello</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Hotel Danieli</div>
+        <div class="card-loc">Venice · Castello</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-cristallo-cortina-d-ampezzo/" aria-label="Open Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/44b4c1e913d9-cristallo-inverno.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo</div>
-      <div class="card-loc">Cortina d&#x27;Ampezzo</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo</div>
+        <div class="card-loc">Cortina d&#x27;Ampezzo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-milan/" aria-label="Open Six Senses Milan">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/36e7e38b0584-six-senses-milan.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Milan</div>
-      <div class="card-loc">Milan · Brera</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Milan</div>
+        <div class="card-loc">Milan · Brera</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">New AS Roma Stadium</div>
-      <div class="card-loc">Rome · Pietralata</div>
+      <div class="card-head">
+        <div class="card-title">New AS Roma Stadium</div>
+        <div class="card-loc">Rome · Pietralata</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/new-san-siro-stadium/" aria-label="Open New San Siro Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">New San Siro Stadium</div>
-      <div class="card-loc">Milan · San Siro</div>
+      <div class="card-head">
+        <div class="card-title">New San Siro Stadium</div>
+        <div class="card-loc">Milan · San Siro</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/orient-express-palazzo-dona-giovannelli/" aria-label="Open Orient Express Palazzo Donà Giovannelli">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_698c0a209395443a984251a9aa1c5112~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Orient Express Palazzo Donà Giovannelli</div>
-      <div class="card-loc">Venice · Cannaregio</div>
+      <div class="card-head">
+        <div class="card-title">Orient Express Palazzo Donà Giovannelli</div>
+        <div class="card-loc">Venice · Cannaregio</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Apr '26</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/villa-san-michele-a-belmond-hotel/" aria-label="Open Villa San Michele, A Belmond Hotel">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9d845fd47af0-vsm-ext13.avif')"></div>
     <div class="card-body">
-      <div class="card-title">Villa San Michele, A Belmond Hotel</div>
-      <div class="card-loc">Fiesole · Fiesole Hills</div>
+      <div class="card-head">
+        <div class="card-title">Villa San Michele, A Belmond Hotel</div>
+        <div class="card-loc">Fiesole · Fiesole Hills</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Apr '26</div>

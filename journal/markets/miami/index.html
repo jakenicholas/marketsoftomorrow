@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jem-private-residences/" aria-label="Open JEM Private Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">JEM Private Residences</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">JEM Private Residences</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-miami/" aria-label="Open Waldorf Astoria Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_db465c56627b46c9a24bc787827a74b6~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Waldorf Astoria Residences Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Waldorf Astoria Residences Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">19 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/delano-residences-miami/" aria-label="Open Delano Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6963674d06e24e22bda26aed8387ab7c~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Delano Residences Miami</div>
-      <div class="card-loc">Miami · Downtown</div>
+      <div class="card-head">
+        <div class="card-title">Delano Residences Miami</div>
+        <div class="card-loc">Miami · Downtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/frida-kahlo-wynwood-residences/" aria-label="Open Frida Kahlo Wynwood Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bf878d5c43544aa2a7a4bee39ac8c3c7~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Frida Kahlo Wynwood Residences</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">Frida Kahlo Wynwood Residences</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/1428-brickell/" aria-label="Open 1428 Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a8f10c9a6c3649b3b1abb94e65c2089e~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">1428 Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">1428 Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Baccarat Residences Miami</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Baccarat Residences Miami</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/botanic-residences-west-brickell/" aria-label="Open Botanic Residences West Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cde76b7e062a41449ac8da2ebec7d154~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Botanic Residences West Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Botanic Residences West Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cipriani-residences-brickell/" aria-label="Open Cipriani Residences Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4fdfff154ce144589c2accb9f37043e4~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Cipriani Residences Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Cipriani Residences Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">21 months to delivery</div>
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/citadel-hq/" aria-label="Open Citadel HQ">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4ae930613b1a466e8b72b88ff832c244~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Citadel HQ</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Citadel HQ</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Continuum Waterfront District</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Continuum Waterfront District</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cora-merrick-park/" aria-label="Open CORA Merrick Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c690770559c245a5ba2185ca04c337cc~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">CORA Merrick Park</div>
-      <div class="card-loc">Miami · Coral Gables</div>
+      <div class="card-head">
+        <div class="card-title">CORA Merrick Park</div>
+        <div class="card-loc">Miami · Coral Gables</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cove-miami/" aria-label="Open Cove Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a3d7b8c41584494db6c76c679d32b8be~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Cove Miami</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Cove Miami</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/domus-brickell-center/" aria-label="Open Domus Brickell Center">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_74a48aceb4984e7d9250c5fe5e7e1359~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Domus Brickell Center</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Domus Brickell Center</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/eden-residences/" aria-label="Open Eden Residences">
     <div class="card-img" style="background-image:url('https://residencesateden.com/images/EDEN/optimized/north-east-aerial-1440.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Eden Residences</div>
-      <div class="card-loc">Miami · Ojus</div>
+      <div class="card-head">
+        <div class="card-title">Eden Residences</div>
+        <div class="card-loc">Miami · Ojus</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/edge-house/" aria-label="Open Edge House">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c62cfbf42c54237940107a2b8c5ef7a~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Edge House</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Edge House</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -670,8 +705,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-coconut-grove/" aria-label="Open Four Seasons Private Residences Coconut Grove">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Private Residences Coconut Grove</div>
-      <div class="card-loc">Miami · Coconut Grove</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Private Residences Coconut Grove</div>
+        <div class="card-loc">Miami · Coconut Grove</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -690,8 +727,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hamilton-house/" aria-label="Open Hamilton House">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1f20e287bff64375b42be13b58669a74~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">Hamilton House</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Hamilton House</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -710,8 +749,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jean-georges-miami-tropic-residences/" aria-label="Open Jean-Georges Miami Tropic Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ca2288b16822401b8295bd0f1ddc9da5~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Jean-Georges Miami Tropic Residences</div>
-      <div class="card-loc">Miami · Midtown</div>
+      <div class="card-head">
+        <div class="card-title">Jean-Georges Miami Tropic Residences</div>
+        <div class="card-loc">Miami · Midtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -730,8 +771,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/lofty-brickell/" aria-label="Open Lofty Brickell">
     <div class="card-img" style="background-image:url('https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1')"></div>
     <div class="card-body">
-      <div class="card-title">Lofty Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Lofty Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">14 months to delivery</div>
@@ -750,8 +793,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/meli-residences-miami/" aria-label="Open Meliá Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_99b6a88af51340a897b77bc243027212~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Meliá Residences Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Meliá Residences Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -770,8 +815,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mercedes-benz-places/" aria-label="Open Mercedes-Benz Places">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ce77ecf781ee461196d5105d943060cb~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Mercedes-Benz Places</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Mercedes-Benz Places</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -790,8 +837,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/miami-signature-bridge/" aria-label="Open Miami Signature Bridge">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bec30a9bbb274a1289aa46838fdfc94d~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Miami Signature Bridge</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Miami Signature Bridge</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -810,8 +859,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mirai-design-district/" aria-label="Open MIRAI Design District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">MIRAI Design District</div>
-      <div class="card-loc">Miami · Design District</div>
+      <div class="card-head">
+        <div class="card-title">MIRAI Design District</div>
+        <div class="card-loc">Miami · Design District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -830,8 +881,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/okan-tower/" aria-label="Open Okan Tower">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Okan Tower</div>
-      <div class="card-loc">Miami · Park West</div>
+      <div class="card-head">
+        <div class="card-title">Okan Tower</div>
+        <div class="card-loc">Miami · Park West</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -850,8 +903,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-kane/" aria-label="Open One Kane">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c02a5accdb9c48e1b372df57617d044f~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">One Kane</div>
-      <div class="card-loc">Miami · Bay Harbor Islands</div>
+      <div class="card-head">
+        <div class="card-title">One Kane</div>
+        <div class="card-loc">Miami · Bay Harbor Islands</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -870,8 +925,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-twenty-brickell-residences/" aria-label="Open One Twenty Brickell Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c25890182ac6482b9ad0876c2a340d8b~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">One Twenty Brickell Residences</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">One Twenty Brickell Residences</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -890,8 +947,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-twenty-brickell-signature-residences/" aria-label="Open One Twenty Brickell Signature Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e1fcb37c4b4f49f5a74282c127da585d~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">One Twenty Brickell Signature Residences</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">One Twenty Brickell Signature Residences</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -910,8 +969,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-twelve-residences/" aria-label="Open One West Twelve Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3284a1eb3f3422e9fd2d5c0dc151716~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">One West Twelve Residences</div>
-      <div class="card-loc">Miami · Historic Overtown</div>
+      <div class="card-head">
+        <div class="card-title">One West Twelve Residences</div>
+        <div class="card-loc">Miami · Historic Overtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -930,8 +991,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/opus-coconut-grove/" aria-label="Open OPUS Coconut Grove">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_172fb84da52d4ff1a79fd8bd92e03bee~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">OPUS Coconut Grove</div>
-      <div class="card-loc">Miami · Coconut Grove</div>
+      <div class="card-head">
+        <div class="card-title">OPUS Coconut Grove</div>
+        <div class="card-loc">Miami · Coconut Grove</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -950,8 +1013,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Riverside Wharf</div>
-      <div class="card-loc">Miami · Miami River</div>
+      <div class="card-head">
+        <div class="card-title">Riverside Wharf</div>
+        <div class="card-loc">Miami · Miami River</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -970,8 +1035,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-terminal-g/" aria-label="Open Royal Caribbean: Terminal G">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef92003073747bf844ca602b1e8851d~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Royal Caribbean: Terminal G</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Royal Caribbean: Terminal G</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -990,8 +1057,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/santander-bank/" aria-label="Open Santander Bank">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7d6580526c354def8b36b285db7a8813~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Santander Bank</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Santander Bank</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1010,8 +1079,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/surf-row/" aria-label="Open Surf Row">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5a9e7dab017c46cd8c12690bb1c98a74~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Surf Row</div>
-      <div class="card-loc">Miami · Surfside</div>
+      <div class="card-head">
+        <div class="card-title">Surf Row</div>
+        <div class="card-loc">Miami · Surfside</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1030,8 +1101,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-lincoln/" aria-label="Open The Lincoln">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Lincoln</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">The Lincoln</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1050,8 +1123,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-rider-residences/" aria-label="Open The Rider Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3cc18b789443467883145bb23b49f90b~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Rider Residences</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">The Rider Residences</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1070,8 +1145,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-residences-miami/" aria-label="Open The St. Regis Residences, Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fada83e7bb294f09a9069f6b53379d7e~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The St. Regis Residences, Miami</div>
-      <div class="card-loc">Miami · South Brickell</div>
+      <div class="card-head">
+        <div class="card-title">The St. Regis Residences, Miami</div>
+        <div class="card-loc">Miami · South Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1090,8 +1167,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-standard-residences-brickell/" aria-label="Open The Standard Residences Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Standard Residences Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">The Standard Residences Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">14 months to delivery</div>
@@ -1110,8 +1189,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/twenty-sixth-2nd-wynwood-residences/" aria-label="Open Twenty Sixth &amp; 2nd Wynwood Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e0db6ee90db46b1a4d170504c4b6550~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Twenty Sixth &amp; 2nd Wynwood Residences</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">Twenty Sixth &amp; 2nd Wynwood Residences</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1130,8 +1211,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/villa-miami/" aria-label="Open Villa Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ecc0ff5838b04f60903c52223c33e93c~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Villa Miami</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Villa Miami</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1150,8 +1233,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/14-roc/" aria-label="Open 14 ROC">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9fff5f90025044f291fc2e67ccfdc23a~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">14 ROC</div>
-      <div class="card-loc">Miami · Arts &amp; Entertainment District</div>
+      <div class="card-head">
+        <div class="card-title">14 ROC</div>
+        <div class="card-loc">Miami · Arts &amp; Entertainment District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.4 yrs to delivery</div>
@@ -1170,8 +1255,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/" aria-label="Open 888 Brickell Miami by Dolce &amp; Gabana">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_45c7b4b2b48b43a28b34721f5194c4dc~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">888 Brickell Miami by Dolce &amp; Gabana</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">888 Brickell Miami by Dolce &amp; Gabana</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1190,8 +1277,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/pagani-residences/" aria-label="Open Pagani Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df4f403842df497ebe71f0ed16a6c74b~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Pagani Residences</div>
-      <div class="card-loc">Miami · North Bay Village</div>
+      <div class="card-head">
+        <div class="card-title">Pagani Residences</div>
+        <div class="card-loc">Miami · North Bay Village</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1210,8 +1299,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/parkside-residences/" aria-label="Open Parkside Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_778eff26f4b145ef9a3334fc6fe10366~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Parkside Residences</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Parkside Residences</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2 yrs to delivery</div>
@@ -1230,8 +1321,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/seventeen-gables/" aria-label="Open Seventeen Gables">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_50dffa92369741729f7e4ca1f0f764b7~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Seventeen Gables</div>
-      <div class="card-loc">Miami · Coral Gables</div>
+      <div class="card-head">
+        <div class="card-title">Seventeen Gables</div>
+        <div class="card-loc">Miami · Coral Gables</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1250,8 +1343,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-huehub/" aria-label="Open The HueHub">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_074beb3887014e9e9ec0d13020e46ba7~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The HueHub</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">The HueHub</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1270,8 +1365,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-mandarin-oriental-miami/" aria-label="Open The Residences at Mandarin Oriental, Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d90a5b424734738b12484bba93c8b75~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Residences at Mandarin Oriental, Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">The Residences at Mandarin Oriental, Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1290,8 +1387,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/2200-brickell/" aria-label="Open 2200 Brickell">
     <div class="card-img" style="background-image:url('https://2200brickell.com/wp-content/themes/b2200/images/gallery/building/4051_MIAMI_HERO_DAY_FINAL_Z_retouched.jpg?v=0309')"></div>
     <div class="card-body">
-      <div class="card-title">2200 Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">2200 Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
@@ -1310,8 +1409,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/aria-reserve/" aria-label="Open Aria Reserve">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Aria Reserve</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Aria Reserve</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1330,8 +1431,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/casa-bella-residences-miami/" aria-label="Open Casa Bella Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d69aa899f553416a8388e8e42f7f25cc~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Casa Bella Residences Miami</div>
-      <div class="card-loc">Miami · Arts &amp; Entertainment District</div>
+      <div class="card-head">
+        <div class="card-title">Casa Bella Residences Miami</div>
+        <div class="card-loc">Miami · Arts &amp; Entertainment District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivery Jun 2026</div>
@@ -1350,8 +1453,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/e11even-club-hotel-residences/" aria-label="Open E11EVEN® Club Hotel &amp; Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">E11EVEN® Club Hotel &amp; Residences</div>
-      <div class="card-loc">Miami · Park West</div>
+      <div class="card-head">
+        <div class="card-title">E11EVEN® Club Hotel &amp; Residences</div>
+        <div class="card-loc">Miami · Park West</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1370,8 +1475,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/roble-one-coconut-grove/" aria-label="Open Roble One Coconut Grove">
     <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/05/Untitled-216.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Roble One Coconut Grove</div>
-      <div class="card-loc">Miami · Coconut Grove</div>
+      <div class="card-head">
+        <div class="card-title">Roble One Coconut Grove</div>
+        <div class="card-loc">Miami · Coconut Grove</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1390,8 +1497,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-hq/" aria-label="Open Royal Caribbean HQ">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_dbfa85228d4b4aa4aa1028d4408c3e57~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Royal Caribbean HQ</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Royal Caribbean HQ</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1410,8 +1519,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/1040-s-miami/" aria-label="Open 1040 S Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ecfc039345c2468db88715025d198804~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">1040 S Miami</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">1040 S Miami</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1430,8 +1541,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/14501-w-dixie-highway/" aria-label="Open 14501 W. Dixie Highway">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cb7e4c6f75d6-Screenshot-2026-03-04-1757521.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">14501 W. Dixie Highway</div>
-      <div class="card-loc">Miami · Biscayne Gardens</div>
+      <div class="card-head">
+        <div class="card-title">14501 W. Dixie Highway</div>
+        <div class="card-loc">Miami · Biscayne Gardens</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl">
@@ -1450,8 +1563,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6768db8848214fdfa59d88fbb0d40fbe~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Anantara Miami Resort &amp; Residences</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">Anantara Miami Resort &amp; Residences</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1470,8 +1585,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/atelier-residences-miami/" aria-label="Open Atelier Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c566323ac694-Atelier-Residences-Miami.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Atelier Residences Miami</div>
-      <div class="card-loc">Miami · The Roads</div>
+      <div class="card-head">
+        <div class="card-title">Atelier Residences Miami</div>
+        <div class="card-loc">Miami · The Roads</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">17 months to delivery</div>
@@ -1490,8 +1607,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/colette-residences-by-meta-development/" aria-label="Open Colette Residences by META Development">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bb0e1d32db6f49fb9dbc8f943b598ffd~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Colette Residences by META Development</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Colette Residences by META Development</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1510,8 +1629,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000/" aria-label="Open Continuum 12000">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_03da05365f014e6b94e590aca30a0fd2~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Continuum 12000</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Continuum 12000</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1530,8 +1651,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/duos-wynwood/" aria-label="Open DUOS Wynwood">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_982a3cd602354384b88913fe85720bd2~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">DUOS Wynwood</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">DUOS Wynwood</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1550,8 +1673,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/edition-residences-miami-edgewater/" aria-label="Open EDITION Residences Miami Edgewater">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_946fd79216804afe95f8d69e5c8c6529~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">EDITION Residences Miami Edgewater</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">EDITION Residences Miami Edgewater</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1570,8 +1695,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/elle-residences/" aria-label="Open ELLE Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c69c0b092ac24b998b6fc62b0d021c6e~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">ELLE Residences</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">ELLE Residences</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1590,8 +1717,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/faena-residences-miami/" aria-label="Open Faena Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Faena Residences Miami</div>
-      <div class="card-loc">Miami · Faena District</div>
+      <div class="card-head">
+        <div class="card-title">Faena Residences Miami</div>
+        <div class="card-loc">Miami · Faena District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1610,8 +1739,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/fouquets-hotel-and-residences-miami-design-district/" aria-label="Open Fouquet’s Hotel and Residences, Miami Design District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16db3af6c75946ff85e5ff8ba74624a1~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Fouquet’s Hotel and Residences, Miami Design District</div>
-      <div class="card-loc">Miami · Design District</div>
+      <div class="card-head">
+        <div class="card-title">Fouquet’s Hotel and Residences, Miami Design District</div>
+        <div class="card-loc">Miami · Design District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1630,8 +1761,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/highland-park-miami/" aria-label="Open Highland Park Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b7663f0d97c6-Highland_Park_mAster-Plan.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Highland Park Miami</div>
-      <div class="card-loc">Miami · Health District</div>
+      <div class="card-head">
+        <div class="card-title">Highland Park Miami</div>
+        <div class="card-loc">Miami · Health District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -1650,8 +1783,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hilton-miami-airport-blue-lagoon-expansion/" aria-label="Open Hilton Miami Airport Blue Lagoon Expansion">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0c6af632f5f2-Screenshot-2026-06-07-at-10.29.04-PM.png')"></div>
     <div class="card-body">
-      <div class="card-title">Hilton Miami Airport Blue Lagoon Expansion</div>
-      <div class="card-loc">Miami · Blue Lagoon</div>
+      <div class="card-head">
+        <div class="card-title">Hilton Miami Airport Blue Lagoon Expansion</div>
+        <div class="card-loc">Miami · Blue Lagoon</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -1670,8 +1805,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/house-by-shigeru-ban/" aria-label="Open House by Shigeru Ban">
     <div class="card-img" style="background-image:url('https://www.odparchitects.com/wp-content/uploads/2025/06/ODP-House-by-Shigeru-Ban01.webp')"></div>
     <div class="card-body">
-      <div class="card-title">House by Shigeru Ban</div>
-      <div class="card-loc">Miami · Design District</div>
+      <div class="card-head">
+        <div class="card-title">House by Shigeru Ban</div>
+        <div class="card-loc">Miami · Design District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1690,8 +1827,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/house-of-wellness-brickell/" aria-label="Open House of Wellness Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2d141d8759b845a1bb69a4b2f1c1bf8c~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">House of Wellness Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">House of Wellness Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1710,8 +1849,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hq-residences-miami/" aria-label="Open HQ Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64160581bc9a4d7d9260e046994899c3~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">HQ Residences Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">HQ Residences Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1730,8 +1871,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Jungle Island</div>
-      <div class="card-loc">Miami · Watson Island</div>
+      <div class="card-head">
+        <div class="card-title">Jungle Island</div>
+        <div class="card-loc">Miami · Watson Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1750,8 +1893,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/kempinksi-residences/" aria-label="Open Kempinski Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef26494bd731474d8dbbdfc73bcd01f8~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Kempinski Residences</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Kempinski Residences</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1770,8 +1915,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/lilli/" aria-label="Open LILLI">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0aa34745c6d349ed8a186c89ea8631b6~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">LILLI</div>
-      <div class="card-loc">Miami · Edgewater</div>
+      <div class="card-head">
+        <div class="card-title">LILLI</div>
+        <div class="card-loc">Miami · Edgewater</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1790,8 +1937,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/livwrk-towers/" aria-label="Open LivWrk Towers">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5797c254fa264631ae76d61cf3ab5f1e~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">LivWrk Towers</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">LivWrk Towers</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -1810,8 +1959,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/magic-city-innovation-district/" aria-label="Open Magic City Innovation District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cb1319d71147-69df69f06000690c4d99a3cc_CityFull.avif')"></div>
     <div class="card-body">
-      <div class="card-title">Magic City Innovation District</div>
-      <div class="card-loc">Miami · Little Haiti</div>
+      <div class="card-head">
+        <div class="card-title">Magic City Innovation District</div>
+        <div class="card-loc">Miami · Little Haiti</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl">
@@ -1830,8 +1981,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/miami-international-airport-expansion/" aria-label="Open Miami International Airport (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ee1917fd40664a51b3207ee076e35cf3~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Miami International Airport (Expansion)</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Miami International Airport (Expansion)</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1850,8 +2003,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/midtown-park/" aria-label="Open Midtown Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0dc8e50ab8d344e18c9cdfdc95b9e451~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Midtown Park</div>
-      <div class="card-loc">Miami · Midtown</div>
+      <div class="card-head">
+        <div class="card-title">Midtown Park</div>
+        <div class="card-loc">Miami · Midtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1870,8 +2025,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nobu-residences-miami/" aria-label="Open Nobu Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a7f0f2b45b04161bcc7f58d0257de04~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Nobu Residences Miami</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Nobu Residences Miami</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1890,8 +2047,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ora-by-casa-tua/" aria-label="Open Ora by Casa Tua">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8e37ac2332b423f9d3b648bdb24bb01~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Ora by Casa Tua</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Ora by Casa Tua</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1910,8 +2069,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/palm-tree-residences-miami/" aria-label="Open Palm Tree Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Palm Tree Residences Miami</div>
-      <div class="card-loc">Miami · Park West</div>
+      <div class="card-head">
+        <div class="card-title">Palm Tree Residences Miami</div>
+        <div class="card-loc">Miami · Park West</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1930,8 +2091,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/seven-broadway/" aria-label="Open Seven Broadway">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_db9553c66fec42838cb24f0ef7bdea70~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Seven Broadway</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Seven Broadway</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1950,8 +2113,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/summit-brickell/" aria-label="Open Summit Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f9f8a4f9a3594d728f5729c27d6cffb9~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">Summit Brickell</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Summit Brickell</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1970,8 +2135,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-boxer/" aria-label="Open The Boxer">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bf484e3a4fee-Screenshot-2026-06-22-at-5.09.43-PM.png')"></div>
     <div class="card-body">
-      <div class="card-title">The Boxer</div>
-      <div class="card-loc">Miami · Wynwood</div>
+      <div class="card-head">
+        <div class="card-title">The Boxer</div>
+        <div class="card-loc">Miami · Wynwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -1990,8 +2157,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-claude-pepper/" aria-label="Open The Residences Claude Pepper">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4420e8fccb3f-aerial-3-2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Residences Claude Pepper</div>
-      <div class="card-loc">Miami · Allapattah</div>
+      <div class="card-head">
+        <div class="card-title">The Residences Claude Pepper</div>
+        <div class="card-loc">Miami · Allapattah</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -2010,8 +2179,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/vista-harbor-residences/" aria-label="Open Vista Harbor Residences">
     <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2026/03/image-7.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Vista Harbor Residences</div>
-      <div class="card-loc">Miami · Miami River</div>
+      <div class="card-head">
+        <div class="card-title">Vista Harbor Residences</div>
+        <div class="card-loc">Miami · Miami River</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -2030,8 +2201,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/arbor-coconut-grove/" aria-label="Open Arbor Coconut Grove">
     <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/67aed68cd3194851e6e344b5/15822352-5aef-4cea-984f-8bf24777f1e4/Arbor+Hero+Day+Rendering.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Arbor Coconut Grove</div>
-      <div class="card-loc">Miami · Coconut Grove</div>
+      <div class="card-head">
+        <div class="card-title">Arbor Coconut Grove</div>
+        <div class="card-loc">Miami · Coconut Grove</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Mar '26</div>
@@ -2050,8 +2223,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/miami-worldcenter/" aria-label="Open Miami Worldcenter">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_06390188f370436fa9c2c772a6056af5~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Miami Worldcenter</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Miami Worldcenter</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '25</div>
@@ -2070,8 +2245,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cad443df22ba4b8ab83ddb512aef35ad~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Nu Stadium at Miami Freedom Park</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Nu Stadium at Miami Freedom Park</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -2090,8 +2267,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nude-miami/" aria-label="Open Nude Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_29d9bd8eb76a4601be518c9177e06cce~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Nude Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Nude Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '26</div>
@@ -2110,8 +2289,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/private-suite-miami/" aria-label="Open Private Suite Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a734e1c28e7d49b58a623b8681fb9db7~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Private Suite Miami</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Private Suite Miami</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -2130,8 +2311,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-standard-residences-midtown-miami/" aria-label="Open The Standard Residences, Midtown Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2d859d14912f40e7917bb3e5de91dcbc~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Standard Residences, Midtown Miami</div>
-      <div class="card-loc">Miami · Midtown Miami</div>
+      <div class="card-head">
+        <div class="card-title">The Standard Residences, Midtown Miami</div>
+        <div class="card-loc">Miami · Midtown Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Apr '26</div>
@@ -2150,8 +2333,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-brickell-residences/" aria-label="Open Viceroy Brickell Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fd34127b34804ba3857582358cf2ff51~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Viceroy Brickell Residences</div>
-      <div class="card-loc">Miami · Brickell</div>
+      <div class="card-head">
+        <div class="card-title">Viceroy Brickell Residences</div>
+        <div class="card-loc">Miami · Brickell</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>

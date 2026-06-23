@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/currie-park/" aria-label="Open Currie Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9b8fdf12fa864e96b5f6698509c06acd~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">Currie Park</div>
-      <div class="card-loc">West Palm Beach · Currie Park</div>
+      <div class="card-head">
+        <div class="card-title">Currie Park</div>
+        <div class="card-loc">West Palm Beach · Currie Park</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">District at Northwood</div>
-      <div class="card-loc">West Palm Beach · Northwood</div>
+      <div class="card-head">
+        <div class="card-title">District at Northwood</div>
+        <div class="card-loc">West Palm Beach · Northwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">NOKOSI Golf Club</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">NOKOSI Golf Club</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-sound/" aria-label="Open The Sound">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Sound</div>
-      <div class="card-loc">West Palm Beach · South End</div>
+      <div class="card-head">
+        <div class="card-title">The Sound</div>
+        <div class="card-loc">West Palm Beach · South End</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_263e842882cc4910a1fbd3f25c153cb4~mv2.avif')"></div>
     <div class="card-body">
-      <div class="card-title">YMCA of the Palm Beaches</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">YMCA of the Palm Beaches</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cc45ac5a12ce4107a70765d9eb15cbd1~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">YMCA of the Palm Beaches</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">YMCA of the Palm Beaches</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/african-american-museum-and-research-library/" aria-label="Open African American Museum and Research Library">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb42da7d341348c296dd35173c8848ff~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">African American Museum and Research Library</div>
-      <div class="card-loc">West Palm Beach · Coleman Park</div>
+      <div class="card-head">
+        <div class="card-title">African American Museum and Research Library</div>
+        <div class="card-loc">West Palm Beach · Coleman Park</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/central-waterfront-park/" aria-label="Open Central Waterfront Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_31ae79dd95054797a87523c62be6d1af~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Central Waterfront Park</div>
-      <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Central Waterfront Park</div>
+        <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl">
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/court-club/" aria-label="Open Court Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_95730396d85b4c09ae21d96f32238f07~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Court Club</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Court Club</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5 months to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/norton-museum-of-art-expansion/" aria-label="Open Norton Museum of Art (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6ee678e0ee6404d9bc8f899cda44d54~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Norton Museum of Art (Expansion)</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">Norton Museum of Art (Expansion)</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/pbkc-redevelopment/" aria-label="Open PBKC Redevelopment">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56780272183c4480b570953cdd68ec09~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">PBKC Redevelopment</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">PBKC Redevelopment</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Ross Private Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Ross Private Club</div>
-      <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Ross Private Club</div>
+        <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-greene-school-expansion/" aria-label="Open The Greene School (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d1de4a9327d0424392d959e814e3854e~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Greene School (Expansion)</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">The Greene School (Expansion)</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl">
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/woodlawn-cemetery/" aria-label="Open Woodlawn Cemetery">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_14634dd344804874b9bf83fb1592ec83~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Woodlawn Cemetery</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">Woodlawn Cemetery</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/984ef5_3c1ee66297d049a29122b37df709026b~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The Nora District</div>
-      <div class="card-loc">West Palm Beach · Nora District</div>
+      <div class="card-head">
+        <div class="card-title">The Nora District</div>
+        <div class="card-loc">West Palm Beach · Nora District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Aug '25</div>

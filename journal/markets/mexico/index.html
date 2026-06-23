@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/conrad-los-cabos-at-oleada/" aria-label="Open Conrad Los Cabos at Oleada">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f331594d7279-Destino-Los-Cabos-magazine_blog_New-Luxury-Hotels-Opening-in-Los-Cabos-in-2026-a')"></div>
     <div class="card-body">
-      <div class="card-title">Conrad Los Cabos at Oleada</div>
-      <div class="card-loc">Cabo San Lucas · Oleada</div>
+      <div class="card-head">
+        <div class="card-title">Conrad Los Cabos at Oleada</div>
+        <div class="card-loc">Cabo San Lucas · Oleada</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/soho-house-los-cabos/" aria-label="Open Soho House Los Cabos">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6948eff5a832-PORTADA-1536x691.png')"></div>
     <div class="card-body">
-      <div class="card-title">Soho House Los Cabos</div>
-      <div class="card-loc">Cabo San Lucas · Cabo del Sol</div>
+      <div class="card-head">
+        <div class="card-title">Soho House Los Cabos</div>
+        <div class="card-loc">Cabo San Lucas · Cabo del Sol</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_a462019efa3749c0a10110dd91ad7fb6~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Amanvari</div>
-      <div class="card-loc">Los Cabos · Costa Palmas</div>
+      <div class="card-head">
+        <div class="card-title">Amanvari</div>
+        <div class="card-loc">Los Cabos · Costa Palmas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 weeks to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/litib-bay-club/" aria-label="Open Litibú Bay Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_58db12a6a6bc4273b8ce446b4bb198fb~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Litibú Bay Club</div>
-      <div class="card-loc">Punta de Mita</div>
+      <div class="card-head">
+        <div class="card-title">Litibú Bay Club</div>
+        <div class="card-loc">Punta de Mita</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-the-st-regis-los-cabos/" aria-label="Open The Residences at The St. Regis Los Cabos">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ece43475cce-IMG_9191.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Residences at The St. Regis Los Cabos</div>
-      <div class="card-loc">Cabo San Lucas · Quivira</div>
+      <div class="card-head">
+        <div class="card-title">The Residences at The St. Regis Los Cabos</div>
+        <div class="card-loc">Cabo San Lucas · Quivira</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/costas-palmas/" aria-label="Open Costas Palmas">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_5d843024f4774697b806ee735317e462~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Costas Palmas</div>
-      <div class="card-loc">Baja California Sur</div>
+      <div class="card-head">
+        <div class="card-title">Costas Palmas</div>
+        <div class="card-loc">Baja California Sur</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nauka/" aria-label="Open Nauka">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Nauka</div>
-      <div class="card-loc">Riviera Nayarit</div>
+      <div class="card-head">
+        <div class="card-title">Nauka</div>
+        <div class="card-loc">Riviera Nayarit</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '26</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/siari-a-ritz-carlton-reserve/" aria-label="Open Siari, a Ritz-Carlton Reserve">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Siari, a Ritz-Carlton Reserve</div>
-      <div class="card-loc">Riviera Nayarit</div>
+      <div class="card-head">
+        <div class="card-title">Siari, a Ritz-Carlton Reserve</div>
+        <div class="card-loc">Riviera Nayarit</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Nov '25</div>

@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/raffles-tokyo/" aria-label="Open Raffles Tokyo">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/79adda432e14-raffles-is-going-to-tokyo-2407.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Raffles Tokyo</div>
-      <div class="card-loc">Tokyo · Hamamatsuchō, Minato</div>
+      <div class="card-head">
+        <div class="card-title">Raffles Tokyo</div>
+        <div class="card-loc">Tokyo · Hamamatsuchō, Minato</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/shibuya-upper-west-project/" aria-label="Open Shibuya Upper West Project">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2022/08/snohetta-shibuya-upper-west-project-tokyo_hero_dezeen_2364_col_0.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Shibuya Upper West Project</div>
-      <div class="card-loc">Tokyo · Shibuya</div>
+      <div class="card-head">
+        <div class="card-title">Shibuya Upper West Project</div>
+        <div class="card-loc">Tokyo · Shibuya</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/" aria-label="Open Tokyo Station City Redevelopment">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/058eb7_b9fd9383884c46b5a34bf2d5f2b09feb~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Tokyo Station City Redevelopment</div>
-      <div class="card-loc">Tokyo</div>
+      <div class="card-head">
+        <div class="card-title">Tokyo Station City Redevelopment</div>
+        <div class="card-loc">Tokyo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/torch-tower/" aria-label="Open Torch Tower">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1951458bd33f4218bcca3a9178e229ae~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Torch Tower</div>
-      <div class="card-loc">Tokyo</div>
+      <div class="card-head">
+        <div class="card-title">Torch Tower</div>
+        <div class="card-loc">Tokyo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-tokyo-nihonbashi/" aria-label="Open Waldorf Astoria Tokyo Nihonbashi">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ad36ecff4c5-2fd57d77-main-2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Waldorf Astoria Tokyo Nihonbashi</div>
-      <div class="card-loc">Tokyo · Nihonbashi</div>
+      <div class="card-head">
+        <div class="card-title">Waldorf Astoria Tokyo Nihonbashi</div>
+        <div class="card-loc">Tokyo · Nihonbashi</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/gajoen-tokyo-lxr-hotels-resorts/" aria-label="Open Gajoen Tokyo, LXR Hotels &amp; Resorts">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e2f981b6a79e-Hotel-Gajoen-Garden-Area.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Gajoen Tokyo, LXR Hotels &amp; Resorts</div>
-      <div class="card-loc">Tokyo · Meguro</div>
+      <div class="card-head">
+        <div class="card-title">Gajoen Tokyo, LXR Hotels &amp; Resorts</div>
+        <div class="card-loc">Tokyo · Meguro</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/toranomon-hills-station-tower/" aria-label="Open Toranomon Hills Station Tower">
     <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Toranomon Hills Station Tower</div>
-      <div class="card-loc">Tokyo</div>
+      <div class="card-head">
+        <div class="card-title">Toranomon Hills Station Tower</div>
+        <div class="card-loc">Tokyo</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Oct '23</div>

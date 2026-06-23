@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
     <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/08/A.png')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Hudson Yards West</div>
-      <div class="card-loc">New York City · Hudson Yards</div>
+      <div class="card-head">
+        <div class="card-title">Hudson Yards West</div>
+        <div class="card-loc">New York City · Hudson Yards</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/brent-cross-town/" aria-label="Open Brent Cross Town">
     <div class="card-img" style="background-image:url('https://relatedargent.co.uk/media/P_BXS_M2013_DEV_001_N3_bxt-1920x1080.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Brent Cross Town</div>
-      <div class="card-loc">London · Cricklewood</div>
+      <div class="card-head">
+        <div class="card-title">Brent Cross Town</div>
+        <div class="card-loc">London · Cricklewood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">9.5 yrs to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96a8647fcb594f13ad5ce7c913aa00b7~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Bridgestone Arena</div>
-      <div class="card-loc">Nashville · SoBro</div>
+      <div class="card-head">
+        <div class="card-title">Bridgestone Arena</div>
+        <div class="card-loc">Nashville · SoBro</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Candyroot Lodge</div>
-      <div class="card-loc">South Carolina</div>
+      <div class="card-head">
+        <div class="card-title">Candyroot Lodge</div>
+        <div class="card-loc">South Carolina</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/coral-mountain-desert-club/" aria-label="Open Coral Mountain Desert Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Coral Mountain Desert Club</div>
-      <div class="card-loc">Palm Springs</div>
+      <div class="card-head">
+        <div class="card-title">Coral Mountain Desert Club</div>
+        <div class="card-loc">Palm Springs</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/currie-park/" aria-label="Open Currie Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9b8fdf12fa864e96b5f6698509c06acd~mv2.png')"></div>
     <div class="card-body">
-      <div class="card-title">Currie Park</div>
-      <div class="card-loc">West Palm Beach · Currie Park</div>
+      <div class="card-head">
+        <div class="card-title">Currie Park</div>
+        <div class="card-loc">West Palm Beach · Currie Park</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/diriyah-gate/" aria-label="Open Diriyah Gate">
     <div class="card-img" style="background-image:url('https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c')"></div>
     <div class="card-body">
-      <div class="card-title">Diriyah Gate</div>
-      <div class="card-loc">Saudi Arabia · Diriyah</div>
+      <div class="card-head">
+        <div class="card-title">Diriyah Gate</div>
+        <div class="card-loc">Saudi Arabia · Diriyah</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/earls-court-development/" aria-label="Open Earls Court Development">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/79a3ebb331a6-1944330_cgiaerialviewofthenewearlscourtmasterplanimagecourtesyofecdc_crop2_69580')"></div>
     <div class="card-body">
-      <div class="card-title">Earls Court Development</div>
-      <div class="card-loc">London · Earls Court</div>
+      <div class="card-head">
+        <div class="card-title">Earls Court Development</div>
+        <div class="card-loc">London · Earls Court</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-jacksonville/" aria-label="Open Four Seasons Hotel and Residences Jacksonville">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f5eb44c5dd947aa98d74a0317a65de6~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Hotel and Residences Jacksonville</div>
-      <div class="card-loc">Jacksonville · Downtown Jacksonville</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Hotel and Residences Jacksonville</div>
+        <div class="card-loc">Jacksonville · Downtown Jacksonville</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">12 months to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jacksonville-jaguars-stadium/" aria-label="Open Jacksonville Jaguars Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6391c15f8ba4859abdabfd897d0d6e6~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Jacksonville Jaguars Stadium</div>
-      <div class="card-loc">Jacksonville</div>
+      <div class="card-head">
+        <div class="card-title">Jacksonville Jaguars Stadium</div>
+        <div class="card-loc">Jacksonville</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.1 yrs to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/madrid-nuevo-norte-bbva-tower-towers/" aria-label="Open Madrid Nuevo Norte – BBVA Tower &amp; Towers">
     <div class="card-img" style="background-image:url('https://www.bbva.com/wp-content/uploads/2018/07/Imagen-2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Madrid Nuevo Norte – BBVA Tower &amp; Towers</div>
-      <div class="card-loc">Madrid</div>
+      <div class="card-head">
+        <div class="card-title">Madrid Nuevo Norte – BBVA Tower &amp; Towers</div>
+        <div class="card-loc">Madrid</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village/" aria-label="Open Marina Village">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e217802b876345ca8d918450c556eed7~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Marina Village</div>
-      <div class="card-loc">Riviera Beach · Marina District</div>
+      <div class="card-head">
+        <div class="card-title">Marina Village</div>
+        <div class="card-loc">Riviera Beach · Marina District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/miami-signature-bridge/" aria-label="Open Miami Signature Bridge">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bec30a9bbb274a1289aa46838fdfc94d~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Miami Signature Bridge</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Miami Signature Bridge</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/new-murabba/" aria-label="Open New Murabba">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b5240d178ef34f6ab3c2f4d8cf32f23c~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">New Murabba</div>
-      <div class="card-loc">Saudi Arabia</div>
+      <div class="card-head">
+        <div class="card-title">New Murabba</div>
+        <div class="card-loc">Saudi Arabia</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">14.5 yrs to delivery</div>
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/rb-sports-center/" aria-label="Open R&amp;B Sports Center">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_33fcb13f728e44619cc5a0ecc2014180~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">R&amp;B Sports Center</div>
-      <div class="card-loc">Wellington · Wellington</div>
+      <div class="card-head">
+        <div class="card-title">R&amp;B Sports Center</div>
+        <div class="card-loc">Wellington · Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -670,8 +705,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Riverside Wharf</div>
-      <div class="card-loc">Miami · Miami River</div>
+      <div class="card-head">
+        <div class="card-title">Riverside Wharf</div>
+        <div class="card-loc">Miami · Miami River</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -690,8 +727,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/saks-fifth-redevelopment/" aria-label="Open Saks Fifth Redevelopment">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3cf60bba0dd547329b135a51125fee4b~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Saks Fifth Redevelopment</div>
-      <div class="card-loc">Palm Beach · Worth Avenue</div>
+      <div class="card-head">
+        <div class="card-title">Saks Fifth Redevelopment</div>
+        <div class="card-loc">Palm Beach · Worth Avenue</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -710,8 +749,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/shibuya-upper-west-project/" aria-label="Open Shibuya Upper West Project">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2022/08/snohetta-shibuya-upper-west-project-tokyo_hero_dezeen_2364_col_0.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Shibuya Upper West Project</div>
-      <div class="card-loc">Tokyo · Shibuya</div>
+      <div class="card-head">
+        <div class="card-title">Shibuya Upper West Project</div>
+        <div class="card-loc">Tokyo · Shibuya</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -730,8 +771,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-78/" aria-label="Open The 78">
     <div class="card-img" style="background-image:url('https://www.costar.com/_next/image?url=https%3A%2F%2Fcostar.brightspotcdn.com%2Fdims4%2Fdefault%2Fd7d30b4%2F2147483647%2Fstrip%2Ftrue%2Fcrop%2F2100x1400%2B0%2B0%2Fresize%2F2100x1400!%2Fquality%2F100%2F%3Furl%3Dhttp%253A%252F%252Fcostar-brightspot.s3.us-east-1.amazonaws.com%252F40%252F1c%252F2b5adc414056a1eee36fc82a8b1d%252Fdpi.jpg&amp;w=3840&amp;q=75')"></div>
     <div class="card-body">
-      <div class="card-title">The 78</div>
-      <div class="card-loc">Chicago · Near South Side</div>
+      <div class="card-head">
+        <div class="card-title">The 78</div>
+        <div class="card-loc">Chicago · Near South Side</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -750,8 +793,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-power-district/" aria-label="Open The Power District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8bbf3e5b0854c009d436d5577e000d8~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Power District</div>
-      <div class="card-loc">Salt Lake City</div>
+      <div class="card-head">
+        <div class="card-title">The Power District</div>
+        <div class="card-loc">Salt Lake City</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -770,8 +815,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Trojena</div>
-      <div class="card-loc">Saudi Arabia · NEOM</div>
+      <div class="card-head">
+        <div class="card-title">Trojena</div>
+        <div class="card-loc">Saudi Arabia · NEOM</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -790,8 +837,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/wyld-oaks/" aria-label="Open Wyld Oaks">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/32c3ccd4e1aa-Wyld-Oaks-Rendering-View-1.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Wyld Oaks</div>
-      <div class="card-loc">Apopka</div>
+      <div class="card-head">
+        <div class="card-title">Wyld Oaks</div>
+        <div class="card-loc">Apopka</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -810,8 +859,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
     <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2026/04/175-third-street-5.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">175 Third Street</div>
-      <div class="card-loc">New York City</div>
+      <div class="card-head">
+        <div class="card-title">175 Third Street</div>
+        <div class="card-loc">New York City</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -830,8 +881,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Aloha Stadium</div>
-      <div class="card-loc">Honolulu</div>
+      <div class="card-head">
+        <div class="card-title">Aloha Stadium</div>
+        <div class="card-loc">Honolulu</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.7 yrs to delivery</div>
@@ -850,8 +903,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/brisbane-olympic-stadium/" aria-label="Open Brisbane Olympic Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_89eea35118f34c75ad8132b4d19f7fca~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Brisbane Olympic Stadium</div>
-      <div class="card-loc">Brisbane</div>
+      <div class="card-head">
+        <div class="card-title">Brisbane Olympic Stadium</div>
+        <div class="card-loc">Brisbane</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -870,8 +925,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Eastpoint</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">Eastpoint</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -890,8 +947,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/marina-towers-by-tatweer-misr/" aria-label="Open Marina Towers by Tatweer Misr">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c945f24c621d40b1b7af71ee3b3bf8a9~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Marina Towers by Tatweer Misr</div>
-      <div class="card-loc">Ain Sokhna</div>
+      <div class="card-head">
+        <div class="card-title">Marina Towers by Tatweer Misr</div>
+        <div class="card-loc">Ain Sokhna</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">7.5 yrs to delivery</div>
@@ -910,8 +969,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-campus/" aria-label="Open Oracle Campus">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Oracle Campus</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">Oracle Campus</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.6 yrs to delivery</div>
@@ -930,8 +991,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-wellington/" aria-label="Open The Wellington">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a2b46f668ea043b592fee9ef58e8965d~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Wellington</div>
-      <div class="card-loc">Wellington</div>
+      <div class="card-head">
+        <div class="card-title">The Wellington</div>
+        <div class="card-loc">Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -950,8 +1013,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/streamsong-resort/" aria-label="Open Bone Valley at Streamsong">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb287b553b1148aba0e86ae2f4452f6f~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Bone Valley at Streamsong</div>
-      <div class="card-loc">Bowling Green · Bowling Green</div>
+      <div class="card-head">
+        <div class="card-title">Bone Valley at Streamsong</div>
+        <div class="card-loc">Bowling Green · Bowling Green</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
@@ -970,8 +1035,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/coral-cay-waterpark/" aria-label="Open Coral Cay Waterpark">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c6a2c99868948bf91f96e02bf8f21fd~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Coral Cay Waterpark</div>
-      <div class="card-loc">Florida Keys</div>
+      <div class="card-head">
+        <div class="card-title">Coral Cay Waterpark</div>
+        <div class="card-loc">Florida Keys</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 weeks to delivery</div>
@@ -990,8 +1057,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">District at Northwood</div>
-      <div class="card-loc">West Palm Beach · Northwood</div>
+      <div class="card-head">
+        <div class="card-title">District at Northwood</div>
+        <div class="card-loc">West Palm Beach · Northwood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1010,8 +1079,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/fat-village/" aria-label="Open FAT Village">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">FAT Village</div>
-      <div class="card-loc">Fort Lauderdale</div>
+      <div class="card-head">
+        <div class="card-title">FAT Village</div>
+        <div class="card-loc">Fort Lauderdale</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1030,8 +1101,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-park/" aria-label="Open King Salman Park">
     <div class="card-img" style="background-image:url('https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">King Salman Park</div>
-      <div class="card-loc">Saudi Arabia</div>
+      <div class="card-head">
+        <div class="card-title">King Salman Park</div>
+        <div class="card-loc">Saudi Arabia</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1050,8 +1123,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">NOKOSI Golf Club</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">NOKOSI Golf Club</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1070,8 +1145,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-hq/" aria-label="Open Royal Caribbean HQ">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_dbfa85228d4b4aa4aa1028d4408c3e57~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Royal Caribbean HQ</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Royal Caribbean HQ</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1090,8 +1167,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-sound/" aria-label="Open The Sound">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Sound</div>
-      <div class="card-loc">West Palm Beach · South End</div>
+      <div class="card-head">
+        <div class="card-title">The Sound</div>
+        <div class="card-loc">West Palm Beach · South End</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 months to delivery</div>
@@ -1110,8 +1189,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/wellington-sports-academy/" aria-label="Open Wellington Sports Academy">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_743c5b60c5604023a785679b55c10b89~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Wellington Sports Academy</div>
-      <div class="card-loc">Wellington</div>
+      <div class="card-head">
+        <div class="card-title">Wellington Sports Academy</div>
+        <div class="card-loc">Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -1130,8 +1211,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_263e842882cc4910a1fbd3f25c153cb4~mv2.avif')"></div>
     <div class="card-body">
-      <div class="card-title">YMCA of the Palm Beaches</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">YMCA of the Palm Beaches</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -1150,8 +1233,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cc45ac5a12ce4107a70765d9eb15cbd1~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">YMCA of the Palm Beaches</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">YMCA of the Palm Beaches</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
@@ -1170,8 +1255,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/african-american-museum-and-research-library/" aria-label="Open African American Museum and Research Library">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb42da7d341348c296dd35173c8848ff~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">African American Museum and Research Library</div>
-      <div class="card-loc">West Palm Beach · Coleman Park</div>
+      <div class="card-head">
+        <div class="card-title">African American Museum and Research Library</div>
+        <div class="card-loc">West Palm Beach · Coleman Park</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1190,8 +1277,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-city-hall/" aria-label="Open Boca Raton City Hall">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Boca Raton City Hall</div>
-      <div class="card-loc">Boca Raton</div>
+      <div class="card-head">
+        <div class="card-title">Boca Raton City Hall</div>
+        <div class="card-loc">Boca Raton</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1210,8 +1299,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-innovation-campus/" aria-label="Open Boca Raton Innovation Campus">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_59642e6d73df4a40af4594a87c7b9023~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Boca Raton Innovation Campus</div>
-      <div class="card-loc">Boca Raton · Park at Broken Sound</div>
+      <div class="card-head">
+        <div class="card-title">Boca Raton Innovation Campus</div>
+        <div class="card-loc">Boca Raton · Park at Broken Sound</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1230,8 +1321,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/central-waterfront-park/" aria-label="Open Central Waterfront Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_31ae79dd95054797a87523c62be6d1af~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Central Waterfront Park</div>
-      <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Central Waterfront Park</div>
+        <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl">
@@ -1250,8 +1343,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/court-club/" aria-label="Open Court Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_95730396d85b4c09ae21d96f32238f07~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Court Club</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Court Club</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5 months to delivery</div>
@@ -1270,8 +1365,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Jungle Island</div>
-      <div class="card-loc">Miami · Watson Island</div>
+      <div class="card-head">
+        <div class="card-title">Jungle Island</div>
+        <div class="card-loc">Miami · Watson Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -1290,8 +1387,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/lincoln-yards/" aria-label="Open Lincoln Yards">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Lincoln Yards</div>
-      <div class="card-loc">Chicago</div>
+      <div class="card-head">
+        <div class="card-title">Lincoln Yards</div>
+        <div class="card-loc">Chicago</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
@@ -1310,8 +1409,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village-forest-development/" aria-label="Open Marina Village">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568f9e4382404ec98a5c614fd666dd37~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Marina Village</div>
-      <div class="card-loc">Riviera Beach</div>
+      <div class="card-head">
+        <div class="card-title">Marina Village</div>
+        <div class="card-loc">Riviera Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -1330,8 +1431,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/midtown-park/" aria-label="Open Midtown Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0dc8e50ab8d344e18c9cdfdc95b9e451~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Midtown Park</div>
-      <div class="card-loc">Miami · Midtown</div>
+      <div class="card-head">
+        <div class="card-title">Midtown Park</div>
+        <div class="card-loc">Miami · Midtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1350,8 +1453,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/" aria-label="Open New Kansas City Royals Stadium">
     <div class="card-img" style="background-image:url('https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true')"></div>
     <div class="card-body">
-      <div class="card-title">New Kansas City Royals Stadium</div>
-      <div class="card-loc">Kansas City · Crown Center</div>
+      <div class="card-head">
+        <div class="card-title">New Kansas City Royals Stadium</div>
+        <div class="card-loc">Kansas City · Crown Center</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1370,8 +1475,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/new-san-siro-stadium/" aria-label="Open New San Siro Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">New San Siro Stadium</div>
-      <div class="card-loc">Milan · San Siro</div>
+      <div class="card-head">
+        <div class="card-title">New San Siro Stadium</div>
+        <div class="card-loc">Milan · San Siro</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
@@ -1390,8 +1497,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/norton-museum-of-art-expansion/" aria-label="Open Norton Museum of Art (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6ee678e0ee6404d9bc8f899cda44d54~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Norton Museum of Art (Expansion)</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">Norton Museum of Art (Expansion)</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -1410,8 +1519,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-pedestrian-bridge/" aria-label="Open Oracle Pedestrian Bridge">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6a872c0f0ab548c59706557a8b9907b5~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Oracle Pedestrian Bridge</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">Oracle Pedestrian Bridge</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1430,8 +1541,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/pbkc-redevelopment/" aria-label="Open PBKC Redevelopment">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56780272183c4480b570953cdd68ec09~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">PBKC Redevelopment</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">PBKC Redevelopment</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1450,8 +1563,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/penn-station-redevelopment/" aria-label="Open Penn Station Redevelopment">
     <div class="card-img" style="background-image:url('https://www.mas.org/wp-content/uploads/2017/12/penn-station-rendering-lobby-with-sunshine-pano.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Penn Station Redevelopment</div>
-      <div class="card-loc">New York City · Midtown</div>
+      <div class="card-head">
+        <div class="card-title">Penn Station Redevelopment</div>
+        <div class="card-loc">New York City · Midtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
@@ -1470,8 +1585,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Ross Private Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Ross Private Club</div>
-      <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Ross Private Club</div>
+        <div class="card-loc">West Palm Beach · Downtown West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -1490,8 +1607,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-bahia-mar/" aria-label="Open St. Regis Bahia Mar">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">St. Regis Bahia Mar</div>
-      <div class="card-loc">Fort Lauderdale</div>
+      <div class="card-head">
+        <div class="card-title">St. Regis Bahia Mar</div>
+        <div class="card-loc">Fort Lauderdale</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1510,8 +1629,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-bay-rays-stadium/" aria-label="Open Tampa Bay Rays Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Tampa Bay Rays Stadium</div>
-      <div class="card-loc">Tampa</div>
+      <div class="card-head">
+        <div class="card-title">Tampa Bay Rays Stadium</div>
+        <div class="card-loc">Tampa</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.7 yrs to delivery</div>
@@ -1530,8 +1651,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-performing-arts-center/" aria-label="Open Tennessee Performing Arts Center">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2b406e5a9f9a4e61a163b0b2b6ce4a7d~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Tennessee Performing Arts Center</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">Tennessee Performing Arts Center</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1550,8 +1673,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png')"></div>
     <div class="card-body">
-      <div class="card-title">The East Bend</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">The East Bend</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl">
@@ -1570,8 +1695,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-greene-school-expansion/" aria-label="Open The Greene School (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d1de4a9327d0424392d959e814e3854e~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Greene School (Expansion)</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">The Greene School (Expansion)</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl">
@@ -1590,8 +1717,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/village-landing/" aria-label="Open Village Landing">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3a0dd1d9549a4004940c5d8b26973fd2~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Village Landing</div>
-      <div class="card-loc">Wellington · Wellington</div>
+      <div class="card-head">
+        <div class="card-title">Village Landing</div>
+        <div class="card-loc">Wellington · Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1610,8 +1739,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/wingrove-academy/" aria-label="Open Wingrove Academy">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64e7de987cd74a1893d941ca413b1947~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Wingrove Academy</div>
-      <div class="card-loc">Wellington</div>
+      <div class="card-head">
+        <div class="card-title">Wingrove Academy</div>
+        <div class="card-loc">Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1630,8 +1761,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/woodlawn-cemetery/" aria-label="Open Woodlawn Cemetery">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_14634dd344804874b9bf83fb1592ec83~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Woodlawn Cemetery</div>
-      <div class="card-loc">West Palm Beach · SoSo</div>
+      <div class="card-head">
+        <div class="card-title">Woodlawn Cemetery</div>
+        <div class="card-loc">West Palm Beach · SoSo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -1650,8 +1783,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/amaala/" aria-label="Open AMAALA">
     <div class="card-img" style="background-image:url('https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp')"></div>
     <div class="card-body">
-      <div class="card-title">AMAALA</div>
-      <div class="card-loc">Saudi Arabia</div>
+      <div class="card-head">
+        <div class="card-title">AMAALA</div>
+        <div class="card-loc">Saudi Arabia</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -1670,8 +1805,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-citrus-farms/" aria-label="Open Cabot Citrus Farms">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Cabot Citrus Farms</div>
-      <div class="card-loc">Brooksville</div>
+      <div class="card-head">
+        <div class="card-title">Cabot Citrus Farms</div>
+        <div class="card-loc">Brooksville</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jan '25</div>
@@ -1690,8 +1827,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-commons/" aria-label="Open Commons">
     <div class="card-img" style="background-image:url('https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333')"></div>
     <div class="card-body">
-      <div class="card-title">Commons</div>
-      <div class="card-loc">Nekooska</div>
+      <div class="card-head">
+        <div class="card-title">Commons</div>
+        <div class="card-loc">Nekooska</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jun '26</div>
@@ -1710,8 +1849,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/costas-palmas/" aria-label="Open Costas Palmas">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_5d843024f4774697b806ee735317e462~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Costas Palmas</div>
-      <div class="card-loc">Baja California Sur</div>
+      <div class="card-head">
+        <div class="card-title">Costas Palmas</div>
+        <div class="card-loc">Baja California Sur</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -1730,8 +1871,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/deer-valley-resort-expansion/" aria-label="Open Deer Valley Resort (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_92bd514299aa4e08af6ad3c82fa589e5~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Deer Valley Resort (Expansion)</div>
-      <div class="card-loc">Park City</div>
+      <div class="card-head">
+        <div class="card-title">Deer Valley Resort (Expansion)</div>
+        <div class="card-loc">Park City</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -1750,8 +1893,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/miami-worldcenter/" aria-label="Open Miami Worldcenter">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_06390188f370436fa9c2c772a6056af5~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Miami Worldcenter</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Miami Worldcenter</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '25</div>
@@ -1770,8 +1915,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nashville-yards/" aria-label="Open Nashville Yards">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5429785301164211a5f6ff46fedd6b6d~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Nashville Yards</div>
-      <div class="card-loc">Nashville · Nashville Yards</div>
+      <div class="card-head">
+        <div class="card-title">Nashville Yards</div>
+        <div class="card-loc">Nashville · Nashville Yards</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '24</div>
@@ -1790,8 +1937,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cad443df22ba4b8ab83ddb512aef35ad~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Nu Stadium at Miami Freedom Park</div>
-      <div class="card-loc">Miami</div>
+      <div class="card-head">
+        <div class="card-title">Nu Stadium at Miami Freedom Park</div>
+        <div class="card-loc">Miami</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -1810,8 +1959,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/pier-sixty-six/" aria-label="Open Pier Sixty-Six">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Pier Sixty-Six</div>
-      <div class="card-loc">Fort Lauderdale</div>
+      <div class="card-head">
+        <div class="card-title">Pier Sixty-Six</div>
+        <div class="card-loc">Fort Lauderdale</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jan '25</div>
@@ -1830,8 +1981,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/984ef5_3c1ee66297d049a29122b37df709026b~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The Nora District</div>
-      <div class="card-loc">West Palm Beach · Nora District</div>
+      <div class="card-head">
+        <div class="card-title">The Nora District</div>
+        <div class="card-loc">West Palm Beach · Nora District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 10, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Aug '25</div>
@@ -1850,8 +2003,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/toranomon-hills-station-tower/" aria-label="Open Toranomon Hills Station Tower">
     <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Toranomon Hills Station Tower</div>
-      <div class="card-loc">Tokyo</div>
+      <div class="card-head">
+        <div class="card-title">Toranomon Hills Station Tower</div>
+        <div class="card-loc">Tokyo</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Oct '23</div>

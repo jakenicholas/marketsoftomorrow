@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2de55c97b9ad41cb83ef1278af817b6e~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Jack&#x27;s Bay Club &amp; Resort</div>
-      <div class="card-loc">Bahamas</div>
+      <div class="card-head">
+        <div class="card-title">Jack&#x27;s Bay Club &amp; Resort</div>
+        <div class="card-loc">Bahamas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/anson-at-palmetto-bluff/" aria-label="Open Anson at Palmetto Bluff">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/181854ad0b04-7AnsonPointPalmettoBluff.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Anson at Palmetto Bluff</div>
-      <div class="card-loc">Bluffton · Palmetto Bluff</div>
+      <div class="card-head">
+        <div class="card-title">Anson at Palmetto Bluff</div>
+        <div class="card-loc">Bluffton · Palmetto Bluff</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Candyroot Lodge</div>
-      <div class="card-loc">South Carolina</div>
+      <div class="card-head">
+        <div class="card-title">Candyroot Lodge</div>
+        <div class="card-loc">South Carolina</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/coral-mountain-desert-club/" aria-label="Open Coral Mountain Desert Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Coral Mountain Desert Club</div>
-      <div class="card-loc">Palm Springs</div>
+      <div class="card-head">
+        <div class="card-title">Coral Mountain Desert Club</div>
+        <div class="card-loc">Palm Springs</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
-      <div class="card-loc">Caye Chapel · Caye Chapel (private island)</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
+        <div class="card-loc">Caye Chapel · Caye Chapel (private island)</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/old-shores/" aria-label="Open Old Shores">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_373f1c2ac9cd441caed6933cb112d26d~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Old Shores</div>
-      <div class="card-loc">Panhandle</div>
+      <div class="card-head">
+        <div class="card-title">Old Shores</div>
+        <div class="card-loc">Panhandle</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_609c4b28c4394126a87eed36ba761180~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Ritz-Carlton Reserve at Cotton Bay</div>
-      <div class="card-loc">Bahamas</div>
+      <div class="card-head">
+        <div class="card-title">Ritz-Carlton Reserve at Cotton Bay</div>
+        <div class="card-loc">Bahamas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/rodeo-dunes/" aria-label="Open Rodeo Dunes">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/629b8f6e1a3f-Rodeo-Dunes-Aerials-26-79.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Rodeo Dunes</div>
-      <div class="card-loc">Roggen</div>
+      <div class="card-head">
+        <div class="card-title">Rodeo Dunes</div>
+        <div class="card-loc">Roggen</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/shell-bay-residences/" aria-label="Open Shell Bay Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Shell Bay Residences</div>
-      <div class="card-loc">Hallandale Beach</div>
+      <div class="card-head">
+        <div class="card-title">Shell Bay Residences</div>
+        <div class="card-loc">Hallandale Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/sweetens-cove-golf-club/" aria-label="Open Sweetens Cove Golf Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Sweetens Cove Golf Club</div>
-      <div class="card-loc">South Pittsburg</div>
+      <div class="card-head">
+        <div class="card-title">Sweetens Cove Golf Club</div>
+        <div class="card-loc">South Pittsburg</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-green-at-abaco-club/" aria-label="Open The Green at Abaco Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_916ebe7caa5b4efeb9a8f598628c1ded~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Green at Abaco Club</div>
-      <div class="card-loc">Bahamas · Winding Bay</div>
+      <div class="card-head">
+        <div class="card-title">The Green at Abaco Club</div>
+        <div class="card-loc">Bahamas · Winding Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_67ad6d01d0db42bf8b59bfe003328493~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Ocean Club, Four Seasons Residences</div>
-      <div class="card-loc">Bahamas · Paradise Island</div>
+      <div class="card-head">
+        <div class="card-title">The Ocean Club, Four Seasons Residences</div>
+        <div class="card-loc">Bahamas · Paradise Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-wellington/" aria-label="Open The Wellington">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a2b46f668ea043b592fee9ef58e8965d~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Wellington</div>
-      <div class="card-loc">Wellington</div>
+      <div class="card-head">
+        <div class="card-title">The Wellington</div>
+        <div class="card-loc">Wellington</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_a462019efa3749c0a10110dd91ad7fb6~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Amanvari</div>
-      <div class="card-loc">Los Cabos · Costa Palmas</div>
+      <div class="card-head">
+        <div class="card-title">Amanvari</div>
+        <div class="card-loc">Los Cabos · Costa Palmas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 weeks to delivery</div>
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/bear-lakes-country-club-expansion/" aria-label="Open Bear Lakes Country Club (Expansion)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1beb58b9da54078ad1f0abc5c4e31e2~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Bear Lakes Country Club (Expansion)</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Bear Lakes Country Club (Expansion)</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -670,8 +705,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/streamsong-resort/" aria-label="Open Bone Valley at Streamsong">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb287b553b1148aba0e86ae2f4452f6f~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Bone Valley at Streamsong</div>
-      <div class="card-loc">Bowling Green · Bowling Green</div>
+      <div class="card-head">
+        <div class="card-title">Bone Valley at Streamsong</div>
+        <div class="card-loc">Bowling Green · Bowling Green</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">7 months to delivery</div>
@@ -690,8 +727,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/firefly/" aria-label="Open Firefly">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f50d4e8a26804b06ae1778103f0d601c~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Firefly</div>
-      <div class="card-loc">Nashville</div>
+      <div class="card-head">
+        <div class="card-title">Firefly</div>
+        <div class="card-loc">Nashville</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -710,8 +749,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/litib-bay-club/" aria-label="Open Litibú Bay Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_58db12a6a6bc4273b8ce446b4bb198fb~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Litibú Bay Club</div>
-      <div class="card-loc">Punta de Mita</div>
+      <div class="card-head">
+        <div class="card-title">Litibú Bay Club</div>
+        <div class="card-loc">Punta de Mita</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -730,8 +771,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/marcella-club/" aria-label="Open Marcella Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fa62e315ff3747a7969609661566143e~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Marcella Club</div>
-      <div class="card-loc">Park City</div>
+      <div class="card-head">
+        <div class="card-title">Marcella Club</div>
+        <div class="card-loc">Park City</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -750,8 +793,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">NOKOSI Golf Club</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">NOKOSI Golf Club</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -770,8 +815,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/" aria-label="Open Mandarin Oriental Esencia, Puerto Rico">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3f5d12b136040e2b57c201577c4c282~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental Esencia, Puerto Rico</div>
-      <div class="card-loc">Cabo Rojo · Boquerón Bay</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental Esencia, Puerto Rico</div>
+        <div class="card-loc">Cabo Rojo · Boquerón Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -790,8 +837,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/orange-hill-course-kiawah-island-club/" aria-label="Open Orange Hill Course, Kiawah Island Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/40787d1adc53-61e07cb6d6ab3.image.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Orange Hill Course, Kiawah Island Club</div>
-      <div class="card-loc">Kiawah Island · Johns Island</div>
+      <div class="card-head">
+        <div class="card-title">Orange Hill Course, Kiawah Island Club</div>
+        <div class="card-loc">Kiawah Island · Johns Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl">
@@ -810,8 +859,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/altamira-by-lennar/" aria-label="Open Altamira by Lennar">
     <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/09/dah_porto_altamira_rend_exterior_frontview_th_12_06_23.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Altamira by Lennar</div>
-      <div class="card-loc">Homestead</div>
+      <div class="card-head">
+        <div class="card-title">Altamira by Lennar</div>
+        <div class="card-loc">Homestead</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 8, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '25</div>
@@ -830,8 +881,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/apogee-golf-club/" aria-label="Open Apogee Golf Club">
     <div class="card-img" style="background-image:url('https://golfdigest.sports.sndimg.com/content/dam/images/golfdigest/fullset/2023/1/GD0923_FEAT_HOBIE_04.jpg.rend.hgtvcom.966.725.suffix/1692215573614.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Apogee Golf Club</div>
-      <div class="card-loc">Hobe Sound</div>
+      <div class="card-head">
+        <div class="card-title">Apogee Golf Club</div>
+        <div class="card-loc">Hobe Sound</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '23</div>
@@ -850,8 +903,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/bounty-club/" aria-label="Open Bounty Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5ab628fd22b84049a5dfd631e1be01d2~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Bounty Club</div>
-      <div class="card-loc">Nashville</div>
+      <div class="card-head">
+        <div class="card-title">Bounty Club</div>
+        <div class="card-loc">Nashville</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '26</div>
@@ -870,8 +925,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-citrus-farms/" aria-label="Open Cabot Citrus Farms">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Cabot Citrus Farms</div>
-      <div class="card-loc">Brooksville</div>
+      <div class="card-head">
+        <div class="card-title">Cabot Citrus Farms</div>
+        <div class="card-loc">Brooksville</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jan '25</div>
@@ -890,8 +947,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-commons/" aria-label="Open Commons">
     <div class="card-img" style="background-image:url('https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333')"></div>
     <div class="card-body">
-      <div class="card-title">Commons</div>
-      <div class="card-loc">Nekooska</div>
+      <div class="card-head">
+        <div class="card-title">Commons</div>
+        <div class="card-loc">Nekooska</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jun '26</div>
@@ -910,8 +969,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/costas-palmas/" aria-label="Open Costas Palmas">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_5d843024f4774697b806ee735317e462~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Costas Palmas</div>
-      <div class="card-loc">Baja California Sur</div>
+      <div class="card-head">
+        <div class="card-title">Costas Palmas</div>
+        <div class="card-loc">Baja California Sur</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -930,8 +991,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/dutchman-s-pipe/" aria-label="Open Dutchman&#x27;s Pipe">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Dutchman&#x27;s Pipe</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">Dutchman&#x27;s Pipe</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Nov '24</div>
@@ -950,8 +1013,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/" aria-label="Open Four Seasons Resort and Residences Puerto Rico">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dac0c0b0da0c-9da58101-a036-42e2-9401-a33078ecd414.avif')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Puerto Rico</div>
-      <div class="card-loc">Río Grande · Bahía Beach</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Puerto Rico</div>
+        <div class="card-loc">Río Grande · Bahía Beach</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Nov '25</div>
@@ -970,8 +1035,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/high-grove-golf-club/" aria-label="Open High Grove Golf Club">
     <div class="card-img" style="background-image:url('https://www.golfcoursearchitecture.net/Portals/0/Images/HighGroveHanse-4_web.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">High Grove Golf Club</div>
-      <div class="card-loc">Central Florida</div>
+      <div class="card-head">
+        <div class="card-title">High Grove Golf Club</div>
+        <div class="card-loc">Central Florida</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Jan '26</div>
@@ -990,8 +1057,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nauka/" aria-label="Open Nauka">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Nauka</div>
-      <div class="card-loc">Riviera Nayarit</div>
+      <div class="card-head">
+        <div class="card-title">Nauka</div>
+        <div class="card-loc">Riviera Nayarit</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered May '26</div>
@@ -1010,8 +1079,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/panther-national/" aria-label="Open Panther National">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_560293121b6649eaafc71820126fe9df~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Panther National</div>
-      <div class="card-loc">Palm Beach Gardens</div>
+      <div class="card-head">
+        <div class="card-title">Panther National</div>
+        <div class="card-loc">Palm Beach Gardens</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 6, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -1030,8 +1101,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-belgrove-resort-spa/" aria-label="Open The Belgrove Resort &amp; Spa">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Belgrove Resort &amp; Spa</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">The Belgrove Resort &amp; Spa</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '24</div>

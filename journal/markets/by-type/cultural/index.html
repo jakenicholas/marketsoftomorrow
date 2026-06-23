@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/phoenix-arts-innovation-district-phxjax/" aria-label="Open Phoenix Arts &amp; Innovation District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5adb4c5612454432841f9f9af1330e55~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Phoenix Arts &amp; Innovation District</div>
-      <div class="card-loc">Jacksonville · North Springfield</div>
+      <div class="card-head">
+        <div class="card-title">Phoenix Arts &amp; Innovation District</div>
+        <div class="card-loc">Jacksonville · North Springfield</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/" aria-label="Open The Society of the Four Arts">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5578b10a1094258923fefc20c3bd117~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Society of the Four Arts</div>
-      <div class="card-loc">Palm Beach · Midtown</div>
+      <div class="card-head">
+        <div class="card-title">The Society of the Four Arts</div>
+        <div class="card-loc">Palm Beach · Midtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-whale/" aria-label="Open The Whale">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/69fa/f8ce/754a/ba01/8bca/8504/large_jpg/dorte-mandrups-the-whale-advances-along-norways-arctic-coastline_2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Whale</div>
-      <div class="card-loc">Andenes</div>
+      <div class="card-head">
+        <div class="card-title">The Whale</div>
+        <div class="card-loc">Andenes</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/torch-tower/" aria-label="Open Torch Tower">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1951458bd33f4218bcca3a9178e229ae~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Torch Tower</div>
-      <div class="card-loc">Tokyo</div>
+      <div class="card-head">
+        <div class="card-title">Torch Tower</div>
+        <div class="card-loc">Tokyo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/guggenheim-abu-dhabi/" aria-label="Open Guggenheim Abu Dhabi">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Guggenheim Abu Dhabi</div>
-      <div class="card-loc">Abu Dhabi · Saadiyat Island</div>
+      <div class="card-head">
+        <div class="card-title">Guggenheim Abu Dhabi</div>
+        <div class="card-loc">Abu Dhabi · Saadiyat Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/shanghai-grand-opera-house/" aria-label="Open Shanghai Grand Opera House">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/699c/23b5/37d1/5901/88d3/5b6f/large_jpg/first-look-at-snohettas-shanghai-grand-opera-house-as-construction-nears-completion_3.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Shanghai Grand Opera House</div>
-      <div class="card-loc">Shanghai · Houtan</div>
+      <div class="card-head">
+        <div class="card-title">Shanghai Grand Opera House</div>
+        <div class="card-loc">Shanghai · Houtan</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/" aria-label="Open Suzhou Museum of Contemporary Art">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Suzhou Museum of Contemporary Art</div>
-      <div class="card-loc">Suzhou</div>
+      <div class="card-head">
+        <div class="card-title">Suzhou Museum of Contemporary Art</div>
+        <div class="card-loc">Suzhou</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivery Jun 2026</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/affirmation-tower/" aria-label="Open Affirmation Tower">
     <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/03/affirmation-tower-main.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Affirmation Tower</div>
-      <div class="card-loc">New York City · Hudson Yards</div>
+      <div class="card-head">
+        <div class="card-title">Affirmation Tower</div>
+        <div class="card-loc">New York City · Hudson Yards</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl">
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/coleman-park-revitalization/" aria-label="Open Coleman Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Coleman Park</div>
-      <div class="card-loc">West Palm Beach · Coleman Park</div>
+      <div class="card-head">
+        <div class="card-title">Coleman Park</div>
+        <div class="card-loc">West Palm Beach · Coleman Park</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png')"></div>
     <div class="card-body">
-      <div class="card-title">The East Bend</div>
-      <div class="card-loc">Nashville · East Bank</div>
+      <div class="card-head">
+        <div class="card-title">The East Bend</div>
+        <div class="card-loc">Nashville · East Bank</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl">
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/" aria-label="Open David Geffen Galleries at LACMA">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">David Geffen Galleries at LACMA</div>
-      <div class="card-loc">Los Angeles</div>
+      <div class="card-head">
+        <div class="card-title">David Geffen Galleries at LACMA</div>
+        <div class="card-loc">Los Angeles</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 5, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Now open</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/studio-museum-in-harlem/" aria-label="Open Studio Museum">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Studio Museum</div>
-      <div class="card-loc">New York City</div>
+      <div class="card-head">
+        <div class="card-title">Studio Museum</div>
+        <div class="card-loc">New York City</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '25</div>
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/zayed-national-museum/" aria-label="Open Zayed National Museum">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559')"></div>
     <div class="card-body">
-      <div class="card-title">Zayed National Museum</div>
-      <div class="card-loc">Abu Dhabi</div>
+      <div class="card-head">
+        <div class="card-title">Zayed National Museum</div>
+        <div class="card-loc">Abu Dhabi</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '25</div>

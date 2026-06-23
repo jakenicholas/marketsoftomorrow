@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/711-north-pearl/" aria-label="Open 711 North Pearl">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">711 North Pearl</div>
-      <div class="card-loc">Dallas · Downtown Dallas</div>
+      <div class="card-head">
+        <div class="card-title">711 North Pearl</div>
+        <div class="card-loc">Dallas · Downtown Dallas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/" aria-label="Open Rosewood Residences Turtle Creek">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07eab61152cd-EXT01_Teaser-Entrance_Final_7k_NEW_cmyk-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Rosewood Residences Turtle Creek</div>
-      <div class="card-loc">Dallas · Turtle Creek</div>
+      <div class="card-head">
+        <div class="card-title">Rosewood Residences Turtle Creek</div>
+        <div class="card-loc">Dallas · Turtle Creek</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/" aria-label="Open The Birdsall, Auberge Resorts Collection">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Birdsall, Auberge Resorts Collection</div>
-      <div class="card-loc">Houston · River Oaks</div>
+      <div class="card-head">
+        <div class="card-title">The Birdsall, Auberge Resorts Collection</div>
+        <div class="card-loc">Houston · River Oaks</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-knox/" aria-label="Open The Knox">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The Knox</div>
-      <div class="card-loc">Dallas · Knox District</div>
+      <div class="card-head">
+        <div class="card-title">The Knox</div>
+        <div class="card-loc">Dallas · Knox District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-texas-hill-country/" aria-label="Open Waldorf Astoria Texas Hill Country">
     <div class="card-img" style="background-image:url('https://imgproxy.divecdn.com/DJ4fd68OEwUT8wvJjivqwJFWpfanzfi6q__7aQ-2Hlw/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9XYWxkb3JmLUFzdG9yaWEtVGV4YXMtSGlsbC1Db3VudHJ5LUFydGlzdHMtQ29uY2VwdHVhbC1SZW5kZXJpbmcuanBn.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Waldorf Astoria Texas Hill Country</div>
-      <div class="card-loc">Fredericksburg · Fredericksburg</div>
+      <div class="card-head">
+        <div class="card-title">Waldorf Astoria Texas Hill Country</div>
+        <div class="card-loc">Fredericksburg · Fredericksburg</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/westside-village/" aria-label="Open Westside Village">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/aeabaad3d867-08-East-Model_Entry-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Westside Village</div>
-      <div class="card-loc">Fort Worth · Cultural District</div>
+      <div class="card-head">
+        <div class="card-title">Westside Village</div>
+        <div class="card-loc">Fort Worth · Cultural District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-lady-bird-lake/" aria-label="Open One Lady Bird Lake">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7c8a12353853-3338_1_000_N31_atchain-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">One Lady Bird Lake</div>
-      <div class="card-loc">Austin · South Central Waterfront</div>
+      <div class="card-head">
+        <div class="card-title">One Lady Bird Lake</div>
+        <div class="card-loc">Austin · South Central Waterfront</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">20 months to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-lily-river-oaks/" aria-label="Open The Lily River Oaks">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ed95d8681b33-2811-Kirby-Exterior-rendering-1-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Lily River Oaks</div>
-      <div class="card-loc">Houston · Upper Kirby</div>
+      <div class="card-head">
+        <div class="card-title">The Lily River Oaks</div>
+        <div class="card-loc">Houston · Upper Kirby</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">1 Hotel Austin</div>
-      <div class="card-loc">Austin</div>
+      <div class="card-head">
+        <div class="card-title">1 Hotel Austin</div>
+        <div class="card-loc">Austin</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">8 weeks to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Waterline</div>
-      <div class="card-loc">Austin · Rainey Street</div>
+      <div class="card-head">
+        <div class="card-title">Waterline</div>
+        <div class="card-loc">Austin · Rainey Street</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/amansanu/" aria-label="Open Amansanu">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6e08fa6d5d8b4919a4cae8318461b77f~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Amansanu</div>
-      <div class="card-loc">Texas Hill Country · Texas Hill Country</div>
+      <div class="card-head">
+        <div class="card-title">Amansanu</div>
+        <div class="card-loc">Texas Hill Country · Texas Hill Country</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/" aria-label="Open Dallas Proper Hotel and Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c03110bde20a-Lincoln_2500CedarSprings_Hotel_Plaza_FINAL_101325-crop.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Dallas Proper Hotel and Residences</div>
-      <div class="card-loc">Dallas · Uptown</div>
+      <div class="card-head">
+        <div class="card-title">Dallas Proper Hotel and Residences</div>
+        <div class="card-loc">Dallas · Uptown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/luminary/" aria-label="Open Luminary">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a7c5aa045c4-625274594_18093009460970043_5193259207472991455_n.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Luminary</div>
-      <div class="card-loc">Austin · Downtown</div>
+      <div class="card-head">
+        <div class="card-title">Luminary</div>
+        <div class="card-loc">Austin · Downtown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/" aria-label="Open The Dallas EDITION Hotel &amp; Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Dallas EDITION Hotel &amp; Residences</div>
-      <div class="card-loc">Dallas · Harwood District</div>
+      <div class="card-head">
+        <div class="card-title">The Dallas EDITION Hotel &amp; Residences</div>
+        <div class="card-loc">Dallas · Harwood District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-houston/" aria-label="Open The Ritz-Carlton Residences Houston">
     <div class="card-img" style="background-image:url('https://brandedliving.co/wp-content/uploads/2025/09/The-Ritz-Carlton-Residences-Houston_Hero-1_The-Boundary-scaled.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Ritz-Carlton Residences Houston</div>
-      <div class="card-loc">Houston · Uptown</div>
+      <div class="card-head">
+        <div class="card-title">The Ritz-Carlton Residences Houston</div>
+        <div class="card-loc">Houston · Uptown</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -670,8 +705,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-travis/" aria-label="Open The Travis">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9a74fe20d73d-residential-travis-01.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Travis</div>
-      <div class="card-loc">Austin · Rainey Street District</div>
+      <div class="card-head">
+        <div class="card-title">The Travis</div>
+        <div class="card-loc">Austin · Rainey Street District</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">

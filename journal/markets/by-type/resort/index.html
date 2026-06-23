@@ -125,9 +125,14 @@
     .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
     .card-img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }
     .card-body { padding: 18px 20px 4px; }
-    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }
+    .card-title { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head { min-height: 76px; margin-bottom: 14px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }
+    .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty { border:none; padding:0; height:31px; }
@@ -367,8 +372,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-revelstoke/" aria-label="Open Cabot Revelstoke">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_968b7467eecf4f0b9dc41e149039250c~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
-      <div class="card-title">Cabot Revelstoke</div>
-      <div class="card-loc">Revelstoke</div>
+      <div class="card-head">
+        <div class="card-title">Cabot Revelstoke</div>
+        <div class="card-loc">Revelstoke</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">10 months to delivery</div>
@@ -387,8 +394,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/andaz-turks-caicos-at-grace-bay/" aria-label="Open Andaz Turks &amp; Caicos at Grace Bay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0676629544b-Andaz-Turks-Caicos-Rendering.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Andaz Turks &amp; Caicos at Grace Bay</div>
-      <div class="card-loc">Providenciales · Grace Bay</div>
+      <div class="card-head">
+        <div class="card-title">Andaz Turks &amp; Caicos at Grace Bay</div>
+        <div class="card-loc">Providenciales · Grace Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">12 months to delivery</div>
@@ -407,8 +416,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/conrad-los-cabos-at-oleada/" aria-label="Open Conrad Los Cabos at Oleada">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f331594d7279-Destino-Los-Cabos-magazine_blog_New-Luxury-Hotels-Opening-in-Los-Cabos-in-2026-a')"></div>
     <div class="card-body">
-      <div class="card-title">Conrad Los Cabos at Oleada</div>
-      <div class="card-loc">Cabo San Lucas · Oleada</div>
+      <div class="card-head">
+        <div class="card-title">Conrad Los Cabos at Oleada</div>
+        <div class="card-loc">Cabo San Lucas · Oleada</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -427,8 +438,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-private-residences-okinawa/" aria-label="Open Four Seasons Resort and Private Residences Okinawa">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/90d6a517c719-Four-Seasons-Okinawa-25.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Private Residences Okinawa</div>
-      <div class="card-loc">Onna · Onna Village, Okinawa</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Private Residences Okinawa</div>
+        <div class="card-loc">Onna · Onna Village, Okinawa</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">11 months to delivery</div>
@@ -447,8 +460,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
-      <div class="card-loc">Caye Chapel · Caye Chapel (private island)</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
+        <div class="card-loc">Caye Chapel · Caye Chapel (private island)</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -467,8 +482,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-deer-valley/" aria-label="Open Four Seasons Resort and Residences Deer Valley">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/157e419ea87d-FourSeasons-1200x675.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Deer Valley</div>
-      <div class="card-loc">Park City · Deer Valley East Village</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Deer Valley</div>
+        <div class="card-loc">Park City · Deer Valley East Village</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 19, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -490,8 +507,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-dominican-republic-at-tropicalia/" aria-label="Open Four Seasons Resort and Residences Dominican Republic at Tropicalia">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5f9fdc817795-Four-Seasons-Dominican-Republic-Tropicalia-1024x569.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Dominican Republic at Tropicalia</div>
-      <div class="card-loc">Miches · Playa Esmeralda</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Dominican Republic at Tropicalia</div>
+        <div class="card-loc">Miches · Playa Esmeralda</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -510,8 +529,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/marina-bay-sands-expansion/" aria-label="Open Marina Bay Sands Expansion">
     <div class="card-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"></div>
     <div class="card-body">
-      <div class="card-title">Marina Bay Sands Expansion</div>
-      <div class="card-loc">Singapore · Marina Bay</div>
+      <div class="card-head">
+        <div class="card-title">Marina Bay Sands Expansion</div>
+        <div class="card-loc">Singapore · Marina Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">5.5 yrs to delivery</div>
@@ -530,8 +551,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/rodeo-dunes/" aria-label="Open Rodeo Dunes">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/629b8f6e1a3f-Rodeo-Dunes-Aerials-26-79.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Rodeo Dunes</div>
-      <div class="card-loc">Roggen</div>
+      <div class="card-head">
+        <div class="card-title">Rodeo Dunes</div>
+        <div class="card-loc">Roggen</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -550,8 +573,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/sharaan-resort-by-jean-nouvel/" aria-label="Open Sharaan Resort by Jean Nouvel">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2020/10/jean-nouvel-resort-saudi-arabia-alula-sharaan-rock-dwellings_dezeen_2364_col_11.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Sharaan Resort by Jean Nouvel</div>
-      <div class="card-loc">AlUla</div>
+      <div class="card-head">
+        <div class="card-title">Sharaan Resort by Jean Nouvel</div>
+        <div class="card-loc">AlUla</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -570,8 +595,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-myoko/" aria-label="Open Six Senses Myoko">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7fe6760e133a-Six-Senses-Myoko-.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Myoko</div>
-      <div class="card-loc">Myoko · Myoko Kogen, Suginohara</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Myoko</div>
+        <div class="card-loc">Myoko · Myoko Kogen, Suginohara</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 21, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -590,8 +617,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-niseko/" aria-label="Open Six Senses Niseko">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ba39e43a8db-img_8951_2463ca5ca6115ab631a2ac57a76e305a82caa553.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Niseko</div>
-      <div class="card-loc">Kutchan · Hirafu, Niseko</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Niseko</div>
+        <div class="card-loc">Kutchan · Hirafu, Niseko</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">17 months to delivery</div>
@@ -610,8 +639,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-loren-at-turtle-cove/" aria-label="Open The Loren at Turtle Cove">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a5d72c637854-1-the-loren-turtle-cove-view-from-ocean-1024x640.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Loren at Turtle Cove</div>
-      <div class="card-loc">Providenciales · Turtle Cove</div>
+      <div class="card-head">
+        <div class="card-title">The Loren at Turtle Cove</div>
+        <div class="card-loc">Providenciales · Turtle Cove</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl">
@@ -630,8 +661,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-kapalua-bay-resort/" aria-label="Open The St. Regis Kapalua Bay Resort">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0825604a13c3-hotel-74.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The St. Regis Kapalua Bay Resort</div>
-      <div class="card-loc">Lahaina · Kapalua</div>
+      <div class="card-head">
+        <div class="card-title">The St. Regis Kapalua Bay Resort</div>
+        <div class="card-loc">Lahaina · Kapalua</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -650,8 +683,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Trojena</div>
-      <div class="card-loc">Saudi Arabia · NEOM</div>
+      <div class="card-head">
+        <div class="card-title">Trojena</div>
+        <div class="card-loc">Saudi Arabia · NEOM</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 16, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -670,8 +705,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/wynn-al-marjan-island/" aria-label="Open Wynn Al Marjan Island">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3eccc521d08f-Wynn_Al_Marjan_Island-Aerial_View-Marina_Estates_v1_joa5bt.avif')"></div>
     <div class="card-body">
-      <div class="card-title">Wynn Al Marjan Island</div>
-      <div class="card-loc">Ras Al Khaimah</div>
+      <div class="card-head">
+        <div class="card-title">Wynn Al Marjan Island</div>
+        <div class="card-loc">Ras Al Khaimah</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
@@ -690,8 +727,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/kempinski-grace-bay/" aria-label="Open Kempinski Grace Bay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_4ae7c8f295ca4a10959f269e6e6a596e~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Kempinski Grace Bay</div>
-      <div class="card-loc">Providenciales · Grace Bay</div>
+      <div class="card-head">
+        <div class="card-title">Kempinski Grace Bay</div>
+        <div class="card-loc">Providenciales · Grace Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -710,8 +749,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/nikki-beach-resort-spa-antigua/" aria-label="Open Nikki Beach Resort &amp; Spa Antigua">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0f6412cb31b46d28c29af6acff77a24~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Nikki Beach Resort &amp; Spa Antigua</div>
-      <div class="card-loc">Jolly Harbour · Jolly Beach</div>
+      <div class="card-head">
+        <div class="card-title">Nikki Beach Resort &amp; Spa Antigua</div>
+        <div class="card-loc">Jolly Harbour · Jolly Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -730,8 +771,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_a462019efa3749c0a10110dd91ad7fb6~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Amanvari</div>
-      <div class="card-loc">Los Cabos · Costa Palmas</div>
+      <div class="card-head">
+        <div class="card-title">Amanvari</div>
+        <div class="card-loc">Los Cabos · Costa Palmas</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 22, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 weeks to delivery</div>
@@ -750,8 +793,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-hotel-florence/" aria-label="Open Baccarat Hotel Florence">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/56aa84b7086e-Villa-Camerata.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Baccarat Hotel Florence</div>
-      <div class="card-loc">Florence · Camerata</div>
+      <div class="card-head">
+        <div class="card-title">Baccarat Hotel Florence</div>
+        <div class="card-loc">Florence · Camerata</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -770,8 +815,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/bvlgari-resort-ranfushi/" aria-label="Open Bvlgari Resort Ranfushi">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/92c0df5f5ae0-Bvlgari-Resort-Ranfushi.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Bvlgari Resort Ranfushi</div>
-      <div class="card-loc">Raa Atoll · Ranfushi Island</div>
+      <div class="card-head">
+        <div class="card-title">Bvlgari Resort Ranfushi</div>
+        <div class="card-loc">Raa Atoll · Ranfushi Island</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -790,8 +837,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/canyon-ranch-austin/" aria-label="Open Canyon Ranch Austin">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2187789dfef8-cmmutcdsi709307la3b8m4cbl.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Canyon Ranch Austin</div>
-      <div class="card-loc">Spicewood · Spicewood</div>
+      <div class="card-head">
+        <div class="card-title">Canyon Ranch Austin</div>
+        <div class="card-loc">Spicewood · Spicewood</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4 months to delivery</div>
@@ -810,8 +859,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/faraway-jackson-hole/" aria-label="Open Faraway Jackson Hole">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_63eb3765e7374238a659b442288467f2~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Faraway Jackson Hole</div>
-      <div class="card-loc">Teton Village · Teton Village</div>
+      <div class="card-head">
+        <div class="card-title">Faraway Jackson Hole</div>
+        <div class="card-loc">Teton Village · Teton Village</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">8 weeks to delivery</div>
@@ -830,8 +881,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hale-hkala/" aria-label="Open Hale Hōkūala">
     <div class="card-img" style="background-image:url('https://www.hilton.com/im/en/LIHHKQQ/26776178/lihhkqq-diningandbar.jpg?impolicy=crop&amp;cw=3585&amp;ch=2390&amp;gravity=NorthWest&amp;xposition=707&amp;yposition=0&amp;rw=1280&amp;rh=854')"></div>
     <div class="card-body">
-      <div class="card-title">Hale Hōkūala</div>
-      <div class="card-loc">Lihue · Hōkūala Resort</div>
+      <div class="card-head">
+        <div class="card-title">Hale Hōkūala</div>
+        <div class="card-loc">Lihue · Hōkūala Resort</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4 months to delivery</div>
@@ -850,8 +903,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-cristallo-cortina-d-ampezzo/" aria-label="Open Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/44b4c1e913d9-cristallo-inverno.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo</div>
-      <div class="card-loc">Cortina d&#x27;Ampezzo</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo</div>
+        <div class="card-loc">Cortina d&#x27;Ampezzo</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -870,8 +925,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-blue-palace/" aria-label="Open Rosewood Blue Palace">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_f2845e19474e4f9ba27bc8abbadbe45e~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Rosewood Blue Palace</div>
-      <div class="card-loc">Elounda · Plaka</div>
+      <div class="card-head">
+        <div class="card-title">Rosewood Blue Palace</div>
+        <div class="card-loc">Elounda · Plaka</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3 weeks to delivery</div>
@@ -890,8 +947,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-grand-bahama/" aria-label="Open Six Senses Grand Bahama">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3547e8dea5e943758f7a040b5acefecc~mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Grand Bahama</div>
-      <div class="card-loc">Freeport</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Grand Bahama</div>
+        <div class="card-loc">Freeport</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 18, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -910,8 +969,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-milan/" aria-label="Open Six Senses Milan">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/36e7e38b0584-six-senses-milan.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Milan</div>
-      <div class="card-loc">Milan · Brera</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Milan</div>
+        <div class="card-loc">Milan · Brera</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -930,8 +991,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-park-gstaad-a-four-seasons-hotel/" aria-label="Open The Park Gstaad, A Four Seasons Hotel">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e35d7c358f1e-the-park-gstaad.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">The Park Gstaad, A Four Seasons Hotel</div>
-      <div class="card-loc">Gstaad · Bernese Oberland</div>
+      <div class="card-head">
+        <div class="card-title">The Park Gstaad, A Four Seasons Hotel</div>
+        <div class="card-loc">Gstaad · Bernese Oberland</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
@@ -950,8 +1013,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/antara-turks-caicos/" aria-label="Open Anantara Turks &amp; Caicos">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f02acb000d244498687ac9a5b0368f4~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Anantara Turks &amp; Caicos</div>
-      <div class="card-loc">Turks and Caicos · North Caicos</div>
+      <div class="card-head">
+        <div class="card-title">Anantara Turks &amp; Caicos</div>
+        <div class="card-loc">Turks and Caicos · North Caicos</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -970,8 +1035,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/" aria-label="Open Equinox Resort Anguilla Port Nimara">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Equinox Resort Anguilla Port Nimara</div>
-      <div class="card-loc">The Valley · West End</div>
+      <div class="card-head">
+        <div class="card-title">Equinox Resort Anguilla Port Nimara</div>
+        <div class="card-loc">The Valley · West End</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
@@ -990,8 +1057,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/hoshinoya-niseko/" aria-label="Open Hoshinoya Niseko">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c8b1f2a9783-058eb7_c670100fa95f4a2bb5050aadb03c99b3-mv2.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Hoshinoya Niseko</div>
-      <div class="card-loc">Kutchan · Hirafu, Niseko</div>
+      <div class="card-head">
+        <div class="card-title">Hoshinoya Niseko</div>
+        <div class="card-loc">Kutchan · Hirafu, Niseko</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.4 yrs to delivery</div>
@@ -1010,8 +1079,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/janu-turks-caicos/" aria-label="Open Janu Turks &amp; Caicos">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_cf4541d7a69944409010be523880bcca~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Janu Turks &amp; Caicos</div>
-      <div class="card-loc">Providenciales · Northwest Point</div>
+      <div class="card-head">
+        <div class="card-title">Janu Turks &amp; Caicos</div>
+        <div class="card-loc">Providenciales · Northwest Point</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl">
@@ -1030,8 +1101,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/" aria-label="Open Mandarin Oriental Esencia, Puerto Rico">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3f5d12b136040e2b57c201577c4c282~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental Esencia, Puerto Rico</div>
-      <div class="card-loc">Cabo Rojo · Boquerón Bay</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental Esencia, Puerto Rico</div>
+        <div class="card-loc">Cabo Rojo · Boquerón Bay</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1050,8 +1123,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-setouchi/" aria-label="Open Mandarin Oriental, Setouchi">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1683738b5904-MO_Setouchi.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental, Setouchi</div>
-      <div class="card-loc">Takamatsu · Takamatsu Port, Kagawa</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental, Setouchi</div>
+        <div class="card-loc">Takamatsu · Takamatsu Port, Kagawa</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 23, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">11 months to delivery</div>
@@ -1070,8 +1145,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/one-only-hudson-valley/" aria-label="Open One&amp;Only Hudson Valley">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8566ce3b6d804887a5b439c04d6ef4a3~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">One&amp;Only Hudson Valley</div>
-      <div class="card-loc">Hyde Park · Hudson Valley</div>
+      <div class="card-head">
+        <div class="card-title">One&amp;Only Hudson Valley</div>
+        <div class="card-loc">Hyde Park · Hudson Valley</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1090,8 +1167,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-telluride/" aria-label="Open Six Senses Telluride">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e2f2b7081623-Six-Senses-Telluride-Colorado-1.png')"></div>
     <div class="card-body">
-      <div class="card-title">Six Senses Telluride</div>
-      <div class="card-loc">Telluride · Mountain Village</div>
+      <div class="card-head">
+        <div class="card-title">Six Senses Telluride</div>
+        <div class="card-loc">Telluride · Mountain Village</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
@@ -1110,8 +1189,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-stockman-auberge-collection/" aria-label="Open The Stockman, Auberge Collection">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5fcbd0594ed74efe86df48f564699fd5~mv2.webp')"></div>
     <div class="card-body">
-      <div class="card-title">The Stockman, Auberge Collection</div>
-      <div class="card-loc">Steamboat Springs · Ski Time Square</div>
+      <div class="card-head">
+        <div class="card-title">The Stockman, Auberge Collection</div>
+        <div class="card-loc">Steamboat Springs · Ski Time Square</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
@@ -1130,8 +1211,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/ambergris-cay/" aria-label="Open Ambergris Cay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d985102bd6b0-6720fd11d0de636763ae69fa_ambergris-cay-all-inclusive-columbus-beach-villas.webp')"></div>
     <div class="card-body">
-      <div class="card-title">Ambergris Cay</div>
-      <div class="card-loc">Big Ambergris Cay</div>
+      <div class="card-head">
+        <div class="card-title">Ambergris Cay</div>
+        <div class="card-loc">Big Ambergris Cay</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '19</div>
@@ -1150,8 +1233,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/" aria-label="Open Four Seasons Resort and Residences Puerto Rico">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dac0c0b0da0c-9da58101-a036-42e2-9401-a33078ecd414.avif')"></div>
     <div class="card-body">
-      <div class="card-title">Four Seasons Resort and Residences Puerto Rico</div>
-      <div class="card-loc">Río Grande · Bahía Beach</div>
+      <div class="card-head">
+        <div class="card-title">Four Seasons Resort and Residences Puerto Rico</div>
+        <div class="card-loc">Río Grande · Bahía Beach</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Nov '25</div>
@@ -1170,8 +1255,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-desaru-coast/" aria-label="Open Mandarin Oriental, Desaru Coast">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/31e3543685e4-modes-homepage.jpg')"></div>
     <div class="card-body">
-      <div class="card-title">Mandarin Oriental, Desaru Coast</div>
-      <div class="card-loc">Desaru Coast, Johor</div>
+      <div class="card-head">
+        <div class="card-title">Mandarin Oriental, Desaru Coast</div>
+        <div class="card-loc">Desaru Coast, Johor</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl">
@@ -1190,8 +1277,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/sindalah/" aria-label="Open Sindalah">
     <div class="card-img" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/b/bd/Sindalah_Illustartion.png')"></div>
     <div class="card-body">
-      <div class="card-title">Sindalah</div>
-      <div class="card-loc">NEOM</div>
+      <div class="card-head">
+        <div class="card-title">Sindalah</div>
+        <div class="card-loc">NEOM</div>
+      </div>
       <div class="card-verified card-verified--empty" aria-hidden="true"></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '24</div>
@@ -1210,8 +1299,10 @@
   <a class="card-link" href="https://www.oftmw.com/projects/the-belgrove-resort-spa/" aria-label="Open The Belgrove Resort &amp; Spa">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg')"></div>
     <div class="card-body">
-      <div class="card-title">The Belgrove Resort &amp; Spa</div>
-      <div class="card-loc">West Palm Beach</div>
+      <div class="card-head">
+        <div class="card-title">The Belgrove Resort &amp; Spa</div>
+        <div class="card-loc">West Palm Beach</div>
+      </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span><span>Last verified Jun 17, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">Delivered Dec '24</div>
