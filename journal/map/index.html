@@ -13557,24 +13557,32 @@
         // ---- What's Moving (off by default; opt-in intelligence view) ----
         const slugify = window.projectSlugify || (s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
         let markers = [], movingOn = true;
+        // A project is "moving" if its sourced status log (_statusHistory — the
+        // SAME log the dossier + Pulse generator use) has a real milestone or
+        // status transition (not a 'field'/'date' edit, not a non-story phase
+        // like "announced") whose REAL event date (effective_date) is in the
+        // PAST 2 weeks. Deriving straight from the data makes this immune to the
+        // rolling/capped pulse.json feed, which had dropped recent openings like
+        // Alba (opened 2026-06-11, in its StatusHistory but not the feed).
+        const MOVE_WIN = 14*24*60*60*1000;
+        const NON_STORY = {'':1,'announced':1,'planned':1,'proposed':1,'pre-construction':1,'preconstruction':1};
+        function isMover(f){
+          const sh = (f && f._statusHistory) || []; const now = Date.now();
+          for (let i=0;i<sh.length;i++){
+            const en = sh[i];
+            if (!en || en.type === 'date' || en.type === 'field') continue;
+            const phase = String(en.phase || en.to || '').toLowerCase();
+            if (NON_STORY[phase]) continue;
+            const t = new Date(en.effective_date || '').getTime();
+            if (t && (now - t) >= 0 && (now - t) <= MOVE_WIN) return true;   // past, within 2 weeks
+          }
+          return false;
+        }
         function buildMoving(){
           markers.forEach(m=>m.remove()); markers = [];
-          const now = Date.now(), WIN = 14*24*60*60*1000, movingSet = new Set();
-          // Date each event by `timestamp` (when Pulse TRACKED the milestone —
-          // the recent feed order the header uses), NOT `event_date` (the
-          // milestone's nominal month, often in the past — which made the 14-day
-          // window drop nearly everything). Match map pins by the slugified
-          // project_title (same slugify the features use); the feed's own
-          // project_slug is hyphenated and won't equal the map's hyphen-less slug.
-          (window._pulseEvents||[]).forEach(e=>{
-            if (!e || e.type === 'tracking' || !e.project_title) return;   // skip group/tracking events
-            const t = new Date(e.timestamp || e.event_date).getTime();
-            if (t && (now - t) <= WIN) movingSet.add(slugify(e.project_title));
-          });
-          if (!movingSet.size) return;
           feats.forEach(f=>{
+            if (!f || !f.geometry || !f.geometry.coordinates || !isMover(f)) return;
             const slug = f.properties && f.properties.title ? slugify(f.properties.title) : '';
-            if (!slug || !movingSet.has(slug) || !f.geometry || !f.geometry.coordinates) return;
             const el = document.createElement('div'); el.className = 'tmw-il-pulse';
             el.dataset.slug = slug;
             // Already-selected project? Hide the pulse so it doesn't cover the pink pin.
@@ -13583,8 +13591,11 @@
               el.dataset.hiddenForSelection = '1'; el.style.display = 'none';
             }
             const mk = new mapboxgl.Marker({ element: el }).setLngLat(f.geometry.coordinates).addTo(map);
-            el.addEventListener('click', ()=>{ new mapboxgl.Popup({offset:14,closeButton:false}).setLngLat(f.geometry.coordinates)
-              .setHTML('<div style="font:700 13px Inter,sans-serif;color:#fff">'+String(f.properties.title||'').replace(/</g,'&lt;')+'</div><div style="font:600 11px Inter,sans-serif;color:#B9A6FF;margin-top:3px">● Moving now</div>').addTo(map); });
+            el.addEventListener('click', ()=>{
+              try { if (typeof showPopup === 'function') { showPopup(f); return; } } catch(_){}
+              new mapboxgl.Popup({offset:14,closeButton:false}).setLngLat(f.geometry.coordinates)
+                .setHTML('<div style="font:700 13px Inter,sans-serif;color:#fff">'+String(f.properties.title||'').replace(/</g,'&lt;')+'</div><div style="font:600 11px Inter,sans-serif;color:#B9A6FF;margin-top:3px">● Moving now</div>').addTo(map);
+            });
             markers.push(mk);
           });
           setMoving(movingOn);
@@ -18404,7 +18415,11 @@
                 featured: p.Featured?.trim().toLowerCase() === 'featured'
               },
               // Attach types array directly on feature (accessible in JS, not Mapbox)
-              _projectTypes: types
+              _projectTypes: types,
+              // Sourced status log (same one the dossier + Pulse generator use).
+              // Kept JS-side so "What's Moving" can derive recent movers straight
+              // from the data, instead of the rolling/capped pulse.json feed.
+              _statusHistory: Array.isArray(p.StatusHistory) ? p.StatusHistory : []
             };
           });
 
