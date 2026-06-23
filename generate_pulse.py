@@ -825,9 +825,11 @@ DOSSIER_STATUS_LABEL = {
     'coming-soon': 'Coming soon', 'open': 'Now Open',
 }
 
-def _event_within_months(effective_date, months=12):
+def _event_within_months(effective_date, months=3):
     """True if effective_date (YYYY / YYYY-MM / YYYY-MM-DD) is in the PAST ~N months
-    — so the Pulse stays 'current happenings' and ancient backfills don't flood it."""
+    — so the Pulse stays 'current happenings' and ancient backfills don't flood it.
+    Default 3 months (~90 days) is kept in sync with the map's What's-Moving
+    window (MOVE_WIN in journal/map/index.html)."""
     s = (effective_date or '').strip()
     m = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', s)
     if not m:
@@ -903,7 +905,7 @@ def _has_emittable_story(slug, project, seen_history_keys):
             continue
         if history_key(slug, entry) in seen_history_keys:
             continue
-        if not _event_within_months(entry.get('effective_date'), 12):
+        if not _event_within_months(entry.get('effective_date'), 3):
             continue
         return True
     return False
@@ -1186,7 +1188,7 @@ def main():
             phase = (entry.get('phase') or entry.get('to') or '').lower()
             if phase in _NON_STORY_PHASES:
                 continue
-            if not _event_within_months(entry.get('effective_date'), 12):
+            if not _event_within_months(entry.get('effective_date'), 3):
                 continue  # undated or older-than-a-year → keep the ticker current
             new_events.append(build_milestone_event(slug, project, entry))
             ms_emitted += 1

@@ -13533,7 +13533,7 @@
           '<div class="tmw-il-seg-row"><div class="tmw-il-seg" data-seg="proj"><button data-v="dev" class="on">Pipeline</button><button data-v="completed">Completed</button><button data-v="both">Both</button></div></div>' +
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
-            '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 2 Weeks</div>' +
+            '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 90 Days</div>' +
             '<div><span class="d" style="background:#FFD300"></span>Announced</div>' +
             '<div><span class="d" style="background:#3FA9F5"></span>Breaking Ground, Under Construction</div>' +
             '<div><span class="d" style="background:#1FDF67"></span>Opening Soon, Now Open</div>' +
@@ -13561,10 +13561,11 @@
         // SAME log the dossier + Pulse generator use) has a real milestone or
         // status transition (not a 'field'/'date' edit, not a non-story phase
         // like "announced") whose REAL event date (effective_date) is in the
-        // PAST 2 weeks. Deriving straight from the data makes this immune to the
+        // PAST 90 days. Deriving straight from the data makes this immune to the
         // rolling/capped pulse.json feed, which had dropped recent openings like
         // Alba (opened 2026-06-11, in its StatusHistory but not the feed).
-        const MOVE_WIN = 14*24*60*60*1000;
+        // Window kept in sync with the header Pulse generator (_event_within_months ≈ 3mo).
+        const MOVE_WIN = 90*24*60*60*1000;
         const NON_STORY = {'':1,'announced':1,'planned':1,'proposed':1,'pre-construction':1,'preconstruction':1};
         function isMover(f){
           const sh = (f && f._statusHistory) || []; const now = Date.now();
@@ -13574,7 +13575,7 @@
             const phase = String(en.phase || en.to || '').toLowerCase();
             if (NON_STORY[phase]) continue;
             const t = new Date(en.effective_date || '').getTime();
-            if (t && (now - t) >= 0 && (now - t) <= MOVE_WIN) return true;   // past, within 2 weeks
+            if (t && (now - t) >= 0 && (now - t) <= MOVE_WIN) return true;   // past, within 90 days
           }
           return false;
         }
