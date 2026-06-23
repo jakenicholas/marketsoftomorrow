@@ -946,15 +946,41 @@ def build_milestones(row, articles=None):
     # the launch PR) shares the launch date. Re-anchor announced to the YEAR of the
     # earliest dated evidence so it reads "Announced <year> EST" and sorts first —
     # honest (it was announced at least that long ago) without inventing a day.
+    # Applies whether the announced date is estimated OR sourced: a status walked
+    # back to "announced" today, AND a wrong/late sourced announce date, are both
+    # impossible (announcement precedes every other milestone by definition), so
+    # any announced date on/after the earliest evidence is re-anchored.
     ann = found.get('announced')
-    if ann and ann.get('estimated'):
+    if ann:
         ev_dates = [e['date'][:10] for ph, e in found.items() if ph != 'announced' and e.get('date')]
         if start_date:    ev_dates.append(start_date[:10])
         if delivery_date: ev_dates.append(delivery_date[:10])
         ev_dates = [d for d in ev_dates if d]
         earliest = min(ev_dates) if ev_dates else ''
         if earliest and (not ann.get('date') or ann['date'][:10] >= earliest):
-            ann['date'] = earliest[:4]   # year grain — an inferred floor, not a sourced day
+            ann['date'] = earliest[:4]                          # year grain — inferred floor, not a sourced day
+            ann['date_display'] = _fmt_event_date(ann['date'])  # the renderer shows date_display, not date
+            ann['estimated'] = True                             # the date is now inferred → show it as EST
+
+    # And the same monotonicity for the rest of the COARSE lifecycle: a coarse
+    # phase can never be dated AFTER a later coarse phase (e.g. a "coming-soon"
+    # correction stamped today sorting after a real "Opened" date). Clamp any such
+    # phase to the year of the earliest later coarse phase. Fine milestones
+    # (financing, tenant, topping-out, sales launch…) legitimately interleave and
+    # are sorted by their real dates, so they're left alone.
+    COARSE_LIFECYCLE = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'grand-opening']
+    for _i, _ph in enumerate(COARSE_LIFECYCLE):
+        _e = found.get(_ph)
+        if not _e or not _e.get('date'):
+            continue
+        _later = [found[_lp]['date'][:10] for _lp in COARSE_LIFECYCLE[_i + 1:]
+                  if found.get(_lp) and found[_lp].get('date')]
+        if _later:
+            _cap = min(_later)
+            if _e['date'][:10] > _cap:   # strictly after a later phase = impossible → clamp
+                _e['date'] = _cap[:4]
+                _e['date_display'] = _fmt_event_date(_e['date'])
+                _e['estimated'] = True
 
     # Suppress the generic coarse phase when a finer one in its band is present,
     # and move the "current" marker to the finest present phase in that band.
