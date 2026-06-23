@@ -215,7 +215,11 @@ def group_events(events):
         # Strip Wix transformation suffixes
         image = clean_wix_image_url(image)
 
-        ts = e.get("timestamp") or e.get("date") or ""
+        # Order/recency by the REAL event_date (when the milestone happened) — the
+        # same field the website's Pulse feed uses — NOT the record-edit timestamp.
+        # A project whose record was just touched (e.g. Baccarat "going vertical",
+        # event_date months old) must not float up as if it's fresh.
+        ts = e.get("event_date") or e.get("timestamp") or e.get("date") or ""
 
         # Merge ALL grouped "newly tracking" events into ONE compiled tile — a
         # batch per pulse run otherwise shows as several near-identical
@@ -537,24 +541,29 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         s = (a.get("summary") or "").strip()
         if t:
             arts.append(f"- {t}" + (f" — {s}" if s else ""))
-    # NOTE: deliberately exclude the DB status/stage. A pulse "update" fires when
-    # our team edits a record, NOT when a real-world milestone happens — so a
-    # status like "construction" is a long-standing fact, not this-week news.
-    # Feeding the stage tempts the model to render it as a fresh event ("going
-    # vertical"), which is wrong. Give names + cities only; articles carry recency.
+    # Progress updates come from the SAME pulse feed the website header uses, now
+    # ordered by REAL event_date (set in group_events). Show each update's type +
+    # city + event date so the brief can judge actual recency — a record we merely
+    # touched (old event_date) sorts low and won't surface in this top slice.
     ups = []
-    for m in map_items[:24]:
+    for m in map_items[:18]:
         t = (m.get("title") or "").strip()
         if not t:
             continue
+        tag  = (m.get("stage_label") or "").strip()
         city = (m.get("city") or "").strip()
-        ups.append(f"- {t}" + (f" ({city})" if city else ""))
+        when = (m.get("_ts") or "")[:10]   # the real event date (YYYY-MM-DD or coarser)
+        bits = " · ".join(x for x in (tag, city, when) if x)
+        ups.append(f"- {t}" + (f" ({bits})" if bits else ""))
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     context = (
-        "JOURNAL ARTICLES PUBLISHED THIS WEEK — the genuine, current news; this is "
-        "what actually happened this week:\n" + ("\n".join(arts) or "(none)") +
-        "\n\nPROJECTS WHOSE DATABASE RECORD WE TOUCHED THIS WEEK — this reflects "
-        "when OUR TEAM edited the record, NOT a real-world event; the project's "
-        "real status may be months or years old:\n" + ("\n".join(ups) or "(none)")
+        f"Today is {today}.\n\n"
+        "JOURNAL ARTICLES PUBLISHED THIS WEEK (this week's published news):\n"
+        + ("\n".join(arts) or "(none)") +
+        "\n\nRECENT PROGRESS UPDATES from the Pulse feed (type · city · REAL event "
+        "date — use the date to judge how recent each one actually is):\n"
+        + ("\n".join(ups) or "(none)")
     )
 
     system = (
@@ -562,23 +571,20 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         "Tomorrow newsletter. TMW tracks luxury and hype real-estate developments "
         "worldwide (towers, hotels, resorts, golf, mixed-use districts, museums, "
         "airports).\n\n"
-        "ACCURACY RULES — these matter more than anything else:\n"
-        "1. The JOURNAL ARTICLES are the ONLY reliable signal of what happened this "
-        "week. Ground every claim of recency or newness in them.\n"
-        "2. The DATABASE list reflects when our team edited a record — NOT a real-"
-        "world event. NEVER say or imply a project broke ground, went vertical, "
-        "topped out, secured financing, launched sales, or opened 'this week' or "
-        "'recently' unless a THIS-WEEK ARTICLE above reports it as new. Do not "
-        "invent or infer construction progress; many of these projects reached "
-        "their current state long ago.\n"
-        "3. You MAY note that projects were newly added to our coverage / the map "
-        "(neutral framing) — never as fresh milestones.\n\n"
-        "Write a concrete brief of AT MOST 2 sentences (~45 words): lead with the "
-        "single most newsworthy ARTICLE, name specific projects, and you may note "
-        "the breadth of new coverage (how many projects / which markets). Editorial "
-        "and confident; specific over generic. No hype filler, no 'this week's brief "
-        "covers', no emojis, no exclamation marks. Respond with ONLY the brief "
-        "itself — no preamble, no quotation marks, no labels, no reasoning."
+        "Write a concrete brief of AT MOST 2 sentences (~45 words) on the most "
+        "notable recent developments — lead with the single most newsworthy item, "
+        "name specific projects, and you may note the breadth of new coverage "
+        "(how many projects / which markets).\n\n"
+        "ACCURACY (critical):\n"
+        "- Each progress update carries its REAL event date. Respect it. Do NOT say "
+        "or imply something happened 'this week', 'just', or 'recently' unless its "
+        "date is within roughly the last week of today's date above. An older-dated "
+        "milestone may be mentioned, but never as if it just occurred.\n"
+        "- Use ONLY the facts and dates given. Do not invent milestones or infer "
+        "construction progress beyond what is stated.\n\n"
+        "Editorial and confident; specific over generic. No hype filler, no 'this "
+        "week's brief covers', no emojis, no exclamation marks. Respond with ONLY "
+        "the brief itself — no preamble, no quotation marks, no labels, no reasoning."
     )
 
     try:
