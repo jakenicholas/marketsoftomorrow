@@ -590,29 +590,45 @@ async function fetchStripeIncome(env) {
   let mrr = 0, monthly = 0, yearly = 0, other = 0, paying = 0;
   const currencies = new Set();
   // Active subscriptions → MRR + cadence split.
+  const trialStarts = [];   // new trial signups → activity feed (no charge exists yet)
   let after = null, guard = 0;
   do {
     // status=all (not just 'active') so 14-day-TRIAL subscribers — status
     // 'trialing' — are counted too. New Pro plans launched with a free trial
     // create trialing subs that the old status=active query dropped entirely,
     // so they stayed invisible on the analytics Pro tab for the whole trial.
-    const page = await stripeGet(env, '/subscriptions?status=all&limit=100&expand[]=data.items.data.price' + (after ? '&starting_after=' + after : ''));
+    // expand customer so trial signups can be named in the activity feed.
+    const page = await stripeGet(env, '/subscriptions?status=all&limit=100&expand[]=data.items.data.price&expand[]=data.customer' + (after ? '&starting_after=' + after : ''));
     for (const sub of (page.data || [])) {
       // Count current subscribers: active + trialing (committed, card on file).
       // Skip canceled / incomplete / incomplete_expired / unpaid.
       if (sub.status !== 'active' && sub.status !== 'trialing') continue;
       paying++;
-      let subBucket = null;
+      let subBucket = null, subAmt = 0, subCur = 'usd';
       for (const it of (sub.items && sub.items.data || [])) {
         const price = it.price || {};
         const amt = (price.unit_amount || 0) / 100 * (it.quantity || 1);
-        currencies.add((price.currency || 'usd').toLowerCase());
+        subAmt += amt; subCur = (price.currency || 'usd').toLowerCase();
+        currencies.add(subCur);
         const iv = price.recurring && price.recurring.interval;
         const ivc = (price.recurring && price.recurring.interval_count) || 1;
         mrr += stripePerMonth(amt, iv, ivc);
         if (iv === 'year') subBucket = 'yearly'; else if (iv === 'month' && subBucket !== 'yearly') subBucket = 'monthly';
       }
       if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
+      // A trial sub has no Stripe charge yet ($0), so it never reaches the
+      // charge-based feed below. Capture it as a "started trial" activity item.
+      if (sub.status === 'trialing') {
+        const cust = (sub.customer && typeof sub.customer === 'object') ? sub.customer : {};
+        trialStarts.push({
+          name: String(cust.name || '').trim(),
+          email: String(cust.email || '').trim(),
+          amount: Math.round(subAmt * 100) / 100,
+          currency: subCur,
+          created: sub.created,
+          trial: true,
+        });
+      }
     }
     after = page.has_more ? page.data[page.data.length - 1].id : null;
   } while (after && ++guard < 50);
@@ -653,6 +669,12 @@ async function fetchStripeIncome(env) {
   } while (after2);
   const feeRate = allTime > 0 ? allFee / allTime : 0;   // effective fee % (for netting the run-rate)
 
+  // Activity feed = succeeded charges + trial signups (which carry no charge),
+  // newest first, capped — so a brand-new trial shows up immediately.
+  const recentFeed = purchases.concat(trialStarts)
+    .sort((a, b) => (b.created || 0) - (a.created || 0))
+    .slice(0, PURCHASES_MAX);
+
   return {
     fees_all_time: Math.round(allFee * 100) / 100,
     fees_year: Math.round(yearFee * 100) / 100,
@@ -669,7 +691,7 @@ async function fetchStripeIncome(env) {
     other_subscriptions: other,
     currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
     income_truncated: truncated,
-    recent_purchases: purchases,
+    recent_purchases: recentFeed,
   };
 }
 
