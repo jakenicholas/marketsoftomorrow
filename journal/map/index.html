@@ -13519,8 +13519,8 @@
           // position:relative) detaches the pill from the map transform and
           // piles every label at the container edge. The ::after tail still
           // anchors fine to the absolutely-positioned marker.
-          ".tmw-mover-name{background:#0a0a0a;color:#B9A6FF;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:5px 10px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.4);white-space:nowrap;cursor:pointer}" +
-          ".tmw-mover-name::after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);background:#0a0a0a;border-right:1px solid rgba(167,139,250,.4);border-bottom:1px solid rgba(167,139,250,.4)}" +
+          ".tmw-feat-name{background:#0a0a0a;color:#fff;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:5px 10px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.6);white-space:nowrap;cursor:pointer}" +
+          ".tmw-feat-name::after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);background:#0a0a0a;border-right:1px solid rgba(167,139,250,.6);border-bottom:1px solid rgba(167,139,250,.6)}" +
           "@keyframes tmwIlGlow{0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 7px 2px rgba(167,139,250,.55)}50%{box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 17px 6px rgba(167,139,250,.95)}}" +
           "@media(max-width:820px){.tmw-il-panel{top:68px;left:12px;right:auto;bottom:auto;width:212px;padding:10px 12px}.tmw-il-ph{margin-bottom:8px}.tmw-il-panel h4{font-size:13px}.tmw-il-toggle i{display:none}.tmw-il-legend{font-size:10px}.tmw-il-scrub{bottom:84px;width:92vw;padding:7px 12px 9px}.tmw-il-yr{font-size:14px}}";
         document.head.appendChild(st);
@@ -13577,19 +13577,6 @@
             el.addEventListener('click', ()=>{ new mapboxgl.Popup({offset:14,closeButton:false}).setLngLat(f.geometry.coordinates)
               .setHTML('<div style="font:700 13px Inter,sans-serif;color:#fff">'+String(f.properties.title||'').replace(/</g,'&lt;')+'</div><div style="font:600 11px Inter,sans-serif;color:#B9A6FF;margin-top:3px">● Moving now</div>').addTo(map); });
             markers.push(mk);
-            // Recent movers also show their NAME by default — same purple pill as
-            // the hover/selected name preview, floating just above the pulse with
-            // a downward tail. Pushed into `markers` so the What's Moving toggle
-            // (and the selection-hide above) governs it too.
-            const nameEl = document.createElement('div'); nameEl.className = 'tmw-mover-name';
-            nameEl.textContent = f.properties.title || ''; nameEl.dataset.slug = slug;
-            if (el.dataset.hiddenForSelection) { nameEl.dataset.hiddenForSelection = '1'; nameEl.style.display = 'none'; }
-            const nameMk = new mapboxgl.Marker({ element: nameEl, anchor: 'bottom', offset: [0, -13] }).setLngLat(f.geometry.coordinates).addTo(map);
-            nameEl.addEventListener('click', (ev)=>{ ev.stopPropagation();
-              try { if (typeof showPopup === 'function') { showPopup(f); return; } } catch(_){}
-              try { map.flyTo({ center: f.geometry.coordinates, zoom: Math.max(map.getZoom(), 13) }); } catch(_){}
-            });
-            markers.push(nameMk);
           });
           setMoving(movingOn);
         }
@@ -13608,11 +13595,54 @@
           ['unclustered-point','clusters','unclustered-point-completed','clusters-completed'].forEach(id=>{
             if (map.getLayer(id)) { try { map.setPaintProperty(id, 'circle-opacity', opExpr); } catch(e){} } });
         }
+
+        // ---- Featured project name labels (always-on, independent of What's
+        // Moving). Each featured project gets a white-on-black pill with a thin
+        // purple border + downward tail. Long names truncate to the brand at a
+        // word boundary (~20 chars): "Waldorf Astoria Residences St. Petersburg"
+        // -> "Waldorf Astoria". Zoom-gated so they don't clutter the continental
+        // view, and hidden when the project is the selected pin (the selection
+        // name-preview covers that case).
+        let featLabels = [];
+        function shortName(name){
+          name = String(name||'').trim();
+          if (name.length <= 20) return name;
+          let cut = name.slice(0, 20);
+          const sp = cut.lastIndexOf(' ');
+          if (sp > 6) cut = cut.slice(0, sp);
+          return cut;
+        }
+        function refreshFeatLabels(){
+          const show = map.getZoom() >= 5;
+          const selSlug = (window._selectedPinTitle && window.projectSlugify) ? window.projectSlugify(window._selectedPinTitle) : '';
+          featLabels.forEach(m=>{ const el = m.getElement(); const sel = selSlug && el.dataset.slug === selSlug;
+            el.style.display = (show && !sel) ? '' : 'none'; });
+        }
+        window._refreshFeatLabels = refreshFeatLabels;
+        function buildFeaturedLabels(){
+          featLabels.forEach(m=>m.remove()); featLabels = [];
+          feats.forEach(f=>{
+            if (!f.properties || !f.properties.featured || !f.geometry || !f.geometry.coordinates) return;
+            const el = document.createElement('div'); el.className = 'tmw-feat-name';
+            el.textContent = shortName(f.properties.title); el.title = f.properties.title || '';
+            el.dataset.slug = (window.projectSlugify ? window.projectSlugify(f.properties.title||'') : '');
+            const mk = new mapboxgl.Marker({ element: el, anchor: 'bottom', offset: [0, -13] }).setLngLat(f.geometry.coordinates).addTo(map);
+            el.addEventListener('click', (ev)=>{ ev.stopPropagation();
+              try { if (typeof showPopup === 'function') { showPopup(f); return; } } catch(_){}
+              try { map.flyTo({ center: f.geometry.coordinates, zoom: Math.max(map.getZoom(), 13) }); } catch(_){}
+            });
+            featLabels.push(mk);
+          });
+          refreshFeatLabels();
+        }
+        map.on('zoom', refreshFeatLabels);
+
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
         tog.addEventListener('click', ()=>{ setMoving(!movingOn); tog.classList.toggle('on', movingOn); });
         buildMoving();
         if (!(window._pulseEvents||[]).length) setTimeout(buildMoving, 2500);
+        buildFeaturedLabels();
 
         // ---- Open/close (X collapses into the now-purple layers button) ----
         const layersBtnEl = document.getElementById('v2LayersBtn') || document.getElementById('layersButton');
@@ -13926,6 +13956,9 @@
           if (window._whatsMovingOn) el.style.display = '';
         }
       });
+      // Featured name labels: hide the selected project's label (the selection
+      // name-preview already shows it) and restore the rest, respecting zoom.
+      if (window._refreshFeatLabels) window._refreshFeatLabels();
     }
 
     // ── Two-stage popup: small "name only" preview ──────────────────────────
