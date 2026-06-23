@@ -423,7 +423,7 @@ def card_html(p: dict) -> str:
     timeline_html  = progress_bar_html(delivery, delivery_date, start_date)
     last_verified  = _last_verified(p)
     last_v_html = (
-        '<div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/></svg></span>'
+        '<div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span>'
         f'<span>Last verified {esc(last_verified)}</span></div>'
     ) if last_verified else '<div class="card-verified card-verified--empty" aria-hidden="true"></div>'
 
@@ -931,7 +931,10 @@ def render_page(
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty {{ border:none; padding:0; height:31px; }}
     .card-v-ico {{ width:14px; height:14px; display:inline-block; }}
-    .card-v-ico svg {{ width:100%; height:100%; }}
+    /* Spinning TMW Intelligence hexagon — identical to the individual project pages. */
+    .card-v-ico svg {{ width:100%; height:100%; transform-origin:50% 50%; animation: cardVSpin 4.2s cubic-bezier(.16,1,.3,1) infinite; }}
+    @keyframes cardVSpin {{ 0% {{ transform: rotate(0deg); }} 55% {{ transform: rotate(810deg); }} 70% {{ transform: rotate(900deg); }} 100% {{ transform: rotate(1080deg); }} }}
+    @media (prefers-reduced-motion: reduce) {{ .card-v-ico svg {{ animation: none; }} }}
 
     /* Construction timeline (ported verbatim from generate_pages.py's
        project page hero panel — same look, same data) */
