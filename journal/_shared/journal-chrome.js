@@ -101,7 +101,7 @@
       '<div>The Future is Here</div></div></div></footer>';
 
   var css = [
-    '.tmw-chrome-head{position:sticky; top:0; z-index:60}',
+    '.tmw-chrome-head{position:sticky; top:0; z-index:60; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
     '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-head nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px; max-width:1240px; margin:0 auto; padding-left:28px; padding-right:28px}',
     // Hide the raw nav (flat region links + Open Map CTA) + hex until journal-dock
@@ -157,7 +157,7 @@
     '.tmw-chrome-head .nav-links > a{padding:13px 0; border-bottom:1px solid var(--hair); font-size:12px}',
     '.tmw-chrome-head .nav-links > a.active::after{display:none}',
     '}',
-    '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
+    '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
     '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-foot h4{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
