@@ -6270,7 +6270,8 @@ async function handleGetComments(env, origin, url) {
   } catch (e) { return json({ error: 'comments: ' + e.message }, { status: 500 }, env, origin); }
 }
 // POST /comment { member_id, post, body, member_name? } — publish a comment.
-// Server gate: Reader level (lvl≥2). (Pro is gated client-side at the UI.)
+// Server gate: Reader level (lvl≥2) — open to ANY member, free or paid. XP is
+// earned from activity by everyone, so a free account can climb to Reader.
 async function handlePostComment(request, env, origin) {
   if (!env.DB) return json({ error: 'no db' }, { status: 500 }, env, origin);
   let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
