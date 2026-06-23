@@ -227,12 +227,20 @@ def group_events(events):
                 title = f"Tracking {mt.group(1)} more projects"
             city = cap_tracking_subtitle(city)
 
+        # Dedup identity: collapse multiple events for the SAME project down to
+        # just the most recent (map_items is sorted newest-first below, so the
+        # first one we keep wins). Grouped "newly tracking" tiles cover many
+        # projects at once and have no single slug → never deduped.
+        psl = (e.get("project_slug") or proj.get("slug") or "").strip().lower()
+        dedup_key = None if (etype == "tracking" and not psl) else (psl or (title or "").strip().lower())
+
         base = {
             "title": title,
             "city":  city,
             "image": image,
             "url":   url,
             "_ts":   ts,
+            "_key":  dedup_key,
         }
 
         if "status" in etype or "change" in etype or "update" in etype:
@@ -255,7 +263,17 @@ def group_events(events):
                 "stage_label": delivery or "Announced",
             })
     map_items.sort(key=lambda x: x.get("_ts", ""), reverse=True)
-    return map_items
+    # Keep only the most recent event per project (don't show the same project
+    # twice). Tiles with _key=None (grouped tracking) are always kept.
+    deduped, seen = [], set()
+    for it in map_items:
+        k = it.get("_key")
+        if k is not None:
+            if k in seen:
+                continue
+            seen.add(k)
+        deduped.append(it)
+    return deduped
 
 def parse_articles_from_api():
     """Fetch the latest published journal posts from the Worker API.

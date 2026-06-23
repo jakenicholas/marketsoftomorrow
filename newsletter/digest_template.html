@@ -135,6 +135,11 @@
     .grid-card { height: 300px !important; }
     /* Feature tiles stack to one column on mobile. */
     .feat-col { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+    /* Desktop pins every tile to 200px so a row's two tiles align. Stacked one
+       per row on mobile, that pin just leaves big empty boxes — let each tile
+       shrink to its own content instead. */
+    .feat-card-cell { height: auto !important; }
+    .feat-card-inner { max-height: none !important; }
   }
 
   .preheader {
