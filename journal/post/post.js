@@ -1099,7 +1099,7 @@ window.tmwArticleSignup = function () {
 };
 
 // ===================================================================
-// ARTICLE COMMENTS — everyone reads; PRO members at Reader level (lvl≥2)
+// ARTICLE COMMENTS — everyone reads; any member at Reader level (lvl≥2)
 // publish. Self-contained: injects its own CSS + mounts after #read-next.
 // ===================================================================
 function setCmtCountBtn(n) {
@@ -1178,10 +1178,9 @@ function initComments(slug, post) {
 
   fetch(WORKER+'/comments?post='+encodeURIComponent(slug),{cache:'no-store'}).then(function(r){return r.ok?r.json():{comments:[]}}).then(function(d){renderList((d&&d.comments)||[]);}).catch(function(){listEl.innerHTML='<div class="tmw-cmt-empty">Couldn’t load comments.</div>';});
 
-  function lockBox(t,s,cta,act){ composeEl.innerHTML='<div class="tmw-cmt-lock"><span class="tmw-cmt-pro">PRO</span><div class="tmw-cmt-lt">'+esc(t)+'</div><div class="tmw-cmt-ls">'+esc(s)+'</div><button class="tmw-cmt-cta" type="button">'+esc(cta)+'</button></div>'; var b=composeEl.querySelector('.tmw-cmt-cta'); if(b&&act)b.addEventListener('click',act); }
-  function goPro(){ if(window.tmwShowPaywall)return window.tmwShowPaywall('comments'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); location.href='https://www.oftmw.com/map/?upgrade=1'; }
-  function signIn(){ var m=window.$memberstackDom; if(m&&m.openModal)return m.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
-  var signedOut='Sign in and go PRO to comment. Everyone can read; PRO members at Reader level can post.';
+  function lockBox(t,s,cta,act,badge){ composeEl.innerHTML='<div class="tmw-cmt-lock"><span class="tmw-cmt-pro">'+esc(badge||'READER')+'</span><div class="tmw-cmt-lt">'+esc(t)+'</div><div class="tmw-cmt-ls">'+esc(s)+'</div><button class="tmw-cmt-cta" type="button">'+esc(cta)+'</button></div>'; var b=composeEl.querySelector('.tmw-cmt-cta'); if(b&&act)b.addEventListener('click',act); }
+  function signUp(){ var m=window.$memberstackDom; if(m&&m.openModal)return m.openModal('SIGNUP'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  var signedOut='Create a free account and reach Reader level to join the conversation. Everyone can read.';
 
   // Memberstack loads async — poll for it + the member before deciding (never falsely "sign in")
   (function resolveMember(t){ t=t||0;
@@ -1191,20 +1190,21 @@ function initComments(slug, post) {
         var mem=r&&r.data;
         if(mem) return gate(mem);
         if(++t<6) return setTimeout(function(){resolveMember(t);},400);
-        lockBox('Join the conversation',signedOut,'Sign in',signIn);
-      }).catch(function(){ if(++t<6) return setTimeout(function(){resolveMember(t);},400); lockBox('Join the conversation',signedOut,'Sign in',signIn); });
+        lockBox('Join the conversation',signedOut,'Create account',signUp);
+      }).catch(function(){ if(++t<6) return setTimeout(function(){resolveMember(t);},400); lockBox('Join the conversation',signedOut,'Create account',signUp); });
       return;
     }
-    if(++t>40){ lockBox('Join the conversation',signedOut,'Sign in',signIn); return; }
+    if(++t>40){ lockBox('Join the conversation',signedOut,'Create account',signUp); return; }
     setTimeout(function(){resolveMember(t);},250);
   })();
   function gate(m){
-    var plans=(m.planConnections)||[]; var paid=plans.some(function(p){return p.active===true||p.status==='ACTIVE';});
     var cf=m.customFields||{}; var name=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||(m.auth&&m.auth.email)||'Member';
-    if(!paid){ lockBox('Commenting is a PRO feature','Go PRO to share your take. Everyone can read; PRO members at Reader level can post.','Go PRO',goPro); return; }
+    // Commenting is open to ANY member at Reader level (lvl>=2) — not PRO-gated.
+    // Everyone earns XP and climbs regardless of plan, so a free account that
+    // reaches Reader level can post.
     fetch(WORKER+'/member-stats?id='+encodeURIComponent(m.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(st){
       var lvl=(st&&st.level)||1;
-      if(lvl<2){ lockBox('Almost there','Reach Reader level (read ~30 articles) to unlock commenting.','View your progress',function(){location.href='/account';}); return; }
+      if(lvl<2){ lockBox('Almost there','Reach Reader level to unlock commenting — keep reading to earn XP.','View your progress',function(){location.href='/account';}); return; }
       showComposer(m.id,name);
     }).catch(function(){ showComposer(m.id,name); });
   }
