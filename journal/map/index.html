@@ -13582,8 +13582,12 @@
           // fully opaque (solid pink) via a per-feature case on its title.
           const baseOp = on ? 0.5 : 0.92;
           const opExpr = ['case', ['==', ['get','title'], window._selectedPinTitle || '__none__'], 1, baseOp];
-          ['unclustered-point','clusters','unclustered-point-completed','clusters-completed'].forEach(id=>{
+          ['clusters','unclustered-point-completed','clusters-completed'].forEach(id=>{
             if (map.getLayer(id)) { try { map.setPaintProperty(id, 'circle-opacity', opExpr); } catch(e){} } });
+          // Hollow pipeline pins: dim the RING (stroke-opacity), not the fill, so
+          // the dark center stays opaque. A dimmed fill would go translucent and
+          // let the glow bleed through the center, killing the hollow look.
+          if (map.getLayer('unclustered-point')) { try { map.setPaintProperty('unclustered-point', 'circle-stroke-opacity', opExpr); } catch(e){} }
         }
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
@@ -13945,13 +13949,13 @@
       const selectedTitle = f.properties.title;
       // Selected pin gets the TMW intel purple (#A78BFA) -- visually
       // consistent with the intel block on the modal/popup.
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', '#0b0b0e'];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+        map.setPaintProperty('unclustered-point', 'circle-stroke-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
       applySelectionSideEffects(selectedTitle);
@@ -15073,11 +15077,11 @@
         try {
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
-            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#FF3D9A', '#0b0b0e'];
             const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 10, 4.5];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
-            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+            map.setPaintProperty('unclustered-point', 'circle-stroke-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
             window._selectedPinTitle = _selTitle;
             if (typeof applySelectionSideEffects === 'function') applySelectionSideEffects(_selTitle);
           }
@@ -15476,7 +15480,7 @@
         // Restore default green pin if opened from tile or deeplink (no popup to handle cleanup)
         if (fromSource === 'tile' || fromSource === 'deeplink') {
           if (map.getLayer('unclustered-point')) {
-            map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
+            map.setPaintProperty('unclustered-point', 'circle-color', '#0b0b0e');
             map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
           }
           if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -15719,13 +15723,13 @@
       const selectedTitle = f.properties.title;
 
       // Change selected pin to TMW intel purple using Mapbox paint expression
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', '#0b0b0e'];
       const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+        map.setPaintProperty('unclustered-point', 'circle-stroke-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
       applySelectionSideEffects(selectedTitle);
@@ -15888,7 +15892,7 @@
       // Restore default green pin and remove pulse when popup closes
       activePopup.on('close', () => {
         if (map.getLayer('unclustered-point')) {
-          map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
+          map.setPaintProperty('unclustered-point', 'circle-color', '#0b0b0e');
           map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
         }
         if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
@@ -17311,7 +17315,7 @@
       if (window._selectedPinMarker) { window._selectedPinMarker.remove(); window._selectedPinMarker = null; }
       // Reset selected-pin paint so all pins go back to default green
       if (map.getLayer('unclustered-point')) {
-        map.setPaintProperty('unclustered-point', 'circle-color', window.TMW_STATUS_COLOR);
+        map.setPaintProperty('unclustered-point', 'circle-color', '#0b0b0e');
         map.setPaintProperty('unclustered-point', 'circle-radius', 4.5);
       }
       window._selectedPinTitle = null;
@@ -18175,7 +18179,7 @@
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
         if (!map.getLayer('unclustered-glow')) map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#0b0b0e','circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':window.TMW_STATUS_COLOR} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
         // window._completedVisible (set by the Completed Projects toggle in
@@ -18376,7 +18380,7 @@
           // at the national view). Additive only: never touched by the
           // select/dim logic, which operates on 'unclustered-point'.
           map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':'#0b0b0e','circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':window.TMW_STATUS_COLOR} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
           // Toggle in layers panel flips visibility on ALL THREE completed
