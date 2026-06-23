@@ -1867,25 +1867,25 @@ def build_page(row, articles=None, nearby=None):
     .btn-primary:hover {{ background: #18c75a; }}
     .btn-disabled {{ background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); cursor: default; }}
 
-    /* Primary CTA — gold-glow "Dive Deeper" → opens this project on the map */
+    /* Primary CTA — purple-glow "Dive Deeper" (TMW Intelligence style) → opens this project on the map */
     .btn-dive {{
       flex: 0 1 auto;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      background: linear-gradient(135deg, #f3dc93, #e3bf63);
-      color: #1c1606; border: none; border-radius: 11px;
+      background: rgba(167,139,250,0.12);
+      color: #fff; border: 1px solid rgba(167,139,250,0.5); border-radius: 11px;
       padding: 14px 24px; font-size: 14px; font-weight: 800; letter-spacing: 0.01em;
       text-decoration: none; cursor: pointer;
-      box-shadow: 0 0 0 1px rgba(230,197,116,0.45), 0 6px 22px rgba(230,197,116,0.34), 0 0 34px rgba(230,197,116,0.26);
+      box-shadow: 0 6px 22px rgba(167,139,250,0.30), 0 0 34px rgba(167,139,250,0.26);
       animation: diveGlow 3.2s ease-in-out infinite;
-      transition: box-shadow 0.2s, transform 0.12s;
+      transition: box-shadow 0.2s, transform 0.12s, background 0.2s;
     }}
-    .btn-dive:hover {{ transform: translateY(-1px); animation: none;
-      box-shadow: 0 0 0 1px rgba(243,220,147,0.75), 0 8px 28px rgba(230,197,116,0.5), 0 0 48px rgba(230,197,116,0.45); }}
+    .btn-dive:hover {{ transform: translateY(-1px); animation: none; background: rgba(167,139,250,0.18);
+      box-shadow: 0 8px 28px rgba(167,139,250,0.5), 0 0 48px rgba(167,139,250,0.45); }}
     .btn-dive:active {{ transform: translateY(0); }}
-    .btn-dive svg {{ width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }}
+    .btn-dive svg {{ width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }}
     @keyframes diveGlow {{
-      0%, 100% {{ box-shadow: 0 0 0 1px rgba(230,197,116,0.45), 0 6px 22px rgba(230,197,116,0.30), 0 0 30px rgba(230,197,116,0.22); }}
-      50%      {{ box-shadow: 0 0 0 1px rgba(243,220,147,0.6), 0 6px 24px rgba(230,197,116,0.45), 0 0 44px rgba(230,197,116,0.4); }}
+      0%, 100% {{ box-shadow: 0 6px 22px rgba(167,139,250,0.28), 0 0 30px rgba(167,139,250,0.22); }}
+      50%      {{ box-shadow: 0 6px 24px rgba(167,139,250,0.45), 0 0 44px rgba(167,139,250,0.4); }}
     }}
     @media (prefers-reduced-motion: reduce) {{ .btn-dive {{ animation: none; }} }}
 

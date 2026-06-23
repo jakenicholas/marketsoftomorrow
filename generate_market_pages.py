@@ -460,8 +460,10 @@ def card_html(p: dict) -> str:
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
         f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
         f'    <div class="card-body">\n'
-        f'      <div class="card-title">{title}</div>\n'
-        f'      <div class="card-loc">{loc_line}</div>\n'
+        f'      <div class="card-head">\n'
+        f'        <div class="card-title">{title}</div>\n'
+        f'        <div class="card-loc">{loc_line}</div>\n'
+        f'      </div>\n'
         f'      {last_v_html}\n'
         f'      {timeline_html}\n'
         f'      {minis_html}\n'
@@ -917,9 +919,14 @@ def render_page(
     .card-img {{ height: 220px; background-size: cover; background-position: center; position: relative; }}
     .card-img::after {{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,.45) 100%); }}
     .card-body {{ padding: 18px 20px 4px; }}
-    .card-title {{ font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em; }}
+    .card-title {{ font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing:-.014em; line-height: 1.2; color: var(--white); margin-bottom: 5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }}
+    /* Title + location grouped: location sits directly under the title (not pushed
+       down by a reserved 2nd title line). The wrapper carries the alignment reserve
+       so everything BELOW (timeline, stats, firms) stays horizontally aligned across
+       tiles whether the title is 1 or 2 lines. */
+    .card-head {{ min-height: 76px; margin-bottom: 14px; }}
     /* City/firm/location body font matches the map's body font (Inter regular) */
-    .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); margin-bottom: 14px; }}
+    .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); }}
     .card-verified {{ display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }}
     /* empty placeholder keeps the meter + tiles aligned across cards that lack a verified date */
     .card-verified--empty {{ border:none; padding:0; height:31px; }}
