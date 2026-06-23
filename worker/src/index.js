@@ -592,8 +592,15 @@ async function fetchStripeIncome(env) {
   // Active subscriptions → MRR + cadence split.
   let after = null, guard = 0;
   do {
-    const page = await stripeGet(env, '/subscriptions?status=active&limit=100&expand[]=data.items.data.price' + (after ? '&starting_after=' + after : ''));
+    // status=all (not just 'active') so 14-day-TRIAL subscribers — status
+    // 'trialing' — are counted too. New Pro plans launched with a free trial
+    // create trialing subs that the old status=active query dropped entirely,
+    // so they stayed invisible on the analytics Pro tab for the whole trial.
+    const page = await stripeGet(env, '/subscriptions?status=all&limit=100&expand[]=data.items.data.price' + (after ? '&starting_after=' + after : ''));
     for (const sub of (page.data || [])) {
+      // Count current subscribers: active + trialing (committed, card on file).
+      // Skip canceled / incomplete / incomplete_expired / unpaid.
+      if (sub.status !== 'active' && sub.status !== 'trialing') continue;
       paying++;
       let subBucket = null;
       for (const it of (sub.items && sub.items.data || [])) {
