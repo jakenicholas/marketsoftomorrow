@@ -1198,15 +1198,10 @@ def main():
     else:
         print(f"   {ms_emitted} milestone events from status_history")
 
-    # 5. Add unseen articles
-    for article in articles:
-        if article['guid'] in seen_guids:
-            continue
-        matched_slug = match_article_to_project(article, current_projects)
-        new_events.append(build_article_event(article, matched_slug))
-        seen_guids.add(article['guid'])
-        match_note = f"  matched to {matched_slug}" if matched_slug else ""
-        print(f"   ARTICLE: {article['title']}{match_note}")
+    # 5. Articles are intentionally NOT added to the Pulse feed — the ticker /
+    # header Pulse surfaces construction MOVEMENT (status milestones + tracking)
+    # only. Article→project coverage links still flow through the separate
+    # articles-archive pipeline; this just keeps news out of the activity ticker.
 
     print(f" {len(new_events)} new events this run")
 
@@ -1224,7 +1219,8 @@ def main():
     # and article events are untouched. The feed self-heals as those age out.
     by_id = {
         eid: e for eid, e in by_id.items()
-        if not (e.get('type') == 'status_change' and not (e.get('event_date') or '').strip())
+        if e.get('type') != 'article'                       # articles removed from the Pulse feed (existing ones clear out here)
+        and not (e.get('type') == 'status_change' and not (e.get('event_date') or '').strip())
     }
 
     # Backfill: any existing event missing an image gets one filled in from

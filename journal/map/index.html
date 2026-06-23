@@ -13506,7 +13506,7 @@
           ".tmw-il-scrub input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:999px;background:linear-gradient(90deg,#A78BFA var(--pct,100%),rgba(255,255,255,.12) var(--pct,100%));outline:none}" +
           ".tmw-il-scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(167,139,250,.3),0 2px 6px rgba(0,0,0,.5);cursor:pointer}" +
           ".tmw-il-ticks{display:flex;justify-content:space-between;margin-top:3px;font-size:8.5px;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}" +
-          ".tmw-il-pulse{width:10px;height:10px;border-radius:50%;background:#B9A6FF;cursor:pointer;animation:tmwIlGlow 1.9s ease-in-out infinite}" +
+          ".tmw-il-pulse{width:10px;height:10px;border-radius:50%;background:rgba(167,139,250,0.4);cursor:pointer;animation:tmwIlGlow 1.9s ease-in-out infinite}" +
           ".tmw-name-preview-popup{max-width:none !important}" +
           ".tmw-name-preview-popup .mapboxgl-popup-content{display:inline-block !important;width:auto !important;max-width:none !important;min-width:0 !important;background:#0a0a0a;color:#B9A6FF;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:5px 10px !important;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.4);white-space:nowrap;text-align:center;cursor:pointer}" +
           ".tmw-name-preview-popup .mapboxgl-popup-tip{border-top-color:#0a0a0a !important}" +
@@ -13643,8 +13643,10 @@
         function refreshFeatLabels(){
           const z = map.getZoom();
           const selSlug = (window._selectedPinTitle && window.projectSlugify) ? window.projectSlugify(window._selectedPinTitle) : '';
-          // Hard floor: never label at world/continental view.
-          if (z < 4) { featLabels.forEach(m=>{ m.getElement().style.display = 'none'; }); return; }
+          // Hard floor: only label once zoomed into a region/metro — not at the
+          // national/continental view (de-collision alone let isolated labels
+          // show too far out).
+          if (z < 6.5) { featLabels.forEach(m=>{ m.getElement().style.display = 'none'; }); return; }
           // Greedy de-collision: a label shows only if its pill box doesn't
           // overlap one already shown. Stacked labels stay hidden until you zoom
           // in enough to separate them; an isolated project labels right away.
