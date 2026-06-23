@@ -34,6 +34,11 @@
   // Tag <html> with the surface so per-surface accents (the gold glow on Global
   // for the journal vs Database for the map/atlas) can be scoped in CSS.
   document.documentElement.classList.add('tmw-surf-' + tmwSurface());
+  // Market landing pages are part of the development Database — give the Database
+  // nav item the same gold active-glow that Global carries on the journal home.
+  if (/^\/markets?(\/|$)/.test(location.pathname)) {
+    document.documentElement.classList.add('tmw-nav-db');
+  }
 
   // ── Google Analytics (GA4) — same property as the map. Journal traffic on
   //    www.oftmw.com lands under hostName www.oftmw.com so the studio's Journal
@@ -755,7 +760,7 @@
     // the same glow on the map + atlas (their primary context) — but NOT on the
     // journal, where Database is just one nav item among many.
     'html.tmw-surf-journal nav.main .nav-links a.active{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
-    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    'html.tmw-surf-map .tmw-fm-database .tmw-fm-trigger, html.tmw-surf-atlas .tmw-fm-database .tmw-fm-trigger, html.tmw-nav-db .tmw-fm-database .tmw-fm-trigger{color:var(--gold-soft) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
     // Pro members never need the in-dropdown Go Pro CTA.
     'html.tmw-paid .tmw-mm-cta[data-paywall="go-pro"]{display:none !important}',
 
