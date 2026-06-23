@@ -537,31 +537,48 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         s = (a.get("summary") or "").strip()
         if t:
             arts.append(f"- {t}" + (f" — {s}" if s else ""))
+    # NOTE: deliberately exclude the DB status/stage. A pulse "update" fires when
+    # our team edits a record, NOT when a real-world milestone happens — so a
+    # status like "construction" is a long-standing fact, not this-week news.
+    # Feeding the stage tempts the model to render it as a fresh event ("going
+    # vertical"), which is wrong. Give names + cities only; articles carry recency.
     ups = []
     for m in map_items[:24]:
         t = (m.get("title") or "").strip()
         if not t:
             continue
-        stage = (m.get("to_stage") or m.get("stage_label") or "").strip()
-        city  = (m.get("city") or "").strip()
-        meta  = " · ".join(x for x in (stage, city) if x)
-        ups.append(f"- {t}" + (f" ({meta})" if meta else ""))
-    context = ("ARTICLES PUBLISHED THIS WEEK:\n" + ("\n".join(arts) or "(none)") +
-               "\n\nDATABASE / MAP UPDATES THIS WEEK:\n" + ("\n".join(ups) or "(none)"))
+        city = (m.get("city") or "").strip()
+        ups.append(f"- {t}" + (f" ({city})" if city else ""))
+    context = (
+        "JOURNAL ARTICLES PUBLISHED THIS WEEK — the genuine, current news; this is "
+        "what actually happened this week:\n" + ("\n".join(arts) or "(none)") +
+        "\n\nPROJECTS WHOSE DATABASE RECORD WE TOUCHED THIS WEEK — this reflects "
+        "when OUR TEAM edited the record, NOT a real-world event; the project's "
+        "real status may be months or years old:\n" + ("\n".join(ups) or "(none)")
+    )
 
     system = (
-        "You write the short 'TMW Intelligence' brief at the top of the Markets "
-        "of Tomorrow newsletter. Markets of Tomorrow tracks luxury and hype real-"
-        "estate developments worldwide (towers, hotels, resorts, golf, mixed-use "
-        "districts, museums, airports). From the week's journal articles and "
-        "database/map updates below, write a concrete brief of AT MOST 2 sentences "
-        "(~45 words) that says what actually moved this week: lead with the single "
-        "most newsworthy item (an opening, a groundbreaking, a major project), name "
-        "specific projects, and note where activity concentrated. Editorial and "
-        "confident; specific over generic. No hype filler, no 'this week's brief "
-        "covers', no emojis, no exclamation marks. Use ONLY facts present below. "
-        "Respond with ONLY the brief itself — no preamble, no quotation marks, no "
-        "labels, no reasoning."
+        "You write the short 'TMW Intelligence' brief at the top of the Markets of "
+        "Tomorrow newsletter. TMW tracks luxury and hype real-estate developments "
+        "worldwide (towers, hotels, resorts, golf, mixed-use districts, museums, "
+        "airports).\n\n"
+        "ACCURACY RULES — these matter more than anything else:\n"
+        "1. The JOURNAL ARTICLES are the ONLY reliable signal of what happened this "
+        "week. Ground every claim of recency or newness in them.\n"
+        "2. The DATABASE list reflects when our team edited a record — NOT a real-"
+        "world event. NEVER say or imply a project broke ground, went vertical, "
+        "topped out, secured financing, launched sales, or opened 'this week' or "
+        "'recently' unless a THIS-WEEK ARTICLE above reports it as new. Do not "
+        "invent or infer construction progress; many of these projects reached "
+        "their current state long ago.\n"
+        "3. You MAY note that projects were newly added to our coverage / the map "
+        "(neutral framing) — never as fresh milestones.\n\n"
+        "Write a concrete brief of AT MOST 2 sentences (~45 words): lead with the "
+        "single most newsworthy ARTICLE, name specific projects, and you may note "
+        "the breadth of new coverage (how many projects / which markets). Editorial "
+        "and confident; specific over generic. No hype filler, no 'this week's brief "
+        "covers', no emojis, no exclamation marks. Respond with ONLY the brief "
+        "itself — no preamble, no quotation marks, no labels, no reasoning."
     )
 
     try:
