@@ -520,7 +520,10 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
     )
 
     try:
-        client = anthropic.Anthropic(api_key=api_key)
+        # max_retries rides out transient 429/5xx/529 (overloaded) with the SDK's
+        # exponential backoff — a single 529 was silently dropping us to the
+        # heuristic. 6 attempts spans a decent overload spike.
+        client = anthropic.Anthropic(api_key=api_key, max_retries=6)
         resp = client.messages.create(
             model="claude-opus-4-8",
             max_tokens=400,
