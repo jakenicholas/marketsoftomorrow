@@ -10631,18 +10631,53 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "601-n-ashley-drive": {
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1620.8,
+      "avg_distance_mi": 1007.1,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Tampa Bay",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 1620.8,
+          "distance_mi": 1007.1
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": true
     }
   },
   "stats": {
     "high": 7,
     "medium": 10,
-    "low": 46,
+    "low": 47,
     "known_date": 370,
     "completed": 61,
-    "skipped": 56,
+    "skipped": 59,
     "no_type": 0,
     "firm_boosted": 36,
     "speculative_softened": 113,
-    "mixed_use_adjusted": 7
+    "mixed_use_adjusted": 8
   }
 }
