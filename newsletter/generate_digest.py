@@ -470,11 +470,12 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
     breaks on the LLM call."""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
+        print("[info] intel brief: heuristic (ANTHROPIC_API_KEY not set)", file=sys.stderr)
         return None
     try:
         import anthropic
     except ImportError:
-        print("[warn] anthropic SDK not installed — using heuristic intel brief", file=sys.stderr)
+        print("[info] intel brief: heuristic (anthropic SDK not installed)", file=sys.stderr)
         return None
 
     arts = []
@@ -505,31 +506,29 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         "most newsworthy item (an opening, a groundbreaking, a major project), name "
         "specific projects, and note where activity concentrated. Editorial and "
         "confident; specific over generic. No hype filler, no 'this week's brief "
-        "covers', no emojis, no exclamation marks. Use ONLY facts present below."
+        "covers', no emojis, no exclamation marks. Use ONLY facts present below. "
+        "Respond with ONLY the brief itself — no preamble, no quotation marks, no "
+        "labels, no reasoning."
     )
 
     try:
         client = anthropic.Anthropic(api_key=api_key)
         resp = client.messages.create(
             model="claude-opus-4-8",
-            max_tokens=600,
+            max_tokens=400,
             system=system,
             messages=[{"role": "user", "content": context}],
-            output_config={"format": {
-                "type": "json_schema",
-                "schema": {
-                    "type": "object",
-                    "properties": {"brief": {"type": "string"}},
-                    "required": ["brief"],
-                    "additionalProperties": False,
-                },
-            }},
         )
-        text = next((b.text for b in resp.content if b.type == "text"), "")
-        brief = (json.loads(text).get("brief") or "").strip() if text else ""
-        return brief or None
+        brief = "".join(
+            b.text for b in resp.content if getattr(b, "type", "") == "text"
+        ).strip().strip('"').strip()
+        if brief:
+            print(f"[info] intel brief: AI-generated (Claude Opus, {len(brief)} chars)", file=sys.stderr)
+            return brief
+        print("[info] intel brief: heuristic (empty LLM response)", file=sys.stderr)
+        return None
     except Exception as e:
-        print(f"[warn] LLM intel brief failed ({e}) — using heuristic", file=sys.stderr)
+        print(f"[warn] intel brief: heuristic (LLM error: {type(e).__name__}: {e})", file=sys.stderr)
         return None
 
 

@@ -140,6 +140,11 @@
        shrink to its own content instead. */
     .feat-card-cell { height: auto !important; }
     .feat-card-inner { max-height: none !important; }
+    /* Even vertical rhythm: each tile already has 10px bottom padding, so drop
+       the per-row table margin (otherwise row gaps are 20px and within-row gaps
+       are 10px). Hide the odd-row spacer cell so it doesn't add a blank block. */
+    .feat-row { margin-bottom: 0 !important; }
+    .feat-spacer { display: none !important; }
   }
 
   .preheader {
@@ -557,7 +562,7 @@
         <div class="cta-block-connected" style="background: transparent; border: 0; padding: 0;">
           <div class="cta-headline force-light-text">{{ app_updates.headline }}</div>
           {%- for prow in app_updates.tiles|batch(2) %}
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
             <tr>
             {%- for t in prow %}
               <td class="feat-col" valign="top" width="50%" style="width: 50%; padding: 0 {% if loop.first %}5px 0 0{% else %}0 0 5px{% endif %};">
@@ -579,7 +584,7 @@
               </td>
             {%- endfor %}
             {%- if prow|length == 1 %}
-              <td class="feat-col" width="50%" style="width: 50%;">&nbsp;</td>
+              <td class="feat-col feat-spacer" width="50%" style="width: 50%;">&nbsp;</td>
             {%- endif %}
             </tr>
           </table>
