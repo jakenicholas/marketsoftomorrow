@@ -5,8 +5,12 @@
    so every page that includes this stays in sync.
      <script src="/_shared/journal-chrome.js" defer></script>
    Relies on the page's design tokens (--green, --mute-2, --white, --hair,
-   --hair-2, --cream, --ink, --ink-2, --mono); the few it can't assume
-   (--glass, --purple, --purple-glow) are hardcoded below.
+   --hair-2, --cream, --ink, --ink-2); the few it can't assume
+   (--glass, --purple, --purple-glow) are hardcoded below. The header/footer
+   label font is hardcoded to Inter rather than var(--mono): the market and
+   firm pages bind --mono to real JetBrains Mono for their own eyebrows, which
+   bled into the shared chrome — so the chrome owns its font and stays
+   identical across every page.
 -------------------------------------------------------------------*/
 (function () {
   'use strict';
@@ -109,10 +113,10 @@
     'nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; animation:none}',
     '@keyframes tmwNavReveal{to{opacity:1}}',
     '.tmw-chrome-head .nav-links{display:flex; gap:20px; align-items:center}',
-    '.tmw-chrome-head .nav-links a{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); transition:color .2s; position:relative; text-decoration:none}',
+    '.tmw-chrome-head .nav-links a{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2); transition:color .2s; position:relative; text-decoration:none}',
     '.tmw-chrome-head .nav-links a:hover, .tmw-chrome-head .nav-links a.active{color:var(--white)}',
     '.tmw-chrome-head .nav-links a.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:var(--green); box-shadow:0 0 12px rgba(31,223,103,.6)}',
-    '.tmw-chrome-head .nav-cta{display:inline-flex; align-items:center; gap:10px; padding:8px 8px 8px 14px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--white); transition:all .2s; position:relative; overflow:hidden; text-decoration:none}',
+    '.tmw-chrome-head .nav-cta{display:inline-flex; align-items:center; gap:10px; padding:8px 8px 8px 14px; background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--white); transition:all .2s; position:relative; overflow:hidden; text-decoration:none}',
     '.tmw-chrome-head .nav-cta::before{content:""; position:absolute; inset:0; background:radial-gradient(60% 100% at 100% 50%, rgba(31,223,103,.18), transparent 70%); opacity:0; transition:opacity .25s}',
     '.tmw-chrome-head .nav-cta:hover{border-color:var(--green); transform:translateY(-1px)}',
     '.tmw-chrome-head .nav-cta:hover::before{opacity:1}',
@@ -156,13 +160,13 @@
     '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
     '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
-    '.tmw-chrome-foot h4{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
+    '.tmw-chrome-foot h4{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
     '.tmw-chrome-foot ul{list-style:none; display:flex; flex-direction:column; gap:9px; font-size:14px; margin:0; padding:0}',
     '.tmw-chrome-foot ul a{color:var(--mute); transition:color .2s; text-decoration:none}',
     '.tmw-chrome-foot ul a:hover{color:var(--green)}',
     '.tmw-chrome-foot .blurb{color:var(--mute); font-size:13px; line-height:1.55; margin-top:14px; max-width:32ch}',
     '.tmw-chrome-foot .tmw-wordmark{width:118px}',
-    '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
+    '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
     '@media(max-width:900px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:30px}}',
     '@media(max-width:520px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:22px}}'
   ].join('');
