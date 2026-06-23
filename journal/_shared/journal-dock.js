@@ -790,7 +790,7 @@
     // ── Focus Markets dropdown (header): replaces the per-region links with a
     //    single mega-menu of 5 rounded market tiles. 3-col desktop / 2-col mobile.
     '.tmw-fm{position:relative; display:inline-flex; align-items:center}',
-    '.tmw-fm-trigger{font-family:var(--mono,"Inter",-apple-system,BlinkMacSystemFont,sans-serif); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); background:none; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0; line-height:1; transition:color .2s}',
+    '.tmw-fm-trigger{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); background:none; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0; line-height:1; transition:color .2s}',
     '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
     '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
@@ -1117,7 +1117,7 @@
       // The open menu sits ON TOP of the whole site; the pinned search dock hides.
       'body:has(.tmw-fm.open) .tmw-dock, body:has(.nav-links.open) .tmw-dock{opacity:0 !important; visibility:hidden !important; pointer-events:none !important}',
       '.sticky-stack:has(.nav-links.open){z-index:9200}',
-      '.tmw-nav-eyebrow{font-family:var(--mono,"Inter",-apple-system,BlinkMacSystemFont,sans-serif); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:15px}',
+      '.tmw-nav-eyebrow{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:15px}',
       // Focus Markets — the media-kit .ocard, with "Read articles" in place of chips.
       '.tmw-oc-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:12px}',
       '.tmw-oc{display:flex; flex-direction:column; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.16); border-radius:14px; overflow:hidden; text-decoration:none; transition:transform .25s, border-color .25s}',
