@@ -145,6 +145,30 @@ def filter_recent(events, days=LOOKBACK_DAYS):
             out.append(e)
     return out
 
+def cap_tracking_subtitle(s, budget=30):
+    """Keep the grouped-tracking tile's name list on ONE line in the email card:
+    fit names within ~budget chars, then a recomputed "+N more" tail. Robust to
+    the pre-joined 'A, B, C +13 more' string already stored in pulse.json, so a
+    long batch can't stretch the fixed-height card out of the two-column grid."""
+    if not s:
+        return s
+    s = s.strip()
+    m = re.search(r'\s*\+\s*(\d+)\s+more\s*$', s)
+    extra = int(m.group(1)) if m else 0
+    names_part = (s[:m.start()] if m else s).rstrip().rstrip(',')
+    names = [n.strip() for n in names_part.split(',') if n.strip()]
+    shown, used = [], 0
+    for nm in names:
+        add = len(nm) + (2 if shown else 0)   # +2 for the ", " separator
+        if shown and used + add > budget:
+            break
+        shown.append(nm); used += add
+    total_more = extra + (len(names) - len(shown))
+    out = ', '.join(shown)
+    if total_more:
+        out += f" +{total_more} more"
+    return out
+
 def group_events(events):
     """Build map_items list from pulse.json events.
     Pulse events use these fields (with fallbacks for older data):
@@ -191,6 +215,17 @@ def group_events(events):
         image = clean_wix_image_url(image)
 
         ts = e.get("timestamp") or e.get("date") or ""
+
+        # Normalize the grouped "newly tracking" tile. The source generator now
+        # emits "Tracking N more projects" + a one-line name list, but older
+        # events already sitting in pulse.json still carry the old "Now tracking
+        # N new projects" copy and a long, card-breaking subtitle — fix them here
+        # so any digest built from existing data renders correctly.
+        if etype == "tracking":
+            mt = re.match(r'(?i)^now tracking (\d+) new projects$', (title or "").strip())
+            if mt:
+                title = f"Tracking {mt.group(1)} more projects"
+            city = cap_tracking_subtitle(city)
 
         base = {
             "title": title,
