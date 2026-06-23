@@ -931,15 +931,27 @@ def build_grouped_tracking_event(items):
     so they don't bury the story feed. `items` is a list of (slug, project)."""
     names = [p['title'] for _, p in items]
     n = len(names)
-    shown = names[:3]
-    subtitle = ', '.join(shown) + (f" +{n - len(shown)} more" if n > len(shown) else '')
+    # Fit as many names as sit on ONE line in the digest tile's location slot.
+    # The card is ~262px wide (~42 chars at 12px) and email clients don't
+    # reliably honor text-overflow:ellipsis, so cap the NAMES at ~30 chars and
+    # leave room for the " +N more" tail. A long batch (e.g. 16 projects with
+    # long names) otherwise stretches the fixed-height card and pushes it out
+    # of the email's two-column grid.
+    shown, used, BUDGET = [], 0, 30
+    for nm in names:
+        add = len(nm) + (2 if shown else 0)   # +2 for the ", " separator
+        if shown and used + add > BUDGET:
+            break
+        shown.append(nm); used += add
+    remaining = n - len(shown)
+    subtitle = ', '.join(shown) + (f" +{remaining} more" if remaining else '')
     first_img = next((p.get('image') for _, p in items if p.get('image')), '')
     stamp = datetime.now(timezone.utc)
     return {
         'id': f"track-group-{stamp.strftime('%Y%m%dT%H%M')}-{n}",
         'type': 'tracking',
         'tag': 'Tracking',
-        'title': f"Now tracking {n} new projects",
+        'title': f"Tracking {n} more projects",
         'city': subtitle,            # the names list renders in the location slot
         'image': first_img,
         'link': f"{SITE_URL}/",      # the map itself (no single project)

@@ -1,5 +1,5 @@
 # TMW Pro is Here
-image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c67f4529eec9-map-of-tomorrow-june-9.gif](https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9c8843b069db-tmw-pro-june-23.gif
+image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9c8843b069db-tmw-pro-june-23.gif
 
 • Founding Member Status — Secure your member number by July 1st by making an account
 
