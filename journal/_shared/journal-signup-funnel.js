@@ -39,6 +39,7 @@
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
   var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments with TMW Intelligence — forecasts, data, and updates.';
+  var EVENT = OPTS.event || 'subscribe_market';   // analytics event name; article pages override to 'subscribe_article'
 
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
   function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
@@ -53,18 +54,32 @@
       '.tmw-sub.show .tmw-sub-panel{transform:translateY(0)}' +
       '.tmw-sub-x{position:absolute;top:11px;right:14px;background:none;border:0;color:#9AA39C;font-size:26px;line-height:1;cursor:pointer;padding:0}' +
       '.tmw-sub-x:hover{color:#fff}' +
-      '.tmw-sub-eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#f0d68a;text-shadow:0 0 12px rgba(230,197,116,.4);margin-bottom:12px}' +
+      '.tmw-sub-eyebrow{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#f0d68a;text-shadow:0 0 12px rgba(230,197,116,.4);margin-bottom:12px}' +
       '.tmw-sub-h{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(20px,2.6vw,27px);line-height:1.16;color:#fff;max-width:34ch;margin:0 0 18px}' +
       '.tmw-sub-form{display:flex;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 7px 7px 22px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:border-color .2s}' +
       '.tmw-sub-form:focus-within{border-color:#1FDF67}' +
       '.tmw-sub-form input{flex:1;border:0;outline:0;background:transparent;font-family:"Inter",sans-serif;font-size:14px;color:#fff;min-width:0;height:auto;padding:0}' +
       '.tmw-sub-form input::placeholder{color:#9AA39C}' +
-      '.tmw-sub-form button{flex:0 0 auto;background:#1FDF67;color:#0a0a0a;padding:12px 22px;border:0;border-radius:999px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s}' +
+      '.tmw-sub-form button{flex:0 0 auto;background:#1FDF67;color:#0a0a0a;padding:12px 22px;border:0;border-radius:999px;font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s}' +
       '.tmw-sub-form button:hover{background:#42EB81}' +
       '.tmw-sub-form button:disabled{opacity:.6;cursor:wait}' +
-      '.tmw-sub-msg{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13.5px;letter-spacing:.04em;color:#1FDF67;margin-top:14px}' +
+      '.tmw-sub-msg{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;letter-spacing:.04em;color:#1FDF67;margin-top:14px}' +
       '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}}';
     var st = document.createElement('style'); st.id = 'tmw-funnel-css'; st.textContent = css; document.head.appendChild(st);
+  }
+
+  // ── Bring our own fonts ──────────────────────────────────────────────────
+  // The popup styles itself in Fraunces (headline) + Inter (everything else).
+  // Some pages never load those webfonts (e.g. project pages only ship JetBrains
+  // Mono), which is what made the box look different there. Inject the font link
+  // once — same "bring-your-own" model the toast system uses — so the boxes are
+  // identical everywhere. Skipped if the page already loaded Fraunces.
+  if (!document.getElementById('tmw-funnel-fonts') && !/family=Fraunces/.test(document.head.innerHTML)) {
+    var fontLink = document.createElement('link');
+    fontLink.id = 'tmw-funnel-fonts';
+    fontLink.rel = 'stylesheet';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap';
+    document.head.appendChild(fontLink);
   }
 
   // ── Step 1: email subscribe form (first-time anon visitor) ───────────────
@@ -117,8 +132,8 @@
         var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
         var d = await r.json().catch(function () { return {}; });
         if (d && d.success) {
-          try { if (window.gtag) window.gtag('event', 'subscribe_market'); } catch (_) {}
-          try { window.tmwFunnelTrack && window.tmwFunnelTrack('subscribe_market', { email: email, source: SOURCE }); } catch (_) {}
+          try { if (window.gtag) window.gtag('event', EVENT); } catch (_) {}
+          try { window.tmwFunnelTrack && window.tmwFunnelTrack(EVENT, { email: email, source: SOURCE }); } catch (_) {}
           mark('subscribed');
           try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
           // Email captured — go straight to the free 2-week trial offer. The old

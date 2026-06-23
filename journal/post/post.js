@@ -1064,203 +1064,39 @@ function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'
 function escapeAttr(s) { return escapeHtml(s); }
 
 // ===================================================================
-// SUBSCRIBE LIGHTBOX — slides up from the bottom after a few seconds.
-// Once per visitor (localStorage), dismissible, posts to the same
-// newsletter endpoint as the home page.
+// SUBSCRIBE LIGHTBOX — now the ONE shared funnel (journal-signup-funnel.js),
+// loaded site-wide by journal-chrome.js, so articles use the EXACT same popup
+// (boxes, 4 steps, IP/beacon wiring) as every other page. The article headline
+// + 'subscribe_article' beacon are set via window.TMW_FUNNEL_OPTS in
+// journal-chrome.js's contextual block. This shim just routes the heart-button
+// (hookFavorite) into that shared funnel, preserving window.tmwArticleSignup.
 // ===================================================================
-(function () {
-  var SUB_ENDPOINT = 'https://tmw-subscribe.jake-ab7.workers.dev';
-  var MARKETS = ['florida', 'tennessee', 'newyork', 'caribbean', 'rockies', 'hotel'];
-  var KEY = 'tmw-sub-lightbox-v1';
-  var SUB_EMAIL_KEY = 'tmw-sub-email';   // the address a visitor subscribed with
-  var DELAY_MS = 3000;
-
-  function seen() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
-  function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
-  function subscribedEmail() { try { return localStorage.getItem(SUB_EMAIL_KEY); } catch (e) { return null; } }
-
-  function build() {
-    // Singleton guard: if a subscribe/account lightbox is already on screen
-    // (auto-popped at 3s, or opened by an earlier heart click) just return.
-    // Without this, tapping the heart while the 3s auto-pop is already
-    // visible stacked a second identical lightbox on top -- two close-X
-    // buttons, same content. We always want max-1 of these in the DOM.
-    if (document.querySelector('.tmw-sub')) return;
-    var el = document.createElement('div');
-    el.className = 'tmw-sub';
-    el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your TMW account">' +
-        '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
-        '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
-        '<h3 class="tmw-sub-h">Go beyond the article — TMW Intelligence brings forecasts, data, and updates to every story.</h3>' +
-        '<form class="tmw-sub-form">' +
-          '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Get Access</button>' +
-        '</form>' +
-        '<div class="tmw-sub-msg" aria-live="polite"></div>' +
-      '</div>';
-    document.body.appendChild(el);
-
-    // Dismiss only closes it for this page — it re-appears on the next article.
-    function close() { el.classList.remove('show'); }
-    el.querySelector('.tmw-sub-x').addEventListener('click', close);
-    el.addEventListener('click', function (e) { if (e.target === el) close(); });
-
-    var form = el.querySelector('.tmw-sub-form');
-    var msg = el.querySelector('.tmw-sub-msg');
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      var email = (form.email.value || '').trim();
-      if (!email) return;
-      var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Checking…';
-      // Known address? Route to login instead of re-subscribing the same email.
-      var status = window.tmwCheckEmail ? await window.tmwCheckEmail(email) : { account: false };
-      var panel = el.querySelector('.tmw-sub-panel');
-      function swapPanel() {
-        ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
-        var host = document.createElement('div'); panel.appendChild(host); return host;
-      }
-      if (status.account) {
-        if (window.tmwAccountExistsPrompt) window.tmwAccountExistsPrompt(swapPanel(), { you: status.you });
-        else { btn.disabled = false; btn.textContent = orig; }
-        return;
-      }
-      btn.textContent = 'Working…';
-      try {
-        var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
-        var d = await r.json().catch(function () { return {}; });
-        if (d && d.success) {
-          try { if (window.gtag) window.gtag('event', 'subscribe_article'); } catch (_) {}
-          try { window.tmwFunnelTrack && window.tmwFunnelTrack('subscribe_article', { email: email }); } catch (_) {}
-          mark('subscribed');
-          try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
-          // Logged-out → offer a free account (just add a password). Else thanks.
-          // alreadyLive reframes the copy when the email was already on the list.
-          var faHost = swapPanel();
-          var offered = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(faHost, email, function () { el.classList.remove('show'); }, { alreadyLive: !!d.already_subscribed });
-          if (!offered) {
-            msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
-            setTimeout(function () { el.classList.remove('show'); }, 2600);
-          }
-        } else { btn.disabled = false; btn.textContent = orig; }
-      } catch (err) { btn.disabled = false; btn.textContent = orig; }
-    });
-
-    requestAnimationFrame(function () { el.classList.add('show'); });
-  }
-
-  // Exposed so the heart-button handler in hookFavorite() can invoke the
-  // SAME subscribe + free-account flow that auto-pops at 3s. Anon users
-  // who tap the heart get this flow instead of the heavier full-account
-  // modal -- it matches the rest of the article experience (email then
-  // password). Returning subscribers get the password-only step.
-  window.tmwArticleSignup = function () {
-    var subEmail = subscribedEmail();
-    if (subEmail) {
+window.tmwArticleSignup = function () {
+  function go() {
+    var f = window.tmwSignupFunnel;
+    if (!f) return;
+    var subEmail = null;
+    try { subEmail = localStorage.getItem('tmw-sub-email'); } catch (e) {}
+    if (subEmail && f.account) {
       try { sessionStorage.removeItem('tmw-acct-skip'); } catch (e) {}
-      buildAccountMode(subEmail);
-    } else {
-      build();
+      f.account(subEmail);   // returning subscriber → "add a password" step
+    } else if (f.email) {
+      f.email();             // first-timer → email capture
+    } else if (f.open) {
+      f.open();
     }
-  };
-
-  // "Account mode" — a returning subscriber who hasn't made an account yet gets
-  // the "add a password" step directly (we already know their email), instead
-  // of being re-asked to subscribe. Skipping it stops the nudge for the session.
-  function buildAccountMode(email) {
-    if (window._tmwSignedIn === true) return false;
-    // Singleton guard (see build() above) -- account-mode is the same
-    // lightbox shell, so the same one-at-a-time rule applies.
-    if (document.querySelector('.tmw-sub')) return false;
-    var el = document.createElement('div');
-    el.className = 'tmw-sub';
-    el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Create your account">' +
-        '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
-        '<div class="tmw-sub-eyebrow">The Future Is Here</div>' +
-        '<div class="tmw-sub-acct"></div>' +
-      '</div>';
-    document.body.appendChild(el);
-    function close(skip) { el.classList.remove('show'); if (skip) { try { sessionStorage.setItem('tmw-acct-skip', '1'); } catch (e) {} } }
-    el.querySelector('.tmw-sub-x').addEventListener('click', function () { close(true); });
-    el.addEventListener('click', function (e) { if (e.target === el) close(true); });
-    var host = el.querySelector('.tmw-sub-acct');
-    var ok = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host, email, function (created) {
-      if (created) { setTimeout(function () { el.classList.remove('show'); }, 200); } else { close(true); }
-    });
-    if (!ok) { el.remove(); return false; }
-    requestAnimationFrame(function () { el.classList.add('show'); });
-    return true;
   }
-
-  // Resolve signed-in + paid status. Free members still see the funnel
-  // (the new Step 4 Go Pro pitch); Pro members are done with us.
-  function checkAuth(cb) {
-    function answer() {
-      var signedIn = window._tmwSignedIn === true;
-      var paid = window._isPaidMember === true;
-      cb(signedIn, paid);
-    }
-    if (window._tmwSignedIn === true || window._tmwSignedIn === false) { answer(); return; }
-    var m = window.$memberstackDom;
-    if (m && m.getCurrentMember) { m.getCurrentMember().then(function () { answer(); }).catch(function () { cb(false, false); }); return; }
-    cb(false, false); // Memberstack not up yet → treat as logged-out
-  }
-
-  // Standalone Step 4 lightbox -- shown to ALREADY-signed-in free members
-  // who already completed Steps 1-3 in a past visit. Uses the same panel
-  // shell as build()/buildAccountMode() so it slides up the same way.
-  // Capped to once per session by the caller (shared 'tmw-gopro-shown' key);
-  // the singleton check below also stops two copies stacking on a double-fire.
-  function buildGoProMode() {
-    if (document.querySelector('.tmw-sub')) return false;
-    var el = document.createElement('div');
-    el.className = 'tmw-sub';
-    el.innerHTML =
-      '<div class="tmw-sub-panel" role="dialog" aria-label="Unlock TMW Pro">' +
-        '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
-        '<div class="tmw-sub-acct"></div>' +
-      '</div>';
-    document.body.appendChild(el);
-    function close() { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 350); }
-    el.querySelector('.tmw-sub-x').addEventListener('click', close);
-    el.addEventListener('click', function (e) { if (e.target === el) close(); });
-    var host = el.querySelector('.tmw-sub-acct');
-    if (typeof window.tmwGoProStep !== 'function') { el.remove(); return false; }
-    window.tmwGoProStep(host, close);
-    requestAnimationFrame(function () { el.classList.add('show'); });
-    return true;
-  }
-
-  var t = setTimeout(function () {
-    checkAuth(function (signedIn, paid) {
-      // Pro members are done with us.
-      if (paid) return;
-      // Signed-in free members: skip the subscribe/account funnel entirely
-      // (they already did all that) and jump straight to the Go-Pro pitch —
-      // but only ONCE per session (shared 'tmw-gopro-shown' key, same cap the
-      // site-wide funnel uses) so it isn't shown on every article.
-      if (signedIn) {
-        try { if (sessionStorage.getItem('tmw-gopro-shown') === '1') return; } catch (e) {}
-        if (buildGoProMode()) { try { sessionStorage.setItem('tmw-gopro-shown', '1'); } catch (e) {} }
-        return;
-      }
-      // Anon visitors fall through to the original 3-step funnel.
-      var subEmail = subscribedEmail();
-      if (subEmail) {
-        // Already subscribed, no account → push the password step (not the email
-        // form), unless they dismissed it earlier this session.
-        try { if (sessionStorage.getItem('tmw-acct-skip')) return; } catch (e) {}
-        buildAccountMode(subEmail);
-      } else {
-        build(); // first-timer → email subscribe form
-      }
-    });
-  }, DELAY_MS);
-  // If they bounce fast, don't bother.
-  window.addEventListener('pagehide', function () { clearTimeout(t); });
-})();
+  if (window.tmwSignupFunnel) { go(); return; }
+  // Funnel not up yet — load it (chrome loads it too; the script is a singleton)
+  // then fire. Mirrors journal-chrome.js's on-demand funnel loader.
+  var existing = document.querySelector('script[data-tmw-funnel-loader]');
+  if (existing) { existing.addEventListener('load', go); return; }
+  var s = document.createElement('script');
+  s.src = '/_shared/journal-signup-funnel.js';
+  s.setAttribute('data-tmw-funnel-loader', '');
+  s.onload = go;
+  document.body.appendChild(s);
+};
 
 // ===================================================================
 // ARTICLE COMMENTS — everyone reads; PRO members at Reader level (lvl≥2)

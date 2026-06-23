@@ -282,15 +282,40 @@
       document.body.appendChild(pwScript);
     }
 
+    // Contextual headline for the ONE universal funnel — the boxes are identical
+    // everywhere (one module, one CSS), but the headline is tailored per context
+    // (the smart "Following X?" text). Markets sets its own opts in the block
+    // further down; here we cover firm, project, and article pages. Must run
+    // BEFORE the funnel script is appended so window.TMW_FUNNEL_OPTS is ready.
+    (function setFunnelOptsByContext() {
+      if (window.TMW_FUNNEL_OPTS) return;     // a page/block already chose the copy
+      var p = location.pathname;
+      function heroName() {
+        try {
+          var h = document.querySelector('.hero h1') || document.querySelector('h1');
+          return h ? h.textContent.trim().replace(/\s+/g, ' ') : '';
+        } catch (e) { return ''; }
+      }
+      if (/^\/firm\//.test(p)) {
+        var firm = heroName();
+        if (firm) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + firm + '? Unlock TMW Intelligence — forecasts, the full pipeline, and updates.', eyebrow: 'The Future Is Here', source: 'firm_page' };
+      } else if (/^\/projects\//.test(p)) {
+        var proj = heroName();
+        if (proj) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + proj + '? Unlock TMW Intelligence — forecasts, data, and live updates.', eyebrow: 'The Future Is Here', source: 'project_page' };
+      } else if (/^\/post\//.test(p)) {
+        window.TMW_FUNNEL_OPTS = { headline: 'Go beyond the article — TMW Intelligence brings forecasts, data, and updates to every story.', eyebrow: 'The Future Is Here', source: 'article', event: 'subscribe_article' };
+      }
+    })();
+
     // Auto-load the signup funnel on MOST pages so non-logged-in visitors get
     // the email-capture / Go-Pro flow site-wide — not just on /markets/. The
     // funnel itself decides what to show (email capture every page until an
-    // account exists; the Pro/trial upsell once per session). Excluded: pages
-    // with their own funnel or gating — /post/ (post.js has its own copy), the
-    // map & atlas (their own trial gates), and the account/legal pages.
+    // account exists; the Pro/trial upsell once per session). Articles now use
+    // this same shared funnel (post.js no longer ships its own copy). Excluded:
+    // the map & atlas (their own trial gates) and the account/legal pages.
     (function loadFunnelOnMostPages() {
       var p = location.pathname;
-      if (/^\/(post|account|terms|privacy|auth|map|atlas)(\/|$)/.test(p)) return;
+      if (/^\/(account|terms|privacy|auth|map|atlas)(\/|$)/.test(p)) return;
       if (p.indexOf('/markets/') === 0 || p === '/markets') return;   // handled by the contextual /markets/ block below
       if (window.tmwSignupFunnel || document.querySelector('script[data-tmw-funnel-loader]')) return;
       var fScript = document.createElement('script');
