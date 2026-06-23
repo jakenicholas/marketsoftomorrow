@@ -623,8 +623,8 @@ async function fetchStripeIncome(env) {
         trialStarts.push({
           name: String(cust.name || '').trim(),
           email: String(cust.email || '').trim(),
-          amount: Math.round(subAmt * 100) / 100,
-          currency: subCur,
+          amount: 0,            // $0 during trial — the real monthly/annual charge
+          currency: subCur,     // lands in the charge-based feed when the first payment goes through
           created: sub.created,
           trial: true,
         });
