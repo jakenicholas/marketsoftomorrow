@@ -12944,16 +12944,16 @@
     // ‚îÄ‚îÄ‚îÄ MAP SETUP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
     // Status-colored pins: project circles tinted by delivery stage (legend in
-    // the Intelligence panel). New color scheme (June 2026):
+    // the Intelligence panel). Color scheme (June 2026, 3-color / 5-phase):
     //   PURPLE #A78BFA -- moved-in-last-2-weeks (the default branch — pins
     //     that don't match a delivery bucket fall through to TMW accent
     //     purple, which doubles as the "new on the map" highlight)
-    //   YELLOW #FFD300 -- Announced + Breaking Ground (combined "pre-construction")
-    //   BLUE   #3FA9F5 -- Under Construction
-    //   GREEN  #1FDF67 -- Now Open + Opening Soon (combined "open / opening")
+    //   YELLOW #FFD300 -- Announced (earliest phase, on its own)
+    //   BLUE   #3FA9F5 -- Breaking Ground + Under Construction ("building")
+    //   GREEN  #1FDF67 -- Opening Soon + Now Open ("open / opening")
     window.TMW_STATUS_COLOR = ['match', ['get', 'delivery'],
       'Announced',         '#FFD300',
-      'Breaking Ground',   '#FFD300',
+      'Breaking Ground',   '#3FA9F5',
       'Under Construction','#3FA9F5',
       'Opening Soon',      '#1FDF67',
       'Now Open',          '#1FDF67',
@@ -13524,9 +13524,9 @@
           '<div class="tmw-il-rule"></div>' +
           '<div class="tmw-il-legend">' +
             '<div><span class="d" style="background:#A78BFA"></span>Moved In The Last 2 Weeks</div>' +
-            '<div><span class="d" style="background:#FFD300"></span>Announced / Breaking Ground</div>' +
-            '<div><span class="d" style="background:#3FA9F5"></span>Under Construction</div>' +
-            '<div><span class="d" style="background:#1FDF67"></span>Now Open / Opening Soon</div>' +
+            '<div><span class="d" style="background:#FFD300"></span>Announced</div>' +
+            '<div><span class="d" style="background:#3FA9F5"></span>Breaking Ground, Under Construction</div>' +
+            '<div><span class="d" style="background:#1FDF67"></span>Opening Soon, Now Open</div>' +
             '<div><span class="d tmw-il-rail"></span>Future Rail</div>' +
           '</div>';
         document.body.appendChild(panel);
