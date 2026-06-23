@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
 <!-- <title> intentionally OMITTED. Gmail (web + iOS + Android) renders
      the <title> tag as a visible heading at the top of the email body,
      so even a generic "Markets of Tomorrow" leaks as a stray line above
@@ -31,22 +31,8 @@
 
 <style>
   :root {
-    color-scheme: light dark;
-    supported-color-schemes: light dark;
-  }
-
-  /* Email copy only — adapts to the reader's dark mode. The web ARCHIVE we
-     send to clients omits this block (and pins color-scheme:light above) so it
-     ALWAYS renders the polished light/branded design, regardless of the
-     viewer's device theme. The partial dark flip looked broken in a browser. */
-  @media (prefers-color-scheme: dark) {
-    .force-dark-bg { background-color: #1a1a1a !important; }
-    .force-dark-panel { background-color: #222222 !important; }
-    .force-light-text { color: #ffffff !important; }
-    .force-muted-text { color: #888888 !important; }
-    .force-accent-text { color: #1FDF67 !important; }
-    .force-border { border-color: #262626 !important; }
-    body, .wrapper { background-color: #1a1a1a !important; }
+    color-scheme: light;
+    supported-color-schemes: light;
   }
 
 
