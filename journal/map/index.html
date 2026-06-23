@@ -14049,15 +14049,17 @@
     function zoomToPinOnly(f) {
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
-      // Selected pin gets the TMW intel purple (#A78BFA) -- visually
-      // consistent with the intel block on the modal/popup.
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
+      // Match the EXACT pin by uid (title@lng,lat), not title — duplicate-titled
+      // projects would otherwise BOTH turn pink. Fall back to title if uid absent.
+      const selUid = f.properties.uid || selectedTitle;
+      const selKey = f.properties.uid ? ['get','uid'] : ['get','title'];
+      const pinkPinExpr = ['case', ['==', selKey, selUid], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkRadiusExpr = ['case', ['==', selKey, selUid], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', selKey, selUid], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
       applySelectionSideEffects(selectedTitle);
@@ -15179,11 +15181,13 @@
         try {
           if (p && p.title && map && map.getLayer && map.getLayer('unclustered-point')) {
             const _selTitle = p.title;
-            const _pinkPin = ['case', ['==', ['get', 'title'], _selTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-            const _pinkRad = ['case', ['==', ['get', 'title'], _selTitle], 10, 4.5];
+            const _selUid = p.uid || _selTitle;
+            const _selKey = p.uid ? ['get','uid'] : ['get','title'];   // exact-pin match (dupe-safe)
+            const _pinkPin = ['case', ['==', _selKey, _selUid], '#FF3D9A', window.TMW_STATUS_COLOR];
+            const _pinkRad = ['case', ['==', _selKey, _selUid], 10, 4.5];
             map.setPaintProperty('unclustered-point', 'circle-color', _pinkPin);
             map.setPaintProperty('unclustered-point', 'circle-radius', _pinkRad);
-            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], _selTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+            map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', _selKey, _selUid], 1, (window._whatsMovingOn ? 0.5 : 1)]);
             window._selectedPinTitle = _selTitle;
             if (typeof applySelectionSideEffects === 'function') applySelectionSideEffects(_selTitle);
           }
@@ -15824,14 +15828,17 @@
       const co = f.geometry.coordinates;
       const selectedTitle = f.properties.title;
 
-      // Change selected pin to TMW intel purple using Mapbox paint expression
-      const pinkPinExpr = ['case', ['==', ['get', 'title'], selectedTitle], '#FF3D9A', window.TMW_STATUS_COLOR];
-      const pinkRadiusExpr = ['case', ['==', ['get', 'title'], selectedTitle], 10, 4.5];
+      // Change selected pin to TMW intel purple using Mapbox paint expression.
+      // Match by uid (title@lng,lat) so duplicate-titled pins don't both go pink.
+      const selUid = f.properties.uid || selectedTitle;
+      const selKey = f.properties.uid ? ['get','uid'] : ['get','title'];
+      const pinkPinExpr = ['case', ['==', selKey, selUid], '#FF3D9A', window.TMW_STATUS_COLOR];
+      const pinkRadiusExpr = ['case', ['==', selKey, selUid], 10, 4.5];
       if (map.getLayer('unclustered-point')) {
         map.setPaintProperty('unclustered-point', 'circle-color', pinkPinExpr);
         map.setPaintProperty('unclustered-point', 'circle-radius', pinkRadiusExpr);
         // Selected pin = 100% solid pink even while What's Moving dims the field.
-        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', ['get','title'], selectedTitle], 1, (window._whatsMovingOn ? 0.5 : 1)]);
+        map.setPaintProperty('unclustered-point', 'circle-opacity', ['case', ['==', selKey, selUid], 1, (window._whatsMovingOn ? 0.5 : 1)]);
       }
       window._selectedPinTitle = selectedTitle;
       applySelectionSideEffects(selectedTitle);
@@ -18430,6 +18437,11 @@
           // pipeline pins vs. archived completions. Computed once here; the
           // cached-restore path reuses these values from window.allProjectFeatures.
           features.forEach(f => { f.properties.completed = isProjectCompleted(f.properties); });
+          // Stable unique id per pin (title + coords). Selection highlights the
+          // EXACT pin by uid, not by title — duplicate-titled projects (e.g. two
+          // "YMCA of the Palm Beaches" ~300m apart) used to BOTH turn pink on a
+          // title match. Flows into the Mapbox source via the geoFeatures copy.
+          features.forEach(f => { const c = (f.geometry && f.geometry.coordinates) || [0,0]; f.properties.uid = (f.properties.title||'') + '@' + (+c[0]).toFixed(5) + ',' + (+c[1]).toFixed(5); });
 
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
