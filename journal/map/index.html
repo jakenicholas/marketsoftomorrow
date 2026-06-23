@@ -13613,7 +13613,7 @@
         function setProjects(mode){
           const dev = (mode==='dev'||mode==='both'), done = (mode==='completed'||mode==='both');
           window._developmentsVisible = dev; window._completedVisible = done;
-          ['clusters','cluster-count','unclustered-point','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
+          ['clusters','cluster-count','unclustered-glow','unclustered-point','featured-glow','watched-ring'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', dev?'visible':'none'); }catch(e){} } });
           ['clusters-completed','cluster-count-completed','unclustered-point-completed'].forEach(id=>{ if(map.getLayer(id)){ try{ map.setLayoutProperty(id,'visibility', done?'visible':'none'); }catch(e){} } });
           const cc=document.getElementById('completedCheckbox'), dc=document.getElementById('developmentsCheckbox');
           if(cc) cc.classList.toggle('checked', done); if(dc) dc.classList.toggle('checked', dev);
@@ -18174,6 +18174,7 @@
         }
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
+        if (!map.getLayer('unclustered-glow')) map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
         if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack ‚Äî pine-green palette. Visibility tracks
@@ -18370,6 +18371,11 @@
           // green pins users see.
           map.addLayer({ id:'clusters', type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
           map.addLayer({ id:'cluster-count', type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
+          // Glow halo beneath each pin — blurred, status-colored, and zoom-gated
+          // so it only fades in as you zoom in (no glow under thousands of pins
+          // at the national view). Additive only: never touched by the
+          // select/dim logic, which operates on 'unclustered-point'.
+          map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
           map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack ‚Äî pine-green palette, hidden by default.
