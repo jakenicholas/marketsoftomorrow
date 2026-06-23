@@ -520,27 +520,39 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
     )
 
     try:
-        # max_retries rides out transient 429/5xx/529 (overloaded) with the SDK's
-        # exponential backoff — a single 529 was silently dropping us to the
-        # heuristic. 6 attempts spans a decent overload spike.
+        # max_retries rides out transient 429/5xx/529 with the SDK's exponential
+        # backoff before giving up on a model.
         client = anthropic.Anthropic(api_key=api_key, max_retries=6)
-        resp = client.messages.create(
-            model="claude-opus-4-8",
-            max_tokens=400,
-            system=system,
-            messages=[{"role": "user", "content": context}],
-        )
-        brief = "".join(
-            b.text for b in resp.content if getattr(b, "type", "") == "text"
-        ).strip().strip('"').strip()
-        if brief:
-            _brief_status(f"AI-generated (Claude Opus, {len(brief)} chars)")
-            return brief
-        _brief_status("heuristic (empty LLM response)")
-        return None
     except Exception as e:
-        _brief_status(f"heuristic (LLM error: {type(e).__name__}: {e})", warn=True)
+        _brief_status(f"heuristic (client init failed: {type(e).__name__}: {e})", warn=True)
         return None
+
+    # Opus first for the best brief; fall back to lighter models when Opus is
+    # overloaded (529 is capacity/model-specific — Sonnet/Haiku are usually less
+    # loaded). This is an availability fallback for an unattended nightly job, not
+    # a default downgrade — Opus stays the primary choice.
+    last_err = None
+    for model in ("claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"):
+        try:
+            resp = client.messages.create(
+                model=model,
+                max_tokens=400,
+                system=system,
+                messages=[{"role": "user", "content": context}],
+            )
+            brief = "".join(
+                b.text for b in resp.content if getattr(b, "type", "") == "text"
+            ).strip().strip('"').strip()
+            if brief:
+                _brief_status(f"AI-generated ({model}, {len(brief)} chars)")
+                return brief
+            last_err = "empty response"
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {e}"
+            print(f"[warn] intel brief: {model} failed ({last_err}); trying next model", file=sys.stderr)
+
+    _brief_status(f"heuristic (all models failed; last: {last_err})", warn=True)
+    return None
 
 
 def build_intel_summary(map_items, weekly_articles, app_updates):
