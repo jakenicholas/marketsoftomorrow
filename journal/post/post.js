@@ -1180,7 +1180,7 @@ function initComments(slug, post) {
 
   function lockBox(t,s,cta,act,badge){ composeEl.innerHTML='<div class="tmw-cmt-lock"><span class="tmw-cmt-pro">'+esc(badge||'READER')+'</span><div class="tmw-cmt-lt">'+esc(t)+'</div><div class="tmw-cmt-ls">'+esc(s)+'</div><button class="tmw-cmt-cta" type="button">'+esc(cta)+'</button></div>'; var b=composeEl.querySelector('.tmw-cmt-cta'); if(b&&act)b.addEventListener('click',act); }
   function signUp(){ var m=window.$memberstackDom; if(m&&m.openModal)return m.openModal('SIGNUP'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
-  var signedOut='Create a free account and reach Reader level to join the conversation. Everyone can read.';
+  var signedOut='Create a free account and reach Reader level to join the conversation.';
 
   // Memberstack loads async — poll for it + the member before deciding (never falsely "sign in")
   (function resolveMember(t){ t=t||0;
