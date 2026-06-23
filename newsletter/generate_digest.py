@@ -462,6 +462,14 @@ def _join_clauses(items):
     if len(items) == 2: return f"{items[0]} and {items[1]}"
     return ", ".join(items[:-1]) + ", and " + items[-1]
 
+INTEL_BRIEF_STATUS = "unknown"   # which path the top brief took; embedded as an HTML comment for debugging
+
+def _brief_status(msg, warn=False):
+    global INTEL_BRIEF_STATUS
+    INTEL_BRIEF_STATUS = msg
+    print(("[warn] " if warn else "[info] ") + "intel brief: " + msg, file=sys.stderr)
+
+
 def llm_intel_brief(map_items, weekly_articles, app_updates):
     """Use Claude to write the 'TMW Intelligence' brief from the week's ACTUAL
     articles + database updates — a concrete 2-sentence summary, not a stat line.
@@ -470,12 +478,12 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
     breaks on the LLM call."""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
-        print("[info] intel brief: heuristic (ANTHROPIC_API_KEY not set)", file=sys.stderr)
+        _brief_status("heuristic (ANTHROPIC_API_KEY not set in this job's env)")
         return None
     try:
         import anthropic
     except ImportError:
-        print("[info] intel brief: heuristic (anthropic SDK not installed)", file=sys.stderr)
+        _brief_status("heuristic (anthropic SDK not installed)")
         return None
 
     arts = []
@@ -523,12 +531,12 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
             b.text for b in resp.content if getattr(b, "type", "") == "text"
         ).strip().strip('"').strip()
         if brief:
-            print(f"[info] intel brief: AI-generated (Claude Opus, {len(brief)} chars)", file=sys.stderr)
+            _brief_status(f"AI-generated (Claude Opus, {len(brief)} chars)")
             return brief
-        print("[info] intel brief: heuristic (empty LLM response)", file=sys.stderr)
+        _brief_status("heuristic (empty LLM response)")
         return None
     except Exception as e:
-        print(f"[warn] intel brief: heuristic (LLM error: {type(e).__name__}: {e})", file=sys.stderr)
+        _brief_status(f"heuristic (LLM error: {type(e).__name__}: {e})", warn=True)
         return None
 
 
@@ -717,6 +725,10 @@ def main():
 
     os.makedirs(os.path.dirname(OUT_HTML), exist_ok=True)
     os.makedirs(ARCHIVE_DIR, exist_ok=True)
+
+    # Debug breadcrumb (committed, so it can be read without CI logs): which path
+    # the 'TMW Intelligence' brief took this run. Harmless HTML comment.
+    email_html += f"\n<!-- TMW intel-brief: {INTEL_BRIEF_STATUS} -->\n"
 
     with open(OUT_HTML, "w") as f:    f.write(email_html)
     with open(OUT_SUBJECT, "w") as f: f.write(subject)
