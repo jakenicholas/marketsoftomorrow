@@ -764,7 +764,7 @@
     '.btn-cta:hover{background:transparent !important; transform:none !important; gap:11px}',
     '.btn-cta svg{color:var(--gold-soft)}',
     // Iconic-list "About" → Request Visit (gold text + gold arrow, opens mail client).
-    '.about-cta{display:inline-flex; align-items:center; gap:9px; margin-top:34px; font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); text-decoration:none; transition:gap .2s ease, color .2s ease}',
+    '.about-cta{display:inline-flex; align-items:center; gap:9px; margin-top:34px; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); text-decoration:none; transition:gap .2s ease, color .2s ease}',
     '.about-cta:hover{gap:14px; color:var(--gold)}',
     '.about-cta svg{width:15px; height:15px; stroke:currentColor; flex:0 0 auto}',
     // Tablet + mobile: match the ad's native 1886x382 (~4.94:1) aspect so the
@@ -1130,7 +1130,7 @@
       '.tmw-oc-stats{display:grid; grid-template-columns:1fr 1fr; gap:13px 12px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.08)}',
       '.tmw-oc-st{display:flex; flex-direction:column; gap:3px}',
       '.tmw-oc-st .v{font-family:var(--serif,Georgia,serif); font-weight:600; font-size:20px; color:#fff; letter-spacing:-.01em; line-height:1}',
-      '.tmw-oc-st .k{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
+      '.tmw-oc-st .k{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute,#9AA39C)}',
       // Social row (IG · LinkedIn · Facebook · X) sits between two dividers
       // (the stats border above + its own border below); then a slim
       // "Read articles" row by itself.
@@ -1139,12 +1139,12 @@
       '.tmw-oc-soc:hover{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.3); color:#1FDF67}',
       '.tmw-oc-soc svg{width:15px; height:15px}',
       '.tmw-oc-foot{padding-top:11px; display:flex; align-items:center}',
-      '.tmw-oc-read{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
+      '.tmw-oc-read{display:inline-flex; align-items:center; gap:8px; white-space:nowrap; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-soft,#f0d68a)}',
       '.tmw-oc-read svg{width:13px; height:13px; transition:transform .2s}',
       '.tmw-oc:hover .tmw-oc-read{color:#fff} .tmw-oc:hover .tmw-oc-read svg{transform:translateX(3px)}',
       // The Map — explore (free) + pro intelligence + Go Pro CTA.
       '.tmw-mm{display:grid; grid-template-columns:1fr; gap:14px; max-width:1000px}',
-      '.tmw-mm-h{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
+      '.tmw-mm-h{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute,#9AA39C); margin-bottom:8px}',
       '.tmw-mm-h-span{grid-column:1/-1; margin-bottom:-6px}',
       '.tmw-mm-pro-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px 14px}',
       '.tmw-mm-item{display:flex; gap:12px; padding:10px; border-radius:12px; text-decoration:none; transition:background .18s}',
@@ -1153,14 +1153,14 @@
       '.tmw-mm-ic.green{background:rgba(31,223,103,.1); border-color:rgba(31,223,103,.26); color:#42EB81}',
       '.tmw-mm-ic svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8}',
       '.tmw-mm-tx b{display:block; font-size:12px; font-weight:600; color:#fff}',
-      '.tmw-mm-tx b em{font-style:normal; font-family:var(--mono); font-size:7.5px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
+      '.tmw-mm-tx b em{font-style:normal; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:7.5px; letter-spacing:.12em; color:var(--gold-soft,#f0d68a); border:1px solid rgba(230,197,116,.42); border-radius:5px; padding:2px 5px; margin-left:7px; vertical-align:middle}',
       '.tmw-mm-tx b em.fpro{color:#42EB81; border-color:rgba(31,223,103,.42)}',
       '.tmw-mm-tx b em.ppro{color:#C4B5FD; border-color:rgba(167,139,250,.45)}',
       '.tmw-mm-tx i{font-style:normal; display:block; font-size:11px; color:var(--mute,#9AA39C); margin-top:2px}',
       '.tmw-mm-cta{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 18px; border-radius:13px; text-decoration:none; background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(31,223,103,.06)); border:1px solid rgba(167,139,250,.3)}',
       '.tmw-mm-cta .t{font-family:var(--serif,Georgia,serif); font-weight:400; font-size:16px; line-height:1.25; letter-spacing:-.01em; text-transform:none; color:#fff}',
       '.tmw-mm-cta .t em{font-style:italic; color:#B9A6FF}',
-      '.tmw-mm-cta .go{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:9px; background:#FFD300; color:#0a0a0a; white-space:nowrap}',
+      '.tmw-mm-cta .go{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; padding:10px 16px; border-radius:9px; background:#FFD300; color:#0a0a0a; white-space:nowrap}',
       // The Lists — featured split: one hero list + two compact image rows.
       '.tmw-ll{display:grid; grid-template-columns:1.5fr 1fr; gap:14px; max-width:860px}',
       '.tmw-lc-feat{position:relative; display:block; border-radius:15px; overflow:hidden; text-decoration:none; min-height:262px; border:1px solid rgba(255,255,255,.1)}',
@@ -1168,7 +1168,7 @@
       '.tmw-lc-feat::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(5,6,5,.93), rgba(5,6,5,.2) 55%, rgba(5,6,5,.4))}',
       '.tmw-lc-feat:hover img{transform:scale(1.05)}',
       '.tmw-lc-fm{position:absolute; left:0; right:0; bottom:0; padding:22px; z-index:2}',
-      '.tmw-lc-eye{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft,#f0d68a); margin-bottom:7px}',
+      '.tmw-lc-eye{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft,#f0d68a); margin-bottom:7px}',
       '.tmw-lc-feat h3{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:28px; line-height:1; letter-spacing:-.015em; text-transform:none; color:#fff}',
       '.tmw-lc-feat p{font-family:var(--sans,"Inter",sans-serif); text-transform:none; font-size:12.5px; line-height:1.45; color:var(--mute-2,#C2C9C3); margin-top:9px; max-width:34ch}',
       '.tmw-lc-side{display:flex; flex-direction:column; gap:14px}',
