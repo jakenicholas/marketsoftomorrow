@@ -178,6 +178,7 @@ def group_events(events):
       - city, image, timestamp
     """
     map_items = []
+    track_acc = None   # all grouped "newly tracking" events merge into ONE compiled tile
     for e in events:
         etype = (e.get("type") or "").lower()
 
@@ -215,6 +216,27 @@ def group_events(events):
         image = clean_wix_image_url(image)
 
         ts = e.get("timestamp") or e.get("date") or ""
+
+        # Merge ALL grouped "newly tracking" events into ONE compiled tile — a
+        # batch per pulse run otherwise shows as several near-identical
+        # "Tracking N more projects" cards. Accumulate the total count + a few
+        # example names + the first image; the single tile is built after the loop.
+        psl = (e.get("project_slug") or proj.get("slug") or "").strip().lower()
+        if etype == "tracking" and not psl:
+            cnt_m  = re.search(r'(\d+)', title or "")
+            csub   = (city or "").strip()
+            tail_m = re.search(r'\s*\+\s*\d+\s+more\s*$', csub)
+            names_part = (csub[:tail_m.start()] if tail_m else csub).rstrip().rstrip(",")
+            names = [n.strip() for n in names_part.split(",") if n.strip()]
+            if track_acc is None:
+                track_acc = {"count": 0, "names": [], "image": "", "url": url, "ts": ts}
+            track_acc["count"] += int(cnt_m.group(1)) if cnt_m else 0
+            track_acc["names"].extend(names)
+            if not track_acc["image"] and image:
+                track_acc["image"] = image
+            if ts > track_acc["ts"]:
+                track_acc["ts"] = ts
+            continue
 
         # Normalize the grouped "newly tracking" tile. The source generator now
         # emits "Tracking N more projects" + a one-line name list, but older
@@ -262,6 +284,29 @@ def group_events(events):
                 "stage_color": stage_color(delivery),
                 "stage_label": delivery or "Announced",
             })
+    # Build the single compiled "Tracking N more projects" tile from the batch.
+    if track_acc and track_acc["count"] > 0:
+        total = track_acc["count"]
+        shown, used = [], 0
+        for nm in track_acc["names"]:
+            add = len(nm) + (2 if shown else 0)
+            if shown and used + add > 30:
+                break
+            shown.append(nm); used += add
+        remaining = total - len(shown)
+        sub = ", ".join(shown) + (f" +{remaining} more" if remaining > 0 else "")
+        map_items.append({
+            "title": f"Tracking {total} more projects",
+            "city":  sub,
+            "image": track_acc["image"],
+            "url":   track_acc["url"],
+            "_ts":   track_acc["ts"],
+            "_key":  None,
+            "from_stage": "", "to_stage": "",
+            "stage_color": stage_color("Tracking"),
+            "stage_label": "Tracking",
+        })
+
     map_items.sort(key=lambda x: x.get("_ts", ""), reverse=True)
     # Keep only the most recent event per project (don't show the same project
     # twice). Tiles with _key=None (grouped tracking) are always kept.
@@ -694,6 +739,10 @@ def main():
     subject   = build_subject(map_items, florida_articles, more_markets_articles, app_updates)
     preheader = build_preheader(map_items, florida_articles, more_markets_articles)
     intel     = build_intel_summary(map_items, weekly_articles, app_updates)
+    # og:description, twitter:description, and the hidden inbox preheader all use
+    # {{ preheader }} — make them the AI 'TMW Intelligence' brief when we have one.
+    if intel and intel.get("body"):
+        preheader = intel["body"]
     print(f"[info] subject: {subject}")
     print(f"[info] intel summary: {'yes' if intel else 'no'}")
 
