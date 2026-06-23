@@ -462,11 +462,84 @@ def _join_clauses(items):
     if len(items) == 2: return f"{items[0]} and {items[1]}"
     return ", ".join(items[:-1]) + ", and " + items[-1]
 
+def llm_intel_brief(map_items, weekly_articles, app_updates):
+    """Use Claude to write the 'TMW Intelligence' brief from the week's ACTUAL
+    articles + database updates — a concrete 2-sentence summary, not a stat line.
+    Returns the brief text, or None to fall back to the heuristic below (no
+    ANTHROPIC_API_KEY, SDK missing, or any API error) so a digest build never
+    breaks on the LLM call."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        return None
+    try:
+        import anthropic
+    except ImportError:
+        print("[warn] anthropic SDK not installed — using heuristic intel brief", file=sys.stderr)
+        return None
+
+    arts = []
+    for a in weekly_articles[:12]:
+        t = (a.get("title") or "").strip()
+        s = (a.get("summary") or "").strip()
+        if t:
+            arts.append(f"- {t}" + (f" — {s}" if s else ""))
+    ups = []
+    for m in map_items[:24]:
+        t = (m.get("title") or "").strip()
+        if not t:
+            continue
+        stage = (m.get("to_stage") or m.get("stage_label") or "").strip()
+        city  = (m.get("city") or "").strip()
+        meta  = " · ".join(x for x in (stage, city) if x)
+        ups.append(f"- {t}" + (f" ({meta})" if meta else ""))
+    context = ("ARTICLES PUBLISHED THIS WEEK:\n" + ("\n".join(arts) or "(none)") +
+               "\n\nDATABASE / MAP UPDATES THIS WEEK:\n" + ("\n".join(ups) or "(none)"))
+
+    system = (
+        "You write the short 'TMW Intelligence' brief at the top of the Markets "
+        "of Tomorrow newsletter. Markets of Tomorrow tracks luxury and hype real-"
+        "estate developments worldwide (towers, hotels, resorts, golf, mixed-use "
+        "districts, museums, airports). From the week's journal articles and "
+        "database/map updates below, write a concrete brief of AT MOST 2 sentences "
+        "(~45 words) that says what actually moved this week: lead with the single "
+        "most newsworthy item (an opening, a groundbreaking, a major project), name "
+        "specific projects, and note where activity concentrated. Editorial and "
+        "confident; specific over generic. No hype filler, no 'this week's brief "
+        "covers', no emojis, no exclamation marks. Use ONLY facts present below."
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-opus-4-8",
+            max_tokens=600,
+            system=system,
+            messages=[{"role": "user", "content": context}],
+            output_config={"format": {
+                "type": "json_schema",
+                "schema": {
+                    "type": "object",
+                    "properties": {"brief": {"type": "string"}},
+                    "required": ["brief"],
+                    "additionalProperties": False,
+                },
+            }},
+        )
+        text = next((b.text for b in resp.content if b.type == "text"), "")
+        brief = (json.loads(text).get("brief") or "").strip() if text else ""
+        return brief or None
+    except Exception as e:
+        print(f"[warn] LLM intel brief failed ({e}) — using heuristic", file=sys.stderr)
+        return None
+
+
 def build_intel_summary(map_items, weekly_articles, app_updates):
     """Build the 'TMW Intelligence' brief that summarizes the whole issue.
 
-    Runs server-side with no LLM (this generator is invoked nightly in CI), so
-    the summary is assembled from the same data the rest of the digest renders.
+    The body prefers an LLM brief (llm_intel_brief, Claude Opus) that actually
+    reads the week's articles + updates; it falls back to the data-assembled
+    heuristic below when ANTHROPIC_API_KEY isn't set or the call fails, so CI
+    never breaks. The stats row (Stories/Updates/Markets) is always data-derived.
 
     - story_count is the TRUE number of journal posts published in the lookback
       window (not the 8 we trim down to as cards in the email).
@@ -536,6 +609,12 @@ def build_intel_summary(map_items, weekly_articles, app_updates):
         body = "Here's what's moving across the map of tomorrow this week."
     if app_updates:
         body += " Plus the latest from TMW Pro."
+
+    # Prefer a real LLM summary of the week's actual stories + updates; the
+    # heuristic body above is the fallback when the API key/SDK/call isn't there.
+    llm = llm_intel_brief(map_items, weekly_articles, app_updates)
+    if llm:
+        body = llm
 
     if not (story_count or new_updates):
         return None

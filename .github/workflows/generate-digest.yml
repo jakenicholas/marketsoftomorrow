@@ -33,9 +33,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install jinja2 premailer
+        run: pip install jinja2 premailer anthropic
 
       - name: Generate digest
+        env:
+          # Powers the AI-written "TMW Intelligence" brief. If unset, the
+          # generator falls back to the data-assembled heuristic (no failure).
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 newsletter/generate_digest.py
 
       - name: Commit if changed
