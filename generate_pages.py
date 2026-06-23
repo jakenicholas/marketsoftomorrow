@@ -935,6 +935,27 @@ def build_milestones(row, articles=None):
                     e['source_url'] = tmw_by_key[key]
                     e['source_domain'] = _url_domain(tmw_by_key[key])
 
+    # Backstop against an INVERTED timeline. 'announced' is the lifecycle START,
+    # so it can never legitimately post-date a later milestone. When its only
+    # date is a record/correction stamp (estimated — e.g. a status walked back to
+    # "announced" today by the construction sweep, with no real effective_date),
+    # and that stamp falls on/after the earliest dated evidence, it would render
+    # nonsense like "Announced Jun 2026" after a "Sales launched Dec 2024". The
+    # article guard above only fires when an article is STRICTLY earlier than every
+    # other phase, so it misses the common case where the earliest evidence (e.g.
+    # the launch PR) shares the launch date. Re-anchor announced to the YEAR of the
+    # earliest dated evidence so it reads "Announced <year> EST" and sorts first —
+    # honest (it was announced at least that long ago) without inventing a day.
+    ann = found.get('announced')
+    if ann and ann.get('estimated'):
+        ev_dates = [e['date'][:10] for ph, e in found.items() if ph != 'announced' and e.get('date')]
+        if start_date:    ev_dates.append(start_date[:10])
+        if delivery_date: ev_dates.append(delivery_date[:10])
+        ev_dates = [d for d in ev_dates if d]
+        earliest = min(ev_dates) if ev_dates else ''
+        if earliest and (not ann.get('date') or ann['date'][:10] >= earliest):
+            ann['date'] = earliest[:4]   # year grain — an inferred floor, not a sourced day
+
     # Suppress the generic coarse phase when a finer one in its band is present,
     # and move the "current" marker to the finest present phase in that band.
     if any(p in found for p in DOSSIER_FINE_CONSTRUCTION):
