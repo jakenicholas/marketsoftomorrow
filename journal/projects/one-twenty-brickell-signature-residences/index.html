@@ -96,18 +96,23 @@
       if (document.body) scan();
       else document.addEventListener('DOMContentLoaded', scan);
       var obs = new MutationObserver(function(muts) {
+        // case-(b) closest() walk only matters once a modal exists; during heavy
+        // DOM construction there's none, so skip it (it was thrashing on load).
+        var modalPresent = !!document.querySelector('.tmw-ms-modal');
         for (var i = 0; i < muts.length; i++) {
           var added = muts[i].addedNodes;
           for (var j = 0; j < added.length; j++) {
             var node = added[j];
             if (node.nodeType !== 1) continue;
-            if (node.parentNode === document.body && looksLikeMSModal(node)) {
-              tagContainerAndChildren(node);
+            if (node.parentNode === document.body) {
+              if (looksLikeMSModal(node)) { tagContainerAndChildren(node); modalPresent = true; }
               continue;
             }
-            var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
-            if (modalAncestor) {
-              tagContainerAndChildren(modalAncestor);
+            if (modalPresent) {
+              var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
+              if (modalAncestor) {
+                tagContainerAndChildren(modalAncestor);
+              }
             }
           }
         }
