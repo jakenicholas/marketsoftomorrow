@@ -735,14 +735,15 @@
     // behind the matched projects, not the projects themselves. A specific firm
     // NAME (detectFirm) takes precedence over this generic ranking intent.
     var firmRank = null;
-    if (!firm) {
-      var rankCue = /\b(most active|busiest|most prolific|prolific|leading|biggest)\b/.test(full) || hasWord(full, 'most') || hasWord(full, 'top');
-      var wantDev = hasWord(full, 'developer') || hasWord(full, 'developers') || hasWord(full, 'builder') || hasWord(full, 'builders');
-      var wantArch = hasWord(full, 'architect') || hasWord(full, 'architects');
-      var wantFirm = hasWord(full, 'firm') || hasWord(full, 'firms') || hasWord(full, 'company') || hasWord(full, 'companies');
-      if (rankCue && (wantDev || wantArch || wantFirm)) {
-        firmRank = (wantFirm || (wantDev && wantArch)) ? 'both' : (wantDev ? 'developer' : 'architect');
-      }
+    var rankCue = /\b(most active|busiest|most prolific|prolific|leading|biggest)\b/.test(full) || hasWord(full, 'most') || hasWord(full, 'top');
+    var wantDev = hasWord(full, 'developer') || hasWord(full, 'developers') || hasWord(full, 'builder') || hasWord(full, 'builders');
+    var wantArch = hasWord(full, 'architect') || hasWord(full, 'architects');
+    var wantFirm = hasWord(full, 'firm') || hasWord(full, 'firms') || hasWord(full, 'company') || hasWord(full, 'companies');
+    if (rankCue && (wantDev || wantArch || wantFirm)) {
+      firmRank = (wantFirm || (wantDev && wantArch)) ? 'both' : (wantDev ? 'developer' : 'architect');
+      // A ranking ask ("most active developer") supersedes an incidental firm-name
+      // match — e.g. detectFirm latching onto a firm literally named "MG Developer".
+      firm = null;
     }
     var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0);
     // Geographic / firm anchor alone is enough to trigger smart. "projects
@@ -952,21 +953,23 @@
       var fr = rankFirms(rows);
       var wantDev = s.firmRank === 'both' || s.firmRank === 'developer';
       var wantArch = s.firmRank === 'both' || s.firmRank === 'architect';
+      // When the top firm has only one project, no one "leads" — the field is
+      // spread, so say that instead of crowning a 1-project firm as "most active".
+      var leadBit = function (role, list) {
+        if (!list.length) return '';
+        var t = list[0];
+        if (t.count >= 2) return '<span class="hl">' + esc(t.name) + '</span> is the most active ' + role + ' (' + t.count + ' projects)';
+        return 'no single ' + role + ' leads — ' + list.length + ' ' + role + 's, one project each';
+      };
       var bits = [];
-      if (wantDev && fr.developers.length) {
-        var d0 = fr.developers[0];
-        bits.push('<span class="hl">' + esc(d0.name) + '</span> is the most active developer (' + d0.count + ' project' + (d0.count !== 1 ? 's' : '') + ')');
-      }
-      if (wantArch && fr.architects.length) {
-        var a0 = fr.architects[0];
-        bits.push('<span class="hl">' + esc(a0.name) + '</span> ' + (bits.length ? 'the most active architect' : 'is the most active architect') + ' (' + a0.count + ' project' + (a0.count !== 1 ? 's' : '') + ')');
-      }
+      if (wantDev) { var bd = leadBit('developer', fr.developers); if (bd) bits.push(bd); }
+      if (wantArch) { var ba = leadBit('architect', fr.architects); if (ba) bits.push(ba); }
       if (bits.length) {
         var frStats = [{ v: '' + n, k: 'Results' }];
         if (wantDev && fr.developers.length) frStats.push({ v: '' + fr.developers.length, k: 'Developers' });
         if (wantArch && fr.architects.length) frStats.push({ v: '' + fr.architects.length, k: 'Architects' });
         return {
-          html: 'Across <b>' + n + ' tracked ' + noun + (n !== 1 ? 's' : '') + '</b>' + placePhrase + ', ' + bits.join(' and ') + '.',
+          html: 'Across <b>' + n + ' tracked ' + noun + (n !== 1 ? 's' : '') + '</b>' + placePhrase + ', ' + bits.join('; ') + '.',
           stats: frStats.slice(0, 4)
         };
       }
