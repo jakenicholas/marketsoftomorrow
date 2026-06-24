@@ -20305,7 +20305,13 @@
         let lastEvent = null;
         for (let i = 0; i < events.length; i++) {
           const ev = events[i];
-          if (ev.project_slug !== slug) continue;
+          // Match direct events (ev for this project) OR child-component
+          // events when this project is the umbrella district (ev.parent_slug
+          // is written by generate_pulse.py for components of a district).
+          // The reverse — watching a child surfacing parent/sibling events —
+          // is deliberately NOT done: ev for a sibling has parent_slug ===
+          // district, not === watched-child, so it doesn't match here.
+          if (ev.project_slug !== slug && (ev.parent_slug || '') !== slug) continue;
           const ts = ev.timestamp || '';
           // No last_viewed yet => everything counts as unread; cap is the
           // first time the user opens the project anyway, after which the
