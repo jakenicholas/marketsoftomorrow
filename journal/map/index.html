@@ -13050,8 +13050,24 @@
       // each frame; pausing them for the duration of a pan/zoom frees the GPU for
       // the map and stops the low-zoom lag. They resume the instant the gesture
       // settles — invisible to the user mid-gesture.
-      _blurStyle.textContent = 'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation-play-state:paused!important;-webkit-animation-play-state:paused!important}';
+      // map-busy = during a pan/zoom gesture: kill blur AND pause animations.
+      // map-loading = during the INITIAL load/first-render, before any gesture:
+      // kill blur ONLY. This is the window Jake feels ("even the loading
+      // animation lags") — 135 blurred glass panels each re-sample the map as it
+      // first renders. We must NOT pause animations here, or the loading spinner
+      // itself would freeze; blur is the expensive part, so drop just that until
+      // the map's first 'idle' (load settled). Until now nothing covered this
+      // phase except physically opening the drawer to mask the map.
+      _blurStyle.textContent =
+        'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation-play-state:paused!important;-webkit-animation-play-state:paused!important}' +
+        'body.map-loading *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
       document.head.appendChild(_blurStyle);
+      // Suppress blur for the whole initial load, lift it once the map settles
+      // (first 'idle'), with a hard cap so a never-idling layer can't strand it.
+      document.body.classList.add('map-loading');
+      const _liftLoading = () => { document.body.classList.remove('map-loading'); };
+      map.once('idle', _liftLoading);
+      setTimeout(_liftLoading, 6000);
 
       // The GL "glow" layers (featured-glow has circle-blur:0.8; watched-ring is
       // a soft stroke) are GPU-blurred and re-render every frame while the map
