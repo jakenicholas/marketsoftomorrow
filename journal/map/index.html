@@ -18431,7 +18431,11 @@
         if (!map.getLayer('clusters'))          map.addLayer({ id:'clusters',          type:'circle', source:'projects', filter:['has','point_count'], paint:{'circle-color':'#1FDF67','circle-radius':['step',['get','point_count'],20,100,30,750,40],'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
         if (!map.getLayer('cluster-count'))     map.addLayer({ id:'cluster-count',     type:'symbol', source:'projects', filter:['has','point_count'], layout:{'text-field':'{point_count_abbreviated}','text-size':12,'text-allow-overlap':true,'text-ignore-placement':true}, paint:{'text-color':'#ffffff'} });
         if (!map.getLayer('unclustered-glow')) map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], minzoom:8, paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
-        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+        // circle-stroke-width interpolates from 0.5 at z3 → 2 at z8 so the
+        // 600+ pins at continental zoom render with minimal anti-aliasing work
+        // (the 2px white stroke barely shows when pins are tiny dots anyway);
+        // at metro zoom and tighter the user gets the full 2px crisp stroke.
+        if (!map.getLayer('unclustered-point')) map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':['interpolate',['linear'],['zoom'],3,0.5,8,2],'circle-stroke-color':'#fff'} });
 
         // Completed cluster stack — pine-green palette. Visibility tracks
         // window._completedVisible (set by the Completed Projects toggle in
@@ -18642,7 +18646,7 @@
           // at the national view). Additive only: never touched by the
           // select/dim logic, which operates on 'unclustered-point'.
           map.addLayer({ id:'unclustered-glow', type:'circle', source:'projects', filter:['!',['has','point_count']], minzoom:8, paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-blur':1,'circle-radius':['interpolate',['linear'],['zoom'],8,5,11,12,14,18],'circle-opacity':['interpolate',['linear'],['zoom'],8.5,0,11,0.42]} });
-          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':2,'circle-stroke-color':'#fff'} });
+          map.addLayer({ id:'unclustered-point', type:'circle', source:'projects', filter:['!',['has','point_count']], paint:{'circle-color':window.TMW_STATUS_COLOR,'circle-radius':4.5,'circle-stroke-width':['interpolate',['linear'],['zoom'],3,0.5,8,2],'circle-stroke-color':'#fff'} });
 
           // Completed cluster stack — pine-green palette, hidden by default.
           // Toggle in layers panel flips visibility on ALL THREE completed
