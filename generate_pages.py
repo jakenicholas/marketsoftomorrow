@@ -647,79 +647,56 @@ def _escape_text(s):
 
 
 def coverage_section_html(articles, project_title, default_image):
-    """Render the 'Coverage on TMW' section as static HTML.
+    """Render 'Coverage on TMW' as a purple-accented card grid that matches
+    the Family / Connected Projects section. Shows the first 6 articles and
+    reveals the rest via a <details> toggle so they stay in the baked HTML
+    (SEO-friendly — every article URL is in the document, indexable).
 
-    articles: list of {title, link, image, published_at, guid} dicts (already
-              sorted newest first by the pulse pipeline).
-    project_title: used to build a fallback search link if there are more
-                   articles than fit in the section.
-    default_image: project's hero image, used as a thumbnail fallback when
-                   an article has no image of its own.
-
-    Returns empty string if the project has no matching articles -- the
-    section won't appear on those pages.
+    Returns '' when the project has no matching articles.
     """
     if not articles:
         return ''
 
-    featured = articles[0]
-    rest = articles[1:5]
     total = len(articles)
 
-    f_img = featured.get('image') or default_image or ''
-    f_img_style = f' style="background-image:url(\'{_escape_attr(f_img)}\')"' if f_img else ''
+    def _cov_card(a):
+        img = a.get('image') or default_image or ''
+        img_style = f' style="background-image:url(\'{_escape_attr(img)}\')"' if img else ''
+        date_txt = _format_article_date(a.get('published_at', ''))
+        date_pill = f'<span class="pp-fam-status">{_escape_text(date_txt)}</span>' if date_txt else ''
+        return (
+            f'<a class="pp-fam-card pp-cov-card" href="{_escape_attr(a.get("link",""))}" target="_blank" rel="noopener">'
+            f'<div class="pp-fam-img"{img_style}>{date_pill}</div>'
+            f'<div class="pp-fam-b"><div class="pp-fam-t">{_escape_text(a.get("title",""))}</div></div>'
+            f'</a>'
+        )
 
-    rows_html = ''
-    for a in rest:
-        a_img = a.get('image') or default_image or ''
-        a_thumb_style = f' style="background-image:url(\'{_escape_attr(a_img)}\')"' if a_img else ''
-        rows_html += f'''
-          <a class="cv-row" href="{_escape_attr(a.get('link',''))}" target="_blank" rel="noopener">
-            <div class="cv-thumb"{a_thumb_style}></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">{_escape_text(a.get('title',''))}</div>
-              <div class="cv-row-meta">{_escape_text(_format_article_date(a.get('published_at','')))}</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        '''
+    primary_html = ''.join(_cov_card(a) for a in articles[:6])
+    rest = articles[6:]
+    lead = f'{project_title} has been covered in {total} article{"s" if total != 1 else ""} on Markets of Tomorrow.'
 
-    list_html = f'<div class="cv-list">{rows_html}</div>' if rows_html.strip() else ''
+    more_block = ''
+    if rest:
+        rest_html = ''.join(_cov_card(a) for a in rest)
+        more_block = (
+            f'<details class="pp-cov-more-wrap">'
+            f'<summary class="pp-cov-more">'
+            f'<span class="pp-cov-more-show">Show all {total} articles</span>'
+            f'<span class="pp-cov-more-hide">Show less</span>'
+            f'<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg>'
+            f'</summary>'
+            f'<div class="pp-fam-grid pp-cov-grid">{rest_html}</div>'
+            f'</details>'
+        )
 
-    view_all_html = ''
-    if total > 5:
-        # Use form-encoding (spaces become +) to match the oftmw.com/?q= search URL style.
-        # quote_plus does exactly this.
-        search_url = f"https://www.oftmw.com/?q={urllib.parse.quote_plus(project_title)}"
-        view_all_html = f'''
-          <a class="cv-view-all" href="{_escape_attr(search_url)}" target="_blank" rel="noopener">
-            View all {total} articles
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        '''
-
-    # Inline styles -- self-contained so this drops into any project page
-    # without needing edits to the shared stylesheet.
-    return f'''
-  <section class="coverage-section">
-    <div class="cv-header">
-      <h2 class="cv-title">Coverage on TMW <span class="cv-count">{total}</span></h2>
-    </div>
-    <a class="cv-featured" href="{_escape_attr(featured.get('link',''))}" target="_blank" rel="noopener">
-      <div class="cv-featured-img"{f_img_style}>
-        <div class="cv-featured-tag">Latest</div>
-      </div>
-      <div class="cv-featured-body">
-        <div class="cv-featured-title">{_escape_text(featured.get('title',''))}</div>
-        <div class="cv-meta">{_escape_text(_format_article_date(featured.get('published_at','')))}</div>
-      </div>
-    </a>
-    {list_html}
-    {view_all_html}
-  </section>
-'''
+    return (
+        f'<div class="pp-sec pp-fam pp-cov">'
+        f'<div class="pp-sec-h">Coverage on TMW</div>'
+        f'<div class="pp-fam-lead">{_escape_text(lead)}</div>'
+        f'<div class="pp-fam-grid pp-cov-grid">{primary_html}</div>'
+        f'{more_block}'
+        f'</div>'
+    )
 
 
 # ── Living dossier: the sourced, event-dated milestone timeline ───────────────
@@ -2303,28 +2280,23 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
 
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section {{ margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }}
-    .cv-header {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }}
-    .cv-title {{ font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }}
-    .cv-count {{ font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }}
-    .cv-featured {{ display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }}
-    .cv-featured:hover {{ border-color: rgba(31,223,103,0.3); }}
-    .cv-featured-img {{ width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }}
-    .cv-featured-tag {{ position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }}
-    .cv-featured-body {{ padding: 14px 16px 16px; }}
-    .cv-featured-title {{ font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }}
-    .cv-meta {{ font-size: 11px; color: rgba(255,255,255,0.4); }}
-    .cv-list {{ display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }}
-    .cv-row {{ background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }}
-    .cv-row:hover {{ background: #0a0a0a; }}
-    .cv-thumb {{ width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }}
-    .cv-row-body {{ flex: 1; min-width: 0; }}
-    .cv-row-title {{ font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
-    .cv-row-meta {{ font-size: 11px; color: rgba(255,255,255,0.4); }}
-    .cv-row-arrow {{ color: rgba(255,255,255,0.4); flex-shrink: 0; }}
-    .cv-row-arrow svg {{ stroke: currentColor; fill: none; }}
-    .cv-view-all {{ display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }}
-    .cv-view-all:hover {{ color: #fff; border-color: rgba(255,255,255,0.18); }}
-    .cv-view-all svg {{ stroke: currentColor; fill: none; }}
+    /* Coverage on TMW — reuses Family card structure (purple-accented grid).
+       Card title clamps to 3 lines instead of 2 since article headlines run
+       longer than project names. Date sits in the same corner pill slot
+       Family uses for status. <details> reveals articles past the first 6. */
+    .pp-cov .pp-fam-t {{ -webkit-line-clamp: 3; }}
+    .pp-cov-grid {{ }}
+    .pp-cov-more-wrap {{ margin-top: 14px; }}
+    .pp-cov-more-wrap > summary {{ list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1px solid rgba(167,139,250,.30); border-radius: 999px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #C9BBFF; background: rgba(167,139,250,.06); transition: border-color .15s, background .15s, color .15s; }}
+    .pp-cov-more-wrap > summary::-webkit-details-marker {{ display: none; }}
+    .pp-cov-more-wrap > summary::marker {{ display: none; content: ''; }}
+    .pp-cov-more-wrap > summary:hover {{ border-color: rgba(167,139,250,.60); background: rgba(167,139,250,.12); color: #fff; }}
+    .pp-cov-more-wrap > summary svg {{ transition: transform .2s; stroke: currentColor; fill: none; }}
+    .pp-cov-more-wrap[open] > summary {{ margin-bottom: 14px; }}
+    .pp-cov-more-wrap[open] > summary svg {{ transform: rotate(180deg); }}
+    .pp-cov-more-wrap .pp-cov-more-hide {{ display: none; }}
+    .pp-cov-more-wrap[open] .pp-cov-more-show {{ display: none; }}
+    .pp-cov-more-wrap[open] .pp-cov-more-hide {{ display: inline; }}
 
     /* ============ Cinematic project layout ============ */
     .pp {{ position: relative; }}
