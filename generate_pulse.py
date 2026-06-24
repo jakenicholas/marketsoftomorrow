@@ -1327,18 +1327,26 @@ def main():
         and not (e.get('type') == 'status_change' and not (e.get('event_date') or '').strip())
     }
 
-    # Backfill: any existing event missing an image gets one filled in from
-    # the current project data (if available). This handles events that were
-    # emitted before the ImageURL column lookup was fixed -- without this they
-    # would forever show the empty placeholder thumb.
+    # Refresh: pull the current project image for every project-scoped event
+    # (status_change, milestone, delivery — anything that isn't an article).
+    # Without this, an editor swapping a project's photo in the backend would
+    # update everywhere on the site EXCEPT existing Pulse events, which keep
+    # whatever image was captured at event-creation time forever. Articles
+    # keep their own per-post image — that's the canonical art for the post
+    # and changes independently of the project record, so we only backfill
+    # missing values there (not overwrite live ones).
     for ev_id, ev in by_id.items():
-        if ev.get('image'):
-            continue
         slug = ev.get('project_slug')
-        if slug and slug in current_projects:
-            project_image = current_projects[slug].get('image') or ''
-            if project_image:
+        if not slug or slug not in current_projects:
+            continue
+        project_image = current_projects[slug].get('image') or ''
+        if not project_image:
+            continue
+        if ev.get('type') == 'article':
+            if not ev.get('image'):
                 ev['image'] = project_image
+        else:
+            ev['image'] = project_image
 
     # Backfill: any existing ARTICLE event without a 'city' value gets one
     # filled in from the article's first Wix category. Articles emitted
