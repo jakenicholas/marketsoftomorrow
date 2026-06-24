@@ -12151,6 +12151,12 @@
         <span class="v2-num-badge" id="v2PulseQuickBadge" hidden>0</span>
         <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
       </button>
+      <!-- Timeline (year scrubber) toggle: hides/shows the bottom delivering-
+           by-year scrubber. Default is ON (scrubber visible) so this button
+           lands in .active on first render. -->
+      <button class="v2-action-btn active" id="v2TimelineBtn" aria-label="Toggle timeline scrubber">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      </button>
       <div class="v2-zoom-stack">
         <button id="v2ZoomInBtn" aria-label="Zoom in">
           <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
@@ -13598,6 +13604,10 @@
           ".tmw-il-rule{height:1px;background:rgba(255,255,255,.09);margin:11px 0 10px}" +
           ".tmw-il-legend .d.tmw-il-rail{height:2px;border-radius:0;background:repeating-linear-gradient(90deg,#FFD300 0 2.5px,transparent 2.5px 4.5px);box-shadow:none}" +
           "body.ui-v2 #v2LayersBtn{background:rgba(167,139,250,.2)!important;border:1px solid rgba(167,139,250,.6)!important;box-shadow:0 0 13px rgba(167,139,250,.45)!important;color:#C9BBFF!important}body.ui-v2 #v2LayersBtn.active{background:rgba(167,139,250,.38)!important;color:#fff!important}" +
+          // Timeline button: standard dark glass by default; purple highlight
+          // when active (scrubber visible). Mirrors the active-state treatment
+          // on the layers button so the right rail reads consistently.
+          "body.ui-v2 #v2TimelineBtn.active{background:rgba(167,139,250,.2)!important;border:1px solid rgba(167,139,250,.6)!important;box-shadow:0 0 10px rgba(167,139,250,.35)!important;color:#C9BBFF!important}" +
           ".tmw-il-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:.15s;margin-bottom:15px}" +
           ".tmw-il-toggle:hover{background:rgba(255,255,255,.06)}" +
           ".tmw-il-toggle.on{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1)}" +
@@ -13832,10 +13842,30 @@
         // ---- Open/close (X collapses into the now-purple layers button) ----
         const layersBtnEl = document.getElementById('v2LayersBtn') || document.getElementById('layersButton');
         window._tmwLayersOpen = true;
-        function setPanelOpen(open){ panel.classList.toggle('tmw-il-closed', !open); window._tmwLayersOpen = open; if (layersBtnEl) layersBtnEl.classList.toggle('active', open); }
+        // Mobile auto-hide: the panel takes a corner of the small viewport, so
+        // dismiss it 5s after it opens unless the user is engaging with it.
+        // Resetting the timer on click-inside keeps the panel up while they
+        // toggle layers; passive reading still closes it.
+        let _panelAutoHide = null;
+        function clearAutoHide(){ if (_panelAutoHide){ clearTimeout(_panelAutoHide); _panelAutoHide = null; } }
+        function scheduleAutoHide(){
+          clearAutoHide();
+          if (!window.matchMedia('(max-width: 800px)').matches) return;
+          _panelAutoHide = setTimeout(()=> setPanelOpen(false), 5000);
+        }
+        function setPanelOpen(open){
+          panel.classList.toggle('tmw-il-closed', !open);
+          window._tmwLayersOpen = open;
+          if (layersBtnEl) layersBtnEl.classList.toggle('active', open);
+          if (open) scheduleAutoHide(); else clearAutoHide();
+        }
         window._tmwToggleLayers = ()=> setPanelOpen(panel.classList.contains('tmw-il-closed'));
         const xBtn = panel.querySelector('.tmw-il-x'); if (xBtn) xBtn.addEventListener('click', ()=> setPanelOpen(false));
+        // Any tap inside the panel = user is engaging, restart the 5s clock.
+        panel.addEventListener('click', ()=> { if (window._tmwLayersOpen) scheduleAutoHide(); });
         if (layersBtnEl) layersBtnEl.classList.add('active');
+        // Start the auto-hide for the panel's initial (default-open) state too.
+        scheduleAutoHide();
         // Desktop: sit the panel exactly 8px above the layers button (same gap as
         // between the rail buttons). Re-measure after the rail builds + on resize.
         function positionPanelDesktop(){
@@ -15287,18 +15317,16 @@
         const skipGate = source === 'popup' || source === 'deeplink' || source === 'embed';
         if (!skipGate && window.paywallCheck && !window.paywallCheck()) return;
 
-        // Dismiss any TMW Intelligence chrome (Interactive Layers panel +
-        // year scrubber) that's still on screen — otherwise on desktop they
-        // float ABOVE the project modal because the modal isn't
-        // .v2-sheet-open (the class the IL CSS hides itself behind on
-        // mobile). Also close the spotlight overlay if the click originated
-        // from there, so the user lands cleanly on the project page.
+        // Dismiss the Interactive Layers panel + spotlight overlay (they'd
+        // otherwise float above the project modal on desktop). The year
+        // scrubber STAYS VISIBLE per Jake — users want to see what year
+        // they're filtering by while reviewing a project (it also has its
+        // own toggle button on the right rail now, so they can dismiss it
+        // explicitly if they want).
         try {
           if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
             window._tmwToggleLayers();
           }
-          var _ilScrub = document.querySelector('.tmw-il-scrub');
-          if (_ilScrub) _ilScrub.classList.add('tmw-il-hidden');
           if (window.tmwOverlay && typeof window.tmwOverlay.close === 'function') {
             window.tmwOverlay.close();
           }
@@ -15954,6 +15982,16 @@
       if (!opts.skipPaywall && window.paywallCheck && !window.paywallCheck()) return;
       window._popupFeatureRef = f; // used by Learn More button in popup
       if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
+      // Dismiss the Interactive Layers panel when the user picks a pin — the
+      // popup needs the space and the panel is overlay chrome they're done
+      // with. Scrubber stays put (it's read-only context the user wants to
+      // keep seeing). Skip when deep-linking so URL-driven opens don't yank
+      // the panel out from under a returning user mid-orientation.
+      try {
+        if (!opts.skipPaywall && window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
+          window._tmwToggleLayers();
+        }
+      } catch (e) {}
       if (activePopup) activePopup.remove();
       if (stationPopup) { stationPopup.remove(); stationPopup = null; }
 
@@ -25471,6 +25509,7 @@
       const v2Geo     = document.getElementById('v2GeolocateBtn');
       const v2Layers  = document.getElementById('v2LayersBtn');
       const v2Pulse   = document.getElementById('v2PulseQuickBtn');
+      const v2Timeline = document.getElementById('v2TimelineBtn');
       const delegateClick = (v2Btn, legacyId) => {
         if (!v2Btn) return;
         v2Btn.addEventListener('click', () => {
@@ -25495,6 +25534,18 @@
           const panel = document.getElementById('layersPanel');
           if (panel) { const willOpen = !panel.classList.contains('open'); panel.classList.toggle('open', willOpen); v2Layers.classList.toggle('active', willOpen); }
         }
+      });
+      // Timeline scrubber toggle. The scrubber is created by tmwIntelLayers
+      // and starts visible (no tmw-il-hidden class), so the button starts
+      // .active. Clicking flips both states. The class itself is what the
+      // scrubber's CSS keys off — see ".tmw-il-scrub.tmw-il-hidden".
+      if (v2Timeline) v2Timeline.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const scrub = document.querySelector('.tmw-il-scrub');
+        if (!scrub) return;
+        const willHide = !scrub.classList.contains('tmw-il-hidden');
+        scrub.classList.toggle('tmw-il-hidden', willHide);
+        v2Timeline.classList.toggle('active', !willHide);
       });
       if (v2Pulse) v2Pulse.addEventListener('click', () => {
         // Desktop: open the sidebar pulse tab; mobile: open the sheet's
