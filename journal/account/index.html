@@ -498,7 +498,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var _cat=null;
   var US_STATES={FL:'Florida',NY:'New York',TX:'Texas',TN:'Tennessee',UT:'Utah',WY:'Wyoming',HI:'Hawaii',MI:'Michigan',MO:'Missouri',OH:'Ohio',PA:'Pennsylvania',SC:'South Carolina',NV:'Nevada',ME:'Maine',WI:'Wisconsin'};
   var COUNTRIES={AE:'United Arab Emirates',AG:'Antigua & Barbuda',AI:'Anguilla',AU:'Australia',BS:'Bahamas',BZ:'Belize',CA:'Canada',CH:'Switzerland',CN:'China',CO:'Colombia',CR:'Costa Rica',EG:'Egypt',ES:'Spain',FR:'France',GB:'United Kingdom',GR:'Greece',IL:'Israel',IT:'Italy',JP:'Japan',KR:'South Korea',KY:'Cayman Islands',MV:'Maldives',MX:'Mexico',MY:'Malaysia',NO:'Norway',PR:'Puerto Rico',PT:'Portugal',QA:'Qatar',SA:'Saudi Arabia',SG:'Singapore',SX:'Sint Maarten',TC:'Turks & Caicos',TH:'Thailand'};
-  var TYPES=['Airport','Cultural','Education','Entertainment','Golf','Hospital','Hotel','Marina','Mixed-Use','Museum','Office','Park','Private Club','Residences','Resort','Retail','Stadium','Travel'];
+  // Type taxonomy — Airport/Resort/Estates/Eateries retired 2026-06-24
+  // (Airport→Travel, Resort→Hotel, Estates→Residences, Eateries dropped).
+  // Keep this list in sync with tmw-data/data/config/project_types.json.
+  var TYPES=['Cultural','Education','Entertainment','Golf','Hospital','Hotel','Marina','Mixed-Use','Museum','Office','Park','Private Club','Residences','Retail','Stadium','Travel'];
   function slugify(t){return String(t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,'');}
   var _firmCatP=null;
   function firmCatalog(){ if(_firmCatP)return _firmCatP; _firmCatP=fetch('https://www.oftmw.com/map/firms-flat.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return{};}).then(function(d){ var out=[],fseen={}; ['architects','developers'].forEach(function(k){ ((d&&d[k])||[]).forEach(function(f){ if(f&&f.slug&&!fseen[f.slug]){ fseen[f.slug]=1; var nm=f.name||humanize(f.slug); _firmNames[f.slug]=nm; out.push({name:nm,slug:f.slug,kind:'Firm'}); } }); }); return out; }); return _firmCatP; }

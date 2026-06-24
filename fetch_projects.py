@@ -151,7 +151,34 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
       (no source)         -> Price (empty; existing code handles blanks)
     """
     images = record.get('images') or []
-    types = record.get('types') or []
+    # Belt-and-suspenders type normalization. The canonical project_types.json
+    # no longer carries Airport / Resort / Estates / Eateries, and the data
+    # migration on 2026-06-24 cleaned all existing records. But Studio
+    # connectors / Claude routines / hand edits could still leak a banned
+    # value in, so we collapse them here on the way OUT to projects-flat.json
+    # so no downstream consumer ever sees a stale tag.
+    _TYPE_MERGE = {'Airport': 'Travel', 'Resort': 'Hotel', 'Estates': 'Residences'}
+    _TYPE_DROP  = {'Eateries'}  # no merge target — surface as a non-type
+    def _normalize_type(t):
+        t = (t or '').strip()
+        return _TYPE_MERGE.get(t, '' if t in _TYPE_DROP else t)
+    _raw_types = record.get('types') or []
+    types = []
+    _seen_types = set()
+    for _t in _raw_types:
+        _ft = _normalize_type(_t)
+        if not _ft or _ft in _seen_types:
+            continue
+        _seen_types.add(_ft); types.append(_ft)
+    # Same normalization for preferred_type — written through to the row dict
+    # below so a stale 'Resort' preferred label can't survive.
+    _pref_raw = (record.get('preferred_type', '') or '').strip()
+    _pref_normalized = _normalize_type(_pref_raw)
+    if not _pref_normalized and types:
+        _pref_normalized = types[0]   # fallback when preferred_type was a dropped tag
+    if _pref_normalized != _pref_raw:
+        record = dict(record)
+        record['preferred_type'] = _pref_normalized
     arch_slugs = record.get('architect_slugs') or []
     dev_slugs = record.get('developer_slugs') or []
 

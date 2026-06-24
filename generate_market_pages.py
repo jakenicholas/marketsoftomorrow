@@ -309,7 +309,11 @@ TYPE_PHRASING = {
     'Travel':       'Airports & Travel Hubs',
     'Museum':       'Museums & Cultural Venues',
     'Education':    'Campuses & Education',
-    'Resort':       'Resorts',
+    # 'Resort' was retired 2026-06-24 — merged into Hotel.
+    # 'Airport' similarly retired — merged into Travel.
+    # 'Estates' merged into Residences. 'Eateries' dropped entirely. None of
+    # these should appear in data after the migration; defensive normalization
+    # lives in fetch_projects.py.
 }
 
 # ─── Utilities ─────────────────────────────────────────────────────────
@@ -1360,6 +1364,13 @@ TYPE_SYNONYMS: dict[str, list[tuple[str, str]]] = {
         ('luxury hotel',  'luxury hotels'),
         ('boutique hotel','boutique hotels'),
         ('resort hotel',  'resort hotels'),
+        # Resort merged into Hotel (2026-06-24) — these phrases ensure
+        # "luxury resort" / "beach resort" queries still surface Hotel-
+        # tagged projects (Conrad Tulum, Soho Beach, etc.).
+        ('resort',        'resorts'),
+        ('luxury resort', 'luxury resorts'),
+        ('beach resort',  'beach resorts'),
+        ('mountain resort','mountain resorts'),
     ],
     'Mixed-Use': [
         ('mixed-use development',  'mixed-use developments'),
@@ -1411,12 +1422,9 @@ TYPE_SYNONYMS: dict[str, list[tuple[str, str]]] = {
         ('transit hub',     'transit hubs'),
         ('station',         'stations'),
     ],
-    'Resort': [
-        ('resort',        'resorts'),
-        ('luxury resort', 'luxury resorts'),
-        ('beach resort',  'beach resorts'),
-        ('mountain resort','mountain resorts'),
-    ],
+    # Resort retired 2026-06-24 — its synonyms folded into the Hotel entry
+    # above. Airport already lives under Travel. Estates retired into the
+    # Residences group. Eateries dropped entirely with no merge target.
 }
 
 def _type_keywords(ptype: str) -> tuple[str, str, list[tuple[str,str]]]:
