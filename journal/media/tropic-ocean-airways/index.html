@@ -583,12 +583,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .cloud.c4{--w:240px; top:70%; --d:86s; --delay:-16s}
 .cloud.c5{--w:360px; top:7%;  --d:140s; --delay:-100s}
 .cloud.c6{--w:280px; top:46%; --d:104s; --delay:-50s}
-.hero-air .plane{position:absolute; top:22%; left:0; font-size:24px; color:rgba(227,233,245,.55); animation:planeFly 30s linear infinite; filter:drop-shadow(0 0 12px rgba(227,19,44,.45))}
+.hero-air .plane{position:absolute; top:22%; left:0; font-size:24px; color:rgba(227,233,245,.55); animation:planeFly 30s linear infinite; filter:drop-shadow(0 0 12px rgba(37,83,209,.45))}
 @keyframes planeFly{0%{transform:translate(-12vw,12vh) rotate(-16deg); opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translate(122vw,-8vh) rotate(-16deg); opacity:0}}
 .cobrand{font-family:var(--mono); font-size:clamp(12px,1.5vw,15px); letter-spacing:.34em; text-transform:uppercase; color:#fff; font-weight:700; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap}
-.cobrand .cx{color:#e3132c; font-weight:400; text-shadow:0 0 16px rgba(227,19,44,.65)}
+.cobrand .cx{color:#2553D1; font-weight:400; text-shadow:0 0 16px rgba(37,83,209,.65)}
 .hero-h1.air{color:#fff}
-.hero-h1.air .caret{color:#e3132c}
+.hero-h1.air .caret{color:#2553D1}
 .hero-air .eyebrow{color:#bcd4f5}
 .hero-air .hero-tag{color:#e7eefb; font-style:italic}
 .hero-air .meta{color:#9fb6d6}
@@ -618,13 +618,13 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .giveget{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:8px}
 .gg{padding:36px 34px}
 .gg .gg-lab{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:18px}
-.gg.give .gg-lab{color:#e3132c}
+.gg.give .gg-lab{color:#2553D1}
 .gg.get .gg-lab{color:var(--green)}
 .gg h3{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--white); letter-spacing:-.015em; margin-bottom:18px}
 .gg ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:13px}
 .gg li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px; color:var(--cream); line-height:1.5}
 .gg li .gg-dot{width:6px; height:6px; border-radius:50%; margin-top:8px; flex:none}
-.gg.give li .gg-dot{background:#e3132c; box-shadow:0 0 8px rgba(227,19,44,.6)}
+.gg.give li .gg-dot{background:#2553D1; box-shadow:0 0 8px rgba(37,83,209,.6)}
 .gg.get li .gg-dot{background:var(--green); box-shadow:0 0 8px rgba(31,223,103,.6)}
 @media(max-width:760px){.giveget{grid-template-columns:1fr}}
 
@@ -711,7 +711,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <h1 class="hero-h1 air reveal d1">Official Airline<br>of Tomorrow<span class="caret" aria-hidden="true">_</span></h1>
     <p class="hero-tag reveal d2">Fly to the markets of tomorrow.</p>
     <div class="flap-row reveal d3" id="flapRow" aria-hidden="true">
-      <span class="flap">ATL</span><span class="flap">MIA</span><span class="flap">LHR</span>
+      <span class="flap">FLL</span><span class="flap">NAS</span><span class="flap">BIM</span>
     </div>
     <div class="meta reveal d3"><span class="meta-grp">Tropic Ocean Airways &middot; Official Airline Partner</span><span class="meta-sep"> &middot; </span><span class="meta-grp">Markets of Tomorrow</span></div>
   </div>
@@ -1418,9 +1418,9 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
 <script type="application/json" id="tmw-proposal-config">{"project": "Tropic Ocean Airways", "prepared": "2026", "subtitle": "Official Airline of Tomorrow — a marketing partnership with Markets of Tomorrow.", "campaign": {"intro": "Tropic Ocean Airways as the Official Airline of Markets of Tomorrow — co-branded across the Map, our editorial, the newsletter, and our social network.", "deliverables": [{"t": "Named Official Airline of Markets of Tomorrow"}, {"t": "Quarterly \"Fly to the Markets of Tomorrow\" feature articles + story mentions"}, {"t": "Social posts mentions across the Markets of Tomorrow network"}, {"t": "On-Flight & Travel Video Content"}, {"t": "Licensed access to our property & destination photography"}, {"t": "Aerial + High-res Photography"}, {"t": "Dynamic banner in our weekly newsletter"}, {"t": "Featured placement across Map, Atlas & TMW Intelligence"}, {"t": "Brand partnerships with luxury hotels, golf courses and restaurants"}], "price": "Marketing Partnership", "priceNote": "A few trips a year + co-marketing", "term": "24-month partnership", "termNote": "Flexible start · 2026"}, "tiers": [], "cta": "Ready to make Tropic Ocean Airways the Official Airline of Tomorrow.", "contactName": "Jake Nicholas", "contactLine": "Founder & CEO · jake@oftmw.com"}</script>
 <script src="/_shared/proposal-pdf.js" defer></script>
 <script>
-/* Airline flight board — all the airport codes for the markets we cover. */
+/* Airline flight board — where Tropic Ocean Airways flies (flytropic.com/where-we-fly). */
 (function(){
-  var CODES=["ATL","MIA","PBI","FLL","MCO","TPA","JFK","LGA","BOS","DCA","ORD","DEN","LAS","LAX","SFO","SEA","BNA","ASE","EGE","JAC","HNL","OGG","LIH","KOA","NAS","GCM","SJU","PLS","LHR"];
+  var CODES=["FLL","MIA","PBI","APF","SRQ","PIE","TPA","EYW","NAS","BIM","MHH","ELH","GGT","TYM","TCB","ASD","GHC","NYC"];
   var track=document.getElementById('boardTrack');
   if(track){ var row=CODES.map(function(c){return '<span class="bc">'+c+'</span>';}).join(''); track.innerHTML=row+row; }
   var flaps=[].slice.call(document.querySelectorAll('#flapRow .flap'));
