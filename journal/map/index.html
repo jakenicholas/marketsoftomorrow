@@ -12994,8 +12994,12 @@
       if (!url || !/^https?:\/\//i.test(url)) return url;     // data:, blob:, relative, empty
       if (/\.svg(\?|#|$)/i.test(url)) return url;             // never rasterize SVGs
       if (!/r2\.dev\//i.test(url)) return url;                // only our R2-hosted images
+      // Request at the DISPLAY width × device pixel ratio (capped 2×) so retina
+      // screens stay sharp — w alone looked soft on phones. q82 webp keeps it
+      // crisp while still tiny vs the multi-MB original.
+      var px = w ? Math.round(w * Math.min(window.devicePixelRatio || 1, 2)) : 0;
       return 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//i, ''))
-        + (w ? '&w=' + w : '') + '&q=72&output=webp';
+        + (px ? '&w=' + px : '') + '&q=82&output=webp';
     };
     // Resilience: if a resized image ever fails (proxy hiccup), fall back to the
     // original once. img error doesn't bubble, so listen in the capture phase.
@@ -16271,6 +16275,14 @@
     }
 
     function renderGrid(targetId = 'grid') {
+      // Build ONLY the current device's list. On mobile the desktop sidebar grid
+      // (which renders ALL ~588 project cards, un-paginated) is hidden but was
+      // still being constructed on every load — a big DOM/CPU spike that starved
+      // the map (the real "laggy until the drawer loads" cause: that spike has to
+      // finish first). The mobile grid is paginated (~12) so it's cheap. Desktop
+      // never shows the mobile grid, so skip the inverse there too.
+      if (isMobile && targetId === 'gridDesktop') return;
+      if (!isMobile && targetId === 'gridMobile') return;
       const grid = document.getElementById(targetId);
       if (!grid) return;
       grid.style.pointerEvents = 'none';
