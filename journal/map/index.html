@@ -12981,6 +12981,31 @@
       }
     });
 
+    // ── Image resizer ────────────────────────────────────────────────────────
+    // The Wix→R2 migration stripped image transforms, so cards/popups pulled
+    // multi-MB ORIGINALS (~1 GB/page) — which pins phones until the load finishes
+    // (the "smooth only after the drawer loads" symptom). Route our R2 images
+    // through weserv.nl, which resizes to webp at the size we actually display.
+    // Interim until oftmw.com is on Cloudflare (2026-07-31) → then /cdn-cgi/image.
+    // Only rewrites the public R2 bucket; passes SVG / data: / everything else
+    // through untouched. `w` = pixel width to request.
+    window.tmwImg = function (url, w) {
+      url = String(url || '');
+      if (!url || !/^https?:\/\//i.test(url)) return url;     // data:, blob:, relative, empty
+      if (/\.svg(\?|#|$)/i.test(url)) return url;             // never rasterize SVGs
+      if (!/r2\.dev\//i.test(url)) return url;                // only our R2-hosted images
+      return 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//i, ''))
+        + (w ? '&w=' + w : '') + '&q=72&output=webp';
+    };
+    // Resilience: if a resized image ever fails (proxy hiccup), fall back to the
+    // original once. img error doesn't bubble, so listen in the capture phase.
+    document.addEventListener('error', function (e) {
+      var t = e.target;
+      if (!t || t.tagName !== 'IMG' || t.dataset.imgFb || !/images\.weserv\.nl/.test(t.src || '')) return;
+      t.dataset.imgFb = '1';
+      try { var m = t.src.match(/[?&]url=([^&]+)/); if (m) t.src = 'https://' + decodeURIComponent(m[1]); } catch (_) {}
+    }, true);
+
     // ‚îÄ‚îÄ‚îÄ MAP SETUP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
     // Status-colored pins: project circles tinted by delivery stage (legend in
@@ -14891,7 +14916,7 @@
           // Featured card
           const featuredImg = featured.image || projectImage || '';
           const featuredImgStyle = featuredImg
-            ? `style="background-image:url('${escapeArticleHtml(featuredImg)}')"`
+            ? `style="background-image:url('${escapeArticleHtml(window.tmwImg(featuredImg, 700))}')"`
             : '';
           html += `
             <a class="pm-coverage-featured" href="${escapeArticleHtml(featured.link)}" target="_blank" rel="noopener">
@@ -14911,7 +14936,7 @@
             rest.forEach(a => {
               const img = a.image || projectImage || '';
               const thumbStyle = img
-                ? `style="background-image:url('${escapeArticleHtml(img)}')"`
+                ? `style="background-image:url('${escapeArticleHtml(window.tmwImg(img, 500))}')"`
                 : '';
               html += `
                 <a class="pm-coverage-row" href="${escapeArticleHtml(a.link)}" target="_blank" rel="noopener">
@@ -15267,7 +15292,7 @@
           sliderEl.innerHTML = '';
         } else {
           sliderEl.innerHTML = imgs.map((u, i) =>
-            `<img class="pm-slide${i === 0 ? ' active' : ''}" src="${u}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}" data-i="${i}" />`
+            `<img class="pm-slide${i === 0 ? ' active' : ''}" src="${window.tmwImg(u, 900)}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}" data-i="${i}" />`
           ).join('');
         }
         if (totalEl) totalEl.textContent = imgs.length;
@@ -15897,7 +15922,7 @@
         .setLngLat(co)
         .setHTML(`
           <div class="popup-content">
-            <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}" />
+            <img src="${window.tmwImg(f.properties.image, 500)}" loading="lazy" alt="${f.properties.title}" />
             ${f.properties.featured ? `<div class="featured-badge" style="top:-5px;left:-5px;"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <h3>${f.properties.title}</h3>
             <p class="city">${(() => {
@@ -16377,7 +16402,7 @@
             : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
           d.innerHTML = `
             <div class="image-wrapper">
-              <img src="${f.properties.image}" loading="lazy" alt="${f.properties.title}"  />
+              <img src="${window.tmwImg(f.properties.image, 500)}" loading="lazy" alt="${f.properties.title}"  />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
@@ -16611,7 +16636,7 @@
         d.innerHTML = `
             <div class="image-wrapper">
               <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Crect width='300' height='120' fill='%23333'/%3E%3C/svg%3E"
-                   data-src="${f.properties.image}"  alt="${f.properties.title}" class="lazy-loading" />
+                   data-src="${window.tmwImg(f.properties.image, 500)}"  alt="${f.properties.title}" class="lazy-loading" />
             </div>
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
@@ -20352,7 +20377,7 @@
             : (row.lastViewedTs ? `Viewed ${timeAgo(row.lastViewedTs)}` : '');
           return `
             <div class="wl-row${hasUnread ? ' has-unread' : ''}" data-slug="${escapeHtml(row.slug)}" data-wl-delivery="${escapeHtml((row.delivery || '').toLowerCase())}" data-wl-unread="${hasUnread ? 'true' : 'false'}" data-wl-unread-count="${row.unreadCount || 0}"${imagesAttr}>
-              <div class="wl-row-thumb">${firstImg ? `<img src="${escapeHtml(firstImg)}" alt="" loading="lazy" />` : ''}</div>
+              <div class="wl-row-thumb">${firstImg ? `<img src="${escapeHtml(window.tmwImg(firstImg, 500))}" alt="" loading="lazy" />` : ''}</div>
               <div class="wl-row-body">
                 <div class="wl-row-title">${escapeHtml(row.title)}</div>
                 <div class="wl-row-meta">
@@ -20501,7 +20526,7 @@
             });
             const swap = (newIdx) => {
               idx = (newIdx + images.length) % images.length;
-              imgEl.src = images[idx];
+              imgEl.src = window.tmwImg(images[idx], 500);
               Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
             };
             const wireArrow = (btn, dir) => {
@@ -22453,7 +22478,7 @@
         // view. Big perf win when the timeline lists hundreds of
         // projects — was the main reason Atlas felt slow.
         const imgHtml = p.image
-          ? `<img class="atlas-tl-row-img-photo" src="${escapeAttr(p.image)}" alt="" loading="lazy" decoding="async" />`
+          ? `<img class="atlas-tl-row-img-photo" src="${escapeAttr(window.tmwImg(p.image, 500))}" alt="" loading="lazy" decoding="async" />`
           : '';
         const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
           const metaParts = [];
@@ -23069,7 +23094,7 @@
           : (p.title || '').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,''));
         const status = normalizeStatus(p.delivery);
         const sInfo = STATUS_INFO[status] || STATUS_INFO.announced;
-        const img = p.image ? `background-image:url('${esc(p.image)}')` : '';
+        const img = p.image ? `background-image:url('${esc(window.tmwImg(p.image, 500))}')` : '';
         const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
         const metaParts = [esc(p.city || '—')];
         if (type) metaParts.push(esc(type));
@@ -25641,7 +25666,7 @@
               if (imgEl) {
                 imgEl.dataset.v2GalleryIdx = '0';
                 imgEl.classList.remove('lazy-loading');
-                imgEl.src = images[0];
+                imgEl.src = window.tmwImg(images[0], 500);
               }
               // Pre-load every gallery image once so arrow clicks swap
               // instantly instead of waiting for the network. Browser
@@ -25671,7 +25696,7 @@
               });
               const swap = (newIdx) => {
                 idx = (newIdx + images.length) % images.length;
-                if (imgEl) imgEl.src = images[idx];
+                if (imgEl) imgEl.src = window.tmwImg(images[idx], 500);
                 Array.from(dots.children).forEach((d, i) => d.classList.toggle('active', i === idx));
               };
               // Use pointerdown for snappier feel — fires immediately on
