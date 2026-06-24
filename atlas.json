@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 280
+      "count": 282
     },
     {
       "type": "Hotel",
@@ -23,7 +23,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 19
+      "count": 21
     },
     {
       "type": "Golf",
@@ -15301,19 +15301,131 @@
           "ica-studio"
         ]
       ]
+    },
+    {
+      "st": "TX",
+      "ty": "Residences",
+      "sl": "Announced",
+      "yr": 2028,
+      "sm": "2027-12",
+      "ci": "Houston",
+      "u": 31,
+      "k": 0,
+      "fl": 11,
+      "dv": [
+        [
+          "Everlight Group",
+          "everlight-group"
+        ]
+      ],
+      "ar": [
+        [
+          "Lake Flato",
+          "lake-flato"
+        ]
+      ]
+    },
+    {
+      "st": "TX",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": 2030,
+      "sm": "2026-12",
+      "ci": "Dallas",
+      "u": 300,
+      "k": 0,
+      "fl": 30,
+      "dv": [
+        [
+          "McCourt Partners",
+          "mccourt-partners"
+        ],
+        [
+          "HN Capital Partners",
+          "hn-capital-partners"
+        ]
+      ],
+      "ar": [
+        [
+          "Perkins&Will",
+          "perkins-will"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Henderson",
+      "u": 171,
+      "k": 0,
+      "fl": 25,
+      "dv": [
+        [
+          "Azure Resorts",
+          "azure-resorts"
+        ],
+        [
+          "Luxus Developments",
+          "luxus-developments"
+        ]
+      ],
+      "ar": [
+        [
+          "WATG",
+          "watg"
+        ],
+        [
+          "Wimberly Interiors",
+          "wimberly-interiors"
+        ]
+      ]
+    },
+    {
+      "st": "JP",
+      "ty": "Mixed-Use",
+      "sl": "Now Open",
+      "yr": 2023,
+      "sm": "2019-08",
+      "ci": "Tokyo",
+      "u": 1400,
+      "k": 0,
+      "fl": 64,
+      "dv": [
+        [
+          "Mori Building Company",
+          "mori-building-company"
+        ]
+      ],
+      "ar": [
+        [
+          "Pelli Clarke & Partners",
+          "pelli-clarke-partners"
+        ],
+        [
+          "Heatherwick Studio",
+          "heatherwick-studio"
+        ],
+        [
+          "Sou Fujimoto",
+          "sou-fujimoto"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 595,
+    "total_projects": 599,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 210,
-    "opening_this_year": 95
+    "under_construction": 211,
+    "opening_this_year": 96
   },
   "scale": {
-    "units": 221401,
+    "units": 223303,
     "keys": 39909,
-    "floors": 9097
+    "floors": 9227
   },
   "leaderboards": {
     "developers": [
@@ -15986,6 +16098,14 @@
         ]
       },
       {
+        "name": "Tokyo",
+        "sub": "9 developments \u00b7 13 developers",
+        "count": 9,
+        "states": [
+          "JP"
+        ]
+      },
+      {
         "name": "Riviera Beach",
         "sub": "8 developments \u00b7 8 developers",
         "count": 8,
@@ -15999,14 +16119,6 @@
         "count": 8,
         "states": [
           "Other"
-        ]
-      },
-      {
-        "name": "Tokyo",
-        "sub": "8 developments \u00b7 13 developers",
-        "count": 8,
-        "states": [
-          "JP"
         ]
       },
       {
@@ -16082,6 +16194,14 @@
         ]
       },
       {
+        "name": "Dallas",
+        "sub": "6 developments \u00b7 9 developers",
+        "count": 6,
+        "states": [
+          "TX"
+        ]
+      },
+      {
         "name": "Orlando",
         "sub": "5 developments \u00b7 7 developers",
         "count": 5,
@@ -16100,14 +16220,6 @@
       {
         "name": "Austin",
         "sub": "5 developments \u00b7 4 developers",
-        "count": 5,
-        "states": [
-          "TX"
-        ]
-      },
-      {
-        "name": "Dallas",
-        "sub": "5 developments \u00b7 7 developers",
         "count": 5,
         "states": [
           "TX"
@@ -16158,7 +16270,7 @@
       {
         "name": "Residences",
         "sub": "47% of pipeline",
-        "count": 280,
+        "count": 282,
         "states": [
           "FL",
           "Other",
@@ -16224,14 +16336,15 @@
       },
       {
         "name": "Mixed-Use",
-        "sub": "3% of pipeline",
-        "count": 19,
+        "sub": "4% of pipeline",
+        "count": 21,
         "states": [
           "FL",
           "TN",
           "Other",
+          "TX",
           "UK",
-          "TX"
+          "JP"
         ]
       },
       {
@@ -17236,8 +17349,9 @@
             "FL",
             "TN",
             "Other",
+            "TX",
             "UK",
-            "TX"
+            "JP"
           ]
         },
         {
@@ -18637,8 +18751,9 @@
             "FL",
             "TN",
             "Other",
+            "TX",
             "UK",
-            "TX"
+            "JP"
           ]
         },
         {
@@ -18831,6 +18946,33 @@
           "states": [
             "TX"
           ]
+        },
+        {
+          "name": "Everlight Group",
+          "slug": "everlight-group",
+          "sub": "Houston",
+          "count": 1,
+          "states": [
+            "TX"
+          ]
+        },
+        {
+          "name": "McCourt Partners",
+          "slug": "mccourt-partners",
+          "sub": "Dallas",
+          "count": 1,
+          "states": [
+            "TX"
+          ]
+        },
+        {
+          "name": "HN Capital Partners",
+          "slug": "hn-capital-partners",
+          "sub": "Dallas",
+          "count": 1,
+          "states": [
+            "TX"
+          ]
         }
       ],
       "architects": [
@@ -18993,9 +19135,36 @@
           "states": [
             "TX"
           ]
+        },
+        {
+          "name": "Lake Flato",
+          "slug": "lake-flato",
+          "sub": "Houston",
+          "count": 1,
+          "states": [
+            "TX"
+          ]
+        },
+        {
+          "name": "Perkins&Will",
+          "slug": "perkins-will",
+          "sub": "Palm Beach Gardens",
+          "count": 1,
+          "states": [
+            "FL",
+            "TX"
+          ]
         }
       ],
       "cities": [
+        {
+          "name": "Dallas",
+          "sub": "6 developments \u00b7 9 developers",
+          "count": 6,
+          "states": [
+            "TX"
+          ]
+        },
         {
           "name": "Austin",
           "sub": "5 developments \u00b7 4 developers",
@@ -19005,17 +19174,9 @@
           ]
         },
         {
-          "name": "Dallas",
-          "sub": "5 developments \u00b7 7 developers",
-          "count": 5,
-          "states": [
-            "TX"
-          ]
-        },
-        {
           "name": "Houston",
-          "sub": "3 developments \u00b7 4 developers",
-          "count": 3,
+          "sub": "4 developments \u00b7 5 developers",
+          "count": 4,
           "states": [
             "TX"
           ]
@@ -19041,7 +19202,7 @@
         {
           "name": "Residences",
           "sub": "53% of pipeline",
-          "count": 8,
+          "count": 9,
           "states": [
             "FL",
             "Other",
@@ -19056,7 +19217,7 @@
         },
         {
           "name": "Hotel",
-          "sub": "40% of pipeline",
+          "sub": "35% of pipeline",
           "count": 6,
           "states": [
             "Other",
@@ -19072,14 +19233,15 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "7% of pipeline",
-          "count": 1,
+          "sub": "12% of pipeline",
+          "count": 2,
           "states": [
             "FL",
             "TN",
             "Other",
+            "TX",
             "UK",
-            "TX"
+            "JP"
           ]
         }
       ]
@@ -19491,8 +19653,9 @@
             "FL",
             "TN",
             "Other",
+            "TX",
             "UK",
-            "TX"
+            "JP"
           ]
         },
         {
@@ -19823,6 +19986,281 @@
         }
       ]
     },
+    "JP": {
+      "developers": [
+        {
+          "name": "Mori Building Company",
+          "slug": "mori-building-company",
+          "sub": "Tokyo",
+          "count": 2,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "JR East",
+          "slug": "jr-east",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Tokyu Corporation",
+          "slug": "tokyu-corporation",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Mitsubishi Estate",
+          "slug": "mitsubishi-estate",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Hilton",
+          "slug": "hilton",
+          "sub": "Singapore",
+          "count": 1,
+          "states": [
+            "Other",
+            "UK",
+            "JP"
+          ]
+        },
+        {
+          "name": "LXR Hotels & Resorts",
+          "slug": "lxr-hotels-resorts",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Mitsui Fudosan",
+          "slug": "mitsui-fudosan",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Nomura Real Estate Development",
+          "slug": "nomura-real-estate-development",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "World Trade Center Building",
+          "slug": "world-trade-center-building-inc",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Inc.",
+          "slug": "tokyo-tatemono",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Tokyo Tatemono",
+          "slug": "",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Aman",
+          "slug": "aman",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Mori Building",
+          "slug": "mori-building",
+          "sub": "New York City",
+          "count": 1,
+          "states": [
+            "NY",
+            "JP"
+          ]
+        }
+      ],
+      "architects": [
+        {
+          "name": "Pelli Clarke & Partners",
+          "slug": "pelli-clarke-partners",
+          "sub": "Tokyo",
+          "count": 4,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Nikken Sekkei",
+          "slug": "nikken-sekkei",
+          "sub": "Tokyo",
+          "count": 3,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Mitsubishi Jisho Sekkei",
+          "slug": "mitsubishi-jisho-sekkei-sou-fujimoto-architects-crown-yuko-nagayama-associates-lower-section",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Layan",
+          "slug": "layan",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        },
+        {
+          "name": "Yabu Pushelberg",
+          "slug": "yabu-pushelberg",
+          "sub": "Miami",
+          "count": 1,
+          "states": [
+            "FL",
+            "JP"
+          ]
+        },
+        {
+          "name": "Heatherwick Studio",
+          "slug": "heatherwick-studio",
+          "sub": "Singapore",
+          "count": 1,
+          "states": [
+            "Other",
+            "JP"
+          ]
+        },
+        {
+          "name": "Sou Fujimoto",
+          "slug": "sou-fujimoto",
+          "sub": "Tokyo",
+          "count": 1,
+          "states": [
+            "JP"
+          ]
+        }
+      ],
+      "cities": [
+        {
+          "name": "Tokyo",
+          "sub": "9 developments \u00b7 13 developers",
+          "count": 9,
+          "states": [
+            "JP"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "Residences",
+          "sub": "33% of pipeline",
+          "count": 3,
+          "states": [
+            "FL",
+            "Other",
+            "NY",
+            "TN",
+            "TX",
+            "JP",
+            "UK",
+            "AE",
+            "SC"
+          ]
+        },
+        {
+          "name": "Hotel",
+          "sub": "33% of pipeline",
+          "count": 3,
+          "states": [
+            "Other",
+            "FL",
+            "TN",
+            "TX",
+            "UK",
+            "AE",
+            "NY",
+            "SC",
+            "JP"
+          ]
+        },
+        {
+          "name": "Travel",
+          "sub": "11% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "Other",
+            "NY",
+            "FR",
+            "UK",
+            "JP"
+          ]
+        },
+        {
+          "name": "Office",
+          "sub": "11% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "NY",
+            "Other",
+            "FR",
+            "JP",
+            "AE",
+            "UK"
+          ]
+        },
+        {
+          "name": "Mixed-Use",
+          "sub": "11% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "TN",
+            "Other",
+            "TX",
+            "UK",
+            "JP"
+          ]
+        }
+      ]
+    },
     "SC": {
       "developers": [
         {
@@ -20068,249 +20506,6 @@
             "TN",
             "AE",
             "SC"
-          ]
-        }
-      ]
-    },
-    "JP": {
-      "developers": [
-        {
-          "name": "JR East",
-          "slug": "jr-east",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Tokyu Corporation",
-          "slug": "tokyu-corporation",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Mori Building Company",
-          "slug": "mori-building-company",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Mitsubishi Estate",
-          "slug": "mitsubishi-estate",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Hilton",
-          "slug": "hilton",
-          "sub": "Singapore",
-          "count": 1,
-          "states": [
-            "Other",
-            "UK",
-            "JP"
-          ]
-        },
-        {
-          "name": "LXR Hotels & Resorts",
-          "slug": "lxr-hotels-resorts",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Mitsui Fudosan",
-          "slug": "mitsui-fudosan",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Nomura Real Estate Development",
-          "slug": "nomura-real-estate-development",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "World Trade Center Building",
-          "slug": "world-trade-center-building-inc",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Inc.",
-          "slug": "tokyo-tatemono",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Tokyo Tatemono",
-          "slug": "",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Aman",
-          "slug": "aman",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Mori Building",
-          "slug": "mori-building",
-          "sub": "New York City",
-          "count": 1,
-          "states": [
-            "NY",
-            "JP"
-          ]
-        }
-      ],
-      "architects": [
-        {
-          "name": "Nikken Sekkei",
-          "slug": "nikken-sekkei",
-          "sub": "Tokyo",
-          "count": 3,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Pelli Clarke & Partners",
-          "slug": "pelli-clarke-partners",
-          "sub": "Tokyo",
-          "count": 3,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Mitsubishi Jisho Sekkei",
-          "slug": "mitsubishi-jisho-sekkei-sou-fujimoto-architects-crown-yuko-nagayama-associates-lower-section",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Layan",
-          "slug": "layan",
-          "sub": "Tokyo",
-          "count": 1,
-          "states": [
-            "JP"
-          ]
-        },
-        {
-          "name": "Yabu Pushelberg",
-          "slug": "yabu-pushelberg",
-          "sub": "Miami",
-          "count": 1,
-          "states": [
-            "FL",
-            "JP"
-          ]
-        }
-      ],
-      "cities": [
-        {
-          "name": "Tokyo",
-          "sub": "8 developments \u00b7 13 developers",
-          "count": 8,
-          "states": [
-            "JP"
-          ]
-        }
-      ],
-      "types": [
-        {
-          "name": "Residences",
-          "sub": "38% of pipeline",
-          "count": 3,
-          "states": [
-            "FL",
-            "Other",
-            "NY",
-            "TN",
-            "TX",
-            "JP",
-            "UK",
-            "AE",
-            "SC"
-          ]
-        },
-        {
-          "name": "Hotel",
-          "sub": "38% of pipeline",
-          "count": 3,
-          "states": [
-            "Other",
-            "FL",
-            "TN",
-            "TX",
-            "UK",
-            "AE",
-            "NY",
-            "SC",
-            "JP"
-          ]
-        },
-        {
-          "name": "Travel",
-          "sub": "12% of pipeline",
-          "count": 1,
-          "states": [
-            "FL",
-            "Other",
-            "NY",
-            "FR",
-            "UK",
-            "JP"
-          ]
-        },
-        {
-          "name": "Office",
-          "sub": "12% of pipeline",
-          "count": 1,
-          "states": [
-            "FL",
-            "NY",
-            "Other",
-            "FR",
-            "JP",
-            "AE",
-            "UK"
           ]
         }
       ]
@@ -20689,18 +20884,18 @@
     },
     "TX": {
       "hero_stats": {
-        "total_projects": 15,
+        "total_projects": 17,
         "under_construction": 5
       },
       "scale": {
-        "units": 4170,
+        "units": 4501,
         "keys": 1176,
-        "floors": 392
+        "floors": 433
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 4
+          "count": 6
         },
         {
           "label": "Breaking Ground",
@@ -20964,32 +21159,28 @@
         }
       ]
     },
-    "SC": {
+    "JP": {
       "hero_stats": {
-        "total_projects": 8,
-        "under_construction": 3
+        "total_projects": 9,
+        "under_construction": 5
       },
       "scale": {
-        "units": 52,
-        "keys": 577,
-        "floors": 8
+        "units": 1562,
+        "keys": 497,
+        "floors": 338
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 3
+          "count": 1
         },
         {
           "label": "Construction",
-          "count": 3
-        },
-        {
-          "label": "Opening Soon",
-          "count": 1
+          "count": 5
         },
         {
           "label": "Now Open",
-          "count": 1
+          "count": 3
         }
       ],
       "momentum": [
@@ -21055,28 +21246,32 @@
         }
       ]
     },
-    "JP": {
+    "SC": {
       "hero_stats": {
         "total_projects": 8,
-        "under_construction": 5
+        "under_construction": 3
       },
       "scale": {
-        "units": 162,
-        "keys": 497,
-        "floors": 274
+        "units": 52,
+        "keys": 577,
+        "floors": 8
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 1
+          "count": 3
         },
         {
           "label": "Construction",
-          "count": 5
+          "count": 3
+        },
+        {
+          "label": "Opening Soon",
+          "count": 1
         },
         {
           "label": "Now Open",
-          "count": 2
+          "count": 1
         }
       ],
       "momentum": [
@@ -21420,12 +21615,13 @@
     "Ella": "Other",
     "AMAALA": "Other",
     "Shura Island": "Other",
-    "Perugia": "Other"
+    "Perugia": "Other",
+    "Henderson": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 174
+      "count": 176
     },
     {
       "label": "Breaking Ground",
@@ -21433,7 +21629,7 @@
     },
     {
       "label": "Construction",
-      "count": 210
+      "count": 211
     },
     {
       "label": "Opening Soon",
@@ -21441,7 +21637,7 @@
     },
     {
       "label": "Now Open",
-      "count": 92
+      "count": 93
     }
   ],
   "momentum": [
@@ -21509,7 +21705,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 95
+      "count": 96
     },
     {
       "year": 2027,
@@ -21517,7 +21713,7 @@
     },
     {
       "year": 2028,
-      "count": 120
+      "count": 121
     },
     {
       "year": 2029,
@@ -21525,7 +21721,7 @@
     },
     {
       "year": 2030,
-      "count": 34
+      "count": 35
     }
   ],
   "available_states": [
@@ -21547,7 +21743,7 @@
     {
       "code": "TX",
       "label": "Texas",
-      "count": 15
+      "count": 17
     },
     {
       "code": "UK",
@@ -21560,13 +21756,13 @@
       "count": 10
     },
     {
-      "code": "SC",
-      "label": "South Carolina",
-      "count": 8
-    },
-    {
       "code": "JP",
       "label": "Japan",
+      "count": 9
+    },
+    {
+      "code": "SC",
+      "label": "South Carolina",
       "count": 8
     },
     {
@@ -21576,6 +21772,16 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260624T1453-4",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 4 more projects",
+      "city": "Ace & Ivy, Hi Line Square +2 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67e67812562f-Condos-Vision.jpg",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-06-24T14:53:52.068182+00:00"
+    },
     {
       "id": "track-group-20260624T1448-6",
       "type": "tracking",
@@ -22235,20 +22441,6 @@
       "source_url": "https://therealdeal.com/miami/2026/05/14/shoma-group-pays-13-million-for-coral-gables-dev-site/",
       "link": "https://www.oftmw.com/map/?project=ponce8",
       "timestamp": "2026-06-21T18:22:49.953Z"
-    },
-    {
-      "id": "ms-the-george-financing-2026-06-21",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "The George  Financing secured",
-      "project_slug": "the-george",
-      "project_title": "The George",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e2ff16a6b9d9433997415351c423170f~mv2.jpeg",
-      "event_date": "2025-07-18",
-      "source_url": "https://resident.com/real-estate/2025/07/18/the-final-piece-of-the-gables-mg-developer-secures-41m-for-ultra-luxury-townhomes-at-the-george",
-      "link": "https://www.oftmw.com/map/?project=thegeorge",
-      "timestamp": "2026-06-21T18:22:32.279Z"
     }
   ],
   "most_covered": [
