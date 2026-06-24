@@ -37,6 +37,18 @@
     document.head.appendChild(s);
   }
 
+  // Identify a logged-in member to analytics from EVERY page (journal-auth is
+  // universal — the dock isn't on every surface, e.g. /account or the giveaways
+  // page, so relying on the dock alone left fresh signups untracked). Same guard
+  // as journal-dock.js's loader so member-track.js loads exactly once per page.
+  if (!document.querySelector('script[data-tmw-membertrack]')) {
+    var _mt = document.createElement('script');
+    _mt.src = '/_shared/member-track.js';
+    _mt.defer = true;
+    _mt.setAttribute('data-tmw-membertrack', '1');
+    document.head.appendChild(_mt);
+  }
+
   // Ensure the custom auth modal (Account / Articles / Watchlist tabs + the
   // signed-out login UI) is present — the profile dropdown's quick-keys and the
   // Join flow call window.tmwAuthModal. Idempotent; same guard journal-dock uses.
