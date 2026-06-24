@@ -1591,6 +1591,10 @@
       background: rgba(167,139,250,0.24);
       border-color: rgba(167,139,250,0.48);
     }
+    /* Container for the chip inside the project modal subtitle area. Adds
+       a touch of vertical room so the chip doesn't crowd pmCity. The chip
+       itself uses the existing .grid-parent-chip style. */
+    .pm-parent-chip-row { margin: 6px 0 4px; }
 
     #desktopSidebar .grid-item { padding: 5px; }
     #desktopSidebar .grid-item:hover { transform: none; box-shadow: none; }
@@ -12364,6 +12368,11 @@
           <div class="pm-pills" id="pmPills"></div>
           <h2 class="pm-title" id="pmTitle"></h2>
           <p class="pm-city" id="pmCity"></p>
+          <!-- Parent-district chip ("Part of The Nora District →"). Populated
+               by openProjectModal when the project has parentSlug set;
+               clicking it swaps the modal to the district's record. Hidden
+               when standalone (parentSlug empty). -->
+          <div class="pm-parent-chip-row" id="pmParentChipRow" hidden></div>
           <!-- Configuration & phasing block — surfaces multi-tower layouts
                and staggered openings as a small nuance line under the
                subtitle. Hidden when neither configSummary nor deliveryPhases
@@ -15451,6 +15460,19 @@
           ? `${p.city || ''} \u2022 ${typeLabel}`
           : (p.city || '');
 
+        // Parent-district chip \u2014 only when this is a COMPONENT of an
+        // umbrella (e.g. The Nora Hotel \u2192 The Nora District). Reuses the
+        // same .grid-parent-chip style for visual consistency with cards.
+        (() => {
+          const row = document.getElementById('pmParentChipRow');
+          if (!row) return;
+          const ps = (p.parentSlug || '').trim();
+          if (!ps) { row.hidden = true; row.innerHTML = ''; return; }
+          const name = window._parentDisplayName ? window._parentDisplayName(ps) : ps;
+          row.hidden = false;
+          row.innerHTML = `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${ps}');">Part of ${name.replace(/'/g,'&#39;')} \u2192</a>`;
+        })();
+
         // Configuration & phasing block — render between subtitle and
         // progress bar. The EST DATE pill was removed per Jake's feedback;
         // speculative status surfaces inside the TMW Intelligence chip and
@@ -16067,6 +16089,15 @@
                 : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
               return typeLabel ? `${city} \u2022 ${typeLabel}` : city;
             })()}</p>
+            ${(() => {
+              // Parent-district chip on small map popup (mirrors the modal +
+              // grid-card behavior). Stop-propagation so the chip click
+              // doesn't also trigger the popup's "Learn More" path.
+              const ps = (f.properties.parentSlug || '').trim();
+              if (!ps) return '';
+              const name = window._parentDisplayName ? window._parentDisplayName(ps) : ps;
+              return `<div style="padding:0 12px 6px;"><a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${ps}');">Part of ${name.replace(/'/g,'&#39;')} \u2192</a></div>`;
+            })()}
             ${(() => {
               // Configuration + phasing block. Per Jake's feedback the popup
               // is space-constrained so we only surface:
