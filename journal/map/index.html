@@ -13062,8 +13062,14 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5],
-      zoom: isMobile ? 3.0 : 4
+      // Mobile lands zoomed in on downtown Miami (where the project density is
+      // and where Markets of Tomorrow is anchored): far fewer markers/glow
+      // halos visible at first paint = much less per-frame GPU work, which is
+      // the root of the laggy-until-drawer behavior on phones. Desktop keeps
+      // the continental view — GPU has the budget and the wider context is
+      // more useful with a sidebar drawer rather than a bottom sheet.
+      center: isMobile ? [-80.1918, 25.7617] : [-95.0, 38.5],
+      zoom:   isMobile ? 13.0              : 4
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
