@@ -819,6 +819,62 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
         manual = [e for e in deduped if e.get('manual')]
         auto   = [e for e in deduped if not e.get('manual')]
         archive[slug] = manual + auto[:max(0, MAX_PER_PROJECT - len(manual))]
+
+    # Parent ↔ children article cross-link. Every project carries parent_slug
+    # (filled in by load_projects() from ParentSlug in projects-flat.json).
+    # A district's articles surface in each child's Coverage section, and each
+    # child's articles surface in the district's. Siblings DON'T cross-pollinate
+    # (sharing is parent⇄child only) — done by snapshotting the archive
+    # BEFORE we mutate so the child→parent merge sees pre-merge child arrays.
+    parent_to_children = {}
+    for sl, pr in projects.items():
+        ps = (pr.get('parent_slug') or '').strip()
+        if ps:
+            parent_to_children.setdefault(ps, []).append(sl)
+
+    if parent_to_children:
+        # Snapshot the original per-project archives so cross-links use a
+        # stable view and we don't propagate already-cross-linked content.
+        original = {sl: list(es) for sl, es in archive.items()}
+
+        def _merge_dedup(*lists):
+            seen = set(); merged = []
+            for lst in lists:
+                for e in lst:
+                    key = e.get('link') or e.get('guid') or ''
+                    if not key or key in seen:
+                        continue
+                    seen.add(key); merged.append(e)
+            merged.sort(key=lambda e: e.get('published_at') or '', reverse=True)
+            return merged
+
+        # Parent → children: each component gets the umbrella's articles.
+        for parent_slug, child_slugs in parent_to_children.items():
+            parent_articles = original.get(parent_slug, [])
+            if not parent_articles:
+                continue
+            for child_slug in child_slugs:
+                child_existing = archive.get(child_slug, [])
+                merged = _merge_dedup(child_existing, parent_articles)
+                # Keep manual entries privileged inside the cap (same rule as
+                # the per-project section above).
+                manual_m = [e for e in merged if e.get('manual')]
+                auto_m   = [e for e in merged if not e.get('manual')]
+                archive[child_slug] = manual_m + auto_m[:max(0, MAX_PER_PROJECT - len(manual_m))]
+
+        # Children → parent: each district gets all its components' articles.
+        for parent_slug, child_slugs in parent_to_children.items():
+            children_articles = []
+            for child_slug in child_slugs:
+                children_articles.extend(original.get(child_slug, []))
+            if not children_articles:
+                continue
+            parent_existing = archive.get(parent_slug, [])
+            merged = _merge_dedup(parent_existing, children_articles)
+            manual_m = [e for e in merged if e.get('manual')]
+            auto_m   = [e for e in merged if not e.get('manual')]
+            archive[parent_slug] = manual_m + auto_m[:max(0, MAX_PER_PROJECT - len(manual_m))]
+
     return archive
 
 def save_articles_archive(archive: dict):
