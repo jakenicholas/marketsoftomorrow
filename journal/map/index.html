@@ -13566,11 +13566,10 @@
       let filtered = window.allProjectFeatures;
 
       if (typeFilter && typeFilter !== 'all') {
-        // Use _projectTypes (real JS array attached to feature object)
-        filtered = filtered.filter(f =>
-          Array.isArray(f._projectTypes) &&
-          f._projectTypes.includes(typeFilter.toLowerCase())
-        );
+        // Funnel through the shared type-filter helper so the district
+        // suppression rule (Jake's Q3) applies here too — filtering "Hotel"
+        // returns The Nora Hotel but not The Nora District.
+        filtered = filtered.filter(window._typeFilterFn(typeFilter));
       }
 
       if (statusFilter && statusFilter !== 'all') {
@@ -13981,7 +13980,7 @@
       const platform = isDesktop ? 'desktop' : 'mobile';
       const { type: typeFilter, status: statusFilter } = activeFilters[platform];
       let filteredFeatures = allFeatures;
-      if (typeFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f._projectTypes?.includes(typeFilter.toLowerCase()));
+      if (typeFilter !== 'all') filteredFeatures = filteredFeatures.filter(window._typeFilterFn(typeFilter));
       if (statusFilter !== 'all') filteredFeatures = filteredFeatures.filter(f => f.properties.delivery === statusFilter);
       if (window.filterByFavoritesIfActive) filteredFeatures = window.filterByFavoritesIfActive(filteredFeatures);
       if (typeof window.advMatches === 'function') filteredFeatures = filteredFeatures.filter(window.advMatches);
@@ -16479,7 +16478,7 @@
       const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
       const { sort: sortType, type: projectTypeFilter, status: statusFilter } = activeFilters[platform];
 
-      if (projectTypeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(projectTypeFilter.toLowerCase()));
+      if (projectTypeFilter !== 'all') features = features.filter(window._typeFilterFn(projectTypeFilter));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
       if (window.filterByFavoritesIfActive) features = window.filterByFavoritesIfActive(features);
       // Advanced "Add filter" panel.
@@ -16769,7 +16768,7 @@
       // Apply active type/status filters on top of the search-filtered list
       const platform = targetId === 'gridDesktop' ? 'desktop' : 'mobile';
       const { type: typeFilter, status: statusFilter } = activeFilters[platform];
-      if (typeFilter !== 'all') features = features.filter(f => f.properties.projectTypes?.includes(typeFilter.toLowerCase()) || f._projectTypes?.includes(typeFilter.toLowerCase()));
+      if (typeFilter !== 'all') features = features.filter(window._typeFilterFn(typeFilter));
       if (statusFilter !== 'all') features = features.filter(f => f.properties.delivery === statusFilter);
       // Advanced "Add filter" panel must apply here too (search-results grid).
       if (typeof window.advMatches === 'function') features = features.filter(window.advMatches);
@@ -17236,19 +17235,14 @@
 
       // Tier 1: same type + same status within 300mi
       if (typeFilter !== 'all' && statusFilter !== 'all') {
-        const t1 = nearby.filter(f =>
-          (f._projectTypes?.includes(typeFilter.toLowerCase()) || f.properties.projectTypes?.includes(typeFilter.toLowerCase())) &&
-          f.properties.delivery === statusFilter
-        ).slice(0, 12);
+        const typeOk = window._typeFilterFn(typeFilter);
+        const t1 = nearby.filter(f => typeOk(f) && f.properties.delivery === statusFilter).slice(0, 12);
         if (t1.length > 0) return { features: t1, tier: 1 };
       }
 
       // Tier 2: same type within 300mi
       if (typeFilter !== 'all') {
-        const t2 = nearby.filter(f =>
-          f._projectTypes?.includes(typeFilter.toLowerCase()) ||
-          f.properties.projectTypes?.includes(typeFilter.toLowerCase())
-        ).slice(0, 12);
+        const t2 = nearby.filter(window._typeFilterFn(typeFilter)).slice(0, 12);
         if (t2.length > 0) return { features: t2, tier: 2 };
       }
 
@@ -17441,7 +17435,7 @@
               }
             } else {
               const projectMatchesFilters =
-                (activeFilters.mobile.type === 'all' || f._projectTypes?.includes(activeFilters.mobile.type.toLowerCase())) &&
+                window._typeFilterFn(activeFilters.mobile.type)(f) &&
                 (activeFilters.mobile.status === 'all' || f.properties.delivery === activeFilters.mobile.status);
               if (!projectMatchesFilters) clearAllFilters('mobile');
               // Show spinner, fly to project, re-render tiles on moveend
@@ -17809,7 +17803,7 @@
             }
           } else {
             const projectMatchesFilters =
-              (activeFilters.desktop.type === 'all' || f._projectTypes?.includes(activeFilters.desktop.type.toLowerCase())) &&
+              window._typeFilterFn(activeFilters.desktop.type)(f) &&
               (activeFilters.desktop.status === 'all' || f.properties.delivery === activeFilters.desktop.status);
             if (!projectMatchesFilters) clearAllFilters('desktop');
             // Show spinner, fly to project, re-render tiles on moveend
@@ -18740,6 +18734,55 @@
             const f = window._findFeatureBySlug(slug);
             if (f && f.properties && f.properties.title) return f.properties.title;
             return String(slug || '').replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+          };
+
+          // Parent slug -> Set of project types its children fill. Used by
+          // the type-filter helper to SUPPRESS a district when one of its
+          // children covers the requested type — e.g. filtering "Hotel"
+          // should return The Nora Hotel (the component) and hide The Nora
+          // District (the umbrella, which lists Hotel in its types[] only
+          // because its components do). When no child fills the type, the
+          // district itself still surfaces (Jake's Q3 rule: component-only
+          // when component exists, district as fallback otherwise).
+          window._childrenTypesByParent = {};
+          (function buildChildTypeIndex(){
+            const py = window.projectSlugify;
+            features.forEach(f => {
+              if (!f || !f.properties) return;
+              const ps = (f.properties.parentSlug || '').trim();
+              if (!ps) return;
+              const types = Array.isArray(f._projectTypes) ? f._projectTypes : [];
+              if (!window._childrenTypesByParent[ps]) window._childrenTypesByParent[ps] = new Set();
+              types.forEach(t => window._childrenTypesByParent[ps].add((t || '').toLowerCase()));
+            });
+          })();
+
+          // Single type-filter predicate. Returns a filter function callers
+          // pass to Array.filter. Encodes the district-suppression rule so
+          // every caller stays in sync — the OLD scattered
+          // `f._projectTypes?.includes(typeLc)` checks all funnel through
+          // this now.
+          window._typeFilterFn = function(typeFilter){
+            const tlc = String(typeFilter || '').toLowerCase();
+            if (!tlc || tlc === 'all') return function(){ return true; };
+            return function(f){
+              if (!f || !f.properties) return false;
+              const arr = Array.isArray(f._projectTypes) && f._projectTypes.length
+                ? f._projectTypes
+                : (typeof f.properties.projectTypes === 'string'
+                    ? f.properties.projectTypes.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+                    : []);
+              if (!arr.includes(tlc)) return false;
+              // Suppress district when ANY of its children also covers this
+              // type — let the child win (component-only rule).
+              const py = window.projectSlugify;
+              if (py){
+                const ownSlug = py(f.properties.title || '');
+                const childTypes = window._childrenTypesByParent[ownSlug];
+                if (childTypes && childTypes.has(tlc)) return false;
+              }
+              return true;
+            };
           };
           // Signal to any subscriber that needs the feature list (e.g. the
           // shared-comparison-link route in compare.js, which loads before
