@@ -935,6 +935,22 @@ def build_milestones(row, articles=None):
                     e['source_url'] = tmw_by_key[key]
                     e['source_domain'] = _url_domain(tmw_by_key[key])
 
+    # When neither status_history nor articles produced an 'announced' entry,
+    # infer one at year-grain from the earliest dated phase. Every project was
+    # announced before it broke ground/opened — guarantee the timeline starts
+    # with that step instead of jumping in mid-lifecycle. Marked estimated
+    # because the year is inferred from a later milestone. Common case: a
+    # district umbrella whose only structured dates are its start + delivery
+    # but with no announced entry in status_history (e.g. The Nora District).
+    if 'announced' not in found:
+        _ev_dates = [e['date'][:10] for e in found.values() if e.get('date')]
+        if start_date:    _ev_dates.append(start_date[:10])
+        if delivery_date: _ev_dates.append(delivery_date[:10])
+        _ev_dates = [d for d in _ev_dates if d]
+        if _ev_dates:
+            _earliest_year = min(_ev_dates)[:4]
+            found['announced'] = entry('announced', _earliest_year, estimated=True)
+
     # Backstop against an INVERTED timeline. 'announced' is the lifecycle START,
     # so it can never legitimately post-date a later milestone. When its only
     # date is a record/correction stamp (estimated — e.g. a status walked back to
@@ -3634,8 +3650,12 @@ def main():
             # merge every component's milestones into the timeline. Each row in
             # the merged view is attributed with its component name (the district's
             # own milestones get the district's title; children's get their own).
-            # Sorted chronologically by date then by rank as a stable tiebreaker.
-            # No-op when the district has no components or this row isn't a district.
+            # Past dated events sort chronologically; projected/future events sit
+            # at the BOTTOM (per Jake — "future items should appear after happened
+            # items"). Undated children's entries are excluded (they have no
+            # placeable date and would clutter the bottom — Jake: "if they don't
+            # have timestamps, then don't include them"). No-op when the district
+            # has no components or this row isn't a district.
             if row.get('IsDistrict') == '1':
                 own_slug = (row.get('Slug', '') or '').strip()
                 own_title = (row.get('Title', '') or '').strip()
@@ -3644,9 +3664,9 @@ def main():
                     # Tag district's own milestones with its title.
                     for _m in (row.get('Milestones') or []):
                         _m['component'] = own_title
-                    # Build each component's milestones with their own articles
-                    # for accurate "announced" anchoring, tag with the component
-                    # name, and pool them together.
+                    # Build each component's milestones (with their own articles
+                    # so the "announced" anchor is accurate), tag with the
+                    # component name, drop any without a real date.
                     extra = []
                     for child in children:
                         child_title = (child.get('Title','') or '').strip()
@@ -3655,15 +3675,34 @@ def main():
                         child_articles = articles_archive.get(slugify(child_title), [])
                         child_ms = build_milestones(child, child_articles).get('milestones') or []
                         for cm in child_ms:
+                            if not (cm.get('date') or '').strip():
+                                continue   # skip undated children's rows
                             cm2 = dict(cm)
                             cm2['component'] = child_title
                             extra.append(cm2)
                     if extra:
                         merged = (row.get('Milestones') or []) + extra
-                        # Sort by event date (YYYY-MM-DD prefix), then phase rank
-                        # so multi-event same-day rows still read in phase order.
-                        # Empty dates sink to the bottom under '9999'.
-                        merged.sort(key=lambda x: ((x.get('date') or '9999')[:10], x.get('rank') or 0))
+                        # State-aware sort: past-dated by date, past-undated by
+                        # rank, projected/future all the way at the bottom.
+                        # No grand-opening special case — multiple openings
+                        # legitimately appear in a district (each component
+                        # has its own), let them sort by real date.
+                        def _merge_sort_key(m):
+                            mm = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', (m.get('date') or '')[:10])
+                            nd = f"{mm.group(1)}-{mm.group(2) or '01'}-{mm.group(3) or '01'}" if mm else ''
+                            if m.get('projected'):
+                                return (2, nd or '9999-99-99', m.get('rank') or 0)
+                            return (0, nd, m.get('rank') or 0) if nd else (1, '', m.get('rank') or 0)
+                        merged.sort(key=_merge_sort_key)
+                        # Re-assign state across the merged set: 'past' for
+                        # confirmed events, 'future' for projected, 'now' on the
+                        # most-recent past event so the renderer can highlight
+                        # "where we are right now" in the district's lifecycle.
+                        for m in merged:
+                            m['state'] = 'future' if m.get('projected') else 'past'
+                        _past = [m for m in merged if not m.get('projected')]
+                        if _past:
+                            _past[-1]['state'] = 'now'
                         row['Milestones'] = merged
             # Nearby = up to 3 other projects in the same city.
             _city = (row.get('City', '') or '').strip()
