@@ -12618,30 +12618,36 @@
     // also scaled to 2s so the mark finishes in step with the dwell.
     (function(){
       var lo = document.getElementById('loadingOverlay');
-      var isMobileVp = window.matchMedia('(max-width: 800px)').matches;
-      // Mobile holds longer so the drawer-prime (which slides the project grid
-      // up behind the overlay, forces the iOS GPU image-texture eviction, then
-      // collapses) can finish entirely under the splash. Desktop keeps 2s.
-      var MIN_MS = isMobileVp ? 3600 : 2000, started = Date.now();
+      var MIN_MS = 2000, started = Date.now();
       function hideLoader(){
         if (!lo || lo.classList.contains('fade-out')) return;
-        // Wait for the mobile drawer-prime to finish if it's still running so
-        // the user never sees the drawer flash behind a fading overlay.
-        if (window._drawerPriming){
-          setTimeout(hideLoader, 150);
-          return;
-        }
         lo.classList.add('fade-out');
         setTimeout(function(){ if (lo) lo.style.display = 'none'; }, 500);
+        // On mobile, fade the splash directly INTO the drawer-expanded state.
+        // The map's per-zoom GPU lag is only relieved by a REAL finger-scroll
+        // on the drawer (iOS Safari's scroll-compositor pass — un-fakeable from
+        // JS, confirmed empirically after many auto-prime attempts). Opening
+        // the drawer by default lets the user's natural scroll of the project
+        // list do that work for free — by the time they tap Map, it's smooth.
+        try {
+          if (window.matchMedia('(max-width: 800px)').matches) {
+            if (typeof window.mobileDrawerExpand === 'function') {
+              window.mobileDrawerExpand();
+            } else {
+              // Drawer setup hasn't run yet (slow projects fetch). Flag for
+              // setupMobileDrawer to expand on completion. See the matching
+              // check right after setupMobileDrawer() below.
+              window._pendingDrawerExpand = true;
+            }
+          }
+        } catch (e) {}
       }
       function scheduleHide(){
         setTimeout(hideLoader, Math.max(0, MIN_MS - (Date.now() - started)));
       }
       if (document.readyState === 'complete') scheduleHide();
       else window.addEventListener('load', scheduleHide);
-      // Hard cap raised slightly so the prime can't be stranded; still well
-      // short of any user-perceptible stall.
-      setTimeout(hideLoader, 7000);
+      setTimeout(hideLoader, 6000);
     })();
 
     // Full-screen map toggle: hide the journal chrome header for an
@@ -18692,55 +18698,24 @@
           updateStickyOffset();
           window.addEventListener('resize', updateStickyOffset);
 
-          // ── Mobile drawer-prime ─────────────────────────────────────────
-          // Jake's manual fix: open the project drawer, wait ~.5s for the
-          // images to flash black (iOS Safari evicting GPU image textures
-          // when memory crosses the cap), then return to the map — smooth
-          // forever. Replay it AUTOMATICALLY, invisibly, behind the loading
-          // splash. Earlier auto-prime attempt waited for map.idle (too late,
-          // user saw the flash) and only held 700ms (not enough to provoke
-          // eviction). This version: runs right when the drawer is wired up
-          // (still under the splash), bumps the splash above the drawer so
-          // the slide is hidden, snap-opens (no transition cost), waits long
-          // enough for the GPU eviction to happen, snap-closes.
-          (function primeMobileDrawerOnce(){
-            try {
-              if (!window.matchMedia('(max-width: 800px)').matches) return;
-              if (typeof window.mobileDrawerExpand !== 'function') return;
-              if (typeof window.mobileDrawerCollapse !== 'function') return;
-              var drawer = document.getElementById('mobileDrawer');
-              var lo     = document.getElementById('loadingOverlay');
-              if (!drawer) return;
-              window._drawerPriming = true;
-              // Lift overlay above the drawer (z2100 when expanded) so the
-              // prime is hidden behind the splash. Restored after collapse.
-              var _origZ = lo ? lo.style.zIndex : '';
-              if (lo) lo.style.zIndex = '9999';
-              // Snap open/close: drop the transform transition so the prime
-              // doesn't cost the 350ms slide twice. Restored after collapse.
-              var _origTrans = drawer.style.transition;
-              drawer.style.transition = 'none';
-              // Force the drawer into the on-screen layer NOW so the grid's
-              // images become visible → decode → GPU memory crosses the cap
-              // → eviction (the "black flash") → smooth map afterward.
+          // Mobile drawer-first UX: the splash-hide handler (see loadingOverlay
+          // block above) calls mobileDrawerExpand() at fade-time, so the splash
+          // dissolves directly into the project list rather than the bare map.
+          // This is the honest fix for the iOS-Safari per-zoom GPU lag: only a
+          // real finger-scroll on the drawer triggers Safari's scroll-compositor
+          // pass that clears the map's stale GPU layers. JS auto-prime cannot
+          // replay that (confirmed across many attempts). Opening the drawer by
+          // default lets the user's natural scroll do that work for free.
+          // If the splash already faded before setup ran (slow fetch), pick up
+          // the pending flag and expand now.
+          try {
+            if (window.matchMedia('(max-width: 800px)').matches &&
+                (window._pendingDrawerExpand ||
+                 document.getElementById('loadingOverlay')?.classList.contains('fade-out'))) {
+              window._pendingDrawerExpand = false;
               window.mobileDrawerExpand();
-              // 1500ms is the same dwell as Jake's manual fix (the .5s
-              // grid-load + ~1s for images to decode + the eviction flash).
-              setTimeout(function(){
-                try { window.mobileDrawerCollapse(); } catch (e) {}
-                // Wait for the collapse to finish (35Oms transition was
-                // suppressed, so this is just one frame), then unwind.
-                setTimeout(function(){
-                  drawer.style.transition = _origTrans;
-                  if (lo) lo.style.zIndex = _origZ;
-                  window._drawerPriming = false;
-                }, 80);
-              }, 1500);
-            } catch (e) {
-              // Never let the prime block the loader.
-              window._drawerPriming = false;
             }
-          })();
+          } catch (e) {}
 
 
           // Re-render once map is fully idle so in-view bounds are accurate
