@@ -5657,6 +5657,14 @@ async function handleSmartAnswer(request, env, origin) {
       district: !!f.district,
       blurb: String(f.blurb || '').slice(0, 200),
     })) : null,
+    // "Most active firm/developer/architect" ranking, when the query asked for it.
+    firm_ranking: (facts.firmRanking && typeof facts.firmRanking === 'object') ? {
+      scope: String(facts.firmRanking.scope || '').slice(0, 16),
+      developers: Array.isArray(facts.firmRanking.topDevelopers) ? facts.firmRanking.topDevelopers.slice(0, 5)
+        .map(d => ({ name: String(d.name || '').slice(0, 80), projects: Number(d.projects) || 0 })) : [],
+      architects: Array.isArray(facts.firmRanking.topArchitects) ? facts.firmRanking.topArchitects.slice(0, 5)
+        .map(a => ({ name: String(a.name || '').slice(0, 80), projects: Number(a.projects) || 0 })) : [],
+    } : null,
   };
 
   // Learned editorial rules — written by the nightly intel-review routine so the
@@ -5760,6 +5768,13 @@ async function handleSmartAnswer(request, env, origin) {
     'For a CITY or REGION query (a `place` is set), weave these into a short editorial OVERVIEW: how many we ' +
     'track, what the pipeline leans toward, the nearest-term opening, and the project(s) bringing the biggest ' +
     'change. Do not just name the single top match.\n\n' +
+    'FIRM QUERIES: when `firm_ranking` is present, the ask is which FIRMS are most active — answer with the firms, ' +
+    'not a project tour. Honor `firm_ranking.scope`: "developer" → name the single most active developer; ' +
+    '"architect" → the most active architect; "both" → name the most active developer AND the most active ' +
+    'architect (one of each). Use the names and `projects` counts from `firm_ranking.developers` / ' +
+    '`firm_ranking.architects` (already ranked, most-active first). Lead with those firms by name; you may add a ' +
+    'short line of supporting context (a notable project they\'re behind, or the pipeline lean). Never omit one of ' +
+    'the two when scope is "both".\n\n' +
     'Hard rules:\n' +
     '- Use ONLY the facts provided. Never invent or infer a number, name, date, status, or place not present. ' +
     'Figures are verified, not generated.\n' +
@@ -5771,6 +5786,7 @@ async function handleSmartAnswer(request, env, origin) {
     '= not yet built — say "planned"/"proposed", never present-tense "is remaking/building/opening". Reserve active, ' +
     'happening language for under-construction or already-open projects.\n' +
     '- Only assert a construction milestone if the facts explicitly say so.\n' +
+    '- Never say "on the map" — TMW coverage is a DATABASE of developments. Say "we track", "tracked", or "in our database".\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
     'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
     (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'

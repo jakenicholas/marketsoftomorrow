@@ -1516,6 +1516,10 @@
       var roleLbl = s.firm.role === 'developer' ? 'Developer' : (s.firm.role === 'architect' ? 'Architect' : 'Firm');
       chips.push('<span class="tmw-ov-uchip"><span class="ck">'+roleLbl+'</span> <b>'+esc(s.firm.name)+'</b></span>');
     }
+    if (s.firmRank) {
+      var frLbl = s.firmRank === 'developer' ? 'Most active developer' : (s.firmRank === 'architect' ? 'Most active architect' : 'Most active firms');
+      chips.push('<span class="tmw-ov-uchip"><span class="ck">Ranking</span> <b>'+esc(frLbl)+'</b></span>');
+    }
     if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="tmw-ov-uchip"><span class="ck">Milestone</span> <b>'+esc(tc(s.phaseLabels.join(' / ')))+'</b></span>');
     if (s.statusLabels.length)                 chips.push('<span class="tmw-ov-uchip"><span class="ck">Status</span> <b>'+esc(tc(s.statusLabels.join(' / ')))+'</b></span>');
     if (s.typeLabel)                           chips.push('<span class="tmw-ov-uchip"><span class="ck">Type</span> <b>'+esc(tc(s.typeLabel))+'</b></span>');

@@ -731,20 +731,33 @@
     var cityWords = {};
     cities.forEach(function (c) { norm(c).split(/\s+/).forEach(function (t) { if (t.length >= 4) cityWords[t] = 1; }); });
     var firm = detectFirm(full, opts.firms || [], cityWords);
-    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0);
+    // "Most active firm / developer / architect" — a request to RANK the firms
+    // behind the matched projects, not the projects themselves. A specific firm
+    // NAME (detectFirm) takes precedence over this generic ranking intent.
+    var firmRank = null;
+    if (!firm) {
+      var rankCue = /\b(most active|busiest|most prolific|prolific|leading|biggest)\b/.test(full) || hasWord(full, 'most') || hasWord(full, 'top');
+      var wantDev = hasWord(full, 'developer') || hasWord(full, 'developers') || hasWord(full, 'builder') || hasWord(full, 'builders');
+      var wantArch = hasWord(full, 'architect') || hasWord(full, 'architects');
+      var wantFirm = hasWord(full, 'firm') || hasWord(full, 'firms') || hasWord(full, 'company') || hasWord(full, 'companies');
+      if (rankCue && (wantDev || wantArch || wantFirm)) {
+        firmRank = (wantFirm || (wantDev && wantArch)) ? 'both' : (wantDev ? 'developer' : 'architect');
+      }
+    }
+    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0);
     // Geographic / firm anchor alone is enough to trigger smart. "projects
     // coming to nashville", "deals in florida", "show me kengo kuma" all
     // converge to the same city/region/firm view rather than getting
     // punished by the strict count check + falling into a text-match that
     // requires every generic word ("projects", "coming") in each title.
-    if (firm || place) {
+    if (firm || place || firmRank) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, cities: cities,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
-        sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax
+        sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax
       };
     }
     if (count < 2) return null;  // no anchor + too little structure → normal search
@@ -881,6 +894,34 @@
   // Synthesize a one-sentence answer + stats array from the resolved
   // rows. Returns { html, stats:[{v,k}] }. The LLM upgrade replaces the
   // sentence after; stats stay DB-derived.
+  // Rank the developers / architects behind a set of project rows by how many
+  // of those projects credit them. Mirrors deriveFirmsFromProjects: Developer /
+  // Architect are comma-separated and parallel to their *Slugs; blanks and
+  // "Various" are skipped. Returns { developers:[{name,slug,count}], architects:[…] },
+  // each sorted most-active first. Powers "most active firm/developer/architect".
+  function rankFirms(rows) {
+    function tally(getName, getSlug) {
+      var map = {};
+      (rows || []).forEach(function (p) {
+        var names = String(getName(p) || '').split(',');
+        var slugs = String(getSlug(p) || '').split(',');
+        names.forEach(function (raw, i) {
+          var nm = raw.trim();
+          if (!nm || nm.toLowerCase() === 'various') return;
+          var key = norm(nm);
+          if (!map[key]) map[key] = { name: nm, slug: (slugs[i] || '').trim(), count: 0 };
+          map[key].count++;
+        });
+      });
+      return Object.keys(map).map(function (k) { return map[k]; })
+        .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name); });
+    }
+    return {
+      developers: tally(function (p) { return p.Developer; }, function (p) { return p.DeveloperSlugs; }),
+      architects: tally(function (p) { return p.Architect; }, function (p) { return p.ArchitectSlugs; })
+    };
+  }
+
   function buildSmartAnswer(s, rows) {
     var n = rows.length;
     var noun = s.typeNoun || 'project';
@@ -904,6 +945,33 @@
       return { html: sentence, stats: [] };
     }
 
+    // "Most active firm / developer / architect" — answer with the top firm(s)
+    // behind the matched rows, not a project overview. 'both' names a developer
+    // AND an architect; 'developer'/'architect' name just that one.
+    if (s.firmRank) {
+      var fr = rankFirms(rows);
+      var wantDev = s.firmRank === 'both' || s.firmRank === 'developer';
+      var wantArch = s.firmRank === 'both' || s.firmRank === 'architect';
+      var bits = [];
+      if (wantDev && fr.developers.length) {
+        var d0 = fr.developers[0];
+        bits.push('<span class="hl">' + esc(d0.name) + '</span> is the most active developer (' + d0.count + ' project' + (d0.count !== 1 ? 's' : '') + ')');
+      }
+      if (wantArch && fr.architects.length) {
+        var a0 = fr.architects[0];
+        bits.push('<span class="hl">' + esc(a0.name) + '</span> ' + (bits.length ? 'the most active architect' : 'is the most active architect') + ' (' + a0.count + ' project' + (a0.count !== 1 ? 's' : '') + ')');
+      }
+      if (bits.length) {
+        var frStats = [{ v: '' + n, k: 'Results' }];
+        if (wantDev && fr.developers.length) frStats.push({ v: '' + fr.developers.length, k: 'Developers' });
+        if (wantArch && fr.architects.length) frStats.push({ v: '' + fr.architects.length, k: 'Architects' });
+        return {
+          html: 'Across <b>' + n + ' tracked ' + noun + (n !== 1 ? 's' : '') + '</b>' + placePhrase + ', ' + bits.join(' and ') + '.',
+          stats: frStats.slice(0, 4)
+        };
+      }
+    }
+
     var be = (n === 1 ? 'is' : 'are');
     if (s.firm) {
       var rv = s.firm.role === 'developer' ? 'is the developer behind'
@@ -919,7 +987,7 @@
     } else if (s.statuses.size) {
       sentence = subj + ' ' + be + statusPhrase + placePhrase + yearPhrase + '.';
     } else {
-      sentence = subj + placePhrase + yearPhrase + ' ' + be + ' tracked on the map.';
+      sentence = subj + placePhrase + yearPhrase + ' ' + be + ' tracked in our database.';
     }
 
     // Sort highlight -- only with 2+ results (a single result isn't "the tallest")
@@ -1019,7 +1087,7 @@
     var place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
     var many = rows.length >= 2;
     var sig = computeSignals(rows);
-    return {
+    var facts = {
       count: rows.length,
       criteria: {
         firm: s.firm ? s.firm.name : null,
@@ -1041,6 +1109,15 @@
       flagships: sig.flagships,
       top: rows.slice(0, 8).map(factRow)
     };
+    if (s.firmRank) {
+      var fr = rankFirms(rows);
+      facts.firmRanking = {
+        scope: s.firmRank,
+        topDevelopers: fr.developers.slice(0, 5).map(function (d) { return { name: d.name, projects: d.count }; }),
+        topArchitects: fr.architects.slice(0, 5).map(function (a) { return { name: a.name, projects: a.count }; })
+      };
+    }
+    return facts;
   }
 
   // ── exports ───────────────────────────────────────────────────────
