@@ -13068,7 +13068,7 @@
       // the root of the laggy-until-drawer behavior on phones. Desktop keeps
       // the continental view — GPU has the budget and the wider context is
       // more useful with a sidebar drawer rather than a bottom sheet.
-      center: isMobile ? [-80.195, 25.773] : [-95.0, 38.5],
+      center: isMobile ? [-80.197, 25.775] : [-95.0, 38.5],
       zoom:   isMobile ? 13.0            : 4
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
@@ -13718,14 +13718,23 @@
           });
           setMoving(movingOn);
         }
-        function setMoving(on){ movingOn = on; window._whatsMovingOn = on;
+        // Zoom-gate the mover pulses: at low zoom there can be 50+ visible,
+        // each running an infinite tmwIlGlow GPU animation. Below MOVER_MIN_Z
+        // (continental/state view) hide them all — at that scale the user
+        // can't distinguish individual movers anyway and only needs the pins.
+        // Visible iff (toggle ON) && (zoom ≥ min) && !hiddenForSelection.
+        const MOVER_MIN_Z = 8;
+        function applyMoverVis(){
+          const z = map.getZoom();
+          const show = movingOn && z >= MOVER_MIN_Z;
           markers.forEach(m=>{
             const el = m.getElement();
-            // A pulse hidden because its project is currently selected stays
-            // hidden regardless of the global What's Moving toggle.
             if (el.dataset && el.dataset.hiddenForSelection) { el.style.display = 'none'; return; }
-            el.style.display = on ? '' : 'none';
+            el.style.display = show ? '' : 'none';
           });
+        }
+        function setMoving(on){ movingOn = on; window._whatsMovingOn = on;
+          applyMoverVis();
           // Dim the field while What's Moving is on — but keep the SELECTED pin
           // fully opaque (solid pink) via a per-feature case on its title.
           const baseOp = on ? 0.5 : 0.92;
@@ -13808,6 +13817,10 @@
         // re-collide once it settles (no flicker / disappearing).
         map.on('moveend', refreshFeatLabels);
         map.on('zoomend', refreshFeatLabels);
+        // Same trigger as featured labels: re-evaluate mover visibility only
+        // when the gesture settles (not every frame). buildMoving() also calls
+        // applyMoverVis at the end so a fresh build picks up the current zoom.
+        map.on('zoomend', applyMoverVis);
 
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
@@ -18448,6 +18461,7 @@
         if (!map.getLayer('watched-ring')) {
           map.addLayer({ id:'watched-ring', type:'circle', source:'projects',
             filter:['all',['!',['has','point_count']],['==',['get','watched'],true]],
+            minzoom:8,
             paint:{'circle-color':'transparent','circle-radius':14,
                    'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67',
                    'circle-stroke-opacity':0}
@@ -18643,7 +18657,7 @@
           // glow REMOVED per design — was a #FFD300 stroke that read as
           // "yellow halo on featured pins". Only the green watched ring
           // is added back here on re-init.
-          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0} }, 'unclustered-point');
+          map.addLayer({ id:'watched-ring', type:'circle', source:'projects', filter:['all',['!',['has','point_count']],['==',['get','watched'],true]], minzoom:8, paint:{'circle-color':'transparent','circle-radius':14,'circle-stroke-width':2.5,'circle-stroke-color':'#1FDF67','circle-stroke-opacity':0} }, 'unclustered-point');
 
           // Cluster zoom-expand handlers — same pattern for both stacks, just
           // different source names.
