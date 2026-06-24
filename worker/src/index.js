@@ -4850,7 +4850,13 @@ async function handleMediaFolders(req, env, origin) {
   let body;
   try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
   const name = String(body.name || '').trim();
-  if (!name || name.length > 120 || /[<>"'\\]/.test(name)) return json({ error: 'invalid folder name' }, { status: 400 }, env, origin);
+  // Allow apostrophes / quotes / & etc — D1 binds are parameterized so SQL
+  // injection isn't a risk, and the admin UI renders folder names via
+  // textContent so XSS-via-storage isn't either. Block only chars that
+  // would actually break path-string handling or hint at a script tag
+  // hidden in the name (control chars, angle brackets, backslash). 200
+  // char ceiling matches handleMediaRenameFolder's limit.
+  if (!name || name.length > 200 || /[<>\\\x00-\x1f\x7f]/.test(name)) return json({ error: 'invalid folder name' }, { status: 400 }, env, origin);
   const now = Math.floor(Date.now() / 1000);
   if (req.method === 'POST') {
     await env.DB.prepare(`INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, 0, ?2)`).bind(name, now).run();
@@ -4885,7 +4891,9 @@ async function handleMediaRenameFolder(req, env, origin) {
   let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
   const from = String(b.from || '').trim();
   const to   = String(b.to   || '').trim();
-  if (!from || !to || to.length > 200 || /[<>"'\\]/.test(to)) return json({ error: 'invalid folder names' }, { status: 400 }, env, origin);
+  // Same relaxed validation as create — apostrophes / quotes legal,
+  // control + angle + backslash blocked. See handleMediaFolders for rationale.
+  if (!from || !to || to.length > 200 || /[<>\\\x00-\x1f\x7f]/.test(to)) return json({ error: 'invalid folder names' }, { status: 400 }, env, origin);
   if (from === to) return json({ ok: true, items_moved: 0 }, {}, env, origin);
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
   let moved = 0;
