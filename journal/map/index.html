@@ -3252,6 +3252,26 @@
     .popup-content p { font-size: 14px; margin: 4px 0; color: #CCC; }
     .popup-content p.delivery { margin-top: 6px; color: #CCC; }
 
+    /* Stacked popup — appears when multiple projects share a coord (mixed-use
+       towers, district umbrellas with co-located components). Each row opens
+       that specific project's modal on click. */
+    .popup-stack { min-width: 260px; max-width: 320px; }
+    .popup-stack-head { padding: 2px 2px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .popup-stack-loc { display: block; font-family: 'Inter', system-ui, sans-serif; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 3px; }
+    .popup-stack-count { display: block; font-size: 13px; font-weight: 600; color: #fff; }
+    .popup-stack-list { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+    .popup-stack-row { all: unset; display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 6px; cursor: pointer; transition: background 0.12s ease; font-family: 'Inter', system-ui, sans-serif; }
+    .popup-stack-row:hover { background: rgba(255,255,255,0.06); }
+    .popup-stack-row:focus-visible { outline: 1px solid rgba(167,139,250,0.6); outline-offset: -1px; }
+    .popup-stack-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,0.08); }
+    .popup-stack-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .popup-stack-title { font-size: 13px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .popup-stack-meta { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .popup-stack-arrow { flex: 0 0 auto; font-size: 16px; line-height: 1; color: rgba(255,255,255,0.4); }
+    .popup-stack-row:hover .popup-stack-arrow { color: rgba(255,255,255,0.85); }
+    /* Slightly tighter popup container for the stack — no big image up top */
+    .tmw-stack-popup .mapboxgl-popup-content { padding: 14px 14px 10px !important; }
+
     /* Configuration & phasing block — only renders when configSummary or
        deliveryPhases is populated. Designed to slot under the city/type
        subtitle without disturbing the delivery bar below. */
@@ -13688,8 +13708,16 @@
           properties: Object.assign({}, f.properties, { projectTypes: undefined, watched })
         };
       };
-      const pipelineFeatures  = filtered.filter(f => !f.properties.completed).map(toGeo);
-      const completedFeatures = filtered.filter(f =>  f.properties.completed).map(toGeo);
+      // Coord-collapse before pushing to the source so the pin-collision
+       // logic (mixed-use towers etc.) still applies after filtering. Each
+       // side collapsed independently — a filter that excludes a component
+       // can change the "primary" of that coord (e.g. the district's hotel
+       // child is hidden so the district becomes the standalone primary).
+      const _toGeo = (f) => toGeo(f);
+      const _pipelineRaw = filtered.filter(f => !f.properties.completed).map(_toGeo);
+      const _completedRaw = filtered.filter(f =>  f.properties.completed).map(_toGeo);
+      const pipelineFeatures = (window._collapseColocated || ((x)=>x))(_pipelineRaw);
+      const completedFeatures = (window._collapseColocated || ((x)=>x))(_completedRaw);
       source.setData({ type: 'FeatureCollection', features: pipelineFeatures });
       if (sourceCompleted) {
         sourceCompleted.setData({ type: 'FeatureCollection', features: completedFeatures });
@@ -16127,6 +16155,63 @@
       });
     })();
     // ‚îÄ‚îÄ End Project Detail Modal ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+
+    // Stacked popup for coord-collisions (mixed-use towers, district umbrellas
+    // sharing coords with components). Triggered from handlePinClick when the
+    // clicked feature carries _stackJSON with > 1 items. Renders a tidy list
+    // of all colocated projects with status dots + click-to-open. Falls back
+    // to showPopup if the stack is somehow empty.
+    window._stackItemClick = function (title) {
+      const feats = window.allProjectFeatures || [];
+      const target = feats.find(p => p && p.properties && p.properties.title === title);
+      if (!target) return;
+      if (activePopup) { activePopup.remove(); activePopup = null; }
+      if (typeof window.openProjectModal === 'function') {
+        window.openProjectModal(target, 'stack');
+      }
+    };
+    function showStackPopup(f, stack) {
+      if (!Array.isArray(stack) || stack.length < 2) { showPopup(f); return; }
+      if (activePopup) { activePopup.remove(); activePopup = null; }
+      const co = f.geometry.coordinates;
+      const escA = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const escT = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Mirrors the TMW_STATUS_COLOR Mapbox expression so dots in the stack
+      // match the pin colors users see on the map.
+      const _SC = {
+        'Announced':         '#FFD300',
+        'Breaking Ground':   '#3FA9F5',
+        'Under Construction':'#3FA9F5',
+        'Opening Soon':      '#1FDF67',
+        'Now Open':          '#1FDF67',
+      };
+      const statusColor = (d) => _SC[d] || '#A78BFA';
+      const cityLine = stack[0].city || '';
+      const rows = stack.map((it) => {
+        const dot = `<span class="popup-stack-dot" style="background:${statusColor(it.delivery)}"></span>`;
+        const sub = [escT(it.delivery), escT(it.preferredType)].filter(Boolean).join(' · ');
+        return `<button type="button" class="popup-stack-row" onclick="window._stackItemClick('${escA(it.title)}')">`
+          + dot
+          + '<span class="popup-stack-body">'
+          +   `<span class="popup-stack-title">${escT(it.title)}</span>`
+          +   (sub ? `<span class="popup-stack-meta">${sub}</span>` : '')
+          + '</span>'
+          + '<span class="popup-stack-arrow">›</span>'
+          + '</button>';
+      }).join('');
+      activePopup = new mapboxgl.Popup({ closeButton: false, anchor: 'bottom', offset: [0, -12], className: 'tmw-stack-popup' })
+        .setLngLat(co)
+        .setHTML(
+          '<div class="popup-stack">'
+          +   '<div class="popup-stack-head">'
+          +     `<span class="popup-stack-loc">${escT(cityLine)}</span>`
+          +     `<span class="popup-stack-count">${stack.length} projects at this site</span>`
+          +   '</div>'
+          +   `<div class="popup-stack-list">${rows}</div>`
+          + '</div>'
+        )
+        .addTo(map);
+    }
 
     function showPopup(f, opts) {
       opts = opts || {};
@@ -18637,6 +18722,64 @@
         if(isMobile){ map.on('click','brightline-existing',(e)=>{ if(stationPopup){stationPopup.remove();stationPopup=null;} }); map.on('movestart',()=>{}); }
       }
 
+      // Pin-collision collapse: at every unique lat/lng (rounded to ~1m),
+      // render ONE pin. The "primary" is the umbrella district if one exists
+      // in the group, else the featured project, else the first feature. The
+      // full list of colocated projects is JSON-stringified onto the primary's
+      // properties as `_stackJSON` + `_stackCount` so the click handler can
+      // render a stacked popup. Used by both the initial source build and
+      // the restore path (style swap / source re-init). Slug→feature lookup
+      // is keyed off projectSlugify(title), matching parentSlug encoding.
+      if (!window._collapseColocated) {
+        window._collapseColocated = function (feats) {
+          const py = window.projectSlugify || ((s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+          const byCoord = new Map();
+          for (const f of feats) {
+            const c = f.geometry && f.geometry.coordinates;
+            if (!c || c.length < 2) continue;
+            // 5 decimals ≈ 1.1m at the equator — tight enough to NOT collapse
+            // neighbors but loose enough to absorb floating-point noise.
+            const key = (+c[0]).toFixed(5) + ',' + (+c[1]).toFixed(5);
+            if (!byCoord.has(key)) byCoord.set(key, []);
+            byCoord.get(key).push(f);
+          }
+          const out = [];
+          byCoord.forEach((group) => {
+            if (group.length === 1) { out.push(group[0]); return; }
+            // Promote the district umbrella in the group (one whose slug is
+            // some other feature's parentSlug). Then featured, then first.
+            const districtFeat = group.find(g => {
+              const gs = py(g.properties.title || '');
+              if ((g.properties.parentSlug || '').trim()) return false;
+              return group.some(o => o !== g && (o.properties.parentSlug || '').trim() === gs);
+            });
+            const ordered = districtFeat
+              ? [districtFeat].concat(group.filter(g => g !== districtFeat))
+              : group.slice().sort((a, b) => (b.properties.featured ? 1 : 0) - (a.properties.featured ? 1 : 0));
+            const primary = ordered[0];
+            const stack = ordered.map(g => ({
+              title: g.properties.title || '',
+              slug: py(g.properties.title || ''),
+              delivery: g.properties.delivery || '',
+              preferredType: g.properties.preferredType || '',
+              city: g.properties.city || '',
+              image: g.properties.image || '',
+              parentSlug: g.properties.parentSlug || '',
+              isPrimary: g === primary,
+            }));
+            out.push({
+              type: 'Feature',
+              geometry: primary.geometry,
+              properties: Object.assign({}, primary.properties, {
+                _stackJSON: JSON.stringify(stack),
+                _stackCount: stack.length,
+              }),
+            });
+          });
+          return out;
+        };
+      }
+
       // Load project data — if already loaded, just restore from master list
       if (window.allProjectFeatures) {
         // Style switched — re-add projects source from cached data
@@ -18651,9 +18794,11 @@
         });
         // Two sources: pipeline + completed (see initializeData for why —
         // splits at source so completed pins don't pollute pipeline cluster
-        // counts when the Completed layer is toggled off).
-        const pipelineRestoreFeatures  = geoFeatures.filter(f => !f.properties.completed);
-        const completedRestoreFeatures = geoFeatures.filter(f =>  f.properties.completed);
+        // counts when the Completed layer is toggled off). Coord-collapse
+        // each side so colocated mixed-use components render as ONE pin.
+        const collapsedRestore = window._collapseColocated(geoFeatures);
+        const pipelineRestoreFeatures  = collapsedRestore.filter(f => !f.properties.completed);
+        const completedRestoreFeatures = collapsedRestore.filter(f =>  f.properties.completed);
         if (!map.getSource('projects')) {
           map.addSource('projects', { type:'geojson', data:{ type:'FeatureCollection', features:pipelineRestoreFeatures }, cluster:false });
         }
@@ -18949,9 +19094,11 @@
           //    at the source level — not via layer filters — is the only way
           //    to keep completed projects out of the cluster *counts* when the
           //    Completed layer is hidden. Mapbox clusters every point in a
-          //    source regardless of which layers reference it.
-          const pipelineFeatures  = geoFeatures.filter(f => !f.properties.completed);
-          const completedFeatures = geoFeatures.filter(f =>  f.properties.completed);
+          //    source regardless of which layers reference it. Coord-collapse
+          //    each side so colocated mixed-use components render as ONE pin.
+          const collapsedFeatures = window._collapseColocated(geoFeatures);
+          const pipelineFeatures  = collapsedFeatures.filter(f => !f.properties.completed);
+          const completedFeatures = collapsedFeatures.filter(f =>  f.properties.completed);
           map.addSource('projects',          { type:'geojson', data:{ type:'FeatureCollection', features:pipelineFeatures  }, cluster:false });
           map.addSource('projects-completed',{ type:'geojson', data:{ type:'FeatureCollection', features:completedFeatures }, cluster:false });
 
@@ -18992,6 +19139,18 @@
           function handlePinClick(e) {
             if(stationPopup){stationPopup.remove();stationPopup=null;}
             const raw = e.features[0];
+            // Coord-collision: if this pin represents > 1 project at the same
+            // location (mixed-use towers, district umbrellas with co-located
+            // components), parse the stack JSON and render the stacked popup
+            // instead of the single-project one. The stack data lives in the
+            // source-feature properties (set by _collapseColocated), so we
+            // read directly from `raw` here — no need to look up the master
+            // feature first.
+            const _stackCount = +(raw.properties._stackCount || 1);
+            let _stack = null;
+            if (_stackCount > 1) {
+              try { _stack = JSON.parse(raw.properties._stackJSON || '[]'); } catch(_) { _stack = null; }
+            }
             // Look up the full feature from master list (Mapbox serializes away JS arrays)
             const f = window.allProjectFeatures
               ? (window.allProjectFeatures.find(p => p.properties.title === raw.properties.title) || raw)
@@ -19015,12 +19174,19 @@
             }
             const tolerance = 30; // px
             const popupYDelta = Math.abs(screenPt.y - targetY);
+            const showFn = () => {
+              if (_stack && _stack.length > 1) {
+                showStackPopup(raw, _stack);
+              } else {
+                showPopup(f);
+              }
+            };
             if (popupYDelta > tolerance) {
               const yOffset = targetY - (window.innerHeight * 0.5);
               map.easeTo({ center: co, offset: [0, yOffset], duration: 350, essential: true });
-              map.once('moveend', () => { showPopup(f); });
+              map.once('moveend', showFn);
             } else {
-              showPopup(f);
+              showFn();
             }
           }
           map.on('click','unclustered-point',           handlePinClick);
