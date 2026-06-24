@@ -290,6 +290,8 @@
     + '.tmw-ov-hero .body .eyebrow{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#C2C9C3}'
     + '.tmw-ov-hero .body h2{font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.06;color:#fff;font-weight:600;letter-spacing:-.015em}'
     + '.tmw-ov-hero .body .loc{font-size:12px;letter-spacing:.06em;color:#C2C9C3}'
+    + '.tmw-ov-hero-chip{align-self:flex-start;display:inline-flex;align-items:center;padding:4px 9px;font-size:11px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:6px;text-decoration:none;transition:background .15s ease,color .15s ease}'
+    + '.tmw-ov-hero-chip:hover{background:rgba(167,139,250,0.24);color:#fff}'
     + '.tmw-ov-hero .body .desc{color:#C2C9C3;font-size:14px;font-weight:300;line-height:1.55;max-width:48ch;'
     + 'display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
     + '.tmw-ov-firmmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;'
@@ -1161,11 +1163,27 @@
         + (arch ? 'Architecture by <b>'+esc(arch)+'</b>' : '')
         + '</div>';
     }
+    // Part-of-district chip — resolved against the overlay's PROJECTS
+    // closure (loaded by loadData() before any render runs) so the
+    // umbrella's display name surfaces. Same purple-pill vocabulary as
+    // the map/atlas/firm cards. Falls back to nothing on standalone
+    // projects.
+    var parentChipHtml = '';
+    var parentSlug = (p.ParentSlug || '').trim();
+    if (parentSlug && typeof PROJECTS !== 'undefined' && Array.isArray(PROJECTS)) {
+      var parentRec = PROJECTS.find(function(r){ return (r.Slug || '') === parentSlug; });
+      var parentName = parentRec ? (parentRec.Title || '') : '';
+      if (parentName) {
+        parentChipHtml = '<a class="tmw-ov-hero-chip" href="'+esc(mapLink(parentName, true))+'">'
+          + 'Part of ' + esc(parentName) + ' →</a>';
+      }
+    }
     return '<article class="tmw-ov-hero">'
       + '<div class="media">'+media+'<div class="scrim"></div><span class="besttag">Top match</span></div>'
       + '<div class="body">'
       +   '<h2>'+esc(p.Title)+'</h2>'
       +   (city ? '<div class="loc">'+esc(city)+'</div>' : '')
+      +   parentChipHtml
       +   (desc ? '<p class="desc">'+esc(desc)+'</p>' : '')
       +   (window.TMWIntel && window.TMWIntel.renderTimeline ? window.TMWIntel.renderTimeline(p) : heroTimelineHtml(p))
       +   heroSpecHtml(p)

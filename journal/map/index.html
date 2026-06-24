@@ -9210,20 +9210,37 @@
       color: rgba(255,255,255,0.5);
       margin-top: 1px;
     }
-    /* District + component metadata on search rows. The district badge sits
-       inline with the title ("The Nora District   3 components"); the
-       Part-of line is a third row beneath the city/type sub line. Both use
-       the same purple chip vocabulary as the rest of the parent-child UI. */
-    body.ui-v2 .v2-search-label .v2-search-district {
-      margin-left: 7px;
-      padding: 1px 6px;
-      font-size: 10px;
-      font-weight: 600;
+    /* District + component metadata on search rows. Title sits in a flex
+       row with the count badge right-aligned ("The Nora District   [3]"),
+       so the city sits tight directly under the title text — not pushed
+       down by a wrapping "3 components" pill. */
+    body.ui-v2 .v2-search-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    body.ui-v2 .v2-search-label-row .v2-search-label {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.ui-v2 .v2-search-district {
+      flex: 0 0 auto;
+      min-width: 20px;
+      height: 18px;
+      padding: 0 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
       color: #C9BBFF;
       background: rgba(167,139,250,0.14);
       border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 4px;
-      vertical-align: middle;
+      border-radius: 5px;
       letter-spacing: 0;
       white-space: nowrap;
     }
@@ -26548,8 +26565,12 @@
           const parentName = parentSlug && window._parentDisplayName
             ? window._parentDisplayName(parentSlug) : '';
           const cityType = `${escapeText(f.properties.city || '')}${f.properties.preferredType ? ' &middot; ' + escapeText(f.properties.preferredType) : ''}`;
+          // District count badge: just the number ("3"), right-aligned in
+          // the title row — not a full "3 components" pill that wraps under
+          // the title. Title + badge share one flex row; city sits tight
+          // directly below the title.
           const districtBadge = isDistrict
-            ? `<span class="v2-search-meta v2-search-district">${childCount} component${childCount === 1 ? '' : 's'}</span>`
+            ? `<span class="v2-search-district">${childCount}</span>`
             : '';
           const partOf = parentName
             ? `<span class="v2-search-meta v2-search-partof">Part of ${escapeText(parentName)}</span>`
@@ -26560,7 +26581,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
               </span>
               <span class="v2-search-body">
-                <span class="v2-search-label">${highlight(f.properties.title, q)}${districtBadge}</span>
+                <span class="v2-search-label-row">
+                  <span class="v2-search-label">${highlight(f.properties.title, q)}</span>
+                  ${districtBadge}
+                </span>
                 <span class="v2-search-sub">${cityType}</span>
                 ${partOf}
               </span>

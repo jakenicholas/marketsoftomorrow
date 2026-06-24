@@ -360,6 +360,8 @@
      to the outer card-link. Same purple chip vocabulary as the rest of the
      site. Shrinks margin between city and chip so they read as one block. */
   .apcards .card-parent-chip{display:inline-flex;align-items:center;margin-top:-6px;margin-bottom:12px;padding:2px 7px;font-family:var(--sans);font-size:11px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Reserved placeholder on standalone projects — keeps grid heights consistent. */
+  .apcards .card-parent-chip-placeholder{display:inline-flex;align-items:center;margin-top:-6px;margin-bottom:12px;padding:2px 7px;font-size:11px;line-height:1.3;visibility:hidden}
   .apcards .pm-tl{margin-bottom:14px}
   .apcards .pm-tl-date{text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
   .apcards .pm-tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
@@ -1780,9 +1782,12 @@
         );
         _parentName = (_parentFeat && _parentFeat.properties && _parentFeat.properties.title) || '';
       }
+      // Invisible placeholder on standalone projects so chip space is
+       // reserved across the grid (Jake: "empty space for other places")
+       // and timeline/minis stay horizontally aligned across mixed cards.
       const parentChipHtml = _parentName
         ? `<span class="card-parent-chip">Part of ${escapeHtml(_parentName)}</span>`
-        : '';
+        : `<span class="card-parent-chip-placeholder" aria-hidden="true">·</span>`;
       return `<div class="card${featured ? ' featured' : ''}"${featured ? ' data-featured="1"' : ''}>
         <a class="card-link" href="${escapeHtml(href)}" aria-label="Open ${title}">
           <div class="card-img" style="${imgStyle}">${featStar}</div>
@@ -2579,6 +2584,10 @@
                   return names.map((name, i) => ({ name, slug: slugs[i] || '' }));
                 })(),
                 deliveryDate: p.DeliveryDate || '',
+                // Parent-district linkage (empty for standalone projects).
+                // Needed by pcardHtml's chip lookup so child components on
+                // /atlas/ surface their "Part of <District>" pill.
+                parentSlug: p.ParentSlug || '',
                 keys: p.Keys || '',
                 units: p.Units || '',
                 floors: p.Floors || '',

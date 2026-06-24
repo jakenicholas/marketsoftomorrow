@@ -169,6 +169,35 @@ PAYWALL_CSS = """
     html.tmw-paid .tmw-paid-only { display: inline; }
     .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
     .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
+    /* "Part of <District>" chip — lives here in PAYWALL_CSS so BOTH market
+       pages AND firm pages (which import PAYWALL_CSS) inherit the rule.
+       Without this, the firm pages were rendering the chip span as plain
+       text because the .card-parent-chip styling was only inside the market
+       page's local <style> block. .card-head pre-reserves space for the
+       chip across all cards in a grid so timeline/minis align horizontally
+       even when some cards have a chip and others don't (Jake: "empty space
+       for other places"). */
+    .card-parent-chip {
+      display: inline-flex; align-items: center;
+      margin-top: 6px;
+      padding: 2px 7px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      color: #C9BBFF;
+      background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32);
+      border-radius: 5px;
+      max-width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Invisible placeholder — keeps non-child cards the same height as
+       cards that DO have a chip, so a grid of mixed cards stays aligned. */
+    .card-parent-chip-placeholder {
+      display: inline-flex; align-items: center;
+      margin-top: 6px;
+      padding: 2px 7px;
+      font-size: 11px; line-height: 1.3;
+      visibility: hidden;
+    }
 """
 
 # Early inline (blocking, in <head>) — adds tmw-paid from the cached auth state
@@ -481,9 +510,14 @@ def card_html(p: dict) -> str:
     # umbrella, the user opens the child and follows the chip on its modal.
     parent_slug_str = (p.get('ParentSlug') or '').strip()
     parent_title = _PARENT_TITLE_BY_SLUG.get(parent_slug_str, '') if parent_slug_str else ''
+    # Standalone projects render an invisible placeholder of the same size
+    # as the real chip — keeps cards in a grid the SAME height so timeline
+    # + stat rows align horizontally across child + non-child cards.
     parent_chip_html = (
         f'        <span class="card-parent-chip">Part of {esc(parent_title)}</span>\n'
-    ) if parent_title else ''
+        if parent_title
+        else f'        <span class="card-parent-chip-placeholder" aria-hidden="true">·</span>\n'
+    )
 
     return (
         f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
@@ -944,23 +978,9 @@ def render_page(
     .card-link {{ display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }}
     /* firm row pinned to the bottom so it lines up across every card in a row */
     .card-firms-wrap {{ padding: 0 20px 20px; margin-top: auto; }}
-    /* "Part of <District>" chip on child-component cards. Sits inside the
-       card-head as a 3rd line under the city — Jake's rule: title + city
-       stay close, chip is the next row. Inline-flex so it shrinks to its
-       text. Click bubbles to the parent .card-link (child's project page).
-       Subtle purple pill matching the parent-chip vocabulary site-wide. */
-    .card-parent-chip {{
-      display: inline-flex; align-items: center;
-      margin-top: 6px;
-      padding: 2px 7px;
-      font-family: var(--sans); font-size: 11px; font-weight: 600;
-      color: #C9BBFF;
-      background: rgba(167,139,250,0.14);
-      border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 5px;
-      max-width: 100%;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }}
+    /* .card-parent-chip rule moved into PAYWALL_CSS so the firm pages
+       inherit it (they only import PAYWALL_CSS, not this local style block).
+       Definition lives there now — see line ~172. */
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }}
     .card-feat-badge svg {{ width:12px; height:12px; fill:#0a0a0a; }}
@@ -972,7 +992,7 @@ def render_page(
        down by a reserved 2nd title line). The wrapper carries the alignment reserve
        so everything BELOW (timeline, stats, firms) stays horizontally aligned across
        tiles whether the title is 1 or 2 lines. */
-    .card-head {{ min-height: 50px; margin-bottom: 12px; }}
+    .card-head {{ min-height: 76px; margin-bottom: 12px; }}
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); }}
     .card-verified {{ display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }}
