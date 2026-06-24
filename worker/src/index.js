@@ -4920,78 +4920,6 @@ async function handleMediaRenameFile(req, env, origin) {
   return json({ ok: true, key, filename }, {}, env, origin);
 }
 
-// Manually set a member's registry number (the "No. 0xx" on the account card).
-// Numbers are normally auto-assigned sequentially, but the founder sometimes
-// wants to hand a specific seat to a specific person. This SWAPS: if someone
-// else already holds the target number, they inherit this member's old number,
-// so the registry never ends up with two of the same seat. Founding status
-// (<= 50) is recomputed for every row that moves.
-//   POST /admin/member-number { email, number }   (or { member_id, number })
-async function handleSetMemberNo(req, env, origin) {
-  const authCheck = await requireAdminToken(req, env, origin);
-  if (authCheck) return authCheck;
-  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
-  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
-  const email  = String(b.email || '').trim().toLowerCase();
-  const number = Math.floor(Number(b.number));
-  let memberId = String(b.member_id || '').trim();
-  if (!Number.isFinite(number) || number < 1 || number > 100000) {
-    return json({ error: 'number must be a positive integer' }, { status: 400 }, env, origin);
-  }
-  if (!memberId && !email) return json({ error: 'email or member_id required' }, { status: 400 }, env, origin);
-  await ensureMembersTable(env);
-
-  // Resolve the Memberstack member_id we're seating.
-  let memEmail = email || null;
-  if (!memberId) {
-    // 1) Already in our registry under this email? (fast path)
-    const existing = await env.DB.prepare('SELECT member_id FROM members WHERE lower(email) = ?').bind(email).first();
-    if (existing && existing.member_id) {
-      memberId = existing.member_id;
-    } else {
-      // 2) Look the account up in Memberstack by email.
-      let all = [];
-      try { all = await msFetchAllMembers(env); } catch (e) {
-        return json({ error: 'Memberstack lookup failed: ' + (e && e.message || e) }, { status: 502 }, env, origin);
-      }
-      const hit = all.find(m => String(
-        (m.auth && m.auth.email) || m.email ||
-        (m.customFields && (m.customFields.email || m.customFields['email-address'])) || ''
-      ).trim().toLowerCase() === email);
-      if (!hit) return json({ error: 'no Memberstack account for ' + email }, { status: 404 }, env, origin);
-      memberId = hit.id;
-      memEmail = email;
-    }
-  }
-
-  // Ensure the target has a registry seat (creates one if they never loaded
-  // their account), then read their current number.
-  await ensureMemberRecord(env, memberId, memEmail, null);
-  const self = await env.DB.prepare('SELECT member_no FROM members WHERE member_id = ?').bind(memberId).first();
-  if (!self) return json({ error: 'could not create a registry seat for that member' }, { status: 500 }, env, origin);
-  const oldNo = self.member_no;
-  if (oldNo === number) {
-    return json({ ok: true, member_id: memberId, email: memEmail, number, swapped: false, note: 'already that number' }, {}, env, origin);
-  }
-
-  // If another member holds the target number, give them our old seat (swap).
-  const holder = await env.DB.prepare('SELECT member_id FROM members WHERE member_no = ? AND member_id != ?').bind(number, memberId).first();
-  let swappedWith = null;
-  if (holder && holder.member_id) {
-    await env.DB.prepare('UPDATE members SET member_no = ?1, founding = ?2 WHERE member_id = ?3')
-      .bind(oldNo, oldNo <= 50 ? 1 : 0, holder.member_id).run();
-    swappedWith = holder.member_id;
-  }
-  await env.DB.prepare('UPDATE members SET member_no = ?1, founding = ?2 WHERE member_id = ?3')
-    .bind(number, number <= 50 ? 1 : 0, memberId).run();
-
-  return json({
-    ok: true, member_id: memberId, email: memEmail,
-    from: oldNo, to: number, founding: number <= 50,
-    swapped: !!swappedWith, swapped_with: swappedWith,
-  }, {}, env, origin);
-}
-
 // ---------------------------------------------------------------------------
 // GET /media/<key> — public asset serving straight from R2. This keeps the
 // bucket PRIVATE (no r2.dev public access) while still giving every object a
@@ -6286,8 +6214,24 @@ async function handleMemberNumber(req, env, origin, url) {
   const email = body.email ? String(body.email).trim().toLowerCase() : '';
   const number = (body.number != null) ? parseInt(body.number, 10) : null;
   if (!email || !(number >= 1)) return json({ error: 'provide { from, to } to swap numbers, or { email, number } to assign' }, { status: 400 }, env, origin);
-  const target = await env.DB.prepare(`SELECT ${COLS} FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC`).bind(email).first();
-  if (!target) return json({ error: 'no member with that email in the registry (its email may be null — use { from, to } by number instead)', email }, { status: 404 }, env, origin);
+  let target = await env.DB.prepare(`SELECT ${COLS} FROM members WHERE LOWER(email) = ? ORDER BY member_no ASC`).bind(email).first();
+  // Not in the registry yet (e.g. they've never opened their account, so no seat
+  // was auto-assigned). Look the account up in Memberstack by email and mint a
+  // seat for it, then proceed — so you can hand-assign a number sight-unseen.
+  if (!target) {
+    let all = [];
+    try { all = await msFetchAllMembers(env); } catch (e) {
+      return json({ error: 'not in registry and Memberstack lookup failed: ' + (e && e.message || e), email }, { status: 502 }, env, origin);
+    }
+    const hit = all.find(m => String(
+      (m.auth && m.auth.email) || m.email ||
+      (m.customFields && (m.customFields.email || m.customFields['email-address'])) || ''
+    ).trim().toLowerCase() === email);
+    if (!hit) return json({ error: 'no member with that email in the registry or Memberstack', email }, { status: 404 }, env, origin);
+    await ensureMemberRecord(env, hit.id, email, null);
+    target = await byId(hit.id);
+  }
+  if (!target) return json({ error: 'could not create a registry seat for that member', email }, { status: 500 }, env, origin);
   if (target.member_no === number) return json({ ok: true, noop: true, message: 'already #' + number, target }, {}, env, origin);
   const holder = await byNo(number);
   const before = { target, holder: holder || null };
@@ -6889,10 +6833,6 @@ export default {
       // /admin/media/rename-file — rename a file's display name (admin-only)
       if (url.pathname === '/admin/media/rename-file' && request.method === 'POST') {
         return await handleMediaRenameFile(request, env, origin);
-      }
-      // /admin/member-number — manually set/swap a member's registry No. (admin-only)
-      if (url.pathname === '/admin/member-number' && request.method === 'POST') {
-        return await handleSetMemberNo(request, env, origin);
       }
       // /admin/media — list/delete uploaded media (admin-only)
       if (request.method === 'GET' && url.pathname === '/admin/media') {
