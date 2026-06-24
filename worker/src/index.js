@@ -4874,66 +4874,50 @@ async function handleMediaDelete(req, env, origin, key) {
   return json({ ok: true, key }, {}, env, origin);
 }
 
-// One-time media-folder reorg: pull every subfolder of the legacy bucket folders
-// + a named set into "Projects", merging duplicate leaf names, then drop the
-// emptied source folders. Folders are " / "-separated path strings on media.folder.
-//   GET  /admin/media/reorg          → DRY RUN: returns the planned moves only.
-//   POST /admin/media/reorg?apply=1  → EXECUTE the moves (UPDATE media.folder).
-const REORG_PARENTS = ['Hotels of Tomorrow', 'Caribbean', 'Hotels', 'Markets', 'New York', 'Rockies', 'Tennessee'];
-const REORG_NAMED = ['Fairmont The Red Sea', 'Four Seasons Miami', 'Bimini Tides', 'COMO Le Beauvallon', "Dutchman's Pipe", 'Epic Universe', 'Four Seasons', 'Four Seasons Fort Lauderdale', 'Highland Park Miami', 'Koa Kea', 'Lincoln Yards', 'One Lady Bird Lake', 'Palm Beach Par 3', 'Princeville Makai'];
-const REORG_TARGET = 'Projects';
-function reorgNewFolder(folder) {
-  for (const p of REORG_PARENTS) {
-    if (folder === p) return REORG_TARGET;                                       // direct items in the parent → Projects root
-    if (folder.startsWith(p + ' / ')) return REORG_TARGET + ' / ' + folder.slice(p.length + 3);  // subfolder → Projects/<leaf…>
-  }
-  for (const n of REORG_NAMED) {
-    if (folder === n || folder.startsWith(n + ' / ')) return REORG_TARGET + ' / ' + folder;       // named (top-level) → Projects/Named[/…]
-  }
-  return null;  // not in scope — leave it alone
-}
-async function handleMediaReorg(req, env, origin, url) {
+// Rename a media FOLDER (and its descendants). Folders are " / "-separated path
+// strings on media.folder, so renaming "A / B" → "A / C" rewrites that exact
+// folder plus every "A / B / …" descendant prefix. Merges if the target exists.
+//   POST /admin/media/rename-folder { from, to }
+async function handleMediaRenameFolder(req, env, origin) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const from = String(b.from || '').trim();
+  const to   = String(b.to   || '').trim();
+  if (!from || !to || to.length > 200 || /[<>"'\\]/.test(to)) return json({ error: 'invalid folder names' }, { status: 400 }, env, origin);
+  if (from === to) return json({ ok: true, items_moved: 0 }, {}, env, origin);
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
-  const derived = await env.DB.prepare(
-    "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled')"
-  ).all();
-  const counts = new Map();
-  for (const r of (derived.results || [])) counts.set(r.folder, r.count);
-  const existing = new Set(counts.keys());
-  const moves = [];
-  for (const [folder, count] of counts) {
-    if (folder === 'Unfiled') continue;
-    const to = reorgNewFolder(folder);
-    if (to && to !== folder) moves.push({ from: folder, to, items: count, merge: existing.has(to) });
-  }
-  moves.sort((a, b) => a.from.localeCompare(b.from));
-  const sources = new Set(moves.map(m => m.from));
-  for (const p of REORG_PARENTS) sources.add(p);   // also de-register the now-empty parents
-  const apply = url.searchParams.get('apply') === '1' && req.method === 'POST';
-  if (!apply) {
-    return json({
-      dry_run: true, target: REORG_TARGET,
-      total_folders_moving: moves.length,
-      total_items_moving: moves.reduce((s, m) => s + m.items, 0),
-      merges: moves.filter(m => m.merge).map(m => m.to),
-      moves,
-      folders_to_delete: [...sources].sort(),
-    }, {}, env, origin);
-  }
-  let itemsMoved = 0;
-  for (const m of moves) {
-    const r = await env.DB.prepare('UPDATE media SET folder = ?1 WHERE folder = ?2').bind(m.to, m.from).run();
-    itemsMoved += (r && r.meta && r.meta.changes) || 0;
-  }
-  let regsDeleted = 0;
-  for (const s of sources) {
-    const r = await env.DB.prepare('DELETE FROM media_folders WHERE name = ?1').bind(s).run();
-    regsDeleted += (r && r.meta && r.meta.changes) || 0;
-  }
-  return json({ applied: true, moves_run: moves.length, items_moved: itemsMoved, folder_registrations_deleted: regsDeleted }, {}, env, origin);
+  let moved = 0;
+  const r1 = await env.DB.prepare('UPDATE media SET folder = ?1 WHERE folder = ?2').bind(to, from).run();
+  moved += (r1 && r1.meta && r1.meta.changes) || 0;
+  // descendants — rewrite the "from / " prefix to "to / " (escape LIKE wildcards in `from`)
+  const likeFrom = from.replace(/[\\%_]/g, '\\$&') + ' / %';
+  const r2 = await env.DB.prepare("UPDATE media SET folder = ?1 || substr(folder, ?2) WHERE folder LIKE ?3 ESCAPE '\\'")
+    .bind(to, from.length + 1, likeFrom).run();
+  moved += (r2 && r2.meta && r2.meta.changes) || 0;
+  // carry the folder registration (favorite / empty-folder) over to the new name
+  try {
+    await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) SELECT ?1, favorite, created_at FROM media_folders WHERE name = ?2').bind(to, from).run();
+    await env.DB.prepare('DELETE FROM media_folders WHERE name = ?1').bind(from).run();
+  } catch {}
+  return json({ ok: true, from, to, items_moved: moved }, {}, env, origin);
+}
+
+// Rename a media FILE's display name. The R2 key + public URL stay the same so
+// existing references never break — only the stored `filename` changes.
+//   POST /admin/media/rename-file { key, filename }
+async function handleMediaRenameFile(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const key = String(b.key || '').trim();
+  const filename = String(b.filename || '').trim().slice(0, 200);
+  if (!key || !filename) return json({ error: 'key and filename required' }, { status: 400 }, env, origin);
+  const r = await env.DB.prepare('UPDATE media SET filename = ?1 WHERE key = ?2').bind(filename, key).run();
+  if (!(r && r.meta && r.meta.changes)) return json({ error: 'not found' }, { status: 404 }, env, origin);
+  return json({ ok: true, key, filename }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------
@@ -6826,9 +6810,13 @@ export default {
       if (url.pathname === '/admin/media/folders' && (request.method === 'POST' || request.method === 'PATCH')) {
         return await handleMediaFolders(request, env, origin);
       }
-      // /admin/media/reorg — one-time folder reorg (GET = dry-run, POST?apply=1 = execute)
-      if (url.pathname === '/admin/media/reorg' && (request.method === 'GET' || request.method === 'POST')) {
-        return await handleMediaReorg(request, env, origin, url);
+      // /admin/media/rename-folder — rename a folder + its descendants (admin-only)
+      if (url.pathname === '/admin/media/rename-folder' && request.method === 'POST') {
+        return await handleMediaRenameFolder(request, env, origin);
+      }
+      // /admin/media/rename-file — rename a file's display name (admin-only)
+      if (url.pathname === '/admin/media/rename-file' && request.method === 'POST') {
+        return await handleMediaRenameFile(request, env, origin);
       }
       // /admin/media — list/delete uploaded media (admin-only)
       if (request.method === 'GET' && url.pathname === '/admin/media') {
