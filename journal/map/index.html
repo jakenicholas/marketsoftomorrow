@@ -1567,22 +1567,16 @@
     /* Part-of-district chip on child project cards. Subtle purple pill that
        sits below the city/type line; tapping opens the parent district's
        modal (event.stopPropagation in the inline handler prevents the
-       card's own click from also firing).
-       Two alignment tricks make it feel right next to a title:
-       - `align-self: flex-start` so column-flex parents (grid-item-content,
-         pm-body) don't stretch it to full width.
-       - `margin-left: -8px` (7px padding + 1px border) shifts the chip
-         left so its FIRST LETTER aligns with the title above it instead
-         of being inset by the chip's own padding. The pill background
-         extends a couple px past the container's content edge, which is
-         fine since cards/modals have overflow:visible. */
+       card's own click from also firing). `align-self: flex-start` stops
+       column-flex parents (grid-item-content, pm-body) from stretching it
+       to full width. The chip's LEFT EDGE aligns with the title/city text
+       above it (Jake's preference — the box aligns, not the first letter). */
     .grid-parent-chip {
       display: inline-flex;
       align-items: center;
       align-self: flex-start;
       gap: 3px;
       margin-top: 4px;
-      margin-left: -8px;
       padding: 3px 7px;
       font: 600 11px/1.15 Inter, system-ui, sans-serif;
       color: #C9BBFF;
@@ -1601,11 +1595,13 @@
       background: rgba(167,139,250,0.24);
       border-color: rgba(167,139,250,0.48);
     }
-    /* Container for the chip inside the project modal subtitle area. Sit
-       tight under pmCity (no double-spacing) and stay left-aligned so the
-       chip doesn't end up centered if the modal content inherits a center
-       text-align from some ancestor. */
-    .pm-parent-chip-row { margin: 2px 0 4px; text-align: left; }
+    /* Container for the chip inside the project modal subtitle area.
+       pm-city has `margin: 0 0 14px` — without compensation the chip floats
+       way below the subtitle. Pull the row up with a negative top margin so
+       the chip sits ~4px below the city line, and zero the chip's own
+       margin-top in this context so the spacing isn't doubled. */
+    .pm-parent-chip-row { margin: -10px 0 8px; text-align: left; }
+    .pm-parent-chip-row .grid-parent-chip { margin-top: 0; }
 
     #desktopSidebar .grid-item { padding: 5px; }
     #desktopSidebar .grid-item:hover { transform: none; box-shadow: none; }
@@ -16107,7 +16103,7 @@
               const ps = (f.properties.parentSlug || '').trim();
               if (!ps) return '';
               const name = window._parentDisplayName ? window._parentDisplayName(ps) : ps;
-              return `<div style="padding:0 12px 4px;text-align:left;"><a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${ps}');">Part of ${name.replace(/'/g,'&#39;')} \u2192</a></div>`;
+              return `<div style="padding:0 0 4px;text-align:left;"><a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${ps}');">Part of ${name.replace(/'/g,'&#39;')} \u2192</a></div>`;
             })()}
             ${(() => {
               // Configuration + phasing block. Per Jake's feedback the popup
