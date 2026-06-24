@@ -939,6 +939,23 @@
 
     #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; }
 
+    /* Force the map's WebGL canvas onto its OWN GPU compositor layer up front.
+       A bare canvas often isn't promoted until another composited layer forces
+       it — which is exactly why the map only smooths out AFTER the mobile drawer
+       (itself a translateZ(0) layer) loads. Promoting the canvas + its container
+       on first paint replicates that, so it composites independently of the rest
+       of the page instead of being re-rasterized with it every frame. Targets the
+       canvas wrappers only (not #map) so it doesn't become a containing block for
+       the absolutely-positioned UI/markers layered over the map. */
+    #map .mapboxgl-canvas-container,
+    #map .mapboxgl-canvas {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
     /* iOS Safari: force map canvas to fill true screen including under notch and chrome */
 
 
