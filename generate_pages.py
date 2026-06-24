@@ -1073,10 +1073,18 @@ def dossier_rows_html(ms):
                 '<line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
                 f'<span class="dos-tip">{_escape_text(m["note"])}</span></span>'
             )
+        # When a milestone belongs to a specific COMPONENT inside a district
+        # (e.g. The Nora Hotel inside The Nora District), tag the row with the
+        # component name so the merged district timeline reads cleanly. The
+        # district's own milestones get tagged with its own title — every row
+        # in the phased view names what part of the project it refers to.
+        component_html = ''
+        if m.get('component'):
+            component_html = f'<span class="dos-component"> · {_escape_text(m["component"])}</span>'
         rows.append(
             f'<div class="dos-row dos-row-{state}">{dot}'
             f'<div class="dos-body"><div class="dos-line">'
-            f'<span class="dos-label">{_escape_text(m["label"])}</span>{date_html}{info_html}</div>'
+            f'<span class="dos-label">{_escape_text(m["label"])}</span>{component_html}{date_html}{info_html}</div>'
             f'{src_html}</div></div>'
         )
     return ''.join(rows)
@@ -1099,7 +1107,7 @@ def dossier_section_html(row, articles=None):
     )
 
 
-def build_page(row, articles=None, nearby=None):
+def build_page(row, articles=None, nearby=None, parent_title=''):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
     # Subtitle prefers the sheet's "PreferredType" column when set (a single curated
@@ -1327,6 +1335,17 @@ def build_page(row, articles=None, nearby=None):
     dossier_html = dossier_section_html(row, articles)
 
     proj_type_sep = f' · {proj_type}' if proj_type else ''
+
+    # Part-of-district chip — rendered in the hero just under the city line
+    # when this project is a COMPONENT of an umbrella district (parent_title
+    # passed in by main()). Links to the district's own project page.
+    parent_chip_html = ''
+    parent_slug_str = (row.get('ParentSlug', '') or '').strip()
+    if parent_title and parent_slug_str:
+        parent_chip_html = (
+            f'<a class="pp-parent-chip" href="/projects/{parent_slug_str}/">'
+            f'Part of {_escape_text(parent_title)} →</a>'
+        )
 
     # Nearby Projects — up to 3 same-market projects (passed in by main()).
     def _near_card(r):
@@ -2172,6 +2191,10 @@ def build_page(row, articles=None, nearby=None):
     .dos-row-future .dos-label {{ color: rgba(255,255,255,.58); font-weight: 500; }}
     .dos-date {{ font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }}
     .dos-date.dos-tbd {{ color: rgba(255,255,255,.35); }}
+    /* Component attribution on district phasing rows (rendered only when the
+       milestone's `component` field is set — empty on standalone projects). */
+    .dos-component {{ font-size: 12.5px; font-weight: 600; color: #C9BBFF; }}
+    .dos-row-future .dos-component {{ color: rgba(201,187,255,.6); }}
     .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }}
     .dos-info {{ position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }}
     .dos-info:hover, .dos-info:focus {{ color: rgba(255,255,255,.72); outline: none; }}
@@ -2218,6 +2241,15 @@ def build_page(row, articles=None, nearby=None):
     .pp-eyebrow .d {{ width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }}
     .pp-h1 {{ font-size: 60px; font-weight: 800; letter-spacing: -.03em; line-height: 1.0; margin-top: 14px; text-shadow: 0 2px 40px rgba(0,0,0,.55); }}
     .pp-loc {{ font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.62); margin-top: 12px; }}
+    /* Part-of-district chip on component project pages (e.g. Nora Hotel is
+       part of The Nora District). Hidden when ParentSlug is empty. Subtle
+       purple pill matching the map's .grid-parent-chip styling. */
+    .pp-parent-chip {{ display: inline-flex; align-items: center; gap: 4px; margin-top: 10px;
+      padding: 4px 9px; font-size: 12px; font-weight: 600;
+      color: #C9BBFF; background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32); border-radius: 6px;
+      text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease; }}
+    .pp-parent-chip:hover {{ background: rgba(167,139,250,0.24); border-color: rgba(167,139,250,0.48); color: #fff; }}
     .pp-lede {{ font-size: 14.5px; color: rgba(255,255,255,.84); line-height: 1.62; margin-top: 16px; max-width: 60ch; }}
     .pp-hero .cta-row {{ max-width: 440px; margin-top: 22px; margin-bottom: 0; }}
     .pp-hero .btn-primary {{ flex: 0 1 auto; padding: 13px 20px; }}
@@ -2343,6 +2375,7 @@ def build_page(row, articles=None, nearby=None):
             {eyebrow_html}
             <h1 class="pp-h1">{title}</h1>
             <div class="pp-loc">{city}{proj_type_sep}</div>
+            {parent_chip_html}
           </div>
           {gallery_cluster}
           <!-- Bio FIRST in the DOM (after the head) so search engines build the
@@ -3557,6 +3590,24 @@ def main():
         if _t:
             city_index[(_r.get('City', '') or '').strip()].append(_r)
 
+    # Build a parent -> children index so a district's dossier timeline can be
+    # the UNION of its own milestones + every component's, attributed by name.
+    # Components carry ParentSlug (e.g. nora-hotel -> the-nora-district). Single
+    # O(n) pass; the merge happens inside the row loop right after each row's
+    # base milestones are computed.
+    children_by_parent = _dd(list)
+    # Slug -> Title lookup so a child's page can render the "Part of <District>"
+    # chip without having to scan all rows again per project.
+    slug_to_title = {}
+    for _r in rows:
+        _ps = (_r.get('ParentSlug', '') or '').strip()
+        if _ps:
+            children_by_parent[_ps].append(_r)
+        _sl = (_r.get('Slug', '') or '').strip()
+        _tl = (_r.get('Title', '') or '').strip()
+        if _sl and _tl:
+            slug_to_title[_sl] = _tl
+
     # Generate index page
     index_items = []
     generated = 0
@@ -3578,11 +3629,50 @@ def main():
             # so the page render reuses it AND it gets embedded in projects-flat.json
             # for the map — guaranteeing the page + map dossiers are identical.
             row['Milestones'] = build_milestones(row, page_articles)['milestones']
+
+            # District phasing: when this row is an umbrella (IsDistrict='1'),
+            # merge every component's milestones into the timeline. Each row in
+            # the merged view is attributed with its component name (the district's
+            # own milestones get the district's title; children's get their own).
+            # Sorted chronologically by date then by rank as a stable tiebreaker.
+            # No-op when the district has no components or this row isn't a district.
+            if row.get('IsDistrict') == '1':
+                own_slug = (row.get('Slug', '') or '').strip()
+                own_title = (row.get('Title', '') or '').strip()
+                children = children_by_parent.get(own_slug, [])
+                if children:
+                    # Tag district's own milestones with its title.
+                    for _m in (row.get('Milestones') or []):
+                        _m['component'] = own_title
+                    # Build each component's milestones with their own articles
+                    # for accurate "announced" anchoring, tag with the component
+                    # name, and pool them together.
+                    extra = []
+                    for child in children:
+                        child_title = (child.get('Title','') or '').strip()
+                        if not child_title:
+                            continue
+                        child_articles = articles_archive.get(slugify(child_title), [])
+                        child_ms = build_milestones(child, child_articles).get('milestones') or []
+                        for cm in child_ms:
+                            cm2 = dict(cm)
+                            cm2['component'] = child_title
+                            extra.append(cm2)
+                    if extra:
+                        merged = (row.get('Milestones') or []) + extra
+                        # Sort by event date (YYYY-MM-DD prefix), then phase rank
+                        # so multi-event same-day rows still read in phase order.
+                        # Empty dates sink to the bottom under '9999'.
+                        merged.sort(key=lambda x: ((x.get('date') or '9999')[:10], x.get('rank') or 0))
+                        row['Milestones'] = merged
             # Nearby = up to 3 other projects in the same city.
             _city = (row.get('City', '') or '').strip()
             nearby_rows = [r for r in city_index.get(_city, [])
                            if (r.get('Title', '') or '').strip() != title][:3]
-            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows)
+            # If this is a component, resolve the parent's display name once so
+            # build_page can render the "Part of <District>" chip in the hero.
+            _parent_title = slug_to_title.get((row.get('ParentSlug', '') or '').strip(), '')
+            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows, parent_title=_parent_title)
             # Stash the SAME rows HTML the page just rendered for the map sidecar,
             # keyed by the MAP slug (no hyphens, strip non-alnum) — the map computes
             # this identically from the title, so unicode titles (e.g. "Kōloa") match.
