@@ -1066,7 +1066,7 @@ def dossier_rows_html(ms):
         state = m['state']
         dot = f'<span class="dos-dot dos-{state}"></span>'
         if m['date_display']:
-            est = '<span class="dos-est">est.</span>' if m['estimated'] else ''
+            est = ' <span class="dos-est">est.</span>' if m['estimated'] else ''
             date_html = f'<span class="dos-date">{_escape_text(m["date_display"])}{est}</span>'
         elif state == 'future':
             date_html = '<span class="dos-date dos-tbd">date TBD</span>'
@@ -1100,7 +1100,7 @@ def dossier_rows_html(ms):
         rows.append(
             f'<div class="dos-row dos-row-{state}">{dot}'
             f'<div class="dos-body"><div class="dos-line">'
-            f'<span class="dos-label">{_escape_text(m["label"])}</span>{component_html}{date_html}{info_html}</div>'
+            f'<span class="dos-label">{_escape_text(m["label"])}</span>{component_html} {date_html}{info_html}</div>'
             f'{src_html}</div></div>'
         )
     return ''.join(rows)
@@ -2211,7 +2211,7 @@ def build_page(row, articles=None, nearby=None, parent_title=''):
        milestone's `component` field is set — empty on standalone projects). */
     .dos-component {{ font-size: 12.5px; font-weight: 600; color: #C9BBFF; }}
     .dos-row-future .dos-component {{ color: rgba(201,187,255,.6); }}
-    .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }}
+    .dos-est {{ font-size: 9.5px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .05em; }}
     .dos-info {{ position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }}
     .dos-info:hover, .dos-info:focus {{ color: rgba(255,255,255,.72); outline: none; }}
     .dos-info > svg {{ width: 13px; height: 13px; display: block; }}
