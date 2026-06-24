@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giveaways &mdash; Markets of Tomorrow</title>
+<meta name="description" content="Win gift cards and experiences from the best of the markets of tomorrow. Make a free account and enter.">
+<link rel="canonical" href="https://www.oftmw.com/giveaways/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.oftmw.com/giveaways/">
+<meta property="og:title" content="Giveaways &mdash; Markets of Tomorrow">
+<meta property="og:description" content="Win gift cards and experiences from the best of the markets of tomorrow. Free to enter.">
+<link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a;
+  --purple:#A78BFA; --purple-glow:#B9A6FF; --ink:#070807; --ink-2:#0d0f0e;
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14); --glass:rgba(255,255,255,.025);
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;min-height:100vh;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(820px 520px at 14% -12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(760px 480px at 92% 0%,rgba(230,197,116,.10),transparent 62%)}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* hero */
+.gv-hero{padding:64px 0 30px;text-align:center}
+.gv-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);display:inline-flex;align-items:center;gap:9px;margin-bottom:18px}
+.gv-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);animation:gvDot 1.6s ease-in-out infinite}
+@keyframes gvDot{0%,100%{opacity:1}50%{opacity:.35}}
+.gv-h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.02em;color:#fff}
+.gv-h1 em{font-style:italic;color:var(--gold-soft)}
+.gv-sub{margin:18px auto 0;max-width:60ch;font-size:15.5px;line-height:1.6;color:var(--mute-2)}
+.gv-note{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+
+/* grid + tiles */
+.gv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 0 80px}
+.gv-card{display:flex;flex-direction:column;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:var(--glass);transition:transform .2s,border-color .2s,box-shadow .25s;position:relative}
+.gv-card:hover{transform:translateY(-4px);border-color:var(--hair-2);box-shadow:0 18px 46px rgba(0,0,0,.5)}
+.gv-imgwrap{position:relative;aspect-ratio:16/11;background:linear-gradient(135deg,#16181d,#0e1014)}
+.gv-img{width:100%;height:100%;object-fit:cover;display:block}
+.gv-prize{position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:999px;padding:6px 12px;box-shadow:0 6px 18px rgba(230,197,116,.32)}
+.gv-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.gv-spon{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft)}
+.gv-title{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.2;color:#fff}
+.gv-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--mute);margin-top:2px}
+.gv-actions{margin-top:auto;padding-top:14px}
+.gv-enter{width:100%;appearance:none;border:none;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:700;padding:12px 18px;border-radius:11px;background:linear-gradient(135deg,var(--gold-soft),var(--gold));color:#3c2d06;box-shadow:0 0 20px rgba(230,197,116,.22);transition:transform .15s,box-shadow .2s,opacity .2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.gv-enter:hover{transform:translateY(-1px);box-shadow:0 0 28px rgba(230,197,116,.42)}
+.gv-enter:disabled{cursor:default;opacity:.7;transform:none;box-shadow:none}
+.gv-enter.entered{background:rgba(31,223,103,.12);border:1px solid rgba(31,223,103,.4);color:var(--green-soft);box-shadow:none}
+.gv-quick{display:block;text-align:center;margin-top:9px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);background:none;border:none;cursor:pointer}
+.gv-quick:hover{color:var(--cream)}
+.gv-loading,.gv-empty{grid-column:1/-1;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:60px 0}
+
+/* signed-in pill */
+.gv-auth{display:flex;justify-content:center;margin-top:8px}
+.gv-auth .pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);border:1px solid var(--hair);border-radius:999px;padding:7px 14px}
+.gv-auth .pill b{color:var(--green-soft);font-weight:600}
+.gv-auth .pill a{color:var(--gold-soft);text-decoration:none;cursor:pointer}
+
+/* success screen */
+.gv-ok{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,6,5,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.gv-ok.open{display:flex}
+.gv-ok-card{position:relative;max-width:440px;width:100%;text-align:center;background:radial-gradient(640px 220px at 50% -30%,rgba(230,197,116,.16),transparent),var(--ink-2);border:1px solid rgba(230,197,116,.34);border-radius:20px;padding:40px 34px 32px;box-shadow:0 40px 90px rgba(0,0,0,.6)}
+.gv-ok-check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(31,223,103,.12);border:1px solid rgba(31,223,103,.45);box-shadow:0 0 28px rgba(31,223,103,.28)}
+.gv-ok-check svg{width:30px;height:30px;stroke:var(--green-soft);stroke-width:2.4;fill:none}
+.gv-ok-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:8px}
+.gv-ok-h{font-family:var(--serif);font-weight:600;font-size:26px;color:#fff;margin-bottom:10px;line-height:1.18}
+.gv-ok-p{font-size:14px;line-height:1.55;color:var(--mute-2);max-width:34ch;margin:0 auto 22px}
+.gv-ok-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.gv-ok-btn{appearance:none;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;padding:11px 20px;border-radius:10px}
+.gv-ok-btn.gold{background:linear-gradient(135deg,var(--gold-soft),var(--gold));color:#3c2d06}
+.gv-ok-btn.ghost{background:transparent;border:1px solid var(--hair-2);color:var(--cream)}
+
+#gvToast{position:fixed;top:88px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:210;background:rgba(7,8,7,.95);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--hair-2);color:var(--cream);padding:12px 20px;border-radius:11px;font-size:13px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw}
+#gvToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#gvToast.err{border-color:#ff7a7a;color:#ffc9c9}
+
+@media(max-width:860px){.gv-grid{grid-template-columns:repeat(2,1fr);gap:14px}}
+@media(max-width:560px){.gv-grid{grid-template-columns:1fr}.gv-hero{padding:44px 0 18px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="gv-hero">
+    <div class="gv-eyebrow"><span class="dot"></span> Markets of Tomorrow Giveaways</div>
+    <h1 class="gv-h1">Win the <em>best</em> of what's next.</h1>
+    <p class="gv-sub">Gift cards and experiences from the restaurants, hotels, and destinations we cover. Make a free account, hit enter, and you're in the running.</p>
+    <p class="gv-note">Free to enter &middot; One entry per giveaway &middot; Winners notified by email</p>
+    <div class="gv-auth" id="gvAuth"></div>
+  </section>
+  <section class="gv-grid" id="gvGrid">
+    <div class="gv-loading">Loading giveaways…</div>
+  </section>
+</main>
+
+<!-- success screen -->
+<div class="gv-ok" id="gvOk" role="dialog" aria-modal="true">
+  <div class="gv-ok-card">
+    <div class="gv-ok-check"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="gv-ok-eye">You're entered</div>
+    <h2 class="gv-ok-h" id="gvOkH">You're in!</h2>
+    <p class="gv-ok-p" id="gvOkP">We've got your entry. Winners are drawn and notified by email — keep an eye on your inbox.</p>
+    <div class="gv-ok-btns">
+      <button class="gv-ok-btn gold" id="gvOkMore" type="button">Enter another</button>
+      <button class="gv-ok-btn ghost" id="gvOkClose" type="button">Done</button>
+    </div>
+  </div>
+</div>
+<div id="gvToast"></div>
+
+<script src="/_shared/journal-chrome.js" defer></script>
+<script>
+(function(){
+  'use strict';
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  var ENTERED_KEY = 'tmw_gv_entered';
+  var grid = document.getElementById('gvGrid');
+  var authEl = document.getElementById('gvAuth');
+  var pendingGiveaway = null;   // {id, title, prize, sponsor} awaiting auth
+
+  // ── tiny helpers ──
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+  function toast(msg, err){ var t=document.getElementById('gvToast'); t.textContent=msg; t.className=err?'err show':'show'; clearTimeout(t._t); t._t=setTimeout(function(){t.className=err?'err':'';},2600); }
+  function enteredSet(){ try{ return JSON.parse(localStorage.getItem(ENTERED_KEY)||'[]'); }catch(e){ return []; } }
+  function markEntered(id){ try{ var s=enteredSet(); if(s.indexOf(id)<0){ s.push(id); localStorage.setItem(ENTERED_KEY, JSON.stringify(s)); } }catch(e){} }
+
+  // ── auth bridge (Memberstack, loaded via journal-chrome.js → journal-auth.js) ──
+  function member(){
+    try{
+      if (window.tmwAuth && window.tmwAuth.signedIn && window.tmwAuth.member){
+        var m = window.tmwAuth.member;
+        return { id: m.id, email: (m.auth && m.auth.email) || m.email || '', name: nameOf(m) };
+      }
+      if (window.__tmwMember && window.__tmwMember.id){
+        return { id: window.__tmwMember.id, email: '', name: window.__tmwMember.name || '' };
+      }
+    }catch(e){}
+    return null;
+  }
+  function nameOf(m){ try{ var c=m.customFields||{}; var n=((c['first-name']||'')+' '+(c['last-name']||'')).trim(); return n || (m.auth&&m.auth.email)||''; }catch(e){ return ''; } }
+  function signedIn(){ return !!member(); }
+
+  function openSignup(){ if (window.tmwAuthModal) return window.tmwAuthModal('signup'); var m=window.$memberstackDom; if(m&&m.openModal) m.openModal('SIGNUP'); }
+  function openLogin(){ if (window.tmwAuthModal) return window.tmwAuthModal('login'); var m=window.$memberstackDom; if(m&&m.openModal) m.openModal('LOGIN'); }
+
+  // ── render the signed-in / signed-out banner ──
+  function paintAuth(){
+    var me = member();
+    if (me){
+      authEl.innerHTML = '<span class="pill">Signed in as <b>'+esc(me.name||me.email||'you')+'</b> — tap Enter to join</span>';
+    } else {
+      authEl.innerHTML = '<span class="pill">Free to play — <a id="gvMakeAcct">make an account</a> or <a id="gvLogin">log in</a> to enter</span>';
+      var a=document.getElementById('gvMakeAcct'); if(a) a.onclick=openSignup;
+      var l=document.getElementById('gvLogin'); if(l) l.onclick=openLogin;
+    }
+  }
+
+  // ── render tiles ──
+  function tileHTML(g){
+    var done = enteredSet().indexOf(g.id) >= 0;
+    var img = g.image ? '<img class="gv-img" src="'+esc(g.image)+'" loading="lazy" alt="'+esc(g.title)+'">' : '';
+    var count = g.entries>0 ? (g.entries===1?'1 entry so far':(g.entries+' entries so far')) : 'Be the first to enter';
+    return '<article class="gv-card" data-id="'+esc(g.id)+'">'
+      + '<div class="gv-imgwrap">'+img+'<span class="gv-prize">'+esc(g.prize||'Prize')+'</span></div>'
+      + '<div class="gv-body">'
+      +   '<div class="gv-spon">'+esc(g.sponsor||'')+'</div>'
+      +   '<div class="gv-title">'+esc(g.title)+'</div>'
+      +   '<div class="gv-meta">'+esc(count)+'</div>'
+      +   '<div class="gv-actions">'
+      +     '<button class="gv-enter'+(done?' entered':'')+'" type="button"'+(done?' disabled':'')+'>'+(done?'✓ You’re entered':'Enter to win')+'</button>'
+      +   '</div>'
+      + '</div></article>';
+  }
+  function render(list){
+    if (!list || !list.length){ grid.innerHTML = '<div class="gv-empty">No active giveaways right now — check back soon.</div>'; return; }
+    grid.innerHTML = list.map(tileHTML).join('');
+    grid.querySelectorAll('.gv-card').forEach(function(card){
+      var g = list.filter(function(x){return x.id===card.getAttribute('data-id');})[0];
+      var btn = card.querySelector('.gv-enter');
+      if (btn && !btn.classList.contains('entered')) btn.addEventListener('click', function(){ onEnter(g, btn); });
+    });
+  }
+
+  // ── enter flow ──
+  function onEnter(g, btn){
+    if (!signedIn()){
+      pendingGiveaway = g;                  // submit automatically once they auth
+      toast('Make a free account (or log in) to enter — it takes a sec.');
+      openSignup();
+      return;
+    }
+    submitEntry(g, btn);
+  }
+
+  function submitEntry(g, btn){
+    var me = member(); if (!me){ pendingGiveaway = g; openSignup(); return; }
+    if (btn){ btn.disabled = true; btn.textContent = 'Entering…'; }
+    fetch(WORKER + '/giveaway-enter', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ giveaway_id: g.id, member_id: me.id, email: me.email, name: me.name })
+    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        if (res.ok && res.j && res.j.ok){
+          markEntered(g.id);
+          setEntered(btn);
+          showSuccess(g, res.j.already);
+        } else {
+          var msg = (res.j && res.j.message) || 'Could not enter — try again.';
+          if (res.j && res.j.error === 'account'){ pendingGiveaway = g; openSignup(); return; }
+          toast(msg, true);
+          if (btn){ btn.disabled=false; btn.textContent='Enter to win'; }
+        }
+      }).catch(function(){ toast('Network error — try again.', true); if(btn){ btn.disabled=false; btn.textContent='Enter to win'; } });
+  }
+  function setEntered(btn){ if(!btn) return; btn.disabled=true; btn.classList.add('entered'); btn.textContent='✓ You’re entered'; }
+
+  // ── success screen ──
+  var ok = document.getElementById('gvOk');
+  function showSuccess(g, already){
+    document.getElementById('gvOkH').textContent = already ? 'You’re already in!' : 'You’re in!';
+    document.getElementById('gvOkP').innerHTML = (already ? 'You’ve already entered the <b>'+esc(g.prize)+'</b> from '+esc(g.sponsor)+'. ' : 'Your entry for the <b>'+esc(g.prize)+'</b> from '+esc(g.sponsor)+' is locked in. ') + 'Winners are drawn and notified by email — keep an eye on your inbox.';
+    ok.classList.add('open');
+  }
+  document.getElementById('gvOkClose').onclick = function(){ ok.classList.remove('open'); };
+  document.getElementById('gvOkMore').onclick = function(){ ok.classList.remove('open'); window.scrollTo({top: grid.offsetTop-80, behavior:'smooth'}); };
+  ok.addEventListener('click', function(e){ if(e.target===ok) ok.classList.remove('open'); });
+
+  // ── auth change → finish a pending entry + repaint banner ──
+  function onAuthChange(){
+    paintAuth();
+    if (pendingGiveaway && signedIn()){
+      var g = pendingGiveaway; pendingGiveaway = null;
+      var card = grid.querySelector('.gv-card[data-id="'+(window.CSS&&CSS.escape?CSS.escape(g.id):g.id)+'"]');
+      submitEntry(g, card ? card.querySelector('.gv-enter') : null);
+    }
+  }
+  // journal-auth publishes window.tmwAuth with onChange; fall back to polling.
+  (function wireAuth(t){ t=t||0;
+    if (window.tmwAuth && typeof window.tmwAuth.onChange === 'function'){ window.tmwAuth.onChange(onAuthChange); return; }
+    if (++t < 80){ setTimeout(function(){ wireAuth(t); }, 150); return; }
+    // last resort: poll member() for a late login
+    setInterval(onAuthChange, 1500);
+  })();
+
+  // ── load giveaways ──
+  paintAuth();
+  fetch(WORKER + '/giveaways', { cache:'no-store' })
+    .then(function(r){ return r.ok ? r.json() : {giveaways:[]}; })
+    .then(function(d){ render((d && d.giveaways) || []); })
+    .catch(function(){ grid.innerHTML = '<div class="gv-empty">Couldn’t load giveaways. Refresh to try again.</div>'; });
+})();
+</script>
+</body>
+</html>

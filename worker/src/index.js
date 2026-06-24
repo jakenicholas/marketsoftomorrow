@@ -6337,6 +6337,144 @@ async function handlePostComment(request, env, origin) {
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// ═══════════════════════ GIVEAWAYS ═══════════════════════
+// Public: list active giveaways + enter (free-member-gated, client-side).
+// Admin: CRUD + entry export. Entrants are added to the Resend newsletter
+// audience (RESEND_AUDIENCE_ID) — entering grows the list. Best-effort: a
+// Resend failure never blocks the recorded entry.
+const GIVEAWAY_R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/';
+async function ensureGiveawayTables(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS giveaways (
+    id TEXT PRIMARY KEY, title TEXT NOT NULL, prize TEXT, sponsor TEXT, image TEXT,
+    status TEXT NOT NULL DEFAULT 'active', sort INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS giveaway_entries (
+    id TEXT PRIMARY KEY, giveaway_id TEXT NOT NULL, member_id TEXT, email TEXT NOT NULL,
+    name TEXT, created_at INTEGER NOT NULL)`).run();
+  // One entry per email per giveaway (case-insensitive via stored lowercase email).
+  await env.DB.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_gvwy_entry_uniq ON giveaway_entries(giveaway_id, email)`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_gvwy_entry_gid ON giveaway_entries(giveaway_id)`).run();
+  // Seed the two launch giveaways once (real media reused from the site). Editable
+  // in the Studio Giveaways tab afterward; INSERT OR IGNORE keeps edits sticky.
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT OR IGNORE INTO giveaways (id,title,prize,sponsor,image,status,sort,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)`)
+    .bind('gv-field-of-greens-50', 'Field of Greens', '$50 Gift Card', 'Field of Greens', GIVEAWAY_R2 + 'ca3b83_2e0943a14bc14c03b1c73af9ea4af442~mv2.jpeg', 'active', 10, now, now).run();
+  await env.DB.prepare(`INSERT OR IGNORE INTO giveaways (id,title,prize,sponsor,image,status,sort,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)`)
+    .bind('gv-locos-100', 'Loco Taqueria & Oyster Bar', '$100 Gift Card', 'Loco Taqueria & Oyster Bar', GIVEAWAY_R2 + 'ca3b83_00ef66d49f2944ec803dde9525ba3fa3~mv2.jpg', 'active', 20, now, now).run();
+}
+
+// Best-effort: add an entrant's email to the Resend newsletter audience.
+async function addToResendAudience(env, email, name) {
+  if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID || !email) return;
+  const parts = String(name || '').trim().split(/\s+/);
+  const first = parts.shift() || '';
+  const last = parts.join(' ');
+  try {
+    await fetch(`https://api.resend.com/audiences/${env.RESEND_AUDIENCE_ID}/contacts`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, first_name: first, last_name: last, unsubscribed: false }),
+    });
+    // 200 (added) / 409 / 422 (already a contact) are all fine — never throw.
+  } catch (_) { /* best-effort — entry already recorded */ }
+}
+
+function giveawayRow(g, entries) {
+  return { id: g.id, title: g.title, prize: g.prize || '', sponsor: g.sponsor || '', image: g.image || '', status: g.status, sort: g.sort, entries: entries || 0 };
+}
+
+// GET /giveaways — public list of ACTIVE giveaways (with live entry counts).
+async function handleGiveawaysList(env, origin) {
+  if (!env.DB) return json({ giveaways: [] }, {}, env, origin);
+  try {
+    await ensureGiveawayTables(env);
+    const rs = await env.DB.prepare(
+      `SELECT g.*, (SELECT COUNT(*) FROM giveaway_entries e WHERE e.giveaway_id = g.id) AS entries
+       FROM giveaways g WHERE g.status = 'active' ORDER BY g.sort ASC, g.created_at ASC`).all();
+    return json({ giveaways: (rs.results || []).map(g => giveawayRow(g, g.entries)) }, {}, env, origin);
+  } catch (e) { return json({ error: 'giveaways: ' + e.message }, { status: 500 }, env, origin); }
+}
+
+// POST /giveaway-enter { giveaway_id, member_id, email, name? } — record an entry.
+// Requires a member_id (a free account); the page gates this behind auth. One
+// entry per email per giveaway. Adds the email to the Resend newsletter audience.
+async function handleGiveawayEnter(request, env, origin) {
+  if (!env.DB) return json({ error: 'no db' }, { status: 500 }, env, origin);
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const gid = String((b && b.giveaway_id) || '').slice(0, 120);
+  const mid = String((b && b.member_id) || '').slice(0, 120);
+  const email = String((b && b.email) || '').trim().toLowerCase().slice(0, 200);
+  const name = String((b && b.name) || '').trim().slice(0, 120) || null;
+  if (!gid || !email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'giveaway_id and a valid email are required' }, { status: 400 }, env, origin);
+  if (!mid) return json({ error: 'account', message: 'Create a free account to enter.' }, { status: 403 }, env, origin);
+  try {
+    await ensureGiveawayTables(env);
+    const gv = await env.DB.prepare(`SELECT id, title, status FROM giveaways WHERE id = ?`).bind(gid).first();
+    if (!gv) return json({ error: 'not_found', message: 'That giveaway no longer exists.' }, { status: 404 }, env, origin);
+    if (gv.status !== 'active') return json({ error: 'closed', message: 'This giveaway has closed.' }, { status: 409 }, env, origin);
+    const now = Math.floor(Date.now() / 1000);
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO giveaway_entries (id, giveaway_id, member_id, email, name, created_at) VALUES (?,?,?,?,?,?)`)
+      .bind('ge-' + crypto.randomUUID(), gid, mid, email, name, now).run();
+    const already = !(res && res.meta && res.meta.changes);
+    if (!already) {
+      try { await env.DB.prepare(`INSERT INTO events (ts, member_id, member_name, email, event_name, path, props_json) VALUES (?,?,?,?,?,?,?)`)
+        .bind(now, mid, name, email, 'giveaway_entry', '/giveaways', JSON.stringify({ giveaway_id: gid, title: gv.title })).run(); } catch {}
+      await addToResendAudience(env, email, name);
+    }
+    return json({ ok: true, already, title: gv.title }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+
+// ── Admin giveaway management (token-gated) ──
+async function handleAdminGiveawaysList(env, origin) {
+  try {
+    await ensureGiveawayTables(env);
+    const rs = await env.DB.prepare(
+      `SELECT g.*, (SELECT COUNT(*) FROM giveaway_entries e WHERE e.giveaway_id = g.id) AS entries
+       FROM giveaways g ORDER BY g.sort ASC, g.created_at ASC`).all();
+    return json({ giveaways: (rs.results || []).map(g => giveawayRow(g, g.entries)) }, {}, env, origin);
+  } catch (e) { return json({ error: 'giveaways: ' + e.message }, { status: 500 }, env, origin); }
+}
+async function handleAdminGiveawaySave(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const title = String((b && b.title) || '').trim().slice(0, 160);
+  if (!title) return json({ error: 'title required' }, { status: 400 }, env, origin);
+  const prize = String((b && b.prize) || '').trim().slice(0, 160);
+  const sponsor = String((b && b.sponsor) || '').trim().slice(0, 160);
+  const image = String((b && b.image) || '').trim().slice(0, 600);
+  const status = ((b && b.status) === 'archived') ? 'archived' : 'active';
+  const sort = Number.isFinite(+(b && b.sort)) ? Math.round(+b.sort) : 0;
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    await ensureGiveawayTables(env);
+    let id = String((b && b.id) || '').slice(0, 120);
+    if (id) {
+      await env.DB.prepare(`UPDATE giveaways SET title=?, prize=?, sponsor=?, image=?, status=?, sort=?, updated_at=? WHERE id=?`)
+        .bind(title, prize, sponsor, image, status, sort, now, id).run();
+    } else {
+      id = 'gv-' + crypto.randomUUID();
+      await env.DB.prepare(`INSERT INTO giveaways (id,title,prize,sponsor,image,status,sort,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)`)
+        .bind(id, title, prize, sponsor, image, status, sort, now, now).run();
+    }
+    return json({ ok: true, id }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+async function handleAdminGiveawayDelete(env, origin, id) {
+  try {
+    await ensureGiveawayTables(env);
+    await env.DB.prepare(`DELETE FROM giveaway_entries WHERE giveaway_id = ?`).bind(id).run();
+    await env.DB.prepare(`DELETE FROM giveaways WHERE id = ?`).bind(id).run();
+    return json({ ok: true }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+async function handleAdminGiveawayEntries(env, origin, id) {
+  try {
+    await ensureGiveawayTables(env);
+    const rs = await env.DB.prepare(`SELECT email, name, member_id, created_at FROM giveaway_entries WHERE giveaway_id = ? ORDER BY created_at DESC LIMIT 5000`).bind(id).all();
+    return json({ entries: rs.results || [] }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+
 export default {
   async fetch(request, env) {
     const url    = new URL(request.url);
@@ -6507,6 +6645,29 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/comment') {
         return await handlePostComment(request, env, origin);
+      }
+      // ── Giveaways: public list + enter ──
+      if (request.method === 'GET' && url.pathname === '/giveaways') {
+        return await handleGiveawaysList(env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/giveaway-enter') {
+        return await handleGiveawayEnter(request, env, origin);
+      }
+      // ── Giveaways: admin (token-gated) ──
+      if (url.pathname === '/admin/giveaways') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        if (request.method === 'GET')  return await handleAdminGiveawaysList(env, origin);
+        if (request.method === 'POST') return await handleAdminGiveawaySave(request, env, origin);
+      }
+      {
+        const gm = url.pathname.match(/^\/admin\/giveaways\/([^/]+)(\/entries)?$/);
+        if (gm) {
+          const denied = await requireAdminToken(request, env, origin);
+          if (denied) return denied;
+          if (gm[2] && request.method === 'GET')    return await handleAdminGiveawayEntries(env, origin, decodeURIComponent(gm[1]));
+          if (!gm[2] && request.method === 'DELETE') return await handleAdminGiveawayDelete(env, origin, decodeURIComponent(gm[1]));
+        }
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);

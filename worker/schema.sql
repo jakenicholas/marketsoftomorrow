@@ -245,3 +245,31 @@ SELECT
   COUNT(*)          AS event_count
 FROM events
 GROUP BY member_id;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Giveaways (also created at runtime by ensureGiveawayTables in src/index.js).
+-- Public /giveaways lists active ones; /giveaway-enter records an entry and
+-- adds the email to the Resend newsletter audience. Managed in the Studio
+-- Giveaways tab via the token-gated /admin/giveaways endpoints.
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS giveaways (
+  id          TEXT    PRIMARY KEY,            -- 'gv-<uuid>' (seeds: gv-field-of-greens-50, gv-locos-100)
+  title       TEXT    NOT NULL,
+  prize       TEXT,                           -- e.g. '$50 Gift Card'
+  sponsor     TEXT,
+  image       TEXT,                           -- R2 photo URL
+  status      TEXT    NOT NULL DEFAULT 'active',  -- 'active' | 'archived'
+  sort        INTEGER NOT NULL DEFAULT 0,
+  created_at  INTEGER NOT NULL,
+  updated_at  INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS giveaway_entries (
+  id           TEXT    PRIMARY KEY,           -- 'ge-<uuid>'
+  giveaway_id  TEXT    NOT NULL,
+  member_id    TEXT,                          -- Memberstack id (free account required)
+  email        TEXT    NOT NULL,              -- stored lowercase
+  name         TEXT,
+  created_at   INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_gvwy_entry_uniq ON giveaway_entries(giveaway_id, email);
+CREATE INDEX IF NOT EXISTS idx_gvwy_entry_gid ON giveaway_entries(giveaway_id);
