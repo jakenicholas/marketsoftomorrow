@@ -13050,27 +13050,13 @@
       // each frame; pausing them for the duration of a pan/zoom frees the GPU for
       // the map and stops the low-zoom lag. They resume the instant the gesture
       // settles — invisible to the user mid-gesture.
-      // map-busy = during a pan/zoom gesture: kill blur AND pause animations.
-      // map-loading = during the INITIAL load/first-render, before any gesture:
-      // kill blur ONLY. This is the window Jake feels ("even the loading
-      // animation lags") — 135 blurred glass panels each re-sample the map as it
-      // first renders. We must NOT pause animations here, or the loading spinner
-      // itself would freeze; blur is the expensive part, so drop just that until
-      // the map's first 'idle' (load settled). Until now nothing covered this
-      // phase except physically opening the drawer to mask the map.
-      // EXPERIMENT (2026-06-23): the profile (recording4) is dominated by GPU
-      // COMPOSITING, paints concentrate in the bottom band where the collapsed
-      // drawer's frosted glass sits over the map, and it's much slower on Safari
-      // than Chrome — all three point at backdrop-filter:blur (cheap on Blink,
-      // brutal on iOS WebKit) re-sampling the live map every frame. The earlier
-      // "kill blur during load only" lifted at first idle, too early to hold.
-      // So: kill backdrop-filter on mobile ENTIRELY, permanently. If the map is
-      // smooth now without touching the drawer, blur was the cause and we make
-      // the panels look right with solid backgrounds. If still laggy, blur is
-      // ruled out. Panels keep their semi-opaque background-color, just no blur.
+      // RULED OUT (2026-06-23): killing backdrop-filter on mobile entirely did
+      // NOT fix the lag (still laggy-until-drawer with blur gone) and made the
+      // drawer see-through. Blur is NOT the cause. Keep the frosted glass at
+      // rest; only suspend blur + animations DURING a pan/zoom gesture (resting
+      // appearance unchanged) — that part is a genuine per-gesture win.
       _blurStyle.textContent =
-        '@media (max-width:800px){*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}' +
-        'body.map-busy *{animation-play-state:paused!important;-webkit-animation-play-state:paused!important}';
+        'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation-play-state:paused!important;-webkit-animation-play-state:paused!important}';
       document.head.appendChild(_blurStyle);
 
       // The GL "glow" layers (featured-glow has circle-blur:0.8; watched-ring is
