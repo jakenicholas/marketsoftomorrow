@@ -44,6 +44,7 @@ from collections import defaultdict
 # typography, cards, timeline boxes, firm bubbles, and Pro CTA verbatim.
 from generate_market_pages import (
     card_html as market_card_html,
+    set_parent_title_lookup as market_set_parent_title_lookup,
     paywall_grid,
     PAYWALL_CSS, PAYWALL_HEAD, PAYWALL_BODY_JS, PAYWALL_JSONLD,
     _exclude_completed,
@@ -1489,6 +1490,10 @@ def main():
           f"{len(firms.get('architects', []))} architects, "
           f"{len(firms.get('developers', []))} developers, "
           f"{sum(len(v) for v in articles_archive.values() if isinstance(v, list))} article archive entries")
+
+    # Wire up the slug -> title lookup card_html uses for the
+    # "Part of <District>" chip on child-component cards.
+    market_set_parent_title_lookup(projects)
 
     merged = build_merged_firms(firms)
     dual = [s for s, e in merged.items() if len(e['roles']) > 1]

@@ -74,6 +74,23 @@ STATUS_CSS_CLASS = {
 }
 
 CITY_TYPE_MIN = 3
+
+# Module-level lookup populated once at the start of each consuming script's
+# main() (market pages + firm pages) so card_html can render the "Part of
+# <District>" chip on child-component cards without threading the lookup
+# through every call site. set_parent_title_lookup() is the public setter.
+_PARENT_TITLE_BY_SLUG: dict[str, str] = {}
+
+def set_parent_title_lookup(rows):
+    """Caller (market_pages.main / firm_pages.main) invokes this once with the
+    full projects-flat rows so card_html can resolve any project's parent
+    district title for the chip render."""
+    _PARENT_TITLE_BY_SLUG.clear()
+    for r in rows:
+        sl = ((r.get('Slug') or '')).strip()
+        tl = ((r.get('Title') or '')).strip()
+        if sl and tl:
+            _PARENT_TITLE_BY_SLUG[sl] = tl
 CITY_MIN      = 3            # lowered from 5 so smaller-but-real cities (Aventura, Tokyo, etc.) get hubs
 STATE_MIN     = 5            # threshold for /markets/<state>/ rollup pages — keeps SEO quality high
 COUNTRY_MIN   = 1            # threshold for /markets/<country>/ rollup pages — show every country we track
@@ -455,6 +472,19 @@ def card_html(p: dict) -> str:
     # the inner one, which collapses our whole card layout. Wrap just the
     # image + title + meta + timeline in a single <a> (.card-link) and
     # keep the firms as separate sibling links.
+    # Part-of-district chip — rendered below the loc line on child cards. The
+    # parent's display name comes from _PARENT_TITLE_BY_SLUG, populated once
+    # by set_parent_title_lookup() at the start of each consuming script's
+    # main(). The chip lives OUTSIDE the .card-link <a> so its href to the
+    # parent district doesn't get swallowed by the outer link (HTML disallows
+    # nested <a>); positioned absolutely over the card-body's top area.
+    parent_slug_str = (p.get('ParentSlug') or '').strip()
+    parent_title = _PARENT_TITLE_BY_SLUG.get(parent_slug_str, '') if parent_slug_str else ''
+    parent_chip_html = (
+        f'  <a class="card-parent-chip" href="{ROOT_URL}/projects/{esc(parent_slug_str)}/">'
+        f'Part of {esc(parent_title)} →</a>\n'
+    ) if parent_title else ''
+
     return (
         f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
@@ -469,6 +499,7 @@ def card_html(p: dict) -> str:
         f'      {minis_html}\n'
         f'    </div>\n'
         f'  </a>\n'
+        f'{parent_chip_html}'
         f'  <div class="card-firms-wrap">{firms_html}</div>\n'
         f'</div>'
     )
@@ -913,6 +944,30 @@ def render_page(
     .card-link {{ display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }}
     /* firm row pinned to the bottom so it lines up across every card in a row */
     .card-firms-wrap {{ padding: 0 20px 20px; margin-top: auto; }}
+    /* "Part of <District>" chip on child-component cards. Sits between the
+       card-link <a> and the firms wrap so its own <a> isn't nested inside
+       the card-link (HTML disallows nested interactive elements). Subtle
+       purple pill matching the parent-chip vocabulary used across the rest
+       of the site. */
+    .card-parent-chip {{
+      display: inline-flex; align-items: center; gap: 4px;
+      margin: 4px 20px 8px;
+      padding: 4px 9px;
+      font-family: var(--sans); font-size: 11.5px; font-weight: 600;
+      color: #C9BBFF;
+      background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+      max-width: calc(100% - 40px);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }}
+    .card-parent-chip:hover {{
+      background: rgba(167,139,250,0.24);
+      border-color: rgba(167,139,250,0.48);
+      color: #fff;
+    }}
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }}
     .card-feat-badge svg {{ width:12px; height:12px; fill:#0a0a0a; }}
@@ -2534,6 +2589,10 @@ def main():
         print("  ✗ projects-flat.json not found. Run fetch_projects.py first.")
         sys.exit(1)
     print(f"  ✓ Loaded {len(projects)} projects")
+
+    # Populate the slug -> title lookup card_html uses for the
+    # "Part of <District>" chip on child-component cards.
+    set_parent_title_lookup(projects)
 
     by_city_type, by_city, by_type = bucket_projects(projects)
 
