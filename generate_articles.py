@@ -85,6 +85,15 @@ def long_date(post):
             d = datetime.datetime.fromtimestamp(int(ts), datetime.timezone.utc)
         else:
             return ""
+        # Render the byline in the site's home timezone (ET), not UTC. An evening-ET
+        # post is already the NEXT day in UTC (e.g. 8:19 PM ET = 00:19 UTC), so
+        # formatting the raw UTC datetime printed a day ahead of the homepage card
+        # and the backend. Convert to America/New_York first.
+        try:
+            from zoneinfo import ZoneInfo
+            d = d.astimezone(ZoneInfo("America/New_York"))
+        except Exception:
+            pass
         return d.strftime("%B ") + str(d.day) + d.strftime(", %Y")
     except Exception:
         return ""

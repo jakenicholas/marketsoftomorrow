@@ -1059,7 +1059,7 @@ function hookFavorite() {
 // Helpers
 // ===================================================================
 function setMeta(id, attr, val) { const el = document.getElementById(id); if (el && val) el.setAttribute(attr, val); }
-function formatLongDate(s) { const d = new Date(s); return isNaN(d) ? String(s) : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+function formatLongDate(s) { const d = new Date(s); return isNaN(d) ? String(s) : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' }); }
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
 
