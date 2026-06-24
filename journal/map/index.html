@@ -4992,6 +4992,34 @@
     font-size: 10px; color: rgba(255,255,255,0.6);
   }
 
+  /* Family / Connected Projects — sits above Coverage in the modal. Purple
+     accents differentiate "related by structure" from "nearby by
+     geography". Umbrella card gets the highlighted ring + Umbrella pill so
+     it anchors the section on a leaf-project view. */
+  #projectModal .pm-fam[hidden] { display: none; }
+  #projectModal .pm-fam { margin: 24px 0; }
+  #projectModal .pm-fam-head { margin-bottom: 14px; }
+  #projectModal .pm-fam-h { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 500; letter-spacing: -.012em; color: #fff; line-height: 1.2; }
+  #projectModal .pm-fam-h-link { background: transparent; border: 0; padding: 0; font: inherit; color: #C9BBFF; cursor: pointer; border-bottom: 1px solid rgba(167,139,250,0.4); transition: color .15s, border-color .15s; }
+  #projectModal .pm-fam-h-link:hover { color: #fff; border-bottom-color: #C9BBFF; }
+  #projectModal .pm-fam-lead { font-family: 'Inter', system-ui, sans-serif; font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 4px; line-height: 1.45; }
+  #projectModal .pm-fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  #projectModal .pm-fam-card { all: unset; cursor: pointer; background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.18); border-radius: 12px; overflow: hidden; transition: border-color .15s ease, background .15s ease, transform .15s ease; display: flex; flex-direction: column; }
+  #projectModal .pm-fam-card:hover { border-color: rgba(167,139,250,0.55); background: rgba(167,139,250,0.10); transform: translateY(-2px); }
+  #projectModal .pm-fam-card:focus-visible { outline: 1px solid rgba(167,139,250,0.7); outline-offset: -1px; }
+  #projectModal .pm-fam-card--umbrella { border-color: rgba(167,139,250,0.46); background: rgba(167,139,250,0.10); box-shadow: inset 0 0 0 1px rgba(167,139,250,0.16); }
+  #projectModal .pm-fam-card--umbrella:hover { border-color: rgba(167,139,250,0.78); }
+  #projectModal .pm-fam-img { aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #111; position: relative; }
+  #projectModal .pm-fam-status { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; }
+  #projectModal .pm-fam-umbrella-pill { position: absolute; top: 8px; right: 8px; background: rgba(167,139,250,0.92); color: #0a0a0a; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+  #projectModal .pm-fam-b { padding: 11px 12px 13px; }
+  #projectModal .pm-fam-t { font-family: 'Inter', system-ui, sans-serif; font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  #projectModal .pm-fam-m { font-family: 'Inter', system-ui, sans-serif; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  @media (max-width: 720px) {
+    #projectModal .pm-fam-grid { display: flex; overflow-x: auto; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    #projectModal .pm-fam-card { flex: 0 0 78%; scroll-snap-align: start; }
+  }
+
   /* Coverage on TMW — article history for the current project. */
   #projectModal .pm-coverage[hidden] { display: none; }
   #projectModal .pm-coverage {
@@ -12562,6 +12590,10 @@
           </div>
           <!-- (Project Updates removed — superseded by the "story so far" dossier
                above, which is event-dated + sourced.) -->
+          <!-- Family / Connected Projects — parent + siblings on a leaf, or
+               all components on an umbrella. Populated by JS in openProjectModal
+               from window._childrenByParent + parentSlug. Hidden when standalone. -->
+          <div class="pm-fam" id="pmFamily" hidden></div>
           <!-- Coverage on TMW: list of articles from oftmw.com that mention
                this project. Hidden by default; populated by JS when articles.json
                is fetched and the project has at least one matching article. -->
@@ -15150,6 +15182,99 @@
           .replace(/'/g, '&#39;');
       }
 
+      // Family / Connected Projects section in the project modal. Mirrors
+      // the SEO page family_section in generate_pages.py: on a LEAF, header
+      // reads "Part of <Parent →>" and the grid shows the parent (Umbrella
+      // pill) + every sibling. On an UMBRELLA, header reads "Inside this
+      // development · N components" and the grid shows every direct child.
+      // Click any card → openProjectModal for that project.
+      window._famItemClick = function (title) {
+        const feats = window.allProjectFeatures || [];
+        const target = feats.find(p => p && p.properties && p.properties.title === title);
+        if (target && typeof window.openProjectModal === 'function') {
+          window.openProjectModal(target, 'family');
+        }
+      };
+      function _famCardHtml(f, isUmbrella) {
+        const p = (f && f.properties) || {};
+        const t = p.title || '';
+        const city = p.city || '';
+        const typeLabel = (p.preferredType && p.preferredType.trim())
+          ? p.preferredType.trim()
+          : (p.projectType ? p.projectType.split(',')[0].trim() : '');
+        const meta = [city, typeLabel].filter(Boolean).join(' · ');
+        const status = p.delivery || '';
+        const img = (window.tmwImg ? window.tmwImg(p.image || '', 500) : (p.image || ''));
+        const escA = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const escT = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const statusPill = status ? `<span class="pm-fam-status">${escT(status)}</span>` : '';
+        const umbrellaPill = isUmbrella ? '<span class="pm-fam-umbrella-pill">Umbrella</span>' : '';
+        const klass = 'pm-fam-card' + (isUmbrella ? ' pm-fam-card--umbrella' : '');
+        return `<button type="button" class="${klass}" onclick="window._famItemClick('${escA(t)}')">`
+          + `<div class="pm-fam-img" style="background-image:url('${escA(img)}')">${statusPill}${umbrellaPill}</div>`
+          + `<div class="pm-fam-b">`
+          +   `<div class="pm-fam-t">${escT(t)}</div>`
+          +   `<div class="pm-fam-m">${escT(meta)}</div>`
+          + `</div></button>`;
+      }
+      function renderFamilySection(p) {
+        const wrap = document.getElementById('pmFamily');
+        if (!wrap) return;
+        wrap.setAttribute('hidden', '');
+        wrap.innerHTML = '';
+        if (!p) return;
+        const py = window.projectSlugify;
+        const ownSlug = py ? py(p.title || '') : '';
+        const ownTitle = p.title || '';
+        const parentSlug = (p.parentSlug || '').trim();
+        const allFeats = window.allProjectFeatures || [];
+        const childrenIdx = window._childrenByParent || {};
+        const descIdx = window._descendantsByParent || {};
+        const escT = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const escA = (s) => escT(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+        if (parentSlug) {
+          // LEAF: parent card first (Umbrella pill), then siblings.
+          const parentFeat = allFeats.find(f => f && f.properties && py(f.properties.title || '') === parentSlug);
+          if (!parentFeat) return;   // parent not loaded — bail silently
+          const parentTitle = parentFeat.properties.title || parentSlug;
+          const siblings = (childrenIdx[parentSlug] || []).filter(s =>
+            s && s.properties && py(s.properties.title || '') !== ownSlug
+          );
+          const cards = [_famCardHtml(parentFeat, true)]
+            .concat(siblings.map(s => _famCardHtml(s, false)))
+            .join('');
+          // Component count for the lead copy = self + siblings (the
+          // parent is the umbrella, not a sibling-level component).
+          const componentCount = 1 + siblings.length;
+          wrap.innerHTML =
+            `<div class="pm-fam-head">`
+            +   `<div class="pm-fam-h">Part of <button type="button" class="pm-fam-h-link" onclick="window._famItemClick('${escA(parentTitle)}')">${escT(parentTitle)} →</button></div>`
+            +   `<div class="pm-fam-lead">${escT(ownTitle)} is one of ${componentCount} connected project${componentCount !== 1 ? 's' : ''} in this development.</div>`
+            + `</div>`
+            + `<div class="pm-fam-grid">${cards}</div>`;
+          wrap.removeAttribute('hidden');
+          return;
+        }
+
+        // UMBRELLA: every direct child. all_descendants for the lead-in copy.
+        const components = (childrenIdx[ownSlug] || []);
+        if (!components.length) return;
+        const descCount = (descIdx[ownSlug] || []).length;
+        const cards = components.map(c => _famCardHtml(c, false)).join('');
+        let lead = `${components.length} direct component${components.length !== 1 ? 's' : ''}`;
+        if (descCount > components.length) {
+          lead += ` · ${descCount} connected projects across the development`;
+        }
+        wrap.innerHTML =
+          `<div class="pm-fam-head">`
+          +   `<div class="pm-fam-h">Inside this development</div>`
+          +   `<div class="pm-fam-lead">${lead}.</div>`
+          + `</div>`
+          + `<div class="pm-fam-grid">${cards}</div>`;
+        wrap.removeAttribute('hidden');
+      }
+
       function renderCoverageSection(projectTitle, projectImage) {
         const wrap = document.getElementById('pmCoverage');
         const body = document.getElementById('pmCoverageBody');
@@ -15858,6 +15983,11 @@
           start_ts: Date.now()
         };
 
+        // Family / Connected Projects section — populates ABOVE Coverage when
+        // this project is part of a chain (leaf or umbrella). renderFamily
+        // walks the parentSlug + _childrenByParent indexes and writes the
+        // pmFamily slot directly. Hidden when standalone.
+        renderFamilySection(p);
         // Coverage section: render asynchronously from articles.json. The
         // section stays hidden if no articles match this project, so the
         // modal doesn't show an empty section for projects without press.

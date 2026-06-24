@@ -1123,7 +1123,7 @@ def dossier_section_html(row, articles=None):
     )
 
 
-def build_page(row, articles=None, nearby=None, parent_title=''):
+def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, components=None, all_descendants=None):
     title = row.get('Title','').strip()
     city  = row.get('City','').strip()
     # Subtitle prefers the sheet's "PreferredType" column when set (a single curated
@@ -1388,6 +1388,85 @@ def build_page(row, articles=None, nearby=None, parent_title=''):
             nearby_section = (
                 f'<div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div>'
                 f'<div class="pp-near-grid">{near_cards}</div></div>'
+            )
+
+    # ── Family / Connected Projects ───────────────────────────────────
+    # On a LEAF page: header reads "Part of <Parent name →>" with the parent
+    # title as a link; cards below = the parent (with an "Umbrella" pill) +
+    # every sibling component.
+    # On an UMBRELLA page: header reads "Inside this development · N
+    # components"; cards = every direct child.
+    # Hidden for standalone projects (no parent, no children).
+    def _fam_card(r, is_umbrella=False):
+        ft = (r.get('Title', '') or '').strip()
+        if not ft:
+            return ''
+        fs = slugify(ft)
+        fimg = (r.get('ImageURL', '') or '').strip() or DEFAULT_IMAGE
+        fcity = (r.get('City', '') or '').strip()
+        fstatus = (r.get('Delivery', '') or '').strip()
+        ftype = ((r.get('PreferredType', '') or r.get('ProjectType', '') or '').split(',')[0]).strip()
+        fmeta = ' · '.join([x for x in [fcity, ftype] if x])
+        status_pill = f'<span class="pp-fam-status">{_escape_text(fstatus)}</span>' if fstatus else ''
+        umbrella_pill = '<span class="pp-fam-umbrella-pill">Umbrella</span>' if is_umbrella else ''
+        klass = 'pp-fam-card' + (' pp-fam-card--umbrella' if is_umbrella else '')
+        return (
+            f'<a class="{klass}" href="/projects/{fs}/">'
+            f'<div class="pp-fam-img" style="background-image:url(\'{_escape_attr(fimg)}\')">{status_pill}{umbrella_pill}</div>'
+            f'<div class="pp-fam-b">'
+            f'<div class="pp-fam-t">{_escape_text(ft)}</div>'
+            f'<div class="pp-fam-m">{_escape_text(fmeta)}</div>'
+            f'</div></a>'
+        )
+
+    family_section = ''
+    _siblings = list(siblings or [])
+    _components = list(components or [])
+    if parent_title and parent_slug_str:
+        # LEAF view — show the parent + siblings.
+        parent_rec = next((s for s in _siblings if (s.get('Slug') or '').strip() == parent_slug_str), None)
+        # Caller passes the parent record itself in `siblings` so it can render
+        # as the umbrella card; siblings list also has every co-child minus self.
+        fam_cards = []
+        # Parent card first if we have it.
+        for r in _siblings:
+            if (r.get('Slug') or '').strip() == parent_slug_str:
+                fam_cards.append(_fam_card(r, is_umbrella=True))
+                break
+        # Then the sibling components (excluding self, which the caller
+        # already filtered out).
+        for r in _siblings:
+            if (r.get('Slug') or '').strip() == parent_slug_str:
+                continue
+            fam_cards.append(_fam_card(r))
+        fam_cards_html = ''.join(c for c in fam_cards if c)
+        if fam_cards_html.strip():
+            # Component count = self + co-children (the parent district is
+            # the umbrella, not a sibling-level component).
+            _component_count = 1 + len([s for s in _siblings if (s.get('Slug') or '').strip() != parent_slug_str])
+            family_section = (
+                f'<div class="pp-sec pp-fam">'
+                f'<div class="pp-sec-h">Part of <a class="pp-fam-h-link" href="/projects/{parent_slug_str}/">{_escape_text(parent_title)}</a></div>'
+                f'<div class="pp-fam-lead">{_escape_text(title)} is one of {_component_count} connected project{"s" if _component_count != 1 else ""} in this development.</div>'
+                f'<div class="pp-fam-grid">{fam_cards_html}</div>'
+                f'</div>'
+            )
+    elif _components:
+        # UMBRELLA view — show every direct child component. all_descendants
+        # is the recursive count for the lead-in copy so a multi-level
+        # district reports its true reach ("12 connected projects below").
+        fam_cards_html = ''.join(_fam_card(r) for r in _components)
+        total_desc = len(all_descendants or _components)
+        if fam_cards_html.strip():
+            lead = f'{len(_components)} direct component{"s" if len(_components) != 1 else ""}'
+            if total_desc > len(_components):
+                lead += f' · {total_desc} connected projects across the development'
+            family_section = (
+                f'<div class="pp-sec pp-fam pp-fam--umbrella">'
+                f'<div class="pp-sec-h">Inside this development</div>'
+                f'<div class="pp-fam-lead">{lead}.</div>'
+                f'<div class="pp-fam-grid">{fam_cards_html}</div>'
+                f'</div>'
             )
 
     html = f'''<!DOCTYPE html>
@@ -2336,6 +2415,32 @@ def build_page(row, articles=None, nearby=None, parent_title=''):
     .pp-near-t {{ font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
     .pp-near-m {{ font-size: 11px; color: rgba(255,255,255,.45); margin-top: 4px; }}
 
+    /* Family / Connected Projects section — sits above Coverage. Same card
+       structure as Nearby (image + status pill + title + city/type) with
+       purple accents so the user reads "related by structure" not
+       "nearby by geography". Umbrella card gets a thin purple ring + an
+       "Umbrella" pill so it's the visual anchor of the section on a leaf
+       page. */
+    .pp-fam {{ }}
+    .pp-fam-h-link {{ color: #C9BBFF; text-decoration: none; border-bottom: 1px solid rgba(167,139,250,.4); transition: border-color .15s, color .15s; }}
+    .pp-fam-h-link:hover {{ color: #fff; border-bottom-color: #C9BBFF; }}
+    .pp-fam-lead {{ font-family: var(--sans); font-size: 12.5px; color: rgba(255,255,255,.55); margin: -6px 0 14px; line-height: 1.45; }}
+    .pp-fam-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }}
+    .pp-fam-card {{ background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.18); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, background .15s; position: relative; }}
+    .pp-fam-card:hover {{ border-color: rgba(167,139,250,.55); background: rgba(167,139,250,.10); transform: translateY(-2px); }}
+    .pp-fam-card--umbrella {{ border-color: rgba(167,139,250,.46); background: rgba(167,139,250,.10); box-shadow: 0 0 0 1px rgba(167,139,250,.16) inset; }}
+    .pp-fam-card--umbrella:hover {{ border-color: rgba(167,139,250,.78); }}
+    .pp-fam-img {{ aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #111; position: relative; }}
+    .pp-fam-status {{ position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; }}
+    .pp-fam-umbrella-pill {{ position: absolute; top: 8px; right: 8px; background: rgba(167,139,250,.85); color: #0a0a0a; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }}
+    .pp-fam-b {{ padding: 11px 12px 13px; }}
+    .pp-fam-t {{ font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
+    .pp-fam-m {{ font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; }}
+    @media (max-width: 720px) {{
+      .pp-fam-grid {{ display: flex; overflow-x: auto; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; }}
+      .pp-fam-card {{ flex: 0 0 78%; scroll-snap-align: start; }}
+    }}
+
     @media (max-width: 860px) {{
       /* MOBILE HERO REFLOW — only phase + title + location overlap the image;
          the gallery scroller, description and everything else push down below. */
@@ -2417,6 +2522,7 @@ def build_page(row, articles=None, nearby=None, parent_title=''):
       {firms_section}
       <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
       {updates_section_html}
+      {family_section}
       {coverage_section_html(articles or [], title, image)}
       {nearby_section}
     </div>
@@ -3729,8 +3835,32 @@ def main():
                            if (r.get('Title', '') or '').strip() != title][:3]
             # If this is a component, resolve the parent's display name once so
             # build_page can render the "Part of <District>" chip in the hero.
-            _parent_title = slug_to_title.get((row.get('ParentSlug', '') or '').strip(), '')
-            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows, parent_title=_parent_title)
+            _parent_slug_for_fam = (row.get('ParentSlug', '') or '').strip()
+            _parent_title = slug_to_title.get(_parent_slug_for_fam, '')
+            # Family section data: on a leaf, _siblings = parent_record + every
+            # sibling (excluding self) so the family section can render the
+            # umbrella card first then siblings. On an umbrella (no parent),
+            # _components = direct children, _all_desc = recursive descendants
+            # for the lead-in copy.
+            _siblings = []
+            _components = []
+            _all_desc = []
+            if _parent_slug_for_fam:
+                _parent_rec = next((r for r in rows if (r.get('Slug') or '').strip() == _parent_slug_for_fam), None)
+                if _parent_rec:
+                    _siblings.append(_parent_rec)
+                _own_slug_here = (row.get('Slug', '') or '').strip()
+                for _co in children_by_parent.get(_parent_slug_for_fam, []):
+                    if (_co.get('Slug') or '').strip() == _own_slug_here:
+                        continue
+                    _siblings.append(_co)
+            else:
+                _own_slug_here = (row.get('Slug', '') or '').strip()
+                _components = list(children_by_parent.get(_own_slug_here, []))
+                _all_desc = get_all_descendants(_own_slug_here) if _components else []
+            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows,
+                                    parent_title=_parent_title, siblings=_siblings,
+                                    components=_components, all_descendants=_all_desc)
             # Stash the SAME rows HTML the page just rendered for the map sidecar,
             # keyed by the MAP slug (no hyphens, strip non-alnum) — the map computes
             # this identically from the title, so unicode titles (e.g. "Kōloa") match.
