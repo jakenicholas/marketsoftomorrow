@@ -15468,14 +15468,17 @@
         const skipGate = source === 'popup' || source === 'deeplink' || source === 'embed';
         if (!skipGate && window.paywallCheck && !window.paywallCheck()) return;
 
-        // Dismiss the Interactive Layers panel + spotlight overlay (they'd
-        // otherwise float above the project modal on desktop). The year
-        // scrubber STAYS VISIBLE per Jake — users want to see what year
-        // they're filtering by while reviewing a project (it also has its
-        // own toggle button on the right rail now, so they can dismiss it
-        // explicitly if they want).
+        // Dismiss the Interactive Layers panel + spotlight overlay on MOBILE
+        // only — they'd otherwise eat the small-viewport modal. On desktop
+        // the panel lives in the corner of the right rail and doesn't
+        // overlap the centered modal, so Jake wants it to stay put. The
+        // year scrubber STAYS VISIBLE at every viewport per Jake — users
+        // want to see what year they're filtering by while reviewing a
+        // project (it also has its own toggle button on the right rail now,
+        // so they can dismiss it explicitly if they want).
         try {
-          if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
+          const _isMobileVp = window.matchMedia('(max-width: 800px)').matches;
+          if (_isMobileVp && window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
             window._tmwToggleLayers();
           }
           if (window.tmwOverlay && typeof window.tmwOverlay.close === 'function') {
@@ -16208,13 +16211,16 @@
       if (!opts.skipPaywall && window.paywallCheck && !window.paywallCheck()) return;
       window._popupFeatureRef = f; // used by Learn More button in popup
       if (isMobile && 'vibrate' in navigator) navigator.vibrate(10);
-      // Dismiss the Interactive Layers panel when the user picks a pin — the
-      // popup needs the space and the panel is overlay chrome they're done
-      // with. Scrubber stays put (it's read-only context the user wants to
-      // keep seeing). Skip when deep-linking so URL-driven opens don't yank
-      // the panel out from under a returning user mid-orientation.
+      // Dismiss the Interactive Layers panel when the user picks a pin — MOBILE
+      // only. On a small viewport the popup needs the room. On desktop the
+      // panel sits in the right-rail corner well clear of the popup, so Jake
+      // wants it to persist across pin clicks. Scrubber stays put at every
+      // viewport (read-only context the user wants to keep seeing). Skip
+      // when deep-linking so URL-driven opens don't yank the panel out
+      // from under a returning user mid-orientation.
       try {
-        if (!opts.skipPaywall && window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
+        const _isMobileVp = window.matchMedia('(max-width: 800px)').matches;
+        if (_isMobileVp && !opts.skipPaywall && window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') {
           window._tmwToggleLayers();
         }
       } catch (e) {}
