@@ -972,6 +972,32 @@
     .pp-near-t { font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .pp-near-m { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 4px; }
 
+    /* Family / Connected Projects section — sits above Coverage. Same card
+       structure as Nearby (image + status pill + title + city/type) with
+       purple accents so the user reads "related by structure" not
+       "nearby by geography". Umbrella card gets a thin purple ring + an
+       "Umbrella" pill so it's the visual anchor of the section on a leaf
+       page. */
+    .pp-fam { }
+    .pp-fam-h-link { color: #C9BBFF; text-decoration: none; border-bottom: 1px solid rgba(167,139,250,.4); transition: border-color .15s, color .15s; }
+    .pp-fam-h-link:hover { color: #fff; border-bottom-color: #C9BBFF; }
+    .pp-fam-lead { font-family: var(--sans); font-size: 12.5px; color: rgba(255,255,255,.55); margin: -6px 0 14px; line-height: 1.45; }
+    .pp-fam-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .pp-fam-card { background: rgba(167,139,250,.05); border: 1px solid rgba(167,139,250,.18); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s, background .15s; position: relative; }
+    .pp-fam-card:hover { border-color: rgba(167,139,250,.55); background: rgba(167,139,250,.10); transform: translateY(-2px); }
+    .pp-fam-card--umbrella { border-color: rgba(167,139,250,.46); background: rgba(167,139,250,.10); box-shadow: 0 0 0 1px rgba(167,139,250,.16) inset; }
+    .pp-fam-card--umbrella:hover { border-color: rgba(167,139,250,.78); }
+    .pp-fam-img { aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #111; position: relative; }
+    .pp-fam-status { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; }
+    .pp-fam-umbrella-pill { position: absolute; top: 8px; right: 8px; background: rgba(167,139,250,.85); color: #0a0a0a; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+    .pp-fam-b { padding: 11px 12px 13px; }
+    .pp-fam-t { font-size: 13.5px; font-weight: 600; line-height: 1.3; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .pp-fam-m { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; }
+    @media (max-width: 720px) {
+      .pp-fam-grid { display: flex; overflow-x: auto; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+      .pp-fam-card { flex: 0 0 78%; scroll-snap-align: start; }
+    }
+
     @media (max-width: 860px) {
       /* MOBILE HERO REFLOW — only phase + title + location overlap the image;
          the gallery scroller, description and everything else push down below. */
@@ -1068,6 +1094,7 @@
         </div>
       </div>
     </a></div>
+      
       
       
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/hoshinoya-niseko/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c8b1f2a9783-058eb7_c670100fa95f4a2bb5050aadb03c99b3-mv2.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Hoshinoya Niseko</div><div class="pp-near-m">Kutchan · Hotel</div></div></a></div></div>
