@@ -119,23 +119,9 @@
     .card-link { display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }
     /* firm row pinned to the bottom so it lines up across every card in a row */
     .card-firms-wrap { padding: 0 20px 20px; margin-top: auto; }
-    /* "Part of <District>" chip on child-component cards. Sits inside the
-       card-head as a 3rd line under the city — Jake's rule: title + city
-       stay close, chip is the next row. Inline-flex so it shrinks to its
-       text. Click bubbles to the parent .card-link (child's project page).
-       Subtle purple pill matching the parent-chip vocabulary site-wide. */
-    .card-parent-chip {
-      display: inline-flex; align-items: center;
-      margin-top: 6px;
-      padding: 2px 7px;
-      font-family: var(--sans); font-size: 11px; font-weight: 600;
-      color: #C9BBFF;
-      background: rgba(167,139,250,0.14);
-      border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 5px;
-      max-width: 100%;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    /* .card-parent-chip rule moved into PAYWALL_CSS so the firm pages
+       inherit it (they only import PAYWALL_CSS, not this local style block).
+       Definition lives there now — see line ~172. */
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
     .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
@@ -147,7 +133,7 @@
        down by a reserved 2nd title line). The wrapper carries the alignment reserve
        so everything BELOW (timeline, stats, firms) stays horizontally aligned across
        tiles whether the title is 1 or 2 lines. */
-    .card-head { min-height: 50px; margin-bottom: 12px; }
+    .card-head { min-height: 76px; margin-bottom: 12px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
@@ -356,6 +342,30 @@
     html.tmw-paid .tmw-paid-only { display: inline; }
     .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
     .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
+    /* "Part of <District>" chip — overlaid on .card-img in the bottom-left
+       corner so cards stay aligned by default (no body-space reservation
+       needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
+       (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
+       position:relative — handled by the existing card styles. */
+    .card-img { position: relative; }
+    .card-parent-chip {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: inline-flex; align-items: center;
+      padding: 4px 9px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      color: #C9BBFF;
+      background: rgba(20, 17, 36, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(167,139,250,0.46);
+      border-radius: 6px;
+      max-width: calc(100% - 20px);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
 
   </style>
 </head>
@@ -531,7 +541,7 @@
         <div class="card-title">Lincoln Yards</div>
         <div class="card-loc">Chicago</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 15, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 24, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">6.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>

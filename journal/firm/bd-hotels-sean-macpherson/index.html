@@ -275,6 +275,30 @@
     html.tmw-paid .tmw-paid-only { display: inline; }
     .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
     .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
+    /* "Part of <District>" chip — overlaid on .card-img in the bottom-left
+       corner so cards stay aligned by default (no body-space reservation
+       needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
+       (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
+       position:relative — handled by the existing card styles. */
+    .card-img { position: relative; }
+    .card-parent-chip {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: inline-flex; align-items: center;
+      padding: 4px 9px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      color: #C9BBFF;
+      background: rgba(20, 17, 36, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(167,139,250,0.46);
+      border-radius: 6px;
+      max-width: calc(100% - 20px);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
 </style>
 </head>
 <body>
@@ -313,12 +337,11 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-hotel/" aria-label="Open The Nora Hotel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c538863e8f3a4b43abfdbaba46b3b185~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c538863e8f3a4b43abfdbaba46b3b185~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Nora Hotel</div>
         <div class="card-loc">West Palm Beach · Nora District</div>
-        <span class="card-parent-chip">Part of The Nora District</span>
       </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
@@ -416,17 +439,17 @@
       </div>
       <div class="coverage-list">
 <a class="coverage-item" href="https://www.oftmw.com/post/nami-nori-is-officially-coming-to-west-palm-beach-s-nora-district" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Nami Nori is officially coming to West Palm Beach&#x27;s Nora District</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-05-09</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/cameron-mitchell-s-del-mar-debuts-in-the-nora-district" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Cameron Mitchell’s Del Mar debuts in the Nora District</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-04-07</div></a>
 <a class="coverage-item" href="https://www.oftmw.com/post/every-major-project-reshaping-west-palm-beach-right-now" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Every major project reshaping West Palm Beach right now</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-04-03</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/woodlawn-cemetery-in-west-palm-beach-may-soon-transform-into-a-world-class-cultural-park" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Woodlawn Cemetery in West Palm Beach may soon transform into a world-class cultural park</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-04-01</div></a>
 <a class="coverage-item" href="https://www.oftmw.com/post/the-nora-district-launches-its-first-residential-expansion-in-west-palm-beach" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">The Nora District launches its first residential expansion in West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-03-23</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/woodlawn-cemetery-may-soon-transform-into-a-world-class-cultural-park" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Woodlawn Cemetery may soon transform into a world-class cultural park</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-03-12</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/the-nora-district-team-unveils-a-new-social-and-wellness-club-in-west-palm-beach" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">New wellness and lifestyle club unveiled in West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-02-17</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/brooklyn-s-famous-coal-fired-pizza-lands-in-west-palm-beach" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Brooklyn’s famous coal-fired pizza lands in West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-02-16</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/the-palm-beaches-set-a-new-all-time-tourism-record" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">The Palm Beaches set a new all-time tourism record</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-02-12</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/inside-maison-d-or-south-flagler-drive-s-new-ultra-luxury-condominium" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Inside Maison d’Or, South Flagler Drive&#x27;s new ultra-luxury condominium</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2026-01-09</div></a>
+<a class="coverage-item" href="https://www.oftmw.com/post/a-boston-born-favorite-loco-taqueria-oyster-bar-plans-its-nora-opening" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">A Boston-born favorite, Loco Taqueria &amp; Oyster Bar plans its Nora opening</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-12-04</div></a>
 <a class="coverage-item" href="https://www.oftmw.com/post/h-h-bagels-makes-its-west-palm-beach-debut-in-nora" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">H&amp;H Bagels makes its West Palm Beach debut in Nora</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-11-21</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/an-inside-look-at-sports-rec-the-social-sports-lounge-arriving-soon-at-nora" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">An inside look at Sports &amp; Rec, the social sports lounge arriving soon at Nora</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-11-01</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/the-nora-district-in-west-palm-beach-announces-four-new-tenants" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">The Nora District in West Palm Beach announces four new tenants</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-06-04</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/the-nora-hotel-bd-hotels-first-ground-up-construction-outside-new-york-city-celebrates-top-off" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">The Nora Hotel, BD Hotels’ first ground-up construction outside New York City, celebrates top off</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-05-05</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/eleven-projects-that-are-shaping-the-north-end-of-west-palm-beach" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Eleven projects that are shaping the North End of West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2025-04-28</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/bd-hotels-and-developers-break-ground-on-the-nora-hotel-in-the-new-1-billion-nora-district-in-west" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">BD Hotels and developers break ground on The Nora Hotel in the new $1 billion Nora District in West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2024-11-14</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/the-nora-hotel-to-welcome-pastis-an-iconic-new-york-city-parisian-style-brasserie-in-west-palm-beac" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">The Nora Hotel to welcome Pastis, an iconic New York City Parisian-style brasserie in West Palm Beach&#x27;s Nora District</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2024-08-20</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/six-new-projects-that-are-reshaping-the-future-of-west-palm-beach" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">Six new projects that are reshaping the future of West Palm Beach</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2024-07-15</div></a>
-<a class="coverage-item" href="https://www.oftmw.com/post/west-palm-beach-s-new-dynamic-40-acre-hospitality-destination-the-nora-district-secures-84-millio" target="_blank" rel="noopener"><div class="coverage-dot"></div><div class="coverage-info"><div class="coverage-title">West Palm Beach’s new dynamic 40-acre hospitality destination, The Nora District, secures $84 million in construction financing for Phase I</div><div class="coverage-meta">Mentions <b>The Nora Hotel</b></div></div><div class="coverage-date">2024-06-15</div></a>
       </div>
     </section>
 
