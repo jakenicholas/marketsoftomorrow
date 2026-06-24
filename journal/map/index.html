@@ -12989,25 +12989,15 @@
     });
 
     // ── Image resizer ────────────────────────────────────────────────────────
-    // The Wix→R2 migration stripped image transforms, so cards/popups pulled
-    // multi-MB ORIGINALS (~1 GB/page) — which pins phones until the load finishes
-    // (the "smooth only after the drawer loads" symptom). Route our R2 images
-    // through weserv.nl, which resizes to webp at the size we actually display.
-    // Interim until oftmw.com is on Cloudflare (2026-07-31) → then /cdn-cgi/image.
-    // Only rewrites the public R2 bucket; passes SVG / data: / everything else
-    // through untouched. `w` = pixel width to request.
-    window.tmwImg = function (url, w) {
-      url = String(url || '');
-      if (!url || !/^https?:\/\//i.test(url)) return url;     // data:, blob:, relative, empty
-      if (/\.svg(\?|#|$)/i.test(url)) return url;             // never rasterize SVGs
-      if (!/r2\.dev\//i.test(url)) return url;                // only our R2-hosted images
-      // Request at the DISPLAY width × device pixel ratio (capped 2×) so retina
-      // screens stay sharp — w alone looked soft on phones. q82 webp keeps it
-      // crisp while still tiny vs the multi-MB original.
-      var px = w ? Math.round(w * Math.min(window.devicePixelRatio || 1, 2)) : 0;
-      return 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//i, ''))
-        + (px ? '&w=' + px : '') + '&q=82&output=webp';
-    };
+    // DISABLED (2026-06-23) — passthrough. Routing R2 images through weserv.nl
+    // was a NET NEGATIVE: across two Safari Timeline recordings it cut script
+    // time but RAISED layout/paint (resized images arrive async on a new domain
+    // → more layout shifts) and looked softer, so the page felt MORE glitchy.
+    // It also never touched the real lag — the phone was still laggy at ~30MB,
+    // confirming the lag is CPU/layout, not image bytes. Re-enable via Cloudflare
+    // /cdn-cgi/image after the 2026-07-31 Wix cutover (own infra, proper quality,
+    // no 3rd-party hop). Signature kept so the ~12 call sites need no change.
+    window.tmwImg = function (url, w) { return url; };
     // Resilience: if a resized image ever fails (proxy hiccup), fall back to the
     // original once. img error doesn't bubble, so listen in the capture phase.
     document.addEventListener('error', function (e) {
