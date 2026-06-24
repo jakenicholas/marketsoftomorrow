@@ -17275,12 +17275,14 @@
       const projects = (() => {
         const matched = allFeatures.filter(f => normalizeForSearch(f.properties.title).includes(ql));
         const py = window.projectSlugify;
+        // Sort by total descendant count desc so districts (most descendants)
+        // appear before towers, and towers before leaves. Multi-level safe.
         matched.sort((a, b) => {
           const aSlug = py ? py(a.properties.title || '') : '';
           const bSlug = py ? py(b.properties.title || '') : '';
-          const aIsD = !!(window._childrenByParent && window._childrenByParent[aSlug] && window._childrenByParent[aSlug].length);
-          const bIsD = !!(window._childrenByParent && window._childrenByParent[bSlug] && window._childrenByParent[bSlug].length);
-          return bIsD - aIsD;
+          const aCount = (window._descendantsByParent && window._descendantsByParent[aSlug] || []).length;
+          const bCount = (window._descendantsByParent && window._descendantsByParent[bSlug] || []).length;
+          return bCount - aCount;
         });
         return matched.slice(0, 4);
       })();
@@ -17335,10 +17337,11 @@
           item.style.animationDelay = `${i * 0.04}s`;
           // District/component context for the dock autocomplete: same data
           // model as the drawer search — districts get an inline "N components"
-          // badge after the title; components get a "· Part of X" subline.
+          // badge after the title (total descendants, multi-level safe);
+          // components get a "· Part of X" subline (immediate parent).
           const py = window.projectSlugify;
           const slug = py ? py(f.properties.title || '') : '';
-          const childCount = (window._childrenByParent && window._childrenByParent[slug] || []).length;
+          const childCount = (window._descendantsByParent && window._descendantsByParent[slug] || []).length;
           const districtBadge = childCount > 0
             ? ` <span class="autocomplete-district-badge">${childCount} component${childCount === 1 ? '' : 's'}</span>`
             : '';
@@ -18746,13 +18749,21 @@
           const out = [];
           byCoord.forEach((group) => {
             if (group.length === 1) { out.push(group[0]); return; }
-            // Promote the district umbrella in the group (one whose slug is
-            // some other feature's parentSlug). Then featured, then first.
-            const districtFeat = group.find(g => {
+            // Promote the MOST-ANCESTRAL umbrella in the group. An umbrella
+            // candidate is any feature whose slug is some other group
+            // member's parentSlug (so a Tower with leaf children counts as
+            // an umbrella even if the Tower itself has a parent District).
+            // Of all candidates, prefer the one whose parent is NOT in the
+            // group — that's the topmost umbrella for this collision.
+            // Falls back to featured-first if no umbrella candidate exists.
+            const umbrellas = group.filter(g => {
               const gs = py(g.properties.title || '');
-              if ((g.properties.parentSlug || '').trim()) return false;
               return group.some(o => o !== g && (o.properties.parentSlug || '').trim() === gs);
             });
+            const districtFeat = umbrellas.find(u => {
+              const ups = (u.properties.parentSlug || '').trim();
+              return !ups || !group.some(o => py(o.properties.title || '') === ups);
+            }) || umbrellas[0];
             const ordered = districtFeat
               ? [districtFeat].concat(group.filter(g => g !== districtFeat))
               : group.slice().sort((a, b) => (b.properties.featured ? 1 : 0) - (a.properties.featured ? 1 : 0));
@@ -19003,31 +19014,64 @@
             return String(slug || '').replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
           };
 
-          // Parent slug -> Set of project types its children fill. Used by
-          // the type-filter helper to SUPPRESS a district when one of its
-          // children covers the requested type — e.g. filtering "Hotel"
-          // should return The Nora Hotel (the component) and hide The Nora
-          // District (the umbrella, which lists Hotel in its types[] only
-          // because its components do). When no child fills the type, the
-          // district itself still surfaces (Jake's Q3 rule: component-only
-          // when component exists, district as fallback otherwise).
-          window._childrenTypesByParent = {};
-          // Parent slug -> array of child feature refs. Used by the search
-          // ranker to show "N components" on a district row and to put
-          // districts above their components when both match a query.
+          // Parent slug -> array of DIRECT child feature refs. Built once;
+          // consumed below to derive recursive descendant indexes for the
+          // multi-level (district → tower → leaf) hierarchy.
           window._childrenByParent = {};
           (function buildChildIndexes(){
             features.forEach(f => {
               if (!f || !f.properties) return;
               const ps = (f.properties.parentSlug || '').trim();
               if (!ps) return;
-              const types = Array.isArray(f._projectTypes) ? f._projectTypes : [];
-              if (!window._childrenTypesByParent[ps]) window._childrenTypesByParent[ps] = new Set();
-              types.forEach(t => window._childrenTypesByParent[ps].add((t || '').toLowerCase()));
               if (!window._childrenByParent[ps]) window._childrenByParent[ps] = [];
               window._childrenByParent[ps].push(f);
             });
           })();
+
+          // Recursive walk of the children index: parent slug -> Set of every
+          // descendant feature ref (children, grandchildren, …). Used by the
+          // type filter, search ranking, watchlist sibling alerts, and any
+          // surface that needs "everything under this project". Cycle-safe
+          // via the seen-set.
+          const py = window.projectSlugify;
+          function _walkDescendants(slug, accSet, seen){
+            if (seen.has(slug)) return;
+            seen.add(slug);
+            const direct = window._childrenByParent[slug] || [];
+            for (const child of direct){
+              accSet.add(child);
+              if (child && child.properties && child.properties.title){
+                _walkDescendants(py(child.properties.title), accSet, seen);
+              }
+            }
+          }
+          window._descendantsByParent = {};
+          features.forEach(f => {
+            if (!f || !f.properties || !f.properties.title) return;
+            const slug = py(f.properties.title);
+            const set = new Set();
+            _walkDescendants(slug, set, new Set());
+            if (set.size) window._descendantsByParent[slug] = Array.from(set);
+          });
+
+          // Parent slug -> Set of types ALL descendants fill (recursive).
+          // Used by the type-filter helper to SUPPRESS an ancestor when ANY
+          // descendant covers the requested type — e.g. filtering "Hotel"
+          // should return Janu Tokyo (the leaf), hide its Tower (which lists
+          // Hotel in types[] because of the leaf), AND hide the District
+          // above the Tower (which inherits Hotel from the tree).
+          window._descendantTypesByParent = {};
+          for (const slug in window._descendantsByParent){
+            const types = new Set();
+            for (const desc of window._descendantsByParent[slug]){
+              const arr = Array.isArray(desc._projectTypes) ? desc._projectTypes : [];
+              arr.forEach(t => types.add((t || '').toLowerCase()));
+            }
+            if (types.size) window._descendantTypesByParent[slug] = types;
+          }
+          // Back-compat alias — old code referenced _childrenTypesByParent.
+          // Points at the recursive set so single-level consumers stay correct.
+          window._childrenTypesByParent = window._descendantTypesByParent;
 
           // Single type-filter predicate. Returns a filter function callers
           // pass to Array.filter. Encodes the district-suppression rule so
@@ -20484,17 +20528,28 @@
         const lastViewedIso = (window._lastViewed && window._lastViewed[slug]) || '';
         const events = (window._pulseEvents && Array.isArray(window._pulseEvents))
           ? window._pulseEvents : [];
+        // Multi-level: a user watching a district owns events on ANY
+        // descendant — tower, grandchild leaf, etc. Build a set of every
+        // descendant slug below this project so we can O(1) match each event.
+        const py = window.projectSlugify;
+        const descendantSlugs = new Set();
+        const descArr = (window._descendantsByParent && window._descendantsByParent[slug]) || [];
+        for (let i = 0; i < descArr.length; i++) {
+          const d = descArr[i];
+          if (d && d.properties && d.properties.title){
+            descendantSlugs.add(py(d.properties.title));
+          }
+        }
         let count = 0;
         let lastEvent = null;
         for (let i = 0; i < events.length; i++) {
           const ev = events[i];
-          // Match direct events (ev for this project) OR child-component
-          // events when this project is the umbrella district (ev.parent_slug
-          // is written by generate_pulse.py for components of a district).
-          // The reverse — watching a child surfacing parent/sibling events —
-          // is deliberately NOT done: ev for a sibling has parent_slug ===
-          // district, not === watched-child, so it doesn't match here.
-          if (ev.project_slug !== slug && (ev.parent_slug || '') !== slug) continue;
+          // Match direct events (ev for this project) OR ANY descendant event.
+          // ev.parent_slug is the IMMEDIATE parent only (set by
+          // generate_pulse.py), so for grandchildren we have to check the
+          // descendant set directly off the event's project_slug.
+          const evSlug = ev.project_slug || '';
+          if (evSlug !== slug && !descendantSlugs.has(evSlug)) continue;
           const ts = ev.timestamp || '';
           // No last_viewed yet => everything counts as unread; cap is the
           // first time the user opens the project anyway, after which the
@@ -26682,16 +26737,17 @@
             const c = (f.properties.city  || '').toLowerCase();
             return t.includes(lc) || c.includes(lc);
           });
-          // Promote umbrella districts above their components when a query
-          // (like "Nora") surfaces both — the district is the canonical hit,
-          // each component reads as a sibling row below it. Stable sort so
-          // standalone projects keep their original order.
+          // Promote umbrellas above their descendants when a query (like
+          // "Toranomon") surfaces a multi-level chain — sort by TOTAL
+          // descendant count desc, so the district (most descendants) ranks
+          // above the tower (some descendants) which ranks above leaves
+          // (none). Stable sort keeps standalones in original order.
           matched.sort((a, b) => {
             const aSlug = py ? py(a.properties.title || '') : '';
             const bSlug = py ? py(b.properties.title || '') : '';
-            const aIsDistrict = !!(window._childrenByParent && window._childrenByParent[aSlug] && window._childrenByParent[aSlug].length);
-            const bIsDistrict = !!(window._childrenByParent && window._childrenByParent[bSlug] && window._childrenByParent[bSlug].length);
-            return (bIsDistrict - aIsDistrict);   // districts first; rest stable
+            const aCount = (window._descendantsByParent && window._descendantsByParent[aSlug] || []).length;
+            const bCount = (window._descendantsByParent && window._descendantsByParent[bSlug] || []).length;
+            return bCount - aCount;
           });
           return matched.slice(0, 12);
         })();
@@ -26722,10 +26778,12 @@
           const py = window.projectSlugify;
           const slug = py ? py(f.properties.title || '')
                           : (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          // District: this project has at least one component child registered
-          // under it via parentSlug. Component: this project itself carries a
-          // parentSlug. Tag the row so the user sees the relationship inline.
-          const childCount = (window._childrenByParent && window._childrenByParent[slug] || []).length;
+          // District / Tower / any project with descendants: count ALL
+          // descendants (children + grandchildren …) so a multi-level
+          // umbrella reads its true component total ("5" for a district
+          // with 1 tower + 4 leaves). Component: this project itself
+          // carries a parentSlug — immediate-parent only on the sub-line.
+          const childCount = (window._descendantsByParent && window._descendantsByParent[slug] || []).length;
           const isDistrict = childCount > 0;
           const parentSlug = (f.properties.parentSlug || '').trim();
           const parentName = parentSlug && window._parentDisplayName

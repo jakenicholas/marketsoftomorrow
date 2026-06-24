@@ -3624,6 +3624,22 @@ def main():
         if _sl and _tl:
             slug_to_title[_sl] = _tl
 
+    # Recursive descendants walk — for the multi-level (district → tower →
+    # leaf) hierarchy, an umbrella's dossier timeline + coverage need to
+    # include every project below it, not just direct children. Cycle-safe.
+    def get_all_descendants(slug, visited=None):
+        if visited is None:
+            visited = set()
+        out = []
+        for child in children_by_parent.get(slug, []):
+            cslug = (child.get('Slug', '') or '').strip()
+            if not cslug or cslug in visited:
+                continue
+            visited.add(cslug)
+            out.append(child)
+            out.extend(get_all_descendants(cslug, visited))
+        return out
+
     # Generate index page
     index_items = []
     generated = 0
@@ -3659,7 +3675,10 @@ def main():
             if row.get('IsDistrict') == '1':
                 own_slug = (row.get('Slug', '') or '').strip()
                 own_title = (row.get('Title', '') or '').strip()
-                children = children_by_parent.get(own_slug, [])
+                # Walk the FULL descendant tree, not just direct children, so
+                # a district's Story-So-Far shows every project below it —
+                # the tower AND each of the tower's leaves (Aman, Janu, …).
+                children = get_all_descendants(own_slug)
                 if children:
                     # Tag district's own milestones with its title.
                     for _m in (row.get('Milestones') or []):

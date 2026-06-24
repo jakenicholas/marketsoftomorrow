@@ -848,32 +848,51 @@ def update_articles_archive(articles: list, projects: dict) -> dict:
             merged.sort(key=lambda e: e.get('published_at') or '', reverse=True)
             return merged
 
-        # Parent → children: each component gets the umbrella's articles.
-        for parent_slug, child_slugs in parent_to_children.items():
-            parent_articles = original.get(parent_slug, [])
-            if not parent_articles:
-                continue
-            for child_slug in child_slugs:
-                child_existing = archive.get(child_slug, [])
-                merged = _merge_dedup(child_existing, parent_articles)
-                # Keep manual entries privileged inside the cap (same rule as
-                # the per-project section above).
-                manual_m = [e for e in merged if e.get('manual')]
-                auto_m   = [e for e in merged if not e.get('manual')]
-                archive[child_slug] = manual_m + auto_m[:max(0, MAX_PER_PROJECT - len(manual_m))]
+        # Recursive descendant walk — multi-level safe. For a district with
+        # a tower child and leaves under the tower, ancestor() of a leaf
+        # returns [tower, district]; descendants() of the district returns
+        # [tower, leaf1, leaf2, …]. Cycle-safe via visited set.
+        def _descendants(slug, visited=None):
+            if visited is None: visited = set()
+            out = []
+            for c in parent_to_children.get(slug, []):
+                if c in visited: continue
+                visited.add(c)
+                out.append(c)
+                out.extend(_descendants(c, visited))
+            return out
 
-        # Children → parent: each district gets all its components' articles.
+        # Slug -> immediate parent for upward walks.
+        slug_to_parent = {}
         for parent_slug, child_slugs in parent_to_children.items():
-            children_articles = []
             for child_slug in child_slugs:
-                children_articles.extend(original.get(child_slug, []))
-            if not children_articles:
+                slug_to_parent[child_slug] = parent_slug
+
+        def _ancestors(slug):
+            chain = []
+            seen = set()
+            cur = slug_to_parent.get(slug, '')
+            while cur and cur not in seen:
+                seen.add(cur); chain.append(cur)
+                cur = slug_to_parent.get(cur, '')
+            return chain
+
+        # For every project that participates in ANY chain (has a parent OR
+        # has children), merge in articles from its full ancestor line +
+        # full descendant tree. Manual entries privileged inside the cap.
+        all_in_chain = set(parent_to_children.keys()) | set(slug_to_parent.keys())
+        for slug in all_in_chain:
+            ancestors = _ancestors(slug)
+            descendants = _descendants(slug)
+            pool = list(original.get(slug, []))
+            for s in ancestors + descendants:
+                pool.extend(original.get(s, []))
+            if not pool:
                 continue
-            parent_existing = archive.get(parent_slug, [])
-            merged = _merge_dedup(parent_existing, children_articles)
+            merged = _merge_dedup(pool)
             manual_m = [e for e in merged if e.get('manual')]
             auto_m   = [e for e in merged if not e.get('manual')]
-            archive[parent_slug] = manual_m + auto_m[:max(0, MAX_PER_PROJECT - len(manual_m))]
+            archive[slug] = manual_m + auto_m[:max(0, MAX_PER_PROJECT - len(manual_m))]
 
     return archive
 
