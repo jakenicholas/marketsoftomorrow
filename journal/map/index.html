@@ -13058,16 +13058,20 @@
       // itself would freeze; blur is the expensive part, so drop just that until
       // the map's first 'idle' (load settled). Until now nothing covered this
       // phase except physically opening the drawer to mask the map.
+      // EXPERIMENT (2026-06-23): the profile (recording4) is dominated by GPU
+      // COMPOSITING, paints concentrate in the bottom band where the collapsed
+      // drawer's frosted glass sits over the map, and it's much slower on Safari
+      // than Chrome — all three point at backdrop-filter:blur (cheap on Blink,
+      // brutal on iOS WebKit) re-sampling the live map every frame. The earlier
+      // "kill blur during load only" lifted at first idle, too early to hold.
+      // So: kill backdrop-filter on mobile ENTIRELY, permanently. If the map is
+      // smooth now without touching the drawer, blur was the cause and we make
+      // the panels look right with solid backgrounds. If still laggy, blur is
+      // ruled out. Panels keep their semi-opaque background-color, just no blur.
       _blurStyle.textContent =
-        'body.map-busy *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;animation-play-state:paused!important;-webkit-animation-play-state:paused!important}' +
-        'body.map-loading *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
+        '@media (max-width:800px){*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}' +
+        'body.map-busy *{animation-play-state:paused!important;-webkit-animation-play-state:paused!important}';
       document.head.appendChild(_blurStyle);
-      // Suppress blur for the whole initial load, lift it once the map settles
-      // (first 'idle'), with a hard cap so a never-idling layer can't strand it.
-      document.body.classList.add('map-loading');
-      const _liftLoading = () => { document.body.classList.remove('map-loading'); };
-      map.once('idle', _liftLoading);
-      setTimeout(_liftLoading, 6000);
 
       // The GL "glow" layers (featured-glow has circle-blur:0.8; watched-ring is
       // a soft stroke) are GPU-blurred and re-render every frame while the map
