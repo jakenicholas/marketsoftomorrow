@@ -13104,39 +13104,10 @@
       setTimeout(_warmMap, 350);
       setTimeout(_warmMap, 1000);
       window.addEventListener('orientationchange', () => setTimeout(_warmMap, 250));
-
-      // CONFIRMED EMPIRICALLY (2026-06-23, with Jake): on mobile the map stays
-      // laggy until the drawer is opened AND its project grid renders — waiting
-      // alone never fixes it, and once the grid has rendered the map is smooth
-      // for good. That points to a one-time compositor relayer that only the
-      // drawer open triggers (Safari ≫ Chrome lag = WebKit compositor). resize()
-      // alone (above) does NOT reproduce it. So replicate the EXACT action: run
-      // the real expand → (grid renders) → collapse once, automatically, after
-      // the data is ready and the map first settles. If this works the map is
-      // smooth from load with no user action. NOTE: this currently shows a brief
-      // drawer flash on load — if it proves to be the fix, the next step is to
-      // run it behind the loading overlay so it's invisible.
-      let _drawerPrimed = false;
-      const _primeViaDrawer = () => {
-        if (_drawerPrimed) return;
-        if (typeof window.mobileDrawerExpand !== 'function' || typeof window.mobileDrawerCollapse !== 'function') return;
-        if (!(map.getSource('projects') && map.getSource('projects')._data)) return;
-        _drawerPrimed = true;
-        try {
-          window.mobileDrawerExpand();
-          // ~700ms mirrors Jake's "let projects load half a second" before going back.
-          setTimeout(() => { try { window.mobileDrawerCollapse(); } catch (e) {} }, 700);
-        } catch (e) { _drawerPrimed = false; }
-      };
-      // Run once the map is idle (initial render done) + data is in; poll a few
-      // times in case the drawer wiring/data isn't ready at first idle.
-      map.once('idle', () => {
-        let _tries = 0;
-        const _iv = setInterval(() => {
-          _primeViaDrawer();
-          if (_drawerPrimed || ++_tries > 20) clearInterval(_iv);
-        }, 200);
-      });
+      // NOTE: auto-running the real drawer expand→collapse at load (to replicate
+      // the manual fix) was tried and did NOT help — so the trigger is not the
+      // open/close action itself but something a real finger does (most likely
+      // a real scroll hiding the iOS address bar → viewport resize). Removed.
     }
 
     let activePopup, stationPopup, fullscreenMap;
