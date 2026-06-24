@@ -169,34 +169,29 @@ PAYWALL_CSS = """
     html.tmw-paid .tmw-paid-only { display: inline; }
     .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
     .tmw-loadmore:hover { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.55); }
-    /* "Part of <District>" chip — lives here in PAYWALL_CSS so BOTH market
-       pages AND firm pages (which import PAYWALL_CSS) inherit the rule.
-       Without this, the firm pages were rendering the chip span as plain
-       text because the .card-parent-chip styling was only inside the market
-       page's local <style> block. .card-head pre-reserves space for the
-       chip across all cards in a grid so timeline/minis align horizontally
-       even when some cards have a chip and others don't (Jake: "empty space
-       for other places"). */
+    /* "Part of <District>" chip — overlaid on .card-img in the bottom-left
+       corner so cards stay aligned by default (no body-space reservation
+       needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
+       (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
+       position:relative — handled by the existing card styles. */
+    .card-img { position: relative; }
     .card-parent-chip {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      z-index: 2;
       display: inline-flex; align-items: center;
-      margin-top: 6px;
-      padding: 2px 7px;
+      padding: 4px 9px;
       font-family: var(--sans); font-size: 11px; font-weight: 600;
       color: #C9BBFF;
-      background: rgba(167,139,250,0.14);
-      border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 5px;
-      max-width: 100%;
+      background: rgba(20, 17, 36, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(167,139,250,0.46);
+      border-radius: 6px;
+      max-width: calc(100% - 20px);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    /* Invisible placeholder — keeps non-child cards the same height as
-       cards that DO have a chip, so a grid of mixed cards stays aligned. */
-    .card-parent-chip-placeholder {
-      display: inline-flex; align-items: center;
-      margin-top: 6px;
-      padding: 2px 7px;
-      font-size: 11px; line-height: 1.3;
-      visibility: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
 """
 
@@ -501,33 +496,25 @@ def card_html(p: dict) -> str:
     # the inner one, which collapses our whole card layout. Wrap just the
     # image + title + meta + timeline in a single <a> (.card-link) and
     # keep the firms as separate sibling links.
-    # Part-of-district chip — rendered as a SPAN inline inside .card-head,
-    # directly below the city line. Jake's rule: title and city stay close,
-    # chip is the third row in the title block (not pushing card content
-    # down at the very bottom). Kept as <span> instead of <a> so it sits
-    # inside the outer .card-link <a> without nested-anchor HTML issues;
-    # clicks bubble to the card link (child's project page). To reach the
-    # umbrella, the user opens the child and follows the chip on its modal.
+    # Part-of-district chip — positioned absolute over the .card-img in the
+    # bottom-left corner (Jake's spec). No body-space reservation needed
+    # anymore since the chip floats over the image; cards stay aligned by
+    # default. Standalone projects render no chip at all.
     parent_slug_str = (p.get('ParentSlug') or '').strip()
     parent_title = _PARENT_TITLE_BY_SLUG.get(parent_slug_str, '') if parent_slug_str else ''
-    # Standalone projects render an invisible placeholder of the same size
-    # as the real chip — keeps cards in a grid the SAME height so timeline
-    # + stat rows align horizontally across child + non-child cards.
     parent_chip_html = (
-        f'        <span class="card-parent-chip">Part of {esc(parent_title)}</span>\n'
-        if parent_title
-        else f'        <span class="card-parent-chip-placeholder" aria-hidden="true">·</span>\n'
+        f'<span class="card-parent-chip">Part of {esc(parent_title)}</span>'
+        if parent_title else ''
     )
 
     return (
         f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
-        f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}</div>\n'
+        f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}{parent_chip_html}</div>\n'
         f'    <div class="card-body">\n'
         f'      <div class="card-head">\n'
         f'        <div class="card-title">{title}</div>\n'
         f'        <div class="card-loc">{loc_line}</div>\n'
-        f'{parent_chip_html}'
         f'      </div>\n'
         f'      {last_v_html}\n'
         f'      {timeline_html}\n'

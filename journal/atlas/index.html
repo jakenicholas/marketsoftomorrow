@@ -355,13 +355,11 @@
      tight). Cards with 2-line titles get a slightly taller head — fine. */
   .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .apcards .card-loc{font-family:var(--sans);font-size:13px;color:var(--mute-2);margin-bottom:14px}
-  /* Part-of-district chip — sits inside .card-body right under .card-loc, so
-     it's the 3rd line of the title block. Span (not <a>) so clicks bubble
-     to the outer card-link. Same purple chip vocabulary as the rest of the
-     site. Shrinks margin between city and chip so they read as one block. */
-  .apcards .card-parent-chip{display:inline-flex;align-items:center;margin-top:-6px;margin-bottom:12px;padding:2px 7px;font-family:var(--sans);font-size:11px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* Reserved placeholder on standalone projects — keeps grid heights consistent. */
-  .apcards .card-parent-chip-placeholder{display:inline-flex;align-items:center;margin-top:-6px;margin-bottom:12px;padding:2px 7px;font-size:11px;line-height:1.3;visibility:hidden}
+  /* Part-of-district chip — overlaid on .card-img bottom-left so cards
+     stay aligned by default (no body-space reservation needed). Matches
+     the market/firm card chip in PAYWALL_CSS. */
+  .apcards .card-img{position:relative}
+  .apcards .card-parent-chip{position:absolute;left:10px;bottom:10px;z-index:2;display:inline-flex;align-items:center;padding:4px 9px;font-family:var(--sans);font-size:11px;font-weight:600;color:#C9BBFF;background:rgba(20,17,36,0.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(167,139,250,0.46);border-radius:6px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,0.35)}
   .apcards .pm-tl{margin-bottom:14px}
   .apcards .pm-tl-date{text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
   .apcards .pm-tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
@@ -1782,19 +1780,17 @@
         );
         _parentName = (_parentFeat && _parentFeat.properties && _parentFeat.properties.title) || '';
       }
-      // Invisible placeholder on standalone projects so chip space is
-       // reserved across the grid (Jake: "empty space for other places")
-       // and timeline/minis stay horizontally aligned across mixed cards.
+      // Chip overlays the .card-img bottom-left — no body-space reservation
+       // needed since the chip floats over the image.
       const parentChipHtml = _parentName
         ? `<span class="card-parent-chip">Part of ${escapeHtml(_parentName)}</span>`
-        : `<span class="card-parent-chip-placeholder" aria-hidden="true">·</span>`;
+        : '';
       return `<div class="card${featured ? ' featured' : ''}"${featured ? ' data-featured="1"' : ''}>
         <a class="card-link" href="${escapeHtml(href)}" aria-label="Open ${title}">
-          <div class="card-img" style="${imgStyle}">${featStar}</div>
+          <div class="card-img" style="${imgStyle}">${featStar}${parentChipHtml}</div>
           <div class="card-body">
             <div class="card-title">${title}</div>
             <div class="card-loc">${loc}</div>
-            ${parentChipHtml}
             ${buildCardProgress(p)}
             ${minisHtml}
           </div>
