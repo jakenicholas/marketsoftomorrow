@@ -1617,10 +1617,17 @@
     var when = ((e.type || '').toLowerCase() === 'status_change' && e.event_date) ? fmtEv(e.event_date) : rel(e.timestamp);
     var meta = (e.city ? esc(e.city) + ' · ' : '') + esc(when);
     var chip = lab ? '<span class="pi-tag pi-' + labelClass(e) + '">' + esc(lab) + '</span>' : '';
+    // Parent-district context — when this pulse event is for a COMPONENT of an
+    // umbrella district (generate_pulse.py now writes parent_slug/title on
+    // child events), append a third sub-line "Part of <District>" so the
+    // reader sees the relationship inline with the event.
+    var partOf = e.parent_title
+      ? '<div class="pi-partof">Part of ' + esc(e.parent_title) + '</div>'
+      : '';
     return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
       '<div class="pi-title">' + esc(title(e)) + '</div>' +
-      '<div class="pi-meta">' + meta + '</div></div>' +
+      '<div class="pi-meta">' + meta + '</div>' + partOf + '</div>' +
       '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
   }
   // Fallback when the 2-week window is empty: the most recent few (by event date),
@@ -1682,6 +1689,10 @@
       '.tmw-pulse-item .pi-tag.pi-article{color:#8FB8FF}',
       '.tmw-pulse-item .pi-title{font-size:13px;font-weight:600;color:#ECEAE5;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
       '.tmw-pulse-item .pi-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}',
+      // "Part of <District>" sub-line on child-component pulse events.
+      // Purple to match the parent-chip vocabulary used across the rest of
+      // the site (drawer/modal/search chips, TMW Intelligence anchor).
+      '.tmw-pulse-item .pi-partof{font-size:10.5px;font-weight:600;color:#C9BBFF;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',
       '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',

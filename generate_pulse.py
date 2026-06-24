@@ -302,11 +302,16 @@ def fetch_csv_projects():
         return {}
 
     projects = {}
+    # Second pass after loading uses slug_to_title to resolve parent display
+    # names — needs every project loaded first since a child can appear before
+    # its parent in the rows.
+    slug_to_title = {}
     for row in rows:
         title = (row.get('Project Name') or row.get('Title') or row.get('title') or '').strip()
         if not title:
             continue
         slug = slugify(title)
+        slug_to_title[(row.get('Slug') or '').strip()] = title  # tmw-data slug -> title
         projects[slug] = {
             'slug': slug,
             'title': title,
@@ -318,7 +323,17 @@ def fetch_csv_projects():
             # Sourced, event-dated change log — the Pulse now surfaces these real
             # milestones (financing, topped out, etc.) instead of bare status diffs.
             'status_history': row.get('StatusHistory') or [],
+            # Parent district linkage (None when standalone). The pulse-event
+            # builders below propagate this so the feed can tag child events
+            # with "Part of <District>" inline.
+            'parent_slug': (row.get('ParentSlug') or '').strip(),
+            'parent_title': '',  # filled in below once all titles are known
         }
+    # Resolve parent_title for every component now that all rows are loaded.
+    for p in projects.values():
+        ps = p.get('parent_slug') or ''
+        if ps and ps in slug_to_title:
+            p['parent_title'] = slug_to_title[ps]
     return projects
 
 def slugify(title):
@@ -859,7 +874,7 @@ def build_milestone_event(slug, project, entry):
         ekey = (entry.get('to') or '').lower()
         label = DOSSIER_STATUS_LABEL.get(ekey, ekey.replace('-', ' ').title() or 'Update')
     at = entry.get('at') or datetime.now(timezone.utc).isoformat()
-    return {
+    ev = {
         'id': f"ms-{slug}-{ekey}-{at[:10]}",
         'type': 'status_change',
         'tag': label,
@@ -873,9 +888,15 @@ def build_milestone_event(slug, project, entry):
         'link': f"{SITE_URL}/?project=" + re.sub(r'[^a-z0-9]', '', project['title'].lower()),
         'timestamp': at,  # feed order = when TMW tracked it
     }
+    # Parent-district context — let the feed UI tag child events with "Part of
+    # <District>" inline without having to re-derive the relationship.
+    if project.get('parent_title'):
+        ev['parent_slug'] = project.get('parent_slug', '')
+        ev['parent_title'] = project['parent_title']
+    return ev
 
 def build_status_change_event(slug, project, prev_status, new_status):
-    return {
+    ev = {
         'id': f"status-{slug}-{new_status.replace(' ', '-')}",
         'type': 'status_change',
         'tag': STATUS_LABELS.get(new_status, new_status.title()),
@@ -887,6 +908,10 @@ def build_status_change_event(slug, project, prev_status, new_status):
         'link': f"{SITE_URL}/?project={re.sub(r'[^a-z0-9]', '', project['title'].lower())}",
         'timestamp': datetime.now(timezone.utc).isoformat(),
     }
+    if project.get('parent_title'):
+        ev['parent_slug'] = project.get('parent_slug', '')
+        ev['parent_title'] = project['parent_title']
+    return ev
 
 # Phases that don't count as "movement" — being announced/planned ≈ just being
 # newly tracked, so they neither suppress a tracking event nor emit a milestone.
@@ -914,7 +939,7 @@ def _has_emittable_story(slug, project, seen_history_keys):
 def build_tracking_event(slug, project):
     """'Now tracking X' — TMW started covering this project. A meta event,
     distinct from the project's own progress milestones."""
-    return {
+    ev = {
         'id': f"track-{slug}",
         'type': 'tracking',
         'tag': 'Tracking',
@@ -926,6 +951,10 @@ def build_tracking_event(slug, project):
         'link': f"{SITE_URL}/?project={re.sub(r'[^a-z0-9]', '', project['title'].lower())}",
         'timestamp': datetime.now(timezone.utc).isoformat(),
     }
+    if project.get('parent_title'):
+        ev['parent_slug'] = project.get('parent_slug', '')
+        ev['parent_title'] = project['parent_title']
+    return ev
 
 
 def build_grouped_tracking_event(items):
