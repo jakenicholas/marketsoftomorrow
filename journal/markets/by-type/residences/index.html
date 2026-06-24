@@ -119,6 +119,23 @@
     .card-link { display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }
     /* firm row pinned to the bottom so it lines up across every card in a row */
     .card-firms-wrap { padding: 0 20px 20px; margin-top: auto; }
+    /* "Part of <District>" chip on child-component cards. Sits inside the
+       card-head as a 3rd line under the city — Jake's rule: title + city
+       stay close, chip is the next row. Inline-flex so it shrinks to its
+       text. Click bubbles to the parent .card-link (child's project page).
+       Subtle purple pill matching the parent-chip vocabulary site-wide. */
+    .card-parent-chip {
+      display: inline-flex; align-items: center;
+      margin-top: 6px;
+      padding: 2px 7px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      color: #C9BBFF;
+      background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32);
+      border-radius: 5px;
+      max-width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge { position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }
     .card-feat-badge svg { width:12px; height:12px; fill:#0a0a0a; }
@@ -130,7 +147,7 @@
        down by a reserved 2nd title line). The wrapper carries the alignment reserve
        so everything BELOW (timeline, stats, firms) stays horizontally aligned across
        tiles whether the title is 1 or 2 lines. */
-    .card-head { min-height: 76px; margin-bottom: 14px; }
+    .card-head { min-height: 50px; margin-bottom: 12px; }
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc { font-family: var(--sans); font-size: 13px; color: var(--mute-2); }
     .card-verified { display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }
@@ -7245,6 +7262,7 @@
       <div class="card-head">
         <div class="card-title">Nora Apartments</div>
         <div class="card-loc">West Palm Beach · Nora District</div>
+        <span class="card-parent-chip">Part of The Nora District</span>
       </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
@@ -7267,6 +7285,7 @@
       <div class="card-head">
         <div class="card-title">Nora House</div>
         <div class="card-loc">West Palm Beach · Nora District</div>
+        <span class="card-parent-chip">Part of The Nora District</span>
       </div>
       <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jun 20, 2026</span></div>
       
