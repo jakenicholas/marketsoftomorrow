@@ -12440,6 +12440,29 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setAppHeight);
     else setAppHeight();
 
+    // ── Mobile map lag fix: keep the GL canvas matched to the VISIBLE viewport ──
+    // The #map container is sized by --app-height, which setAppHeight updates when
+    // the mobile address bar shows/hides (visualViewport 'resize'). But map.resize()
+    // was only called by _warmMap at fixed times (load/350/1000ms) — NOT when the
+    // viewport actually changed. So the first pan hides the address bar, the
+    // container resizes via CSS, but the Mapbox canvas keeps its old backing-store
+    // size → it renders oversized against the visible area and pan/zoom crawls.
+    // That's the lag that only cleared after opening the drawer (scrolling it let
+    // the address bar settle into a size the stale canvas happened to match).
+    // Resize the canvas on every viewport size change so it always matches.
+    let _mapVpResizeT;
+    const _resizeMapToViewport = () => {
+      clearTimeout(_mapVpResizeT);
+      _mapVpResizeT = setTimeout(() => {
+        try { if (window._tmwMap) { window._tmwMap.resize(); window._tmwMap.triggerRepaint(); } } catch (e) {}
+      }, 120);
+    };
+    window.addEventListener('resize', _resizeMapToViewport);
+    window.addEventListener('orientationchange', () => setTimeout(_resizeMapToViewport, 300));
+    if ('visualViewport' in window) {
+      window.visualViewport.addEventListener('resize', _resizeMapToViewport);
+    }
+
     // Build version — to verify deploys in DevTools: window.__buildVersion
     window.__buildVersion = '2026-05-04T05:00Z account-modal-overhaul';
 
