@@ -860,28 +860,23 @@
 
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .cv-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .cv-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .cv-featured { display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }
-    .cv-featured:hover { border-color: rgba(31,223,103,0.3); }
-    .cv-featured-img { width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }
-    .cv-featured-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .cv-featured-body { padding: 14px 16px 16px; }
-    .cv-featured-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }
-    .cv-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-    .cv-row { background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }
-    .cv-row:hover { background: #0a0a0a; }
-    .cv-thumb { width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }
-    .cv-row-body { flex: 1; min-width: 0; }
-    .cv-row-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .cv-row-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-row-arrow { color: rgba(255,255,255,0.4); flex-shrink: 0; }
-    .cv-row-arrow svg { stroke: currentColor; fill: none; }
-    .cv-view-all { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
-    .cv-view-all:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
-    .cv-view-all svg { stroke: currentColor; fill: none; }
+    /* Coverage on TMW — reuses Family card structure (purple-accented grid).
+       Card title clamps to 3 lines instead of 2 since article headlines run
+       longer than project names. Date sits in the same corner pill slot
+       Family uses for status. <details> reveals articles past the first 6. */
+    .pp-cov .pp-fam-t { -webkit-line-clamp: 3; }
+    .pp-cov-grid { }
+    .pp-cov-more-wrap { margin-top: 14px; }
+    .pp-cov-more-wrap > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1px solid rgba(167,139,250,.30); border-radius: 999px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #C9BBFF; background: rgba(167,139,250,.06); transition: border-color .15s, background .15s, color .15s; }
+    .pp-cov-more-wrap > summary::-webkit-details-marker { display: none; }
+    .pp-cov-more-wrap > summary::marker { display: none; content: ''; }
+    .pp-cov-more-wrap > summary:hover { border-color: rgba(167,139,250,.60); background: rgba(167,139,250,.12); color: #fff; }
+    .pp-cov-more-wrap > summary svg { transition: transform .2s; stroke: currentColor; fill: none; }
+    .pp-cov-more-wrap[open] > summary { margin-bottom: 14px; }
+    .pp-cov-more-wrap[open] > summary svg { transform: rotate(180deg); }
+    .pp-cov-more-wrap .pp-cov-more-hide { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-show { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-hide { display: inline; }
 
     /* ============ Cinematic project layout ============ */
     .pp { position: relative; }
@@ -1096,73 +1091,7 @@
     </a></div>
       
       
-      
-  <section class="coverage-section">
-    <div class="cv-header">
-      <h2 class="cv-title">Coverage on TMW <span class="cv-count">14</span></h2>
-    </div>
-    <a class="cv-featured" href="https://www.oftmw.com/post/related-ross-shares-a-look-at-the-future-of-west-palm-beach" target="_blank" rel="noopener">
-      <div class="cv-featured-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e387e9d8255411fb67a29de30a9c226~mv2.jpg')">
-        <div class="cv-featured-tag">Latest</div>
-      </div>
-      <div class="cv-featured-body">
-        <div class="cv-featured-title">Related Ross shares a look at the future of West Palm Beach</div>
-        <div class="cv-meta">Feb 13, 2026</div>
-      </div>
-    </a>
-    <div class="cv-list">
-          <a class="cv-row" href="https://www.oftmw.com/post/related-ross-just-secured-the-biggest-construction-loan-in-florida-history" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df3f460114264608b037c16850c70cd0~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Related Ross secures the biggest construction loan in Florida history</div>
-              <div class="cv-row-meta">Dec 19, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/palm-beach-county-shatters-tourism-record-as-demand-surges" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c0e48a45876477a9cdbd777514ca02c~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Palm Beach County shatters tourism record as demand surges</div>
-              <div class="cv-row-meta">Nov 14, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/the-wall-street-journal-launches-inaugural-event-in-west-palm-beach" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3b64bed8bc50489f8e5d4d0427e0b54c~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">The Wall Street Journal launches inaugural event in West Palm Beach</div>
-              <div class="cv-row-meta">Oct 29, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/equinox-to-debut-it-s-first-location-in-the-palm-beaches-next-month" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25b03b10a3ea459f9d054ccd6d1d90c8~mv2.png')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Equinox to debut it's first location in The Palm Beaches next month </div>
-              <div class="cv-row-meta">Oct 28, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        </div>
-    
-          <a class="cv-view-all" href="https://www.oftmw.com/?q=15+CityPlace" target="_blank" rel="noopener">
-            View all 14 articles
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        
-  </section>
-
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Coverage on TMW</div><div class="pp-fam-lead">15 CityPlace has been covered in 14 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-ross-shares-a-look-at-the-future-of-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e387e9d8255411fb67a29de30a9c226~mv2.jpg')"><span class="pp-fam-status">Feb 13, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Ross shares a look at the future of West Palm Beach</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-ross-just-secured-the-biggest-construction-loan-in-florida-history" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df3f460114264608b037c16850c70cd0~mv2.jpeg')"><span class="pp-fam-status">Dec 19, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Ross secures the biggest construction loan in Florida history</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/palm-beach-county-shatters-tourism-record-as-demand-surges" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c0e48a45876477a9cdbd777514ca02c~mv2.jpg')"><span class="pp-fam-status">Nov 14, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Palm Beach County shatters tourism record as demand surges</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/the-wall-street-journal-launches-inaugural-event-in-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3b64bed8bc50489f8e5d4d0427e0b54c~mv2.jpg')"><span class="pp-fam-status">Oct 29, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">The Wall Street Journal launches inaugural event in West Palm Beach</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/equinox-to-debut-it-s-first-location-in-the-palm-beaches-next-month" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25b03b10a3ea459f9d054ccd6d1d90c8~mv2.png')"><span class="pp-fam-status">Oct 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Equinox to debut it's first location in The Palm Beaches next month </div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/olukai-the-hawaiian-inspired-footwear-brand-opens-its-doors-at-cityplace" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8d2c2d27b5934b7a83e452e66e8397a7~mv2.jpg')"><span class="pp-fam-status">Oct 24, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">OluKai, the Hawaiian-inspired footwear brand, opens its doors at CityPlace</div></div></a></div><details class="pp-cov-more-wrap"><summary class="pp-cov-more"><span class="pp-cov-more-show">Show all 14 articles</span><span class="pp-cov-more-hide">Show less</span><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></summary><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/margit-brandt-says-up-to-30-of-wall-street-is-interested-in-moving-to-south-florida" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9eb0cbc2a044408486a0eada4f3f0cc7~mv2.png')"><span class="pp-fam-status">Sep 9, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Margit Brandt says up to 30% of Wall Street is interested in moving to South Florida</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/equinox-unveils-its-new-west-palm-beach-club-arriving-this-fall" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ffc167a160af43df95b9853f6d4d8ce6~mv2.jpg')"><span class="pp-fam-status">Jul 12, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Equinox unveils its new West Palm Beach club, arriving this fall</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/palm-beach-improv-and-copper-blues-to-open-at-the-mall-at-wellington-green" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f86e801bd6694bb68a3c913fbbb27914~mv2.webp')"><span class="pp-fam-status">Jun 6, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Palm Beach Improv and Copper Blues to open at The Mall at Wellington Green</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/eric-silagy-joins-related-ross-as-vice-chairman-to-accelerate-south-florida-s-transformation" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0372a6ba3788474891736e567f5a32f2~mv2.jpg')"><span class="pp-fam-status">May 21, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Eric Silagy joins Related Ross to accelerate South Florida’s transformation</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/cleveland-clinic-unveils-new-hospital-in-the-heart-of-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d1e8fd181ea74a9cb0df7751467fa90b~mv2.jpg')"><span class="pp-fam-status">Feb 24, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Cleveland Clinic unveils new hospital in the heart of West Palm Beach</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/cityplace-announces-equinox-fitness-club-alo-moxie-s-and-crate-barrel" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d588c9963454fe49f491fd90278e6af~mv2.jpg')"><span class="pp-fam-status">Nov 21, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">CityPlace announces Equinox Fitness Club, Alo, Moxie’s, and Crate &amp; Barrel</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/cityplace-to-host-temporary-pickleball-shopping-pop-up-at-future-office-towers-site" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8cca73e3cdeb4572b28ba0142b272076~mv2.jpg')"><span class="pp-fam-status">Oct 19, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">CityPlace to host temporary pickleball, shopping pop-up at future office towers site</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/six-new-projects-that-are-reshaping-the-future-of-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_853a7a00a1824639b1df7ab28240b669~mv2.jpg')"><span class="pp-fam-status">Jul 15, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Six new projects that are reshaping the future of West Palm Beach</div></div></a></div></details></div>
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/dutchmans-pipe/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dutchman's Pipe</div><div class="pp-near-m">West Palm Beach · Golf</div></div></a><a class="pp-near-card" href="/projects/pine-crest-school-west-palm-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db1488239c81-Upper-school-building.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Pine Crest School West Palm Beach</div><div class="pp-near-m">West Palm Beach · Education</div></div></a><a class="pp-near-card" href="/projects/coleman-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Coleman Park</div><div class="pp-near-m">West Palm Beach · Mixed-Use</div></div></a></div></div>
     </div>
   </main>

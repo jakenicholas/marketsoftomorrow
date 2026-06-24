@@ -860,28 +860,23 @@
 
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .cv-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .cv-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .cv-featured { display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }
-    .cv-featured:hover { border-color: rgba(31,223,103,0.3); }
-    .cv-featured-img { width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }
-    .cv-featured-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .cv-featured-body { padding: 14px 16px 16px; }
-    .cv-featured-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }
-    .cv-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-    .cv-row { background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }
-    .cv-row:hover { background: #0a0a0a; }
-    .cv-thumb { width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }
-    .cv-row-body { flex: 1; min-width: 0; }
-    .cv-row-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .cv-row-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-row-arrow { color: rgba(255,255,255,0.4); flex-shrink: 0; }
-    .cv-row-arrow svg { stroke: currentColor; fill: none; }
-    .cv-view-all { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
-    .cv-view-all:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
-    .cv-view-all svg { stroke: currentColor; fill: none; }
+    /* Coverage on TMW — reuses Family card structure (purple-accented grid).
+       Card title clamps to 3 lines instead of 2 since article headlines run
+       longer than project names. Date sits in the same corner pill slot
+       Family uses for status. <details> reveals articles past the first 6. */
+    .pp-cov .pp-fam-t { -webkit-line-clamp: 3; }
+    .pp-cov-grid { }
+    .pp-cov-more-wrap { margin-top: 14px; }
+    .pp-cov-more-wrap > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1px solid rgba(167,139,250,.30); border-radius: 999px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #C9BBFF; background: rgba(167,139,250,.06); transition: border-color .15s, background .15s, color .15s; }
+    .pp-cov-more-wrap > summary::-webkit-details-marker { display: none; }
+    .pp-cov-more-wrap > summary::marker { display: none; content: ''; }
+    .pp-cov-more-wrap > summary:hover { border-color: rgba(167,139,250,.60); background: rgba(167,139,250,.12); color: #fff; }
+    .pp-cov-more-wrap > summary svg { transition: transform .2s; stroke: currentColor; fill: none; }
+    .pp-cov-more-wrap[open] > summary { margin-bottom: 14px; }
+    .pp-cov-more-wrap[open] > summary svg { transform: rotate(180deg); }
+    .pp-cov-more-wrap .pp-cov-more-hide { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-show { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-hide { display: inline; }
 
     /* ============ Cinematic project layout ============ */
     .pp { position: relative; }
@@ -1096,68 +1091,7 @@
     </a></div>
       
       
-      
-  <section class="coverage-section">
-    <div class="cv-header">
-      <h2 class="cv-title">Coverage on TMW <span class="cv-count">5</span></h2>
-    </div>
-    <a class="cv-featured" href="https://www.oftmw.com/post/related-group-breaks-ground-on-manor-riverwalk-district-the-first-phase-of-a-1-billion-tampa-master-plan" target="_blank" rel="noopener">
-      <div class="cv-featured-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/580684acf7a6-Related-Group-Riverwalk-District-03-Parker-Street-cam-01.jpeg')">
-        <div class="cv-featured-tag">Latest</div>
-      </div>
-      <div class="cv-featured-body">
-        <div class="cv-featured-title">Related Group breaks ground on Manor Riverwalk District, the first phase of a $1 billion Tampa master plan</div>
-        <div class="cv-meta">Jun 16, 2026</div>
-      </div>
-    </a>
-    <div class="cv-list">
-          <a class="cv-row" href="https://www.oftmw.com/post/naples-most-extraordinary-new-beachfront-estates-debut-at-olana" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f12b797041fd43a2b9a0dabe66903ccb~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Naples’ most extraordinary new beachfront estates debut at Olana</div>
-              <div class="cv-row-meta">Dec 1, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/eight-beautiful-residences-that-are-redefining-luxury-living-in-tampa-bay" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71fde1735d9c4f08875650bb7be4342e~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Eight beautiful residences that are redefining luxury living in Tampa Bay</div>
-              <div class="cv-row-meta">Aug 30, 2024</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/eight-game-changing-projects-that-are-shaping-the-future-of-tampa-bay" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef2304c6ae04491a1184d210496a501~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Eight game-changing projects that are shaping the future of Tampa Bay</div>
-              <div class="cv-row-meta">Jul 16, 2024</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/one-tampa-set-to-be-the-tallest-residential-tower-in-the-city-breaks-ground" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_74e110b2a5e1467fa0fce5bf7761a94a~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">One Tampa, set to be the tallest residential tower in the city, breaks ground</div>
-              <div class="cv-row-meta">Jul 11, 2024</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        </div>
-    
-  </section>
-
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Coverage on TMW</div><div class="pp-fam-lead">ONE Tampa has been covered in 5 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-group-breaks-ground-on-manor-riverwalk-district-the-first-phase-of-a-1-billion-tampa-master-plan" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/580684acf7a6-Related-Group-Riverwalk-District-03-Parker-Street-cam-01.jpeg')"><span class="pp-fam-status">Jun 16, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Group breaks ground on Manor Riverwalk District, the first phase of a $1 billion Tampa master plan</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naples-most-extraordinary-new-beachfront-estates-debut-at-olana" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f12b797041fd43a2b9a0dabe66903ccb~mv2.jpg')"><span class="pp-fam-status">Dec 1, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naples’ most extraordinary new beachfront estates debut at Olana</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/eight-beautiful-residences-that-are-redefining-luxury-living-in-tampa-bay" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71fde1735d9c4f08875650bb7be4342e~mv2.jpg')"><span class="pp-fam-status">Aug 30, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Eight beautiful residences that are redefining luxury living in Tampa Bay</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/eight-game-changing-projects-that-are-shaping-the-future-of-tampa-bay" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef2304c6ae04491a1184d210496a501~mv2.jpg')"><span class="pp-fam-status">Jul 16, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Eight game-changing projects that are shaping the future of Tampa Bay</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/one-tampa-set-to-be-the-tallest-residential-tower-in-the-city-breaks-ground" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_74e110b2a5e1467fa0fce5bf7761a94a~mv2.jpg')"><span class="pp-fam-status">Jul 11, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">One Tampa, set to be the tallest residential tower in the city, breaks ground</div></div></a></div></div>
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/water-street-tampa-entertainment-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4bcdea1811f74330b5673feea32e6145~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Water Street Tampa Entertainment District</div><div class="pp-near-m">Tampa · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/marina-pointe-luna/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Marina Pointe: Luna</div><div class="pp-near-m">Tampa · Residences</div></div></a><a class="pp-near-card" href="/projects/the-pendry-tampa-and-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bcfbc7ae06d643f1a59e408b6464e6cd~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Pendry Tampa and Residences</div><div class="pp-near-m">Tampa · Residences</div></div></a></div></div>
     </div>
   </main>

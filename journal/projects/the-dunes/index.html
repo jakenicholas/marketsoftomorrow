@@ -860,28 +860,23 @@
 
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .cv-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .cv-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .cv-featured { display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }
-    .cv-featured:hover { border-color: rgba(31,223,103,0.3); }
-    .cv-featured-img { width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }
-    .cv-featured-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .cv-featured-body { padding: 14px 16px 16px; }
-    .cv-featured-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }
-    .cv-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-    .cv-row { background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }
-    .cv-row:hover { background: #0a0a0a; }
-    .cv-thumb { width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }
-    .cv-row-body { flex: 1; min-width: 0; }
-    .cv-row-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .cv-row-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-row-arrow { color: rgba(255,255,255,0.4); flex-shrink: 0; }
-    .cv-row-arrow svg { stroke: currentColor; fill: none; }
-    .cv-view-all { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
-    .cv-view-all:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
-    .cv-view-all svg { stroke: currentColor; fill: none; }
+    /* Coverage on TMW — reuses Family card structure (purple-accented grid).
+       Card title clamps to 3 lines instead of 2 since article headlines run
+       longer than project names. Date sits in the same corner pill slot
+       Family uses for status. <details> reveals articles past the first 6. */
+    .pp-cov .pp-fam-t { -webkit-line-clamp: 3; }
+    .pp-cov-grid { }
+    .pp-cov-more-wrap { margin-top: 14px; }
+    .pp-cov-more-wrap > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1px solid rgba(167,139,250,.30); border-radius: 999px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #C9BBFF; background: rgba(167,139,250,.06); transition: border-color .15s, background .15s, color .15s; }
+    .pp-cov-more-wrap > summary::-webkit-details-marker { display: none; }
+    .pp-cov-more-wrap > summary::marker { display: none; content: ''; }
+    .pp-cov-more-wrap > summary:hover { border-color: rgba(167,139,250,.60); background: rgba(167,139,250,.12); color: #fff; }
+    .pp-cov-more-wrap > summary svg { transition: transform .2s; stroke: currentColor; fill: none; }
+    .pp-cov-more-wrap[open] > summary { margin-bottom: 14px; }
+    .pp-cov-more-wrap[open] > summary svg { transform: rotate(180deg); }
+    .pp-cov-more-wrap .pp-cov-more-hide { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-show { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-hide { display: inline; }
 
     /* ============ Cinematic project layout ============ */
     .pp { position: relative; }
@@ -1096,73 +1091,7 @@
     </a></div>
       
       
-      
-  <section class="coverage-section">
-    <div class="cv-header">
-      <h2 class="cv-title">Coverage on TMW <span class="cv-count">12</span></h2>
-    </div>
-    <a class="cv-featured" href="https://www.oftmw.com/post/sand-valley-opens-commons-jim-craig-s-first-solo-design-and-a-12-hole-tribute-to-prestwick" target="_blank" rel="noopener">
-      <div class="cv-featured-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/31ec9c598566-BCarter_2.jpeg')">
-        <div class="cv-featured-tag">Latest</div>
-      </div>
-      <div class="cv-featured-body">
-        <div class="cv-featured-title">Sand Valley opens Commons — Jim Craig's first solo design and a 12-hole tribute to Prestwick</div>
-        <div class="cv-meta">Jun 10, 2026</div>
-      </div>
-    </a>
-    <div class="cv-list">
-          <a class="cv-row" href="https://www.oftmw.com/post/miraval-opens-its-first-international-wellness-resort-at-the-red-sea" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_5d1b31db3f4d4eca8a1c3338a34fcea1~mv2.webp')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Miraval opens its first international wellness resort in The Red Sea</div>
-              <div class="cv-row-meta">May 15, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/oleada-los-cabos-a-new-oceanfront-golf-community-is-rising-in-los-cabos" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7b260d5dc7246e1a9b11d7b55b6c28d~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Oleada, a new oceanfront golf community, is rising in Los Cabos</div>
-              <div class="cv-row-meta">Apr 7, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/streamsong-unveils-its-fifth-championship-golf-course-bone-valley" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c24b3d53ab244a698382602ee81bdb78~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Streamsong unveils its fifth championship golf course, Bone Valley</div>
-              <div class="cv-row-meta">Mar 17, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/loraloma-private-club-and-estates-unveils-new-course-that-brings-links-golf-to-the-hill-country" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_e3dbcbe2246f42038f1776edc3d23610~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">One of Texas' most anticipated new golf courses debuts outside of Austin</div>
-              <div class="cv-row-meta">Mar 7, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        </div>
-    
-          <a class="cv-view-all" href="https://www.oftmw.com/?q=The+Dunes" target="_blank" rel="noopener">
-            View all 12 articles
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        
-  </section>
-
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Coverage on TMW</div><div class="pp-fam-lead">The Dunes has been covered in 12 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/sand-valley-opens-commons-jim-craig-s-first-solo-design-and-a-12-hole-tribute-to-prestwick" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/31ec9c598566-BCarter_2.jpeg')"><span class="pp-fam-status">Jun 10, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Sand Valley opens Commons — Jim Craig's first solo design and a 12-hole tribute to Prestwick</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/miraval-opens-its-first-international-wellness-resort-at-the-red-sea" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_5d1b31db3f4d4eca8a1c3338a34fcea1~mv2.webp')"><span class="pp-fam-status">May 15, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Miraval opens its first international wellness resort in The Red Sea</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/oleada-los-cabos-a-new-oceanfront-golf-community-is-rising-in-los-cabos" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7b260d5dc7246e1a9b11d7b55b6c28d~mv2.jpeg')"><span class="pp-fam-status">Apr 7, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Oleada, a new oceanfront golf community, is rising in Los Cabos</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/streamsong-unveils-its-fifth-championship-golf-course-bone-valley" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c24b3d53ab244a698382602ee81bdb78~mv2.jpeg')"><span class="pp-fam-status">Mar 17, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Streamsong unveils its fifth championship golf course, Bone Valley</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/loraloma-private-club-and-estates-unveils-new-course-that-brings-links-golf-to-the-hill-country" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_e3dbcbe2246f42038f1776edc3d23610~mv2.jpeg')"><span class="pp-fam-status">Mar 7, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">One of Texas' most anticipated new golf courses debuts outside of Austin</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/mclay-kidd-designed-course-and-massive-surf-park-unveiled-in-la-quinta" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg')"><span class="pp-fam-status">Mar 3, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">McLay Kidd-designed course and massive surf park unveiled in La Quinta</div></div></a></div><details class="pp-cov-more-wrap"><summary class="pp-cov-more"><span class="pp-cov-more-show">Show all 12 articles</span><span class="pp-cov-more-hide">Show less</span><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></summary><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/streamsong-unveils-new-golf-cabins-and-a-fifth-championship-course" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_69cb9a8cccd741bda955d397ca1e295c~mv2.jpg')"><span class="pp-fam-status">Feb 3, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Streamsong unveils new golf cabins and a fifth championship course</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/inside-old-shores-florida-s-most-ambitious-new-golf-destination" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_373f1c2ac9cd441caed6933cb112d26d~mv2.jpg')"><span class="pp-fam-status">Jan 16, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Inside Old Shores, Florida’s most ambitious new golf destination</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/inside-costa-palmas-the-1-500-acre-destination-shaping-baja-california-sur" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_47b4c82bd1e746aa92d57492c5be06f1~mv2.jpg')"><span class="pp-fam-status">Jul 14, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Inside Costa Palmas, the 1,500-acre destination shaping Baja California Sur</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/hyatt-debuts-its-first-inclusive-collection-resort-in-aruba" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_dc11309476b24a709b338075e5ed9968~mv2.jpg')"><span class="pp-fam-status">Jun 26, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Hyatt debuts its first Inclusive Collection resort in Aruba</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/one-of-the-country-s-best-golf-resorts-is-in-florida-and-it-looks-nothing-like-it" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3c7490a597ee43dfa2785b18755fec62~mv2.jpg')"><span class="pp-fam-status">Jun 5, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">One of the country’s best golf resorts is in Florida, and it looks nothing like it</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/delray-beach-was-just-named-the-best-beach-in-florida-by-usa-today-in-their-2024-readers-choice-awa" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_47f87bce4e4d46e89f7f84e21fdf6896~mv2.jpg')"><span class="pp-fam-status">May 30, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Delray Beach was just named the Best Beach in Florida by USA Today in their 2024 Readers’ Choice Award</div></div></a></div></details></div>
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-galleria-at-fort-lauderdale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bd805d0adf604dcbbe0b20758acf1038~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Galleria at Fort Lauderdale</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/sereno/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0ecd054f6656463daa85a049627ab83a~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Sereno</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fat-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">FAT Village</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a></div></div>
     </div>
   </main>

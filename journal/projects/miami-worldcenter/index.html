@@ -860,28 +860,23 @@
 
     /* ── Coverage on TMW: list of articles mentioning this project ── */
     .coverage-section { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .cv-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .cv-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .cv-count { font-size: 10px; background: rgba(31,223,103,0.12); color: #1FDF67; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.04em; }
-    .cv-featured { display: block; background: #000; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; margin-bottom: 12px; transition: border-color 0.15s; }
-    .cv-featured:hover { border-color: rgba(31,223,103,0.3); }
-    .cv-featured-img { width: 100%; height: 160px; background-size: cover; background-position: center; background-color: #000; position: relative; }
-    .cv-featured-tag { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #1FDF67; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .cv-featured-body { padding: 14px 16px 16px; }
-    .cv-featured-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; color: #fff; }
-    .cv-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
-    .cv-row { background: #000; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; transition: background 0.15s; }
-    .cv-row:hover { background: #0a0a0a; }
-    .cv-thumb { width: 56px; height: 56px; flex-shrink: 0; background-size: cover; background-position: center; background-color: #000; border-radius: 8px; }
-    .cv-row-body { flex: 1; min-width: 0; }
-    .cv-row-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 3px; color: #fff; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .cv-row-meta { font-size: 11px; color: rgba(255,255,255,0.4); }
-    .cv-row-arrow { color: rgba(255,255,255,0.4); flex-shrink: 0; }
-    .cv-row-arrow svg { stroke: currentColor; fill: none; }
-    .cv-view-all { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 12px; color: rgba(255,255,255,0.55); font-weight: 600; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
-    .cv-view-all:hover { color: #fff; border-color: rgba(255,255,255,0.18); }
-    .cv-view-all svg { stroke: currentColor; fill: none; }
+    /* Coverage on TMW — reuses Family card structure (purple-accented grid).
+       Card title clamps to 3 lines instead of 2 since article headlines run
+       longer than project names. Date sits in the same corner pill slot
+       Family uses for status. <details> reveals articles past the first 6. */
+    .pp-cov .pp-fam-t { -webkit-line-clamp: 3; }
+    .pp-cov-grid { }
+    .pp-cov-more-wrap { margin-top: 14px; }
+    .pp-cov-more-wrap > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border: 1px solid rgba(167,139,250,.30); border-radius: 999px; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #C9BBFF; background: rgba(167,139,250,.06); transition: border-color .15s, background .15s, color .15s; }
+    .pp-cov-more-wrap > summary::-webkit-details-marker { display: none; }
+    .pp-cov-more-wrap > summary::marker { display: none; content: ''; }
+    .pp-cov-more-wrap > summary:hover { border-color: rgba(167,139,250,.60); background: rgba(167,139,250,.12); color: #fff; }
+    .pp-cov-more-wrap > summary svg { transition: transform .2s; stroke: currentColor; fill: none; }
+    .pp-cov-more-wrap[open] > summary { margin-bottom: 14px; }
+    .pp-cov-more-wrap[open] > summary svg { transform: rotate(180deg); }
+    .pp-cov-more-wrap .pp-cov-more-hide { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-show { display: none; }
+    .pp-cov-more-wrap[open] .pp-cov-more-hide { display: inline; }
 
     /* ============ Cinematic project layout ============ */
     .pp { position: relative; }
@@ -1096,73 +1091,7 @@
     </a></div>
       
       
-      
-  <section class="coverage-section">
-    <div class="cv-header">
-      <h2 class="cv-title">Coverage on TMW <span class="cv-count">21</span></h2>
-    </div>
-    <a class="cv-featured" href="https://www.oftmw.com/post/miami-lands-two-new-dining-and-wellness-concepts-at-jem-private-residences" target="_blank" rel="noopener">
-      <div class="cv-featured-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7b8ea5db3a44436ab92058389fac2abc~mv2.jpeg')">
-        <div class="cv-featured-tag">Latest</div>
-      </div>
-      <div class="cv-featured-body">
-        <div class="cv-featured-title">Miami lands two new dining and wellness concepts at JEM Private Residences</div>
-        <div class="cv-meta">Apr 13, 2026</div>
-      </div>
-    </a>
-    <div class="cv-list">
-          <a class="cv-row" href="https://www.oftmw.com/post/jem-residences-unveils-exclusive-museum-and-yacht-partnerships" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">JEM Residences unveils exclusive museum and yacht partnerships</div>
-              <div class="cv-row-meta">Mar 26, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/naftali-group-tops-off-podium-level-at-jem-private-residences" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Naftali Group tops off podium level at JEM Private Residences</div>
-              <div class="cv-row-meta">Feb 18, 2026</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/jem-captivates-miami-worldcenter-with-fendi-casa-sky-villa-sale" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">JEM captivates Miami Worldcenter with FENDI Casa Sky Villa sale</div>
-              <div class="cv-row-meta">Nov 20, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        
-          <a class="cv-row" href="https://www.oftmw.com/post/los-angeles-iconic-yamashiro-to-debut-in-miami-this-october" target="_blank" rel="noopener">
-            <div class="cv-thumb" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4510f987aac247a6a5838dbeea4627d8~mv2.jpg')"></div>
-            <div class="cv-row-body">
-              <div class="cv-row-title">Los Angeles’ century-old icon, Yamashiro, to debut in Miami this October</div>
-              <div class="cv-row-meta">Oct 9, 2025</div>
-            </div>
-            <div class="cv-row-arrow">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </a>
-        </div>
-    
-          <a class="cv-view-all" href="https://www.oftmw.com/?q=Miami+Worldcenter" target="_blank" rel="noopener">
-            View all 21 articles
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        
-  </section>
-
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Coverage on TMW</div><div class="pp-fam-lead">Miami Worldcenter has been covered in 21 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/miami-lands-two-new-dining-and-wellness-concepts-at-jem-private-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7b8ea5db3a44436ab92058389fac2abc~mv2.jpeg')"><span class="pp-fam-status">Apr 13, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Miami lands two new dining and wellness concepts at JEM Private Residences</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/jem-residences-unveils-exclusive-museum-and-yacht-partnerships" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Mar 26, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">JEM Residences unveils exclusive museum and yacht partnerships</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naftali-group-tops-off-podium-level-at-jem-private-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Feb 18, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naftali Group tops off podium level at JEM Private Residences</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/jem-captivates-miami-worldcenter-with-fendi-casa-sky-villa-sale" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Nov 20, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">JEM captivates Miami Worldcenter with FENDI Casa Sky Villa sale</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/los-angeles-iconic-yamashiro-to-debut-in-miami-this-october" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4510f987aac247a6a5838dbeea4627d8~mv2.jpg')"><span class="pp-fam-status">Oct 9, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Los Angeles’ century-old icon, Yamashiro, to debut in Miami this October</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/chef-danny-grant-brings-his-acclaimed-eight-bar-to-miami-worldcenter-s-maple-ash" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e329f49d547c402a9628120689420c0d~mv2.jpeg')"><span class="pp-fam-status">Oct 9, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Chef Danny Grant brings his acclaimed Eight Bar to Miami Worldcenter's Maple &amp; Ash</div></div></a></div><details class="pp-cov-more-wrap"><summary class="pp-cov-more"><span class="pp-cov-more-show">Show all 21 articles</span><span class="pp-cov-more-hide">Show less</span><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></summary><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/adam-neumann-launches-his-first-condominium-project-at-miami-worldcenter" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c06b28736aea49e7a56ec51444c9a9ca~mv2.jpg')"><span class="pp-fam-status">Oct 10, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Adam Neumann launches his first condominium project at Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/city-of-miami-residents-will-decide-on-watson-island-sfuture-this-november" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fe18aef5a6fc42ffa43c747eddfa7d3c~mv2.jpg')"><span class="pp-fam-status">Jul 29, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">The City of Miami residents will decide on Watson Island’s future this November</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/oak-row-equities-reveals-first-fifth-a-new-45-story-multifamily-tower-across-the-street-from-miam" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8a842a840bd34b30ba4ba32834318c5b~mv2.jpg')"><span class="pp-fam-status">Jun 18, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Oak Row Equities reveals First &amp; Fifth, a new 45-story multifamily tower across the street from MiamiCentral, designed by ODP Architecture &amp; Design </div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/one-of-the-united-states-largest-urban-developments-the-miami-worldcenter-is-95-leased-after-map" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60302738a8e746098baf862c704e8125~mv2.webp')"><span class="pp-fam-status">May 13, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">One of the United States’ largest urban developments, the Miami Worldcenter, is 95% leased after Maple &amp; Ash, Apple, Juvia, Museum of Ice Cream &amp; more secure space</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/apple-plans-biggest-ever-miami-offices-at-the-the-plaza-in-coral-gables-and-confirms-a-new-downtown" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4eec25f837046ceab66ee382adbde93~mv2.jpg')"><span class="pp-fam-status">Apr 11, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Apple plans biggest-ever Miami offices at The Plaza in Coral Gables and confirms a new Downtown retail store at the highly-anticipated Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/nichols-architects-reveals-design-for-53-story-mixed-use-tower-at-the-miami-worldcenter-including-a" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7921a3e49128437181a18007c321e8ce~mv2.webp')"><span class="pp-fam-status">Mar 14, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Nichols Architects reveals design for 53-story mixed-use tower at the Miami Worldcenter, including a 280-key hotel, retail space, a restaurant, and luxury condominiums </div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/merrimac-ventures-aria-development-group-officially-breaks-ground-on-one-of-downtown-miami-s-faste" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64dd6fb792864a20b116260727e18c56~mv2.webp')"><span class="pp-fam-status">Mar 12, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Merrimac Ventures &amp; Aria Development Group officially breaks ground on one of Downtown Miami's fastest-selling condo towers, the sold-out 600 Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/villa-one-tequila-gardens-co-founded-by-nick-jonas-and-john-varvatos-is-coming-to-the-rooftop-of-t" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c3e2f6a6047474ba4e018b581d85af6~mv2.webp')"><span class="pp-fam-status">Feb 15, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Villa One Tequila Gardens, co-founded by Nick Jonas and John Varvatos, is coming to the rooftop of theJewel Box building at the Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naftali-group-continues-sales-at-luxury-67-story-jem-private-residences-at-miami-world-center-marki" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8636da394834ac3b8362a422de38142~mv2.webp')"><span class="pp-fam-status">Jan 27, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naftali Group continues sales at luxury 67-story JEM Private Residences at Miami World Center, marking their first venture in Miami</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/miami-dda-launches-free-all-electric-downtown-miami-transit-circulator-in-partnership-with-freebee" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f350b24012024617924267a6283d9643~mv2.webp')"><span class="pp-fam-status">Dec 2, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Miami DDA launches free, all-electric Downtown Miami transit circulator in partnership with Freebee</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/the-hub-miami-a-41-story-mixed-use-tower-next-to-brightline-station-begin-construction-early-2024" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_30cddd972118401ba8081403ec9a5433~mv2.jpg')"><span class="pp-fam-status">Nov 1, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">The HUB Miami, a 41-story mixed use tower next to Brightline station begin construction early 2024</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/after-11-years-popular-south-beach-restaurant-juvia-will-relocate-to-the-miami-world-center" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_09a9b42c54514ca69002dc57997acc67~mv2.webp')"><span class="pp-fam-status">Oct 10, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">After 11 years, popular South Beach restaurant, Juvia, will relocate to the Miami World Center</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/abbhi-capital-propose-a-2-million-square-foot-mixed-use-development-in-miami-worldcenter" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_22792ef12a224c07903c87b429282ee0~mv2.webp')"><span class="pp-fam-status">Sep 17, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Abbhi Capital propose a 2 million-square-foot mixed-use development in Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/miamiworldcenter" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568831753a4d41e1b515b85fb6738afb~mv2.jpg')"><span class="pp-fam-status">Apr 24, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Miami World Center, the second-largest development in the U.S after New York's Hudson Yards</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/700footproposedresidentialtoweratmiamiworldcenter" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/984ef5_ed3d3e6ed945409d868f479ac5d2c5d7~mv2.webp')"><span class="pp-fam-status">Apr 17, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">700-Foot Proposed Residential Tower at Miami World Center</div></div></a></div></details></div>
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
