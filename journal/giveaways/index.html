@@ -25,7 +25,17 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;min-height:100vh;position:relative;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(820px 520px at 14% -12%,rgba(167,139,250,.16),transparent 60%),radial-gradient(760px 480px at 92% 0%,rgba(230,197,116,.10),transparent 62%)}
-.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:28px 24px 0}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* hero */
+.gv-hero{padding:64px 0 30px;text-align:center}
+.gv-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);display:inline-flex;align-items:center;gap:9px;margin-bottom:18px}
+.gv-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);animation:gvDot 1.6s ease-in-out infinite}
+@keyframes gvDot{0%,100%{opacity:1}50%{opacity:.35}}
+.gv-h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.02em;color:#fff}
+.gv-h1 em{font-style:italic;color:var(--gold-soft)}
+.gv-sub{margin:18px auto 0;max-width:60ch;font-size:15.5px;line-height:1.6;color:var(--mute-2)}
+.gv-note{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 
 /* grid + tiles */
 .gv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 0 80px}
@@ -47,6 +57,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .gv-quick:hover{color:var(--cream)}
 .gv-loading,.gv-empty{grid-column:1/-1;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:60px 0}
 
+/* signed-in pill */
+.gv-auth{display:flex;justify-content:center;margin-top:8px}
+.gv-auth .pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);border:1px solid var(--hair);border-radius:999px;padding:7px 14px}
+.gv-auth .pill b{color:var(--green-soft);font-weight:600}
+.gv-auth .pill a{color:var(--gold-soft);text-decoration:none;cursor:pointer}
 
 /* success screen */
 .gv-ok{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(5,6,5,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -67,11 +82,18 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 #gvToast.err{border-color:#ff7a7a;color:#ffc9c9}
 
 @media(max-width:860px){.gv-grid{grid-template-columns:repeat(2,1fr);gap:14px}}
-@media(max-width:560px){.gv-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.gv-grid{grid-template-columns:1fr}.gv-hero{padding:44px 0 18px}}
 </style>
 </head>
 <body>
 <main class="wrap">
+  <section class="gv-hero">
+    <div class="gv-eyebrow"><span class="dot"></span> Markets of Tomorrow Giveaways</div>
+    <h1 class="gv-h1">Win the <em>best</em> of what's next.</h1>
+    <p class="gv-sub">Gift cards and experiences from the restaurants, hotels, and destinations we cover. Make a free account, hit enter, and you're in the running.</p>
+    <p class="gv-note">Free to enter &middot; One entry per giveaway &middot; Winners notified by email</p>
+    <div class="gv-auth" id="gvAuth"></div>
+  </section>
   <section class="gv-grid" id="gvGrid">
     <div class="gv-loading">Loading giveaways…</div>
   </section>
@@ -129,7 +151,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   // ── render the signed-in / signed-out banner ──
   function paintAuth(){
-    if (!authEl) return;   // header/auth banner removed — Enter buttons gate auth
     var me = member();
     if (me){
       authEl.innerHTML = '<span class="pill">Signed in as <b>'+esc(me.name||me.email||'you')+'</b> — tap Enter to join</span>';
