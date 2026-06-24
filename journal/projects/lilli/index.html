@@ -843,6 +843,10 @@
     .dos-row-future .dos-label { color: rgba(255,255,255,.58); font-weight: 500; }
     .dos-date { font-size: 12px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
     .dos-date.dos-tbd { color: rgba(255,255,255,.35); }
+    /* Component attribution on district phasing rows (rendered only when the
+       milestone's `component` field is set — empty on standalone projects). */
+    .dos-component { font-size: 12.5px; font-weight: 600; color: #C9BBFF; }
+    .dos-row-future .dos-component { color: rgba(201,187,255,.6); }
     .dos-est { font-size: 9.5px; color: rgba(255,255,255,.4); margin-left: 5px; text-transform: uppercase; letter-spacing: .05em; }
     .dos-info { position: relative; display: inline-flex; align-items: center; margin-left: 7px; color: rgba(255,255,255,.34); cursor: help; vertical-align: middle; }
     .dos-info:hover, .dos-info:focus { color: rgba(255,255,255,.72); outline: none; }
@@ -889,6 +893,15 @@
     .pp-eyebrow .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
     .pp-h1 { font-size: 60px; font-weight: 800; letter-spacing: -.03em; line-height: 1.0; margin-top: 14px; text-shadow: 0 2px 40px rgba(0,0,0,.55); }
     .pp-loc { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.62); margin-top: 12px; }
+    /* Part-of-district chip on component project pages (e.g. Nora Hotel is
+       part of The Nora District). Hidden when ParentSlug is empty. Subtle
+       purple pill matching the map's .grid-parent-chip styling. */
+    .pp-parent-chip { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px;
+      padding: 4px 9px; font-size: 12px; font-weight: 600;
+      color: #C9BBFF; background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32); border-radius: 6px;
+      text-decoration: none; transition: background 0.15s ease, border-color 0.15s ease; }
+    .pp-parent-chip:hover { background: rgba(167,139,250,0.24); border-color: rgba(167,139,250,0.48); color: #fff; }
     .pp-lede { font-size: 14.5px; color: rgba(255,255,255,.84); line-height: 1.62; margin-top: 16px; max-width: 60ch; }
     .pp-hero .cta-row { max-width: 440px; margin-top: 22px; margin-bottom: 0; }
     .pp-hero .btn-primary { flex: 0 1 auto; padding: 13px 20px; }
@@ -1014,6 +1027,7 @@
             <span class="pp-eyebrow"><span class="d" style="color:#999999"></span>Announced</span>
             <h1 class="pp-h1">LILLI</h1>
             <div class="pp-loc">Miami · Residences</div>
+            
           </div>
           <div class="pp-gal" id="ppGal"><button class="pp-gal-prev" type="button" aria-label="Previous photo"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div class="pp-gal-dots"></div><span class="pp-gal-cnt"></span><button class="pp-gal-next" type="button" aria-label="Next photo"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button></div>
           <!-- Bio FIRST in the DOM (after the head) so search engines build the
