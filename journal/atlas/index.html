@@ -350,10 +350,16 @@
   .apcards .card-img{height:220px;background-size:cover;background-position:center;position:relative}
   .apcards .card-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.45) 100%)}
   .apcards .card-body{padding:18px 20px 4px}
-  /* Clamp to two lines and reserve that height so one- and two-line titles
-     keep the meter, stat tiles and firm cards aligned across the row. */
-  .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
+  /* Clamp at two lines for layout sanity; no min-height reservation so the
+     city sits CLOSE under the title for short names (Jake: title + city stay
+     tight). Cards with 2-line titles get a slightly taller head — fine. */
+  .apcards .card-title{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.014em;line-height:1.2;color:var(--white);margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .apcards .card-loc{font-family:var(--sans);font-size:13px;color:var(--mute-2);margin-bottom:14px}
+  /* Part-of-district chip — sits inside .card-body right under .card-loc, so
+     it's the 3rd line of the title block. Span (not <a>) so clicks bubble
+     to the outer card-link. Same purple chip vocabulary as the rest of the
+     site. Shrinks margin between city and chip so they read as one block. */
+  .apcards .card-parent-chip{display:inline-flex;align-items:center;margin-top:-6px;margin-bottom:12px;padding:2px 7px;font-family:var(--sans);font-size:11px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .apcards .pm-tl{margin-bottom:14px}
   .apcards .pm-tl-date{text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
   .apcards .pm-tl-meter{position:relative;height:11px;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.55)}
@@ -1759,12 +1765,31 @@
       ].join('');
       const minisHtml = `<div class="pp-minis">${minis}</div>`;
       const firms = `<div class="pp-firms">${_pcFirm('Developer', (p.developers || [])[0])}${_pcFirm('Architect', (p.architects || [])[0])}</div>`;
+      // Part-of-district chip — same logic as generate_market_pages.card_html.
+      // Sits as a span right under .card-loc inside .card-body so title/city
+      // stay close and the chip becomes the 3rd line of the title block.
+      // p.parentSlug + a parent title lookup (built in window._parentDisplayName
+      // for the map; on /atlas/ we have window.allProjectFeatures so we can
+      // resolve the title from there).
+      const _parentSlug = (p.parentSlug || '').trim();
+      let _parentName = '';
+      if (_parentSlug) {
+        const _parentFeat = (window.allProjectFeatures || []).find(f =>
+          f && f.properties && (f.properties.title || '').toLowerCase()
+            .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') === _parentSlug
+        );
+        _parentName = (_parentFeat && _parentFeat.properties && _parentFeat.properties.title) || '';
+      }
+      const parentChipHtml = _parentName
+        ? `<span class="card-parent-chip">Part of ${escapeHtml(_parentName)}</span>`
+        : '';
       return `<div class="card${featured ? ' featured' : ''}"${featured ? ' data-featured="1"' : ''}>
         <a class="card-link" href="${escapeHtml(href)}" aria-label="Open ${title}">
           <div class="card-img" style="${imgStyle}">${featStar}</div>
           <div class="card-body">
             <div class="card-title">${title}</div>
             <div class="card-loc">${loc}</div>
+            ${parentChipHtml}
             ${buildCardProgress(p)}
             ${minisHtml}
           </div>

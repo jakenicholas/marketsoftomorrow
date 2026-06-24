@@ -472,17 +472,17 @@ def card_html(p: dict) -> str:
     # the inner one, which collapses our whole card layout. Wrap just the
     # image + title + meta + timeline in a single <a> (.card-link) and
     # keep the firms as separate sibling links.
-    # Part-of-district chip — rendered below the loc line on child cards. The
-    # parent's display name comes from _PARENT_TITLE_BY_SLUG, populated once
-    # by set_parent_title_lookup() at the start of each consuming script's
-    # main(). The chip lives OUTSIDE the .card-link <a> so its href to the
-    # parent district doesn't get swallowed by the outer link (HTML disallows
-    # nested <a>); positioned absolutely over the card-body's top area.
+    # Part-of-district chip — rendered as a SPAN inline inside .card-head,
+    # directly below the city line. Jake's rule: title and city stay close,
+    # chip is the third row in the title block (not pushing card content
+    # down at the very bottom). Kept as <span> instead of <a> so it sits
+    # inside the outer .card-link <a> without nested-anchor HTML issues;
+    # clicks bubble to the card link (child's project page). To reach the
+    # umbrella, the user opens the child and follows the chip on its modal.
     parent_slug_str = (p.get('ParentSlug') or '').strip()
     parent_title = _PARENT_TITLE_BY_SLUG.get(parent_slug_str, '') if parent_slug_str else ''
     parent_chip_html = (
-        f'  <a class="card-parent-chip" href="{ROOT_URL}/projects/{esc(parent_slug_str)}/">'
-        f'Part of {esc(parent_title)} →</a>\n'
+        f'        <span class="card-parent-chip">Part of {esc(parent_title)}</span>\n'
     ) if parent_title else ''
 
     return (
@@ -493,13 +493,13 @@ def card_html(p: dict) -> str:
         f'      <div class="card-head">\n'
         f'        <div class="card-title">{title}</div>\n'
         f'        <div class="card-loc">{loc_line}</div>\n'
+        f'{parent_chip_html}'
         f'      </div>\n'
         f'      {last_v_html}\n'
         f'      {timeline_html}\n'
         f'      {minis_html}\n'
         f'    </div>\n'
         f'  </a>\n'
-        f'{parent_chip_html}'
         f'  <div class="card-firms-wrap">{firms_html}</div>\n'
         f'</div>'
     )
@@ -944,29 +944,22 @@ def render_page(
     .card-link {{ display: flex; flex-direction: column; flex: 1 1 auto; text-decoration: none; color: inherit; }}
     /* firm row pinned to the bottom so it lines up across every card in a row */
     .card-firms-wrap {{ padding: 0 20px 20px; margin-top: auto; }}
-    /* "Part of <District>" chip on child-component cards. Sits between the
-       card-link <a> and the firms wrap so its own <a> isn't nested inside
-       the card-link (HTML disallows nested interactive elements). Subtle
-       purple pill matching the parent-chip vocabulary used across the rest
-       of the site. */
+    /* "Part of <District>" chip on child-component cards. Sits inside the
+       card-head as a 3rd line under the city — Jake's rule: title + city
+       stay close, chip is the next row. Inline-flex so it shrinks to its
+       text. Click bubbles to the parent .card-link (child's project page).
+       Subtle purple pill matching the parent-chip vocabulary site-wide. */
     .card-parent-chip {{
-      display: inline-flex; align-items: center; gap: 4px;
-      margin: 4px 20px 8px;
-      padding: 4px 9px;
-      font-family: var(--sans); font-size: 11.5px; font-weight: 600;
+      display: inline-flex; align-items: center;
+      margin-top: 6px;
+      padding: 2px 7px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
       color: #C9BBFF;
       background: rgba(167,139,250,0.14);
       border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 6px;
-      text-decoration: none;
-      transition: background .15s ease, color .15s ease, border-color .15s ease;
-      max-width: calc(100% - 40px);
+      border-radius: 5px;
+      max-width: 100%;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }}
-    .card-parent-chip:hover {{
-      background: rgba(167,139,250,0.24);
-      border-color: rgba(167,139,250,0.48);
-      color: #fff;
     }}
     /* Smaller, square gold badge with star — matches map marker style */
     .card-feat-badge {{ position:absolute; top:10px; right:10px; z-index:2; width:22px; height:22px; border-radius:5px; background:var(--gold); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4); }}
@@ -979,7 +972,7 @@ def render_page(
        down by a reserved 2nd title line). The wrapper carries the alignment reserve
        so everything BELOW (timeline, stats, firms) stays horizontally aligned across
        tiles whether the title is 1 or 2 lines. */
-    .card-head {{ min-height: 76px; margin-bottom: 14px; }}
+    .card-head {{ min-height: 50px; margin-bottom: 12px; }}
     /* City/firm/location body font matches the map's body font (Inter regular) */
     .card-loc {{ font-family: var(--sans); font-size: 13px; color: var(--mute-2); }}
     .card-verified {{ display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 12px; padding: 8px 0; border-top:1px solid var(--hair); border-bottom:1px solid var(--hair); }}

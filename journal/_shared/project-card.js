@@ -98,12 +98,20 @@
   }
 
   // ── 3) Intelligence panel — faithful port of the map's 3 branches ───────
-  function renderIntel(entry) {
+  function renderIntel(entry, rec) {
     if (!entry || entry.estimate_years == null || isNaN(entry.estimate_years)) return '';
     var HEX = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>';
     var badge = '<span class="pm-intel-badge">' + HEX + ' TMW Intelligence</span>';
     var source = entry.source || 'comparables';
     var estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' years');
+    // District-anchor CTA — when this card is for a component of an umbrella
+    // district, append "Part of <District> — see master plan →" linking to
+    // the district's project page. Mirrors the map modal's TMW Intelligence
+    // anchor for visual + functional parity.
+    var districtAnchorHtml = '';
+    if (rec && rec._parentTitle && rec.ParentSlug) {
+      districtAnchorHtml = '<a class="pm-intel-anchor" href="' + projectUrl(rec.ParentSlug) + '">Part of ' + esc(rec._parentTitle) + ' — see master plan →</a>';
+    }
 
     if (source === 'completed') {
       var isSpecC = !!entry.dates_speculative;
@@ -115,6 +123,7 @@
         '<div class="pm-intel-estimate">' + esc(estimateLabel) + ' <span class="unit">to complete</span></div>' +
         '<div class="pm-intel-pattern">' + esc(entry.pattern_summary || '') + '</div>' +
         (isSpecC ? '<div class="pm-intel-disclaimer">Dates not developer-confirmed. TMW estimated the timeline based on observed activity; actuals can vary.</div>' : '') +
+        districtAnchorHtml +
       '</div>';
     }
     if (source === 'known_date') {
@@ -132,6 +141,7 @@
         '<div class="pm-intel-estimate">' + esc(estimateLabel) + ' <span class="unit">to completion</span></div>' +
         '<div class="pm-intel-pattern">' + esc(entry.pattern_summary || '') + '</div>' +
         '<div class="pm-intel-disclaimer">' + disc + '</div>' +
+        districtAnchorHtml +
       '</div>';
     }
     // comparables
@@ -158,6 +168,7 @@
       (similars ? '<div class="pm-intel-similar-label">Similar Projects in TMW\'s Data</div><div class="pm-intel-similars">' + similars + '</div>' : '') +
       '<div class="pm-intel-pattern">' + pattern + '</div>' +
       '<div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6–18 months.</div>' +
+      districtAnchorHtml +
     '</div>';
   }
 
@@ -202,6 +213,12 @@
     var delivLine = dParts.join(' · ');
     var subline = [esc(rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
 
+    // Part-of-district chip — sits right under .pc-loc when this is a child
+    // component (rec.ParentSlug + rec.ParentTitle resolved at card-build).
+    // The parent_title lookup is done in the caller (mount fn) — see below.
+    var _partOfChipHtml = rec._parentTitle
+      ? '<div class="pc-partof">Part of ' + esc(rec._parentTitle) + '</div>'
+      : '';
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
@@ -212,6 +229,7 @@
     '<div class="pc-body">' +
       '<h3 class="pc-name">' + esc(rec.Title) + '</h3>' +
       '<div class="pc-loc">' + subline.join(' · ') + '</div>' +
+      _partOfChipHtml +
       (rec.Description ? '<p class="pc-desc">' + esc(rec.Description) + '</p>' : '') +
       // Construction timeline — render the SHARED engine (window.TMWIntel) so it
       // is byte-identical to the map modal: same weighted segments, per-stage
@@ -228,7 +246,7 @@
           '</div>') +
       (stats.length ? '<div class="pc-stats">' + stats.join('') + '</div>' : '') +
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
-      renderIntel(entry) +
+      renderIntel(entry, rec) +
       '<div class="pc-actions">' +
         '<a class="pc-btn primary" href="' + projectUrl(slug) + '">Explore</a>' +
         (rec.OfficialWebsite ? '<a class="pc-btn ghost" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '') +
@@ -313,6 +331,11 @@
       '.tmw-pcard .pm-intel-pattern{background:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.22); border-radius:8px; padding:12px 14px; font-size:12px; line-height:1.55; color:rgba(255,255,255,.7)}',
       '.tmw-pcard .pm-intel-pattern .pm-intel-highlight{color:#A78BFA; font-weight:700}',
       '.tmw-pcard .pm-intel-disclaimer{font-size:10px; color:rgba(255,255,255,.4); margin-top:12px; font-style:italic; line-height:1.5}',
+      // Part-of-district chip — sits as the 3rd line under .pc-loc.
+      '.tmw-pcard .pc-partof{display:inline-block;margin-top:8px;margin-bottom:2px;padding:2px 7px;font:600 11px/1.2 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.01em;text-transform:none;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      // District-anchor CTA at the bottom of the TMW Intelligence card.
+      '.tmw-pcard .pm-intel-anchor{display:inline-flex;align-items:center;margin-top:12px;padding:6px 10px;font-size:12px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.10);border:1px solid rgba(167,139,250,0.32);border-radius:6px;text-decoration:none;transition:background .15s ease,color .15s ease}',
+      '.tmw-pcard .pm-intel-anchor:hover{background:rgba(167,139,250,0.22);color:#fff}',
       '.tmw-pcard .pc-actions{display:flex; gap:12px; margin-top:22px; flex-wrap:wrap}',
       '.tmw-pcard .pc-btn{display:inline-flex; align-items:center; gap:8px; font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; padding:13px 22px; border-radius:11px; text-decoration:none; cursor:pointer; transition:all .18s}',
       '.tmw-pcard .pc-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2}',
@@ -386,6 +409,12 @@
           e.el.style.display = '';
           e.el.setAttribute('data-tmw-done', '1');
           e.el.className = 'tmw-pcard';
+          // Resolve parent display name for the Part-of-district chip.
+          // bySlug keys are slugify(Title); ParentSlug from tmw-data is the
+          // same hyphenated form (e.g. "the-nora-district"), so a direct
+          // lookup works. _parentTitle stays falsy for standalone projects.
+          var _ps = (rec.ParentSlug || '').trim();
+          rec._parentTitle = _ps && bySlug[_ps] ? (bySlug[_ps].Title || '') : '';
           e.el.innerHTML = renderCard(rec, e.slug, intel[e.slug]);
           wire(e.el, e.slug);
         });
