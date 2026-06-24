@@ -1564,6 +1564,33 @@
       opacity: 1;
       transform: none;
     }
+    /* Part-of-district chip on child project cards. Subtle purple pill that
+       sits below the city/type line; tapping opens the parent district's
+       modal (event.stopPropagation in the inline handler prevents the
+       card's own click from also firing). */
+    .grid-parent-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 4px;
+      padding: 3px 7px;
+      font: 600 11px/1.15 Inter, system-ui, sans-serif;
+      color: #C9BBFF;
+      background: rgba(167,139,250,0.14);
+      border: 1px solid rgba(167,139,250,0.32);
+      border-radius: 5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .grid-parent-chip:hover {
+      background: rgba(167,139,250,0.24);
+      border-color: rgba(167,139,250,0.48);
+    }
 
     #desktopSidebar .grid-item { padding: 5px; }
     #desktopSidebar .grid-item:hover { transform: none; box-shadow: none; }
@@ -16519,6 +16546,7 @@
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.city}${_type ? ' · ' + _type : ''}</p>
+              ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
           d.onclick = () => {
             if (window.gridRendering[targetId]) return;
@@ -16753,6 +16781,7 @@
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
+              ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
@@ -18615,7 +18644,13 @@
                 image4: p.Image4 || '',
                 image5: p.Image5 || '',
                 // Keep JS array on the feature object itself for grid filtering (not used by Mapbox)
-                featured: p.Featured?.trim().toLowerCase() === 'featured'
+                featured: p.Featured?.trim().toLowerCase() === 'featured',
+                // Parent-child link: when this is a COMPONENT of a larger
+                // district (e.g. Nora Hotel → The Nora District), parentSlug
+                // is the umbrella's slug. Empty for standalone projects.
+                // Drives the "Part of [district]" chip on cards + the
+                // future phased-timeline view on the district modal.
+                parentSlug: p.ParentSlug || ''
               },
               // Attach types array directly on feature (accessible in JS, not Mapbox)
               _projectTypes: types,
@@ -18638,6 +18673,32 @@
 
           // Master list — never mutated, used to restore pins on clear
           window.allProjectFeatures = features;
+
+          // Slug → feature lookup for the parent-of chip on child cards.
+          // Children carry parentSlug (e.g. nora-hotel → "the-nora-district");
+          // the chip + future component popups need the district's feature to
+          // open its modal. O(n) scan is fine — features is ~600 records and
+          // chip clicks are user-paced.
+          window._findFeatureBySlug = function(slug){
+            if (!slug || !window.allProjectFeatures) return null;
+            const py = window.projectSlugify || (s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''));
+            return window.allProjectFeatures.find(p => p && p.properties && py(p.properties.title) === slug) || null;
+          };
+          window._openDistrictBySlug = function(slug){
+            const parent = window._findFeatureBySlug(slug);
+            if (!parent) return;
+            if (typeof window.openProjectModal === 'function') {
+              window.openProjectModal(parent, 'parent-chip');
+            }
+          };
+          // Resolve the parent project's TITLE from its slug — used as the
+          // chip label ("Part of The Nora District →"). Falls back to a
+          // title-cased slug if the parent record isn't loaded yet.
+          window._parentDisplayName = function(slug){
+            const f = window._findFeatureBySlug(slug);
+            if (f && f.properties && f.properties.title) return f.properties.title;
+            return String(slug || '').replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+          };
           // Signal to any subscriber that needs the feature list (e.g. the
           // shared-comparison-link route in compare.js, which loads before
           // CSV resolves and needs to defer its initial render until now).

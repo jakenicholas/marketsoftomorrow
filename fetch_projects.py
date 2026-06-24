@@ -224,6 +224,13 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # by build_complete_index() which filters districts out of the
         # comparables index.
         'IsDistrict':       '1' if record.get('is_district') else '',
+        # Parent-child link: when a project is a COMPONENT of a larger district
+        # (e.g. Nora Hotel is part of The Nora District), set parent_slug on
+        # the child to the district's slug. Empty for standalone projects.
+        # The frontend uses this to render a "Part of [district]" chip on
+        # child cards and to derive district phasing from union-of-children
+        # status histories. See [[tmw-map-clustering-redesign]] design memo.
+        'ParentSlug':       (record.get('parent_slug') or '').strip(),
         # Per-date "TMW estimate" flags. Set independently in admin so a
         # project can have a developer-confirmed groundbreaking but a TMW-
         # guessed completion (or vice-versa). Drives the EST badge + softens
