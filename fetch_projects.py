@@ -152,13 +152,13 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
     """
     images = record.get('images') or []
     # Belt-and-suspenders type normalization. The canonical project_types.json
-    # no longer carries Airport / Resort / Estates / Eateries, and the data
-    # migration on 2026-06-24 cleaned all existing records. But Studio
-    # connectors / Claude routines / hand edits could still leak a banned
-    # value in, so we collapse them here on the way OUT to projects-flat.json
-    # so no downstream consumer ever sees a stale tag.
+    # no longer carries Airport / Resort / Estates / Eateries / Private Club,
+    # and the data migrations on 2026-06-24 cleaned all existing records.
+    # But Studio connectors / Claude routines / hand edits could still leak a
+    # banned value in, so we collapse them here on the way OUT to
+    # projects-flat.json so no downstream consumer ever sees a stale tag.
     _TYPE_MERGE = {'Airport': 'Travel', 'Resort': 'Hotel', 'Estates': 'Residences'}
-    _TYPE_DROP  = {'Eateries'}  # no merge target — surface as a non-type
+    _TYPE_DROP  = {'Eateries', 'Private Club'}  # no merge target — surface as a non-type
     def _normalize_type(t):
         t = (t or '').strip()
         return _TYPE_MERGE.get(t, '' if t in _TYPE_DROP else t)
