@@ -18314,8 +18314,10 @@
       } else {
         map.getSource('stations').setData(stationGeo);
       }
-      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', paint:{'circle-color':['get','color'],'circle-radius':['interpolate',['linear'],['zoom'],4,2,8,4,12,6,15,8],'circle-stroke-color':'#fff','circle-stroke-width':['interpolate',['linear'],['zoom'],4,0.5,10,1.5,14,2]} });
-      if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
+      // Station dots hidden at continental view (matches future-rail minzoom:4).
+      // Both visible+hover layers gated so we don't waste hit-test work either.
+      if (!map.getLayer('station-dots'))  map.addLayer({ id:'station-dots',  type:'circle', source:'stations', minzoom:4, paint:{'circle-color':['get','color'],'circle-radius':['interpolate',['linear'],['zoom'],4,2,8,4,12,6,15,8],'circle-stroke-color':'#fff','circle-stroke-width':['interpolate',['linear'],['zoom'],4,0.5,10,1.5,14,2]} });
+      if (!map.getLayer('station-hover')) map.addLayer({ id:'station-hover', type:'circle', source:'stations', minzoom:4, paint:{'circle-color':'transparent','circle-radius':18,'circle-stroke-width':0} });
 
       // ‚îÄ‚îÄ Green glow borders for hyper-focus markets (no fill, line only) ‚îÄ‚îÄ‚îÄ‚îÄ
       // ‚îÄ‚îÄ Green radar ping markers for hyper-focus cities ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
