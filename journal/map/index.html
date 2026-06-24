@@ -5106,6 +5106,29 @@
     font-style: italic;
     line-height: 1.5;
   }
+  /* District anchor CTA inside the Intelligence card — surfaces the
+     component's parent district as a "see master plan" link. Only renders
+     when the project has parentSlug. Brighter purple than the disclaimer
+     so the user notices it as an action, not a footnote. */
+  #projectModal .pm-intel-anchor {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 12px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #C9BBFF;
+    background: rgba(167,139,250,0.10);
+    border: 1px solid rgba(167,139,250,0.32);
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  #projectModal .pm-intel-anchor:hover {
+    background: rgba(167,139,250,0.22);
+    color: #fff;
+  }
 
   /* Map popup intel chip -- 3-row stacked layout per mock:
      Row 1: "‚¨° TMW INTELLIGENCE" eyebrow (icon + text, no pill)
@@ -15192,6 +15215,20 @@
           const source = entry.source || 'comparables';
           const estimateLabel = entry.estimate_label || `~${entry.estimate_years} years`;
 
+          // District anchor line — when this project is a component of a
+          // district, surface that relationship inside the Intelligence card
+          // ("Anchors The Nora District — see master plan →"). Same purple
+          // brand color as the rest of the block; click opens the district.
+          let districtAnchorHtml = '';
+          {
+            const _f = (window.allProjectFeatures || []).find(x => x && x.properties && x.properties.title === projectTitle);
+            const _ps = _f && _f.properties && _f.properties.parentSlug;
+            if (_ps && window._parentDisplayName) {
+              const _name = window._parentDisplayName(_ps);
+              districtAnchorHtml = `<a class="pm-intel-anchor" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${_ps}');">Part of ${escapeArticleHtml(_name)} — see master plan →</a>`;
+            }
+          }
+
           if (source === 'completed') {
             // Past-tense reported fact. This project IS complete and we
             // know exactly how long it took, so we report rather than
@@ -15213,6 +15250,7 @@
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to complete</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
               ${isSpec ? '<div class="pm-intel-disclaimer">Dates not developer-confirmed. TMW estimated the timeline based on observed activity; actuals can vary.</div>' : ''}
+              ${districtAnchorHtml}
             `;
           } else if (source === 'known_date') {
             // Date-derived estimate. Whether we show the "Developer
@@ -15244,6 +15282,7 @@
               <div class="pm-intel-estimate">${escapeArticleHtml(estimateLabel)} <span class="unit">to completion</span></div>
               <div class="pm-intel-pattern">${escapeArticleHtml(entry.pattern_summary || '')}</div>
               <div class="pm-intel-disclaimer">${disclaimerText}</div>
+              ${districtAnchorHtml}
             `;
           } else {
             wrap.innerHTML = `
@@ -15262,6 +15301,7 @@
               ` : ''}
               <div class="pm-intel-pattern">${pattern}</div>
               <div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6\u201318 months.</div>
+              ${districtAnchorHtml}
             `;
           }
           wrap.removeAttribute('hidden');
