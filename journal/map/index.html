@@ -3602,19 +3602,30 @@
       font-style: normal;
       color: var(--accent);
     }
-    /* "N components" badge on district rows in the dock autocomplete. Same
-       purple chip vocabulary as the drawer search row. */
+    /* Component-count badge on district rows in the dock autocomplete.
+       Lives as a SIBLING of .autocomplete-text (a flex child of
+       .autocomplete-item, which is the flex row containing icon + text +
+       this badge). flex:0 0 auto + small fixed-ish dims keeps it a tidy
+       right-aligned pill regardless of title length. Shows just the
+       number; the full "N components" string is in the tooltip. */
     .autocomplete-district-badge {
-      display: inline-block;
-      padding: 1px 6px;
-      margin-left: 4px;
-      font-size: 10px;
-      font-weight: 600;
+      flex: 0 0 auto;
+      align-self: center;
+      min-width: 22px;
+      height: 20px;
+      margin-left: 8px;
+      padding: 0 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
       color: #C9BBFF;
       background: rgba(167,139,250,0.14);
-      border: 1px solid rgba(167,139,250,0.32);
-      border-radius: 4px;
-      vertical-align: middle;
+      border: 1px solid rgba(167,139,250,0.36);
+      border-radius: 5px;
+      letter-spacing: 0;
       white-space: nowrap;
     }
 
@@ -17335,20 +17346,21 @@
           const item = document.createElement('div');
           item.className = 'autocomplete-item';
           item.style.animationDelay = `${i * 0.04}s`;
-          // District/component context for the dock autocomplete: same data
-          // model as the drawer search — districts get an inline "N components"
-          // badge after the title (total descendants, multi-level safe);
-          // components get a "· Part of X" subline (immediate parent).
+          // District/component context for the dock autocomplete. Badge is
+          // a SIBLING of .autocomplete-text (not embedded in <strong>) so it
+          // stays right-aligned in the flex row, vertically centered to the
+          // title, and shows ONLY the number — no "components" word, no
+          // full-width bar that wraps under the title.
           const py = window.projectSlugify;
           const slug = py ? py(f.properties.title || '') : '';
           const childCount = (window._descendantsByParent && window._descendantsByParent[slug] || []).length;
           const districtBadge = childCount > 0
-            ? ` <span class="autocomplete-district-badge">${childCount} component${childCount === 1 ? '' : 's'}</span>`
+            ? `<span class="autocomplete-district-badge" title="${childCount} component${childCount === 1 ? '' : 's'}">${childCount}</span>`
             : '';
           const ps = (f.properties.parentSlug || '').trim();
           const parentName = ps && window._parentDisplayName ? window._parentDisplayName(ps) : '';
           const partOfSub = parentName ? ` &middot; Part of ${parentName}` : '';
-          item.innerHTML = `<div class="autocomplete-icon project">${BLDG_SVG}</div><div class="autocomplete-text"><strong>${highlight(f.properties.title, ql)}${districtBadge}</strong><span>${f.properties.city || ''}${partOfSub}</span></div>`;
+          item.innerHTML = `<div class="autocomplete-icon project">${BLDG_SVG}</div><div class="autocomplete-text"><strong>${highlight(f.properties.title, ql)}</strong><span>${f.properties.city || ''}${partOfSub}</span></div>${districtBadge}`;
           item.addEventListener('mousedown', () => onSelect(f, false));
           container.appendChild(item);
         });
