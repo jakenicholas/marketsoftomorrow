@@ -4434,6 +4434,23 @@
   @media (max-width: 700px) {
     .firm-sheet { left: 0; right: 0; top: 72px; border-radius: 18px 18px 0 0; }
   }
+  /* MOBILE GPU FIX (2026-06-23): the Safari Layers inspector showed a stack of
+     ~15-20 full-screen, retina-resolution composited layers piled over the map.
+     The cause: these overlay panels stay GPU-composited WHILE CLOSED — hidden
+     via opacity:0 / off-screen transform / visibility:hidden instead of
+     display:none, so the phone keeps a full backing store for each. Stacked,
+     they exhaust the mobile GPU memory budget and the whole map composites
+     slowly (Safari has a tighter budget than Chrome — hence Chrome was faster;
+     scrolling the project list forced WebKit to rebuild the layer tree, which
+     is the only thing that "fixed" it). display:none while closed removes them
+     from the layer tree entirely. These panels are rarely-open, so losing the
+     open SLIDE on mobile is an acceptable trade for a smooth map. Desktop keeps
+     the animation (it has the GPU headroom). */
+  @media (max-width: 800px) {
+    #firmSheet:not(.open),
+    #firmSheetBackdrop:not(.open),
+    #advFilterPanel:not(.open) { display: none !important; }
+  }
   /* v2 mobile: match the project modal + the v2 drawer exactly so the
      firm sheet reads as embedded inside the drawer, not as a separate
      overlay. Same top:60px+safe, same 24px rounded top corners, same
