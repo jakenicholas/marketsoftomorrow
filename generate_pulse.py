@@ -1318,6 +1318,20 @@ def main():
     all_events.sort(key=lambda e: e.get('timestamp') or '', reverse=True)
     all_events = all_events[:MAX_EVENTS]
 
+    # Retro-fill parent_slug/parent_title onto EVERY event whose project is now
+    # a component of an umbrella district. New events from the three builders
+    # already carry these; this catches events that were emitted before the
+    # parent linkage existed (or before this field was added). Keeps the feed
+    # consistent so child events always show "Part of <District>" inline.
+    for _ev in all_events:
+        if _ev.get('parent_title'):
+            continue
+        _ps = _ev.get('project_slug') or ''
+        _proj = current_projects.get(_ps)
+        if _proj and _proj.get('parent_title'):
+            _ev['parent_slug'] = _proj.get('parent_slug', '')
+            _ev['parent_title'] = _proj['parent_title']
+
     # 7. Write pulse.json
     output = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
