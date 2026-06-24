@@ -169,20 +169,27 @@
       // they're inside an existing modal and need their form controls
       // tagged.
       var obs = new MutationObserver(function(muts) {
+        // The case-(b) closest() walk only matters once a modal is actually in
+        // the DOM. During heavy map DOM construction (thousands of nodes added —
+        // markers, cards, labels, tiles) there is NO modal, so skip it — running
+        // node.closest() per added node was thrashing the main thread on load.
+        // Case (a) only touches direct body children, which stays cheap.
+        var modalPresent = !!document.querySelector('.tmw-ms-modal');
         for (var i = 0; i < muts.length; i++) {
           var added = muts[i].addedNodes;
           for (var j = 0; j < added.length; j++) {
             var node = added[j];
             if (node.nodeType !== 1) continue;
             // Case (a): newly-mounted body-attached modal
-            if (node.parentNode === document.body && looksLikeMSModal(node)) {
-              tagContainerAndChildren(node);
+            if (node.parentNode === document.body) {
+              if (looksLikeMSModal(node)) { tagContainerAndChildren(node); modalPresent = true; }
               continue;
             }
-            // Case (b): node mounted inside an existing modal
-            var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
-            if (modalAncestor) {
-              tagContainerAndChildren(modalAncestor);
+            // Case (b): node mounted inside an existing modal — only worth the
+            // closest() walk when a modal is present (else it's pure waste).
+            if (modalPresent) {
+              var modalAncestor = node.closest && node.closest('.tmw-ms-modal');
+              if (modalAncestor) tagContainerAndChildren(modalAncestor);
             }
           }
         }
