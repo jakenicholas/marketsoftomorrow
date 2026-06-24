@@ -13725,18 +13725,12 @@
           refreshFeatLabels();
         }
         // Recompute the zoom-gate + de-collision only when the view SETTLES, not
-        // on every pan/zoom FRAME. The label markers follow the map on their own
-        // (Mapbox transforms them), so per-frame projection+sort+collision was pure
-        // main-thread jank on mobile. On mobile, also hide the pills during the
-        // gesture (like the city pings) so the compositor isn't transforming DOM
-        // pills + box-shadows every frame; they snap back the instant it settles.
+        // on every pan/zoom FRAME — the label markers follow the map via Mapbox's
+        // own transform, so per-frame projection+sort+collision was wasted work.
+        // The pills stay visible and track the map during the gesture; they just
+        // re-collide once it settles (no flicker / disappearing).
         map.on('moveend', refreshFeatLabels);
         map.on('zoomend', refreshFeatLabels);
-        if (isMobile) {
-          const _hideFeatLabels = () => { featLabels.forEach(m => { try { m.getElement().style.display = 'none'; } catch (_) {} }); };
-          map.on('movestart', _hideFeatLabels);
-          map.on('zoomstart', _hideFeatLabels);
-        }
 
         const tog = panel.querySelector('.tmw-il-toggle');
         tog.classList.toggle('on', movingOn);   // reflect the default-on state
