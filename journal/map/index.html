@@ -17992,7 +17992,10 @@
         map.getSource('brightline').setData(brightlineGeo);
       }
       if (!map.getLayer('brightline-existing')) map.addLayer({ id:'brightline-existing', type:'line', source:'brightline', filter:['==',['get','segment'],'existing'], layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2} });
-      if (!map.getLayer('brightline-future'))  map.addLayer({ id:'brightline-future',  type:'line', source:'brightline', filter:['==',['get','segment'],'future'],   layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2]} });
+      // Future rails (dashed) hidden below z4 — at continental/globe view they
+      // span hundreds of miles each and add real GPU work for routes the user
+      // can't trace anyway. Reappear at state view (z4+) where they're useful.
+      if (!map.getLayer('brightline-future'))  map.addLayer({ id:'brightline-future',  type:'line', source:'brightline', filter:['==',['get','segment'],'future'],   minzoom:4, layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#FFD300','line-width':2,'line-dasharray':[1,2]} });
 
       // ‚îÄ‚îÄ Brightline West (I-15 corridor: Rancho Cucamonga ‚Üí Las Vegas) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Route traces I-15 northbound through Cajon Pass, Victorville, Barstow, Baker, into Las Vegas
@@ -18036,6 +18039,7 @@
           id: 'brightline-west-future',
           type: 'line',
           source: 'brightline-west',
+          minzoom: 4,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
         });
@@ -18076,6 +18080,7 @@
           id: 'music-city-loop-line',
           type: 'line',
           source: 'music-city-loop',
+          minzoom: 4,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': '#FFD300', 'line-width': 2, 'line-dasharray': [1, 2] }
         });
@@ -18086,7 +18091,7 @@
         const geo = { type:'FeatureCollection', features:[{ type:'Feature', properties:{}, geometry:{ type:'LineString', coordinates:coords } }] };
         if (!map.getSource(id)) map.addSource(id, { type:'geojson', data:geo });
         else map.getSource(id).setData(geo);
-        if (!map.getLayer(id+'-line')) map.addLayer({ id:id+'-line', type:'line', source:id, layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':color,'line-width':2,'line-dasharray':[1,2]} });
+        if (!map.getLayer(id+'-line')) map.addLayer({ id:id+'-line', type:'line', source:id, minzoom:4, layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':color,'line-width':2,'line-dasharray':[1,2]} });
       }
 
       // ‚îÄ‚îÄ 1. California High-Speed Rail (San Francisco ‚Üí Los Angeles ‚Üí Anaheim) ‚îÄ
