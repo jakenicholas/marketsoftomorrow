@@ -7,7 +7,7 @@
     },
     {
       "type": "Hotel",
-      "count": 150
+      "count": 151
     },
     {
       "type": "Entertainment",
@@ -19,7 +19,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 25
+      "count": 26
     },
     {
       "type": "Golf",
@@ -7891,7 +7891,7 @@
       "sl": "Construction",
       "yr": 2027,
       "sm": "2021-12",
-      "ci": "Saudi Arabia",
+      "ci": "Riyadh",
       "u": 0,
       "k": 0,
       "fl": 0,
@@ -8018,7 +8018,7 @@
       "sl": "Construction",
       "yr": 2026,
       "sm": "2022-12",
-      "ci": "Saudi Arabia",
+      "ci": "Riyadh",
       "u": 0,
       "k": 0,
       "fl": 0,
@@ -8342,7 +8342,7 @@
       "yr": 2032,
       "sm": "2021-10",
       "ci": "Chicago",
-      "u": 0,
+      "u": 3300,
       "k": 0,
       "fl": 0,
       "dv": [
@@ -15135,7 +15135,7 @@
     {
       "st": "Other",
       "ty": "Hotel",
-      "sl": "Opening Soon",
+      "sl": "Now Open",
       "yr": 2026,
       "sm": "2026-05",
       "ci": "Shura Island",
@@ -15270,7 +15270,7 @@
     {
       "st": "Other",
       "ty": "Hotel",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2027,
       "sm": null,
       "ci": "Providenciales",
@@ -15457,30 +15457,53 @@
       ]
     },
     {
-      "st": "Other",
-      "ty": "",
-      "sl": "Announced",
-      "yr": null,
-      "sm": null,
-      "ci": "",
+      "st": "TN",
+      "ty": "Hotel",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": "2025-12",
+      "ci": "Nashville",
+      "u": 0,
+      "k": 144,
+      "fl": 0,
+      "dv": [
+        [
+          "Tidal Real Estate Partners",
+          "tidal-real-estate-partners"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "TN",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": "2025-12",
+      "ci": "Nashville",
       "u": 0,
       "k": 0,
-      "fl": 0,
-      "dv": [],
+      "fl": 16,
+      "dv": [
+        [
+          "Tidal Real Estate Partners",
+          "tidal-real-estate-partners"
+        ]
+      ],
       "ar": []
     }
   ],
   "hero_stats": {
-    "total_projects": 602,
+    "total_projects": 603,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 215,
-    "opening_this_year": 96
+    "under_construction": 216,
+    "opening_this_year": 95
   },
   "scale": {
-    "units": 223328,
-    "keys": 39909,
-    "floors": 9284
+    "units": 226628,
+    "keys": 40053,
+    "floors": 9300
   },
   "leaderboards": {
     "developers": [
@@ -16097,19 +16120,19 @@
         ]
       },
       {
+        "name": "Nashville",
+        "sub": "27 developments \u00b7 32 developers",
+        "count": 27,
+        "states": [
+          "TN"
+        ]
+      },
+      {
         "name": "New York City",
         "sub": "26 developments \u00b7 41 developers",
         "count": 26,
         "states": [
           "NY"
-        ]
-      },
-      {
-        "name": "Nashville",
-        "sub": "25 developments \u00b7 31 developers",
-        "count": 25,
-        "states": [
-          "TN"
         ]
       },
       {
@@ -16166,14 +16189,6 @@
         "count": 8,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "Saudi Arabia",
-        "sub": "8 developments \u00b7 9 developers",
-        "count": 8,
-        "states": [
-          "Other"
         ]
       },
       {
@@ -16243,6 +16258,14 @@
       {
         "name": "Providenciales",
         "sub": "6 developments \u00b7 6 developers",
+        "count": 6,
+        "states": [
+          "Other"
+        ]
+      },
+      {
+        "name": "Saudi Arabia",
+        "sub": "6 developments \u00b7 7 developers",
         "count": 6,
         "states": [
           "Other"
@@ -16341,7 +16364,7 @@
       {
         "name": "Hotel",
         "sub": "25% of pipeline",
-        "count": 150,
+        "count": 151,
         "states": [
           "Other",
           "FL",
@@ -16383,13 +16406,13 @@
       {
         "name": "Mixed-Use",
         "sub": "4% of pipeline",
-        "count": 25,
+        "count": 26,
         "states": [
           "FL",
+          "TN",
           "UK",
           "JP",
           "Other",
-          "TN",
           "TX"
         ]
       },
@@ -17376,10 +17399,10 @@
           "count": 12,
           "states": [
             "FL",
+            "TN",
             "UK",
             "JP",
             "Other",
-            "TN",
             "TX"
           ]
         },
@@ -18165,6 +18188,15 @@
           ]
         },
         {
+          "name": "Tidal Real Estate Partners",
+          "slug": "tidal-real-estate-partners",
+          "sub": "Nashville",
+          "count": 2,
+          "states": [
+            "TN"
+          ]
+        },
+        {
           "name": "The Dollywood Company",
           "slug": "the-dollywood-company",
           "sub": "Nashville",
@@ -18394,15 +18426,6 @@
         {
           "name": "Ryman Hospitality Properties",
           "slug": "ryman-hospitality-properties",
-          "sub": "Nashville",
-          "count": 1,
-          "states": [
-            "TN"
-          ]
-        },
-        {
-          "name": "Turnberry",
-          "slug": "turnberry",
           "sub": "Nashville",
           "count": 1,
           "states": [
@@ -18694,8 +18717,8 @@
       "cities": [
         {
           "name": "Nashville",
-          "sub": "25 developments \u00b7 31 developers",
-          "count": 25,
+          "sub": "27 developments \u00b7 32 developers",
+          "count": 27,
           "states": [
             "TN"
           ]
@@ -18712,7 +18735,7 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "37% of pipeline",
+          "sub": "34% of pipeline",
           "count": 10,
           "states": [
             "FL",
@@ -18728,8 +18751,8 @@
         },
         {
           "name": "Hotel",
-          "sub": "30% of pipeline",
-          "count": 8,
+          "sub": "31% of pipeline",
+          "count": 9,
           "states": [
             "Other",
             "FL",
@@ -18743,8 +18766,21 @@
           ]
         },
         {
+          "name": "Mixed-Use",
+          "sub": "10% of pipeline",
+          "count": 3,
+          "states": [
+            "FL",
+            "TN",
+            "UK",
+            "JP",
+            "Other",
+            "TX"
+          ]
+        },
+        {
           "name": "Entertainment",
-          "sub": "11% of pipeline",
+          "sub": "10% of pipeline",
           "count": 3,
           "states": [
             "FL",
@@ -18752,19 +18788,6 @@
             "TN",
             "AE",
             "SC"
-          ]
-        },
-        {
-          "name": "Mixed-Use",
-          "sub": "7% of pipeline",
-          "count": 2,
-          "states": [
-            "FL",
-            "UK",
-            "JP",
-            "Other",
-            "TN",
-            "TX"
           ]
         },
         {
@@ -18780,7 +18803,7 @@
         },
         {
           "name": "Park",
-          "sub": "4% of pipeline",
+          "sub": "3% of pipeline",
           "count": 1,
           "states": [
             "FL",
@@ -18791,7 +18814,7 @@
         },
         {
           "name": "Museum",
-          "sub": "4% of pipeline",
+          "sub": "3% of pipeline",
           "count": 1,
           "states": [
             "Other",
@@ -19248,10 +19271,10 @@
           "count": 2,
           "states": [
             "FL",
+            "TN",
             "UK",
             "JP",
             "Other",
-            "TN",
             "TX"
           ]
         }
@@ -19646,10 +19669,10 @@
           "count": 3,
           "states": [
             "FL",
+            "TN",
             "UK",
             "JP",
             "Other",
-            "TN",
             "TX"
           ]
         },
@@ -19917,10 +19940,10 @@
           "count": 3,
           "states": [
             "FL",
+            "TN",
             "UK",
             "JP",
             "Other",
-            "TN",
             "TX"
           ]
         },
@@ -20800,13 +20823,13 @@
     },
     "TN": {
       "hero_stats": {
-        "total_projects": 27,
-        "under_construction": 10
+        "total_projects": 29,
+        "under_construction": 12
       },
       "scale": {
         "units": 3516,
-        "keys": 1699,
-        "floors": 269
+        "keys": 1843,
+        "floors": 285
       },
       "status_distribution": [
         {
@@ -20819,7 +20842,7 @@
         },
         {
           "label": "Construction",
-          "count": 10
+          "count": 12
         },
         {
           "label": "Opening Soon",
@@ -20859,7 +20882,7 @@
         {
           "month": "Dec",
           "year": 2025,
-          "count": 2
+          "count": 4
         },
         {
           "month": "Jan",
@@ -21499,6 +21522,7 @@
     "Texas Hill Country": "Other",
     "Nekooska": "Other",
     "Saudi Arabia": "Other",
+    "Riyadh": "Other",
     "UAE": "Other",
     "Paris": "FR",
     "London": "UK",
@@ -21534,7 +21558,6 @@
     "Belize": "Other",
     "Birmingham": "Other",
     "Austin": "TX",
-    "Riyadh": "Other",
     "Toronto": "Other",
     "Lisbon": "Other",
     "Rome": "Other",
@@ -21640,15 +21663,15 @@
     },
     {
       "label": "Construction",
-      "count": 215
+      "count": 216
     },
     {
       "label": "Opening Soon",
-      "count": 82
+      "count": 81
     },
     {
       "label": "Now Open",
-      "count": 93
+      "count": 94
     }
   ],
   "momentum": [
@@ -21680,7 +21703,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 26
+      "count": 28
     },
     {
       "month": "Jan",
@@ -21716,11 +21739,11 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 96
+      "count": 95
     },
     {
       "year": 2027,
-      "count": 125
+      "count": 127
     },
     {
       "year": 2028,
@@ -21749,7 +21772,7 @@
     {
       "code": "TN",
       "label": "Tennessee",
-      "count": 27
+      "count": 29
     },
     {
       "code": "TX",
@@ -21784,6 +21807,20 @@
   ],
   "recent_activity": [
     {
+      "id": "track-the-hook",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Now tracking The Hook",
+      "project_slug": "the-hook",
+      "project_title": "The Hook",
+      "city": "Nashville",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg",
+      "link": "https://www.oftmw.com/map/?project=thehook",
+      "timestamp": "2026-06-24T21:28:06.552164+00:00",
+      "parent_slug": "1221-grundy-street",
+      "parent_title": "1221 Grundy Street"
+    },
+    {
       "id": "track-1221-grundy-street",
       "type": "tracking",
       "tag": "Tracking",
@@ -21791,7 +21828,7 @@
       "project_slug": "1221-grundy-street",
       "project_title": "1221 Grundy Street",
       "city": "",
-      "image": "",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/238b69a75596-1221-grundy-street-fullview-2000x844-web-gigapixel-standard-v2-2x.jpg",
       "link": "https://www.oftmw.com/map/?project=1221grundystreet",
       "timestamp": "2026-06-24T19:51:38.694038+00:00"
     },
@@ -22440,20 +22477,6 @@
       "source_url": "https://therealdeal.com/miami/2026/06/09/sant-ambroeus-to-open-in-mirai-design-district/",
       "link": "https://www.oftmw.com/map/?project=miraidesigndistrict",
       "timestamp": "2026-06-22T14:22:49.502Z"
-    },
-    {
-      "id": "ms-the-ritz-carlton-residences-palm-beach-gardens-financing-2026-06-22",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "The Ritz-Carlton Residences, Palm Beach Gardens  Financing secured",
-      "project_slug": "the-ritz-carlton-residences-palm-beach-gardens",
-      "project_title": "The Ritz-Carlton Residences, Palm Beach Gardens",
-      "city": "Palm Beach Gardens",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9cfeee3a4f254c028e6c47123d926656~mv2.jpeg",
-      "event_date": "2026-05",
-      "source_url": "https://commercialobserver.com/2026/05/catalfumo-ritz-carlton-palm-beach-gardens-florida/",
-      "link": "https://www.oftmw.com/map/?project=theritzcarltonresidencespalmbeachgardens",
-      "timestamp": "2026-06-22T14:22:35.663Z"
     }
   ],
   "most_covered": [
