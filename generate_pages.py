@@ -1115,6 +1115,38 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     # directly. When blank (column doesn't exist yet, or row not backfilled),
     # falls back to: delivery_date − N years, with N keyed off status.
     start_date = row.get('StartDate','').strip()
+
+    # ── District-aware effective dates (server twin of window._familyEffectiveDelivery) ──
+    # A district umbrella's own DeliveryDate is meaningless for a phased
+    # multi-component development — its real horizon is the LATEST delivery
+    # across the whole family. When this project has descendants, derive the
+    # effective completion + earliest start from {self + all_descendants} and
+    # feed those into the progress bar + Completion fact. Standalone projects
+    # (no descendants) keep their own dates unchanged.
+    eff_completion_raw = ''
+    eff_start_raw = ''
+    eff_component_count = 0
+    if all_descendants:
+        eff_component_count = len(all_descendants)
+        _latest = None
+        _earliest = None
+        for _m in [row] + list(all_descendants):
+            _draw = (_m.get('DeliveryDate', '') or '').strip()
+            _d = _parse_iso_date(_draw)
+            if _d and (_latest is None or _d > _latest):
+                _latest = _d; eff_completion_raw = _draw
+            _sraw = (_m.get('StartDate', '') or '').strip()
+            _s = _parse_iso_date(_sraw)
+            if _s and (_earliest is None or _s < _earliest):
+                _earliest = _s; eff_start_raw = _sraw
+    is_district_view = bool(eff_completion_raw)
+    eff_delivery_date = eff_completion_raw if is_district_view else delivery_date
+    eff_start_date = eff_start_raw if (is_district_view and eff_start_raw) else start_date
+    phases_note_html = ''
+    if is_district_view:
+        _pn = f'Delivers in phases · {eff_component_count} component' + ('s' if eff_component_count != 1 else '')
+        phases_note_html = f'<div class="pp-phases-note">{_pn}</div>'
+
     developer = truncate_developer(row.get('Developer','').strip())
     architect = row.get('Architect','').strip().split(',')[0].strip()
     description = row.get('DescriptionLong','').strip() or row.get('Description','').strip()
@@ -1146,7 +1178,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     stats = ''
     stats += stat_card('Developer', developer)
     stats += stat_card('Architect', architect)
-    stats += stat_card('Delivery', format_delivery_display(delivery_date or delivery))
+    stats += stat_card('Delivery', format_delivery_display(eff_delivery_date or delivery))
     stats += stat_card('Market', city)
     stats_section = f'<div class="stats-grid">{stats}</div>' if stats.strip() else ''
 
@@ -1255,12 +1287,17 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     _start_spec = (row.get('StartSpeculative', '') or '').strip() in ('1', 'true', 'True')
     if _start_raw and not _start_spec:
         _add_mini(format_fact_date(_start_raw), 'Start')
-    # Completion — prefix "Est" when the delivery date is a TMW estimate.
+    # Completion — districts show the family's full build-out (latest component
+    # delivery), labeled "Full build-out". Standalone projects show their own
+    # date, prefixed "Est" when it's a TMW estimate.
     _delivery_spec = (row.get('DeliverySpeculative', '') or '').strip() in ('1', 'true', 'True')
-    _completion = format_fact_date(delivery_date)
-    if _completion and _delivery_spec:
-        _completion = 'Est ' + _completion
-    _add_mini(_completion, 'Completion')
+    if is_district_view:
+        _add_mini(format_fact_date(eff_delivery_date), 'Full build-out')
+    else:
+        _completion = format_fact_date(delivery_date)
+        if _completion and _delivery_spec:
+            _completion = 'Est ' + _completion
+        _add_mini(_completion, 'Completion')
     _add_mini(row.get('Keys', ''), 'Keys')
     _add_mini(row.get('Units', ''), 'Units')
     _add_mini(row.get('Floors', ''), 'Floors')
@@ -2336,6 +2373,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
       .tmw-upd-spin, .tmw-upd-core, .tmw-upd-ring {{ animation: none; }}
       .tmw-upd-ring {{ opacity: 0; }}
     }}
+    .pp-phases-note {{ margin-top: 9px; font-size: 11.5px; font-weight: 600; letter-spacing: .03em; color: #C9BBFF; font-family: var(--sans); }}
     .pp-minis {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 16px; }}
     .pp-mini {{ padding: 10px 11px; background: rgba(0,0,0,.30); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; min-width: 0; overflow: hidden; }}
     .pp-mini .v {{ font-size: 15px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }}
@@ -2479,7 +2517,8 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         </div>
         <div class="pp-panel">
           {updated_html}
-          {progress_bar_html(delivery, delivery_date, start_date)}
+          {progress_bar_html(delivery, eff_delivery_date, eff_start_date)}
+          {phases_note_html}
           {minis_html}
         </div>
       </div>
