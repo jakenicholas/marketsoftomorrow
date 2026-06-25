@@ -4275,6 +4275,9 @@
   #projectModal .pm-phases-text { font-weight: 500; }
   /* Progress tracker */
   #projectModal .pm-progress { margin-bottom: 14px; }
+  /* District build-out caption under the progress bar — only rendered when the
+     project umbrellas components (see _familyEffectiveDelivery). */
+  #projectModal .pm-phases-note { margin-top: 7px; font-size: 11px; font-weight: 600; letter-spacing: .03em; color: #C9BBFF; font-family: 'Inter', system-ui, sans-serif; }
   /* ── Gradient Meter timeline (purple → green; green only at completion).
      One track carrying a fixed purple→green gradient, an overlay hiding the
      unfilled remainder, a floating % knob, and a 5-stage legend where only the
@@ -15062,6 +15065,35 @@
       // Expose so decorateTiles() (different scope) can reuse the exact meter.
       window.buildProgress = buildProgress;
 
+      // ─── District-aware effective dates ──────────────────────────────────
+      // A district/umbrella's OWN DeliveryDate is meaningless for a phased
+      // multi-component development (Costa Palmas "2017" while components
+      // deliver through 2026+). Its real horizon is the LATEST delivery across
+      // the whole family. Walks self + every descendant (window._descendantsByParent,
+      // built per init) and returns the family's latest delivery + earliest
+      // start + component count + whether every member is open. Returns null
+      // for standalone projects (no descendants) so callers use the project's
+      // own dates unchanged. parseDate is in this IIFE's scope.
+      function familyEffectiveDelivery(slug, selfProps) {
+        const desc = (window._descendantsByParent && window._descendantsByParent[slug]) || [];
+        if (!desc.length) return null;
+        const OPEN = { 'now open': 1, 'completed': 1 };
+        const members = [];
+        if (selfProps) members.push(selfProps);
+        desc.forEach(f => { if (f && f.properties) members.push(f.properties); });
+        let completion = null, completionRaw = '', latestName = '';
+        let earliestStartRaw = '', earliestStart = null, allComplete = true;
+        members.forEach(m => {
+          const d = parseDate(m.deliveryDate);
+          if (d && (!completion || d > completion)) { completion = d; completionRaw = m.deliveryDate || ''; latestName = m.title || ''; }
+          const s = parseDate(m.startDate);
+          if (s && (!earliestStart || s < earliestStart)) { earliestStart = s; earliestStartRaw = m.startDate || ''; }
+          if (!OPEN[String(m.delivery || '').toLowerCase().trim()]) allComplete = false;
+        });
+        return { completionRaw, latestName, earliestStartRaw, allComplete, componentCount: desc.length };
+      }
+      window._familyEffectiveDelivery = familyEffectiveDelivery;
+
       // Last-resort segment builder if computeProgress isn't loaded (defensive).
       // Active segment is halfway filled; earlier done, later future.
       function buildFallbackSegments(activeIdx) {
@@ -15787,8 +15819,22 @@
           el.style.display = 'flex';
         })();
 
-        // Progress (date-driven via shared computeProgress helper)
-        document.getElementById('pmProgress').innerHTML = buildProgress(p.delivery, p.deliveryDate, p.startDate);
+        // Progress (date-driven via shared computeProgress helper).
+        // District-aware: when this project umbrellas components, its real
+        // horizon is the LATEST component delivery (full build-out), not its
+        // own (often stale) DeliveryDate. Feed the effective family dates into
+        // the SAME buildProgress() — only the inputs change, the math is shared
+        // + untouched. Standalone projects → _eff is null → unchanged.
+        const _selfSlug = window.projectSlugify ? window.projectSlugify(p.title || '') : '';
+        const _eff = window._familyEffectiveDelivery ? window._familyEffectiveDelivery(_selfSlug, p) : null;
+        const _progDelivery = (_eff && _eff.completionRaw) ? _eff.completionRaw : p.deliveryDate;
+        const _progStart = (_eff && _eff.earliestStartRaw) ? _eff.earliestStartRaw : p.startDate;
+        let _progHtml = buildProgress(p.delivery, _progDelivery, _progStart);
+        if (_eff) {
+          _progHtml += '<div class="pm-phases-note">Delivers in phases · ' + _eff.componentCount
+            + ' component' + (_eff.componentCount !== 1 ? 's' : '') + '</div>';
+        }
+        document.getElementById('pmProgress').innerHTML = _progHtml;
 
         // Description — prefer long, fall back to short
         const desc = p.descriptionLong || p.description || '';
@@ -15841,14 +15887,23 @@
         // Start date — only when a real (non-speculative) start date exists.
         const startRaw = (p.startDate || '').trim();
         const startFmt = (startRaw && !p.startSpeculative) ? fmtFactDate(startRaw) : '';
-        let completionFmt = fmtFactDate((p.deliveryDate || '').trim());
-        // Prefix "Est" when the completion date is a TMW estimate (speculative).
-        if (completionFmt && p.deliverySpeculative) completionFmt = 'Est ' + completionFmt;
+        // District-aware: the umbrella's Completion fact reflects the family's
+        // full build-out (latest component delivery), labeled "Full build-out".
+        // _eff was computed above for the progress bar. Standalone → own date.
+        let completionFmt, completionLabel = 'Completion';
+        if (_eff && _eff.completionRaw) {
+          completionFmt = fmtFactDate(_eff.completionRaw.trim());
+          completionLabel = 'Full build-out';
+        } else {
+          completionFmt = fmtFactDate((p.deliveryDate || '').trim());
+          // Prefix "Est" when the completion date is a TMW estimate (speculative).
+          if (completionFmt && p.deliverySpeculative) completionFmt = 'Est ' + completionFmt;
+        }
 
         // Order: Start · Completion · Keys · Units · Floors (Market removed).
         const factItems = [];
         if (startFmt)      factItems.push({ label: 'Start',      val: startFmt });
-        if (completionFmt) factItems.push({ label: 'Completion', val: completionFmt });
+        if (completionFmt) factItems.push({ label: completionLabel, val: completionFmt });
         if (keysVal)       factItems.push({ label: 'Keys',       val: keysVal });
         if (unitsVal)      factItems.push({ label: 'Units',      val: unitsVal });
         if (floorsVal)     factItems.push({ label: 'Floors',     val: floorsVal });
