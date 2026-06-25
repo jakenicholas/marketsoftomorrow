@@ -13695,9 +13695,15 @@
           ".tmw-il-ticks{display:flex;justify-content:space-between;margin-top:3px;font-size:8.5px;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}" +
           ".tmw-il-pulse{width:10px;height:10px;border-radius:50%;background:rgba(167,139,250,0.4);cursor:pointer;animation:tmwIlGlow 1.9s ease-in-out infinite}" +
           ".tmw-name-preview-popup{max-width:none !important}" +
-          ".tmw-name-preview-popup .mapboxgl-popup-content{display:inline-block !important;width:auto !important;max-width:none !important;min-width:0 !important;background:#0a0a0a;color:#B9A6FF;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:5px 10px !important;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.4);white-space:nowrap;text-align:center;cursor:pointer}" +
-          ".tmw-name-preview-popup .mapboxgl-popup-tip{border-top-color:#0a0a0a !important}" +
-          ".tmw-name-preview{color:#B9A6FF;display:inline-block;white-space:nowrap}" +
+          // Selected-pin name pill — visually identical to the .tmw-feat-name
+          // pill used for featured projects (white text on #0a0a0a, purple
+          // border at .6 alpha, same rotated-diamond pointer). Mapbox's own
+          // flat triangle tip is hidden in favor of the custom ::after so
+          // both pills carry the same outlined pointer.
+          ".tmw-name-preview-popup .mapboxgl-popup-content{position:relative;display:inline-block !important;width:auto !important;max-width:none !important;min-width:0 !important;background:#0a0a0a;color:#fff;font:600 12px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;padding:5px 10px !important;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.55);border:1px solid rgba(167,139,250,.6);white-space:nowrap;text-align:center;cursor:pointer}" +
+          ".tmw-name-preview-popup .mapboxgl-popup-content::after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);background:#0a0a0a;border-right:1px solid rgba(167,139,250,.6);border-bottom:1px solid rgba(167,139,250,.6)}" +
+          ".tmw-name-preview-popup .mapboxgl-popup-tip{display:none !important}" +
+          ".tmw-name-preview{color:#fff;display:inline-block;white-space:nowrap}" +
           // Persistent name label for recent movers — matches the hover/selected
           // name-preview pill (purple text on near-black, purple border) with a
           // small downward tail pointing at the pulsing pin.
