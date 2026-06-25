@@ -3269,6 +3269,18 @@
     .popup-stack-meta { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .popup-stack-arrow { flex: 0 0 auto; font-size: 16px; line-height: 1; color: rgba(255,255,255,0.4); }
     .popup-stack-row:hover .popup-stack-arrow { color: rgba(255,255,255,0.85); }
+    /* Parent-district row at the top of the stack — purple-tinted glow so the
+       umbrella reads as the structural anchor of the colocated set. Renders
+       only when every (or most) of the stack items share the same parentSlug
+       and that parent isn't already one of the rows. Spacing block below
+       separates it from the component list. */
+    .popup-stack-parent { background: rgba(167,139,250,0.10); border: 1px solid rgba(167,139,250,0.30); padding: 10px 10px; margin-bottom: 8px; box-shadow: 0 0 18px rgba(167,139,250,0.18) inset; }
+    .popup-stack-parent:hover { background: rgba(167,139,250,0.18); border-color: rgba(167,139,250,0.55); }
+    .popup-stack-parent .popup-stack-dot { background: #A78BFA; box-shadow: 0 0 0 2px rgba(167,139,250,0.20), 0 0 8px rgba(167,139,250,0.55); }
+    .popup-stack-parent-label { font-size: 9.5px; letter-spacing: 0.10em; text-transform: uppercase; color: rgba(255,255,255,0.55); display: block; margin-bottom: 2px; font-weight: 600; }
+    .popup-stack-parent .popup-stack-title { color: #C9BBFF; }
+    .popup-stack-parent .popup-stack-arrow { color: rgba(201,187,255,0.55); }
+    .popup-stack-parent:hover .popup-stack-arrow { color: #C9BBFF; }
     /* Slightly tighter popup container for the stack — no big image up top */
     .tmw-stack-popup .mapboxgl-popup-content { padding: 14px 14px 10px !important; }
 
@@ -13879,7 +13891,35 @@
             el.dataset.slug = (window.projectSlugify ? window.projectSlugify(f.properties.title||'') : '');
             const mk = new mapboxgl.Marker({ element: el, anchor: 'bottom', offset: [0, -13] }).setLngLat(f.geometry.coordinates).addTo(map);
             el.addEventListener('click', (ev)=>{ ev.stopPropagation();
-              try { if (typeof showPopup === 'function') { showPopup(f); return; } } catch(_){}
+              try {
+                // If this featured pin shares coordinates with other projects
+                // (mixed-use tower / district umbrella with co-located
+                // components), open the stack popup so the user picks which
+                // one — same precision check (5 decimals ≈ 1m) as
+                // _collapseColocated uses on the pin source. Standalone
+                // featured pins still go straight to the full popup.
+                const all = window.allProjectFeatures || [];
+                const co = f.geometry.coordinates;
+                const k = (n) => Math.round(n * 1e5) / 1e5;
+                const here = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
+                  && k(g.geometry.coordinates[0]) === k(co[0])
+                  && k(g.geometry.coordinates[1]) === k(co[1]));
+                if (here.length > 1 && typeof showStackPopup === 'function') {
+                  const py = window.projectSlugify || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+                  const stack = here.map(g => ({
+                    title: g.properties.title || '',
+                    slug: py(g.properties.title || ''),
+                    delivery: g.properties.delivery || '',
+                    preferredType: g.properties.preferredType || '',
+                    city: g.properties.city || '',
+                    image: g.properties.image || '',
+                    parentSlug: g.properties.parentSlug || '',
+                  }));
+                  showStackPopup(f, stack);
+                  return;
+                }
+                if (typeof showPopup === 'function') { showPopup(f); return; }
+              } catch(_){}
               try { map.flyTo({ center: f.geometry.coordinates, zoom: Math.max(map.getZoom(), 13) }); } catch(_){}
             });
             featLabels.push(mk);
@@ -16163,6 +16203,15 @@
         window.openProjectModal(target, 'stack');
       }
     };
+    // Parent-row click → open the district umbrella. Reuses the shared
+    // openDistrictBySlug helper so the same modal flow + chain awareness
+    // applies as anywhere else the chip is rendered.
+    window._stackParentClick = function (slug) {
+      if (activePopup) { activePopup.remove(); activePopup = null; }
+      if (typeof window._openDistrictBySlug === 'function') {
+        window._openDistrictBySlug(slug);
+      }
+    };
     function showStackPopup(f, stack) {
       if (!Array.isArray(stack) || stack.length < 2) { showPopup(f); return; }
       if (activePopup) { activePopup.remove(); activePopup = null; }
@@ -16180,6 +16229,32 @@
       };
       const statusColor = (d) => _SC[d] || '#A78BFA';
       const cityLine = stack[0].city || '';
+      // Detect a shared umbrella: every-or-most-of-the-stack-items point at
+      // the same parentSlug AND that parent isn't already one of the rows.
+      // The "majority" threshold (>= half) handles the case where a mixed-use
+      // tower colocates with one or two standalones plus its real components.
+      let parentRow = '';
+      try {
+        const stackSlugs = new Set(stack.map(s => s.slug).filter(Boolean));
+        const counts = {};
+        stack.forEach(s => {
+          const ps = (s.parentSlug || '').trim();
+          if (ps) counts[ps] = (counts[ps] || 0) + 1;
+        });
+        const dominant = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+        if (dominant && !stackSlugs.has(dominant) && counts[dominant] >= Math.ceil(stack.length / 2)) {
+          const parentName = (window._parentDisplayName ? window._parentDisplayName(dominant) : dominant);
+          parentRow =
+            `<button type="button" class="popup-stack-row popup-stack-parent" onclick="window._stackParentClick('${escA(dominant)}')">`
+            + `<span class="popup-stack-dot"></span>`
+            + `<span class="popup-stack-body">`
+            +   `<span class="popup-stack-parent-label">Part of</span>`
+            +   `<span class="popup-stack-title">${escT(parentName)}</span>`
+            + `</span>`
+            + `<span class="popup-stack-arrow">›</span>`
+            + `</button>`;
+        }
+      } catch(_) { /* defensive — parent row is decorative, fall through to bare list */ }
       const rows = stack.map((it) => {
         const dot = `<span class="popup-stack-dot" style="background:${statusColor(it.delivery)}"></span>`;
         const sub = [escT(it.delivery), escT(it.preferredType)].filter(Boolean).join(' · ');
@@ -16200,7 +16275,7 @@
           +     `<span class="popup-stack-loc">${escT(cityLine)}</span>`
           +     `<span class="popup-stack-count">${stack.length} projects at this site</span>`
           +   '</div>'
-          +   `<div class="popup-stack-list">${rows}</div>`
+          +   `<div class="popup-stack-list">${parentRow}${rows}</div>`
           + '</div>'
         )
         .addTo(map);
