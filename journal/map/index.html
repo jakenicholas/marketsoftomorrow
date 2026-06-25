@@ -13715,13 +13715,15 @@
           // glass block) so the drawer is unobstructed; they return on close.
           "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub{display:none!important}" +
           "body.tmw-dock-ac-open .tmw-il-scrub{display:none!important}" +
-          // The shared search overlay (.tmw-ov-root, opened by a Pulse-feed
-          // click in the header) is a full-viewport sheet. The fixed scrubber
-          // (bottom:96px) otherwise pokes into its scrollable project view.
-          // Hide it whenever the overlay is open. Scoped to the overlay ONLY —
-          // the map's own #projectModal slide-in deliberately KEEPS the
-          // scrubber visible (Jake: year context while reviewing a project).
           "body:has(.tmw-ov-root.open) .tmw-il-scrub{display:none!important}" +
+          // The project modal (#projectModal) opens from a pin click, popup,
+          // deep-link, OR a Pulse-feed tile. On MOBILE it's a full-screen
+          // sheet, so the fixed scrubber (bottom:96px) floats over its
+          // scrollable content (wedging between the stats / story-so-far rows).
+          // Hide it there. DESKTOP keeps the scrubber: the modal is only a
+          // left 35% panel, the scrubber is centered well clear of it, and
+          // Jake wants the year context while reviewing a project.
+          "@media(max-width:767px){body:has(#projectModal.open) .tmw-il-scrub{display:none!important}}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:11px;margin-bottom:5px}" +
           ".tmw-il-play{width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:13px;height:13px}" +
