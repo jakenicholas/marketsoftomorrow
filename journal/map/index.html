@@ -3382,6 +3382,13 @@
     @media(max-width:800px) {
       .leaf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-gap: 8px 10px; row-gap: 20px; }
       .mapboxgl-popup-content { width: 260px !important; font-size: 12px; padding: 14px !important; }
+      /* Stack popup must NOT take the generic 260px pin-popup width — its rows
+         live in .popup-stack (min-width:260) so a fixed 260 content box (minus
+         28px padding) forced the rows ~28px out the right edge. Let the content
+         box size to the stack instead, capped to the viewport so it never spills
+         off-screen, and make the stack itself responsive. */
+      .tmw-stack-popup .mapboxgl-popup-content { width: auto !important; max-width: calc(100vw - 24px) !important; }
+      .popup-stack { min-width: 0; width: min(300px, calc(100vw - 64px)); max-width: 100%; }
     }
 
     /* ‚îÄ‚îÄ‚îÄ FULLSCREEN MODAL ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
@@ -4389,8 +4396,19 @@
   #projectModal .dos-info > svg { width: 13px; height: 13px; display: block; }
   #projectModal .dos-tip { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 240px; background: #15110f; border: 1px solid rgba(255,255,255,.14); color: #ECEAE5; font-size: 12px; line-height: 1.45; padding: 8px 11px; border-radius: 9px; box-shadow: 0 14px 38px -12px rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .14s; z-index: 30; pointer-events: none; white-space: normal; }
   #projectModal .dos-info:hover .dos-tip, #projectModal .dos-info:focus .dos-tip { opacity: 1; visibility: visible; }
-  /* Mobile: right-anchor the info tooltip so it can't fall off the right edge. */
-  @media (max-width: 768px) { #projectModal .dos-tip { left: auto; right: 0; max-width: 78vw; } }
+  /* Mobile: the (i) sits at the right end of a row, so anchoring the tooltip
+     to the button (left:0 OR right:0) pushes a wide tooltip off one edge —
+     right:0 overflowed the LEFT edge. A button-anchored popover can't be kept
+     in view with CSS alone when the button can be anywhere, so on mobile we
+     detach it into a viewport-fixed, 16px-inset card centered vertically.
+     Always fully on-screen, never clipped, regardless of the icon's position. */
+  @media (max-width: 768px) {
+    #projectModal .dos-tip {
+      position: fixed; left: 16px; right: 16px; top: 50%; bottom: auto;
+      transform: translateY(-50%); width: auto; max-width: none; z-index: 60;
+      box-shadow: 0 24px 60px -10px rgba(0,0,0,.92);
+    }
+  }
   #projectModal .dos-src { display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; font-size: 11px; color: #42EB81; text-decoration: none; }
   #projectModal .dos-src .dos-arr { flex: none; }
   #projectModal .dos-src:hover { text-decoration: underline; }
@@ -13697,6 +13715,13 @@
           // glass block) so the drawer is unobstructed; they return on close.
           "body.v2-sheet-open .tmw-il-panel,body.v2-sheet-open .tmw-il-scrub{display:none!important}" +
           "body.tmw-dock-ac-open .tmw-il-scrub{display:none!important}" +
+          // The shared search overlay (.tmw-ov-root, opened by a Pulse-feed
+          // click in the header) is a full-viewport sheet. The fixed scrubber
+          // (bottom:96px) otherwise pokes into its scrollable project view.
+          // Hide it whenever the overlay is open. Scoped to the overlay ONLY —
+          // the map's own #projectModal slide-in deliberately KEEPS the
+          // scrubber visible (Jake: year context while reviewing a project).
+          "body:has(.tmw-ov-root.open) .tmw-il-scrub{display:none!important}" +
           ".tmw-il-scrub-top{display:flex;align-items:center;gap:11px;margin-bottom:5px}" +
           ".tmw-il-play{width:30px;height:30px;border-radius:50%;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.14);color:#fff;cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:.15s}" +
           ".tmw-il-play:hover{background:rgba(167,139,250,.26)}.tmw-il-play svg{width:13px;height:13px}" +
