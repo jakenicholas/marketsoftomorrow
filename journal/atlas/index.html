@@ -34,9 +34,11 @@
      journal-chrome.js); the atlas content flows below it. This replaces the
      old cross-origin iframe with a first-party render of atlas.json. */
   body{background:#0a0a0a; color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; min-height:100%}
-  /* The shared chrome footer isn't shown — the atlas carries its own footer
-     line. Leave room at the bottom for the fixed dock. */
-  .tmw-chrome-foot{display:none !important}
+  /* The shared chrome footer now renders on atlas too — the page-internal
+     .atlas-footer line above it stays (data-updated timestamp + Atlas
+     attribution), and the universal brand footer hangs below. The fixed
+     dock at bottom:22px will float over the footer when scrolled to the
+     very bottom, same as every other page that carries both. */
 
   /* ───────────────────────────────────────────────────────────────────
      ATLAS — ported from the map (repo-root index.html). The .atlas-overlay

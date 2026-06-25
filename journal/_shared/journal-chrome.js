@@ -165,7 +165,7 @@
     '.tmw-chrome-foot ul a{color:var(--mute); transition:color .2s; text-decoration:none}',
     '.tmw-chrome-foot ul a:hover{color:var(--green)}',
     '.tmw-chrome-foot .blurb{color:var(--mute); font-size:13px; line-height:1.55; margin-top:14px; max-width:32ch}',
-    '.tmw-chrome-foot .tmw-wordmark{width:118px}',
+    '.tmw-chrome-foot .tmw-wordmark{width:90px}',
     '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
     '@media(max-width:900px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:30px}}',
     // Mobile (<=640): collapse the 4-section grid into a single stacked column
