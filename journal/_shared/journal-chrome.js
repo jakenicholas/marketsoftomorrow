@@ -168,7 +168,22 @@
     '.tmw-chrome-foot .tmw-wordmark{width:118px}',
     '.tmw-chrome-foot .ft-bot{padding-top:22px; font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}',
     '@media(max-width:900px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:30px}}',
-    '@media(max-width:520px){.tmw-chrome-foot .ft-grid{grid-template-columns:1fr 1fr; gap:22px}}'
+    // Mobile (<=640): collapse the 4-section grid into a single stacked column
+    // with hairline dividers between each section (Option A layout). Brand
+    // block on top, then DATA / LISTS / COMPANY each as their own row, then
+    // the © + tagline strip. Link list font bumps 14->15px so taps don't
+    // require a magnifier on smaller phones; column max-width on the blurb
+    // is dropped so the tagline uses the full footer width.
+    '@media(max-width:640px){',
+    '.tmw-chrome-foot{padding:44px 0 28px; margin-top:32px}',
+    '.tmw-chrome-foot .ft-grid{grid-template-columns:1fr; gap:0; padding-bottom:0; border-bottom:0}',
+    '.tmw-chrome-foot .ft-grid > *{padding:22px 0; border-top:1px solid var(--hair)}',
+    '.tmw-chrome-foot .ft-grid > *:first-child{border-top:0; padding-top:4px}',
+    '.tmw-chrome-foot .blurb{max-width:none; margin-bottom:4px}',
+    '.tmw-chrome-foot h4{margin-bottom:12px}',
+    '.tmw-chrome-foot ul{gap:11px; font-size:15px}',
+    '.tmw-chrome-foot .ft-bot{padding-top:20px; border-top:1px solid var(--hair); margin-top:0}',
+    '}'
   ].join('');
 
   function mount() {
