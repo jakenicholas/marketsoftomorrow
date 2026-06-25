@@ -6146,6 +6146,37 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
   });
 }
 
+// GET /admin/markets-followed — distinct members following each Focus Market,
+// aggregated from `market_followed` events. NOTE: follows are append-only (the
+// client fires market_followed on follow but there's no market_unfollowed
+// event), so this is "members who have followed each market," not a net-current
+// count. Powers the analytics "Members by Market" breakdown.
+async function handleMarketsFollowed(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const rows = (await env.DB.prepare(
+    "SELECT member_id, props_json FROM events WHERE event_name = 'market_followed'"
+  ).all()).results || [];
+  const byMarket = new Map(); // market slug -> Set(member_id)
+  for (const r of rows) {
+    if (!r.member_id) continue;
+    let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch { /* skip */ }
+    const m = String(p.market || '').trim().toLowerCase();
+    if (!m) continue;
+    if (!byMarket.has(m)) byMarket.set(m, new Set());
+    byMarket.get(m).add(r.member_id);
+  }
+  const markets = [...byMarket.entries()]
+    .map(([market, set]) => ({ market, followers: set.size }))
+    .sort((a, b) => b.followers - a.followers);
+  return json({
+    markets,
+    total_markets: markets.length,
+    total_follows: markets.reduce((s, m) => s + m.followers, 0),
+  }, {}, env, origin);
+}
+
 async function handleMemberNumber(req, env, origin, url) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -6659,6 +6690,9 @@ export default {
       }
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/member-number') {
         return await handleMemberNumber(request, env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/admin/markets-followed') {
+        return await handleMarketsFollowed(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/timeline') {
         return await handleTimeline(env, origin, url);
