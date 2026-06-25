@@ -157,7 +157,15 @@
     '.tmw-chrome-head .nav-links > a{padding:13px 0; border-bottom:1px solid var(--hair); font-size:12px}',
     '.tmw-chrome-head .nav-links > a.active::after{display:none}',
     '}',
-    '.tmw-chrome-foot{background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
+    // font-family hardcoded on the root so the whole footer is self-owned —
+    // the link list (ul a) + blurb have no font-family of their own, so
+    // without this they inherit whatever the HOST page sets on <body>. Most
+    // pages share a body font and look consistent; atlas sets its own
+    // (font-family:var(--sans) on body), which is why its footer links/blurb
+    // drifted from every other page. Inter matches the h4 + .ft-bot rules
+    // (which already hardcode it), so this makes the footer render identically
+    // everywhere. See [[tmw-universal-chrome-self-owned]].
+    '.tmw-chrome-foot{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--ink-2); color:var(--mute-2); padding:60px 0 30px; border-top:1px solid var(--hair); margin-top:40px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
     '.tmw-chrome-foot .wrap{max-width:1240px; margin:0 auto; padding:0 28px}',
     '.tmw-chrome-foot .ft-grid{display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr; gap:40px; padding-bottom:30px; border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-foot h4{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--white); margin-bottom:14px; font-weight:600}',
