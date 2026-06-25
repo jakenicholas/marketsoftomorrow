@@ -13899,8 +13899,8 @@
                 // helper handlePinClick (dot click) uses, so both entry paths
                 // return an identical set. Standalone featured pins still
                 // go straight to the full popup.
-                const stack = (typeof window._buildStackAtCoord === 'function')
-                  ? window._buildStackAtCoord(f.geometry.coordinates) : null;
+                const stack = (typeof window._buildStackForFeature === 'function')
+                  ? window._buildStackForFeature(f) : null;
                 if (stack && stack.length > 1 && typeof showStackPopup === 'function') {
                   showStackPopup(f, stack);
                   return;
@@ -16303,24 +16303,26 @@
     // feature). Caller falls through to the single-project showPopup.
     // Ordering mirrors _collapseColocated's umbrella-first promotion so
     // the stack[0]-is-umbrella detection in showStackPopup keeps working.
-    window._buildStackAtCoord = function (co) {
-      if (!co || co.length < 2) return null;
+    // Resolve the full stack for a CLICKED FEATURE. Two independent triggers
+    // union together, so whichever pin the user hit — pipeline-source or
+    // completed-source, zoomed in or out — they get the same full set:
+    //   1. FAMILY: walk up from the feature to its district root, collect the
+    //      root + every descendant. This is slug/parent based, NOT coordinate
+    //      based, so it's immune to the pipeline/completed source split, to
+    //      coordinate jitter, and to which pin happened to be on top at the
+    //      click point. (The earlier coord-only version broke when the family
+    //      straddled two sources: zoomed out you'd hit one source's collapsed
+    //      pin and get only its slice.)
+    //   2. COLOCATED: any OTHER project sharing this exact spot (5dp ≈ 1m)
+    //      that isn't part of the family — so two unrelated projects at one
+    //      address still both show.
+    // Returns null when the union is < 2 (solo project → normal popup).
+    window._buildStackForFeature = function (feat) {
+      if (!feat || !feat.properties) return null;
       const all = window.allProjectFeatures || [];
       if (!all.length) return null;
       const py = window.projectSlugify
         || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-      const k = (n) => Math.round(n * 1e5) / 1e5;  // ~1m
-      const coordHits = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
-        && k(g.geometry.coordinates[0]) === k(co[0])
-        && k(g.geometry.coordinates[1]) === k(co[1]));
-      // Only build a stack when there's actually a coord collision. Single
-      // standalone hits fall through to the per-project showPopup — we
-      // don't want to hijack every child-project click into a family popup
-      // just because it has a parent_slug (the modal's "Connected projects"
-      // section is the right entry point for that, not a stack popup).
-      if (coordHits.length < 2) return null;
-
-      // Build slug indexes ONCE (used by family expansion below).
       const bySlug = new Map();
       const childrenByParent = new Map();
       all.forEach(g => {
@@ -16333,46 +16335,62 @@
           childrenByParent.get(ps).push(g);
         }
       });
+      // Resolve the feature's reference within the master list (the clicked
+      // `feat` may be a Mapbox-serialized copy). Match by slug.
+      const featSlug = py(feat.properties.title || '');
+      const self = bySlug.get(featSlug) || feat;
 
-      // ─── Family expansion ──────────────────────────────────────────────
-      // Coord hits alone aren't enough — sub-1m precision splits Aman's
-      // coord from Four Seasons' coord even though both sit on the same
-      // Costa Palmas master plan. So for every coord hit that belongs to
-      // a family (has a parent or has children), walk up to the family
-      // root and add the root + every descendant. The user's mental model
-      // is "this development at La Ribera," not "this exact GPS point."
+      // COLOCATION GATE — only build a stack when this spot is genuinely
+      // shared by ≥2 projects. Uses the MASTER feature's true coord (not the
+      // rendered pin's, which can be imprecise zoomed out / differ by source).
+      // This preserves single-pin behavior for districts whose components sit
+      // at DISTINCT coords (e.g. The Nora District — each component is its own
+      // explorable pin; clicking one opens its own modal, not a family stack).
+      // Costa Palmas (all components at one address) passes the gate.
+      const co = (self.geometry && self.geometry.coordinates) || (feat.geometry && feat.geometry.coordinates);
+      const k = (n) => Math.round(n * 1e5) / 1e5;  // ~1m
+      const coordHits = (co && co.length >= 2)
+        ? all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
+            && k(g.geometry.coordinates[0]) === k(co[0])
+            && k(g.geometry.coordinates[1]) === k(co[1]))
+        : [];
+      if (coordHits.length < 2) return null;  // not a shared spot → solo popup
+
+      // FAMILY EXPANSION — seed with every colocated hit, then for each, walk
+      // up to its district root and pull in the whole family (root + all
+      // descendants). Slug/parent based, so it crosses the pipeline/completed
+      // source split and ignores which pin was on top or the zoom level — the
+      // earlier coord-only version returned only one source's slice when the
+      // family straddled both sources (zoomed-out dot showed 3 of 7).
       function rootOf(g) {
         let cur = g; const seen = new Set();
         while (cur && cur.properties) {
           const ps = (cur.properties.parentSlug || '').trim();
           if (!ps || seen.has(ps) || !bySlug.has(ps)) break;
-          seen.add(ps);
-          cur = bySlug.get(ps);
+          seen.add(ps); cur = bySlug.get(ps);
         }
         return cur;
       }
-      const expanded = new Set(coordHits);
-      coordHits.forEach(g => {
-        const root = rootOf(g);
+      const set = new Set(coordHits);
+      coordHits.forEach(hit => {
+        const root = rootOf(hit);
         if (!root || !root.properties) return;
         const rootSlug = py(root.properties.title || '');
         if (!rootSlug) return;
-        const isStandalone = !(g.properties.parentSlug || '').trim() && !childrenByParent.has(py(g.properties.title || ''));
-        if (isStandalone) return;  // no family to expand — just keep this coord hit
-        expanded.add(root);
-        // BFS over descendants
-        const stack = [rootSlug];
-        const seen = new Set([rootSlug]);
-        while (stack.length) {
-          const s = stack.pop();
+        const hitStandalone = !(hit.properties.parentSlug || '').trim() && !childrenByParent.has(py(hit.properties.title || ''));
+        if (hitStandalone) return;  // colocated but no family — keep just the hit
+        set.add(root);
+        const queue = [rootSlug]; const seen = new Set([rootSlug]);
+        while (queue.length) {
+          const s = queue.pop();
           (childrenByParent.get(s) || []).forEach(c => {
             const cs = py(c.properties.title || '');
-            if (cs && !seen.has(cs)) { seen.add(cs); expanded.add(c); stack.push(cs); }
+            if (cs && !seen.has(cs)) { seen.add(cs); set.add(c); queue.push(cs); }
           });
         }
       });
 
-      const here = Array.from(expanded);
+      const here = Array.from(set);
       if (here.length < 2) return null;
 
       // Umbrella-first ordering — same logic as _collapseColocated so the
@@ -16397,6 +16415,17 @@
         image: g.properties.image || '',
         parentSlug: g.properties.parentSlug || '',
       }));
+    };
+    // Back-compat shim: callers that only have a coordinate (e.g. deep-links)
+    // resolve a feature at that coord first, then delegate.
+    window._buildStackAtCoord = function (co) {
+      if (!co || co.length < 2) return null;
+      const all = window.allProjectFeatures || [];
+      const k = (n) => Math.round(n * 1e5) / 1e5;
+      const seed = all.find(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
+        && k(g.geometry.coordinates[0]) === k(co[0])
+        && k(g.geometry.coordinates[1]) === k(co[1]));
+      return seed ? window._buildStackForFeature(seed) : null;
     };
     function showStackPopup(f, stack) {
       if (!Array.isArray(stack) || stack.length < 2) { showPopup(f); return; }
@@ -19472,16 +19501,21 @@
           function handlePinClick(e) {
             if(stationPopup){stationPopup.remove();stationPopup=null;}
             const raw = e.features[0];
-            // Coord-collision: build the stack LIVE at click time from
-            // allProjectFeatures so the stack crosses pipeline/completed
-            // source boundaries (which _collapseColocated splits before
-            // collapsing). This unifies dot-click with featured-nametag click
-            // — both now show the full set of colocated projects, including
-            // siblings on the OTHER Mapbox source. Falls back to the bare
-            // pin's _stackJSON only if the live lookup somehow misses; that
-            // path still works for same-source stacks.
-            let _stack = (typeof window._buildStackAtCoord === 'function')
-              ? window._buildStackAtCoord(raw.geometry && raw.geometry.coordinates)
+            // Look up the full feature from master list FIRST (Mapbox
+            // serializes away JS arrays; also gives us the true coord).
+            const f = window.allProjectFeatures
+              ? (window.allProjectFeatures.find(p => p.properties.title === raw.properties.title) || raw)
+              : raw;
+            // Coord-collision: build the stack from the CLICKED FEATURE's
+            // family + colocated set (see _buildStackForFeature). Feature-based
+            // (slug/parent walk) so it crosses the pipeline/completed source
+            // split and ignores which pin was on top / the zoom level — the
+            // earlier coord-only version returned only one source's slice when
+            // the family straddled both sources (zoomed-out dot showed 3 of 7).
+            // _stackJSON is the last-resort fallback for any non-family
+            // same-source stack the feature walk can't reconstruct.
+            let _stack = (typeof window._buildStackForFeature === 'function')
+              ? window._buildStackForFeature(f)
               : null;
             if (!_stack) {
               const _stackCount = +(raw.properties._stackCount || 1);
@@ -19489,10 +19523,6 @@
                 try { _stack = JSON.parse(raw.properties._stackJSON || '[]'); } catch(_) { _stack = null; }
               }
             }
-            // Look up the full feature from master list (Mapbox serializes away JS arrays)
-            const f = window.allProjectFeatures
-              ? (window.allProjectFeatures.find(p => p.properties.title === raw.properties.title) || raw)
-              : raw;
             gtag('event','project_click',{'project_name':f.properties.title,'project_city':f.properties.city,'project_featured':f.properties.featured||false,'click_source':'map_pin','device_type':isMobile?'mobile':'desktop'});
 
             // Center the popup vertically: shift the camera so the pin
