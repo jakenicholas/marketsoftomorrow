@@ -15072,22 +15072,39 @@
       // the whole family. Walks self + every descendant (window._descendantsByParent,
       // built per init) and returns the family's latest delivery + earliest
       // start + component count + whether every member is open. Returns null
-      // for standalone projects (no descendants) so callers use the project's
-      // own dates unchanged. parseDate is in this IIFE's scope.
+      // for standalone projects (no descendants).
+      //
+      // SELF-CONTAINED: this helper is exposed on window and lives OUTSIDE the
+      // math IIFE that owns parseDate(), so it can't reference parseDate (that
+      // threw a ReferenceError that broke the whole modal render). It only
+      // needs to pick WHICH member has the latest date, so it uses its own
+      // sortable YYYY-MM-DD key — the raw date string it returns is parsed by
+      // buildProgress() downstream, which has parseDate in its own scope.
       function familyEffectiveDelivery(slug, selfProps) {
         const desc = (window._descendantsByParent && window._descendantsByParent[slug]) || [];
         if (!desc.length) return null;
         const OPEN = { 'now open': 1, 'completed': 1 };
+        const MON = { jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12' };
+        function dateKey(raw) {
+          const s = String(raw || '').trim().toLowerCase(); if (!s) return '';
+          let m;
+          if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return m[1] + '-' + m[2] + '-' + m[3];
+          if ((m = s.match(/^(\d{4})-(\d{2})$/)))         return m[1] + '-' + m[2] + '-31';
+          if ((m = s.match(/^([a-z]{3,})\.?\s+(\d{4})$/)) && MON[m[1].slice(0,3)]) return m[2] + '-' + MON[m[1].slice(0,3)] + '-15';
+          if ((m = s.match(/^(\d{4})$/)))                 return m[1] + '-12-31';
+          if ((m = s.match(/(\d{4})/)))                   return m[1] + '-12-31';
+          return '';
+        }
         const members = [];
         if (selfProps) members.push(selfProps);
         desc.forEach(f => { if (f && f.properties) members.push(f.properties); });
-        let completion = null, completionRaw = '', latestName = '';
-        let earliestStartRaw = '', earliestStart = null, allComplete = true;
+        let completionRaw = '', completionKey = '', latestName = '';
+        let earliestStartRaw = '', earliestStartKey = '', allComplete = true;
         members.forEach(m => {
-          const d = parseDate(m.deliveryDate);
-          if (d && (!completion || d > completion)) { completion = d; completionRaw = m.deliveryDate || ''; latestName = m.title || ''; }
-          const s = parseDate(m.startDate);
-          if (s && (!earliestStart || s < earliestStart)) { earliestStart = s; earliestStartRaw = m.startDate || ''; }
+          const dk = dateKey(m.deliveryDate);
+          if (dk && (!completionKey || dk > completionKey)) { completionKey = dk; completionRaw = m.deliveryDate || ''; latestName = m.title || ''; }
+          const sk = dateKey(m.startDate);
+          if (sk && (!earliestStartKey || sk < earliestStartKey)) { earliestStartKey = sk; earliestStartRaw = m.startDate || ''; }
           if (!OPEN[String(m.delivery || '').toLowerCase().trim()]) allComplete = false;
         });
         return { completionRaw, latestName, earliestStartRaw, allComplete, componentCount: desc.length };
