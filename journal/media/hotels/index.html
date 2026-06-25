@@ -212,6 +212,15 @@ a.tag:hover svg{transform:translateX(2px)}
 .collab-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
 .collab{padding:28px 30px; display:flex; flex-direction:column; overflow:hidden}
 .collab-img{display:block; width:calc(100% + 60px); height:250px; object-fit:cover; margin:-28px -30px 22px; border-bottom:1px solid var(--hair); background:#11140f}
+/* "Iconic Hotels" feature tile — identical to the universal header Lists dropdown (.tmw-lc-feat) */
+.mk-lc-feat{position:relative; display:block; border-radius:15px; overflow:hidden; text-decoration:none; min-height:262px; border:1px solid rgba(255,255,255,.1); margin:6px 0 18px}
+.mk-lc-feat img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .55s ease}
+.mk-lc-feat::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(5,6,5,.93), rgba(5,6,5,.2) 55%, rgba(5,6,5,.4))}
+.mk-lc-feat:hover img{transform:scale(1.05)}
+.mk-lc-fm{position:absolute; left:0; right:0; bottom:0; padding:22px; z-index:2}
+.mk-lc-eye{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft,#f0d68a); margin-bottom:7px}
+.mk-lc-feat h3{font-family:var(--serif,Georgia,serif); font-weight:500; font-size:28px; line-height:1; letter-spacing:-.015em; text-transform:none; color:#fff; margin:0}
+.mk-lc-feat p{font-family:var(--sans,"Inter",sans-serif); text-transform:none; font-size:12.5px; line-height:1.45; color:var(--mute-2,#C2C9C3); margin-top:9px; max-width:34ch}
 .collab-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px}
 .collab-head .ct{font-family:var(--serif); font-size:23px; font-weight:600; color:var(--white); line-height:1.1}
 .collab-head .cl{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); white-space:nowrap}
@@ -440,6 +449,15 @@ a.tag:hover svg{transform:translateX(2px)}
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Your property considered for our <b>Iconic Hotels List</b><span class="tag">not guaranteed</span></span></li>
           <li><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Your restaurant considered for our <b>Iconic Restaurants List</b> &mdash; if applicable, and if you host a media dine<span class="tag">not guaranteed</span></span></li>
         </ul>
+        <!-- Identical "Iconic Hotels" feature tile from the universal header Lists dropdown -->
+        <a class="mk-lc-feat" href="https://www.oftmw.com/hotels">
+          <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg" alt="Iconic Hotels" loading="lazy">
+          <div class="mk-lc-fm">
+            <div class="mk-lc-eye">The flagship guide</div>
+            <h3>Iconic Hotels</h3>
+            <p>The stays that define every market &mdash; ranked, property by property.</p>
+          </div>
+        </a>
         <div class="dlink">
           <a class="btn btn-ghost" href="https://www.oftmw.com/hotels">See the Iconic Hotel List <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
         </div>
