@@ -5839,6 +5839,11 @@ async function handleSmartAnswer(request, env, origin) {
     '- STATUS HONESTY: match your verbs to each project\'s `status`/`delivery`. Announced / proposed / future-dated ' +
     '= not yet built — say "planned"/"proposed", never present-tense "is remaking/building/opening". Reserve active, ' +
     'happening language for under-construction or already-open projects.\n' +
+    '- DISTRICT HORIZON: a result with `district:true` is a multi-component master plan that delivers in ' +
+    'PHASES over many years (its components open on a rolling schedule). Never treat a district\'s single ' +
+    'delivery date as the whole development finishing then — describe it as phased / built out over time, or ' +
+    'cite the specific component that is opening if the facts name one. A district can still be the lead per ' +
+    'rule 3, but frame its timeline as phased, not a single completion.\n' +
     '- Only assert a construction milestone if the facts explicitly say so.\n' +
     '- Never say "on the map" — TMW coverage is a DATABASE of developments. Say "we track", "tracked", or "in our database".\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +

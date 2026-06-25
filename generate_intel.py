@@ -1161,7 +1161,30 @@ def main():
     intel = {}
     stats = {'high': 0, 'medium': 0, 'low': 0, 'known_date': 0,
              'completed': 0, 'skipped': 0, 'no_type': 0,
-             'firm_boosted': 0, 'speculative_softened': 0}
+             'firm_boosted': 0, 'speculative_softened': 0, 'district': 0}
+
+    # ── District index (Plan B) ──────────────────────────────────────────
+    # A district/master-plan umbrella's OWN DeliveryDate is meaningless for a
+    # phased multi-component development — its real horizon is the LATEST
+    # delivery across its whole family. Build parent->children once so the
+    # per-row loop can resolve a district target's effective completion from
+    # its components and model it as a long, phased development rather than a
+    # single 3-year build. Keyed by ParentSlug value (== slugify(parent title)).
+    children_by_parent = {}
+    for _r in rows:
+        _ps = (_r.get('ParentSlug') or '').strip()
+        if _ps:
+            children_by_parent.setdefault(_ps, []).append(_r)
+
+    def all_descendant_rows(slug):
+        out, seen, stack = [], {slug}, [slug]
+        while stack:
+            s = stack.pop()
+            for c in children_by_parent.get(s, []):
+                cs = slugify(c.get('Title', '') or '')
+                if cs and cs not in seen:
+                    seen.add(cs); out.append(c); stack.append(cs)
+        return out
     # Track projects that had a DeliveryDate but still fell through to the
     # comparable path. The workflow log prints these so we can see why each
     # project ended up where it did (e.g. year-only date, unparseable format,
@@ -1191,6 +1214,93 @@ def main():
         start_speculative    = _truthy(row.get('StartSpeculative'))    or _truthy(row.get('DatesSpeculative'))
         delivery_speculative = _truthy(row.get('DeliverySpeculative')) or _truthy(row.get('DatesSpeculative'))
         dates_speculative    = start_speculative or delivery_speculative
+
+        # --- Path D: DISTRICT (has components) ---
+        # Runs BEFORE the completed / known-date / comparables paths. A district
+        # isn't "done" until its LAST component delivers, so its time-to-completion
+        # is measured to the latest delivery across the whole family — not the
+        # umbrella's own (often stale) date, and not a comparables guess. This is
+        # the smarter signal: we KNOW the components' real schedule. The estimate
+        # composes naturally with the mixed-use horizon since it's derived from
+        # the actual phased dates rather than a single-use comparable median.
+        _descs = all_descendant_rows(target_slug)
+        if _descs:
+            fam = [row] + _descs
+            latest = None; latest_name = ''
+            all_open = True
+            inflight_undated = 0   # in-flight components with no parseable delivery date
+            for _m in fam:
+                _open = is_complete(_m.get('Delivery', '') or '')
+                _d = parse_date((_m.get('DeliveryDate', '') or '').strip())
+                if _d and (latest is None or _d > latest):
+                    latest = _d; latest_name = (_m.get('Title', '') or '').strip()
+                if not _open:
+                    all_open = False
+                    if not _d:
+                        inflight_undated += 1
+            comp_count = len(_descs)
+            rec = {
+                'source':           'district',
+                'is_district':      True,
+                'component_count':  comp_count,
+                'project_type':     ptype,
+                'metro':            metro_for_city(city),
+                'comparables':      [],
+                'comparable_count': 0,
+            }
+            if latest:
+                rec['phased_through'] = latest.year
+            if all_open and latest:
+                rec.update({
+                    'confidence':      'high',
+                    'estimate_years':  0,
+                    'estimate_label':  'Delivered',
+                    'pattern_summary': (
+                        f"All {comp_count} components delivered — full build-out "
+                        f"completed {latest.year}."),
+                })
+            elif latest and latest >= today:
+                days_out = (latest - today).days
+                yrs = days_out / 365.25
+                if days_out <= 365:
+                    _mo = max(1, round(days_out / 30.44))
+                    label = f"{_mo} month" + ('s' if _mo != 1 else '')
+                else:
+                    label = f"{format_years(round(yrs * 2) / 2)} years"
+                # When in-flight components have no firm date, the "latest known"
+                # horizon UNDERSTATES the true build-out — be honest about it.
+                undated_tail = ''
+                conf = 'medium'
+                if inflight_undated:
+                    conf = 'low'
+                    undated_tail = (
+                        f" {inflight_undated} more component"
+                        f"{'s' if inflight_undated != 1 else ''} in progress without "
+                        f"firm dates, so full build-out likely runs later.")
+                rec.update({
+                    'confidence':      conf,
+                    'estimate_years':  round(yrs, 1),
+                    'estimate_label':  label,
+                    'days_out':        days_out,
+                    'delivery_date':   latest.isoformat(),
+                    'inflight_undated': inflight_undated,
+                    'pattern_summary': (
+                        f"Phased master plan — {comp_count} components delivering "
+                        f"through {latest.year}; latest dated phase ({latest_name}) "
+                        f"~{label} out.{undated_tail}"),
+                })
+            else:
+                rec.update({
+                    'confidence':      'low',
+                    'estimate_years':  None,
+                    'estimate_label':  'Phased',
+                    'pattern_summary': (
+                        f"Phased master plan with {comp_count} components delivering "
+                        f"on a rolling schedule."),
+                })
+            intel[target_slug] = rec
+            stats['district'] += 1
+            continue
 
         # --- Path 0: COMPLETED project ---
         # Past-tense report showing actual time taken. Drawn directly from
