@@ -13895,26 +13895,13 @@
                 // If this featured pin shares coordinates with other projects
                 // (mixed-use tower / district umbrella with co-located
                 // components), open the stack popup so the user picks which
-                // one — same precision check (5 decimals ≈ 1m) as
-                // _collapseColocated uses on the pin source. Standalone
-                // featured pins still go straight to the full popup.
-                const all = window.allProjectFeatures || [];
-                const co = f.geometry.coordinates;
-                const k = (n) => Math.round(n * 1e5) / 1e5;
-                const here = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
-                  && k(g.geometry.coordinates[0]) === k(co[0])
-                  && k(g.geometry.coordinates[1]) === k(co[1]));
-                if (here.length > 1 && typeof showStackPopup === 'function') {
-                  const py = window.projectSlugify || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-                  const stack = here.map(g => ({
-                    title: g.properties.title || '',
-                    slug: py(g.properties.title || ''),
-                    delivery: g.properties.delivery || '',
-                    preferredType: g.properties.preferredType || '',
-                    city: g.properties.city || '',
-                    image: g.properties.image || '',
-                    parentSlug: g.properties.parentSlug || '',
-                  }));
+                // one. Routes through window._buildStackAtCoord — the same
+                // helper handlePinClick (dot click) uses, so both entry paths
+                // return an identical set. Standalone featured pins still
+                // go straight to the full popup.
+                const stack = (typeof window._buildStackAtCoord === 'function')
+                  ? window._buildStackAtCoord(f.geometry.coordinates) : null;
+                if (stack && stack.length > 1 && typeof showStackPopup === 'function') {
                   showStackPopup(f, stack);
                   return;
                 }
@@ -16293,6 +16280,52 @@
       if (typeof window._openDistrictBySlug === 'function') {
         window._openDistrictBySlug(slug);
       }
+    };
+    // Build a stack array LIVE at click time from allProjectFeatures at the
+    // given coords. Used by every "did I click a colocated pin?" path —
+    // featured nametag, dot click, deep-link — so all entry paths return
+    // the same set. Necessary because _collapseColocated splits pipeline
+    // vs completed BEFORE collapsing, so the source-feature's prebuilt
+    // _stackJSON only contains same-source siblings. Crossing the
+    // source boundary at click time gives users the FULL set of projects
+    // at the spot they tapped, regardless of which Mapbox source rendered
+    // the pin.
+    //
+    // Returns null when nothing colocates with this coord (or only 1
+    // feature). Caller falls through to the single-project showPopup.
+    // Ordering mirrors _collapseColocated's umbrella-first promotion so
+    // the stack[0]-is-umbrella detection in showStackPopup keeps working.
+    window._buildStackAtCoord = function (co) {
+      if (!co || co.length < 2) return null;
+      const all = window.allProjectFeatures || [];
+      if (!all.length) return null;
+      const k = (n) => Math.round(n * 1e5) / 1e5;  // ~1m, matches _collapseColocated
+      const here = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
+        && k(g.geometry.coordinates[0]) === k(co[0])
+        && k(g.geometry.coordinates[1]) === k(co[1]));
+      if (here.length < 2) return null;
+      const py = window.projectSlugify
+        || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+      const umbrellas = here.filter(g => {
+        const gs = py(g.properties.title || '');
+        return here.some(o => o !== g && (o.properties.parentSlug || '').trim() === gs);
+      });
+      const districtFeat = umbrellas.find(u => {
+        const ups = (u.properties.parentSlug || '').trim();
+        return !ups || !here.some(o => py(o.properties.title || '') === ups);
+      }) || umbrellas[0];
+      const ordered = districtFeat
+        ? [districtFeat].concat(here.filter(g => g !== districtFeat))
+        : here.slice().sort((a, b) => (b.properties.featured ? 1 : 0) - (a.properties.featured ? 1 : 0));
+      return ordered.map(g => ({
+        title: g.properties.title || '',
+        slug: py(g.properties.title || ''),
+        delivery: g.properties.delivery || '',
+        preferredType: g.properties.preferredType || '',
+        city: g.properties.city || '',
+        image: g.properties.image || '',
+        parentSlug: g.properties.parentSlug || '',
+      }));
     };
     function showStackPopup(f, stack) {
       if (!Array.isArray(stack) || stack.length < 2) { showPopup(f); return; }
@@ -19368,17 +19401,22 @@
           function handlePinClick(e) {
             if(stationPopup){stationPopup.remove();stationPopup=null;}
             const raw = e.features[0];
-            // Coord-collision: if this pin represents > 1 project at the same
-            // location (mixed-use towers, district umbrellas with co-located
-            // components), parse the stack JSON and render the stacked popup
-            // instead of the single-project one. The stack data lives in the
-            // source-feature properties (set by _collapseColocated), so we
-            // read directly from `raw` here — no need to look up the master
-            // feature first.
-            const _stackCount = +(raw.properties._stackCount || 1);
-            let _stack = null;
-            if (_stackCount > 1) {
-              try { _stack = JSON.parse(raw.properties._stackJSON || '[]'); } catch(_) { _stack = null; }
+            // Coord-collision: build the stack LIVE at click time from
+            // allProjectFeatures so the stack crosses pipeline/completed
+            // source boundaries (which _collapseColocated splits before
+            // collapsing). This unifies dot-click with featured-nametag click
+            // — both now show the full set of colocated projects, including
+            // siblings on the OTHER Mapbox source. Falls back to the bare
+            // pin's _stackJSON only if the live lookup somehow misses; that
+            // path still works for same-source stacks.
+            let _stack = (typeof window._buildStackAtCoord === 'function')
+              ? window._buildStackAtCoord(raw.geometry && raw.geometry.coordinates)
+              : null;
+            if (!_stack) {
+              const _stackCount = +(raw.properties._stackCount || 1);
+              if (_stackCount > 1) {
+                try { _stack = JSON.parse(raw.properties._stackJSON || '[]'); } catch(_) { _stack = null; }
+              }
             }
             // Look up the full feature from master list (Mapbox serializes away JS arrays)
             const f = window.allProjectFeatures
