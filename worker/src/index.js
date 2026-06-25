@@ -6158,12 +6158,18 @@ async function handleMarketsFollowed(req, env, origin) {
   const rows = (await env.DB.prepare(
     "SELECT member_id, props_json FROM events WHERE event_name = 'market_followed'"
   ).all()).results || [];
+  // Canonicalize stray / legacy market slugs onto their real Focus Market.
+  // Some market_followed events carry a project-ish slug instead of the market
+  // itself (e.g. "miami-beach-residences" should count as Miami Beach). Fold
+  // them in here so the breakdown shows clean markets. Extend as needed.
+  const MARKET_ALIAS = { 'miami-beach-residences': 'miami-beach' };
   const byMarket = new Map(); // market slug -> Set(member_id)
   for (const r of rows) {
     if (!r.member_id) continue;
     let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch { /* skip */ }
-    const m = String(p.market || '').trim().toLowerCase();
-    if (!m) continue;
+    const raw = String(p.market || '').trim().toLowerCase();
+    if (!raw) continue;
+    const m = MARKET_ALIAS[raw] || raw;
     if (!byMarket.has(m)) byMarket.set(m, new Set());
     byMarket.get(m).add(r.member_id);
   }
