@@ -2578,6 +2578,34 @@
       slotEntities.innerHTML = '';
     }
 
+    // ── SAFETY NET: never paint a blank results view ────────────────
+    // totalHits (above) is counted from the UNFILTERED scored lists, but the
+    // visible slots are populated from lists that get filtered down later
+    // (e.g. the meaningful-token filter drops firms/cities lacking every
+    // query token). So a query like "shoma bay" can weakly hit the developer
+    // "Shoma Group" → totalHits>0 → 'results' state — yet "bay" isn't in
+    // "Shoma Group", the firm gets filtered out, and every slot ends up empty:
+    // a black screen. If, after the synchronous render, NOTHING landed in any
+    // visible slot and there are no article matches, divert to the helpful
+    // empty state ("Nothing matched…"). Questions are exempt — their
+    // Intelligence answer renders on its own async path.
+    var _renderedSomething = heroProject || heroFirm || heroArticle
+      || restProjects.length || restFirms.length || restCities.length || aScored.length;
+    if (!_renderedSomething && !question) {
+      slotHero.innerHTML = ''; slotProjGrid.innerHTML = ''; slotEntities.innerHTML = '';
+      slotArticles.innerHTML = ''; slotFilterPills.innerHTML = '';
+      sResults.removeAttribute('data-filter');
+      _lastResultsTotal = 0;
+      _lastResultKind = 'empty';
+      try {
+        if (window.tmwIntel && window.tmwIntel.trackSearch) {
+          window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
+        }
+      } catch (_) {}
+      setState('empty');
+      return;
+    }
+
     // ── Journal + filter pills (shared renderer) ────────────────────
     // renderArticleSection scores ARTICLES, paints the journal section (matches
     // or the latest-stories browse fallback), fires the worker body-scan, and
