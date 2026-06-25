@@ -14540,87 +14540,6 @@
       // in scope (cached-restore path falls back to the property already set).
       window.isProjectCompleted = isProjectCompleted;
 
-      // ─── Family-aware completion ─────────────────────────────────────────
-      // A parent district + its descendants graduate to "Completed" as a
-      // UNIT — not independently. So a district whose own delivery date
-      // crossed the 6-month line STAYS on the live pipeline layer as long
-      // as any leaf (or sub-leaf) component is still in development. Once
-      // every member of the family reads "Now Open" AND the LATEST
-      // deliveryDate across the family is past the 6-month window, the
-      // whole family graduates together.
-      //
-      // Mutates props.completed in place. Standalone projects (no parent,
-      // no children) keep whatever isProjectCompleted already stamped.
-      function applyFamilyCompletion(featureList) {
-        const py = window.projectSlugify
-          || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-        const bySlug = new Map();
-        const childrenByParent = new Map();
-        featureList.forEach(f => {
-          const slug = py(f.properties.title || '');
-          bySlug.set(slug, f);
-          const ps = (f.properties.parentSlug || '').trim();
-          if (ps) {
-            if (!childrenByParent.has(ps)) childrenByParent.set(ps, []);
-            childrenByParent.get(ps).push(f);
-          }
-        });
-        function familyRoot(f) {
-          let cur = f;
-          const seen = new Set();
-          while (cur) {
-            const ps = (cur.properties.parentSlug || '').trim();
-            if (!ps || seen.has(ps)) break;
-            seen.add(ps);
-            const parent = bySlug.get(ps);
-            if (!parent) break;
-            cur = parent;
-          }
-          return cur;
-        }
-        function familyDescendants(root) {
-          const out = [root];
-          const startSlug = py(root.properties.title || '');
-          const seen = new Set([startSlug]);
-          const stack = [startSlug];
-          while (stack.length) {
-            const slug = stack.pop();
-            const kids = childrenByParent.get(slug) || [];
-            kids.forEach(k => {
-              const ks = py(k.properties.title || '');
-              if (!seen.has(ks)) { seen.add(ks); out.push(k); stack.push(ks); }
-            });
-          }
-          return out;
-        }
-        const processed = new Set();
-        featureList.forEach(f => {
-          const slug = py(f.properties.title || '');
-          const hasParent = !!(f.properties.parentSlug || '').trim();
-          const hasChildren = childrenByParent.has(slug);
-          if (!hasParent && !hasChildren) return;  // standalone — leave per-project value
-          const root = familyRoot(f);
-          const rootSlug = py(root.properties.title || '');
-          if (processed.has(rootSlug)) return;
-          processed.add(rootSlug);
-          const fam = familyDescendants(root);
-          const allOpen = fam.every(x => String(x.properties.delivery || '').toLowerCase() === 'now open');
-          let famCompleted = false;
-          if (allOpen) {
-            let latest = null;
-            fam.forEach(x => {
-              const dt = parseDate(x.properties.deliveryDate);
-              if (dt && (!latest || dt > latest)) latest = dt;
-            });
-            if (latest && (Date.now() - latest.getTime()) > COMPLETED_AGE_MS) {
-              famCompleted = true;
-            }
-          }
-          fam.forEach(x => { x.properties.completed = famCompleted; });
-        });
-      }
-      window._applyFamilyCompletion = applyFamilyCompletion;
-
       function parseDate(str) {
         if (!str) return null;
         const s = String(str).trim();
@@ -19132,12 +19051,6 @@
           // pipeline pins vs. archived completions. Computed once here; the
           // cached-restore path reuses these values from window.allProjectFeatures.
           features.forEach(f => { f.properties.completed = isProjectCompleted(f.properties); });
-          // Family-aware override — a parent district + its descendants
-          // graduate to "Completed" as a UNIT. Mutates `completed` in place
-          // for any feature that belongs to a multi-project family; leaves
-          // standalones with their per-project value. Must run AFTER the
-          // per-project stamp above so it can override (or honor) it.
-          applyFamilyCompletion(features);
           // Stable unique id per pin (title + coords). Selection highlights the
           // EXACT pin by uid, not by title — duplicate-titled projects (e.g. two
           // "YMCA of the Palm Beaches" ~300m apart) used to BOTH turn pink on a
