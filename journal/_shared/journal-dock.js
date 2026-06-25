@@ -1940,7 +1940,7 @@
       if(typeof d.level==='number'){
         var lk='tmw_lvl_'+id, plvl=NaN; try{ plvl=parseInt(localStorage.getItem(lk),10); }catch(e){}
         if(isNaN(plvl)){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
-        else if(d.level>plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} setTimeout(function(){ toastLevel(d.level,d.tier); }, 200); }
+        else if(d.level>plvl){ setTimeout(function(){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} toastLevel(d.level,d.tier); }, 200); }
         else if(d.level!==plvl){ try{ localStorage.setItem(lk,String(d.level)); }catch(e){} }
       }
       // daily-streak visit toast — once per calendar day, from day 2 onward
@@ -1948,7 +1948,13 @@
       if(sk_streak>=2){
         var sd=new Date(), ymd=sd.getFullYear()+'-'+(sd.getMonth()+1)+'-'+sd.getDate(), stk='tmw_streak_toast_'+id, lastDay=null;
         try{ lastDay=localStorage.getItem(stk); }catch(e){}
-        if(lastDay!==ymd){ try{ localStorage.setItem(stk,ymd); }catch(e){} setTimeout(function(){ toastStreak(sk_streak); }, 600); }
+        // Set the once-per-day gate INSIDE the timeout, together with the toast
+        // — not before it. Otherwise a first page that navigates/redirects
+        // within 600ms marks the day "shown" without the toast ever painting,
+        // and every later page that day is then suppressed (the regression Jake
+        // hit: streak toast missing on the first page visited). Now an
+        // interrupted first page simply retries on the next page of the day.
+        if(lastDay!==ymd){ setTimeout(function(){ try{ localStorage.setItem(stk,ymd); }catch(e){} toastStreak(sk_streak); }, 600); }
       }
     }).catch(function(){});
   }
