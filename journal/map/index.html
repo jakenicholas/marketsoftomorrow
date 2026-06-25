@@ -16299,13 +16299,76 @@
       if (!co || co.length < 2) return null;
       const all = window.allProjectFeatures || [];
       if (!all.length) return null;
-      const k = (n) => Math.round(n * 1e5) / 1e5;  // ~1m, matches _collapseColocated
-      const here = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
-        && k(g.geometry.coordinates[0]) === k(co[0])
-        && k(g.geometry.coordinates[1]) === k(co[1]));
-      if (here.length < 2) return null;
       const py = window.projectSlugify
         || ((s) => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+      const k = (n) => Math.round(n * 1e5) / 1e5;  // ~1m
+      const coordHits = all.filter(g => g && g.geometry && Array.isArray(g.geometry.coordinates)
+        && k(g.geometry.coordinates[0]) === k(co[0])
+        && k(g.geometry.coordinates[1]) === k(co[1]));
+      // Only build a stack when there's actually a coord collision. Single
+      // standalone hits fall through to the per-project showPopup — we
+      // don't want to hijack every child-project click into a family popup
+      // just because it has a parent_slug (the modal's "Connected projects"
+      // section is the right entry point for that, not a stack popup).
+      if (coordHits.length < 2) return null;
+
+      // Build slug indexes ONCE (used by family expansion below).
+      const bySlug = new Map();
+      const childrenByParent = new Map();
+      all.forEach(g => {
+        if (!g || !g.properties) return;
+        const slug = py(g.properties.title || '');
+        if (slug) bySlug.set(slug, g);
+        const ps = (g.properties.parentSlug || '').trim();
+        if (ps) {
+          if (!childrenByParent.has(ps)) childrenByParent.set(ps, []);
+          childrenByParent.get(ps).push(g);
+        }
+      });
+
+      // ─── Family expansion ──────────────────────────────────────────────
+      // Coord hits alone aren't enough — sub-1m precision splits Aman's
+      // coord from Four Seasons' coord even though both sit on the same
+      // Costa Palmas master plan. So for every coord hit that belongs to
+      // a family (has a parent or has children), walk up to the family
+      // root and add the root + every descendant. The user's mental model
+      // is "this development at La Ribera," not "this exact GPS point."
+      function rootOf(g) {
+        let cur = g; const seen = new Set();
+        while (cur && cur.properties) {
+          const ps = (cur.properties.parentSlug || '').trim();
+          if (!ps || seen.has(ps) || !bySlug.has(ps)) break;
+          seen.add(ps);
+          cur = bySlug.get(ps);
+        }
+        return cur;
+      }
+      const expanded = new Set(coordHits);
+      coordHits.forEach(g => {
+        const root = rootOf(g);
+        if (!root || !root.properties) return;
+        const rootSlug = py(root.properties.title || '');
+        if (!rootSlug) return;
+        const isStandalone = !(g.properties.parentSlug || '').trim() && !childrenByParent.has(py(g.properties.title || ''));
+        if (isStandalone) return;  // no family to expand — just keep this coord hit
+        expanded.add(root);
+        // BFS over descendants
+        const stack = [rootSlug];
+        const seen = new Set([rootSlug]);
+        while (stack.length) {
+          const s = stack.pop();
+          (childrenByParent.get(s) || []).forEach(c => {
+            const cs = py(c.properties.title || '');
+            if (cs && !seen.has(cs)) { seen.add(cs); expanded.add(c); stack.push(cs); }
+          });
+        }
+      });
+
+      const here = Array.from(expanded);
+      if (here.length < 2) return null;
+
+      // Umbrella-first ordering — same logic as _collapseColocated so the
+      // stack[0]-is-umbrella detection in showStackPopup keeps firing.
       const umbrellas = here.filter(g => {
         const gs = py(g.properties.title || '');
         return here.some(o => o !== g && (o.properties.parentSlug || '').trim() === gs);
