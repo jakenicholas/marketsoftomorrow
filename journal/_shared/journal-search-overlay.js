@@ -287,6 +287,17 @@
     + 'background:rgba(230,197,116,.1);border:1px solid rgba(230,197,116,.5);padding:6px 12px;border-radius:999px;'
     + '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 0 18px rgba(230,197,116,.4)}'
     + '.tmw-ov-hero .body{padding:24px 28px;display:flex;flex-direction:column;gap:12px}'
+    // Host-page hardening: zero the UA/host margins on the hero body's text
+    // children so the flex `gap:12px` is the ONLY spacing authority. Without
+    // this the host cascade leaks in — most visibly the browser UA default
+    // `p{margin:1em 0}` on the `.desc` paragraph, which renders tight on pages
+    // that ship a CSS reset (homepage) but adds a ~16px gap on pages that
+    // don't (the map, which only resets `*{position:relative;z-index:1}`).
+    // The overlay must look identical on every page it injects into, so it
+    // can't depend on the host having a reset. Scoped to the text elements
+    // only (h2 / p / .loc) — NOT `>*`, so it leaves .tmw-ov-hero-cta's
+    // `margin-top:auto` (which bottom-anchors the buttons) intact.
+    + '.tmw-ov-hero .body>h2,.tmw-ov-hero .body>p,.tmw-ov-hero .body>.loc,.tmw-ov-hero .body>.eyebrow{margin:0}'
     + '.tmw-ov-hero .body .eyebrow{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#C2C9C3}'
     + '.tmw-ov-hero .body h2{font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.06;color:#fff;font-weight:600;letter-spacing:-.015em}'
     + '.tmw-ov-hero .body .loc{font-size:12px;letter-spacing:.06em;color:#C2C9C3}'
