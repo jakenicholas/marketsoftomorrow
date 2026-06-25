@@ -504,10 +504,10 @@
       "delivery_speculative": true
     },
     "ymca-of-the-palm-beaches": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 554,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 0.5,
+      "estimate_label": "~6 months",
+      "days_out": 189,
+      "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -515,7 +515,7 @@
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "pattern_summary": "Targeted for opening in ~6 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -756,10 +756,10 @@
       "is_mixed_use": false
     },
     "fulton-bond": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 920,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 554,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -767,7 +767,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -11011,13 +11011,30 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "sorin": {
+      "estimate_years": 0.5,
+      "estimate_label": "~6 months",
+      "days_out": 189,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Residences",
+      "metro": "New York",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~6 months.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
     "high": 7,
     "medium": 11,
     "low": 43,
-    "known_date": 388,
+    "known_date": 389,
     "completed": 60,
     "skipped": 60,
     "no_type": 0,
