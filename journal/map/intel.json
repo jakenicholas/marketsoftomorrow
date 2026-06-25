@@ -6177,23 +6177,6 @@
       "delivery_speculative": false,
       "is_mixed_use": false
     },
-    "dubai-urban-tech-district": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 920,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Office",
-      "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
     "the-avenues": {
       "estimate_years": 0.5,
       "estimate_label": "~6 months",
@@ -7243,41 +7226,6 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
-    },
-    "burj-azizi": {
-      "estimate_years": 4.3,
-      "estimate_label": "~4.3 years",
-      "range_low": 4.3,
-      "range_high": 4.3,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.34,
-      "avg_distance_km": 11002.3,
-      "avg_distance_mi": 6836.5,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
-      "project_type": "Mixed-Use",
-      "metro": "Dubai",
-      "comparables": [
-        {
-          "name": "520 Fifth Avenue",
-          "slug": "520-fifth-avenue",
-          "location": "New York City",
-          "years": 3.5,
-          "score": 0.34,
-          "distance_km": 11002.3,
-          "distance_mi": 6836.5
-        }
-      ],
-      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": true
     },
     "the-standard-lisbon": {
       "estimate_years": 0.5,
@@ -10997,7 +10945,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Hotel",
+      "project_type": "Mixed-Use",
       "metro": "Nashville",
       "comparables": [],
       "comparable_count": 0,
@@ -11075,18 +11023,18 @@
       "delivery_speculative": false
     },
     "wild-spring-dunes": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 554,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 0.3,
+      "estimate_label": "~4 months",
+      "days_out": 112,
+      "delivery_date": "2026-10-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "medium",
       "project_type": "Golf",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~4 months based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -11129,14 +11077,14 @@
   "stats": {
     "high": 7,
     "medium": 11,
-    "low": 45,
-    "known_date": 389,
+    "low": 44,
+    "known_date": 388,
     "completed": 60,
-    "skipped": 58,
+    "skipped": 60,
     "no_type": 0,
     "firm_boosted": 34,
     "speculative_softened": 121,
     "district": 9,
-    "mixed_use_adjusted": 9
+    "mixed_use_adjusted": 8
   }
 }
