@@ -14516,9 +14516,17 @@
       // Keeps the pipeline view focused on what's actually in motion while
       // retaining the data for TMW Intelligence comps + historical queries.
       const COMPLETED_AGE_MS = 180 * 24 * 60 * 60 * 1000;  // 6 months
+      // Statuses that mean "delivered, the building is open/operating." Both
+      // "Now Open" (the newly-opened state we expect most ribbon-cuts to use)
+      // and "Completed" (a literal manual label some older records carry —
+      // 4 records in projects-flat as of 2026-06: the historic Costa Palmas
+      // components and a handful of others) count as open. Anything else is
+      // pre-delivery (Announced / Breaking Ground / Under Construction /
+      // Opening Soon).
+      const OPEN_STATUSES = new Set(['now open', 'completed']);
       function isProjectCompleted(props) {
         const delivery = String(props && props.delivery || '').toLowerCase();
-        if (delivery !== 'now open') return false;
+        if (!OPEN_STATUSES.has(delivery)) return false;
         const dt = parseDate(props.deliveryDate);
         if (!dt) return false;
         return (Date.now() - dt.getTime()) > COMPLETED_AGE_MS;
@@ -14594,7 +14602,7 @@
           if (!rootSlug || processed.has(rootSlug)) return;
           processed.add(rootSlug);
           const fam = familyDescendants(root);
-          const allOpen = fam.every(x => String(x.properties.delivery || '').toLowerCase() === 'now open');
+          const allOpen = fam.every(x => OPEN_STATUSES.has(String(x.properties.delivery || '').toLowerCase()));
           let famCompleted = false;
           if (allOpen) {
             let latest = null;
