@@ -16229,36 +16229,58 @@
       };
       const statusColor = (d) => _SC[d] || '#A78BFA';
       const cityLine = stack[0].city || '';
-      // Detect a shared umbrella: every-or-most-of-the-stack-items point at
-      // the same parentSlug AND that parent isn't already one of the rows.
-      // The "majority" threshold (>= half) handles the case where a mixed-use
-      // tower colocates with one or two standalones plus its real components.
-      let parentRow = '';
+      // Detect umbrella in the stack. Two cases:
+      //   A) stack[0] IS the umbrella (already ordered first by
+      //      _collapseColocated when it found a districtFeat) — most colocations
+      //      under a master plan look like this. We promote stack[0] visually
+      //      with the .popup-stack-parent purple-glow class; it stays a clickable
+      //      row that opens its own modal.
+      //   B) the umbrella isn't in the stack — most stack items just point at
+      //      the same parentSlug. We synthesize a "Part of X" row above the list.
+      let firstIsUmbrella = false;
       try {
-        const stackSlugs = new Set(stack.map(s => s.slug).filter(Boolean));
-        const counts = {};
-        stack.forEach(s => {
-          const ps = (s.parentSlug || '').trim();
-          if (ps) counts[ps] = (counts[ps] || 0) + 1;
-        });
-        const dominant = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
-        if (dominant && !stackSlugs.has(dominant) && counts[dominant] >= Math.ceil(stack.length / 2)) {
-          const parentName = (window._parentDisplayName ? window._parentDisplayName(dominant) : dominant);
-          parentRow =
-            `<button type="button" class="popup-stack-row popup-stack-parent" onclick="window._stackParentClick('${escA(dominant)}')">`
-            + `<span class="popup-stack-dot"></span>`
-            + `<span class="popup-stack-body">`
-            +   `<span class="popup-stack-parent-label">Part of</span>`
-            +   `<span class="popup-stack-title">${escT(parentName)}</span>`
-            + `</span>`
-            + `<span class="popup-stack-arrow">›</span>`
-            + `</button>`;
+        const headSlug = stack[0] && stack[0].slug;
+        if (headSlug) {
+          const others = stack.slice(1);
+          const kidCount = others.filter(s => (s.parentSlug || '').trim() === headSlug).length;
+          if (kidCount > 0 && kidCount >= Math.ceil(others.length / 2)) firstIsUmbrella = true;
         }
-      } catch(_) { /* defensive — parent row is decorative, fall through to bare list */ }
-      const rows = stack.map((it) => {
-        const dot = `<span class="popup-stack-dot" style="background:${statusColor(it.delivery)}"></span>`;
+      } catch(_) {}
+      let parentRow = '';
+      if (!firstIsUmbrella) {
+        try {
+          const stackSlugs = new Set(stack.map(s => s.slug).filter(Boolean));
+          const counts = {};
+          stack.forEach(s => {
+            const ps = (s.parentSlug || '').trim();
+            if (ps) counts[ps] = (counts[ps] || 0) + 1;
+          });
+          const dominant = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+          if (dominant && !stackSlugs.has(dominant) && counts[dominant] >= Math.ceil(stack.length / 2)) {
+            const parentName = (window._parentDisplayName ? window._parentDisplayName(dominant) : dominant);
+            parentRow =
+              `<button type="button" class="popup-stack-row popup-stack-parent" onclick="window._stackParentClick('${escA(dominant)}')">`
+              + `<span class="popup-stack-dot"></span>`
+              + `<span class="popup-stack-body">`
+              +   `<span class="popup-stack-parent-label">Part of</span>`
+              +   `<span class="popup-stack-title">${escT(parentName)}</span>`
+              + `</span>`
+              + `<span class="popup-stack-arrow">›</span>`
+              + `</button>`;
+          }
+        } catch(_) { /* defensive — parent row is decorative, fall through */ }
+      }
+      const rows = stack.map((it, idx) => {
+        const isUmbrellaRow = firstIsUmbrella && idx === 0;
+        const rowClass = 'popup-stack-row' + (isUmbrellaRow ? ' popup-stack-parent' : '');
+        // Umbrella row uses the .popup-stack-parent .popup-stack-dot purple-glow
+        // styling from CSS (no inline override); regular rows get the
+        // status-colored dot.
+        const dot = isUmbrellaRow
+          ? `<span class="popup-stack-dot"></span>`
+          : `<span class="popup-stack-dot" style="background:${statusColor(it.delivery)}"></span>`;
         const sub = [escT(it.delivery), escT(it.preferredType)].filter(Boolean).join(' · ');
-        return `<button type="button" class="popup-stack-row" onclick="window._stackItemClick('${escA(it.title)}')">`
+        return `<button type="button" class="${rowClass}" onclick="window._stackItemClick('${escA(it.title)}')">`
           + dot
           + '<span class="popup-stack-body">'
           +   `<span class="popup-stack-title">${escT(it.title)}</span>`
