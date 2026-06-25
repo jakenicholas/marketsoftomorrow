@@ -691,7 +691,7 @@ def coverage_section_html(articles, project_title, default_image):
 
     return (
         f'<div class="pp-sec pp-fam pp-cov">'
-        f'<div class="pp-sec-h">Coverage on TMW</div>'
+        f'<div class="pp-sec-h">Journal Coverage</div>'
         f'<div class="pp-fam-lead">{_escape_text(lead)}</div>'
         f'<div class="pp-fam-grid pp-cov-grid">{primary_html}</div>'
         f'{more_block}'
