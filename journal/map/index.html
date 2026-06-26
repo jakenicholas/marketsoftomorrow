@@ -3478,10 +3478,13 @@
     #mapDeepCover.fade { opacity: 0; }
     #mapDeepCover[hidden] { display: none; }
     .mdc-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-    .mdc-hex { width: 56px; height: 56px; filter: drop-shadow(0 0 14px rgba(167,139,250,.35)); }
+    .mdc-hex { width: 58px; height: 58px; filter: drop-shadow(0 0 14px rgba(167,139,250,.35)); }
     .mdc-hex svg { width: 100%; height: 100%; overflow: visible; display: block; }
-    .mdc-hex-spin { transform-origin: 50% 50%; animation: mdcSpin 1.15s linear infinite; }
-    @keyframes mdcSpin { to { transform: rotate(360deg); } }
+    /* The actual TMW Intelligence hexagon — same hard-spin + core pulse + ring
+       expand used in the header lockup and the account pill (global keyframes). */
+    .mdc-hex .tmw-hex-spinner { transform-origin: 50% 50%; animation: tmw-hex-hardspin 4.2s cubic-bezier(0.16,1,0.3,1) infinite; }
+    .mdc-hex .tmw-hex-core    { transform-origin: 50% 50%; animation: tmw-hex-corepulse 4.2s ease-in-out infinite; }
+    .mdc-hex .tmw-hex-ring    { transform-origin: 50% 50%; animation: tmw-hex-ring 4.2s ease-out infinite; }
     .mdc-text { font-family: 'Inter', system-ui, sans-serif; font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.72); font-weight: 600; }
     .mdc-text .mdc-dots span { animation: mdcBlink 1.4s infinite both; }
     .mdc-text .mdc-dots span:nth-child(2){ animation-delay: .2s }
@@ -3490,7 +3493,7 @@
     /* Keep the dock + timeline scrubber out from over the veil. */
     body.map-deeplink-loading .tmw-dock,
     body.map-deeplink-loading .tmw-il-scrub { opacity: 0 !important; pointer-events: none !important; }
-    @media (prefers-reduced-motion: reduce) { .mdc-hex-spin, .mdc-text .mdc-dots span { animation: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .mdc-hex .tmw-hex-spinner, .mdc-hex .tmw-hex-core, .mdc-hex .tmw-hex-ring, .mdc-text .mdc-dots span { animation: none !important; } .mdc-hex .tmw-hex-ring { opacity: 0; } }
     #mapLanding {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
       opacity: 0; transition: opacity .3s ease;
@@ -11850,9 +11853,9 @@
   <div id="mapDeepCover" hidden>
     <div class="mdc-inner">
       <div class="mdc-hex" aria-hidden="true">
-        <svg viewBox="0 0 100 100">
-          <polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="rgba(167,139,250,.22)" stroke-width="6" stroke-linejoin="round"/>
-          <g class="mdc-hex-spin"><polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="62 240"/></g>
+        <svg viewBox="0 0 100 100" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+          <polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>
+          <g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>
         </svg>
       </div>
       <div class="mdc-text">Flying you there<span class="mdc-dots"><span>.</span><span>.</span><span>.</span></span></div>
