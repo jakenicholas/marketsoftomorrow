@@ -12746,6 +12746,9 @@
       if (document.readyState === 'complete') scheduleHide();
       else window.addEventListener('load', scheduleHide);
       setTimeout(hideLoader, 6000);
+      // Let the deep-link handler clear the splash the MOMENT it can show the
+      // project — no waiting on full page load when we already know where to go.
+      window.__hideMapLoader = hideLoader;
     })();
 
     // Full-screen map toggle: hide the journal chrome header for an
@@ -14433,8 +14436,13 @@
         return s === slug;
       });
       if (!match) return;
-      // Any project deep-link (?project=slug) opens the full project modal +
-      // centers the pin. (`embed` just tweaks the modal width / mobile layout.)
+      // We have the project — clear the loading splash NOW (don't wait for full
+      // page load) so the user jumps straight to it.
+      try { if (window.__hideMapLoader) window.__hideMapLoader(); } catch(_){}
+      // Any project deep-link (?project=slug) centers the pin and shows its
+      // NAMETAG (the light name pill) — matches every project-click entry point
+      // (TMW Intelligence, market + firm pages). Embeds still open the full
+      // detail card; a click on the pin/pill expands it everywhere else.
       {
         // Without zoomToPinOnly the pin doesn't turn pink and the camera
         // doesn't move. We call it first so the pink-pin paint takes
@@ -14483,7 +14491,11 @@
             }
           } catch (_) { /* fall through */ }
         }
-        setTimeout(() => { window.openProjectModal(match, embed ? 'embed' : 'deeplink'); }, 600);
+        setTimeout(() => {
+          if (embed) { window.openProjectModal(match, 'embed'); }
+          else if (typeof showSelectedPreview === 'function') { showSelectedPreview(match); }
+          else { window.openProjectModal(match, 'deeplink'); }
+        }, 600);
       }
     }
     // Expose so the Pulse drawer's click interceptor can call this directly
