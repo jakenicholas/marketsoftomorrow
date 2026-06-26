@@ -14676,7 +14676,13 @@
           // pin is already set by zoomToPinOnly) — NOT the full-screen drawer.
           // DESKTOP: the full project modal (pink pin + nametag set above).
           // Deep-links are pre-gated, so skip the popup's paywall check.
-          if (isMobile && typeof showPopup === 'function') { showPopup(match, { skipPaywall: true }); }
+          if (isMobile && typeof showPopup === 'function') {
+            // Close the Interactive Layers panel for this deep-link case so the
+            // pin popup owns the small viewport (skipPaywall keeps showPopup from
+            // doing this itself).
+            try { if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') window._tmwToggleLayers(); } catch(_){}
+            showPopup(match, { skipPaywall: true });
+          }
           else { window.openProjectModal(match, 'deeplink'); }
         }, 600);
       }
