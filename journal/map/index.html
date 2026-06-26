@@ -15906,13 +15906,13 @@
           }
         } catch(_) {}
 
-        // List-tile entry paths (drawer card, watchlist, firm-sheet, intel
-        // similar tile) "select" a project without a pin click. Attach the
-        // small name-only popup so the pink pin reads as labeled. Pin
-        // clicks ('popup'), search ('v2-search'), and deep-links keep
-        // their existing behavior (full popup or modal only).
+        // Entry paths that "select" a project without a pin click (drawer card,
+        // watchlist, firm-sheet, intel-similar tile, and any deep-link redirect
+        // from TMW Intelligence / atlas / article hero / market+firm pages)
+        // attach the small name-only popup so the pink pin reads as LABELED.
+        // Pin clicks ('popup') + search ('v2-search') keep their own behavior.
         try {
-          const _listSources = { tile:1, 'v2-tile':1, watchlist:1, 'firm-sheet':1, 'intel-similar':1 };
+          const _listSources = { tile:1, 'v2-tile':1, watchlist:1, 'firm-sheet':1, 'intel-similar':1, deeplink:1 };
           if (_listSources[source] && typeof showSelectedPreview === 'function') {
             showSelectedPreview(f);
           }
