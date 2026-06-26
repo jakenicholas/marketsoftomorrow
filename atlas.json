@@ -7,7 +7,7 @@
     },
     {
       "type": "Hotel",
-      "count": 155
+      "count": 156
     },
     {
       "type": "Entertainment",
@@ -15,7 +15,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 31
+      "count": 32
     },
     {
       "type": "Office",
@@ -23,11 +23,15 @@
     },
     {
       "type": "Golf",
-      "count": 19
+      "count": 20
     },
     {
       "type": "Travel",
       "count": 11
+    },
+    {
+      "type": "Museum",
+      "count": 10
     },
     {
       "type": "Park",
@@ -39,10 +43,6 @@
     },
     {
       "type": "Education",
-      "count": 8
-    },
-    {
-      "type": "Museum",
       "count": 8
     },
     {
@@ -15783,7 +15783,7 @@
       "st": "FL",
       "ty": "Mixed-Use",
       "sl": "Construction",
-      "yr": 2028,
+      "yr": 2029,
       "sm": null,
       "ci": "Boynton Beach",
       "u": 371,
@@ -15854,18 +15854,135 @@
         ]
       ],
       "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": null,
+      "sm": "2025-12",
+      "ci": "Scottsdale",
+      "u": 2000,
+      "k": 400,
+      "fl": 0,
+      "dv": [
+        [
+          "Macerich",
+          "macerich"
+        ],
+        [
+          "Belgravia Group",
+          "belgravia-group"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Golf",
+      "sl": "Now Open",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Millville",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Mike Trout",
+          "mike-trout"
+        ],
+        [
+          "John Ruga",
+          "john-ruga"
+        ]
+      ],
+      "ar": [
+        [
+          "TGR Design",
+          "tgr-design"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Museum",
+      "sl": "Now Open",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Washington",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "National Geographic Society",
+          "national-geographic-society"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Museum",
+      "sl": "Announced",
+      "yr": null,
+      "sm": "2026-12",
+      "ci": "Richmond",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Virginia Museum of Fine Arts",
+          "virginia-museum-of-fine-arts"
+        ]
+      ],
+      "ar": [
+        [
+          "SmithGroup",
+          "smithgroup"
+        ]
+      ]
+    },
+    {
+      "st": "FR",
+      "ty": "Hotel",
+      "sl": "Opening Soon",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Paris",
+      "u": 0,
+      "k": 10,
+      "fl": 0,
+      "dv": [
+        [
+          "Louis Vuitton",
+          "louis-vuitton"
+        ],
+        [
+          "LVMH",
+          "lvmh"
+        ]
+      ],
+      "ar": [
+        [
+          "Barth\u00e9l\u00e9my Gri\u00f1o Architectes",
+          "barthelemy-grino-architectes"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 618,
+    "total_projects": 623,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 229,
-    "opening_this_year": 96
+    "under_construction": 230,
+    "opening_this_year": 97
   },
   "scale": {
-    "units": 231438,
-    "keys": 40764,
+    "units": 233438,
+    "keys": 41174,
     "floors": 9419
   },
   "leaderboards": {
@@ -16727,7 +16844,7 @@
       {
         "name": "Hotel",
         "sub": "25% of pipeline",
-        "count": 155,
+        "count": 156,
         "states": [
           "Other",
           "FL",
@@ -16737,7 +16854,8 @@
           "AE",
           "NY",
           "SC",
-          "JP"
+          "JP",
+          "FR"
         ]
       },
       {
@@ -16755,7 +16873,7 @@
       {
         "name": "Mixed-Use",
         "sub": "5% of pipeline",
-        "count": 31,
+        "count": 32,
         "states": [
           "FL",
           "Other",
@@ -16782,7 +16900,7 @@
       {
         "name": "Golf",
         "sub": "3% of pipeline",
-        "count": 19,
+        "count": 20,
         "states": [
           "Other",
           "FL",
@@ -16801,6 +16919,18 @@
           "FR",
           "UK",
           "JP"
+        ]
+      },
+      {
+        "name": "Museum",
+        "sub": "2% of pipeline",
+        "count": 10,
+        "states": [
+          "Other",
+          "AE",
+          "NY",
+          "UK",
+          "TN"
         ]
       },
       {
@@ -16829,18 +16959,6 @@
         "count": 8,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "Museum",
-        "sub": "1% of pipeline",
-        "count": 8,
-        "states": [
-          "Other",
-          "AE",
-          "NY",
-          "UK",
-          "TN"
         ]
       },
       {
@@ -17739,7 +17857,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -18498,7 +18617,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -19143,7 +19263,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -19671,7 +19792,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -20069,7 +20191,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -20371,7 +20494,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -20647,7 +20771,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -20911,7 +21036,8 @@
             "AE",
             "NY",
             "SC",
-            "JP"
+            "JP",
+            "FR"
           ]
         },
         {
@@ -20974,6 +21100,24 @@
           "states": [
             "FR"
           ]
+        },
+        {
+          "name": "Louis Vuitton",
+          "slug": "louis-vuitton",
+          "sub": "Paris",
+          "count": 1,
+          "states": [
+            "FR"
+          ]
+        },
+        {
+          "name": "LVMH",
+          "slug": "lvmh",
+          "sub": "Paris",
+          "count": 1,
+          "states": [
+            "FR"
+          ]
         }
       ],
       "architects": [
@@ -20998,13 +21142,22 @@
             "AE",
             "TN"
           ]
+        },
+        {
+          "name": "Barth\u00e9l\u00e9my Gri\u00f1o Architectes",
+          "slug": "barthelemy-grino-architectes",
+          "sub": "Paris",
+          "count": 1,
+          "states": [
+            "FR"
+          ]
         }
       ],
       "cities": [
         {
           "name": "Paris",
-          "sub": "2 developments \u00b7 2 developers",
-          "count": 2,
+          "sub": "3 developments \u00b7 4 developers",
+          "count": 3,
           "states": [
             "FR"
           ]
@@ -21013,7 +21166,7 @@
       "types": [
         {
           "name": "Travel",
-          "sub": "50% of pipeline",
+          "sub": "33% of pipeline",
           "count": 1,
           "states": [
             "Other",
@@ -21026,7 +21179,7 @@
         },
         {
           "name": "Office",
-          "sub": "50% of pipeline",
+          "sub": "33% of pipeline",
           "count": 1,
           "states": [
             "FL",
@@ -21036,6 +21189,23 @@
             "JP",
             "AE",
             "UK"
+          ]
+        },
+        {
+          "name": "Hotel",
+          "sub": "33% of pipeline",
+          "count": 1,
+          "states": [
+            "Other",
+            "FL",
+            "TN",
+            "TX",
+            "UK",
+            "AE",
+            "NY",
+            "SC",
+            "JP",
+            "FR"
           ]
         }
       ]
@@ -21784,12 +21954,12 @@
     },
     "FR": {
       "hero_stats": {
-        "total_projects": 2,
+        "total_projects": 3,
         "under_construction": 2
       },
       "scale": {
         "units": 0,
-        "keys": 0,
+        "keys": 10,
         "floors": 42
       },
       "status_distribution": [
@@ -21800,6 +21970,10 @@
         {
           "label": "Construction",
           "count": 2
+        },
+        {
+          "label": "Opening Soon",
+          "count": 1
         },
         {
           "label": "Now Open",
@@ -22063,12 +22237,16 @@
     "Henderson": "Other",
     "La Ribera": "Other",
     "Mount Enterprise": "Other",
-    "Frisco": "Other"
+    "Frisco": "Other",
+    "Scottsdale": "Other",
+    "Millville": "Other",
+    "Washington": "Other",
+    "Richmond": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 181
+      "count": 182
     },
     {
       "label": "Breaking Ground",
@@ -22076,15 +22254,15 @@
     },
     {
       "label": "Construction",
-      "count": 229
+      "count": 230
     },
     {
       "label": "Opening Soon",
-      "count": 79
+      "count": 80
     },
     {
       "label": "Now Open",
-      "count": 96
+      "count": 98
     }
   ],
   "momentum": [
@@ -22116,7 +22294,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 30
+      "count": 31
     },
     {
       "month": "Jan",
@@ -22152,7 +22330,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 96
+      "count": 97
     },
     {
       "year": 2027,
@@ -22160,11 +22338,11 @@
     },
     {
       "year": 2028,
-      "count": 120
+      "count": 119
     },
     {
       "year": 2029,
-      "count": 50
+      "count": 51
     },
     {
       "year": 2030,
@@ -22215,10 +22393,118 @@
     {
       "code": "FR",
       "label": "France",
-      "count": 2
+      "count": 3
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260626T0458-5",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 5 more projects",
+      "city": "One Scottsdale +4 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67b51a72ffc1-Atavia_Exterior_Streetscape-1024x683.jpg",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-06-26T04:58:38.240419+00:00"
+    },
+    {
+      "id": "ms-malabar-residences-financing-2026-06-26",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Malabar Residences  Financing secured",
+      "project_slug": "malabar-residences",
+      "project_title": "Malabar Residences",
+      "city": "New York City",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_81504faf2a86404ea3d8746cfb6b0285~mv2.jpg",
+      "event_date": "2026-06-02",
+      "source_url": "https://hoodline.com/2026/06/developer-snags-200-million-lifeline-for-57th-street-condo-tower/",
+      "link": "https://www.oftmw.com/map/?project=malabarresidences",
+      "timestamp": "2026-06-26T04:04:06.827Z"
+    },
+    {
+      "id": "ms-athletics-las-vegas-ballpark-going-vertical-2026-06-26",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Athletics Las Vegas Ballpark  Going vertical",
+      "project_slug": "athletics-las-vegas-ballpark",
+      "project_title": "Athletics Las Vegas Ballpark",
+      "city": "Las Vegas",
+      "image": "https://www.designboom.com/wp-content/uploads/2024/03/bjarke-ingels-group-las-vegas-ballpark-hntb-oakland-athletics-baseball-designboom-1200.jpg",
+      "event_date": "2026-05",
+      "source_url": "https://ballparkdigest.com/2026/05/23/after-400m-new-athletics-ballpark-is-on-time-on-budget/",
+      "link": "https://www.oftmw.com/map/?project=athleticslasvegasballpark",
+      "timestamp": "2026-06-26T04:03:20.961Z"
+    },
+    {
+      "id": "ms-hale-hkala-bookings-2026-06-26",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Hale H\u014dk\u016bala  Bookings open",
+      "project_slug": "hale-hkala",
+      "project_title": "Hale H\u014dk\u016bala",
+      "city": "Lihue",
+      "image": "https://www.hilton.com/im/en/LIHHKQQ/26776178/lihhkqq-diningandbar.jpg?impolicy=crop&cw=3585&ch=2390&gravity=NorthWest&xposition=707&yposition=0&rw=1280&rh=854",
+      "event_date": "2026-06-09",
+      "source_url": "https://stories.hilton.com/releases/hale-hokuala-kauai-curio-collection-by-hilton-now-accepting-reservations",
+      "link": "https://www.oftmw.com/map/?project=halehkala",
+      "timestamp": "2026-06-26T04:03:16.078Z"
+    },
+    {
+      "id": "ms-new-highmark-stadium-tco-2026-06-26",
+      "type": "status_change",
+      "tag": "TCO received",
+      "title": "New Highmark Stadium  TCO received",
+      "project_slug": "new-highmark-stadium",
+      "project_title": "New Highmark Stadium",
+      "city": "Orchard Park",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg",
+      "event_date": "2026-06-23",
+      "source_url": "https://www.governor.ny.gov/news/touchdown-governor-hochul-buffalo-bills-and-erie-county-announce-completion-new-21-billion",
+      "link": "https://www.oftmw.com/map/?project=newhighmarkstadium",
+      "timestamp": "2026-06-26T04:03:05.687Z"
+    },
+    {
+      "id": "ms-bentley-residences-miami-going-vertical-2026-06-26",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Bentley Residences Miami  Going vertical",
+      "project_slug": "bentley-residences-miami",
+      "project_title": "Bentley Residences Miami",
+      "city": "Sunny Isles Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp",
+      "event_date": "2026-06",
+      "source_url": "https://floridayimby.com/2026/06/construction-goes-vertical-on-62-story-bentley-branded-residential-tower-in-sunny-isles-beach.html",
+      "link": "https://www.oftmw.com/map/?project=bentleyresidencesmiami",
+      "timestamp": "2026-06-26T04:03:02.414Z"
+    },
+    {
+      "id": "ms-tour-triangle-topping-out-2026-06-26",
+      "type": "status_change",
+      "tag": "Topped out",
+      "title": "Tour Triangle  Topped out",
+      "project_slug": "tour-triangle",
+      "project_title": "Tour Triangle",
+      "city": "Paris",
+      "image": "https://static.dezeen.com/uploads/2021/11/Herzog-de-meuron-tour-triangle-hero_dezeen_1704_col_0.jpg",
+      "event_date": "2026-04-24",
+      "source_url": "https://www.dezeen.com/2026/05/11/tour-triangle-skyscraper-herzog-de-meuron-tops-out-paris/",
+      "link": "https://www.oftmw.com/map/?project=tourtriangle",
+      "timestamp": "2026-06-26T04:02:42.851Z"
+    },
+    {
+      "id": "ms-anantara-turks-caicos-bookings-2026-06-26",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Anantara Turks & Caicos  Bookings open",
+      "project_slug": "anantara-turks-caicos",
+      "project_title": "Anantara Turks & Caicos",
+      "city": "Turks and Caicos",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f02acb000d244498687ac9a5b0368f4~mv2.jpeg",
+      "event_date": "2026-05",
+      "source_url": "https://media.minorhotels.com/en-GLO/265077-minor-hotels-announces-anantara-s-caribbean-debut-in-turks-and-caicos/",
+      "link": "https://www.oftmw.com/map/?project=anantaraturkscaicos",
+      "timestamp": "2026-06-26T04:02:35.925Z"
+    },
     {
       "id": "track-group-20260626T0254-3",
       "type": "tracking",
@@ -22786,112 +23072,6 @@
       "source_url": "https://resident.com/press-releases/2026/04/02/sales-launch-at-six-senses-residences-belize-a-new-overwater-residential-development-on-emerald-caye",
       "link": "https://www.oftmw.com/map/?project=sixsensesresidencesbelize",
       "timestamp": "2026-06-24T18:25:42.195Z"
-    },
-    {
-      "id": "ms-pagani-residences-construction-2026-06-24",
-      "type": "status_change",
-      "tag": "Under construction",
-      "title": "Pagani Residences  Under construction",
-      "project_slug": "pagani-residences",
-      "project_title": "Pagani Residences",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df4f403842df497ebe71f0ed16a6c74b~mv2.webp",
-      "event_date": "2026-05-15",
-      "source_url": "https://floridayimby.com/2026/05/construction-begins-on-30-story-pagani-residences-at-7940-west-drive-in-north-bay-village.html",
-      "link": "https://www.oftmw.com/map/?project=paganiresidences",
-      "timestamp": "2026-06-24T18:24:48.158Z"
-    },
-    {
-      "id": "track-group-20260624T1453-4",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Tracking 4 more projects",
-      "city": "Ace & Ivy, Hi Line Square +2 more",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67e67812562f-Condos-Vision.jpg",
-      "link": "https://www.oftmw.com/map/",
-      "timestamp": "2026-06-24T14:53:52.068182+00:00"
-    },
-    {
-      "id": "track-group-20260624T1448-6",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Tracking 6 more projects",
-      "city": "Fairmont The Red Sea +5 more",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e1dcbe446ea0-View-16_Pool-Restaurant_Update_Final-scaled.jpg",
-      "link": "https://www.oftmw.com/map/",
-      "timestamp": "2026-06-24T14:48:24.294215+00:00"
-    },
-    {
-      "id": "ms-e11even-club-hotel-residences-open-2026-06-24",
-      "type": "status_change",
-      "tag": "Now Open",
-      "title": "E11EVEN\u00ae Club Hotel & Residences  Now Open",
-      "project_slug": "e11even-club-hotel-residences",
-      "project_title": "E11EVEN\u00ae Club Hotel & Residences",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg",
-      "event_date": "2026-06",
-      "source_url": "https://therealdeal.com/miami/2026/06/22/first-e11even-residences-in-miami-completed/",
-      "link": "https://www.oftmw.com/map/?project=e11evenclubhotelresidences",
-      "timestamp": "2026-06-24T14:25:34.717Z"
-    },
-    {
-      "id": "ms-rivani-miami-beach-tenant-2026-06-24",
-      "type": "status_change",
-      "tag": "Tenant announced",
-      "title": "Rivani Miami Beach  Tenant announced",
-      "project_slug": "rivani-miami-beach",
-      "project_title": "Rivani Miami Beach",
-      "city": "Miami Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4342e429058545d7bf02bd9764f51710~mv2.webp",
-      "event_date": "2026-03-28",
-      "source_url": "https://resident.com/press-releases/2026/03/28/rivani-miami-beach-surpasses-80-leased-ahead-of-opening",
-      "link": "https://www.oftmw.com/map/?project=rivanimiamibeach",
-      "timestamp": "2026-06-24T14:24:50.331Z"
-    },
-    {
-      "id": "ms-four-seasons-resort-and-residences-amaala-open-2026-06-24",
-      "type": "status_change",
-      "tag": "Now Open",
-      "title": "Four Seasons Resort and Residences AMAALA  Now Open",
-      "project_slug": "four-seasons-resort-and-residences-amaala",
-      "project_title": "Four Seasons Resort and Residences AMAALA",
-      "city": "AMAALA",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/17f3a7773c9d-AML_004_aspect16x9.jpeg",
-      "event_date": "2026-06-15",
-      "source_url": "https://www.zawya.com/en/press-release/companies-news/red-sea-global-brings-second-flagship-destination-to-life-with-the-opening-of-four-seasons-resort-and-residences-amaala-at-triple-bay-vi43wyqg",
-      "link": "https://www.oftmw.com/map/?project=fourseasonsresortandresidencesamaala",
-      "timestamp": "2026-06-24T14:24:34.781Z",
-      "parent_slug": "amaala",
-      "parent_title": "AMAALA"
-    },
-    {
-      "id": "ms-kimpton-coco-palms-financing-2026-06-24",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "Kimpton Coco Palms  Financing secured",
-      "project_slug": "kimpton-coco-palms",
-      "project_title": "Kimpton Coco Palms",
-      "city": "Kapa\u02bba",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bf96e3c855c944dc986b74925643e373~mv2.webp",
-      "event_date": "2026-06-23",
-      "source_url": "https://kauainownews.com/2026/06/23/developer-of-coco-palms-resort-secures-431-million-in-financing-for-property-in-ruins-since-1992-hurricane-iniki/",
-      "link": "https://www.oftmw.com/map/?project=kimptoncocopalms",
-      "timestamp": "2026-06-24T14:23:20.270Z"
-    },
-    {
-      "id": "ms-3rd-3rd-topping-out-2026-06-24",
-      "type": "status_change",
-      "tag": "Topped out",
-      "title": "3rd & 3rd  Topped out",
-      "project_slug": "3rd-3rd",
-      "project_title": "3rd & 3rd",
-      "city": "St. Petersburg",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1943f7bcef6944bc99a3cc565ca0cb3c~mv2.jpg",
-      "event_date": "2026-04-11",
-      "source_url": "https://stpeterising.com/home/33-story-3rd-3rd-apartment-tower-tops-out-in-downtown-st-pete",
-      "link": "https://www.oftmw.com/map/?project=3rd3rd",
-      "timestamp": "2026-06-24T14:22:06.329Z"
     }
   ],
   "most_covered": [
@@ -23003,17 +23183,6 @@
   ],
   "coming_soon": [
     {
-      "slug": "tierras-villas",
-      "title": "Tierras Villas",
-      "city": "Agia Pelagia",
-      "delivery_date": "2026-07-01",
-      "days_out": 5,
-      "bucket": "30d",
-      "status": "Opening Soon",
-      "display_label": "5d",
-      "display_precision": "day"
-    },
-    {
       "slug": "uga-ghiri",
       "title": "Uga Ghiri",
       "city": "Ella",
@@ -23050,6 +23219,17 @@
       "slug": "waldorf-astoria-london-admiralty-arch",
       "title": "Waldorf Astoria London Admiralty Arch",
       "city": "London",
+      "delivery_date": "2026-07-15",
+      "days_out": 19,
+      "bucket": "30d",
+      "status": "Opening Soon",
+      "display_label": "Jul",
+      "display_precision": "month"
+    },
+    {
+      "slug": "tierras-villas",
+      "title": "Tierras Villas",
+      "city": "Agia Pelagia",
       "delivery_date": "2026-07-15",
       "days_out": 19,
       "bucket": "30d",
