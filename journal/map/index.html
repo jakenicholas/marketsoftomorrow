@@ -14137,7 +14137,13 @@
 
         // ---- Open/close (X collapses into the now-purple layers button) ----
         const layersBtnEl = document.getElementById('v2LayersBtn') || document.getElementById('layersButton');
-        window._tmwLayersOpen = true;
+        // Default open — EXCEPT on a mobile deep-link redirect, where the pin
+        // popup owns the small viewport, so the panel starts CLOSED. Set here
+        // (before first paint) so there's no show-then-hide flicker.
+        var _dlMobile = false;
+        try { var _dp = new URLSearchParams(location.search); _dlMobile = !!(_dp.get('project') || _dp.get('city')) && window.matchMedia('(max-width: 800px)').matches; } catch(e){}
+        window._tmwLayersOpen = !_dlMobile;
+        if (_dlMobile) panel.classList.add('tmw-il-closed');
         // Mobile auto-hide: the panel takes a corner of the small viewport, so
         // dismiss it 5s after it opens unless the user is engaging with it.
         // Resetting the timer on click-inside keeps the panel up while they
@@ -14159,9 +14165,9 @@
         const xBtn = panel.querySelector('.tmw-il-x'); if (xBtn) xBtn.addEventListener('click', ()=> setPanelOpen(false));
         // Any tap inside the panel = user is engaging, restart the 5s clock.
         panel.addEventListener('click', ()=> { if (window._tmwLayersOpen) scheduleAutoHide(); });
-        if (layersBtnEl) layersBtnEl.classList.add('active');
+        if (layersBtnEl) layersBtnEl.classList.toggle('active', !_dlMobile);
         // Start the auto-hide for the panel's initial (default-open) state too.
-        scheduleAutoHide();
+        if (!_dlMobile) scheduleAutoHide();
         // Desktop: sit the panel exactly 8px above the layers button (same gap as
         // between the rail buttons). Re-measure after the rail builds + on resize.
         function positionPanelDesktop(){
