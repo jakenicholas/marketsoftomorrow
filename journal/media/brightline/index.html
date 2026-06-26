@@ -107,7 +107,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 @media (prefers-reduced-motion: reduce){.tmw-hex-spinner{animation:tmw-fadespin 6s ease-in-out infinite}@keyframes tmw-fadespin{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}.tmw-sweep,.tmw-hex-ring{animation:none;opacity:0}}
 
 /* hero */
-.hero{min-height:100vh; display:flex; align-items:center; padding-top:80px; overflow:hidden; position:relative}
+.hero{min-height:100vh; display:flex; align-items:center; padding:80px 0 150px; overflow:hidden; position:relative}
 .hero-bg{position:absolute; inset:0; z-index:0}
 .hero-bg img{width:100%; height:100%; object-fit:cover; object-position:center 35%; opacity:.5; filter:saturate(.9)}
 .hero-bg::after{content:""; position:absolute; inset:0;
@@ -586,9 +586,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .hero-air .plane{position:absolute; top:30%; left:0; font-size:26px; color:rgba(240,214,138,.6); animation:planeFly 28s linear infinite; filter:drop-shadow(0 0 12px rgba(240,214,138,.5))}
 @keyframes planeFly{0%{transform:translate(-12vw,2vh); opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translate(122vw,-2vh); opacity:0}}
 .cobrand{font-family:var(--mono); font-size:clamp(12px,1.5vw,15px); letter-spacing:.34em; text-transform:uppercase; color:#fff; font-weight:700; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap}
-.cobrand .cx{color:#e3132c; font-weight:400; text-shadow:0 0 16px rgba(227,19,44,.65)}
-.hero-h1.air{color:#fff}
-.hero-h1.air .caret{color:#e3132c}
+.cobrand .cx{color:#fbd939; font-weight:400; text-shadow:0 0 16px rgba(251,217,57,.65)}
+.hero-h1.air{color:#fff; font-size:clamp(40px,7vw,104px)}
+.hero-h1.air .caret{color:#fbd939}
 .hero-air .eyebrow{color:#bcd4f5}
 .hero-air .hero-tag{color:#e7eefb; font-style:italic}
 .hero-air .meta{color:#9fb6d6}
@@ -618,13 +618,13 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .giveget{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:8px}
 .gg{padding:36px 34px}
 .gg .gg-lab{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:18px}
-.gg.give .gg-lab{color:#e3132c}
+.gg.give .gg-lab{color:#fbd939}
 .gg.get .gg-lab{color:var(--green)}
 .gg h3{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--white); letter-spacing:-.015em; margin-bottom:18px}
 .gg ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:13px}
 .gg li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px; color:var(--cream); line-height:1.5}
 .gg li .gg-dot{width:6px; height:6px; border-radius:50%; margin-top:8px; flex:none}
-.gg.give li .gg-dot{background:#e3132c; box-shadow:0 0 8px rgba(227,19,44,.6)}
+.gg.give li .gg-dot{background:#fbd939; box-shadow:0 0 8px rgba(251,217,57,.6)}
 .gg.get li .gg-dot{background:var(--green); box-shadow:0 0 8px rgba(31,223,103,.6)}
 @media(max-width:760px){.giveget{grid-template-columns:1fr}}
 
@@ -703,7 +703,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="sky" aria-hidden="true">
     <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span>
     <span class="cloud c4"></span><span class="cloud c5"></span><span class="cloud c6"></span>
-    <span class="plane">&#128646;</span>
   </div>
   <div class="wrap hero-wrap">
     <div class="cobrand reveal">BRIGHTLINE <span class="cx">&times;</span> MARKETS OF TOMORROW</div>
