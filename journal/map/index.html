@@ -3489,7 +3489,11 @@
     }
     /* Symmetric offsets from the bar centre (46vh) → title and chips sit the
        SAME distance from the bar. Title nudged up a touch. */
-    #mapLanding .ml-top { bottom: calc(54vh + 44px); pointer-events: none; }
+    /* Anchor the title by TOP (not bottom) so it shares the chips' exact
+       reference frame — a bottom+vh anchor drifts upward on mobile when the
+       browser toolbar resizes the viewport. translateY(-100%) hangs the block
+       so its BOTTOM edge sits at (46vh - 44px), symmetric with the chips. */
+    #mapLanding .ml-top { top: calc(46vh - 44px); transform: translate(-50%, -100%); pointer-events: none; }
     #mapLanding .ml-bottom { top: calc(46vh + 44px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
     #mapLanding .ml-presented { bottom: 4.5vh; width: auto; line-height: 1.5; white-space: nowrap; pointer-events: none; }
     .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(28px, 4.6vw, 44px); line-height: 1.05; letter-spacing: -.018em; color: #fff; margin: 0; }
