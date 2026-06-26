@@ -3332,6 +3332,12 @@
   // recent-search links — all of which point at /?q=… instead of /search/.
   try {
     var _bootQ = new URLSearchParams(location.search).get('q');
-    if (_bootQ && _bootQ.trim()) open(_bootQ.trim());
+    if (_bootQ && _bootQ.trim()) {
+      var _bq = _bootQ.trim();
+      open(_bq);
+      // actually RUN it (open only populates the bar) so a /?q=… link lands on
+      // results — used by the Studio Search-Health "open in search" arrows.
+      loadData().then(function(){ runQuery(_bq); });
+    }
   } catch(_){}
 })();
