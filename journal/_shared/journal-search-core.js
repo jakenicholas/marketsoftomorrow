@@ -95,6 +95,15 @@
     var m = String(p.DeliveryDate || '').match(/(20\d{2})/);
     return m ? +m[1] : null;
   }
+  // The soonest delivery year that is still UPCOMING (this year or later). The
+  // "First delivery" stat should look FORWARD — surfacing an already-completed
+  // project's old date (e.g. 2022) just reads as a shallow database, not a
+  // pipeline fact. Returns null when nothing is upcoming.
+  function soonestFutureYear(rows) {
+    var nowYr = new Date().getFullYear();
+    var ys = (rows || []).map(yearOf).filter(function (y) { return y && y >= nowYr; });
+    return ys.length ? Math.min.apply(null, ys) : null;
+  }
   function startYearOf(p) {
     var m = String(p.StartDate || '').match(/(20\d{2})/);
     return m ? +m[1] : null;
@@ -1218,8 +1227,8 @@
     }
     var sumU = rows.reduce(function (a, p) { return a + unitsOf(p); }, 0);
     if (sumU > 0) stats.push({ v: '~' + sumU.toLocaleString(), k: 'Residences total' });
-    var yrs = rows.map(yearOf).filter(Boolean);
-    if (yrs.length) stats.push({ v: '' + Math.min.apply(null, yrs), k: 'First delivery' });
+    var nextYr = soonestFutureYear(rows);
+    if (nextYr) stats.push({ v: '' + nextYr, k: 'First delivery' });
     return { html: sentence, stats: stats.slice(0, 4) };
   }
 
@@ -1308,7 +1317,6 @@
     }
     var tallest = maxF ? rows.find(function (p) { return floorsOf(p) === maxF; }) : null;
     var largest = maxU ? rows.find(function (p) { return unitsOf(p) === maxU; }) : null;
-    var yrs = rows.map(yearOf).filter(Boolean);
     var place = s.cities.length ? s.cities.join(' & ') : (s.region || null);
     var many = rows.length >= 2;
     var sig = computeSignals(rows);
@@ -1328,7 +1336,7 @@
       tallest: (many && tallest) ? { name: tallest.Title, floors: maxF } : null,
       largest: (many && largest) ? { name: largest.Title, units: maxU } : null,
       residencesTotal: rows.reduce(function (a, p) { return a + unitsOf(p); }, 0) || null,
-      firstDelivery: yrs.length ? Math.min.apply(null, yrs) : null,
+      firstDelivery: soonestFutureYear(rows),
       dominantType: sig.dominantType,
       soonest: sig.soonest,
       flagships: sig.flagships,
