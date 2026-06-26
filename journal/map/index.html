@@ -3458,6 +3458,38 @@
       z-index: 90; transition: opacity 0.5s ease;
     }
     #loadingOverlay.fade-out { opacity: 0; pointer-events: none; }
+
+    /* ── "Where are you looking?" landing overlay ─────────────────────────
+       Gates the map's destination so the map only ever boots at Miami (never
+       the heavy global view). Sits below the header (z90, same as the splash)
+       so the chrome stays visible; the LIVE dock search + its autocomplete are
+       repositioned to the centre via body.map-landing (same elements, all
+       wiring intact) and float above the scrim. */
+    #mapLanding {
+      position: fixed; top: var(--header-height); left: 0; width: 100%;
+      height: calc(100% - var(--header-height)); z-index: 90;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      text-align: center; padding: 12vh 24px 7vh;
+      background: rgba(8,9,8,.72); -webkit-backdrop-filter: blur(7px) saturate(1.1); backdrop-filter: blur(7px) saturate(1.1);
+      opacity: 0; transition: opacity .4s ease;
+    }
+    #mapLanding.show { opacity: 1; }
+    #mapLanding[hidden] { display: none; }
+    .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(30px, 5vw, 46px); line-height: 1.04; letter-spacing: -.018em; color: #fff; margin: 0; }
+    .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.62); font-size: 15px; line-height: 1.5; margin: 14px auto 0; max-width: 42ch; }
+    .ml-bottom { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .ml-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; }
+    .ml-chip { font: 600 12.5px/1 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.8); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); padding: 9px 15px; border-radius: 999px; cursor: pointer; transition: background .14s, border-color .14s, color .14s; }
+    .ml-chip:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
+    .ml-skip { font: 600 12px/1 'Inter', system-ui, sans-serif; letter-spacing: .04em; color: rgba(255,255,255,.5); background: none; border: 0; cursor: pointer; padding: 6px; transition: color .14s; }
+    .ml-skip:hover { color: #fff; }
+    /* Reposition the LIVE dock + autocomplete to the centre of the landing.
+       Same DOM nodes (no clone/re-parent) → all listeners + select→fly wiring
+       stay intact. Bump z above the scrim; show ONLY the search bar (hide the
+       dock's surface-toggle while gating). */
+    body.map-landing .tmw-dock { bottom: auto; top: 42vh; z-index: 9000; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+    body.map-landing .tmw-dock > *:not(.tmw-dock-search) { display: none !important; }
+    body.map-landing #tmwDockAC { bottom: auto; top: calc(42vh + 66px); z-index: 9001; transform-origin: top center; }
     /* Give the map container a Mapbox-water-like base color so the brief
        window between page load and the first tile paint reads as "dark
        map" rather than the body's near-black. Only matters on revisits
@@ -11749,6 +11781,27 @@
     </div>
   </div>
 
+  <!-- "Where are you looking?" landing overlay. The centred search bar is the
+       LIVE dock (.tmw-dock) repositioned via body.map-landing — not a clone.
+       Shown after the splash fades (unless a ?project/?city deep-link). -->
+  <div id="mapLanding" hidden>
+    <div class="ml-top">
+      <h1 class="ml-h">Where are you looking?</h1>
+      <p class="ml-sub">Search a market, a neighborhood, or a specific project &mdash; and we&rsquo;ll drop you right in.</p>
+    </div>
+    <div class="ml-bottom">
+      <div class="ml-chips">
+        <button class="ml-chip" type="button" data-q="Miami">Miami</button>
+        <button class="ml-chip" type="button" data-q="New York">New York</button>
+        <button class="ml-chip" type="button" data-q="West Palm Beach">West Palm Beach</button>
+        <button class="ml-chip" type="button" data-q="Los Angeles">Los Angeles</button>
+        <button class="ml-chip" type="button" data-q="London">London</button>
+        <button class="ml-chip" type="button" data-q="Florida">Florida</button>
+      </div>
+      <button class="ml-skip" type="button" id="mlSkip">Explore the map &rarr;</button>
+    </div>
+  </div>
+
   <!-- Full-screen map toggle (top-right of the map). Hides the universal
        header for an edge-to-edge map; click again to restore it. -->
   <button id="tmwMapFsBtn" type="button" aria-label="Full screen map" aria-pressed="false" title="Full screen map">
@@ -12739,6 +12792,11 @@
             }
           }
         } catch (e) {}
+        // Brand splash done → raise the "Where are you looking?" landing gate,
+        // UNLESS this is a ?project/?city deep-link (those already chose a
+        // destination, so jump straight there). The gate keeps the map at the
+        // cheap Miami boot view until the user picks a place.
+        try { if (!_deep && window._showMapLanding) window._showMapLanding(); } catch (e) {}
       }
       function scheduleHide(){
         setTimeout(hideLoader, Math.max(0, MIN_MS - (Date.now() - started)));
@@ -12783,6 +12841,9 @@
       function isCollapsed(){ return document.body.classList.contains('v2-sidebar-collapsed'); }
       function openMobileDrawer(e){
         if (e){ e.preventDefault(); e.stopPropagation(); }
+        // Mobile: tapping the centred landing search opens the drawer search —
+        // drop the landing gate so the drawer takes over cleanly.
+        dismissMapLanding();
         var cap = document.getElementById('v2Capsule');
         if (cap) cap.click();
         else document.body.classList.add('v2-sheet-open');
@@ -12808,6 +12869,7 @@
       // on Discover with the whole city in frame; the grid fills with its projects
       // (works whether the sidebar was collapsed, on Discover, or on a project page).
       function openCityInSidebar(cityValue, geoFeature){
+        dismissMapLanding();   // picking a place from the landing search clears the gate
         document.body.classList.remove('v2-sidebar-collapsed');
         var sb = document.getElementById('desktopSidebar');
         if (sb && !sb.classList.contains('open')) sb.classList.add('open');
@@ -12912,6 +12974,47 @@
           document.body.classList.remove('v2-sidebar-collapsed');
         }
       });
+
+      // ── "Where are you looking?" landing gate ───────────────────────────
+      // Shows after the splash (see hideLoader). The centred search bar IS the
+      // live dock — repositioned via body.map-landing, not cloned — so picking
+      // a result runs the exact same select→fly path, which then calls
+      // dismissMapLanding() (hooked into openCityInSidebar + showPopup).
+      function showMapLanding(){
+        var ml = document.getElementById('mapLanding');
+        if (!ml) return;
+        document.body.classList.add('map-landing');
+        ml.hidden = false;
+        requestAnimationFrame(function(){ ml.classList.add('show'); });
+        // No auto-focus: focusing would auto-open the dock's teaching dropdown
+        // mid-screen and clash with the chips. The user clicks the bar to start.
+      }
+      function dismissMapLanding(){
+        if (!document.body.classList.contains('map-landing')) return;
+        document.body.classList.remove('map-landing');
+        var ml = document.getElementById('mapLanding');
+        if (ml){ ml.classList.remove('show'); setTimeout(function(){ if (ml) ml.hidden = true; }, 420); }
+        hideDockAC();
+      }
+      window._showMapLanding = showMapLanding;
+      window._dismissMapLanding = dismissMapLanding;
+      (function(){
+        var ml = document.getElementById('mapLanding');
+        if (!ml) return;
+        // Chips = 1-tap shortcuts to a place. Geocode + fly (works for any
+        // city/state/town whether or not it has projects yet), then drop the
+        // gate. Typing in the bar remains the full search→pick path.
+        ml.querySelectorAll('.ml-chip').forEach(function(chip){
+          chip.addEventListener('click', function(){
+            var q = chip.getAttribute('data-q') || (chip.textContent || '').trim();
+            dismissMapLanding();
+            if (typeof window.geocodeAndFly === 'function') window.geocodeAndFly(q, function(){});
+            else if (typeof window.openCityInSidebar === 'function') window.openCityInSidebar(q, null);
+          });
+        });
+        var skip = document.getElementById('mlSkip');
+        if (skip) skip.addEventListener('click', function(){ dismissMapLanding(); });
+      })();
     })();
 
     // Desktop drawer: X closes (slides the sidebar off-screen left via
@@ -13118,7 +13221,7 @@
         case 't': if (!isMobile) toggleSidebar(); break;
         case 'm':
           if (activePopup) { activePopup.remove(); activePopup = null; }
-          map.flyTo({ center: isMobile ? [-90.0, 35.0] : [-95.0, 38.5], zoom: isMobile ? 3.0 : 4, duration: 1000 });
+          map.flyTo({ center: [-80.191, 25.774], zoom: isMobile ? 12.5 : 11, duration: 700 });
           showToast('Returned to default view');
           break;
       }
@@ -13163,14 +13266,14 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      // Mobile lands zoomed in on downtown Miami (where the project density is
-      // and where Markets of Tomorrow is anchored): far fewer markers/glow
-      // halos visible at first paint = much less per-frame GPU work, which is
-      // the root of the laggy-until-drawer behavior on phones. Desktop keeps
-      // the continental view — GPU has the budget and the wider context is
-      // more useful with a sidebar drawer rather than a bottom sheet.
-      center: isMobile ? [-80.197, 25.775] : [-95.0, 38.5],
-      zoom:   isMobile ? 13.0            : 4
+      // BOTH platforms now boot pre-centered on Miami (not the continental US
+      // view). The "Where are you looking?" landing overlay gates the real
+      // destination, so the map only ever has to paint the dense-but-bounded
+      // Miami metro at first load — never 600+ pins + glow halos at global
+      // zoom. That's the per-frame GPU win that kept desktop laggy. Mobile
+      // sits a touch tighter (downtown) since it has no sidebar context.
+      center: [-80.191, 25.774],
+      zoom:   isMobile ? 12.5 : 11
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -16637,6 +16740,9 @@
 
     function showPopup(f, opts) {
       opts = opts || {};
+      // Picking a project from the landing search clears the gate (no-op if the
+      // landing isn't showing).
+      try { if (window._dismissMapLanding) window._dismissMapLanding(); } catch(_){}
       // Paywall gate -- counts as a project interaction. Skip when the
       // popup is being auto-opened by URL state (deep-link from embedded
       // blog article), since the popup appearing isn't a user action.
@@ -17900,9 +18006,12 @@
       // Only use bbox for countries where center+zoom would be misleading
       // For regions/places like Tokyo Prefecture, always use center to avoid ocean snap
       if (gf.bbox && placeType === 'country') {
-        map.fitBounds(gf.bbox, { padding: 60, maxZoom: zoom, duration: 1200 });
+        map.fitBounds(gf.bbox, { padding: 60, maxZoom: zoom, duration: 800 });
       } else {
-        map.flyTo({ center: gf.center, zoom, duration: 1200 });
+        // Tamer fly-in: shorter + a low curve so it's a quick settle, not a
+        // dramatic zoom-out-and-back swoop. The map already boots at Miami z11,
+        // so most hops are short anyway.
+        map.flyTo({ center: gf.center, zoom, duration: 750, curve: 1.2 });
       }
     }
 
@@ -17929,15 +18038,17 @@
 
         // Use bbox if available for better framing
         if (feature.bbox && placeType === 'country') {
-          map.fitBounds(feature.bbox, { padding: 60, maxZoom: zoom, duration: 1200 });
+          map.fitBounds(feature.bbox, { padding: 60, maxZoom: zoom, duration: 800 });
         } else {
-          map.flyTo({ center: [lng, lat], zoom, duration: 1200 });
+          map.flyTo({ center: [lng, lat], zoom, duration: 750, curve: 1.2 });
         }
         onResult(feature.place_name || query);
       } catch (e) {
         onResult(null);
       }
     }
+    // Exposed so the landing-overlay chips can geocode + fly to any place.
+    window.geocodeAndFly = geocodeAndFly;
 
     // Fetch geocode suggestions for autocomplete
     async function geocodeSuggest(query) {
