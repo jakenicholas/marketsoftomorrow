@@ -13322,17 +13322,19 @@
       'Opening Soon',      '#1FDF67',
       'Now Open',          '#1FDF67',
       '#A78BFA'];
+    // A ?project/?city deep-link (TMW Intelligence, atlas, article hero, market/
+    // firm page) boots on the CONTINENTAL US overview — pins cluster to a few
+    // dots at that zoom, so there's no dense Miami render to glimpse behind the
+    // "Flying you there" veil — then flies straight in to the destination and
+    // populates. A plain load boots on Miami behind the landing gate (cheap,
+    // bounded; the "Explore the map" skip lands on our home market).
+    var _bootDeepLink = false;
+    try { var _bp = new URLSearchParams(location.search); _bootDeepLink = !!(_bp.get('project') || _bp.get('city')); } catch (e) {}
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-      // BOTH platforms now boot pre-centered on Miami (not the continental US
-      // view). The "Where are you looking?" landing overlay gates the real
-      // destination, so the map only ever has to paint the dense-but-bounded
-      // Miami metro at first load — never 600+ pins + glow halos at global
-      // zoom. That's the per-frame GPU win that kept desktop laggy. Mobile
-      // sits a touch tighter (downtown) since it has no sidebar context.
-      center: [-80.191, 25.774],
-      zoom:   isMobile ? 12.5 : 11
+      center: _bootDeepLink ? [-96.0, 38.6] : [-80.191, 25.774],
+      zoom:   _bootDeepLink ? 3.5 : (isMobile ? 12.5 : 11)
     });
     // Expose the map instance for v2 helpers (e.g. the Fly-to-Pin scroll
     // handler) that live outside this closure. Use a namespaced key so we
@@ -14612,40 +14614,15 @@
       // We have the project — clear the loading splash NOW (don't wait for full
       // page load) so the user jumps straight to it.
       try { if (window.__hideMapLoader) window.__hideMapLoader(); } catch(_){}
-      // Covered load (redirect from Intelligence / atlas / market / firm page):
-      // JUMP straight to the project under the veil — no Miami-boot flash, no long
-      // swoop — then fade the veil to reveal it already framed. Re-invocations
-      // (Pulse tiles, etc.) leave the veil hidden and fall through to the flyTo.
-      if (_covering) {
-        try {
-          const co = match.geometry && match.geometry.coordinates;
-          if (co) {
-            const leftPad = (!isMobile) ? Math.round(window.innerWidth * (embed ? 0.38 : 0.35)) : 0;
-            const topPad  = (isMobile && embed) ? Math.round(window.innerHeight * 0.60) : 0;
-            map.jumpTo({ center: co, zoom: 14, padding: { top: topPad, bottom: 0, left: leftPad, right: 0 } });
-          }
-        } catch (_) {}
-        if (typeof zoomToPinOnly === 'function') { try { zoomToPinOnly(match); } catch (_) {} }
-        if (!isMobile) {
-          const sb = document.getElementById('desktopSidebar');
-          if (sb && !sb.classList.contains('open')) sb.classList.add('open');
-        }
-        // Lift the veil once the destination tiles have painted (so it reveals
-        // the framed project, not gray tiles) — with a fallback so it never hangs.
-        try { map.once('idle', function(){ _revealCover(0); }); } catch (_) {}
-        _revealCover(1100);
-        setTimeout(() => {
-          if (embed) { window.openProjectModal(match, 'embed'); }
-          else if (typeof showSelectedPreview === 'function') { showSelectedPreview(match); }
-          else { window.openProjectModal(match, 'deeplink'); }
-        }, 360);
-        return;
-      }
-      // Any project deep-link (?project=slug) centers the pin and shows its
-      // NAMETAG (the light name pill) — matches every project-click entry point
-      // (TMW Intelligence, market + firm pages). Embeds still open the full
-      // detail card; a click on the pin/pill expands it everywhere else.
+      // Project deep-link from ANY entry point (TMW Intelligence, atlas, article
+      // hero, market/firm page, Pulse tile): fly straight in from wherever the
+      // map currently is — a deep-link LOAD boots on the continental US overview
+      // (see map init), so this reads as a cinematic fly-in that populates pins
+      // on arrival. zoomToPinOnly turns the pin PINK + shows its NAMETAG; we
+      // frame it past the modal and open the FULL project modal. If a covered
+      // load raised the "Flying you there" veil, lift it as the fly-in begins.
       {
+        _revealCover(0);
         // Without zoomToPinOnly the pin doesn't turn pink and the camera
         // doesn't move. We call it first so the pink-pin paint takes
         // effect, then issue a layout-aware flyTo to push the pin into
@@ -14694,9 +14671,9 @@
           } catch (_) { /* fall through */ }
         }
         setTimeout(() => {
-          if (embed) { window.openProjectModal(match, 'embed'); }
-          else if (typeof showSelectedPreview === 'function') { showSelectedPreview(match); }
-          else { window.openProjectModal(match, 'deeplink'); }
+          // Full project modal everywhere — the pink pin + nametag are already
+          // set by zoomToPinOnly above. (Was a small preview card before.)
+          window.openProjectModal(match, embed ? 'embed' : 'deeplink');
         }, 600);
       }
     }
