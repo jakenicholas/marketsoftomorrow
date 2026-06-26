@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 286
+      "count": 287
     },
     {
       "type": "Hotel",
@@ -14,12 +14,12 @@
       "count": 39
     },
     {
-      "type": "Office",
-      "count": 30
+      "type": "Mixed-Use",
+      "count": 31
     },
     {
-      "type": "Mixed-Use",
-      "count": 29
+      "type": "Office",
+      "count": 30
     },
     {
       "type": "Golf",
@@ -15778,19 +15778,95 @@
           "acpv-architects"
         ]
       ]
+    },
+    {
+      "st": "FL",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": 2028,
+      "sm": null,
+      "ci": "Boynton Beach",
+      "u": 371,
+      "k": 0,
+      "fl": 8,
+      "dv": [
+        [
+          "Hyperion Group",
+          "hyperion-group"
+        ],
+        [
+          "Winter Properties",
+          "winter-properties"
+        ]
+      ],
+      "ar": [
+        [
+          "Arquitectonica",
+          "arquitectonica"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Bangkok",
+      "u": 262,
+      "k": 0,
+      "fl": 45,
+      "dv": [
+        [
+          "BDMS",
+          "bdms"
+        ],
+        [
+          "Capella Hotels",
+          "capella-hotels"
+        ]
+      ],
+      "ar": [
+        [
+          "Kohn Pedersen Fox",
+          "kohn-pedersen-fox"
+        ],
+        [
+          "Capella Hotels",
+          "capella-hotels"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": 2030,
+      "sm": null,
+      "ci": "Bangkok",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "BDMS",
+          "bdms"
+        ]
+      ],
+      "ar": []
     }
   ],
   "hero_stats": {
-    "total_projects": 615,
+    "total_projects": 618,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 228,
+    "under_construction": 229,
     "opening_this_year": 96
   },
   "scale": {
-    "units": 230805,
+    "units": 231438,
     "keys": 40764,
-    "floors": 9366
+    "floors": 9419
   },
   "leaderboards": {
     "developers": [
@@ -16082,7 +16158,7 @@
         "name": "Arquitectonica",
         "slug": "arquitectonica",
         "sub": "Miami",
-        "count": 62,
+        "count": 63,
         "states": [
           "FL",
           "Other"
@@ -16106,10 +16182,10 @@
         "name": "Kohn Pedersen Fox",
         "slug": "kohn-pedersen-fox",
         "sub": "Miami",
-        "count": 16,
+        "count": 17,
         "states": [
-          "FL",
           "Other",
+          "FL",
           "TX",
           "NY",
           "AE"
@@ -16591,6 +16667,14 @@
         ]
       },
       {
+        "name": "Bangkok",
+        "sub": "5 developments \u00b7 7 developers",
+        "count": 5,
+        "states": [
+          "Other"
+        ]
+      },
+      {
         "name": "Austin",
         "sub": "5 developments \u00b7 4 developers",
         "count": 5,
@@ -16621,21 +16705,13 @@
         "states": [
           "FL"
         ]
-      },
-      {
-        "name": "Hollywood",
-        "sub": "4 developments \u00b7 6 developers",
-        "count": 4,
-        "states": [
-          "FL"
-        ]
       }
     ],
     "types": [
       {
         "name": "Residences",
-        "sub": "47% of pipeline",
-        "count": 286,
+        "sub": "46% of pipeline",
+        "count": 287,
         "states": [
           "FL",
           "Other",
@@ -16677,6 +16753,19 @@
         ]
       },
       {
+        "name": "Mixed-Use",
+        "sub": "5% of pipeline",
+        "count": 31,
+        "states": [
+          "FL",
+          "Other",
+          "UK",
+          "JP",
+          "TN",
+          "TX"
+        ]
+      },
+      {
         "name": "Office",
         "sub": "5% of pipeline",
         "count": 30,
@@ -16688,19 +16777,6 @@
           "JP",
           "AE",
           "UK"
-        ]
-      },
-      {
-        "name": "Mixed-Use",
-        "sub": "5% of pipeline",
-        "count": 29,
-        "states": [
-          "FL",
-          "Other",
-          "UK",
-          "JP",
-          "TN",
-          "TX"
         ]
       },
       {
@@ -17089,7 +17165,7 @@
           "name": "Arquitectonica",
           "slug": "arquitectonica",
           "sub": "Miami",
-          "count": 59,
+          "count": 60,
           "states": [
             "FL",
             "Other"
@@ -17164,8 +17240,8 @@
           "sub": "Miami",
           "count": 6,
           "states": [
-            "FL",
             "Other",
+            "FL",
             "TX",
             "NY",
             "AE"
@@ -17525,6 +17601,14 @@
           ]
         },
         {
+          "name": "Boynton Beach",
+          "sub": "3 developments \u00b7 4 developers",
+          "count": 3,
+          "states": [
+            "FL"
+          ]
+        },
+        {
           "name": "Coconut Grove",
           "sub": "3 developments \u00b7 3 developers",
           "count": 3,
@@ -17544,14 +17628,6 @@
           "name": "Bay Harbor Islands",
           "sub": "3 developments \u00b7 2 developers",
           "count": 3,
-          "states": [
-            "FL"
-          ]
-        },
-        {
-          "name": "Boynton Beach",
-          "sub": "2 developments \u00b7 2 developers",
-          "count": 2,
           "states": [
             "FL"
           ]
@@ -17683,7 +17759,7 @@
         {
           "name": "Mixed-Use",
           "sub": "4% of pipeline",
-          "count": 12,
+          "count": 13,
           "states": [
             "FL",
             "Other",
@@ -18232,8 +18308,8 @@
           "sub": "Miami",
           "count": 1,
           "states": [
-            "FL",
             "Other",
+            "FL",
             "TX",
             "NY",
             "AE"
@@ -19330,8 +19406,8 @@
           "sub": "Miami",
           "count": 3,
           "states": [
-            "FL",
             "Other",
+            "FL",
             "TX",
             "NY",
             "AE"
@@ -20518,8 +20594,8 @@
           "sub": "Miami",
           "count": 1,
           "states": [
-            "FL",
             "Other",
+            "FL",
             "TX",
             "NY",
             "AE"
@@ -20968,13 +21044,13 @@
   "by_state": {
     "FL": {
       "hero_stats": {
-        "total_projects": 299,
-        "under_construction": 99
+        "total_projects": 300,
+        "under_construction": 100
       },
       "scale": {
-        "units": 69457,
+        "units": 69828,
         "keys": 10954,
-        "floors": 5546
+        "floors": 5554
       },
       "status_distribution": [
         {
@@ -20987,7 +21063,7 @@
         },
         {
           "label": "Construction",
-          "count": 99
+          "count": 100
         },
         {
           "label": "Opening Soon",
@@ -21992,7 +22068,7 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 179
+      "count": 181
     },
     {
       "label": "Breaking Ground",
@@ -22000,7 +22076,7 @@
     },
     {
       "label": "Construction",
-      "count": 228
+      "count": 229
     },
     {
       "label": "Opening Soon",
@@ -22084,7 +22160,7 @@
     },
     {
       "year": 2028,
-      "count": 119
+      "count": 120
     },
     {
       "year": 2029,
@@ -22092,14 +22168,14 @@
     },
     {
       "year": 2030,
-      "count": 38
+      "count": 39
     }
   ],
   "available_states": [
     {
       "code": "FL",
       "label": "Florida",
-      "count": 299
+      "count": 300
     },
     {
       "code": "NY",
@@ -22143,6 +22219,16 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260626T0254-3",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 3 more projects",
+      "city": "Ocean One +2 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c7a6588521ec-IMG_9454.webp",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-06-26T02:54:58.957180+00:00"
+    },
     {
       "id": "track-bvlgari-hotel-miami-beach",
       "type": "tracking",
@@ -22806,18 +22892,6 @@
       "source_url": "https://stpeterising.com/home/33-story-3rd-3rd-apartment-tower-tops-out-in-downtown-st-pete",
       "link": "https://www.oftmw.com/map/?project=3rd3rd",
       "timestamp": "2026-06-24T14:22:06.329Z"
-    },
-    {
-      "id": "track-palm-beach-atlantic-university-residence-hall",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking Palm Beach Atlantic University Residence Hall",
-      "project_slug": "palm-beach-atlantic-university-residence-hall",
-      "project_title": "Palm Beach Atlantic University Residence Hall",
-      "city": "West Palm Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/74e4de533040-pbau-tower_900xx1613-907-0-58.jpg",
-      "link": "https://www.oftmw.com/map/?project=palmbeachatlanticuniversityresidencehall",
-      "timestamp": "2026-06-24T01:35:13.462894+00:00"
     }
   ],
   "most_covered": [

@@ -11045,19 +11045,114 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "ocean-one": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 919,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Mixed-Use",
+      "metro": "Palm Beach",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
+    "capella-residences-bangkok": {
+      "estimate_years": 3.9,
+      "estimate_label": "~3.9 years",
+      "range_low": 1.7,
+      "range_high": 4.8,
+      "confidence": "low",
+      "comparable_count": 10,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.43,
+      "avg_distance_km": 15239.4,
+      "avg_distance_mi": 9469.3,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Kohn Pedersen Fox",
+        "count": 4,
+        "median_years": 4.23,
+        "stddev_years": 0.99,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.64,
+          "distance_km": 15387.2,
+          "distance_mi": 9561.2
+        },
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.49,
+          "distance_km": 15508.0,
+          "distance_mi": 9636.2
+        },
+        {
+          "name": "AQUA at Westshore Yacht Club",
+          "slug": "aqua-at-westshore-yacht-club",
+          "location": "Tampa",
+          "years": 1.9,
+          "score": 0.49,
+          "distance_km": 15375.4,
+          "distance_mi": 9553.8
+        }
+      ],
+      "pattern_summary": "Among 10 residences projects in TMW's data, the median build time is 3.2 years (range 1.7–4.8). Adjusted to ~3.9 years for Kohn Pedersen Fox's own track record (~4.2-year typical pace across 4 prior projects).",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
+    },
+    "wellera": {
+      "source": "district",
+      "is_district": true,
+      "component_count": 1,
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "phased_through": 2030,
+      "confidence": "low",
+      "estimate_years": 4.5,
+      "estimate_label": "4.5 years",
+      "days_out": 1649,
+      "delivery_date": "2030-12-31",
+      "inflight_undated": 1,
+      "pattern_summary": "Phased master plan — 1 components delivering through 2030; latest dated phase (WellEra) ~4.5 years out. 1 more component in progress without firm dates, so full build-out likely runs later."
     }
   },
   "stats": {
     "high": 7,
     "medium": 11,
-    "low": 43,
-    "known_date": 389,
+    "low": 44,
+    "known_date": 390,
     "completed": 60,
     "skipped": 60,
     "no_type": 0,
-    "firm_boosted": 33,
+    "firm_boosted": 34,
     "speculative_softened": 121,
-    "district": 10,
+    "district": 11,
     "mixed_use_adjusted": 8
   }
 }
