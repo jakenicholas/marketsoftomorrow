@@ -542,10 +542,12 @@
     + '.tmw-ov-smart-head h3{font-family:"Fraunces",Georgia,serif;font-size:18px;color:#fff;font-weight:600}'
     + '.tmw-ov-smart-head .sub{font-size:12px;color:#9AA39C}'
     + '.tmw-ov-smart-head .map-link{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11px;'
-    + 'letter-spacing:.08em;text-transform:uppercase;color:#42EB81;font-weight:700;padding:8px 13px;'
-    + 'border:1px solid rgba(31,223,103,.3);border-radius:999px;text-decoration:none}'
-    + '.tmw-ov-smart-head .map-link:hover{background:rgba(31,223,103,.1);color:#fff}'
-    + '.tmw-ov-smart-head .map-link svg{width:13px;height:13px}'
+    + 'letter-spacing:.08em;text-transform:uppercase;color:#C9C7C1;font-weight:700;padding:8px 13px;'
+    + 'border:1px solid rgba(255,255,255,.16);border-radius:999px;text-decoration:none;'
+    + 'transition:border-color .2s,color .2s,background .2s}'
+    + '.tmw-ov-smart-head .map-link + .map-link{margin-left:10px}'
+    + '.tmw-ov-smart-head .map-link:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.30);color:#fff}'
+    + '.tmw-ov-smart-head .map-link svg{width:13px;height:13px;opacity:.85}'
 
     /* Smart row metric column (replaces relevance bar for sorted queries) */
     + '.tmw-ov-row .r-metric{flex:0 0 auto;text-align:right;min-width:64px;margin-left:6px}'
