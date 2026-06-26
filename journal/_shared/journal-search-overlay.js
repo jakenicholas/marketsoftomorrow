@@ -1638,9 +1638,12 @@
       + '</section>';
   }
 
-  function renderSmartHeader(s, rows){
+  function renderSmartHeader(s, rows, hasHero){
     var n = rows.length;
-    var title = n === 1 ? '1 project' : (n + ' projects');
+    // When a hero card is shown ABOVE this list (rank 1), these are the REST —
+    // label them "N more project(s)" so it's clear they're in addition to it.
+    var title = hasHero ? (n === 1 ? '1 more project' : (n + ' more projects'))
+                        : (n === 1 ? '1 project' : (n + ' projects'));
     var sub = s.sort ? ' · ' + esc(s.sort.label.toLowerCase()) : '';
     var firmLink = (s.firm && s.firm.slug)
       ? '<a class="map-link" href="https://www.oftmw.com/firm/'+encodeURIComponent(s.firm.slug)+'/">'
@@ -2128,7 +2131,7 @@
         : '';
       foot += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
       slotRows.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">'
-        + renderSmartHeader(s, shown)
+        + renderSmartHeader(s, shown, !!heroProject)
         + '<div class="tmw-ov-rows">' + rowsHtml + '</div>'
         + foot
         + '</div>';
@@ -2745,7 +2748,7 @@
       // match total.
       slotProjGrid.innerHTML = ''
         + '<div class="tmw-ov-sec" data-cat="projects">'
-        +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+' total</span></div>'
+        +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+(heroProject?' more':' total')+'</span></div>'
         +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
         + '</div>';
     } else {
