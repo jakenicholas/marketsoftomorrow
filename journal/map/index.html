@@ -3465,12 +3465,32 @@
        so the chrome stays visible; the LIVE dock search + its autocomplete are
        repositioned to the centre via body.map-landing (same elements, all
        wiring intact) and float above the scrim. */
-    /* Deep-link veil — covers the cheap Miami boot while a ?project/?city load
-       jumps to its destination, then fades. Sits over the map; the header
-       (z99) stays above it. */
-    #mapDeepCover { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 89; background: #070807; opacity: 1; transition: opacity .5s ease; pointer-events: none; }
+    /* Deep-link veil — the SAME blur as the "Where are you looking?" landing,
+       with a spinning TMW hexagon + "Flying you there…", shown while a
+       ?project/?city load jumps to its destination. Fades to reveal the place
+       already framed. Below the header (z99) so chrome stays visible. */
+    #mapDeepCover {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(8,9,8,.72); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
+      opacity: 1; transition: opacity .4s ease;
+    }
     #mapDeepCover.fade { opacity: 0; }
     #mapDeepCover[hidden] { display: none; }
+    .mdc-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .mdc-hex { width: 56px; height: 56px; filter: drop-shadow(0 0 14px rgba(167,139,250,.35)); }
+    .mdc-hex svg { width: 100%; height: 100%; overflow: visible; display: block; }
+    .mdc-hex-spin { transform-origin: 50% 50%; animation: mdcSpin 1.15s linear infinite; }
+    @keyframes mdcSpin { to { transform: rotate(360deg); } }
+    .mdc-text { font-family: 'Inter', system-ui, sans-serif; font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.72); font-weight: 600; }
+    .mdc-text .mdc-dots span { animation: mdcBlink 1.4s infinite both; }
+    .mdc-text .mdc-dots span:nth-child(2){ animation-delay: .2s }
+    .mdc-text .mdc-dots span:nth-child(3){ animation-delay: .4s }
+    @keyframes mdcBlink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+    /* Keep the dock + timeline scrubber out from over the veil. */
+    body.map-deeplink-loading .tmw-dock,
+    body.map-deeplink-loading .tmw-il-scrub { opacity: 0 !important; pointer-events: none !important; }
+    @media (prefers-reduced-motion: reduce) { .mdc-hex-spin, .mdc-text .mdc-dots span { animation: none !important; } }
     #mapLanding {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
       opacity: 0; transition: opacity .3s ease;
@@ -11823,10 +11843,21 @@
       <span class="presented-brand">MARKETS OF TOMORROW</span>
     </div>
   </div>
-  <!-- Deep-link veil: a brief dark cover for ?project/?city loads (which skip
-       the landing). Without it the cheap Miami boot view flashes before we can
-       jump to the destination. handleDeepLink fades it once the map is there. -->
-  <div id="mapDeepCover" hidden></div>
+  <!-- Deep-link veil: the landing's blur + a spinning TMW hexagon + "Flying you
+       there…" for ?project/?city loads (which skip the landing). Without it the
+       cheap Miami boot view flashes before we can jump to the destination.
+       handleDeepLink fades it once the map is framed on the place. -->
+  <div id="mapDeepCover" hidden>
+    <div class="mdc-inner">
+      <div class="mdc-hex" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="rgba(167,139,250,.22)" stroke-width="6" stroke-linejoin="round"/>
+          <g class="mdc-hex-spin"><polygon points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="62 240"/></g>
+        </svg>
+      </div>
+      <div class="mdc-text">Flying you there<span class="mdc-dots"><span>.</span><span>.</span><span>.</span></span></div>
+    </div>
+  </div>
   <script>
     // First paint. A ?project/?city deep-link jumps straight to its destination,
     // so cover the map (no Miami-boot flash) until handleDeepLink positions it.
@@ -11835,10 +11866,11 @@
       try {
         var p = new URLSearchParams(location.search);
         if (p.get('project') || p.get('city')) {
+          document.body.classList.add('map-deeplink-loading');
           var dc = document.getElementById('mapDeepCover');
           if (dc) dc.hidden = false;
           // Safety net: never trap the user behind the veil if positioning fails.
-          setTimeout(function(){ var c = document.getElementById('mapDeepCover'); if (c && !c.hidden){ c.classList.add('fade'); setTimeout(function(){ c.hidden = true; }, 520); } }, 4500);
+          setTimeout(function(){ var c = document.getElementById('mapDeepCover'); if (c && !c.hidden){ document.body.classList.remove('map-deeplink-loading'); c.classList.add('fade'); setTimeout(function(){ c.hidden = true; }, 520); } }, 4500);
           return;
         }
         document.body.classList.add('map-landing');
@@ -14535,9 +14567,11 @@
       // and then fade it, so the user lands on the destination with no Miami flash.
       var _cover = document.getElementById('mapDeepCover');
       var _covering = !!(_cover && !_cover.hidden);
+      var _revealed = false;
       function _revealCover(delay){
-        if (!_cover || _cover.hidden) return;
-        setTimeout(function(){ try { _cover.classList.add('fade'); setTimeout(function(){ if (_cover) _cover.hidden = true; }, 520); } catch(e){} }, delay || 0);
+        if (_revealed || !_cover || _cover.hidden) return;
+        _revealed = true;
+        setTimeout(function(){ try { document.body.classList.remove('map-deeplink-loading'); _cover.classList.add('fade'); setTimeout(function(){ if (_cover) _cover.hidden = true; }, 520); } catch(e){} }, delay || 0);
       }
       if (!window.allProjectFeatures) { _revealCover(0); return; }
       if (!slug) {
@@ -14587,7 +14621,10 @@
           const sb = document.getElementById('desktopSidebar');
           if (sb && !sb.classList.contains('open')) sb.classList.add('open');
         }
-        _revealCover(80);
+        // Lift the veil once the destination tiles have painted (so it reveals
+        // the framed project, not gray tiles) — with a fallback so it never hangs.
+        try { map.once('idle', function(){ _revealCover(0); }); } catch (_) {}
+        _revealCover(1100);
         setTimeout(() => {
           if (embed) { window.openProjectModal(match, 'embed'); }
           else if (typeof showSelectedPreview === 'function') { showSelectedPreview(match); }
