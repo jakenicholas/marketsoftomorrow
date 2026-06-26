@@ -991,11 +991,20 @@
     // Only fires when the user didn't name an explicit status or a rolling
     // "soon" window. The status spine still ranks (opening-soon first, announced
     // last); pipeline just stops long-open projects from padding the set.
+    // FORWARD / PIPELINE intent — any phrasing meaning "what's NEW or on the
+    // way" routes to the development pipeline (the Atlas database of tracked
+    // projects). 20+ cues. "new" is guarded so place names ("new york",
+    // "new orleans") never false-trigger — it only counts before a build noun.
     var pipeline = false;
     if (!statuses.size && !rolling && (
         hasWord(full, 'opening') || hasWord(full, 'opens') || hasWord(full, 'upcoming') ||
-        hasWord(full, 'forthcoming') || hasWord(full, 'pipeline') ||
-        /\b(in the works|on the way|in the pipeline|set to open|coming up|being built|being developed|in development|under development|getting built)\b/.test(full)
+        hasWord(full, 'forthcoming') || hasWord(full, 'pipeline') || hasWord(full, 'coming') ||
+        hasWord(full, 'planned') || hasWord(full, 'proposed') || hasWord(full, 'announced') ||
+        hasWord(full, 'slated') || hasWord(full, 'scheduled') || hasWord(full, 'debuting') ||
+        hasWord(full, 'launching') || hasWord(full, 'underway') || hasWord(full, 'future') ||
+        hasWord(full, 'rising') || hasWord(full, 'unbuilt') || hasWord(full, 'forthcoming') ||
+        /\b(coming soon|coming to|in the works|on the way|in the pipeline|set to (?:open|launch|deliver|complete|debut)|coming up|break(?:ing|s)? ground|broke ground|groundbreaking|under construction|being built|being developed|in development|under development|getting built|scheduled to (?:open|complete)|in the making|on the horizon|just announced|newly (?:built|opened|completed|launched|delivered))\b/.test(full) ||
+        /\bnew (?:condos?|towers?|projects?|developments?|buildings?|hotels?|resorts?|residences?|construction|builds?|high[- ]?rises?|skyscrapers?|communit(?:y|ies))\b/.test(full)
     )) {
       pipeline = true;
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
@@ -1010,9 +1019,12 @@
     // later against the items' own region/location vocab (Core.iconicItems),
     // because iconic geography (California, Hawaii, the Caribbean, Europe…) is
     // broader than the project map's FL/metro-centric place resolution.
-    var ICONIC_CUE = /\b(best|top|good|great|greatest|finest|iconic|legendary|famous|renowned|classic|must[- ]?(?:visit|see|try)|favou?rite|elite|world[- ]?class|standout|notable)\b/;
+    // SUPERLATIVE / curation intent — 20+ synonyms. Routes to the editorial
+    // iconic list (NOT the pipeline). Forward intent wins if both are present
+    // ("best new hotels" → pipeline), so iconic only fires when !pipeline.
+    var ICONIC_CUE = /\b(best|top|top[- ]?tier|top[- ]?rated|highest[- ]?rated|good|great|greatest|grandest|finest|iconic|legendary|famous|renowned|acclaimed|celebrated|storied|revered|esteemed|prestigious|premier|premium|elite|luxury|luxurious|exclusive|exquisite|exceptional|coveted|prized|sought[- ]?after|leading|foremost|ultimate|definitive|quintessential|marquee|classic|must[- ]?(?:visit|see|try|stay|play)|favou?rite|world[- ]?class|standout|notable|signature|flagship)\b/;
     var iconic = null;
-    if (ICONIC_CUE.test(full)) {
+    if (ICONIC_CUE.test(full) && !pipeline) {
       if (hasWord(full, 'golf')) iconic = 'golf';
       else if (/\b(restaurants?|dining|dine|eateries|eatery|food|cuisine)\b/.test(full)) iconic = 'restaurants';
       else if (/\b(hotels?|resorts?|stays?|lodging)\b/.test(full)) iconic = 'hotels';
@@ -1515,15 +1527,29 @@
   // and location cities present in the data, independent of the project map's
   // place resolution. No place named → the whole list (already editorially
   // ordered). `q` is the normalized query string (s.q).
-  var ICONIC_STOP = { best:1, top:1, good:1, great:1, greatest:1, finest:1, iconic:1, legendary:1, famous:1, renowned:1, classic:1, favorite:1, favourite:1, elite:1, standout:1, notable:1, must:1, visit:1, 'see':1, 'try':1, world:1, worlds:1, worldwide:1, global:1, globe:1, around:1, near:1, nearby:1, show:1, find:1, give:1, what:1, where:1, are:1, 'the':1, golf:1, course:1, courses:1, hotel:1, hotels:1, resort:1, resorts:1, stay:1, stays:1, lodging:1, restaurant:1, restaurants:1, dining:1, dine:1, food:1, cuisine:1, eateries:1, eatery:1, place:1, places:1, spot:1, spots:1, list:1, lists:1 };
+  var ICONIC_STOP = { best:1, top:1, good:1, great:1, greatest:1, finest:1, iconic:1, legendary:1, famous:1, renowned:1, classic:1, favorite:1, favourite:1, elite:1, standout:1, notable:1, must:1, visit:1, 'see':1, 'try':1, world:1, worlds:1, worldwide:1, global:1, globe:1, around:1, near:1, nearby:1, show:1, find:1, give:1, what:1, where:1, are:1, 'the':1, golf:1, course:1, courses:1, hotel:1, hotels:1, resort:1, resorts:1, stay:1, stays:1, lodging:1, restaurant:1, restaurants:1, dining:1, dine:1, food:1, cuisine:1, eateries:1, eatery:1, place:1, places:1, spot:1, spots:1, list:1, lists:1, united:1, states:1, state:1, usa:1, america:1, american:1, americas:1, nationwide:1, domestic:1, stateside:1, country:1, countries:1, nation:1, national:1,
+    // superlatives (mirror of ICONIC_CUE) — stripped so they never act as place words
+    premier:1, premium:1, prestigious:1, acclaimed:1, celebrated:1, storied:1, revered:1, esteemed:1, luxury:1, luxurious:1, exclusive:1, exquisite:1, exceptional:1, coveted:1, prized:1, leading:1, foremost:1, ultimate:1, definitive:1, quintessential:1, marquee:1, signature:1, flagship:1, grandest:1, sought:1, after:1, rated:1, highest:1, tier:1, play:1 };
   function iconicItems(items, q) {
     items = Array.isArray(items) ? items : [];
     if (!items.length) return [];
+    var nq = norm(q || '');
+    // Country-level US ask. The items are tagged by US state/region (and a few
+    // international) — never literally "United States" — so "best golf in the
+    // united states / usa / america" must return the US-based items, not none.
+    var usCue = /\b(united states|u\.?\s?s\.?\s?a?|america|american|stateside|domestic|nationwide|the states)\b/.test(nq) || /\bus\b/.test(nq) || /\busa\b/.test(nq);
     // Significant place words from the query (≥4 chars, minus the quality cue +
     // category nouns + filler). An item matches if any of them appears in its
     // region/location — substring-wise, so "miami" matches "Miami Beach" and
     // "lucia" matches "Saint Lucia". No place words → the full (ordered) list.
-    var qWords = norm(q || '').split(/\s+/).filter(function (w) { return w.length >= 4 && !ICONIC_STOP[w]; });
+    var qWords = nq.split(/\s+/).filter(function (w) { return w.length >= 4 && !ICONIC_STOP[w]; });
+    // Pure US-country ask (no more-specific place named) → all US-based items,
+    // i.e. everything that ISN'T clearly international. Region-level markers
+    // only, so a US "St. Petersburg, Florida" is never wrongly excluded.
+    if (usCue && !qWords.length) {
+      var NON_US = /\b(caribbean|europe|european|mexico|mexican|canada|canadian|asia|asian|africa|african|middle east|dubai|uae|emirates|qatar|bahamas|bermuda|australia|new zealand|scotland|ireland|england|france|french|italy|italian|spain|spanish|portugal|japan|japanese)\b/;
+      return items.filter(function (it) { return !NON_US.test(norm((it.region || '') + ' ' + (it.location || ''))); });
+    }
     if (!qWords.length) return items.slice();   // no place named → the full ordered list
     var hit = items.filter(function (it) {
       var hay = norm((it.region || '') + ' ' + (it.location || ''));
