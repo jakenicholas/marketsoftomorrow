@@ -12926,6 +12926,12 @@
         var src = map.getSource('projects');
         var allFeats = window.allProjectFeatures || (src && src._data && src._data.features) || [];
         function paint(){ if (typeof renderFilteredGrid === 'function') renderFilteredGrid('gridDesktop', allFeats); }
+        // Lazy-load the sidebar list: drop the (heavy) current cards to a light
+        // spinner so the camera fly + pins paint first, then build the new
+        // city's cards on arrival (moveend) — never composite a stale grid
+        // through the whole animation. Mirrors the mobile search path.
+        var _gd = document.getElementById('gridDesktop');
+        if (_gd) _gd.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading…</div></div>';
         window._mapFlyingTo = true;
         if (geoFeature && typeof flyToGeoFeature === 'function'){
           flyToGeoFeature(geoFeature); map.once('moveend', paint); return;
