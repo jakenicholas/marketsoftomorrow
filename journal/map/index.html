@@ -3480,8 +3480,10 @@
       position: fixed; left: 50%; transform: translateX(-50%); z-index: 91;
       width: 100%; max-width: 760px; padding: 0 24px; text-align: center;
     }
-    #mapLanding .ml-top { bottom: calc(54vh + 48px); pointer-events: none; }
-    #mapLanding .ml-bottom { top: calc(46vh + 46px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    /* Symmetric offsets from the bar centre (46vh) → title and chips sit the
+       SAME distance from the bar. Title nudged up a touch. */
+    #mapLanding .ml-top { bottom: calc(54vh + 58px); pointer-events: none; }
+    #mapLanding .ml-bottom { top: calc(46vh + 58px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
     #mapLanding .ml-presented { bottom: 4.5vh; width: auto; line-height: 1.5; white-space: nowrap; pointer-events: none; }
     .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(28px, 4.6vw, 44px); line-height: 1.05; letter-spacing: -.018em; color: #fff; margin: 0; }
     .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.6); font-size: 14.5px; line-height: 1.5; margin: 12px auto 0; max-width: 40ch; }
@@ -3497,7 +3499,7 @@
        landing — higher specificity + !important to beat the bottom-dock width
        rules. The autocomplete is relocated to <body> in JS so its z-index can
        clear the scrim, then bumped + widened to sit just under the bar. */
-    body.map-landing .tmw-dock { top: 46vh; bottom: auto; transform: translate(-50%, -50%); z-index: 9000; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+    body.map-landing .tmw-dock { top: 46vh; bottom: auto; transform: translate(-50%, -50%) !important; z-index: 9000; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
     body.map-landing .tmw-dock > *:not(.tmw-dock-search) { display: none !important; }
     body.map-landing .tmw-dock .tmw-dock-search input,
     body.map-landing .tmw-dock .tmw-dock-search input:focus { width: min(600px, 86vw) !important; }
@@ -11786,11 +11788,11 @@
     <div class="ml-bottom">
       <div class="ml-chips">
         <button class="ml-chip" type="button" data-q="Miami">Miami</button>
-        <button class="ml-chip" type="button" data-q="New York">New York</button>
+        <button class="ml-chip" type="button" data-q="Manhattan">Manhattan</button>
         <button class="ml-chip" type="button" data-q="West Palm Beach">West Palm Beach</button>
         <button class="ml-chip" type="button" data-q="Los Angeles">Los Angeles</button>
         <button class="ml-chip" type="button" data-q="London">London</button>
-        <button class="ml-chip" type="button" data-q="Florida">Florida</button>
+        <button class="ml-chip" type="button" data-q="Nashville">Nashville</button>
       </div>
       <button class="ml-skip" type="button" id="mlSkip">Explore the map &rarr;</button>
     </div>
