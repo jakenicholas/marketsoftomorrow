@@ -271,7 +271,7 @@
   var STATUS_GROUPS = [
     { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising'] },
     { value:'Breaking Ground',    label:'Breaking ground',    syn:['breaking ground','broke ground','groundbreaking','breaks ground'] },
-    { value:'Opening Soon',       label:'Opening soon',       syn:['opening soon','coming soon','opening','opens','set to open'] },
+    { value:'Opening Soon',       label:'Opening soon',       syn:['opening soon','coming soon','opens soon','set to open soon'] },
     { value:'Now Open',           label:'Open',               syn:['now open','open','opened','completed','complete','delivered','finished'] },
     { value:'Announced',          label:'Announced',          syn:['announced','planned','proposed','pre-construction','preconstruction','unveiled'] }
   ];
@@ -918,6 +918,26 @@
       yearLabel = 'Recent–' + _hi.getFullYear();
     }
 
+    // FORWARD PIPELINE intent. "hotels OPENING in florida", "condos COMING to
+    // miami", "upcoming towers" = the whole forward pipeline (announced →
+    // breaking ground → under construction → opening soon → just opened), NOT
+    // the strict 'Opening Soon' badge. Without this, "opening" matched only the
+    // handful with that exact status and silently dropped every under-
+    // construction / announced project — giving dangerously INCOMPLETE results.
+    // The database (Atlas) is the source of truth: it shows the whole pipeline.
+    // Only fires when the user didn't name an explicit status or a rolling
+    // "soon" window. The status spine still ranks (opening-soon first, announced
+    // last); pipeline just stops long-open projects from padding the set.
+    var pipeline = false;
+    if (!statuses.size && !rolling && (
+        hasWord(full, 'opening') || hasWord(full, 'opens') || hasWord(full, 'upcoming') ||
+        hasWord(full, 'forthcoming') || hasWord(full, 'pipeline') ||
+        /\b(in the works|on the way|in the pipeline|set to open|coming up)\b/.test(full)
+    )) {
+      pipeline = true;
+      if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
+    }
+
     var place = region || cities.length;
     // Tokens already matched as a CITY here can't double as a firm signal.
     var cityWords = {};
@@ -948,7 +968,7 @@
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-        region: region, area: area, cities: cities,
+        region: region, area: area, cities: cities, pipeline: pipeline,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
         sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax
       };
@@ -972,8 +992,12 @@
   }
 
   function smartFilter(s, projects) {
+    var _nowMs = (s && s.now) ? (new Date(s.now)).getTime() : Date.now();
     return (projects || []).filter(function (p) {
       if (s.statuses.size && !s.statuses.has(p.Delivery)) return false;
+      // Forward-pipeline intent ("opening / upcoming"): keep everything that's
+      // still coming or just opened; drop only the long-open (statusRank 5).
+      if (s.pipeline && statusRankOf(p, _nowMs) === 5) return false;
       // STRICT milestone filter -- project must actually have logged this phase
       if (s.phases && s.phases.size) {
         var ph = phasesOf(p);
