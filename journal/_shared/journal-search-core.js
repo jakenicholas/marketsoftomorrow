@@ -1446,7 +1446,7 @@
   // DB-derived; the model is told to use only these. Used by the
   // /smart-answer upgrade step (replaces the deterministic sentence
   // with LLM prose after; stats stay).
-  function buildSmartFacts(s, rows) {
+  function buildSmartFacts(s, rows, iconicHits) {
     var maxF = 0, maxU = 0;
     for (var i = 0; i < rows.length; i++) {
       var f = floorsOf(rows[i]); if (f > maxF) maxF = f;
@@ -1479,6 +1479,24 @@
       flagships: sig.flagships,
       top: rows.slice(0, 8).map(factRow)
     };
+    // Iconic editorial picks (golf / hotels / restaurants) — existing celebrated
+    // venues with editorial descriptions, fed so the answer can spotlight the
+    // best of them alongside the development pipeline.
+    if (s && s.iconic && Array.isArray(iconicHits) && iconicHits.length) {
+      facts.iconic = {
+        kind: s.iconic,
+        count: iconicHits.length,
+        items: iconicHits.slice(0, 6).map(function (it) {
+          return {
+            name: String(it.name || ''),
+            location: String(it.location || it.region || ''),
+            architect: String(it.architect || ''),
+            year: String(it.year || ''),
+            description: String(it.description || '').slice(0, 280)
+          };
+        })
+      };
+    }
     if (s.firmRank) {
       var fr = rankFirms(rows);
       facts.firmRanking = {

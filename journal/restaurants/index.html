@@ -2383,5 +2383,27 @@ function formatDate(s) {
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/iconic-view.js" defer></script>
 
+<script>
+/* Deep-link: /<list>/#<item-id> (e.g. from TMW Intelligence search) scrolls to
+   and highlights that ranking card once the list has rendered. */
+(function(){
+  var st=document.createElement('style');
+  st.textContent='.rank-item.anchor-flash{animation:tmwAnchorFlash 2.4s ease-out 1}@keyframes tmwAnchorFlash{0%,16%{box-shadow:0 0 0 2px rgba(182,155,255,.95),0 0 24px rgba(182,155,255,.55)}100%{box-shadow:0 0 0 0 rgba(182,155,255,0)}}';
+  document.head.appendChild(st);
+  function go(){
+    var id=decodeURIComponent((location.hash||'').replace(/^#/,''));
+    if(!id) return;
+    var n=0;
+    (function find(){
+      var els=document.querySelectorAll('.rank-item'), el=null, i=0;
+      for(;i<els.length;i++){ if(els[i].getAttribute('data-id')===id){ el=els[i]; break; } }
+      if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('anchor-flash'); void el.offsetWidth; el.classList.add('anchor-flash'); }
+      else if(n++<40){ setTimeout(find,150); }
+    })();
+  }
+  window.addEventListener('hashchange',go);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+})();
+</script>
 </body>
 </html>

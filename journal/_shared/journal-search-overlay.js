@@ -1722,13 +1722,16 @@
   }
   function renderIconicRow(item, rank, s){
     var loc = item.location || item.region || '';
-    var href = item.officialUrl || ('https://www.oftmw.com/' + s.iconic + '/');
+    // Deep-link to the item's anchor on OUR iconic list page (not its external
+    // site): /golf/#<id>, /hotels/#<id>, /restaurants/#<id>. The list page reads
+    // the hash on load and scrolls to that card.
+    var href = 'https://www.oftmw.com/' + s.iconic + '/' + (item.id ? '#' + encodeURIComponent(item.id) : '');
     var thumb = item.image
       ? '<div class="r-ico" style="background-image:url('+esc(item.image)+');background-size:cover;background-position:center;border:none;border-radius:8px"></div>'
       : '<div class="r-ico">'+ICON_STAR+'</div>';
-    var sub = '<span class="sb" style="background:rgba(168,135,255,.16);color:#cdb6ff"><i style="background:#b69bff"></i>Iconic</span>'
+    var sub = '<span class="sb" style="padding:3px 11px;border-radius:7px;background:rgba(168,135,255,.16);color:#cdb6ff"><i style="background:#b69bff"></i>Iconic</span>'
             + (loc ? '<span class="dot"></span><span>'+esc(loc)+'</span>' : '');
-    return '<a class="tmw-ov-row" href="'+esc(href)+'"'+(item.officialUrl ? ' target="_blank" rel="noopener"' : '')+'>'
+    return '<a class="tmw-ov-row" href="'+esc(href)+'">'
       + '<div class="rank">'+rank+'</div>'
       + thumb
       + '<div class="r-main"><div class="r-name">'+esc(item.name)+'</div><div class="r-sub">'+sub+'</div></div>'
@@ -2086,7 +2089,10 @@
     // within (e.g. "viceroy fort lauderdale"). For a global type/status query like
     // "hotels opening around the world soon" a stray token ("world" → "Worldcenter")
     // must not collapse the whole set down to one project.
-    var titleHit = (s.cities.length || s.region) ? pickTitleScopedProject(q, rows) : null;
+    // For iconic queries the quality cue ("best"/"good"/"iconic") is intent, not
+    // a place qualifier — never let it collapse the project set to one row or
+    // surface as an "Area" chip.
+    var titleHit = ((s.cities.length || s.region) && !s.iconic) ? pickTitleScopedProject(q, rows) : null;
     if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
@@ -2095,7 +2101,7 @@
     // named a place to narrow WITHIN. For global type/status queries like "hotels
     // opening around the world soon", leftover words ("world") must not filter the
     // set down to the handful of projects that happen to mention them.
-    if (!titleHit && (s.cities.length || s.region)) {
+    if (!titleHit && (s.cities.length || s.region) && !s.iconic) {
       var resid = applyResidualText(q, s, rows);
       rows = resid.rows;
       if (resid.label) s._areaLabel = resid.label;
@@ -2246,12 +2252,11 @@
     // sentence already explains the mismatch ("no Terra projects in Tampa, but
     // N in Miami"), and the LLM, seeing the requested place doesn't match the
     // returned rows, tends to produce a confused "tracked elsewhere" rewrite.
-    // When iconic items are on screen, keep their deterministic iconic-led
-    // sentence (the project LLM only knows the development pipeline). But an
-    // iconic-intent query that matched NO iconic items (e.g. "best hotels in
-    // miami" when we list none there) still has project rows — let the LLM
-    // answer those normally.
-    if (rows.length && !s._firmCityFallback && !iconicHits.length) fireSmartIntelUpgrade(q, s, rows);
+    // Fire the LLM whenever we have ANY material — project rows and/or iconic
+    // items. For iconic queries the iconic picks (with their descriptions) are
+    // fed in too, so the answer can name what's newly coming AND spotlight the
+    // top iconic items. (buildIconicAnswerHtml stays as the offline fallback.)
+    if ((rows.length || iconicHits.length) && !s._firmCityFallback) fireSmartIntelUpgrade(q, s, rows, iconicHits);
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
@@ -2267,10 +2272,10 @@
   // Debounced LLM rewrite of the structured-smart sentence. Same 700ms
   // settle as /search/. Stale-token guarded so a late response for
   // query N doesn't paint over query N+1.
-  function fireSmartIntelUpgrade(q, s, rows){
+  function fireSmartIntelUpgrade(q, s, rows, iconicHits){
     var Core = window.TmwSearchCore;
     if (!Core) return;
-    var facts = Core.buildSmartFacts(s, rows);
+    var facts = Core.buildSmartFacts(s, rows, iconicHits);
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){

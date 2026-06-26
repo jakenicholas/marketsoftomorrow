@@ -5769,9 +5769,13 @@ async function handleSmartAnswer(request, env, origin) {
   // isn't a real resolved smart query coming from the search page.
   const q = String(body.q || '').slice(0, 200).trim();
   const facts = (body.facts && typeof body.facts === 'object') ? body.facts : null;
-  const count = Number(facts && facts.count);
-  if (!q || !facts || !Number.isFinite(count) || count < 1) return fail('no_facts');
-  if (!Array.isArray(facts.top) || !facts.top.length) return fail('no_results');
+  const count = Number(facts && facts.count) || 0;
+  // Valid if we have development-project facts OR an iconic editorial list. The
+  // latter lets a curation query ("best golf in california") answer purely from
+  // the iconic list even when zero pipeline projects match.
+  const hasIconic = !!(facts && facts.iconic && Array.isArray(facts.iconic.items) && facts.iconic.items.length);
+  const hasProjects = !!(facts && Array.isArray(facts.top) && facts.top.length && count >= 1);
+  if (!q || !facts || (!hasProjects && !hasIconic)) return fail('no_facts');
 
   if (!env.ANTHROPIC_API_KEY) return fail('no_key');
 
@@ -5826,6 +5830,18 @@ async function handleSmartAnswer(request, env, origin) {
         .map(d => ({ name: String(d.name || '').slice(0, 80), projects: Number(d.projects) || 0 })) : [],
       architects: Array.isArray(facts.firmRanking.topArchitects) ? facts.firmRanking.topArchitects.slice(0, 5)
         .map(a => ({ name: String(a.name || '').slice(0, 80), projects: Number(a.projects) || 0 })) : [],
+    } : null,
+    // Iconic editorial list (curated, existing venues with descriptions).
+    iconic: hasIconic ? {
+      kind: String(facts.iconic.kind || '').slice(0, 16),
+      count: Number(facts.iconic.count) || facts.iconic.items.length,
+      items: facts.iconic.items.slice(0, 6).map(it => ({
+        name: String(it.name || '').slice(0, 80),
+        location: String(it.location || '').slice(0, 60),
+        architect: String(it.architect || '').slice(0, 60),
+        year: String(it.year || '').slice(0, 10),
+        description: String(it.description || '').slice(0, 280),
+      })),
     } : null,
   };
 
@@ -5971,6 +5987,19 @@ async function handleSmartAnswer(request, env, origin) {
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
       + 'lead and frame), but NEVER reuse their specific projects, numbers, or places:\n'
       + learnedExemplars.map((ex, i) => (i + 1) + '. Q: "' + ex.query + '" -> ' + ex.answer).join('\n') : '');
+  // ICONIC curation queries ("best golf in florida", "good hotels in california"):
+  // weave the editorial iconic picks (existing celebrated venues, with their own
+  // descriptions) together with whatever is NEW in the pipeline.
+  if (compact.iconic && compact.iconic.items && compact.iconic.items.length) {
+    system += '\n\nICONIC EDITORIAL LIST — THIS IS THE HEART OF THE ANSWER: `iconic` is TMW\'s curated ranking of the most iconic '
+      + compact.iconic.kind + ' for this query — EXISTING, celebrated venues (NOT pipeline projects), each carrying its own editorial `description`. '
+      + 'Structure the answer in two beats: (1) FIRST, if `top` has development projects, note briefly what is NEW or COMING'
+      + (compact.place ? ' in ' + String(compact.place).slice(0, 60) : '') + ' — name the soonest / most notable with its status (e.g. a course or hotel opening soon); '
+      + '(2) THEN spotlight the 2-3 best iconic picks in `iconic` order, naming each and what sets it apart, drawing specifics ONLY from its `description`. '
+      + 'The iconic picks are the payoff — give them the most room. If `top` has no projects, open directly on the top iconic pick. '
+      + 'Treat `iconic` descriptions as verified facts; never invent. These iconic venues already EXIST and are celebrated — never call them "planned", '
+      + '"proposed", "in the pipeline", or "tracked in our database"; reserve that language for the `top` development projects only.';
+  }
   system += '\n\n' + HERO_DIRECTIVE;
 
   let answer = null;
