@@ -1388,6 +1388,18 @@ async function handleIntelFeedback(req, env, origin) {
       applied = 'rule'; liveRule = verdict.rule;
     } catch (e) { applied = 'logged'; }
   }
+  // DATA feedback ("X is missing", "add Brooklyn projects") → enqueue it where
+  // the tmw-project-discovery routine actually looks: a `search_feedback` event
+  // flagged needs_discovery (down vote + 0 results + 'empty'), carrying the
+  // editor's note so the discovery hint reflects exactly what was asked.
+  if (verdict.type === 'data') {
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), 'system:intel-feedback', 'search_feedback',
+              JSON.stringify({ q: (query || feedback).slice(0, 160), rating: 'down', results: 0, result_kind: 'empty', editor_note: feedback })).run();
+      applied = 'discovery';
+    } catch (e) {}
+  }
   try {
     await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
       .bind(Math.floor(Date.now() / 1000), 'system:intel-feedback', 'intel_feedback',
@@ -1396,8 +1408,8 @@ async function handleIntelFeedback(req, env, origin) {
 
   const message = (applied === 'rule')
     ? ('Applied as a live house rule — every answer follows it now: “' + liveRule + '”')
-    : (verdict.type === 'data')
-      ? 'Logged as a coverage gap — the discovery routine will pick it up.'
+    : (applied === 'discovery')
+      ? 'Queued for the project-discovery routine — it will research projects to add (runs 9am & 9pm).'
       : (verdict.type === 'logic')
         ? 'Logged as a search-logic bug for an engineer to fix.'
         : 'Noted — saved for the next review pass.';
@@ -1616,9 +1628,10 @@ async function handleDiscoveryQueue(env, origin, url) {
     const key = q.toLowerCase();
     let a = byQuery.get(key);
     if (!a) {
-      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {} };
+      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null };
       byQuery.set(key, a);
     }
+    if (p.editor_note && !a.editor_note) a.editor_note = String(p.editor_note).slice(0, 300);
     a[rating]++;
     if (r.ts > a.last_ts) a.last_ts = r.ts;
     a.result_sum += results;
@@ -1639,11 +1652,11 @@ async function handleDiscoveryQueue(env, origin, url) {
     // Hint: a plain-English brief the discovery routine drops into its
     // prompt. Built from the query + signal so the LLM has context
     // without re-deriving it.
-    const hint = 'A reader searched "' + a.query + '" and got '
+    const hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
+      + 'A reader searched "' + a.query + '" and got '
       + (avg === 0 ? 'zero results' : ('only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')))
-      + '. Their thumbs-down suggests the project database is missing coverage. '
-      + 'Identify the place + project type in the query, then research candidate '
-      + 'projects to add as map drafts.';
+      + '. ' + (a.editor_note ? 'Act on the editor request above: ' : 'Their thumbs-down suggests the project database is missing coverage. ')
+      + 'Identify the place + project type, then research candidate projects to add as map drafts.';
     items.push({
       query: a.query,
       up: a.up,
