@@ -65,6 +65,21 @@ function expectedSet(Core, items, s, nowMs) {
       const a = String(p.Architect || '').toLowerCase(), d = String(p.Developer || '').toLowerCase();
       if (!(sig.length && (sig.every(function (t) { return a.indexOf(t) >= 0; }) || sig.every(function (t) { return d.indexOf(t) >= 0; })))) return false;
     }
+    // Year + rolling-window are LEGITIMATE temporal narrowings the search applies
+    // — model them here too so "new museums opening soon" (rolling window) isn't
+    // flagged as a gap for correctly excluding a museum that opened a year ago.
+    if (s.yearMin != null) {
+      const yd = (String(p.DeliveryDate || '').match(/(20\d{2})/) || [])[1];
+      const ys = (String(p.StartDate || '').match(/(20\d{2})/) || [])[1];
+      const y = +(s.yearMode === 'start' ? ys : yd);
+      if (!y || y < s.yearMin || y > s.yearMax) return false;
+    }
+    if (s.rollMin) {
+      const m = String(p.DeliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
+      if (!m) return false;
+      const ym = m[1] + '-' + (m[2] || '06');
+      if (ym < s.rollMin || ym > s.rollMax) return false;
+    }
     if (s.statuses && s.statuses.size) { if (!s.statuses.has(p.Delivery)) return false; }
     else if (Core.statusRankOf(p, nowMs) === 5) return false;   // default → forward pipeline (drop long-open)
     return true;
@@ -123,6 +138,7 @@ function readQueries(argv) {
   for (const q of queries) {
     const s = Core.parseSmartQuery(q, { projects: items, firms: Core.__firms || [], now: NOW });
     if (!s) { report.push({ q, parsed: null, note: 'no structured parse (text-match path)' }); continue; }
+    if (s.phases && s.phases.size) { report.push({ q, parsed: null, note: 'milestone query — not audited' }); continue; }
     s.now = NOW;
     const got = Core.smartFilter(s, items);
     const want = expectedSet(Core, items, s, nowMs);
