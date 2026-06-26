@@ -3466,8 +3466,7 @@
        repositioned to the centre via body.map-landing (same elements, all
        wiring intact) and float above the scrim. */
     #mapLanding {
-      position: fixed; top: var(--header-height); left: 0; width: 100%;
-      height: calc(100% - var(--header-height)); z-index: 90;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 90;
       opacity: 0; transition: opacity .3s ease;
     }
     /* Blur/scrim lives on ::before, NOT on #mapLanding itself. backdrop-filter
@@ -3490,8 +3489,8 @@
     }
     /* Symmetric offsets from the bar centre (46vh) → title and chips sit the
        SAME distance from the bar. Title nudged up a touch. */
-    #mapLanding .ml-top { bottom: calc(54vh + 58px); pointer-events: none; }
-    #mapLanding .ml-bottom { top: calc(46vh + 58px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    #mapLanding .ml-top { bottom: calc(54vh + 44px); pointer-events: none; }
+    #mapLanding .ml-bottom { top: calc(46vh + 44px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
     #mapLanding .ml-presented { bottom: 4.5vh; width: auto; line-height: 1.5; white-space: nowrap; pointer-events: none; }
     .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(28px, 4.6vw, 44px); line-height: 1.05; letter-spacing: -.018em; color: #fff; margin: 0; }
     .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.6); font-size: 14.5px; line-height: 1.5; margin: 12px auto 0; max-width: 40ch; }
