@@ -3468,28 +3468,40 @@
     #mapLanding {
       position: fixed; top: var(--header-height); left: 0; width: 100%;
       height: calc(100% - var(--header-height)); z-index: 90;
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      text-align: center; padding: 12vh 24px 7vh;
-      background: rgba(8,9,8,.72); -webkit-backdrop-filter: blur(7px) saturate(1.1); backdrop-filter: blur(7px) saturate(1.1);
-      opacity: 0; transition: opacity .4s ease;
+      background: rgba(8,9,8,.74); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
+      opacity: 0; transition: opacity .3s ease;
     }
     #mapLanding.show { opacity: 1; }
     #mapLanding[hidden] { display: none; }
-    .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(30px, 5vw, 46px); line-height: 1.04; letter-spacing: -.018em; color: #fff; margin: 0; }
-    .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.62); font-size: 15px; line-height: 1.5; margin: 14px auto 0; max-width: 42ch; }
-    .ml-bottom { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .ml-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; }
+    /* Content pieces are FIXED to the viewport so they line up with the fixed
+       dock search bar (also viewport-fixed) regardless of the header offset.
+       Bar centre sits at 46vh: title just above it, chips just below it. */
+    #mapLanding .ml-top, #mapLanding .ml-bottom, #mapLanding .ml-presented {
+      position: fixed; left: 50%; transform: translateX(-50%); z-index: 91;
+      width: 100%; max-width: 760px; padding: 0 24px; text-align: center;
+    }
+    #mapLanding .ml-top { bottom: calc(54vh + 48px); pointer-events: none; }
+    #mapLanding .ml-bottom { top: calc(46vh + 46px); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    #mapLanding .ml-presented { bottom: 4.5vh; width: auto; line-height: 1.5; white-space: nowrap; pointer-events: none; }
+    .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(28px, 4.6vw, 44px); line-height: 1.05; letter-spacing: -.018em; color: #fff; margin: 0; }
+    .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.6); font-size: 14.5px; line-height: 1.5; margin: 12px auto 0; max-width: 40ch; }
+    .ml-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 600px; }
     .ml-chip { font: 600 12.5px/1 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.8); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); padding: 9px 15px; border-radius: 999px; cursor: pointer; transition: background .14s, border-color .14s, color .14s; }
     .ml-chip:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
     .ml-skip { font: 600 12px/1 'Inter', system-ui, sans-serif; letter-spacing: .04em; color: rgba(255,255,255,.5); background: none; border: 0; cursor: pointer; padding: 6px; transition: color .14s; }
     .ml-skip:hover { color: #fff; }
-    /* Reposition the LIVE dock + autocomplete to the centre of the landing.
-       Same DOM nodes (no clone/re-parent) → all listeners + select→fly wiring
-       stay intact. Bump z above the scrim; show ONLY the search bar (hide the
-       dock's surface-toggle while gating). */
-    body.map-landing .tmw-dock { bottom: auto; top: 42vh; z-index: 9000; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+    .ml-presented .presented-by { font-size: 10px; font-weight: 300; opacity: .35; display: block; color: #fff; }
+    .ml-presented .presented-brand { font-size: 11px; font-weight: 700; opacity: .55; display: block; letter-spacing: .06em; color: #fff; }
+    /* Reposition + force-show the LIVE dock at the bar anchor (centre 46vh).
+       Same DOM nodes (no clone) → all wiring intact. Widen the input on the
+       landing — higher specificity + !important to beat the bottom-dock width
+       rules. The autocomplete is relocated to <body> in JS so its z-index can
+       clear the scrim, then bumped + widened to sit just under the bar. */
+    body.map-landing .tmw-dock { top: 46vh; bottom: auto; transform: translate(-50%, -50%); z-index: 9000; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
     body.map-landing .tmw-dock > *:not(.tmw-dock-search) { display: none !important; }
-    body.map-landing #tmwDockAC { bottom: auto; top: calc(42vh + 66px); z-index: 9001; transform-origin: top center; }
+    body.map-landing .tmw-dock .tmw-dock-search input,
+    body.map-landing .tmw-dock .tmw-dock-search input:focus { width: min(600px, 86vw) !important; }
+    body.map-landing #tmwDockAC { top: calc(46vh + 38px); bottom: auto; z-index: 9001; width: min(600px, 86vw); max-width: 86vw; }
     /* Give the map container a Mapbox-water-like base color so the brief
        window between page load and the first tile paint reads as "dark
        map" rather than the body's near-black. Only matters on revisits
@@ -11761,29 +11773,11 @@
   </div>
   
   <!-- Loading Overlay -->
-  <div id="loadingOverlay">
-    <div class="loading-content">
-      <div class="tmwload-icon" role="img" aria-label="Loading Markets of Tomorrow">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <g class="tmwload-spinner">
-            <polygon class="tmwload-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/>
-            <circle class="tmwload-circle" cx="50" cy="50" r="28" fill="none" stroke-width="9.3"/>
-          </g>
-          <line class="tmwload-handle" x1="65" y1="65" x2="84" y2="84" stroke-width="7"/>
-        </svg>
-      </div>
-      <div class="loading-text">Loading Map of Tomorrow...</div>
-      <div class="loading-subtitle">Development Pipeline Map</div>
-    </div>
-    <div class="loading-presented">
-      <span class="presented-by">Presented by</span>
-      <span class="presented-brand">MARKETS OF TOMORROW</span>
-    </div>
-  </div>
-
-  <!-- "Where are you looking?" landing overlay. The centred search bar is the
-       LIVE dock (.tmw-dock) repositioned via body.map-landing — not a clone.
-       Shown after the splash fades (unless a ?project/?city deep-link). -->
+  <!-- "Where are you looking?" landing — the FIRST screen (no loading splash).
+       The centred search bar is the LIVE dock (.tmw-dock) repositioned via
+       body.map-landing — not a clone. The map boots cheaply on Miami behind it.
+       Shown instantly by the inline script below, unless a ?project/?city
+       deep-link already chose a destination. -->
   <div id="mapLanding" hidden>
     <div class="ml-top">
       <h1 class="ml-h">Where are you looking?</h1>
@@ -11800,7 +11794,25 @@
       </div>
       <button class="ml-skip" type="button" id="mlSkip">Explore the map &rarr;</button>
     </div>
+    <div class="ml-presented">
+      <span class="presented-by">Presented by</span>
+      <span class="presented-brand">MARKETS OF TOMORROW</span>
+    </div>
   </div>
+  <script>
+    // Raise the landing gate INSTANTLY (it replaces the old loading splash) so
+    // the bare Miami map never flashes. Skip for ?project/?city deep-links —
+    // those already chose a destination and fly straight there.
+    (function(){
+      try {
+        var p = new URLSearchParams(location.search);
+        if (p.get('project') || p.get('city')) return;
+        document.body.classList.add('map-landing');
+        var ml = document.getElementById('mapLanding');
+        if (ml){ ml.hidden = false; ml.classList.add('show'); }
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Full-screen map toggle (top-right of the map). Hides the universal
        header for an edge-to-edge map; click again to restore it. -->
@@ -12755,58 +12767,22 @@
       window.history.replaceState({}, '', url);
     };
 
-    // Loading overlay: ALWAYS show for a fixed 2s on every map view so the
-    // hex→search animation completes its full loop and lands on the search
-    // icon, then fade out. If window.load is slower than 2s, wait for it
-    // (so the map never reveals half-painted); hard-cap at 6s so a stalled
-    // load never traps the user. The hex→search CSS keyframes below are
-    // also scaled to 2s so the mark finishes in step with the dwell.
+    // No loading splash anymore — the "Where are you looking?" landing IS the
+    // first screen (raised instantly by the inline script under #mapLanding).
+    // We still keep __hideMapLoader defined: the deep-link handler calls it,
+    // and on mobile it expands the drawer so the user's natural scroll primes
+    // iOS Safari's scroll-compositor pass (the only thing that relieves the
+    // per-zoom GPU lag — un-fakeable from JS, confirmed empirically).
     (function(){
-      var lo = document.getElementById('loadingOverlay');
-      // Deep-links (?project / ?city) come from a click that already chose a
-      // destination — e.g. tapping a project in TMW Intelligence. Skip the 2s
-      // brand dwell so we jump STRAIGHT to that project instead of making the
-      // user sit through the loading splash. Normal map views keep the dwell.
-      var _dlp = new URLSearchParams(location.search);
-      var _deep = _dlp.get('project') || _dlp.get('city');
-      var MIN_MS = _deep ? 0 : 2000, started = Date.now();
-      function hideLoader(){
-        if (!lo || lo.classList.contains('fade-out')) return;
-        lo.classList.add('fade-out');
-        setTimeout(function(){ if (lo) lo.style.display = 'none'; }, 500);
-        // On mobile, fade the splash directly INTO the drawer-expanded state.
-        // The map's per-zoom GPU lag is only relieved by a REAL finger-scroll
-        // on the drawer (iOS Safari's scroll-compositor pass — un-fakeable from
-        // JS, confirmed empirically after many auto-prime attempts). Opening
-        // the drawer by default lets the user's natural scroll of the project
-        // list do that work for free — by the time they tap Map, it's smooth.
+      function primeMobileDrawer(){
         try {
           if (window.matchMedia('(max-width: 800px)').matches) {
-            if (typeof window.mobileDrawerExpand === 'function') {
-              window.mobileDrawerExpand();
-            } else {
-              // Drawer setup hasn't run yet (slow projects fetch). Flag for
-              // setupMobileDrawer to expand on completion. See the matching
-              // check right after setupMobileDrawer() below.
-              window._pendingDrawerExpand = true;
-            }
+            if (typeof window.mobileDrawerExpand === 'function') window.mobileDrawerExpand();
+            else window._pendingDrawerExpand = true;   // setupMobileDrawer picks this up
           }
         } catch (e) {}
-        // Brand splash done → raise the "Where are you looking?" landing gate,
-        // UNLESS this is a ?project/?city deep-link (those already chose a
-        // destination, so jump straight there). The gate keeps the map at the
-        // cheap Miami boot view until the user picks a place.
-        try { if (!_deep && window._showMapLanding) window._showMapLanding(); } catch (e) {}
       }
-      function scheduleHide(){
-        setTimeout(hideLoader, Math.max(0, MIN_MS - (Date.now() - started)));
-      }
-      if (document.readyState === 'complete') scheduleHide();
-      else window.addEventListener('load', scheduleHide);
-      setTimeout(hideLoader, 6000);
-      // Let the deep-link handler clear the splash the MOMENT it can show the
-      // project — no waiting on full page load when we already know where to go.
-      window.__hideMapLoader = hideLoader;
+      window.__hideMapLoader = primeMobileDrawer;
     })();
 
     // Full-screen map toggle: hide the journal chrome header for an
@@ -12976,10 +12952,12 @@
       });
 
       // ── "Where are you looking?" landing gate ───────────────────────────
-      // Shows after the splash (see hideLoader). The centred search bar IS the
-      // live dock — repositioned via body.map-landing, not cloned — so picking
-      // a result runs the exact same select→fly path, which then calls
-      // dismissMapLanding() (hooked into openCityInSidebar + showPopup).
+      // The gate is raised instantly by the inline script under #mapLanding
+      // (no loading splash). The centred search bar IS the live dock —
+      // repositioned via body.map-landing, not cloned — so picking a result
+      // runs the exact same select→fly path, which then calls dismissMapLanding()
+      // (hooked into openCityInSidebar + showPopup). showMapLanding() is kept
+      // for programmatic re-show.
       function showMapLanding(){
         var ml = document.getElementById('mapLanding');
         if (!ml) return;
@@ -12998,6 +12976,12 @@
       }
       window._showMapLanding = showMapLanding;
       window._dismissMapLanding = dismissMapLanding;
+      // Move the autocomplete to <body> so its z-index isn't trapped inside a
+      // container's stacking context. Without this the landing scrim renders
+      // on top of the results (the bar shows, but the dropdown is behind the
+      // blur and unclickable). It's position:fixed, so DOM parent doesn't
+      // affect its layout — only its stacking. Harmless if already a body child.
+      try { var _ac = document.getElementById('tmwDockAC'); if (_ac && _ac.parentNode !== document.body) document.body.appendChild(_ac); } catch(e){}
       (function(){
         var ml = document.getElementById('mapLanding');
         if (!ml) return;
@@ -19813,9 +19797,7 @@
           // If the splash already faded before setup ran (slow fetch), pick up
           // the pending flag and expand now.
           try {
-            if (window.matchMedia('(max-width: 800px)').matches &&
-                (window._pendingDrawerExpand ||
-                 document.getElementById('loadingOverlay')?.classList.contains('fade-out'))) {
+            if (window.matchMedia('(max-width: 800px)').matches && window._pendingDrawerExpand) {
               window._pendingDrawerExpand = false;
               window.mobileDrawerExpand();
             }
