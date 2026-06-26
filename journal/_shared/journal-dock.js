@@ -864,8 +864,8 @@
         // The placeholder text now lives in the overlay (same timeline as the Ask
         // TMW pulse) so the two can never drift out of sync. Hidden when the field
         // has text (.ds-filled, toggled in JS) or on focus.
-        '<span class="ds-ph" aria-hidden="true"><span class="dph-lg">Search projects, firms, cities…</span><span class="dph-sm">Search projects…</span></span>' +
-        '<input name="q" type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, cities">' +
+        '<span class="ds-ph" aria-hidden="true"><span class="dph-lg">Search projects, firms, places, brands, and more…</span><span class="dph-sm">Search projects, firms, places…</span></span>' +
+        '<input name="q" type="search" autocomplete="off" placeholder="" aria-label="Search projects, firms, places, brands, and more">' +
       '</form>';
 
     // Submit → navigate to the search page with ?q=

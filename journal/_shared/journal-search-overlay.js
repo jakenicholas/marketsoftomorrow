@@ -148,7 +148,7 @@
     + '.tmw-ov-teach{width:100%;max-width:620px;margin:0 auto}'
     + '.tmw-ov-teach-h{display:flex;align-items:center;justify-content:center;gap:10px;'
     + 'padding:0 0 8px;margin-bottom:6px}'
-    + '.tmw-ov-teach-hex{width:24px;height:24px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
+    + '.tmw-ov-teach-hex{width:20px;height:20px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}'
     + '.tmw-ov-teach-hex svg{width:100%;height:100%;overflow:visible}'
     + '.tmw-ov-teach-ttl{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#C2A8FF}'
     + '.tmw-ov-pill{display:flex;align-items:center;gap:8px;margin-left:14px}'
@@ -441,7 +441,7 @@
     /* !important so a host page's own .tmw-dock-search width rules (e.g. the map
        trims the bottom dock input to ~36-42vw) can NEVER leak in and squish the
        lightbox input — the spotlight must look identical on every page. */
-    + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:50px}'
+    + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:50px;font-size:14px}'
     + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%!important;'
     /* Override the dock\'s green focus state -- the overlay is the
        Intelligence surface, so it keeps the purple aesthetic everywhere. */
@@ -481,9 +481,9 @@
     + 'background:conic-gradient(from 210deg,rgba(167,139,250,0) 0deg,rgba(167,139,250,0) 250deg,#A78BFA 320deg,#E9DEFF 350deg,rgba(167,139,250,0) 360deg);'
     + '-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}'
     + '.tmw-ov-intel-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}'
-    + '.tmw-ov-intel-spark{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;'
+    + '.tmw-ov-intel-spark{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;'
     + 'background:rgba(167,139,250,.16);color:#B9A6FF;box-shadow:0 0 16px rgba(167,139,250,.45);flex:0 0 auto}'
-    + '.tmw-ov-intel-spark svg{width:18px;height:18px}'
+    + '.tmw-ov-intel-spark svg{width:15px;height:15px}'
     + '.tmw-ov-intel-h .lbl{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#B9A6FF}'
     + '.tmw-ov-intel-h .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10px;'
     + 'letter-spacing:.12em;text-transform:uppercase;color:#9AA39C}'
@@ -704,7 +704,7 @@
   var ICON_HEX = ''
     + '<svg viewBox="0 0 100 100" aria-hidden="true">'
     +   '<g class="tmw-ov-hxs-spin">'
-    +     '<polygon class="tmw-ov-hxs-core" points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="3" stroke-linejoin="round"/>'
+    +     '<polygon class="tmw-ov-hxs-core" points="50,8 86,29 86,71 50,92 14,71 14,29" fill="none" stroke="#A78BFA" stroke-width="8" stroke-linejoin="round"/>'
     +   '</g>'
     +   '<circle class="tmw-ov-hxs-ring" cx="50" cy="50" r="28" fill="none" stroke="#A78BFA" stroke-width="2" opacity="0"/>'
     + '</svg>';
@@ -855,7 +855,7 @@
     +     '<div class="tmw-ov-bar">'
     +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
-    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, cities — press Enter…" aria-label="Search projects, firms, cities">'
+    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, places, brands, and more…" aria-label="Search projects, firms, places, brands, and more">'
     +         '<button class="go" type="button" aria-label="Run search (press Enter)" title="Press Enter to search">'
     +           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
     +         '</button>'
