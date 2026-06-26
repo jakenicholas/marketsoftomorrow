@@ -1310,6 +1310,28 @@ async function handleIntelQueries(env, origin, url) {
 //
 // Each item carries a `kind` so the Studio can label the row. Partner
 // spotlights (which carry a `partner` prop) are excluded — they aren't gaps.
+// GET /intel-selftest — the daily search-health trend, logged by the intel-review
+// routine's proactive self-test (it runs generated queries against the live
+// database and records queries/clean/gaps/health_pct per run). Powers the Search
+// Health tab in Studio. Admin-gated via ADMIN_READ_PATHS.
+async function handleIntelSelftest(env, origin, url) {
+  const limit = clampInt(url.searchParams.get('limit'), 30, 1, 120);
+  let runs = [];
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT ts,
+              CAST(json_extract(props_json,'$.queries')    AS INTEGER) AS queries,
+              CAST(json_extract(props_json,'$.clean')      AS INTEGER) AS clean,
+              CAST(json_extract(props_json,'$.gaps')       AS INTEGER) AS gaps,
+              CAST(json_extract(props_json,'$.health_pct') AS INTEGER) AS health_pct
+       FROM events WHERE event_name = 'intel_selftest'
+       ORDER BY ts DESC LIMIT ?`
+    ).bind(limit).all();
+    runs = (rs.results || []).filter(r => r.queries != null);
+  } catch (e) { /* table/shape issue → empty */ }
+  return json({ latest: runs[0] || null, runs }, {}, env, origin);
+}
+
 async function handleSearchGaps(env, origin, url) {
   const limit = clampInt(url.searchParams.get('limit'), 50, 1, 200);
   const rs = await env.DB.prepare(
@@ -6652,6 +6674,7 @@ export default {
         '/people', '/stats', '/member', '/timeline',
         '/watchlist', '/projects', '/activity', '/subscriptions', '/intel-queries', '/search-gaps',
         '/search-feedback', '/search-feedback/discoveries',
+        '/intel-selftest',
         '/funnel-stats',
         '/intel-answers', '/intel-rules', '/intel-exemplars',
       ]);
@@ -6728,6 +6751,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/search-gaps') {
         return await handleSearchGaps(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/intel-selftest') {
+        return await handleIntelSelftest(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/search-feedback') {
         return await handleSearchFeedback(env, origin, url);
