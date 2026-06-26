@@ -472,6 +472,7 @@ const TOOLS = [
         slug: { type: 'string', description: 'Project slug (alternative to draft_id)' },
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell"). Powers neighborhood search & filtering.' },
+        borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan", "Queens"). NYC boroughs auto-derive from coordinates; set this only to override or for a non-NYC sub-locality. The City field is unchanged.' },
         start_date: { type: 'string', description: 'Construction-start / groundbreaking year or date' },
         start_speculative: { type: 'boolean', description: 'True if start_date is an estimate' },
         delivery_date: { type: 'string', description: 'Completion / OPENING year or date' },
@@ -537,6 +538,7 @@ const TOOLS = [
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
+        borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan"). NYC boroughs auto-derive from coordinates; set this only to override. City is unchanged.' },
         types: { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of project type tags (auto-applies). Use to re-classify — most commonly to promote a multi-use project to Mixed-Use, or to add a Retail tag to a project that had Eateries. Pass the WHOLE list (not a diff); pre-existing tags not in this array are removed. Tags are normalized against the existing vocabulary and unrecognized tags are dropped — never coin new ones. CLASSIFICATION RULE: Resort always wins (preferred_type=Resort, no Mixed-Use). Otherwise, if 2+ types from {Residences, Office, Hotel, Retail, Cultural, Education, Entertainment, Stadium, Hospital, Travel} are present, the project IS Mixed-Use (add "Mixed-Use" to types AND set preferred_type="Mixed-Use"). Hospitality with amenities only (Hotel + Eateries/Park/Marina) stays Hotel — restaurants are amenities, not separate primary uses.' },
         preferred_type: { type: 'string', description: 'Single primary type the dossier should treat as canonical. Auto-applies. Use alongside `types` when promoting to Mixed-Use (set preferred_type:"Mixed-Use"). Falls through if unrecognized.' },
         correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
@@ -2022,6 +2024,7 @@ const IMPL = {
       status: String(args.status || 'announced'),
       city: String(args.city || ''),
       neighborhood: String(args.neighborhood || ''),
+      borough: String(args.borough || ''),
       lat: num(args.latitude),
       lng: num(args.longitude),
       types,
@@ -2135,6 +2138,7 @@ const IMPL = {
       const changed = [];
       if (args.status) { data.status = String(args.status); changed.push('status'); }
       if (args.neighborhood != null && String(args.neighborhood).trim() !== '') { data.neighborhood = String(args.neighborhood).trim(); changed.push('neighborhood'); }
+      if (args.borough != null) { data.borough = String(args.borough).trim(); changed.push('borough'); }
       if (args.start_date != null && String(args.start_date) !== '') { data.start_date = String(args.start_date); changed.push('start_date'); }
       if (args.start_speculative != null) data.start_speculative = !!args.start_speculative;
       if (args.delivery_date != null && String(args.delivery_date) !== '') { data.delivery_date = String(args.delivery_date); changed.push('delivery_date'); }
