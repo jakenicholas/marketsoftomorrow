@@ -1738,17 +1738,60 @@
       + '<div class="arrow">'+ICON_ARROW+'</div>'
       + '</a>';
   }
+  // The #1 iconic pick rendered as a rich hero card — same geometry/treatment as
+  // the project hero (image-left, body-right, CTAs) so an iconic result ALWAYS
+  // leads with a hero, not just a row.
+  function renderIconicHero(item, s){
+    var loc = item.location || item.region || '';
+    var listHref = 'https://www.oftmw.com/' + s.iconic + '/' + (item.id ? '#' + encodeURIComponent(item.id) : '');
+    var site = item.officialUrl || '';
+    var desc = item.description || '';
+    var media = item.image
+      ? '<img src="'+esc(item.image)+'" alt="'+esc(item.name)+'" loading="eager" onerror="this.style.display=\'none\'">'
+      : '<div class="ph"></div>';
+    var bits = [];
+    if (item.architect) bits.push('Designed by <b>'+esc(item.architect)+'</b>');
+    if (item.year) bits.push('Est. <b>'+esc(String(item.year))+'</b>');
+    var byline = bits.length ? '<div class="tmw-ov-byline">'+bits.join(' · ')+'</div>' : '';
+    return '<article class="tmw-ov-hero">'
+      + '<div class="media">'+media+'<div class="scrim"></div><span class="besttag" style="background:rgba(168,135,255,.92);color:#1a1430">Iconic pick</span></div>'
+      + '<div class="body">'
+      +   '<h2>'+esc(item.name)+'</h2>'
+      +   (loc ? '<div class="loc">'+esc(loc)+'</div>' : '')
+      +   '<span class="tmw-ov-hero-chip" style="background:rgba(168,135,255,.16);color:#cdb6ff;border-color:rgba(168,135,255,.42)">Iconic '+esc((ICONIC_NOUN[s.iconic]||'pick').replace(/ courses$/,'').replace(/s$/,''))+'</span>'
+      +   (desc ? '<p class="desc">'+esc(desc)+'</p>' : '')
+      +   byline
+      +   '<div class="tmw-ov-hero-cta">'
+      +     '<a class="tmw-ov-btn gold" href="'+esc(listHref)+'">'
+      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+      +       'View on list'
+      +     '</a>'
+      +     (site
+              ? '<a class="tmw-ov-btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site'
+                + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>'
+                + '</a>'
+              : '')
+      +   '</div>'
+      + '</div>'
+      + '</article>';
+  }
   function renderIconicSection(items, s){
+    if (!items.length) return '';
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
     var placeLbl = iconicPlaceLabel(s.iconic, items);
-    var title = items.length + ' iconic ' + noun + (placeLbl ? ' in ' + placeLbl : '');
-    var CAP = 24, shown = items.slice(0, CAP);
-    var rowsHtml = shown.map(function(it, i){ return renderIconicRow(it, i + 1, s); }).join('');
+    var hero = items[0], rest = items.slice(1);
+    var heroSec = '<div class="tmw-ov-sec" data-cat="projects">' + renderIconicHero(hero, s) + '</div>';
+    if (!rest.length) return heroSec;
+    var CAP = 24, shown = rest.slice(0, CAP);
+    var singular = noun.replace(/ courses$/, ' course').replace(/^(hotels|restaurants)$/, function(m){ return m.slice(0, -1); });
+    var title = (shown.length === 1 ? '1 more iconic ' + singular : shown.length + ' more iconic ' + noun) + (placeLbl ? ' in ' + placeLbl : '');
+    // Ranks start at 2 — the hero above is #1.
+    var rowsHtml = shown.map(function(it, i){ return renderIconicRow(it, i + 2, s); }).join('');
     var head = '<div class="tmw-ov-smart-head"><h3>'+esc(title)+'</h3>'
       + '<a class="map-link" href="https://www.oftmw.com/'+s.iconic+'/">'+ICON_STAR+' Full list</a></div>';
     var foot = '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · curated iconic '+esc(noun)
-      + (items.length > CAP ? ' · showing top '+CAP+' of '+items.length : '') + '</div>';
-    return '<div class="tmw-ov-sec" data-cat="projects">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
+      + (rest.length > CAP ? ' · showing top '+(CAP + 1)+' of '+items.length : '') + '</div>';
+    return heroSec + '<div class="tmw-ov-sec" data-cat="projects">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
   }
   function buildIconicAnswerHtml(s, items, projectRows){
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
