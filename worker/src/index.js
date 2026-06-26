@@ -3899,6 +3899,166 @@ async function handleCarouselPreviewToken(req, env, origin, url) {
   }, {}, env, origin);
 }
 
+// ─── Design docs (Studio "Design" editor) ──────────────────────────────────
+// The editable SOURCE for branded carousel graphics: per-slide template +
+// draggable text boxes + image placement. The rendered PNGs get pushed into the
+// `carousels` table for client review. Self-bootstraps like the carousels table.
+async function ensureDesignsTable(env) {
+  if (!env.DB) return;
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS designs (
+      id          TEXT    PRIMARY KEY,
+      slug        TEXT    NOT NULL UNIQUE,
+      title       TEXT    NOT NULL DEFAULT 'Untitled design',
+      doc_json    TEXT    NOT NULL DEFAULT '{}',
+      status      TEXT    NOT NULL DEFAULT 'draft',
+      created_at  INTEGER NOT NULL,
+      updated_at  INTEGER NOT NULL
+    )`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_designs_slug    ON designs(slug)`),
+    env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_designs_updated ON designs(updated_at DESC)`),
+  ]);
+}
+
+function rowToDesign(r) {
+  if (!r) return null;
+  let doc = {};
+  try { doc = JSON.parse(r.doc_json || '{}'); if (!doc || typeof doc !== 'object') doc = {}; } catch { doc = {}; }
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title || 'Untitled design',
+    doc,
+    status: r.status || 'draft',
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  };
+}
+
+async function ensureUniqueDesignSlug(env, base, ignoreId) {
+  let slug = (slugify(base || 'design') || 'design').slice(0, 100);
+  let n = 0;
+  while (true) {
+    const candidate = n === 0 ? slug : `${slug}-${n}`;
+    const row = await env.DB.prepare(`SELECT id FROM designs WHERE slug = ?1 LIMIT 1`).bind(candidate).first();
+    if (!row || (ignoreId && row.id === ignoreId)) return candidate;
+    n++;
+    if (n > 50) return `${slug}-${cryptoRandomId(4)}`;
+  }
+}
+
+async function handleDesignsList(req, env, origin, url) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+  const limit  = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10), 1), 200);
+  const status = url.searchParams.get('status');
+  const stmt = status
+    ? env.DB.prepare(`SELECT * FROM designs WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2`).bind(status, limit)
+    : env.DB.prepare(`SELECT * FROM designs ORDER BY updated_at DESC LIMIT ?1`).bind(limit);
+  const { results } = await stmt.all();
+  return json({ items: (results || []).map(rowToDesign), count: (results || []).length }, {}, env, origin);
+}
+
+async function handleDesignsCreate(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const id    = 'dsgn-' + cryptoRandomId(12);
+  const now   = Math.floor(Date.now() / 1000);
+  const title = (body.title || 'Untitled design').toString().slice(0, 200);
+  const slug  = await ensureUniqueDesignSlug(env, body.slug || title || ('design-' + cryptoRandomId(4)), null);
+  const doc   = JSON.stringify((body.doc && typeof body.doc === 'object') ? body.doc : {}).slice(0, 2_000_000);
+  try {
+    await env.DB.prepare(
+      `INSERT INTO designs (id, slug, title, doc_json, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, 'draft', ?5, ?5)`
+    ).bind(id, slug, title, doc, now).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  const row = await env.DB.prepare(`SELECT * FROM designs WHERE id = ?1`).bind(id).first();
+  return json({ ok: true, design: rowToDesign(row) }, {}, env, origin);
+}
+
+async function handleDesignsBySlug(req, env, origin, slug) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+  slug = fullyDecodeSlug(slug);
+  const row = await env.DB.prepare(`SELECT * FROM designs WHERE slug = ?1 LIMIT 1`).bind(slug).first();
+  if (!row) return json({ error: 'design not found', slug }, { status: 404 }, env, origin);
+  return json({ design: rowToDesign(row) }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
+}
+
+async function handleDesignsUpdate(req, env, origin, slug) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+  slug = fullyDecodeSlug(slug);
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const existing = await env.DB.prepare(`SELECT * FROM designs WHERE slug = ?1`).bind(slug).first();
+  if (!existing) return json({ error: 'design not found', slug }, { status: 404 }, env, origin);
+  const sets = [], params = []; let p = 1;
+  if ('title'  in body) { sets.push(`title    = ?${p++}`); params.push(String(body.title || 'Untitled design').slice(0, 200)); }
+  if ('doc'    in body) { sets.push(`doc_json = ?${p++}`); params.push(JSON.stringify((body.doc && typeof body.doc === 'object') ? body.doc : {}).slice(0, 2_000_000)); }
+  if ('status' in body) { sets.push(`status   = ?${p++}`); params.push(body.status === 'archived' ? 'archived' : 'draft'); }
+  if ('slug'   in body && body.slug && body.slug !== existing.slug) {
+    const newSlug = await ensureUniqueDesignSlug(env, body.slug, existing.id);
+    sets.push(`slug = ?${p++}`); params.push(newSlug);
+  }
+  if (!sets.length) return json({ ok: true, design: rowToDesign(existing), note: 'no changes' }, {}, env, origin);
+  sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
+  params.push(existing.id);
+  await env.DB.prepare(`UPDATE designs SET ${sets.join(', ')} WHERE id = ?${p}`).bind(...params).run();
+  const updated = await env.DB.prepare(`SELECT * FROM designs WHERE id = ?1`).bind(existing.id).first();
+  return json({ ok: true, design: rowToDesign(updated) }, {}, env, origin);
+}
+
+async function handleDesignsDelete(req, env, origin, slug) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+  slug = fullyDecodeSlug(slug);
+  const r = await env.DB.prepare(`DELETE FROM designs WHERE slug = ?1`).bind(slug).run();
+  return json({ ok: true, slug, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
+}
+
+// GET /img?u=<url> — same-origin image proxy with permissive CORS, so the
+// Design editor can rasterize R2 photos to PNG via html-to-image without canvas
+// tainting (pub-*.r2.dev doesn't send Access-Control-Allow-Origin). Restricted
+// to our own image hosts so it can't be used as an open proxy.
+async function handleImageProxy(req, env, origin, url) {
+  const target = url.searchParams.get('u') || '';
+  let u;
+  try { u = new URL(target); } catch { return json({ error: 'bad url' }, { status: 400 }, env, origin); }
+  const host = u.hostname.toLowerCase();
+  const ok = /\.r2\.dev$/.test(host) || /(^|\.)oftmw\.com$/.test(host) || /(^|\.)workers\.dev$/.test(host) || /(^|\.)r2\.cloudflarestorage\.com$/.test(host);
+  if (u.protocol !== 'https:' || !ok) return json({ error: 'host not allowed' }, { status: 403 }, env, origin);
+  let upstream;
+  try { upstream = await fetch(u.toString(), { cf: { cacheTtl: 3600, cacheEverything: true } }); }
+  catch (e) { return json({ error: 'fetch failed', detail: String(e) }, { status: 502 }, env, origin); }
+  if (!upstream.ok) return json({ error: 'upstream ' + upstream.status }, { status: upstream.status }, env, origin);
+  const ct = upstream.headers.get('content-type') || 'image/jpeg';
+  if (!/^image\//i.test(ct)) return json({ error: 'not an image' }, { status: 415 }, env, origin);
+  return new Response(upstream.body, {
+    headers: {
+      'Content-Type': ct,
+      'Cache-Control': 'public, max-age=86400',
+      'Access-Control-Allow-Origin': '*',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    },
+  });
+}
+
 // GET /c/<slug>?preview=<token> — public Instagram-style preview page.
 // Self-contained HTML+CSS+JS so a deploy needs no extra static assets.
 async function handleCarouselPublic(req, env, slug) {
@@ -7063,6 +7223,23 @@ export default {
           if (request.method === 'GET')    return await handleCarouselsBySlug (request, env, origin, m[1]);
           if (request.method === 'PATCH')  return await handleCarouselsUpdate (request, env, origin, m[1]);
           if (request.method === 'DELETE') return await handleCarouselsDelete (request, env, origin, m[1]);
+        }
+      }
+      // Same-origin image proxy (Design editor PNG export — admin only)
+      if (request.method === 'GET' && url.pathname === '/img') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleImageProxy(request, env, origin, url);
+      }
+      // Design docs (Studio "Design" editor — admin only)
+      if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
+      {
+        const m = url.pathname.match(/^\/designs\/by-slug\/([^/]+)\/?$/);
+        if (m) {
+          if (request.method === 'GET')    return await handleDesignsBySlug (request, env, origin, m[1]);
+          if (request.method === 'PATCH')  return await handleDesignsUpdate (request, env, origin, m[1]);
+          if (request.method === 'DELETE') return await handleDesignsDelete (request, env, origin, m[1]);
         }
       }
       // Public preview page — /c/<slug>?preview=<token>
