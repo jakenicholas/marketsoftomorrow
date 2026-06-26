@@ -3468,8 +3468,16 @@
     #mapLanding {
       position: fixed; top: var(--header-height); left: 0; width: 100%;
       height: calc(100% - var(--header-height)); z-index: 90;
-      background: rgba(8,9,8,.74); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
       opacity: 0; transition: opacity .3s ease;
+    }
+    /* Blur/scrim lives on ::before, NOT on #mapLanding itself. backdrop-filter
+       on #mapLanding would make it the containing block for its position:fixed
+       children, breaking their alignment with the dock (a <body> child that
+       references the true viewport). On ::before the filter only affects the
+       pseudo-element, so the content stays viewport-anchored = symmetric. */
+    #mapLanding::before {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(8,9,8,.74); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
     }
     #mapLanding.show { opacity: 1; }
     #mapLanding[hidden] { display: none; }
@@ -3487,7 +3495,8 @@
     #mapLanding .ml-presented { bottom: 4.5vh; width: auto; line-height: 1.5; white-space: nowrap; pointer-events: none; }
     .ml-h { font-family: 'Fraunces', var(--serif, Georgia), serif; font-weight: 500; font-size: clamp(28px, 4.6vw, 44px); line-height: 1.05; letter-spacing: -.018em; color: #fff; margin: 0; }
     .ml-sub { font-family: 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.6); font-size: 14.5px; line-height: 1.5; margin: 12px auto 0; max-width: 40ch; }
-    .ml-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 600px; }
+    .ml-chips { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .ml-chip-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
     .ml-chip { font: 600 12.5px/1 'Inter', system-ui, sans-serif; color: rgba(255,255,255,.8); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); padding: 9px 15px; border-radius: 999px; cursor: pointer; transition: background .14s, border-color .14s, color .14s; }
     .ml-chip:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); color: #fff; }
     .ml-skip { font: 600 12px/1 'Inter', system-ui, sans-serif; letter-spacing: .04em; color: rgba(255,255,255,.5); background: none; border: 0; cursor: pointer; padding: 6px; transition: color .14s; }
@@ -11783,16 +11792,20 @@
   <div id="mapLanding" hidden>
     <div class="ml-top">
       <h1 class="ml-h">Where are you looking?</h1>
-      <p class="ml-sub">Search a market, a neighborhood, or a specific project &mdash; and we&rsquo;ll drop you right in.</p>
+      <p class="ml-sub">Search a market, a neighborhood, or a specific project. We&rsquo;ll drop you right in.</p>
     </div>
     <div class="ml-bottom">
       <div class="ml-chips">
-        <button class="ml-chip" type="button" data-q="Miami">Miami</button>
-        <button class="ml-chip" type="button" data-q="Manhattan">Manhattan</button>
-        <button class="ml-chip" type="button" data-q="West Palm Beach">West Palm Beach</button>
-        <button class="ml-chip" type="button" data-q="Los Angeles">Los Angeles</button>
-        <button class="ml-chip" type="button" data-q="London">London</button>
-        <button class="ml-chip" type="button" data-q="Nashville">Nashville</button>
+        <div class="ml-chip-row">
+          <button class="ml-chip" type="button" data-q="Manhattan">Manhattan</button>
+          <button class="ml-chip" type="button" data-q="West Palm Beach">West Palm Beach</button>
+          <button class="ml-chip" type="button" data-q="Los Angeles">Los Angeles</button>
+        </div>
+        <div class="ml-chip-row">
+          <button class="ml-chip" type="button" data-q="Miami">Miami</button>
+          <button class="ml-chip" type="button" data-q="Nashville">Nashville</button>
+          <button class="ml-chip" type="button" data-q="Dubai">Dubai</button>
+        </div>
       </div>
       <button class="ml-skip" type="button" id="mlSkip">Explore the map &rarr;</button>
     </div>
