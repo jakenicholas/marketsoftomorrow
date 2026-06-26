@@ -828,8 +828,13 @@
         if (!typeLabel) { typeLabel = g.label; typeNoun = g.noun; }
       }
     });
-    // region + cities
-    var region = (hasWord(full, 'florida') || /\bfl\b/.test(full)) ? 'Florida' : '';
+    // region + cities. A multi-county AREA (South Florida, Tampa Bay, a metro,
+    // a single county) is resolved precisely via detectArea so "south florida"
+    // means the tri-county region — NOT the whole state. Only a bare "florida"
+    // (no sub-region) falls back to the whole-state bbox check.
+    var _area = (opts.projects && opts.projects.length) ? detectArea(q, opts.projects) : null;
+    var area = (_area && _area.counties) ? _area : null;
+    var region = area ? area.name : ((hasWord(full, 'florida') || /\bfl\b/.test(full)) ? 'Florida' : '');
     var cities = [];
     var citySet = buildCitySet(opts.projects || []);
     // Short aliases (≤ 4 chars: "la", "sf", "ftl", "nyc", etc.) MUST match as
@@ -943,7 +948,7 @@
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-        region: region, cities: cities,
+        region: region, area: area, cities: cities,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
         sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax
       };
@@ -1006,7 +1011,10 @@
           return pCityFull === cNorm || pCityFirst === cNorm;
         })) return false;
       }
-      if (s.region === 'Florida' && !inFlorida(p)) return false;
+      // A resolved sub-region (South Florida, a metro, a county) filters by its
+      // counties; a bare "Florida" keeps the robust lat/lng bbox check.
+      if (s.area) { if (!inArea(p, s.area)) return false; }
+      else if (s.region === 'Florida' && !inFlorida(p)) return false;
       if (s.yearMin != null) {
         var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
         if (y == null || y < s.yearMin || y > s.yearMax) return false;

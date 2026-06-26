@@ -5877,7 +5877,7 @@ async function handleSmartAnswer(request, env, origin) {
       },
       body: JSON.stringify({
         model: SMART_ANSWER_MODEL,
-        max_tokens: 320,
+        max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
         system,
         messages: [{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }],
       }),
