@@ -150,7 +150,23 @@ function readQueries(argv) {
     gaps_found: gaps.length,
     health_pct: queries.length ? Math.round((1 - gaps.length / queries.length) * 100) : 100,
   };
-  console.log(JSON.stringify({ summary, gaps, report }, null, 2));
+  // Compact per-query report for storage / the Search Health card UI:
+  // q = query, n = search results, exp = what the DB should return, gap, s = sample titles.
+  const reportCompact = report.filter(function (r) { return r.parsed; }).map(function (r) {
+    return { q: r.q, n: r.search_count, exp: r.expected_count, gap: r.gap, s: (r.gap ? r.missing_sample : r.sample).slice(0, 4) };
+  }).slice(0, 40);
+
+  // --event mode: print ONLY the ready-to-POST /event props (queries/clean/gaps/
+  // health_pct/report), so the routine can `curl -d "$(node … --event)"`.
+  if (process.argv.includes('--event')) {
+    console.log(JSON.stringify({
+      member_id: 'system:intel-selftest', event_name: 'intel_selftest',
+      props: { queries: summary.queries_tested, clean: summary.clean, gaps: summary.gaps_found, health_pct: summary.health_pct, report: reportCompact },
+    }));
+    console.error('audit: ' + summary.queries_tested + ' queries · health ' + summary.health_pct + '% · ' + summary.gaps_found + ' gaps');
+    return;
+  }
+  console.log(JSON.stringify({ summary, gaps, report, report_compact: reportCompact }, null, 2));
   console.error('TMW Intelligence search audit — ' + summary.now + ' (' + source + ')');
   console.error('  ' + summary.queries_tested + ' queries · ' + summary.clean + ' clean · '
     + summary.gaps_found + ' GAPS · health ' + summary.health_pct + '%');

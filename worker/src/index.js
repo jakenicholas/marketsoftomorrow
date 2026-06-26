@@ -1319,17 +1319,89 @@ async function handleIntelSelftest(env, origin, url) {
   let runs = [];
   try {
     const rs = await env.DB.prepare(
-      `SELECT ts,
-              CAST(json_extract(props_json,'$.queries')    AS INTEGER) AS queries,
-              CAST(json_extract(props_json,'$.clean')      AS INTEGER) AS clean,
-              CAST(json_extract(props_json,'$.gaps')       AS INTEGER) AS gaps,
-              CAST(json_extract(props_json,'$.health_pct') AS INTEGER) AS health_pct
-       FROM events WHERE event_name = 'intel_selftest'
+      `SELECT ts, props_json FROM events WHERE event_name = 'intel_selftest'
        ORDER BY ts DESC LIMIT ?`
     ).bind(limit).all();
-    runs = (rs.results || []).filter(r => r.queries != null);
+    runs = (rs.results || []).map(r => {
+      let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch {}
+      return {
+        ts: r.ts,
+        queries: p.queries != null ? p.queries : null,
+        clean: p.clean != null ? p.clean : null,
+        gaps: p.gaps != null ? p.gaps : null,
+        health_pct: p.health_pct != null ? p.health_pct : null,
+        report: Array.isArray(p.report) ? p.report.slice(0, 40) : null,  // per-query: what tested + output
+      };
+    }).filter(r => r.queries != null);
   } catch (e) { /* table/shape issue → empty */ }
-  return json({ latest: runs[0] || null, runs }, {}, env, origin);
+  return json({ latest: runs[0] || null, runs: runs.map(r => ({ ts: r.ts, queries: r.queries, clean: r.clean, gaps: r.gaps, health_pct: r.health_pct })), latest_report: runs[0] ? runs[0].report : null }, {}, env, origin);
+}
+
+// POST /intel-feedback { feedback, query? } — the editor's feedback from the
+// Search Health card. Claude triages it: an editorial RULE is appended to the
+// live answer prompt IMMEDIATELY (so the next answer follows it); a DATA or
+// SEARCH-LOGIC issue is logged for the discovery routine / an engineer. Either
+// way the raw feedback is saved. This is the human-in-the-loop "reiterate".
+async function handleIntelFeedback(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const feedback = String((b && b.feedback) || '').trim().slice(0, 1000);
+  const query = String((b && b.query) || '').trim().slice(0, 200);
+  if (!feedback) return json({ error: 'feedback required' }, { status: 400 }, env, origin);
+
+  let verdict = { type: 'note', rule: null, note: feedback };
+  if (env.ANTHROPIC_API_KEY) {
+    try {
+      const sys = 'You triage an editor\'s feedback about TMW Intelligence (a real-estate development search). Respond with ONLY JSON: '
+        + '{"type":"rule"|"data"|"logic","rule":"<one imperative sentence, ≤25 words, ONLY when type=rule>","note":"<concise restatement>"}. '
+        + 'type=rule = editorial voice/ranking/framing guidance applicable to the answer prompt (e.g. "Lead with the soonest opening date", "Never feature a project that opened over a year ago"). '
+        + 'type=data = a specific project/place is missing or mis-tagged in the database. '
+        + 'type=logic = the search returned wrong/incomplete results or mis-parsed a query (a code bug). '
+        + 'The rule must be concrete, non-contradictory, and must never make the model invent facts.';
+      const usr = (query ? ('Query under review: "' + query + '"\n') : '') + 'Editor feedback: "' + feedback + '"';
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 300, system: sys, messages: [{ role: 'user', content: usr }] }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const txt = (d.content && d.content[0] && d.content[0].text) || '';
+        const m = txt.match(/\{[\s\S]*\}/);
+        if (m) { const p = JSON.parse(m[0]); if (p && p.type) verdict = { type: p.type, rule: p.rule || null, note: p.note || feedback }; }
+      }
+    } catch (e) { /* fall through to a plain logged note */ }
+  }
+
+  let applied = 'logged', liveRule = null;
+  if (verdict.type === 'rule' && verdict.rule) {
+    try {
+      const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_rules' ORDER BY ts DESC LIMIT 1`).first();
+      let rules = []; if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.rules)) rules = pj.rules; }
+      const nrm = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!rules.some(x => nrm(x) === nrm(verdict.rule))) rules.push(verdict.rule);
+      rules = rules.slice(-20);
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), 'system:intel-feedback', 'intel_rules',
+              JSON.stringify({ rules, note: 'editor feedback ' + new Date().toISOString().slice(0, 10) })).run();
+      applied = 'rule'; liveRule = verdict.rule;
+    } catch (e) { applied = 'logged'; }
+  }
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:intel-feedback', 'intel_feedback',
+            JSON.stringify({ feedback, query: query || null, type: verdict.type, note: verdict.note, applied })).run();
+  } catch (e) {}
+
+  const message = (applied === 'rule')
+    ? ('Applied as a live house rule — every answer follows it now: “' + liveRule + '”')
+    : (verdict.type === 'data')
+      ? 'Logged as a coverage gap — the discovery routine will pick it up.'
+      : (verdict.type === 'logic')
+        ? 'Logged as a search-logic bug for an engineer to fix.'
+        : 'Noted — saved for the next review pass.';
+  return json({ ok: true, type: verdict.type, applied, rule: liveRule, message }, {}, env, origin);
 }
 
 async function handleSearchGaps(env, origin, url) {
@@ -6754,6 +6826,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/intel-selftest') {
         return await handleIntelSelftest(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/intel-feedback') {
+        return await handleIntelFeedback(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/search-feedback') {
         return await handleSearchFeedback(env, origin, url);
