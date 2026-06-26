@@ -1001,6 +1001,23 @@
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
     }
 
+    // ICONIC LISTS. A curation ask ("best hotels", "good golf in california",
+    // "iconic restaurants in miami") should surface our editorial iconic list
+    // for that category, place-filtered. Fires on a quality cue + a category
+    // (golf / hotels|resorts / restaurants|dining). Restaurants aren't a project
+    // type, so this is the ONLY way they surface; golf & hotels ALSO blend with
+    // matching development projects (the type stays set). The place is matched
+    // later against the items' own region/location vocab (Core.iconicItems),
+    // because iconic geography (California, Hawaii, the Caribbean, Europe…) is
+    // broader than the project map's FL/metro-centric place resolution.
+    var ICONIC_CUE = /\b(best|top|good|great|greatest|finest|iconic|legendary|famous|renowned|classic|must[- ]?(?:visit|see|try)|favou?rite|elite|world[- ]?class|standout|notable)\b/;
+    var iconic = null;
+    if (ICONIC_CUE.test(full)) {
+      if (hasWord(full, 'golf')) iconic = 'golf';
+      else if (/\b(restaurants?|dining|dine|eateries|eatery|food|cuisine)\b/.test(full)) iconic = 'restaurants';
+      else if (/\b(hotels?|resorts?|stays?|lodging)\b/.test(full)) iconic = 'hotels';
+    }
+
     var place = region || cities.length;
     // Tokens already matched as a CITY here can't double as a firm signal.
     var cityWords = {};
@@ -1020,20 +1037,21 @@
       // match — e.g. detectFirm latching onto a firm literally named "MG Developer".
       firm = null;
     }
-    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0);
+    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0) + (iconic ? 1 : 0);
     // Geographic / firm anchor alone is enough to trigger smart. "projects
     // coming to nashville", "deals in florida", "show me kengo kuma" all
     // converge to the same city/region/firm view rather than getting
     // punished by the strict count check + falling into a text-match that
     // requires every generic word ("projects", "coming") in each title.
-    if (firm || place || firmRank) {
+    if (firm || place || firmRank || iconic) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, area: area, cities: cities, pipeline: pipeline,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
-        sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax
+        sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
+        iconic: iconic, q: full
       };
     }
     if (count < 2) return null;  // no anchor + too little structure → normal search
@@ -1044,7 +1062,8 @@
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
       region: region, cities: cities,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
-      sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax
+      sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
+      iconic: iconic, q: full
     };
   }
 
@@ -1471,9 +1490,37 @@
     return facts;
   }
 
+  // Filter an iconic list (golf / hotels / restaurants items, each with a
+  // `region` + `location` string) down to those matching the place named in the
+  // query. The items carry their OWN geography vocabulary — so "california",
+  // "hawaii", "the caribbean", "europe", "miami" all resolve against the regions
+  // and location cities present in the data, independent of the project map's
+  // place resolution. No place named → the whole list (already editorially
+  // ordered). `q` is the normalized query string (s.q).
+  var ICONIC_STOP = { best:1, top:1, good:1, great:1, greatest:1, finest:1, iconic:1, legendary:1, famous:1, renowned:1, classic:1, favorite:1, favourite:1, elite:1, standout:1, notable:1, must:1, visit:1, 'see':1, 'try':1, world:1, worlds:1, worldwide:1, global:1, globe:1, around:1, near:1, nearby:1, show:1, find:1, give:1, what:1, where:1, are:1, 'the':1, golf:1, course:1, courses:1, hotel:1, hotels:1, resort:1, resorts:1, stay:1, stays:1, lodging:1, restaurant:1, restaurants:1, dining:1, dine:1, food:1, cuisine:1, eateries:1, eatery:1, place:1, places:1, spot:1, spots:1, list:1, lists:1 };
+  function iconicItems(items, q) {
+    items = Array.isArray(items) ? items : [];
+    if (!items.length) return [];
+    // Significant place words from the query (≥4 chars, minus the quality cue +
+    // category nouns + filler). An item matches if any of them appears in its
+    // region/location — substring-wise, so "miami" matches "Miami Beach" and
+    // "lucia" matches "Saint Lucia". No place words → the full (ordered) list.
+    var qWords = norm(q || '').split(/\s+/).filter(function (w) { return w.length >= 4 && !ICONIC_STOP[w]; });
+    if (!qWords.length) return items.slice();   // no place named → the full ordered list
+    var hit = items.filter(function (it) {
+      var hay = norm((it.region || '') + ' ' + (it.location || ''));
+      return qWords.some(function (w) { return hay.indexOf(w) >= 0; });
+    });
+    // A place WAS named — return only its matches (empty if we have none there;
+    // the caller falls back to the development projects rather than the whole
+    // global list, which would be noise under a specific-place query).
+    return hit;
+  }
+
   // ── exports ───────────────────────────────────────────────────────
   window.TmwSearchCore = {
     WORKER_URL: WORKER_URL,
+    iconicItems: iconicItems,
     // string helpers
     norm: norm,
     hasWord: hasWord,

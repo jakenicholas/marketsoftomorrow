@@ -890,6 +890,16 @@
 
   // ── data loading (mirrors /search/) ────────────────────────────────
   var PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false, _loading = null;
+  // Iconic editorial lists (golf / hotels / restaurants), loaded once from the
+  // worker alongside the projects so "best hotels", "good golf in california",
+  // etc. can blend curated picks into the results.
+  var ICONIC = { golf: [], hotels: [], restaurants: [] };
+  function _loadIconicList(slug){
+    return fetch(WORKER_URL + '/list/' + slug, { cache:'no-cache' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ var data = d && d.data; var items = data && (data.items || (Array.isArray(data) ? data : null)); return Array.isArray(items) ? items : []; })
+      .catch(function(){ return []; });
+  }
 
   function deriveFirmsFromProjects(projects){
     var map = new Map();
@@ -923,9 +933,11 @@
     _loading = Promise.all([
       fetch('https://www.oftmw.com/map/projects-flat.json', { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
       fetch('https://www.oftmw.com/map/firms-flat.json',     { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-      loadArticles()
+      loadArticles(),
+      _loadIconicList('golf'), _loadIconicList('hotels'), _loadIconicList('restaurants')
     ]).then(function(res){
       var p = res[0], f = res[1], a = res[2];
+      ICONIC = { golf: res[3] || [], hotels: res[4] || [], restaurants: res[5] || [] };
       PROJECTS = Array.isArray(p) ? p : (p.projects || p.items || []);
       if (Array.isArray(f) && f.length){
         FIRMS = f.map(function(x){ return Object.assign({ role:'firm' }, x); });
@@ -1697,6 +1709,55 @@
       + '</a>';
   }
 
+  // ── iconic editorial lists (golf / hotels / restaurants) ──────────
+  var ICONIC_NOUN = { golf: 'golf courses', hotels: 'hotels', restaurants: 'restaurants' };
+  var ICON_STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.4 6 .9-4.3 4.2 1 6L12 17l-5.4 2.8 1-6L3.3 9.3l6-.9L12 3z"/></svg>';
+  // The place a narrowed iconic list resolved to (dominant region of the hits),
+  // for the header + answer. Empty when the full list is shown (no place named).
+  function iconicPlaceLabel(kind, items){
+    var full = (ICONIC[kind] || []).length;
+    if (!items.length || items.length >= full) return '';
+    var rc = {}; items.forEach(function(it){ var r = it.region || ''; if (r) rc[r] = (rc[r] || 0) + 1; });
+    return Object.keys(rc).sort(function(a, b){ return rc[b] - rc[a]; })[0] || '';
+  }
+  function renderIconicRow(item, rank, s){
+    var loc = item.location || item.region || '';
+    var href = item.officialUrl || ('https://www.oftmw.com/' + s.iconic + '/');
+    var thumb = item.image
+      ? '<div class="r-ico" style="background-image:url('+esc(item.image)+');background-size:cover;background-position:center;border:none;border-radius:8px"></div>'
+      : '<div class="r-ico">'+ICON_STAR+'</div>';
+    var sub = '<span class="sb" style="background:rgba(168,135,255,.16);color:#cdb6ff"><i style="background:#b69bff"></i>Iconic</span>'
+            + (loc ? '<span class="dot"></span><span>'+esc(loc)+'</span>' : '');
+    return '<a class="tmw-ov-row" href="'+esc(href)+'"'+(item.officialUrl ? ' target="_blank" rel="noopener"' : '')+'>'
+      + '<div class="rank">'+rank+'</div>'
+      + thumb
+      + '<div class="r-main"><div class="r-name">'+esc(item.name)+'</div><div class="r-sub">'+sub+'</div></div>'
+      + '<div class="arrow">'+ICON_ARROW+'</div>'
+      + '</a>';
+  }
+  function renderIconicSection(items, s){
+    var noun = ICONIC_NOUN[s.iconic] || 'picks';
+    var placeLbl = iconicPlaceLabel(s.iconic, items);
+    var title = items.length + ' iconic ' + noun + (placeLbl ? ' in ' + placeLbl : '');
+    var CAP = 24, shown = items.slice(0, CAP);
+    var rowsHtml = shown.map(function(it, i){ return renderIconicRow(it, i + 1, s); }).join('');
+    var head = '<div class="tmw-ov-smart-head"><h3>'+esc(title)+'</h3>'
+      + '<a class="map-link" href="https://www.oftmw.com/'+s.iconic+'/">'+ICON_STAR+' Full list</a></div>';
+    var foot = '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · curated iconic '+esc(noun)
+      + (items.length > CAP ? ' · showing top '+CAP+' of '+items.length : '') + '</div>';
+    return '<div class="tmw-ov-sec" data-cat="projects">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
+  }
+  function buildIconicAnswerHtml(s, items, projectRows){
+    var noun = ICONIC_NOUN[s.iconic] || 'picks';
+    var placeLbl = iconicPlaceLabel(s.iconic, items);
+    var names = items.slice(0, 3).map(function(it){ return '<b>'+esc(it.name)+'</b>'; });
+    var html = items.length + ' iconic ' + noun + (placeLbl ? ' in ' + esc(placeLbl) : '') + ' on our radar'
+      + (names.length ? ' — led by ' + names.join(', ') : '') + '.';
+    if (projectRows.length) html += ' Plus <b>'+projectRows.length+'</b> tracked development'
+      + (projectRows.length === 1 ? '' : 's') + ' in the pipeline.';
+    return html;
+  }
+
   // ── orchestration ─────────────────────────────────────────────────
   function setState(name){
     sStarter.classList.toggle('tmw-ov-hidden', name !== 'starter');
@@ -1997,6 +2058,23 @@
     }
 
     var rows = Core.smartRank(Core.smartFilter(s, PROJECTS), s);
+    // ICONIC blend. For a curation query ("best golf in california", "best
+    // hotels in miami", "iconic restaurants"), pull the editorial iconic list
+    // for the category, place-filtered. Restaurants aren't a project type, and
+    // a place that isn't a tracked project place (California, Hawaii, Europe…)
+    // means smartFilter couldn't narrow projects geographically — in both cases
+    // suppress the project rows so we don't pad with off-place/global projects.
+    // When the place IS a project place (e.g. Miami), keep the projects and blend.
+    var iconicHits = s.iconic ? Core.iconicItems(ICONIC[s.iconic] || [], s.q) : [];
+    if (s.iconic){
+      // Blend development projects ONLY when the query names both a matching
+      // project type (golf/hotel) AND a tracked project place (e.g. "best hotels
+      // in miami" → Miami hotel projects). Otherwise the iconic list stands alone
+      // — no place ("best hotels") would pull every hotel project; a non-project
+      // place ("best golf in california", restaurants) has no projects to blend.
+      var hasProjectPlace = s.cities.length || s.region || s.area;
+      if (!s.types.size || !hasProjectPlace) rows = [];
+    }
     // If the query strongly identifies ONE specific project in the result
     // set (e.g. "how many units does viceroy fort lauderdale have" picks
     // Viceroy out of 14 Fort Lauderdale projects), narrow to just that
@@ -2056,6 +2134,12 @@
       }
     }
     var ans = Core.buildSmartAnswer(s, rows);
+    // Iconic queries get an iconic-led sentence. The project LLM upgrade is
+    // skipped for these (below), so this deterministic answer is what shows.
+    if (iconicHits.length){
+      ans.html = buildIconicAnswerHtml(s, iconicHits, rows);
+      if (!rows.length) ans.stats = [];   // iconic-only → no project stats grid
+    }
     // When the firm-in-place fallback fired, rewrite the synthesized sentence
     // so the user knows the result set is the firm's BROADER footprint, not a
     // hit on the place they actually asked about.
@@ -2141,13 +2225,19 @@
     } else {
       slotRows.innerHTML = '';
     }
+    // Blend the iconic editorial list ABOVE the project rows (it's the direct
+    // answer to a "best/iconic X" ask). For an iconic-only query (no project
+    // rows) it's the whole result set.
+    if (iconicHits.length){
+      slotRows.innerHTML = renderIconicSection(iconicHits, s) + slotRows.innerHTML;
+    }
 
     // Journal + filter pills via the shared renderer, so architect/city/status
     // queries (e.g. "kengo kuma") also surface journal entries — both from the
     // loaded set and the worker body-scan. "Intel" is always present (a smart
     // query always produces an answer); the Journal tab is always present too.
     _heroArticleRef = null; // structured hero is always a project
-    _lastFilterCounts = { intel: true, projects: rows.length, firms: 0 };
+    _lastFilterCounts = { intel: true, projects: rows.length + iconicHits.length, firms: 0 };
     sResults.removeAttribute('data-filter');
     renderArticleSection(q, token);
 
@@ -2156,7 +2246,12 @@
     // sentence already explains the mismatch ("no Terra projects in Tampa, but
     // N in Miami"), and the LLM, seeing the requested place doesn't match the
     // returned rows, tends to produce a confused "tracked elsewhere" rewrite.
-    if (rows.length && !s._firmCityFallback) fireSmartIntelUpgrade(q, s, rows);
+    // When iconic items are on screen, keep their deterministic iconic-led
+    // sentence (the project LLM only knows the development pipeline). But an
+    // iconic-intent query that matched NO iconic items (e.g. "best hotels in
+    // miami" when we list none there) still has project rows — let the LLM
+    // answer those normally.
+    if (rows.length && !s._firmCityFallback && !iconicHits.length) fireSmartIntelUpgrade(q, s, rows);
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
@@ -2164,7 +2259,7 @@
       if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
     } catch(_){}
 
-    _lastResultsTotal = rows.length;
+    _lastResultsTotal = rows.length + iconicHits.length;
     _lastResultKind = 'smart';
     setState('results');
   }
