@@ -423,14 +423,51 @@ def main():
         'Queens County': 'Queens', 'Bronx County': 'The Bronx',
         'Richmond County': 'Staten Island',
     }
+    # London (+ other) boroughs by NEIGHBORHOOD — non-US projects carry no County,
+    # so map the submarket to its borough. Scales to new projects in these areas.
+    _NBHD_BOROUGH = {
+        # London
+        'euston': 'Camden', "king's cross": 'Camden', 'kings cross': 'Camden',
+        'fitzrovia': 'Camden', 'bloomsbury': 'Camden', 'camden': 'Camden',
+        'brent cross': 'Barnet',
+        "st james's": 'Westminster', 'st jamess': 'Westminster', 'mayfair': 'Westminster',
+        'soho': 'Westminster', 'shepherd market': 'Westminster', 'bayswater': 'Westminster',
+        'marylebone': 'Westminster', 'victoria': 'Westminster', 'paddington': 'Westminster',
+        'pimlico': 'Westminster', 'westminster': 'Westminster',
+        'city of london': 'City of London', 'west smithfield': 'City of London',
+        'smithfield': 'City of London',
+        'earls court': 'Hammersmith and Fulham', "earl's court": 'Hammersmith and Fulham',
+        'white city': 'Hammersmith and Fulham', 'hammersmith': 'Hammersmith and Fulham',
+        'canada water': 'Southwark', 'rotherhithe': 'Southwark', 'bermondsey': 'Southwark',
+        'london bridge': 'Southwark', 'elephant and castle': 'Southwark',
+        'isle of dogs': 'Tower Hamlets', 'canary wharf': 'Tower Hamlets',
+        'whitechapel': 'Tower Hamlets', 'wapping': 'Tower Hamlets',
+        'shoreditch': 'Hackney', 'hackney': 'Hackney',
+        'chelsea': 'Kensington and Chelsea', 'kensington': 'Kensington and Chelsea',
+        'notting hill': 'Kensington and Chelsea',
+        # NYC submarkets for any blank-County rows
+        'herald square': 'Manhattan', 'midtown': 'Manhattan', 'midtown east': 'Manhattan',
+        'hudson yards': 'Manhattan', 'tribeca': 'Manhattan', 'soho nyc': 'Manhattan',
+    }
+    # Explicit per-slug fallback for projects with no usable neighborhood.
+    _BOROUGH_BY_SLUG = {
+        'six-senses-london-at-the-whiteley': 'Westminster',
+    }
     _bderived = 0
     for p in flat:
-        if not (p.get('Borough') or '').strip():
-            b = _BOROUGH_BY_COUNTY.get((p.get('County') or '').strip())
-            if b:
-                p['Borough'] = b
-                _bderived += 1
-    print(f"  ✓ Borough derived for {_bderived} NYC projects")
+        if (p.get('Borough') or '').strip():
+            continue
+        b = _BOROUGH_BY_COUNTY.get((p.get('County') or '').strip())
+        if not b:
+            slug = (p.get('Slug') or '').strip()
+            if slug in _BOROUGH_BY_SLUG:
+                b = _BOROUGH_BY_SLUG[slug]
+            else:
+                b = _NBHD_BOROUGH.get((p.get('Neighborhood') or '').strip().lower())
+        if b:
+            p['Borough'] = b
+            _bderived += 1
+    print(f"  ✓ Borough derived for {_bderived} projects")
 
     print(f"Writing {OUTPUT_PATH}...")
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:

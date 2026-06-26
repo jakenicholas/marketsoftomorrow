@@ -582,6 +582,10 @@
     }
     // borough (NYC) — derived from the precise county
     if (county && BOROUGH_BY_COUNTY[county]) BOROUGH_BY_COUNTY[county].forEach(add);
+    // explicit Borough field (NYC + London boroughs etc.) — so "westminster",
+    // "camden", "brooklyn" resolve as places, and the bare leading word too.
+    var bor = String(p.Borough || '').trim();
+    if (bor) { add(bor); var bw = norm(bor).split(/\s+/); if (bw.length > 1 && bw[0].length >= 4) add(bw[0]); }
     // county — with and without the "County"/"Parish" suffix
     if (county) { add(county); add(county.replace(/\s+(county|parish|borough)$/i, '')); }
     // metro / region / nicknames covering this county
@@ -622,6 +626,8 @@
       var county = String(p.County || '').trim();
       if (county && BOROUGH_BY_COUNTY[county]) BOROUGH_BY_COUNTY[county].forEach(function (b) { put(b, 5, b.replace(/\b\w/g, function (c) { return c.toUpperCase(); })); });
       if (county) { put(county, 3, county); put(county.replace(/\s+(county|parish|borough)$/i, ''), 3, county); }
+      var bor = String(p.Borough || '').trim();   // explicit borough (Westminster, Camden, Brooklyn…)
+      if (bor) put(bor, 5, bor);
     });
     // city aliases (non-borough) at city level
     for (var ak in CITY_ALIASES) if (CITY_ALIASES.hasOwnProperty(ak) && !BOROUGH_ALIAS[ak]) put(ak, 5, CITY_ALIASES[ak]);
