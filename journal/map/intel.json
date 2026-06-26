@@ -323,21 +323,21 @@
       "is_mixed_use": false
     },
     "belle-meade-village": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 919,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "source": "district",
+      "is_district": true,
+      "component_count": 1,
       "project_type": "Mixed-Use",
       "metro": "Nashville",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "phased_through": 2028,
+      "confidence": "medium",
+      "estimate_years": 2.5,
+      "estimate_label": "2.5 years",
+      "days_out": 919,
+      "delivery_date": "2028-12-31",
+      "inflight_undated": 0,
+      "pattern_summary": "Phased master plan — 1 components delivering through 2028; latest dated phase (Belle Meade Village) ~2.5 years out."
     },
     "nobe-parc-miami-beach": {
       "estimate_years": 2.5,
@@ -11028,6 +11028,23 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
+    },
+    "bvlgari-hotel-miami-beach": {
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1284,
+      "delivery_date": "2029-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Hotel",
+      "metro": "South Florida",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~3.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
@@ -11040,7 +11057,7 @@
     "no_type": 0,
     "firm_boosted": 33,
     "speculative_softened": 121,
-    "district": 9,
+    "district": 10,
     "mixed_use_adjusted": 8
   }
 }
