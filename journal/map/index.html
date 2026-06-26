@@ -12710,7 +12710,13 @@
     // also scaled to 2s so the mark finishes in step with the dwell.
     (function(){
       var lo = document.getElementById('loadingOverlay');
-      var MIN_MS = 2000, started = Date.now();
+      // Deep-links (?project / ?city) come from a click that already chose a
+      // destination — e.g. tapping a project in TMW Intelligence. Skip the 2s
+      // brand dwell so we jump STRAIGHT to that project instead of making the
+      // user sit through the loading splash. Normal map views keep the dwell.
+      var _dlp = new URLSearchParams(location.search);
+      var _deep = _dlp.get('project') || _dlp.get('city');
+      var MIN_MS = _deep ? 0 : 2000, started = Date.now();
       function hideLoader(){
         if (!lo || lo.classList.contains('fade-out')) return;
         lo.classList.add('fade-out');

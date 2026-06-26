@@ -1611,7 +1611,7 @@
   // The intel panel with the deterministic answer + DB-derived stats grid.
   // After this renders, fireSmartIntelUpgrade() may replace the sentence
   // with an LLM-written version (figures stay; only the prose softens).
-  function renderSmartIntelPanel(ans){
+  function renderSmartIntelPanel(ans, q){
     var stats = '';
     if (ans.stats && ans.stats.length){
       stats = '<div class="tmw-ov-intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">'
@@ -1620,13 +1620,20 @@
           }).join('')
         + '</div>';
     }
+    // LLM-first: show a cached LLM answer instantly, else a loader — never the
+    // deterministic sentence up front (it would flash, then get replaced). The
+    // deterministic prose stays the fallback if the LLM can't be reached.
+    var cached = cachedAnswer(q);
+    var ansCls = cached ? '' : 'loading';
+    var ansHtml = cached ? esc(cached)
+      : '<span class="tmw-ov-intel-loader" aria-hidden="true"><span></span><span></span><span></span></span>Looking through the pipeline for an answer…';
     return '<section class="tmw-ov-intel-panel">'
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="live"><i></i>Live answer</span>'
+      +     '<span class="live"><i></i>'+(cached ? 'Live answer' : 'Thinking')+'</span>'
       +   '</div>'
-      +   '<p class="tmw-ov-intel-ans">'+ans.html+'</p>'
+      +   '<p class="tmw-ov-intel-ans '+ansCls+'" data-fallback="'+esc(ans.html)+'">'+ansHtml+'</p>'
       +   stats
       + '</section>';
   }
@@ -1730,6 +1737,33 @@
       if (o && o.q && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.q;
     } catch(_){}
     return null;
+  }
+
+  // ── LLM answer cache ────────────────────────────────────────────────
+  // Remember the LLM answer per query so reopening (or re-asking) shows it
+  // INSTANTLY instead of flashing the deterministic database sentence and then
+  // swapping in the LLM. Users should see ONE answer — the LLM's — not two.
+  var _ANS_KEY = 'tmw_intel_ans', _ANS_TTL = 24 * 3600 * 1000;   // matches the worker's 24h server cache
+  function _normKey(q){ return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function _ansMap(){ try { return JSON.parse(localStorage.getItem(_ANS_KEY) || '{}'); } catch(_){ return {}; } }
+  function cacheAnswer(q, a){
+    if (!q || !a) return;
+    try {
+      var m = _ansMap(); m[_normKey(q)] = { a: String(a), ts: Date.now() };
+      var keys = Object.keys(m);
+      if (keys.length > 40) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; }
+      localStorage.setItem(_ANS_KEY, JSON.stringify(m));
+    } catch(_){}
+  }
+  function cachedAnswer(q){
+    try { var e = _ansMap()[_normKey(q)]; if (e && e.a && (Date.now() - (e.ts || 0) < _ANS_TTL)) return e.a; } catch(_){}
+    return null;
+  }
+  // Loading panel that shows the cached LLM answer up front when we have one
+  // (so there's no spinner on a repeat/resumed query).
+  function intelLoadingHtml(q){
+    var c = cachedAnswer(q);
+    return c ? intelPanelHtml('answer', q, c) : intelPanelHtml('loading', q);
   }
 
   // ── Thumbs feedback ─────────────────────────────────────────────────
@@ -2031,7 +2065,7 @@
 
     // Header slot carries the "understood as" chips
     var chipsHtml = renderUnderstoodChips(s);
-    var panelHtml = renderSmartIntelPanel(ans);
+    var panelHtml = renderSmartIntelPanel(ans, q);
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
     // Promote the top smart-filtered project to a hero card -- same rich
@@ -2140,13 +2174,23 @@
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
+      function setLive(){ var l = slotIntel.querySelector('.tmw-ov-intel-h .live'); if (l) l.innerHTML = '<i></i>Live answer'; }
+      function fallback(){
+        var ansEl = slotIntel.querySelector('.tmw-ov-intel-ans');
+        if (ansEl && ansEl.classList.contains('loading')) { ansEl.innerHTML = ansEl.getAttribute('data-fallback') || ''; ansEl.classList.remove('loading'); setLive(); }
+      }
       Core.askIntelligence(q, facts).then(function(res){
         if (myToken !== _intelToken) return;
-        if (!res || !res.ok || !res.answer) return; // deterministic answer already shown
         var ansEl = slotIntel.querySelector('.tmw-ov-intel-ans');
-        if (ansEl) ansEl.textContent = res.answer;
-      });
-    }, 700);
+        if (!ansEl) return;
+        if (res && res.ok && res.answer){
+          ansEl.textContent = res.answer; ansEl.classList.remove('loading'); setLive();
+          cacheAnswer(q, res.answer);           // remember for instant resume
+        } else {
+          fallback();                            // LLM unreachable → show the deterministic sentence
+        }
+      }).catch(fallback);
+    }, 160);   // was 700 — show the LLM promptly since it's now the FIRST (not a swap-in) answer
   }
 
   // Original text-match path -- extracted from runQuery body so the new
@@ -2486,7 +2530,7 @@
             'We don’t track development' + (foodIntent ? ' or dining' : '') + ' in ' + coverMiss +
             ' yet — it’s outside our current coverage. Try a market we follow, like Miami, Nashville, Austin or Charleston.');
         } else if (Core && totalHits > 0){
-          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          slotIntel.innerHTML = intelLoadingHtml(q);
           // For an anchor query, the projects we feed Intelligence are
           // the anchor + connected ones (dedup'd, capped at 5). For a
           // regular question we use the top-scored as before.
@@ -2556,7 +2600,7 @@
             fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), nycPlace(intelPlace), null, token);
           }
         } else if (Core){
-          slotIntel.innerHTML = intelPanelHtml('loading', q);
+          slotIntel.innerHTML = intelLoadingHtml(q);
           fireIntelligence(q, [], [], null, null, token);
         } else {
           slotIntel.innerHTML = renderIntelCTA(q);
@@ -2979,6 +3023,7 @@
         if (myToken !== _intelToken) return;
         if (res && res.ok && res.answer){
           slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
+          cacheAnswer(q, res.answer);   // remember for instant resume / repeat
           // Count this against the user's free quota (window.tmwIntel.FREE)
           // (intelligence.js
           // gate; Pro users are uncounted). Mirrors /search/.
@@ -3065,8 +3110,6 @@
       if (_resume) {
         input.value = _resume;
         loadData().then(function(){ runQuery(_resume); });
-        // select the restored text so a fresh search just types over it
-        setTimeout(function(){ try { input.select(); } catch(_){} }, 200);
       } else {
         input.value = '';
       }
