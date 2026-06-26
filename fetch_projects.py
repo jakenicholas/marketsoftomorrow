@@ -210,6 +210,10 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # match_project / propose_project_edit reference the exact live record.
         'Slug':            record.get('slug', '') or '',
         'City':            record.get('city', '') or '',
+        # Borough / sub-locality — a manual value from the editor wins; otherwise
+        # it's derived from County below (NYC boroughs). City is left untouched so
+        # the /markets/new-york-city/ hub + aggregations stay intact.
+        'Borough':         record.get('borough', '') or '',
         'Neighborhood':    record.get('neighborhood', '') or '',
         'Latitude':        lat_str,
         'Longitude':       lng_str,
@@ -410,6 +414,23 @@ def main():
         enrich(flat)
     except Exception as e:
         print(f"  ⚠ county enrich skipped: {e}")
+
+    # Derive Borough from County for NYC (a manual editor value wins). City is
+    # left as "New York City"; Borough is the displayed sub-locality so the
+    # /markets/new-york-city/ hub + aggregations stay intact.
+    _BOROUGH_BY_COUNTY = {
+        'New York County': 'Manhattan', 'Kings County': 'Brooklyn',
+        'Queens County': 'Queens', 'Bronx County': 'The Bronx',
+        'Richmond County': 'Staten Island',
+    }
+    _bderived = 0
+    for p in flat:
+        if not (p.get('Borough') or '').strip():
+            b = _BOROUGH_BY_COUNTY.get((p.get('County') or '').strip())
+            if b:
+                p['Borough'] = b
+                _bderived += 1
+    print(f"  ✓ Borough derived for {_bderived} NYC projects")
 
     print(f"Writing {OUTPUT_PATH}...")
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:

@@ -27,6 +27,9 @@
   // search now. Deep-links use the homepage with ?q=, which auto-opens this
   // overlay (see the ?q= bootstrap at the bottom of this IIFE).
   var SEARCH_URL = 'https://www.oftmw.com/';
+  // Display location: the borough/sub-locality when set, else the city (mirrors
+  // Core.locationOf; safe even before journal-search-core.js finishes loading).
+  function _locOf(p){ var C = window.TmwSearchCore; return (C && C.locationOf) ? C.locationOf(p) : (String((p && p.Borough) || '').trim() || (p && p.City) || ''); }
   var MAP_URL    = 'https://www.oftmw.com/map';
 
   // ── helpers (mirror /search/index.html so scoring stays in sync) ──
@@ -1202,7 +1205,7 @@
   // gold "Learn more" + ghost "Visit site" CTAs.
   function renderProjectHero(p){
     var img = firstField(p, ['ImageURL','Image2','Image3']);
-    var city = p.City || '';
+    var city = _locOf(p);
     var desc = firstField(p, ['DescriptionLong','Description']);
     // Show EVERY credited developer / architect, not just the first — a project
     // can be a JV (e.g. Highland Park Miami = Black Salmon + The Allen Morris
@@ -1324,7 +1327,7 @@
   }
 
   function renderProjectRow(p, rank, lead, scorePct){
-    var city = p.City || '';
+    var city = _locOf(p);
     var type = firstField(p,['ProjectType','PreferredType']);
     var badge = projectStatusBadge(p);
     var subParts = [];
@@ -1536,7 +1539,7 @@
       + '<div class="tmw-ov-pcard-media">'+media+'</div>'
       + '<div class="tmw-ov-pcard-body">'
       +   '<h4>'+esc(p.Title)+'</h4>'
-      +   (p.City ? '<div class="loc">'+esc(p.City)+'</div>' : '')
+      +   (_locOf(p) ? '<div class="loc">'+esc(_locOf(p))+'</div>' : '')
       +   '<div class="meta"><span>'+esc(status)+'</span><span class="openmap">→</span></div>'
       + '</div></a>';
   }
@@ -1682,7 +1685,7 @@
     }
     var deliveryNote = (!sortKey && Core.fmtDelivery(p)) ? ('<span class="dot"></span><span>Delivers ' + esc(Core.fmtDelivery(p)) + '</span>') : '';
     var sub = '<span class="sb '+badge.cls+'"><i></i>'+esc(badge.label)+'</span>'
-            + (p.City ? '<span class="dot"></span><span>'+esc(p.City)+'</span>' : '')
+            + (_locOf(p) ? '<span class="dot"></span><span>'+esc(_locOf(p))+'</span>' : '')
             + deliveryNote;
     return '<a class="tmw-ov-row '+(rank === 1 && sortKey ? 'lead' : '')+'" href="'+esc(mapLink(p.Title, true))+'">'
       + '<div class="rank">'+rank+'</div>'

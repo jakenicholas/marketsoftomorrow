@@ -211,7 +211,7 @@
         : ('Est. delivery ' + delivY));
     }
     var delivLine = dParts.join(' · ');
-    var subline = [esc(rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
+    var subline = [esc((rec.Borough && String(rec.Borough).trim()) || rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
 
     // Part-of-district chip — sits right under .pc-loc when this is a child
     // component (rec.ParentSlug + rec.ParentTitle resolved at card-build).

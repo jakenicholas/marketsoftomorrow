@@ -15277,7 +15277,7 @@
       function _famCardHtml(f, isUmbrella) {
         const p = (f && f.properties) || {};
         const t = p.title || '';
-        const city = p.city || '';
+        const city = p.borough || p.city || '';
         const typeLabel = (p.preferredType && p.preferredType.trim())
           ? p.preferredType.trim()
           : (p.projectType ? p.projectType.split(',')[0].trim() : '');
@@ -16528,7 +16528,7 @@
         slug: py(g.properties.title || ''),
         delivery: g.properties.delivery || '',
         preferredType: g.properties.preferredType || '',
-        city: g.properties.city || '',
+        city: g.properties.city || '', borough: g.properties.borough || '',
         image: g.properties.image || '',
         parentSlug: g.properties.parentSlug || '',
       }));
@@ -16560,7 +16560,7 @@
         'Now Open':          '#1FDF67',
       };
       const statusColor = (d) => _SC[d] || '#A78BFA';
-      const cityLine = stack[0].city || '';
+      const cityLine = stack[0].borough || stack[0].city || '';
       // Detect umbrella in the stack. Two cases:
       //   A) stack[0] IS the umbrella (already ordered first by
       //      _collapseColocated when it found a districtFeat) — most colocations
@@ -16701,7 +16701,7 @@
               // value from comma-separated ProjectType. Mirrors the logic
               // at line ~8952 (pmCity). When no type is available, just
               // show city alone — no dangling bullet.
-              const city = f.properties.city || '';
+              const city = f.properties.borough || f.properties.city || '';
               const typeLabel = (f.properties.preferredType && f.properties.preferredType.trim())
                 ? f.properties.preferredType.trim()
                 : (f.properties.projectType ? f.properties.projectType.split(',')[0].trim() : '');
@@ -17194,7 +17194,7 @@
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;">${f.properties.title}</h3>
-              <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.city}${_type ? ' · ' + _type : ''}</p>
+              <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.borough || f.properties.city}${_type ? ' · ' + _type : ''}</p>
               ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
           d.onclick = () => {
@@ -17429,7 +17429,7 @@
             ${f.properties.featured ? `<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>` : ''}
             <div class="grid-item-content">
               <h3 style="color:#fff!important;margin:0 0 4px;font-size:16px;">${f.properties.title}</h3>
-              <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.city}</p>
+              <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.borough || f.properties.city}</p>
               ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
         d.onclick = () => {
@@ -19199,7 +19199,7 @@
               slug: py(g.properties.title || ''),
               delivery: g.properties.delivery || '',
               preferredType: g.properties.preferredType || '',
-              city: g.properties.city || '',
+              city: g.properties.city || '', borough: g.properties.borough || '',
               image: g.properties.image || '',
               parentSlug: g.properties.parentSlug || '',
               isPrimary: g === primary,
@@ -19323,7 +19323,7 @@
               type: 'Feature',
               geometry: { type: 'Point', coordinates: [+p.Longitude, +p.Latitude] },
               properties: {
-                title: p.Title, city: p.City, description: p.Description,
+                title: p.Title, city: p.City, borough: p.Borough || '', description: p.Description,
                 delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
                 projectType: p.ProjectType,
                 // Optional override — if PreferredType is set in the sheet for this row,

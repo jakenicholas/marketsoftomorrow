@@ -63,6 +63,13 @@
     }
     return '';
   }
+  // The location to DISPLAY: the borough/sub-locality when present (Brooklyn,
+  // Manhattan…), else the city. Keeps the City field intact for search +
+  // /markets/ hubs while showing the more specific place to the reader.
+  function locationOf(p) {
+    var b = String((p && p.Borough) || '').trim();
+    return b || String((p && p.City) || '').trim();
+  }
   function floorsOf(p) {
     var raw = firstField(p, ['Floors', 'Stories', 'Storeys']);
     var n = parseInt(String(raw).replace(/[^0-9]/g, ''), 10);
@@ -1469,6 +1476,7 @@
     firstField: firstField,
     floorsOf: floorsOf,
     unitsOf: unitsOf,
+    locationOf: locationOf,
     sizeScoreOf: sizeScoreOf,
     yearOf: yearOf,
     fmtDelivery: fmtDelivery,
