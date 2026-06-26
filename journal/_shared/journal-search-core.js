@@ -269,7 +269,7 @@
   var THIS_YEAR = 2026;
 
   var STATUS_GROUPS = [
-    { value:'Under Construction', label:'Under construction', syn:['under construction','construction','being built','underway','rising'] },
+    { value:'Under Construction', label:'Under construction', syn:['under construction','construction','underway','rising'] },
     { value:'Breaking Ground',    label:'Breaking ground',    syn:['breaking ground','broke ground','groundbreaking','breaks ground'] },
     { value:'Opening Soon',       label:'Opening soon',       syn:['opening soon','coming soon','opens soon','set to open soon'] },
     { value:'Now Open',           label:'Open',               syn:['now open','open','opened','completed','complete','delivered','finished'] },
@@ -898,6 +898,13 @@
     cities = cities.filter(function (c) {
       return !cities.some(function (o) { return o !== c && norm(o).indexOf(norm(c)) >= 0; });
     });
+    // A resolved AREA supersedes a same-word city. "brooklyn" resolves to BOTH the
+    // Brooklyn area (Kings County) AND a city "Brooklyn" (because one project is
+    // tagged City:"Brooklyn" while its neighbors are "New York City"); AND-ing the
+    // two silently dropped every Brooklyn project not tagged with that exact city
+    // string. The area (the borough/metro/region) is the place — drop the
+    // redundant city so the whole area returns.
+    if (area && cities.length) cities = [];
     // year
     var yearMin = null, yearMax = null, yearLabel = '', yearMode = 'delivery';
     var TY = opts.thisYear || THIS_YEAR;
@@ -975,7 +982,7 @@
     if (!statuses.size && !rolling && (
         hasWord(full, 'opening') || hasWord(full, 'opens') || hasWord(full, 'upcoming') ||
         hasWord(full, 'forthcoming') || hasWord(full, 'pipeline') ||
-        /\b(in the works|on the way|in the pipeline|set to open|coming up)\b/.test(full)
+        /\b(in the works|on the way|in the pipeline|set to open|coming up|being built|being developed|in development|under development|getting built)\b/.test(full)
     )) {
       pipeline = true;
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
