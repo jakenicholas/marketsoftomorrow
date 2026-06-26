@@ -23,7 +23,7 @@
     },
     {
       "type": "Golf",
-      "count": 20
+      "count": 21
     },
     {
       "type": "Travel",
@@ -34,15 +34,15 @@
       "count": 10
     },
     {
-      "type": "Park",
-      "count": 9
-    },
-    {
       "type": "Stadium",
       "count": 9
     },
     {
       "type": "Education",
+      "count": 8
+    },
+    {
+      "type": "Park",
       "count": 8
     },
     {
@@ -4810,7 +4810,7 @@
     },
     {
       "st": "Other",
-      "ty": "Park",
+      "ty": "Golf",
       "sl": "Opening Soon",
       "yr": 2027,
       "sm": "2025-01",
@@ -16900,7 +16900,7 @@
       {
         "name": "Golf",
         "sub": "3% of pipeline",
-        "count": 20,
+        "count": 21,
         "states": [
           "Other",
           "FL",
@@ -16934,17 +16934,6 @@
         ]
       },
       {
-        "name": "Park",
-        "sub": "1% of pipeline",
-        "count": 9,
-        "states": [
-          "FL",
-          "Other",
-          "TN",
-          "NY"
-        ]
-      },
-      {
         "name": "Stadium",
         "sub": "1% of pipeline",
         "count": 9,
@@ -16959,6 +16948,17 @@
         "count": 8,
         "states": [
           "FL"
+        ]
+      },
+      {
+        "name": "Park",
+        "sub": "1% of pipeline",
+        "count": 8,
+        "states": [
+          "FL",
+          "TN",
+          "Other",
+          "NY"
         ]
       },
       {
@@ -17910,8 +17910,8 @@
           "count": 5,
           "states": [
             "FL",
-            "Other",
             "TN",
+            "Other",
             "NY"
           ]
         },
@@ -18640,8 +18640,8 @@
           "count": 1,
           "states": [
             "FL",
-            "Other",
             "TN",
+            "Other",
             "NY"
           ]
         },
@@ -19309,8 +19309,8 @@
           "count": 1,
           "states": [
             "FL",
-            "Other",
             "TN",
+            "Other",
             "NY"
           ]
         },
@@ -23183,6 +23183,17 @@
   ],
   "coming_soon": [
     {
+      "slug": "tierras-villas",
+      "title": "Tierras Villas",
+      "city": "Agia Pelagia",
+      "delivery_date": "2026-07-01",
+      "days_out": 5,
+      "bucket": "30d",
+      "status": "Opening Soon",
+      "display_label": "5d",
+      "display_precision": "day"
+    },
+    {
       "slug": "uga-ghiri",
       "title": "Uga Ghiri",
       "city": "Ella",
@@ -23219,17 +23230,6 @@
       "slug": "waldorf-astoria-london-admiralty-arch",
       "title": "Waldorf Astoria London Admiralty Arch",
       "city": "London",
-      "delivery_date": "2026-07-15",
-      "days_out": 19,
-      "bucket": "30d",
-      "status": "Opening Soon",
-      "display_label": "Jul",
-      "display_precision": "month"
-    },
-    {
-      "slug": "tierras-villas",
-      "title": "Tierras Villas",
-      "city": "Agia Pelagia",
       "delivery_date": "2026-07-15",
       "days_out": 19,
       "bucket": "30d",
