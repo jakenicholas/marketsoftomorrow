@@ -1053,22 +1053,58 @@
     return out;
   }
 
+  // Place-aware article matching state, set per query when a place is resolved.
+  // _qPlaceTokens = the FULL ancestor token set of the query's place (city →
+  // county → region → state); _qPlaceMatch = placeHit.match for linked projects.
+  var _qPlaceTokens = null, _qPlaceMatch = null, _qProjBySlug = null;
+  function projBySlug(){
+    if (_qProjBySlug) return _qProjBySlug;
+    _qProjBySlug = {};
+    for (var i = 0; i < PROJECTS.length; i++){ var s = PROJECTS[i].Slug; if (s) _qProjBySlug[s] = PROJECTS[i]; }
+    return _qProjBySlug;
+  }
+  // True when an article BELONGS to the query's place even if its text never
+  // names the city — via its curated categories (region/place tags like "The
+  // Palm Beaches") or its linked project sitting in that place. This is what
+  // lets a "west palm beach" search surface a Palm-Beaches-tagged story or an
+  // article about a WPB project that only names the project, not the city.
+  function articleInPlace(a){
+    if (!_qPlaceTokens || !a) return false;
+    // linked project in the place
+    if (a.project_slug){
+      var pr = projBySlug()[a.project_slug];
+      if (pr && _qPlaceMatch && _qPlaceMatch(pr)) return true;
+    }
+    // a curated category that is one of the place's ancestor tokens
+    var cats = a.categories || [];
+    for (var i = 0; i < cats.length; i++){
+      var c = norm(cats[i]);
+      if (c && _qPlaceTokens.has(c)) return true;
+      // region categories ("The Palm Beaches") also match without the article
+      var c2 = c.replace(/^the /, '');
+      if (c2 && _qPlaceTokens.has(c2)) return true;
+    }
+    return false;
+  }
   function scoreArticle(a, toks, full){
+    var _inPlace = articleInPlace(a);
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
     var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
       ? window.TmwSearchCore.filterMeaningfulTokens(toks)
       : toks.filter(function(t){ return t.length>=3; });
-    if (meaningful.length>=2){
+    if (meaningful.length>=2 && !_inPlace){
       var need = Math.ceil(meaningful.length*0.6);
       var havePhrase = full && hay.indexOf(full)>=0;
       // Synonym-aware coverage so "miami condos" still scores an article
       // titled "<X> Residences in Miami" — "condos" hits via the residence/
-      // condominium variants.
+      // condominium variants. Articles that belong to the place (by category or
+      // linked project) skip this text gate — their relevance is the place.
       var haveWords = meaningful.filter(function(t){ return tokenInHay(t, hay); }).length;
       if (!havePhrase && haveWords < need) return 0;
     }
     var s=0;
+    if (_inPlace) s+=40;   // belongs to the queried place — strong relevance even w/o a text hit
     if (full){
       if (title.indexOf(full)>=0) s+=60;
       else if (exc.indexOf(full)>=0) s+=30;
@@ -2200,6 +2236,7 @@
     // the brief window before journal-search-core.js finishes loading).
     var question = (Core ? Core.isQuestion : isQuestion)(q);
 
+    _qPlaceTokens = null; _qPlaceMatch = null;   // reset place-aware article matching per query
     var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
                           .filter(function(x){ return x.s >= MIN_PROJECT_SCORE; })
                           .sort(function(a,b){ return b.s - a.s; });
@@ -2283,6 +2320,13 @@
           pScored = _rows.map(function (p, i) { return { p: p, s: (_rows.length - i) }; });
           placeDriven = true;
           placeName = placeHit.name;
+          // make article matching place-aware: an article in this place (by
+          // category or linked project) surfaces even without a text hit. Use
+          // the full ancestor token stack of a representative project here.
+          if (Core.placeTokensOf) { _qPlaceTokens = Core.placeTokensOf(_rows[0]); _qPlaceMatch = placeHit.match; }
+          aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })
+                            .filter(function(x){ return x.s > 0; })
+                            .sort(function(a,b){ return b.s - a.s; });
           totalHits = pScored.length + fScored.length + aScored.length;
         }
       }
