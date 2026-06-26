@@ -5807,7 +5807,13 @@ async function handleSmartAnswer(request, env, origin) {
     'intelligence publication with sharp editorial instincts. You are given a search query and a set of ' +
     'VERIFIED facts from our project database. Write a tight, insightful answer (1-3 sentences) that reads ' +
     'like a knowledgeable analyst briefing an editor — not a database readout.\n\n' +
-    'Lead with whatever has the most genuine MOMENTUM and best fits the query, in this order:\n' +
+    'PRE-RANKED LIST — READ FIRST: the `top` list is ALREADY ordered by our editorial priority — Featured ' +
+    '(our pick) → Coming Soon → Recently Opened (last ~6 months) → Under Construction → Breaking Ground → ' +
+    'Announced. `top[0]` is the intended LEAD and is the hero card the reader sees beside your answer — OPEN ' +
+    'your answer on it (named, with its status), so the prose and the hero agree. Bring in `top[1]`/`top[2]` ' +
+    'as supporting context. NEVER lead with a merely-ANNOUNCED or long-open project ahead of an earlier ' +
+    'coming-soon / under-construction one — a far-off announcement ("may not even happen") is the weakest ' +
+    'lead, not the headline. The rules below refine HOW to frame each, but do not override this order:\n' +
     '1. MOMENTUM — a project that just OPENED, just hit a major milestone (topped out / now selling), or is ' +
     'actively UNDER CONSTRUCTION is real, happening news; lead with these. They outrank anything not yet started.\n' +
     '2. IMMINENCE — an opening within the next few months (`soonest`) is a strong lead — but ONLY if it matches ' +
