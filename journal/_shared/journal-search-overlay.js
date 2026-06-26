@@ -1626,7 +1626,7 @@
   // The intel panel with the deterministic answer + DB-derived stats grid.
   // After this renders, fireSmartIntelUpgrade() may replace the sentence
   // with an LLM-written version (figures stay; only the prose softens).
-  function renderSmartIntelPanel(ans, q){
+  function renderSmartIntelPanel(ans, q, immediate){
     var stats = '';
     if (ans.stats && ans.stats.length){
       stats = '<div class="tmw-ov-intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">'
@@ -1638,15 +1638,20 @@
     // LLM-first: show a cached LLM answer instantly, else a loader — never the
     // deterministic sentence up front (it would flash, then get replaced). The
     // deterministic prose stays the fallback if the LLM can't be reached.
+    // EXCEPTION — `immediate`: when we know the LLM will NOT be called (zero
+    // results, or a fully-deterministic firm/no-results answer), show the answer
+    // text right away. Otherwise the loader would spin forever ("Thinking…").
     var cached = cachedAnswer(q);
-    var ansCls = cached ? '' : 'loading';
+    var showNow = !!cached || !!immediate;
+    var ansCls = showNow ? '' : 'loading';
     var ansHtml = cached ? esc(cached)
-      : '<span class="tmw-ov-intel-loader" aria-hidden="true"><span></span><span></span><span></span></span>Looking through the pipeline for an answer…';
+      : (immediate ? (ans.html || '')
+      : '<span class="tmw-ov-intel-loader" aria-hidden="true"><span></span><span></span><span></span></span>Looking through the pipeline for an answer…');
     return '<section class="tmw-ov-intel-panel">'
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="live"><i></i>'+(cached ? 'Live answer' : 'Thinking')+'</span>'
+      +     '<span class="live"><i></i>'+(showNow ? 'Live answer' : 'Thinking')+'</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansCls+'" data-fallback="'+esc(ans.html)+'">'+ansHtml+'</p>'
       +   stats
@@ -1802,6 +1807,20 @@
     if (projectRows.length) html += ' Plus <b>'+projectRows.length+'</b> tracked development'
       + (projectRows.length === 1 ? '' : 's') + ' in the pipeline.';
     return html;
+  }
+  // Pull a place phrase out of the raw query for a no-results message when the
+  // place wasn't a tracked project place (e.g. "best golf courses in china").
+  function placeFromQuery(q){
+    var m = String(q || '').match(/\b(?:in|near|around|across|throughout|within|at|of)\s+(.+?)\s*[?.!]*$/i);
+    return m ? m[1].replace(/[?.!]+$/, '').trim() : '';
+  }
+  // Instant "we're not tracking any X in Y yet." — shown the moment a typed /
+  // iconic query resolves to zero results, instead of a loader that never fills.
+  function buildNoResultsAnswer(s, q){
+    var noun = s.iconic ? (ICONIC_NOUN[s.iconic] || 'results')
+      : (s.typeLabel ? (s.typeLabel.toLowerCase() + (/s$/.test(s.typeLabel) ? '' : ' projects')) : 'projects');
+    var place = (s.cities && s.cities.length) ? s.cities.join(' & ') : (s.region || placeFromQuery(q));
+    return 'We’re not tracking any ' + esc(noun) + (place ? ' in <b>' + esc(tc(place)) + '</b>' : '') + ' yet.';
   }
 
   // ── orchestration ─────────────────────────────────────────────────
@@ -2202,9 +2221,19 @@
         + (n2 === 1 ? ' is' : ' are') + ' tracked elsewhere.';
     }
 
+    // Will we call the LLM for this query? Only when there's material to write
+    // about (project rows and/or iconic items) and it isn't the firm-fallback.
+    // If not, the deterministic answer must show IMMEDIATELY (no spinning loader).
+    var willFire = (rows.length || iconicHits.length) && !s._firmCityFallback;
+    if (!willFire && !rows.length && !iconicHits.length && !s._firmCityFallback){
+      // Zero results — answer the absence instantly ("not tracking any … yet").
+      ans.html = buildNoResultsAnswer(s, q);
+      ans.stats = [];
+    }
+
     // Header slot carries the "understood as" chips
     var chipsHtml = renderUnderstoodChips(s);
-    var panelHtml = renderSmartIntelPanel(ans, q);
+    var panelHtml = renderSmartIntelPanel(ans, q, !willFire);
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
     // Promote the top smart-filtered project to a hero card -- same rich
