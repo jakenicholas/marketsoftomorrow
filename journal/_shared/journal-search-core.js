@@ -1212,12 +1212,30 @@
       sentence = subj + placePhrase + yearPhrase + ' ' + be + ' tracked in our database.';
     }
 
+    // Hotels report KEYS, residences report units — pick the noun ONCE so the
+    // sentence and the unit-total stat both match the project kind, in parity
+    // with the Atlas ("Hotel keys", not "Residences total"). Use the query's
+    // type when given, else the rows' dominant type.
+    var _hotelish = function (t) { return t === 'Hotel' || t === 'Resort'; };
+    var _unitsAreKeys = false;
+    if (s.types && s.types.size) {
+      var _ah = false, _ar = false;
+      s.types.forEach(function (t) { if (_hotelish(t)) _ah = true; if (t === 'Residences' || t === 'Estates') _ar = true; });
+      _unitsAreKeys = _ah && !_ar;
+    } else {
+      var _c = {}; rows.forEach(function (p) { var t = _primaryType(p); if (t) _c[t] = (_c[t] || 0) + 1; });
+      var _dom = Object.keys(_c).sort(function (a, b) { return _c[b] - _c[a]; })[0];
+      _unitsAreKeys = _hotelish(_dom);
+    }
+    var _unitWord = _unitsAreKeys ? 'keys' : 'residences';
+    var _unitTotalLabel = _unitsAreKeys ? 'Hotel keys' : 'Residences total';
+
     // Sort highlight -- only with 2+ results (a single result isn't "the tallest")
     var top = rows[0];
     if (n >= 2 && s.sort && s.sort.key === 'floors' && s.sort.dir === 'desc' && floorsOf(top)) {
       sentence += ' The tallest is <span class="hl">' + esc(top.Title) + '</span> at <span class="hl">' + floorsOf(top) + ' stories</span>.';
     } else if (n >= 2 && s.sort && s.sort.key === 'units' && unitsOf(top)) {
-      sentence += ' The largest is <span class="hl">' + esc(top.Title) + '</span> with <span class="hl">' + unitsOf(top).toLocaleString() + ' residences</span>.';
+      sentence += ' The largest is <span class="hl">' + esc(top.Title) + '</span> with <span class="hl">' + unitsOf(top).toLocaleString() + ' ' + _unitWord + '</span>.';
     } else if (n >= 2 && s.sort && s.sort.key === 'date' && s.sort.dir === 'asc' && fmtDelivery(top)) {
       sentence += ' Next to open: <span class="hl">' + esc(top.Title) + '</span> (' + fmtDelivery(top) + ').';
     }
@@ -1234,7 +1252,7 @@
       if (uc) stats.push({ v: '' + uc, k: 'Under construction' });
     }
     var sumU = rows.reduce(function (a, p) { return a + unitsOf(p); }, 0);
-    if (sumU > 0) stats.push({ v: '~' + sumU.toLocaleString(), k: 'Residences total' });
+    if (sumU > 0) stats.push({ v: '~' + sumU.toLocaleString(), k: _unitTotalLabel });
     var nextYr = soonestFutureYear(rows);
     if (nextYr) stats.push({ v: '' + nextYr, k: 'First delivery' });
     return { html: sentence, stats: stats.slice(0, 4) };
