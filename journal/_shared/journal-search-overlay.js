@@ -1711,6 +1711,27 @@
   var _lastResultsTotal = 0;
   var _lastResultKind = ''; // 'text' | 'smart' | 'spotlight' | 'question' | 'empty'
 
+  // ── Resume last session ─────────────────────────────────────────────
+  // Persist the user's last query so re-opening TMW Intelligence returns them to
+  // where they were — not a blank reset. Survives navigating into a project/firm
+  // and coming back. Re-running a remembered query is free (it's already counted
+  // in tmwIntel.seen and the LLM answer is server-cached), so restore is cheap.
+  var _RESUME_KEY = 'tmw_intel_lastq';
+  var _RESUME_TTL = 7 * 24 * 3600 * 1000;   // a week — long enough to "return", not forever
+  function saveLastQuery(q){
+    try {
+      if (q && String(q).trim()) localStorage.setItem(_RESUME_KEY, JSON.stringify({ q: String(q).trim(), ts: Date.now() }));
+    } catch(_){}
+  }
+  function readLastQuery(){
+    try {
+      var raw = localStorage.getItem(_RESUME_KEY); if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (o && o.q && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.q;
+    } catch(_){}
+    return null;
+  }
+
   // ── Thumbs feedback ─────────────────────────────────────────────────
   // Reset the feedback row to its unvoted, dim state. Called at the top
   // of every runQuery so a previous vote doesn\'t bleed across queries.
@@ -1787,6 +1808,7 @@
     // doesn't bleed across. _lastQuery / _lastResultsTotal / _lastResultKind
     // are repopulated by whichever render path handles this query.
     _lastQuery = q;
+    saveLastQuery(q);   // remember for "resume where you left off" on reopen
     _lastResultsTotal = 0;
     _lastResultKind = '';
     resetFeedback();
@@ -3037,7 +3059,17 @@
       input.value = initialQuery;
       onInput();
     } else {
-      input.value = '';
+      // Resume the last session — reopen to the same populated results, not a
+      // blank reset. Re-running is free (already-seen query, server-cached answer).
+      var _resume = readLastQuery();
+      if (_resume) {
+        input.value = _resume;
+        loadData().then(function(){ runQuery(_resume); });
+        // select the restored text so a fresh search just types over it
+        setTimeout(function(){ try { input.select(); } catch(_){} }, 200);
+      } else {
+        input.value = '';
+      }
     }
     // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
     try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_){}
