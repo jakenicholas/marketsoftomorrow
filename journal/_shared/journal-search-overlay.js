@@ -1152,6 +1152,12 @@
   }
 
   function commaFirstField(s){ return String(s||'').split(',')[0].trim(); }
+  // Format every comma-separated name as a byline: "A", "A & B", "A, B & C".
+  function commaAllField(s){
+    var parts = String(s||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+    if (parts.length <= 1) return parts[0] || '';
+    return parts.slice(0, -1).join(', ') + ' & ' + parts[parts.length - 1];
+  }
 
   // Rich project hero — ports /search/'s heroHtml exactly. Image-left,
   // body-right. Body: h1 → loc → desc → timeline → specs → byline →
@@ -1160,8 +1166,11 @@
     var img = firstField(p, ['ImageURL','Image2','Image3']);
     var city = p.City || '';
     var desc = firstField(p, ['DescriptionLong','Description']);
-    var dev  = commaFirstField(p.Developer);
-    var arch = commaFirstField(p.Architect);
+    // Show EVERY credited developer / architect, not just the first — a project
+    // can be a JV (e.g. Highland Park Miami = Black Salmon + The Allen Morris
+    // Company). Join the comma list with " & " so it reads as a byline.
+    var dev  = commaAllField(p.Developer);
+    var arch = commaAllField(p.Architect);
     var site = p.OfficialWebsite;
     var media = img
       ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="eager" onerror="this.style.display=\'none\'">'
