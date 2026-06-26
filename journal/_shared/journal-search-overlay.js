@@ -2236,6 +2236,56 @@
     var cityQuery = detectCityQuery(q);
     var foodIntent = isFoodQuery(q);   // dining = journal coverage, not projects
     var areaHit = (Core && Core.detectArea) ? Core.detectArea(q, PROJECTS) : null; // county/metro → many cities
+
+    // ── Bulletproof place override ──────────────────────────────────
+    // If the query names a place at ANY level — neighborhood (Midtown,
+    // Brickell), city (Naples), borough (Manhattan), county (Collier County),
+    // metro/nickname (Southwest Florida, SWFL), or state (Florida) — drive the
+    // PROJECT set from the FULL list of projects in that place, ranked by the
+    // status spine (Featured → Coming Soon → Recently Opened → Under
+    // Construction → Breaking Ground → Announced). This is what makes
+    // "manhattan" return all 24 instead of the 1 that literally contains the
+    // word, and what keeps the hero + grid + Intelligence answer in one order.
+    var placeHit = (Core && Core.resolvePlace && !foodIntent) ? Core.resolvePlace(q, PROJECTS) : null;
+    var placeDriven = false, placeName = null;
+    if (placeHit) {
+      // Not when the whole query is literally a tracked project's name — the
+      // anchor path below owns "Oracle Campus"-style lookups.
+      var _literal = false;
+      if (full.length >= 4) for (var _li = 0; _li < PROJECTS.length; _li++) {
+        if (norm(PROJECTS[_li].Title || '').indexOf(full) >= 0) { _literal = true; break; }
+      }
+      // Not when a real firm name dominates the query (e.g. "Allen Morris"): a
+      // strong firm match outranks an incidental place token.
+      var _firmDom = fScored.length && fScored[0].s >= 6 && pScored.length < 3;
+      var _sq = Core.parseSmartQuery ? Core.parseSmartQuery(q, { projects: PROJECTS, firms: [] }) : null;
+      // Not for a firm-RANKING ask ("most active developer in Miami") — that
+      // answer is a firm leaderboard; let the existing city/firm path own it.
+      var _firmRank = _sq && _sq.firmRank;
+      if (!_literal && !_firmDom && !_firmRank) {
+        var _rows = PROJECTS.filter(placeHit.match);
+        // refine by type / status when the query named them
+        if (_sq && _sq.types && _sq.types.size) {
+          _rows = _rows.filter(function (p) {
+            var pt = norm((p.PreferredType || '') + ' ' + (p.ProjectType || '')), ok = false;
+            _sq.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) ok = true; });
+            return ok;
+          });
+        }
+        if (_sq && _sq.statuses && _sq.statuses.size) {
+          _rows = _rows.filter(function (p) { return _sq.statuses.has(String(p.Delivery || '').trim()); });
+        }
+        if (_rows.length) {
+          Core.rankByStatus(_rows, {});
+          // descending synthetic scores preserve spine order through later sorts
+          pScored = _rows.map(function (p, i) { return { p: p, s: (_rows.length - i) }; });
+          placeDriven = true;
+          placeName = placeHit.name;
+          totalHits = pScored.length + fScored.length + aScored.length;
+        }
+      }
+    }
+
     var strongAnchor = null;
     var connectedProjects = [];
     if (pScored.length && full.length >= 4 && !cityQuery) {
@@ -2328,7 +2378,7 @@
       // unrelated results.
       var coverMiss = (Core && Core.coverageMiss) ? Core.coverageMiss(q, PROJECTS) : null;
       var honestMiss = coverMiss && !areaHit && !cityHit && !strongAnchor;
-      var trigger = question || cityHit || foodIntent || areaHit || honestMiss || (strongAnchor && connectedProjects.length > 0);
+      var trigger = question || cityHit || foodIntent || areaHit || placeDriven || honestMiss || (strongAnchor && connectedProjects.length > 0);
       if (trigger){
         if (!allowed){
           slotIntel.innerHTML = intelGateHtml();
@@ -2376,6 +2426,12 @@
             }
             fireIntelligence(q, [], foodArts.slice(0, 12), foodPlace, 'food & drink', token, placeTerms);
             intelProjects = null; // handled above
+          } else if (placeDriven) {
+            // Place query at any level → the LLM leads with the SAME spine-ranked
+            // set the grid + hero show (pScored is already the place set, ranked).
+            // Top of the list first so the prose opens on the hero (Nora, etc.).
+            intelProjects = pScored.slice(0, 8).map(function(x){ return x.p; });
+            intelPlace = placeName;
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
             intelProjects = Core.inArea ? PROJECTS.filter(function(p){ return Core.inArea(p, areaHit); }) : [];
@@ -2465,7 +2521,10 @@
     var heroProject = null, heroArticle = null, heroFirm = null;
     var heroCandidates = [];
     // Food queries lead with a Food & Drink article, never a project.
-    if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
+    // Place-driven: pScored[0] IS the spine hero (Nora, South Flagler…) — push it
+    // unconditionally with a strong bias so the place's leader takes the hero slot.
+    if (!foodIntent && placeDriven && pScored.length) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
+    else if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
     if (aScored.length) {
       var heroArt = aScored[0].a;
       if (foodIntent) { var fa = aScored.filter(function(x){ return isFoodArticle(x.a); })[0]; if (fa) heroArt = fa.a; }
@@ -2498,7 +2557,7 @@
       ? window.TmwSearchCore.filterMeaningfulTokens(toks)
       : toks.filter(function(t){ return t.length >= 3; });
     var restProjects = pScored.filter(function(x){ return x.p !== heroProject; });
-    if (meaningful.length >= 2) {
+    if (meaningful.length >= 2 && !placeDriven) {
       // Expanded strict filter: check the FULL haystack (title + city +
       // developer + architect), not just the title. Previously "projects
       // in west palm" (meaningful tokens "west" + "palm") matched only

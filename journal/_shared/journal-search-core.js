@@ -435,6 +435,166 @@
     { code:'MO', name:'Missouri', triggers:['missouri'] }, { code:'OH', name:'Ohio', triggers:['ohio'] },
     { code:'PR', name:'Puerto Rico', triggers:['puerto rico'] }
   ];
+  // ── Bulletproof place hierarchy ───────────────────────────────────
+  // Every project belongs to a STACK of places — neighborhood ⊂ city ⊂ borough
+  // ⊂ county ⊂ metro/region ⊂ state ⊂ country — but the data only stores a few
+  // of those fields (City, Neighborhood, County, CountyState). The rest are
+  // DERIVED here so a query at ANY level connects to the same project: a Midtown
+  // tower answers to "midtown", "manhattan", "new york city", "new york county",
+  // "new york", "nyc" AND "usa". placeTokensOf(p) computes that full token set;
+  // resolvePlace(q) finds the most specific level a query names and matches on it.
+
+  // NYC counties ARE boroughs — the only place the borough isn't the city.
+  var BOROUGH_BY_COUNTY = {
+    'New York County': ['manhattan'],
+    'Kings County':    ['brooklyn'],
+    'Queens County':   ['queens'],
+    'Bronx County':    ['bronx', 'the bronx'],
+    'Richmond County': ['staten island']
+  };
+  // State code → spoken names a user might type (full name + common variants).
+  var STATE_NAMES = {
+    FL:['florida'], NY:['new york','new york state'], TN:['tennessee'], TX:['texas'],
+    CA:['california'], IL:['illinois'], UT:['utah'], SC:['south carolina'], HI:['hawaii'],
+    CO:['colorado'], WY:['wyoming'], NV:['nevada'], PA:['pennsylvania'], MI:['michigan'],
+    MO:['missouri'], OH:['ohio'], PR:['puerto rico'], GA:['georgia'], NC:['north carolina'],
+    AZ:['arizona'], WA:['washington state'], MA:['massachusetts'], DC:['washington dc','d.c.']
+  };
+  // City aliases that are actually BOROUGHS — excluded from city-level tokens
+  // (a Brooklyn project must NOT answer to "manhattan"); boroughs come from the
+  // precise county instead, via BOROUGH_BY_COUNTY.
+  var BOROUGH_ALIAS = { 'manhattan':1,'brooklyn':1,'queens':1,'bronx':1,'the bronx':1,'staten island':1 };
+
+  // county "New York County|NY" → the region trigger words that cover it, built
+  // once from REGIONS so a project inherits every metro/nickname it sits inside
+  // ("south florida", "sofla", "the palm beaches", "swfl", …). Cached.
+  var _regionsByCounty = null;
+  function regionsByCounty() {
+    if (_regionsByCounty) return _regionsByCounty;
+    _regionsByCounty = {};
+    REGIONS.forEach(function (r) {
+      (r.counties || []).forEach(function (c) {
+        var k = norm(c) + '|' + r.state;
+        if (!_regionsByCounty[k]) _regionsByCounty[k] = [];
+        // the region's display name + every trigger/nickname it answers to
+        [r.name].concat(r.triggers).forEach(function (t) {
+          var nt = norm(t);
+          if (nt && _regionsByCounty[k].indexOf(nt) < 0) _regionsByCounty[k].push(nt);
+        });
+      });
+    });
+    return _regionsByCounty;
+  }
+
+  // The complete, normalized place-token set for one project — every level it
+  // belongs to. Memoized on the project so repeat queries are free.
+  function placeTokensOf(p) {
+    if (p.__placeTokens) return p.__placeTokens;
+    var toks = new Set();
+    function add(s) { var n = norm(s); if (n && n.length >= 2) toks.add(n); }
+    var st = String(p.CountyState || '').trim();
+    var county = String(p.County || '').trim();
+    // neighborhood — full value, its comma parts, AND the bare submarket
+    // ("Midtown East" also answers to "midtown"; "Jamaica, Queens" → "jamaica")
+    var nbhd = String(p.Neighborhood || '').trim();
+    if (nbhd) {
+      nbhd.split(',').forEach(function (part) {
+        var pt = part.trim(); if (!pt) return;
+        add(pt);
+        var w = norm(pt).split(/\s+/);
+        if (w.length > 1 && w[0].length >= 4) add(w[0]);          // leading submarket word
+      });
+    }
+    // city (+ first comma part) and any non-borough alias the city answers to
+    var city = String(p.City || '').trim();
+    if (city) {
+      add(city);
+      var cFirst = city.split(',')[0].trim(); if (cFirst) add(cFirst);
+      for (var ak in CITY_ALIASES) {
+        if (CITY_ALIASES.hasOwnProperty(ak) && CITY_ALIASES[ak] === city && !BOROUGH_ALIAS[ak]) add(ak);
+      }
+    }
+    // borough (NYC) — derived from the precise county
+    if (county && BOROUGH_BY_COUNTY[county]) BOROUGH_BY_COUNTY[county].forEach(add);
+    // county — with and without the "County"/"Parish" suffix
+    if (county) { add(county); add(county.replace(/\s+(county|parish|borough)$/i, '')); }
+    // metro / region / nicknames covering this county
+    if (county && st) (regionsByCounty()[norm(county) + '|' + st] || []).forEach(add);
+    // state — code + spoken names
+    if (st) { add(st); (STATE_NAMES[st] || []).forEach(add); }
+    // country (US data; international rows carry no US state code)
+    if (st && STATE_NAMES[st]) { add('usa'); add('united states'); add('america'); }
+    p.__placeTokens = toks;
+    return toks;
+  }
+
+  // Resolve the place a query names, at the most specific level present, and
+  // return a matcher. Handles single words ("manhattan"), neighborhoods
+  // ("midtown"), neighborhood+scope ("midtown manhattan" → only NYC Midtown),
+  // cities, counties, metros/nicknames, and states. Returns null if no place.
+  var _placeVocabCache = null, _placeVocabFor = null;
+  function buildPlaceVocab(projects) {
+    if (_placeVocabCache && _placeVocabFor === projects) return _placeVocabCache;
+    // level rank: higher = more specific (wins as the display/primary place)
+    var vocab = new Map();   // token -> { token, level, display }
+    function put(token, level, display) {
+      var t = norm(token); if (!t || t.length < 2) return;
+      var ex = vocab.get(t);
+      if (!ex || level > ex.level) vocab.set(t, { token: t, level: level, display: display });
+    }
+    (projects || []).forEach(function (p) {
+      var nbhd = String(p.Neighborhood || '').trim();
+      if (nbhd) nbhd.split(',').forEach(function (part) { var pt = part.trim(); if (pt) put(pt, 6, pt); });
+      var city = String(p.City || '').trim();
+      if (city) { put(city, 5, city.split(',')[0].trim()); var cf = city.split(',')[0].trim(); if (cf) put(cf, 5, cf); }
+      var county = String(p.County || '').trim();
+      if (county && BOROUGH_BY_COUNTY[county]) BOROUGH_BY_COUNTY[county].forEach(function (b) { put(b, 5, b.replace(/\b\w/g, function (c) { return c.toUpperCase(); })); });
+      if (county) { put(county, 3, county); put(county.replace(/\s+(county|parish|borough)$/i, ''), 3, county); }
+    });
+    // city aliases (non-borough) at city level
+    for (var ak in CITY_ALIASES) if (CITY_ALIASES.hasOwnProperty(ak) && !BOROUGH_ALIAS[ak]) put(ak, 5, CITY_ALIASES[ak]);
+    // regions / metros / nicknames (level 2) and states (level 1)
+    REGIONS.forEach(function (r) { r.triggers.concat([r.name]).forEach(function (t) { put(t, 2, r.name); }); });
+    STATES.forEach(function (s) { s.triggers.forEach(function (t) { put(t, 1, s.name); }); });
+    _placeVocabCache = vocab; _placeVocabFor = projects;
+    return vocab;
+  }
+  function resolvePlace(q, projects) {
+    var full = norm(q);
+    if (!full) return null;
+    var vocab = buildPlaceVocab(projects || []);
+    var matched = [];
+    vocab.forEach(function (entry, token) {
+      // short tokens (≤4: "nyc","ny","la","swfl") need a word boundary so they
+      // don't fire inside a longer word; longer ones are distinctive substrings.
+      var hit = token.length <= 4 ? hasWord(full, token) : full.indexOf(token) >= 0;
+      if (hit) matched.push(entry);
+    });
+    if (!matched.length) return null;
+    // Drop any matched token that is a substring of another matched token, so
+    // "west palm beach" wins over "palm beach" and "southwest florida" over
+    // "florida" — we keep the most specific phrasing the user actually typed.
+    var kept = matched.filter(function (m) {
+      return !matched.some(function (o) { return o.token !== m.token && o.token.indexOf(m.token) >= 0; });
+    });
+    // primary place = the most specific level (tiebreak: longest token)
+    var primary = kept.slice().sort(function (a, b) { return b.level - a.level || b.token.length - a.token.length; })[0];
+    var tokens = kept.map(function (m) { return m.token; });
+    return {
+      name: primary.display,
+      level: primary.level,
+      tokens: tokens,
+      // a project matches when it carries EVERY place token the query named —
+      // hierarchical tokens auto-scope ("midtown" + "manhattan" → NYC Midtown),
+      // while a single token fans out to everything below it ("florida").
+      match: function (p) {
+        var pt = placeTokensOf(p);
+        for (var i = 0; i < tokens.length; i++) if (!pt.has(tokens[i])) return false;
+        return true;
+      }
+    };
+  }
+
   // norm(County) -> {county, state} for the DOMINANT state when a county name
   // repeats (e.g. Orange County: FL vs CA), so a bare "orange county" resolves
   // to wherever we cover most.
@@ -842,6 +1002,51 @@
     });
   }
 
+  // ── Unified status spine ──────────────────────────────────────────
+  // The ONE order TMW leads with everywhere — prose, the project grid, AND the
+  // hero card: Coming Soon (hype) → Recently Opened (≤6mo) → Under Construction
+  // → Breaking Ground → Announced → long-open. Featured (the editor's pick)
+  // lifts a project ~2 tiers, so a featured under-construction tower leads, but
+  // a genuinely imminent non-featured opening still beats a featured far-off
+  // announcement. Tuned against real cases: Nora Hotel (Opening Soon+Featured)
+  // leads WPB hotels; Curio (Announced) and Belgrove (opened 2024) sink; South
+  // Flagler + Berkeley (Featured, building) lead condos; 120 S Dixie + PBKC
+  // (Announced, far out) drop.
+  var STATUS_RANK = { 'Opening Soon': 0, 'Under Construction': 2, 'Breaking Ground': 3, 'Announced': 4 };
+  function _monthsSince(dateStr, nowMs) {
+    var m = String(dateStr || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+    if (!m) return null;
+    var d = new Date(+m[1], m[2] ? +m[2] - 1 : 5, m[3] ? +m[3] : 15);
+    return (nowMs - d.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+  }
+  function statusRankOf(p, nowMs) {
+    var d = String(p.Delivery || '').trim();
+    if (d === 'Now Open' || d === 'Completed' || d === 'Open' || d === 'Delivered') {
+      var ms = _monthsSince(p.DeliveryDate, nowMs);
+      return (ms != null && ms <= 6 && ms >= -1) ? 1 : 5;   // recently opened vs long-open
+    }
+    return Object.prototype.hasOwnProperty.call(STATUS_RANK, d) ? STATUS_RANK[d] : 6;
+  }
+  function _isFeatured(p) { return String(p.Featured || '').trim() ? 0 : 1; }
+  // Sort rows by the status spine in place; returns the same array. Order is
+  // exactly Jake's: Featured (editor's pick, top tier) → then by status:
+  // Coming Soon → Recently Opened (≤6mo) → Under Construction → Breaking Ground
+  // → Announced → long-open → unknown; soonest delivery, then taller, break ties.
+  function rankByStatus(rows, opts) {
+    opts = opts || {};
+    var nowMs = opts.now ? (new Date(opts.now)).getTime() : Date.now();
+    rows.sort(function (a, b) {
+      var fa = _isFeatured(a), fb = _isFeatured(b);
+      if (fa !== fb) return fa - fb;                                          // featured first
+      var ra = statusRankOf(a, nowMs), rb = statusRankOf(b, nowMs);
+      if (ra !== rb) return ra - rb;                                          // then status order
+      var da = (a.DeliveryDate || '9999'), db = (b.DeliveryDate || '9999');   // soonest first; TBD/blank sinks
+      if (da !== db) return da < db ? -1 : 1;
+      return floorsOf(b) - floorsOf(a);                                       // taller breaks ties
+    });
+    return rows;
+  }
+
   function smartRank(rows, s) {
     var big = 1e9;
     if (s.sort && s.sort.key === 'floors') {
@@ -861,33 +1066,12 @@
       });
     } else if (s.sort && s.sort.key === 'updated') {
       rows.sort(function (a, b) { return String(b.UpdatedAt || '').localeCompare(String(a.UpdatedAt || '')); });
-    } else if (s.rolling) {
-      // Rolling "soon" window mixes just-opened + about-to-open. Editor's
-      // featured picks first, then newest date first so the freshest rise up.
-      rows.sort(function (a, b) {
-        if (a.Featured && !b.Featured) return -1;
-        if (!a.Featured && b.Featured) return 1;
-        var da = (a.DeliveryDate || ''), db = (b.DeliveryDate || '');
-        return da < db ? 1 : da > db ? -1 : 0;
-      });
-    } else if (s.statuses && s.statuses.has && s.statuses.has('Opening Soon')) {
-      // "Opening soon" implies temporal urgency — what's actually arriving
-      // first. Sort by DeliveryDate asc; projects with no date (TBA / empty)
-      // sink to the end via the '9999' fallback so a tall TBA tower doesn't
-      // grab the hero slot ahead of a project that actually opens this year.
-      rows.sort(function (a, b) {
-        var da = (a.DeliveryDate || '9999'), db = (b.DeliveryDate || '9999');
-        if (da !== db) return da < db ? -1 : 1;
-        if (a.Featured && !b.Featured) return -1;
-        if (!a.Featured && b.Featured) return 1;
-        return floorsOf(b) - floorsOf(a);
-      });
     } else {
-      rows.sort(function (a, b) {
-        if (a.Featured && !b.Featured) return -1;
-        if (!a.Featured && b.Featured) return 1;
-        return floorsOf(b) - floorsOf(a);
-      });
+      // DEFAULT — the unified status spine. Replaces the old "featured then
+      // tallest" / rolling / opening-soon heuristics: rankByStatus already folds
+      // in featured boost, the recently-opened window, and soonest-delivery
+      // tiebreaks, so prose, grid, and hero all order identically.
+      rankByStatus(rows, { now: s && s.now });
     }
     return rows;
   }
@@ -1145,6 +1329,9 @@
     inArea: inArea,
     citiesInArea: citiesInArea,
     coverageMiss: coverageMiss,
+    // bulletproof place hierarchy (neighborhood→city→borough→county→metro→state→country)
+    placeTokensOf: placeTokensOf,
+    resolvePlace: resolvePlace,
     askIntelligence: askIntelligence,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,
@@ -1162,6 +1349,8 @@
     parseSmartQuery: parseSmartQuery,
     smartFilter: smartFilter,
     smartRank: smartRank,
+    rankByStatus: rankByStatus,
+    statusRankOf: statusRankOf,
     buildSmartAnswer: buildSmartAnswer,
     buildSmartFacts: buildSmartFacts,
     computeSignals: computeSignals,
