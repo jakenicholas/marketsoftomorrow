@@ -1580,9 +1580,15 @@ async function handleSearchFeedback(env, origin, url) {
 // GET /search-feedback/discoveries — the tmw-project-discovery Claude
 // Code routine reads this. Returns the queries that need discovery work
 // and HAVEN'T been processed yet, in a format the routine can directly
-// loop over: { query, down, up, last_ts, hint } where hint is a short
+// loop over: { query, source, down, up, last_ts, hint } where hint is a short
 // natural-language brief the routine can drop straight into its prompt
-// ("the database is missing projects in X").
+// ("the database is missing projects in X"). Three feeder lanes, merged +
+// deduped: (1) reader_flag — a reader thumbs-down on an empty result (may
+// carry an editor note); (2) reader_search — ANY reader/intel search that
+// returned zero results (no down-vote needed — the automatic lane); and
+// (3) daily_audit — the latest twice-daily search-audit's zero-result
+// queries. So every zero-result query, from a reader or our own AI audit,
+// auto-queues for discovery to research projects there on the next run.
 //
 // "Not processed" = no `discovery_processed` event has been logged for
 // that exact query (case-insensitive). Lookback window matches the
@@ -1639,6 +1645,53 @@ async function handleDiscoveryQueue(env, origin, url) {
     a.kinds[kind] = (a.kinds[kind] || 0) + 1;
   }
 
+  // AUTO signals — zero-result queries that did NOT need a human thumbs-down.
+  // This is the automatic coverage-gap lane: every query that returned nothing
+  // flows to discovery on its own. Two sources, both deduped against the
+  // feedback rows above AND the processed set:
+  //   (2) reader_search — any reader/intel search that came back with 0 results.
+  //   (3) daily_audit   — the latest twice-daily search audit's 0-result queries.
+  // The routine still DB-checks each (a live match = search-index bug, not a
+  // missing-coverage gap), so feeding it more candidates is safe.
+  function _autoAdd(rawQ, ts, source) {
+    let q = String(rawQ || '').trim();
+    if (!q || q.length < 4 || q.length > 160) return;   // skip junk / overlong
+    const key = q.toLowerCase();
+    if (processed.has(key)) return;
+    let a = byQuery.get(key);
+    if (!a) {
+      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, source: source };
+      byQuery.set(key, a);
+    }
+    a.auto = (a.auto || 0) + 1;
+    a.result_n++;   // result_sum += 0 → average stays 0 (it's a zero-result query)
+    if (ts > a.last_ts) a.last_ts = ts;
+  }
+  try {
+    const sr = await env.DB.prepare(
+      `SELECT ts, props_json FROM events
+       WHERE event_name IN ('intel_query','search') AND ts >= ?
+         AND CAST(json_extract(props_json,'$.results') AS INTEGER) = 0
+       ORDER BY ts DESC LIMIT 3000`
+    ).bind(sinceTs).all();
+    for (const r of (sr.results || [])) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      if (p.partner) continue;   // partner spotlights aren't gaps
+      _autoAdd(p.q || p.search_term, r.ts, 'reader_search');
+    }
+  } catch (e) { /* tolerate a missing column / shape and keep the other lanes */ }
+  try {
+    const st = await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name = 'intel_selftest'
+       ORDER BY ts DESC LIMIT 1`
+    ).first();
+    if (st && st.props_json) {
+      let sp = {}; try { sp = JSON.parse(st.props_json); } catch {}
+      const rep = Array.isArray(sp.report) ? sp.report : [];
+      for (const e of rep) { if (e && (e.n === 0 || e.n === '0')) _autoAdd(e.q, st.ts, 'daily_audit'); }
+    }
+  } catch (e) { /* tolerate */ }
+
   // Discovery candidates: at least one thumbs-down AND avg results == 0
   // OR dominant kind == 'empty'. Same heuristic as the rollup endpoint's
   // needs_discovery flag.
@@ -1647,16 +1700,22 @@ async function handleDiscoveryQueue(env, origin, url) {
     let dom = '', domN = 0;
     for (const k in a.kinds) { if (a.kinds[k] > domN) { dom = k; domN = a.kinds[k]; } }
     const avg = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
-    const needs = a.down >= 1 && (avg === 0 || dom === 'empty');
+    // A real thumbs-down OR any auto zero-result signal qualifies; the result
+    // must have been empty/marginal.
+    const needs = (a.down >= 1 || a.auto) && (avg === 0 || dom === 'empty');
     if (!needs) return;
-    // Hint: a plain-English brief the discovery routine drops into its
-    // prompt. Built from the query + signal so the LLM has context
-    // without re-deriving it.
+    // Hint: a plain-English brief the discovery routine drops into its prompt.
+    // Names the signal source so the LLM has context without re-deriving it.
+    const who = a.down >= 1 ? 'A reader flagged'
+      : a.source === 'daily_audit' ? 'The daily search audit ran'
+      : 'A reader searched';
     const hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
-      + 'A reader searched "' + a.query + '" and got '
+      + who + ' "' + a.query + '" and the database returned '
       + (avg === 0 ? 'zero results' : ('only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')))
-      + '. ' + (a.editor_note ? 'Act on the editor request above: ' : 'Their thumbs-down suggests the project database is missing coverage. ')
-      + 'Identify the place + project type, then research candidate projects to add as map drafts.';
+      + (a.auto > 1 ? (' (' + a.auto + '×)') : '')
+      + '. ' + (a.editor_note ? 'Act on the editor request above. ' : '')
+      + 'First confirm the gap is real: search_projects on the place + type — a live match means a SEARCH-INDEX/relevance bug to report (create nothing), not missing coverage. '
+      + 'Otherwise identify the place + project type and research on-brand candidate projects to stage there as map drafts.';
     items.push({
       query: a.query,
       up: a.up,
@@ -1664,12 +1723,15 @@ async function handleDiscoveryQueue(env, origin, url) {
       last_ts: a.last_ts,
       avg_results: avg,
       dominant_kind: dom,
+      source: (a.down >= 1 ? 'reader_flag' : (a.source || 'reader_search')),
       hint: hint,
     });
   });
-  // Newest-first within the discovery queue so the routine works the
-  // freshest signals first.
-  items.sort(function (a, b) { return (b.last_ts || 0) - (a.last_ts || 0); });
+  // Strongest signal first: human down-votes, then most-recent.
+  items.sort(function (a, b) {
+    if ((b.down || 0) !== (a.down || 0)) return (b.down || 0) - (a.down || 0);
+    return (b.last_ts || 0) - (a.last_ts || 0);
+  });
 
   return json({
     items: items.slice(0, limit),
