@@ -73,6 +73,24 @@
     var n = parseInt(String(raw).replace(/[^0-9]/g, ''), 10);
     return isFinite(n) && n > 0 ? n : 0;
   }
+  // Rough SIZE of a project on a common square-foot scale, so "biggest projects"
+  // can rank across types when there's no place. We don't store acreage/sq-ft as
+  // fields, but most descriptions state them — so parse the biggest figure out of
+  // the prose (acres → sq-ft), then fall back to units/floors as proxies. Returns
+  // a comparable number; 0 when nothing is parseable.
+  function sizeScoreOf(p) {
+    var txt = String(firstField(p, ['DescriptionLong', 'Description']) || '');
+    var best = 0, m;
+    var reAcre = /([\d][\d,]*(?:\.\d+)?)\s*-?\s*acre/gi;
+    while ((m = reAcre.exec(txt))) { var a = parseFloat(m[1].replace(/,/g, '')); if (a > 0) best = Math.max(best, a * 43560); }
+    var reSqft = /([\d][\d,]*)\s*(?:square[ -]?feet|square[ -]?foot|sq\.?\s*ft|sf\b)/gi;
+    while ((m = reSqft.exec(txt))) { var sf = parseFloat(m[1].replace(/,/g, '')); if (sf > 1000) best = Math.max(best, sf); }
+    if (best) return best;
+    var u = unitsOf(p), f = floorsOf(p);
+    if (u) return u * 1200;          // ~1,200 sf/unit proxy
+    if (f) return f * 12000;         // ~12,000 sf/floor proxy
+    return 0;
+  }
   function yearOf(p) {
     var m = String(p.DeliveryDate || '').match(/(20\d{2})/);
     return m ? +m[1] : null;
@@ -1318,6 +1336,7 @@
     firstField: firstField,
     floorsOf: floorsOf,
     unitsOf: unitsOf,
+    sizeScoreOf: sizeScoreOf,
     yearOf: yearOf,
     fmtDelivery: fmtDelivery,
     inFlorida: inFlorida,

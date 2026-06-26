@@ -2286,6 +2286,37 @@
       }
     }
 
+    // ── Global "biggest / largest" fallback ─────────────────────────
+    // "biggest projects globally", "largest developments in the world" — a
+    // superlative with NO place named used to return nothing. Rank EVERY project
+    // by size (acreage/sq-ft parsed from the description, else units/floors), so
+    // the giant mixed-use districts surface. Only fires when nothing else
+    // resolved (no place, no firm, no literal project name).
+    if (!placeDriven && Core && Core.sizeScoreOf) {
+      var _superl = /\b(biggest|largest|grandest|most massive|mega)\b/.test(full);
+      var _global = /\b(global|globally|world|worldwide|anywhere|on earth|ever)\b/.test(full) || !(areaHit || cityQuery);
+      var _firmStrong = fScored.length && fScored[0].s >= 6;
+      if (_superl && _global && !_firmStrong && PROJECTS.length) {
+        var _sq2 = Core.parseSmartQuery ? Core.parseSmartQuery(q, { projects: PROJECTS, firms: [] }) : null;
+        var _big = PROJECTS.slice();
+        if (_sq2 && _sq2.types && _sq2.types.size) {
+          _big = _big.filter(function (p) {
+            var pt = norm((p.PreferredType || '') + ' ' + (p.ProjectType || '')), ok = false;
+            _sq2.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) ok = true; });
+            return ok;
+          });
+        }
+        _big.sort(function (a, b) { return Core.sizeScoreOf(b) - Core.sizeScoreOf(a); });
+        _big = _big.slice(0, 60);
+        if (_big.length) {
+          pScored = _big.map(function (p, i) { return { p: p, s: (_big.length - i) }; });
+          placeDriven = true;
+          placeName = null;   // not a geography — the query tells the LLM it's a "biggest" ask
+          totalHits = pScored.length + fScored.length + aScored.length;
+        }
+      }
+    }
+
     var strongAnchor = null;
     var connectedProjects = [];
     if (pScored.length && full.length >= 4 && !cityQuery) {
