@@ -297,8 +297,9 @@
     { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper','mid-rise','midrise'] },
     { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home','multifamily','multi-family','rental','build-to-rent','senior living','active adult','assisted living'] },
     { token:'Estates',    label:'Estates / Homes',    noun:'home',      syn:['estate','estates','single-family','single family','single-family home','house','houses','townhouse','townhouses','townhome','townhomes','villa','villas'] },
-    { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel','boutique hotel','aparthotel','lodging','inn'] },
-    { token:'Resort',     label:'Resort',             noun:'resort',    syn:['resort','beach resort','ski resort','spa resort','wellness retreat'] },
+    // 'Resort' was retired and merged into Hotel — its query words route here so
+    // "resorts in X" returns the hotels (incl. former resorts), not nothing.
+    { token:'Hotel',      label:'Hotel',              noun:'hotel',     syn:['hotel','boutique hotel','aparthotel','lodging','inn','resort','beach resort','ski resort','spa resort','wellness retreat'] },
     { token:'Office',     label:'Office',             noun:'office',    syn:['office','workplace','corporate campus','headquarters','class a office'] },
     { token:'Retail',     label:'Retail',             noun:'retail project', syn:['retail','shopping','mall','shops','shopping center','shopping centre','outlet','plaza','lifestyle center','shoppes'] },
     // NOTE: dining is NOT a tracked project type — restaurants/food & drink live
@@ -316,8 +317,8 @@
     { token:'Cultural',   label:'Cultural',           noun:'cultural project', syn:['cultural','arts center','performing arts','cultural center','arts district'] },
     { token:'Mixed-Use',  label:'Mixed-use',          noun:'mixed-use project', syn:['mixed-use','mixed use','live-work','town center','town centre','master-planned','master planned'] },
     { token:'Hospital',   label:'Hospital',           noun:'hospital',  syn:['hospital','medical center','medical','healthcare','health system','clinic','medical campus'] },
-    { token:'Airport',    label:'Airport',            noun:'airport',   syn:['airport','terminal','aviation'] },
-    { token:'Travel',     label:'Travel',             noun:'transit hub', syn:['transit','train station','rail','transportation','transit hub','high-speed rail','metro station'] }
+    // 'Airport' was retired and merged into Travel — its words route here too.
+    { token:'Travel',     label:'Travel',             noun:'transit hub', syn:['transit','train station','rail','transportation','transit hub','high-speed rail','metro station','airport','terminal','aviation'] }
   ];
   var SORT_GROUPS = [
     { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
@@ -462,6 +463,37 @@
     { code:'MO', name:'Missouri', triggers:['missouri'] }, { code:'OH', name:'Ohio', triggers:['ohio'] },
     { code:'PR', name:'Puerto Rico', triggers:['puerto rico'] }
   ];
+  // International / city-grouped regions. Non-US projects carry no county, so
+  // these resolve by CITY (the data stores the country/island as the city, e.g.
+  // City:"Bahamas"). Lets "the caribbean", "japan", "the uk", "the gulf" etc.
+  // answer with every project in that part of the world — same as a US metro.
+  var CITY_REGIONS = [
+    { name:'The Caribbean', triggers:['caribbean','the caribbean','west indies'],
+      cities:['Bahamas','Providenciales','Turks and Caicos','Grand Cayman','Paradise Island','Harbour Island','Freeport','The Abacos','Big Ambergris Cay','Jolly Harbour','The Valley','Indigo Bay','Miches','Belize','Caye Chapel','Half Moon Bay','Grand Harbour'] },
+    { name:'Japan', triggers:['japan','japanese'],
+      cities:['Tokyo','Kyoto','Osaka','Niseko','Kutchan','Myoko','Onna','Takamatsu'] },
+    { name:'United Kingdom', triggers:['united kingdom','uk','britain','great britain','england'],
+      cities:['London','Manchester','Birmingham'] },
+    { name:'Mexico', triggers:['mexico','mexican'],
+      cities:['Cabo San Lucas','Los Cabos','Riviera Nayarit','Punta de Mita','La Ribera','Cancún'] },
+    { name:'United Arab Emirates', triggers:['uae','united arab emirates','emirates'],
+      cities:['Dubai','Abu Dhabi','Ras Al Khaimah','UAE'] },
+    { name:'Saudi Arabia', triggers:['saudi arabia','saudi','ksa'],
+      cities:['Riyadh','Saudi Arabia','NEOM','AlUla','AMAALA','Shura Island'] },
+    { name:'The Gulf', triggers:['the gulf','persian gulf','gcc','arabian gulf'],
+      cities:['Dubai','Abu Dhabi','Doha','Lusail','Riyadh','Saudi Arabia','NEOM','AlUla','AMAALA','Lusail','Ras Al Khaimah','Shura Island','UAE'] }
+  ];
+  // norm(city) set per region, built once.
+  var _cityRegionSets = null;
+  function cityRegionSets() {
+    if (_cityRegionSets) return _cityRegionSets;
+    _cityRegionSets = CITY_REGIONS.map(function (r) {
+      var set = {}; r.cities.forEach(function (c) { set[norm(c)] = 1; });
+      return { name: r.name, triggers: r.triggers, set: set };
+    });
+    return _cityRegionSets;
+  }
+  function _projCityNorm(p) { return norm(String(p.City || '').split(',')[0].trim()); }
   // ── Bulletproof place hierarchy ───────────────────────────────────
   // Every project belongs to a STACK of places — neighborhood ⊂ city ⊂ borough
   // ⊂ county ⊂ metro/region ⊂ state ⊂ country — but the data only stores a few
@@ -551,6 +583,12 @@
     if (st) { add(st); (STATE_NAMES[st] || []).forEach(add); }
     // country (US data; international rows carry no US state code)
     if (st && STATE_NAMES[st]) { add('usa'); add('united states'); add('america'); }
+    // international / city-grouped regions — a Bahamas project answers to
+    // "caribbean", a Tokyo project to "japan", etc.
+    if (city) {
+      var cn = norm(city.split(',')[0].trim());
+      cityRegionSets().forEach(function (r) { if (r.set[cn]) r.triggers.forEach(add); });
+    }
     p.__placeTokens = toks;
     return toks;
   }
@@ -582,6 +620,7 @@
     for (var ak in CITY_ALIASES) if (CITY_ALIASES.hasOwnProperty(ak) && !BOROUGH_ALIAS[ak]) put(ak, 5, CITY_ALIASES[ak]);
     // regions / metros / nicknames (level 2) and states (level 1)
     REGIONS.forEach(function (r) { r.triggers.concat([r.name]).forEach(function (t) { put(t, 2, r.name); }); });
+    CITY_REGIONS.forEach(function (r) { r.triggers.concat([r.name]).forEach(function (t) { put(t, 2, r.name); }); });
     STATES.forEach(function (s) { s.triggers.forEach(function (t) { put(t, 1, s.name); }); });
     _placeVocabCache = vocab; _placeVocabFor = projects;
     return vocab;
@@ -646,17 +685,21 @@
   // supplies the data-driven county vocabulary.
   function detectArea(q, projects) {
     var full = norm(q), best = null;
-    function consider(name, state, counties, tlen) {
-      if (!best || tlen > best.tlen) best = { name: name, state: state, counties: counties, tlen: tlen };
+    function consider(o, tlen) {
+      if (!best || tlen > best.tlen) best = { o: o, tlen: tlen };
     }
-    REGIONS.forEach(function (r) { r.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider(r.name, r.state, r.counties, t.length); }); });
-    STATES.forEach(function (s) { s.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider(s.name, s.code, null, t.length); }); });
+    REGIONS.forEach(function (r) { r.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider({ name: r.name, state: r.state, counties: r.counties }, t.length); }); });
+    STATES.forEach(function (s) { s.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider({ name: s.name, state: s.code, counties: null }, t.length); }); });
+    // international / city-grouped regions (matched by city, not county)
+    cityRegionSets().forEach(function (r) { r.triggers.forEach(function (t) { if (full.indexOf(t) >= 0) consider({ name: r.name, state: null, counties: null, cityNorms: r.set }, t.length); }); });
     var cs = _countySet(projects);
-    Object.keys(cs).forEach(function (nc) { if (nc.length >= 5 && full.indexOf(nc) >= 0) consider(cs[nc].county, cs[nc].state, [cs[nc].county], nc.length); });
-    return best ? { name: best.name, state: best.state, counties: best.counties } : null;
+    Object.keys(cs).forEach(function (nc) { if (nc.length >= 5 && full.indexOf(nc) >= 0) consider({ name: cs[nc].county, state: cs[nc].state, counties: [cs[nc].county] }, nc.length); });
+    return best ? best.o : null;
   }
   function inArea(p, area) {
-    if (!area || !area.state) return false;
+    if (!area) return false;
+    if (area.cityNorms) return !!area.cityNorms[_projCityNorm(p)];   // international region → by city
+    if (!area.state) return false;
     if (String(p.CountyState || '') !== area.state) return false;
     if (!area.counties) return true;  // whole state
     return area.counties.indexOf(String(p.County || '').trim()) >= 0;
@@ -833,7 +876,7 @@
     // means the tri-county region — NOT the whole state. Only a bare "florida"
     // (no sub-region) falls back to the whole-state bbox check.
     var _area = (opts.projects && opts.projects.length) ? detectArea(q, opts.projects) : null;
-    var area = (_area && _area.counties) ? _area : null;
+    var area = (_area && (_area.counties || _area.cityNorms)) ? _area : null;
     var region = area ? area.name : ((hasWord(full, 'florida') || /\bfl\b/.test(full)) ? 'Florida' : '');
     var cities = [];
     var citySet = buildCitySet(opts.projects || []);
