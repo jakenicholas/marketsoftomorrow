@@ -5993,10 +5993,13 @@ async function handleSmartAnswer(request, env, origin) {
   if (compact.iconic && compact.iconic.items && compact.iconic.items.length) {
     system += '\n\nICONIC EDITORIAL LIST — THIS IS THE HEART OF THE ANSWER: `iconic` is TMW\'s curated ranking of the most iconic '
       + compact.iconic.kind + ' for this query — EXISTING, celebrated venues (NOT pipeline projects), each carrying its own editorial `description`. '
-      + 'Structure the answer in two beats: (1) FIRST, if `top` has development projects, note briefly what is NEW or COMING'
+      + 'Structure the answer in two beats: (1) ONLY IF `top` actually has development projects, open by noting briefly what is NEW or COMING'
       + (compact.place ? ' in ' + String(compact.place).slice(0, 60) : '') + ' — name the soonest / most notable with its status (e.g. a course or hotel opening soon); '
       + '(2) THEN spotlight the 2-3 best iconic picks in `iconic` order, naming each and what sets it apart, drawing specifics ONLY from its `description`. '
-      + 'The iconic picks are the payoff — give them the most room. If `top` has no projects, open directly on the top iconic pick. '
+      + 'The iconic picks are the payoff — give them the most room. '
+      + 'CRITICAL: if `top` is empty, just OPEN DIRECTLY on the top iconic pick — do NOT announce or explain the absence of pipeline projects. NEVER write phrases like '
+      + '"no new pipeline projects", "nothing surfacing", "the field belongs to the iconic tier", or any meta-comment about what is or isn\'t in the pipeline. The reader '
+      + 'never needs to hear about projects that don\'t exist; lead straight into the iconic venues as the natural answer. '
       + 'Treat `iconic` descriptions as verified facts; never invent. These iconic venues already EXIST and are celebrated — never call them "planned", '
       + '"proposed", "in the pipeline", or "tracked in our database"; reserve that language for the `top` development projects only.';
   }
