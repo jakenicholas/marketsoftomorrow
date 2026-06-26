@@ -1057,7 +1057,12 @@
         // editor's PRIMARY type) actually matches the type filter --
         // that's what keeps an Altamira-style residential community
         // tagged "Residences, Golf" from grabbing the top slot.
-        var pt = norm(firstField(p, ['ProjectType', 'PreferredType']));
+        // Check BOTH the multi-tag ProjectType AND the editor's PreferredType —
+        // firstField returned only ProjectType, so a project whose type lives
+        // ONLY in PreferredType (e.g. Torch Tower: ProjectType "Office, Hotel,
+        // Residences, Cultural", PreferredType "Mixed-Use") was wrongly dropped
+        // from a "mixed-use" query. ~28 projects were affected.
+        var pt = norm((p.ProjectType || '') + ' ' + (p.PreferredType || ''));
         var typeMatch = false;
         s.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) typeMatch = true; });
         if (!typeMatch) return false;
