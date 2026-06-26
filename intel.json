@@ -262,65 +262,21 @@
       "delivery_speculative": true
     },
     "dolly-partons-songteller-hotel": {
-      "estimate_years": 2.4,
-      "estimate_label": "~2.4 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 3,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.44,
-      "avg_distance_km": 1640.6,
-      "avg_distance_mi": 1019.4,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "The Dollywood Company",
-        "count": 1,
-        "median_years": 1.58,
-        "stddev_years": 0.0,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
+      "estimate_years": 0.2,
+      "estimate_label": "~3 months",
+      "days_out": 81,
+      "delivery_date": "2026-09-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Hotel",
       "metro": "Nashville",
-      "comparables": [
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.64,
-          "distance_km": 1210.1,
-          "distance_mi": 751.9
-        },
-        {
-          "name": "Siari, a Ritz-Carlton Reserve",
-          "slug": "siari-a-ritz-carlton-reserve",
-          "location": "Riviera Nayarit",
-          "years": 1.6,
-          "score": 0.34,
-          "distance_km": 2487.3,
-          "distance_mi": 1545.5
-        },
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.34,
-          "distance_km": 1224.4,
-          "distance_mi": 760.8
-        }
-      ],
-      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1). Adjusted to ~2.4 years for The Dollywood Company's own track record (~1.6-year typical pace across 1 prior project).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~3 months based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "belle-meade-village": {
       "source": "district",
@@ -487,38 +443,38 @@
       "delivery_speculative": true
     },
     "the-carnelian": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 188,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 507,
+      "delivery_date": "2027-11-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "medium",
       "project_type": "Hotel",
       "metro": "Southwest Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~6 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
     },
     "ymca-of-the-palm-beaches": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 188,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 0.6,
+      "estimate_label": "~7 months",
+      "days_out": 203,
+      "delivery_date": "2027-01-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Park",
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~7 months based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "inscription": {
       "estimate_years": 2.0,
@@ -686,21 +642,65 @@
       "is_mixed_use": false
     },
     "jean-georges-miami-tropic-residences": {
-      "estimate_years": 3.5,
-      "estimate_label": "~3.5 years",
-      "days_out": 1284,
-      "delivery_date": "2029-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
+      "estimate_years": 3.1,
+      "estimate_label": "~3.1 years",
+      "range_low": 1.7,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 12,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.48,
+      "avg_distance_km": 371.2,
+      "avg_distance_mi": 230.7,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Arquitectonica",
+        "count": 13,
+        "median_years": 3.13,
+        "stddev_years": 1.68,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "comparables": [
+        {
+          "name": "E11EVEN® Club Hotel & Residences",
+          "slug": "e11even-club-hotel-residences",
+          "location": "Miami",
+          "years": 4.3,
+          "score": 1.0,
+          "distance_km": 3.2,
+          "distance_mi": 2.0
+        },
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.64,
+          "distance_km": 326.1,
+          "distance_mi": 202.6
+        },
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.61,
+          "distance_km": 110.0,
+          "distance_mi": 68.4
+        }
+      ],
+      "pattern_summary": "Among 12 residences projects in TMW's data, the median build time is 3.2 years (range 1.7–4.3). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 13 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "1250-west-avenue": {
       "estimate_years": 3.1,
@@ -6195,10 +6195,10 @@
       "delivery_speculative": false
     },
     "hudson-yards-west": {
-      "estimate_years": 5.9,
-      "estimate_label": "~5.9 years",
+      "estimate_years": 5.6,
+      "estimate_label": "~5.6 years",
       "range_low": 3.0,
-      "range_high": 7.8,
+      "range_high": 6.7,
       "confidence": "low",
       "comparable_count": 4,
       "good_count": 0,
@@ -6210,12 +6210,12 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Owings & Merrill",
-        "count": 2,
-        "median_years": 7.78,
-        "stddev_years": 1.04,
+        "count": 3,
+        "median_years": 6.74,
+        "stddev_years": 2.17,
         "role": "architect",
         "consistent": false,
-        "blend_weight": 0.55
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -6249,7 +6249,7 @@
           "distance_mi": 2.8
         }
       ],
-      "pattern_summary": "Among 4 residences projects in TMW's data, the median build time is 3.5 years (range 3–7.8). Adjusted to ~5.9 years for Owings & Merrill's own track record (~7.8-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 4 residences projects in TMW's data, the median build time is 3.5 years (range 3–6.7). Adjusted to ~5.6 years for Owings & Merrill's own track record (~6.7-year typical pace across 3 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -7587,9 +7587,9 @@
       "delivery_speculative": false
     },
     "burj-jumeira": {
-      "estimate_years": 10.4,
-      "estimate_label": "~10.4 years",
-      "range_low": 9.7,
+      "estimate_years": 9.4,
+      "estimate_label": "~9.4 years",
+      "range_low": 8.4,
       "range_high": 11.2,
       "confidence": "low",
       "comparable_count": 1,
@@ -7602,12 +7602,12 @@
       "scale_used": false,
       "firm_signal": {
         "firm": "Owings & Merrill",
-        "count": 2,
-        "median_years": 7.78,
-        "stddev_years": 1.04,
+        "count": 3,
+        "median_years": 6.74,
+        "stddev_years": 2.17,
         "role": "architect",
         "consistent": false,
-        "blend_weight": 0.55
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Mixed-Use",
@@ -7623,7 +7623,7 @@
           "distance_mi": 0.2
         }
       ],
-      "pattern_summary": "Mixed-use developments of this scale routinely span 9.7–11.2 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 8.4–11.2 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -11168,7 +11168,7 @@
     "skipped": 62,
     "no_type": 0,
     "firm_boosted": 34,
-    "speculative_softened": 121,
+    "speculative_softened": 122,
     "district": 11,
     "mixed_use_adjusted": 8
   }
