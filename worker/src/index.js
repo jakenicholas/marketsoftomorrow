@@ -1660,10 +1660,12 @@ async function handleDiscoveryQueue(env, origin, url) {
     if (processed.has(key)) return;
     let a = byQuery.get(key);
     if (!a) {
-      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, source: source };
+      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, searches: 0, fromAudit: false, source: source };
       byQuery.set(key, a);
     }
     a.auto = (a.auto || 0) + 1;
+    if (source === 'reader_search') a.searches = (a.searches || 0) + 1;
+    if (source === 'daily_audit') a.fromAudit = true;
     a.result_n++;   // result_sum += 0 → average stays 0 (it's a zero-result query)
     if (ts > a.last_ts) a.last_ts = ts;
   }
@@ -1700,15 +1702,19 @@ async function handleDiscoveryQueue(env, origin, url) {
     let dom = '', domN = 0;
     for (const k in a.kinds) { if (a.kinds[k] > domN) { dom = k; domN = a.kinds[k]; } }
     const avg = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
-    // A real thumbs-down OR any auto zero-result signal qualifies; the result
-    // must have been empty/marginal.
-    const needs = (a.down >= 1 || a.auto) && (avg === 0 || dom === 'empty');
+    // Qualify a zero/empty-result query when the signal is deliberate enough:
+    //   • a reader thumbs-DOWN (a.down) — one is enough, it's an explicit flag;
+    //   • the daily audit flagged it (a.fromAudit) — curated, not random;
+    //   • a reader SEARCH that recurred 2+ times (a.searches >= 2) — real demand,
+    //     not a one-off typo/fat-finger. A single ad-hoc search is ignored.
+    const qualifies = a.down >= 1 || a.fromAudit || (a.searches || 0) >= 2;
+    const needs = qualifies && (avg === 0 || dom === 'empty');
     if (!needs) return;
     // Hint: a plain-English brief the discovery routine drops into its prompt.
     // Names the signal source so the LLM has context without re-deriving it.
     const who = a.down >= 1 ? 'A reader flagged'
-      : a.source === 'daily_audit' ? 'The daily search audit ran'
-      : 'A reader searched';
+      : a.fromAudit ? 'The daily search audit ran'
+      : 'Readers searched';
     const hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
       + who + ' "' + a.query + '" and the database returned '
       + (avg === 0 ? 'zero results' : ('only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')))
@@ -1723,7 +1729,7 @@ async function handleDiscoveryQueue(env, origin, url) {
       last_ts: a.last_ts,
       avg_results: avg,
       dominant_kind: dom,
-      source: (a.down >= 1 ? 'reader_flag' : (a.source || 'reader_search')),
+      source: (a.down >= 1 ? 'reader_flag' : a.fromAudit ? 'daily_audit' : 'reader_search'),
       hint: hint,
     });
   });
