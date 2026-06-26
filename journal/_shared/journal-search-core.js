@@ -1269,11 +1269,31 @@
     });
     return { dominantType: dominantType, soonest: soonest, flagships: flagships.length ? flagships : null };
   }
+  // The freshest sourced development from a project's dossier (StatusHistory) —
+  // the concrete "more info" line (e.g. "broke ground June 8, 2026; completion
+  // late 2027"). Gives TMW Intelligence per-project awareness beyond the static
+  // description, so answers cite what actually just happened. Most recent note
+  // with real text wins; capped so the facts payload stays lean.
+  function latestUpdateOf(p) {
+    var sh = p.StatusHistory;
+    if (!Array.isArray(sh) || !sh.length) return '';
+    var withNote = sh.filter(function (e) {
+      if (!e || !e.note) return false;
+      var n = String(e.note).trim();
+      // skip internal data-ops notes (neighborhood/field backfills, housekeeping)
+      // — they aren't news and would waste the model's attention.
+      return n && !/backfill|per our [a-z ]*coverage|housekeep/i.test(n);
+    });
+    if (!withNote.length) return '';
+    withNote.sort(function (a, b) { return String(b.at || '').localeCompare(String(a.at || '')); });
+    return String(withNote[0].note).trim().slice(0, 220);
+  }
   // Enriched project shape shared by both fact-payload builders.
   function factRow(p) {
     return { id: p.Slug || '', name: p.Title || '', city: p.City || '', status: p.Delivery || '', type: _primaryType(p),
       floors: floorsOf(p) || null, units: unitsOf(p) || null, delivery: fmtDelivery(p) || '',
-      district: _isDistrict(p), blurb: String(p.Description || '').slice(0, 140) };
+      district: _isDistrict(p), blurb: String(p.Description || '').slice(0, 140),
+      update: latestUpdateOf(p) };
   }
 
   // Build the LLM facts payload from the resolved rows. Numbers are

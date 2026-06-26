@@ -5692,6 +5692,7 @@ async function handleSmartAnswer(request, env, origin) {
       delivery: String(p.delivery || '').slice(0, 16),
       district: !!p.district,
       blurb: String(p.blurb || '').slice(0, 160),
+      update: String(p.update || '').slice(0, 220),
     })),
     dominant_type: facts.dominantType ? {
       type: String(facts.dominantType.type || '').slice(0, 40),
@@ -5839,6 +5840,10 @@ async function handleSmartAnswer(request, env, origin) {
     '- Use ONLY the facts provided. Never invent or infer a number, name, date, status, or place not present. ' +
     'Figures are verified, not generated.\n' +
     '- Pull descriptive specifics (cost, acreage, scale) ONLY from a project\'s `blurb`; never invent them.\n' +
+    '- DOSSIER AWARENESS: a project may carry an `update` — the freshest SOURCED development from its dossier ' +
+    '(e.g. "broke ground June 8, 2026; completion late 2027"). When present it is the most current, concrete fact ' +
+    'we have — prefer it for specifics (recent milestone, exact date, latest count) and let it sharpen the lead. ' +
+    'It is verified like every other fact: cite it, never contradict or embellish it.\n' +
     '- If there is only ONE result, state it plainly — no "tallest / largest / most".\n' +
     '- TYPE FIDELITY: a typed query (e.g. "condos") must feature only projects of that `type`. Never headline an ' +
     'off-type project (single-family houses, a hotel, etc.) even if it opens soonest.\n' +
