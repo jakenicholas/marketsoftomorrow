@@ -346,15 +346,27 @@ async function handleTopazUpscale(request, env, origin, url) {
   const sub = url.pathname.replace(/^\/topaz\/?/, '');
 
   if (sub === 'enhance' && request.method === 'POST') {
-    let form;
-    try { form = await request.formData(); } catch { return json({ error: 'expected multipart/form-data' }, { status: 400 }, env, origin); }
-    const file = form.get('image');
-    if (!file || typeof file === 'string') return json({ error: 'image file is required' }, { status: 400 }, env, origin);
+    const ct = request.headers.get('Content-Type') || '';
     const out = new FormData();
-    out.append('image', file, (file.name || 'export.png'));
-    out.append('model', String(form.get('model') || 'Standard V2'));
-    out.append('output_format', String(form.get('output_format') || 'png'));
-    const ow = form.get('output_width'), oh = form.get('output_height');
+    let model = 'Standard V2', outFmt = 'png', ow, oh;
+    if (ct.indexOf('application/json') >= 0) {
+      // Photo-only flow: the editor passes the photo's public URL — Topaz fetches
+      // it directly (no byte upload, no browser CORS).
+      let b = {}; try { b = await request.json(); } catch {}
+      if (!b.source_url) return json({ error: 'source_url or an image file is required' }, { status: 400 }, env, origin);
+      out.append('source_url', String(b.source_url));
+      model = b.model || model; outFmt = b.output_format || outFmt; ow = b.output_width; oh = b.output_height;
+    } else {
+      let form;
+      try { form = await request.formData(); } catch { return json({ error: 'expected multipart/form-data or JSON' }, { status: 400 }, env, origin); }
+      const file = form.get('image');
+      if (!file || typeof file === 'string') return json({ error: 'image file is required' }, { status: 400 }, env, origin);
+      out.append('image', file, (file.name || 'export.png'));
+      model = form.get('model') || model; outFmt = form.get('output_format') || outFmt;
+      ow = form.get('output_width'); oh = form.get('output_height');
+    }
+    out.append('model', String(model));
+    out.append('output_format', String(outFmt));
     if (ow) out.append('output_width', String(parseInt(ow, 10) || ''));
     if (oh) out.append('output_height', String(parseInt(oh, 10) || ''));
     let r;
