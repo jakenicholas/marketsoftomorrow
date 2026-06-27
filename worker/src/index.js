@@ -335,6 +335,10 @@ async function handleIntelThread(request, env, origin, url) {
 // raw events table. Cheap at low volume; if rows ever exceed ~10k we'd
 // move sessions/active_days to a precomputed table.
 async function handlePeople(env, origin, url) {
+  // Self-heal the registry: drop any non-Memberstack rows (system:* telemetry,
+  // anon, bots) that were holding founding numbers, so this view never shows a
+  // fake member with a seat.
+  try { await ensureMembersTable(env); } catch (_) {}
   const rs = await env.DB.prepare(
     `SELECT member_id, email, member_name, plan, ts
      FROM events
@@ -344,6 +348,9 @@ async function handlePeople(env, origin, url) {
   // Walk rows, group by member, compute stats in one pass.
   const members = new Map();
   for (const row of (rs.results || [])) {
+    // `system:*` ids are internal telemetry markers (system:smart-answer,
+    // system:tmw-project-discovery, …), not people — keep them out of the roster.
+    if (row.member_id && String(row.member_id).indexOf('system:') === 0) continue;
     let m = members.get(row.member_id);
     if (!m) {
       m = {
@@ -6447,21 +6454,23 @@ async function ensureMembersTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS members (
     member_id TEXT PRIMARY KEY, email TEXT, member_no INTEGER,
     joined_at INTEGER, founding INTEGER DEFAULT 0, market TEXT)`).run();
+  // Purge any registry rows that aren't real Memberstack accounts — anon
+  // visitors, server telemetry markers (`system:smart-answer`, etc.), bots.
+  // These were created before the mem_ guard and were holding founding numbers;
+  // deleting them frees those seats. Idempotent, so it self-heals on every call.
+  try { await env.DB.prepare("DELETE FROM members WHERE member_id NOT LIKE 'mem_%'").run(); } catch (_) {}
 }
 async function ensureMemberRecord(env, memberId, email, joinedTs) {
-  // Anonymous, logged-out visitors carry an `anon:<device-id>` id. They must
-  // NOT consume a member number — only real Memberstack accounts (`mem_*`) get
-  // a registry seat. (Anon visitors were silently burning founding numbers.)
-  if (!memberId || String(memberId).indexOf('anon:') === 0) return null;
+  // ONLY a real Memberstack account (`mem_*`) is ever a registry member. anon:,
+  // system:* (server telemetry markers like system:smart-answer), bots, and any
+  // other id get NO seat — even if a stale row exists. People get a founding
+  // number only by creating an account. (Checked BEFORE the row lookup so a
+  // leftover non-mem row can never be returned as a "member".)
+  if (!memberId || String(memberId).indexOf('mem_') !== 0) return null;
   try { await ensureMembersTable(env); } catch { return null; }
   try {
     let row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
     if (row) return row;
-    // Only a real Memberstack account (mem_*) earns a NEW registry seat. Bots,
-    // crawlers, and server-side callers (e.g. /smart-answer traffic with a stray
-    // id) must NOT consume a founding number — they were silently burning the
-    // first 50 seats. People get a founding number only by creating an account.
-    if (String(memberId).indexOf('mem_') !== 0) return null;
     let no;
     if (email && email.toLowerCase() === FOUNDER_EMAIL) no = 1;
     else { const mx = await env.DB.prepare('SELECT MAX(member_no) AS m FROM members').first(); no = Math.max(1, (mx && mx.m) || 1) + 1; }
