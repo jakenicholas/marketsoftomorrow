@@ -9982,39 +9982,21 @@
       "delivery_speculative": true
     },
     "chalet-alpina": {
-      "estimate_years": 8.1,
-      "estimate_label": "~8.1 years",
-      "range_low": 8.1,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.64,
-      "avg_distance_km": 2837.3,
-      "avg_distance_mi": 1763.0,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1283,
+      "delivery_date": "2029-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
       "project_type": "Hotel",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.64,
-          "distance_km": 2837.3,
-          "distance_mi": 1763.0
-        }
-      ],
-      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 8.1 years.",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~3.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "six-senses-telluride": {
       "estimate_years": 2.5,
@@ -11568,8 +11550,8 @@
   "stats": {
     "high": 6,
     "medium": 15,
-    "low": 46,
-    "known_date": 403,
+    "low": 45,
+    "known_date": 404,
     "completed": 60,
     "skipped": 60,
     "no_type": 0,
