@@ -206,7 +206,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Article headline' },
-        body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image.' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image. Use AT MOST 10 images per article (any beyond the first 10 are dropped automatically).' },
         excerpt: { type: 'string', description: '1–2 sentence summary (optional; auto-derived if omitted)' },
         category: { type: 'string', description: 'Primary category label (optional)' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
@@ -227,7 +227,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         title:         { type: 'string', description: 'Shared title for the article and the design.' },
-        body_markdown: { type: 'string', description: 'Article body in Markdown (same syntax as create_post_draft). Folder photos are auto-inserted between paragraphs; you may also place ![alt](url) yourself.' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown (same syntax as create_post_draft). Folder photos are auto-inserted between paragraphs; you may also place ![alt](url) yourself. Articles use AT MOST 10 images (folder pull + any you place is capped at 10).' },
         slides: {
           type: 'array',
           description: 'Carousel slides for the design — one per slide: { text, template?, image?, tagline? }. Same shape as create_design_draft.',
@@ -265,7 +265,7 @@ const TOOLS = [
       properties: {
         slug: { type: 'string', description: 'Slug of the draft to edit' },
         title: { type: 'string' },
-        body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links.' },
+        body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links. Use AT MOST 10 images per article (extras are dropped automatically).' },
         excerpt: { type: 'string' },
         category: { type: 'string' },
         cover_image: { type: 'string' },
@@ -834,7 +834,19 @@ function slugify(s) {
 
 // Sprinkle image URLs through a Markdown body — one ![](url) figure spread evenly
 // between paragraphs (skips inserting right after a heading).
+// Hard cap on images per article. Keeps the first MAX markdown image tokens
+// (![alt](url), incl. the captioned ![alt](url "cap") form) in document order
+// and strips the rest, so no article body ever ships more than MAX images —
+// whether they came from the model's markdown or the folder auto-sprinkle.
+const MAX_ARTICLE_IMAGES = 10;
+function capArticleImages(md) {
+  if (!md) return md;
+  let n = 0;
+  return String(md).replace(/!\[[^\]]*\]\([^)]*\)/g, (m) => (++n <= MAX_ARTICLE_IMAGES ? m : ''));
+}
+
 function sprinkleImagesIntoMarkdown(md, images) {
+  if (images && images.length > MAX_ARTICLE_IMAGES) images = images.slice(0, MAX_ARTICLE_IMAGES);
   if (!images || !images.length) return md || '';
   const blocks = String(md || '').split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
   if (!blocks.length) return images.map((u) => `![](${u})`).join('\n\n');
@@ -1672,7 +1684,7 @@ const IMPL = {
       const rows = await env.DB.prepare(
         `SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`
       ).bind(String(args.folder)).all();
-      images = (rows.results || []).map((r) => r.url).filter(Boolean);
+      images = (rows.results || []).map((r) => r.url).filter(Boolean).slice(0, MAX_ARTICLE_IMAGES);
     }
     // 1) ARTICLE — cover = first photo (unless given); the rest sprinkle through the body.
     const cover    = args.cover_image || images[0] || undefined;
@@ -1874,7 +1886,7 @@ const IMPL = {
     const exists = await env.DB.prepare('SELECT 1 FROM posts WHERE slug = ?1 LIMIT 1').bind(slug).first();
     if (exists) slug = (slug + '-' + Math.random().toString(36).slice(2, 6)).slice(0, 160);
     const id = 'tmw-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
-    let bodyHtml = mdToHtml(args.body_markdown || '');
+    let bodyHtml = mdToHtml(capArticleImages(args.body_markdown || ''));
     const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
     if (linkedSlug && !/class=["']tmw-(project-card|map-embed)["']/.test(bodyHtml)) {
       bodyHtml += `\n<div class="tmw-project-card" data-project="${linkedSlug}"></div>`;
@@ -1921,7 +1933,7 @@ const IMPL = {
 
     // Body: rebuild from markdown if given; otherwise start from the stored body
     // so we can inject a project-card link without a full rewrite.
-    let finalBody = (args.body_markdown != null) ? mdToHtml(args.body_markdown) : null;
+    let finalBody = (args.body_markdown != null) ? mdToHtml(capArticleImages(args.body_markdown)) : null;
     const derivedExcerpt = (args.body_markdown != null) ? stripHtml(finalBody).slice(0, 180) : null;
     const linkedSlug = args.linked_project ? String(args.linked_project).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : '';
     if (linkedSlug) {
