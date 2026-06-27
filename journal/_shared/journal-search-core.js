@@ -467,7 +467,7 @@
     { name:'Greater Jacksonville', state:'FL', triggers:['first coast','jacksonville metro','greater jacksonville'], counties:['Duval County','St. Johns County','Clay County','Nassau County'] },
     { name:'The Florida Keys',  state:'FL', triggers:['florida keys','the keys'],                    counties:['Monroe County'] },
     // — New York —
-    { name:'New York City',     state:'NY', triggers:['nyc','new york city','the five boroughs','five boroughs'], counties:['New York County','Kings County','Queens County','Bronx County','Richmond County'] },
+    { name:'New York City',     state:'NY', triggers:['new york city','new york','nyc','the five boroughs','five boroughs'], counties:['New York County','Kings County','Queens County','Bronx County','Richmond County'] },
     { name:'Manhattan',         state:'NY', triggers:['manhattan'],                                  counties:['New York County'] },
     { name:'Brooklyn',          state:'NY', triggers:['brooklyn'],                                   counties:['Kings County'] },
     { name:'Queens (NYC)',      state:'NY', triggers:['queens nyc','queens new york'],               counties:['Queens County'] },
