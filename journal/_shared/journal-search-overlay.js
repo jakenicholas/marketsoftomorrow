@@ -1972,6 +1972,28 @@
   // follow-up resolution, `answer` powers conversation context + persistence.
   var _thread = [];                  // [{ q, parsed, answer }]
   var _THREAD_KEY = 'tmw_intel_thread';
+  // Sticky output preference: once the user clicks a tab (Intelligence / Projects
+  // / Journal / All), that becomes the default lens for FOLLOWING queries instead
+  // of re-guessing per query. Persists per device. Falls back to the per-query
+  // smart default only when the chosen category isn't available for that result.
+  var _FILTER_KEY = 'tmw_intel_filter_pref';
+  var _stickyFilter = '';
+  try { _stickyFilter = localStorage.getItem(_FILTER_KEY) || ''; } catch(_){}
+  function _setStickyFilter(f){
+    _stickyFilter = f || '';
+    try { if (_stickyFilter) localStorage.setItem(_FILTER_KEY, _stickyFilter); else localStorage.removeItem(_FILTER_KEY); } catch(_){}
+  }
+  // Honor the sticky preference when its category has content for this result;
+  // otherwise use the computed smart default. counts: {intel, projects, firms}.
+  function _stickyDefault(computed, counts){
+    counts = counts || {};
+    if (!_stickyFilter) return computed;
+    if (_stickyFilter === 'all' || _stickyFilter === 'articles') return _stickyFilter;  // All + Journal always available
+    if (_stickyFilter === 'intel' && counts.intel) return 'intel';
+    if (_stickyFilter === 'projects' && counts.projects > 0) return 'projects';
+    if (_stickyFilter === 'firms' && counts.firms > 0) return 'firms';
+    return computed;
+  }
   // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
   // The map page (and others) don't all load member-track.js / set __tmwMember,
   // so resolve the member directly from Memberstack and cache it. Falls back to
@@ -2611,6 +2633,7 @@
     // rather than isolating one tab. Otherwise: projects if we have them, else
     // just the Intelligence answer.
     var defFilter = (s.iconic && iconicHits.length) ? 'all' : (rows.length ? 'projects' : 'intel');
+    defFilter = _stickyDefault(defFilter, { intel: true, projects: rows.length, firms: 0 });
     sResults.setAttribute('data-filter', defFilter);
     // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
     // CA query). Only for an actual US state (stateCode set, or Florida).
@@ -3128,8 +3151,9 @@
       slotEntities.innerHTML = '';
       _heroArticleRef = null;
       _lastFilterCounts = { intel: question, projects: 0, firms: 0 };
-      // No DB hits — the Intelligence answer is the response, so lead with it.
-      sResults.setAttribute('data-filter', question ? 'intel' : 'articles');
+      // No DB hits — the Intelligence answer is the response, so lead with it
+      // (unless the user has a sticky lens that's available here).
+      sResults.setAttribute('data-filter', _stickyDefault(question ? 'intel' : 'articles', _lastFilterCounts));
       renderArticleSection(q, token);
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
@@ -3315,6 +3339,7 @@
     var defF = _lastFilterCounts.projects > 0 ? 'projects'
              : _lastFilterCounts.firms > 0 ? 'firms'
              : (question ? 'intel' : 'articles');
+    defF = _stickyDefault(defF, _lastFilterCounts);   // honor the user's chosen lens if available
     sResults.setAttribute('data-filter', defF);
     renderArticleSection(q, token);
 
@@ -3735,6 +3760,7 @@
     if (pill) {
       e.preventDefault();
       var filter = pill.getAttribute('data-filter') || 'all';
+      _setStickyFilter(filter);   // remember this lens for following queries
       var allPills = pill.parentNode ? pill.parentNode.querySelectorAll('.tmw-ov-fp') : [];
       for (var i = 0; i < allPills.length; i++) {
         allPills[i].classList.toggle('active', allPills[i] === pill);
