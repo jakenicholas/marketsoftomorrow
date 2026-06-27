@@ -928,17 +928,24 @@
   //     The overlay calls into it; safe to load in either order since the
   //     overlay defensively checks for window.TmwSearchCore on each query.
   //   - journal-search-overlay.js: the overlay UI itself.
+  // Cache-bust the search scripts with a version token so a new build is fetched
+  // under a fresh URL — bypassing aggressive client/proxy caches (e.g. Chrome
+  // mobile Data Saver) that ignore `must-revalidate`. BUMP this whenever
+  // journal-search-overlay.js or journal-search-core.js changes. (This file is
+  // itself must-revalidate, so a compliant browser picks up the new token; once
+  // it does, the versioned URL guarantees the new search code loads.)
+  var SEARCH_V = '20260627';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');
-      c.src = '/_shared/journal-search-core.js';
+      c.src = '/_shared/journal-search-core.js?v=' + SEARCH_V;
       c.defer = true;
       c.setAttribute('data-tmw-search-core', '1');
       document.head.appendChild(c);
     }
     if (document.querySelector('script[data-tmw-search-overlay]')) return;
     var s = document.createElement('script');
-    s.src = '/_shared/journal-search-overlay.js';
+    s.src = '/_shared/journal-search-overlay.js?v=' + SEARCH_V;
     s.defer = true;
     s.setAttribute('data-tmw-search-overlay', '1');
     document.head.appendChild(s);
