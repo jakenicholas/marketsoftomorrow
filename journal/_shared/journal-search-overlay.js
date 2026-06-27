@@ -1888,9 +1888,10 @@
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
       }
-      // Position the answer: long → lead with its message at top; short → the
-      // flex bottom-anchor rests it above the search box.
-      if (on) positionLatestTurn(true);
+      // NOTE: do NOT scroll here. setState fires on every render AND async
+      // re-render (LLM upgrade, journal body-scan), so scrolling here yanked the
+      // view back down whenever the user had scrolled up to read/vote on an
+      // earlier turn. Scrolling happens once, on the user's new turn (newTurn).
     }
   }
 
@@ -1961,6 +1962,15 @@
   function threadHistory(){
     return _thread.slice(0, -1).filter(function(t){ return t.q && t.answer; })
       .slice(-3).map(function(t){ return { q: t.q, answer: t.answer }; });
+  }
+  // Only a short elliptical follow-up ("what about Miami?", "and condos?") should
+  // carry prior-turn context to the LLM. A complete query is answered single-turn
+  // (the proven-good path) — sending history made it reference the wrong prior
+  // facts and turn apologetic ("outside our verified coverage").
+  function _isFollowupQ(q){
+    var qn = String(q || '').trim().toLowerCase().replace(/[?!.]+$/, '');
+    var wc = qn ? qn.split(/\s+/).length : 0;
+    return wc > 0 && (wc <= 4 || /^(and|or|but|what about|how about|whatabout|ok|okay|now|also|plus|then|in|for)\b/.test(qn));
   }
 
   // ── Resume last session ─────────────────────────────────────────────
@@ -2451,7 +2461,10 @@
     // Smart default tab (req 2/3): an iconic/"best X" ask leads with Journal; a
     // pipeline ask ("tallest towers") leads with Projects; anything else shows
     // just the Intelligence answer. The user can still click All / any tab.
-    var defFilter = s.iconic ? 'articles' : (rows.length ? 'projects' : 'intel');
+    // Lead with Journal ONLY when an iconic list actually populated (otherwise
+    // an iconic-cued query with no curated hits would hide its project rows and
+    // leave just loose journal articles). Falls back to Projects, then Intel.
+    var defFilter = (s.iconic && iconicHits.length) ? 'articles' : (rows.length ? 'projects' : 'intel');
     sResults.setAttribute('data-filter', defFilter);
     renderArticleSection(q, token, { suppressFallback: iconicHits.length > 0 });
 
@@ -2484,7 +2497,7 @@
     var Core = window.TmwSearchCore;
     if (!Core) return;
     var facts = Core.buildSmartFacts(s, rows, iconicHits);
-    var hist = threadHistory();                              // prior turns → conversation context
+    var hist = _isFollowupQ(q) ? threadHistory() : [];       // context only for real follow-ups
     var _intelSlot = slotIntel;                              // capture THIS turn's slot (it moves per turn)
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     var myToken = ++_intelToken;

@@ -6416,6 +6416,11 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
   try {
     let row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
     if (row) return row;
+    // Only a real Memberstack account (mem_*) earns a NEW registry seat. Bots,
+    // crawlers, and server-side callers (e.g. /smart-answer traffic with a stray
+    // id) must NOT consume a founding number — they were silently burning the
+    // first 50 seats. People get a founding number only by creating an account.
+    if (String(memberId).indexOf('mem_') !== 0) return null;
     let no;
     if (email && email.toLowerCase() === FOUNDER_EMAIL) no = 1;
     else { const mx = await env.DB.prepare('SELECT MAX(member_no) AS m FROM members').first(); no = Math.max(1, (mx && mx.m) || 1) + 1; }
