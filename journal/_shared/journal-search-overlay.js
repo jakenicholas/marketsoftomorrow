@@ -1948,6 +1948,7 @@
     if (!q) return;
     _userInteracted = true;   // the user took over → don't let a pending cloud-resume overwrite their turn
     _replaySeq++;             // cancel any in-flight resume replay
+    _replaying = false;       // a real user query → DO track it
     input.value = '';
     if (go) go.classList.remove('ready');
     _thread.push({ q: q, parsed: null, answer: null });
@@ -2117,6 +2118,7 @@
   // member's cloud thread while we're still reconciling it.
   var _replaySeq = 0;        // bumps to cancel an in-flight replay (adopt-cloud / user-takeover)
   var _userInteracted = false;   // set on a user submit; blocks a late cloud-resume from overwriting their turn
+  var _replaying = false;        // true while restoring a saved thread — suppresses analytics + quota (it's a re-render, not a new query)
   function _resumeReplay(qs){
     if (!qs || !qs.length) return;
     var mySeq = ++_replaySeq;
@@ -2124,10 +2126,11 @@
     _thread = [];
     if (_threadEl) _threadEl.innerHTML = '';   // clear any prior render (e.g. swapping a stale local thread for the cloud one)
     sStarter.classList.add('tmw-ov-hidden');   // never flash the teach card before the replay
+    _replaying = true;                         // suppress analytics/quota for restored turns
     loadData().then(function(){
       (function next(i){
-        if (mySeq !== _replaySeq) return;      // a newer replay (or a user submit) superseded this one
-        if (i >= qs.length) return;
+        if (mySeq !== _replaySeq) { _replaying = false; return; }   // superseded → stop suppressing
+        if (i >= qs.length) { _replaying = false; return; }          // done → tracking back on
         var q = qs[i];
         _thread.push({ q: q, parsed: null, answer: null });
         newTurn(q);
@@ -2687,8 +2690,8 @@
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
-      if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
-      if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
+      if (!_replaying && window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
+      if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
     } catch(_){}
 
     _lastResultsTotal = rows.length + iconicHits.length;
@@ -3169,7 +3172,7 @@
       // weak description-only matches, more real gaps land here — so capturing
       // them matters more, not less.
       try {
-        if (window.tmwIntel && window.tmwIntel.trackSearch) {
+        if (!_replaying && window.tmwIntel && window.tmwIntel.trackSearch) {
           window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
         }
       } catch(_){}
@@ -3349,7 +3352,7 @@
       _lastResultsTotal = 0;
       _lastResultKind = 'empty';
       try {
-        if (window.tmwIntel && window.tmwIntel.trackSearch) {
+        if (!_replaying && window.tmwIntel && window.tmwIntel.trackSearch) {
           window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
         }
       } catch (_) {}
@@ -3387,7 +3390,7 @@
     // paths, so without this branch the Studio would lose visibility on
     // every typed query that didn't trigger Intelligence.
     try {
-      if (!question && window.tmwIntel && window.tmwIntel.trackSearch) {
+      if (!_replaying && !question && window.tmwIntel && window.tmwIntel.trackSearch) {
         window.tmwIntel.trackSearch(q, { source: 'overlay', results: totalHits });
       }
     } catch(_){}
@@ -3576,8 +3579,8 @@
           // (intelligence.js
           // gate; Pro users are uncounted). Mirrors /search/.
           try {
-            if (window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
-            if (window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: facts.top.length, source: 'overlay' });
+            if (!_replaying && window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
+            if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: facts.top.length, source: 'overlay' });
           } catch(_){}
           // Let Intelligence's editorial pick drive the hero card — promote the
           // story it chose to feature over the blunt keyword-ranked one.
