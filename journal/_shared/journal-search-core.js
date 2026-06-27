@@ -377,7 +377,7 @@
     { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
     { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
     { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
-    { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','new','latest','most recent','recent','recently','just announced'] }
+    { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','latest','most recent','recently added','just added'] }
   ];
 
   var STATUS_BADGE = {
@@ -1053,6 +1053,13 @@
       pipeline = true;
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
     }
+    // Forward-looking "what's coming / new" asks order by the lifecycle spine
+    // (coming soon → recently opened → under construction by soonest completion →
+    // breaking ground → announced), NEVER by recency — a recency sort floats the
+    // most recently-ADDED project (often a just-Announced one) into the hero,
+    // which is exactly backwards. Quantitative sorts (tallest / most units /
+    // soonest delivery) still apply.
+    if (pipeline && sort && sort.key === 'updated') sort = null;
 
     // ICONIC LISTS. A curation ask ("best hotels", "good golf in california",
     // "iconic restaurants in miami") should surface our editorial iconic list
