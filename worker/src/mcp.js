@@ -238,6 +238,7 @@ const TOOLS = [
               template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
               image:    { type: 'string', description: 'Explicit photo URL — overrides the folder photo for this slide.' },
               tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
+              location: { type: 'string', description: 'City for the cover slide\'s location pin (e.g. "Miami", "West Palm Beach"). Set this on the first/cover slide (first_bl/first_tl/first_tr) so the pin shows the project\'s city instead of the placeholder.' },
             },
             required: ['text'],
           },
@@ -394,6 +395,7 @@ const TOOLS = [
               template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom. Use first_bl/first_tl/first_tr for a cover (title + location pin); photo_full for an image-only slide.' },
               image:    { type: 'string', description: 'Explicit photo URL (R2/CDN). Overrides the folder photo for this slide.' },
               tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
+              location: { type: 'string', description: 'City for the cover slide\'s location pin (e.g. "Miami", "West Palm Beach"). Set this on the first/cover slide (first_bl/first_tl/first_tr) so the pin shows the project\'s city instead of the placeholder.' },
             },
             required: ['text'],
           },
@@ -444,6 +446,7 @@ const TOOLS = [
               template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
               image:    { type: 'string', description: 'Explicit photo URL (overrides the folder photo for this slide).' },
               tagline:  { type: 'string', description: 'Override the tagline (rare).' },
+              location: { type: 'string', description: 'City for the cover slide\'s location pin (first_bl/first_tl/first_tr).' },
             },
             required: ['text'],
           },
@@ -1690,9 +1693,11 @@ const IMPL = {
     const slides = inSlides.slice(0, 20).map((s) => {
       const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
       const seed = {};
-      if (s && s.text != null)    seed.headline = String(s.text).slice(0, 800);
-      if (s && s.tagline != null) seed.tagline  = String(s.tagline).slice(0, 200);
-      const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right)_/.test(template) ? folderImages[photoIdx++] : undefined);
+      if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
+      if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);
+      if (s && s.location != null) seed.location = String(s.location).slice(0, 60);   // cover-slide pin text (the project city)
+      // first_* cover slides get a background photo too (they were excluded before).
+      const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right|first)_/.test(template) ? folderImages[photoIdx++] : undefined);
       if (img) seed.image = img;
       return { template, _seed: seed };
     });
@@ -1806,9 +1811,10 @@ const IMPL = {
       doc.slides = args.slides.slice(0, 20).map((s) => {
         const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
         const seed = {};
-        if (s && s.text != null)    seed.headline = String(s.text).slice(0, 800);
-        if (s && s.tagline != null) seed.tagline  = String(s.tagline).slice(0, 200);
-        const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right)_/.test(template) ? folderImages[photoIdx++] : undefined);
+        if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
+        if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);
+        if (s && s.location != null) seed.location = String(s.location).slice(0, 60);   // cover-slide pin text (the project city)
+        const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right|first)_/.test(template) ? folderImages[photoIdx++] : undefined);
         if (img) seed.image = img;
         return { template, _seed: seed };
       });
