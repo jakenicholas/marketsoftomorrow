@@ -2037,6 +2037,7 @@
   }
   function _threadQs(){ return _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12); }
   var _serverSaveTimer = null;
+  var _syncedTs = 0;   // cloud updated_at (server ms) this device is currently in sync with
   // Push the query list to the worker so the same member resumes on any device.
   // Debounced + best-effort; the localStorage copy remains the offline fallback.
   function saveThreadToServer(){
@@ -2048,24 +2049,51 @@
           fetch(WORKER_URL + '/intel-thread', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
             body: JSON.stringify({ member_id: mid, qs: _threadQs() })
-          }).then(function(){ try { console.info('[TMW Intelligence] conversation synced to your account'); } catch(_){} }).catch(function(){});
+          })
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){ if (d && d.ts) _syncedTs = d.ts; try { console.info('[TMW Intelligence] conversation synced to your account'); } catch(_){} })
+          .catch(function(){});
         } catch(_){}
       });
     }, 1200);
   }
   function fetchServerThread(){
     return _resolveMid().then(function(mid){
-      if (!mid) return null;
+      if (!mid) return { qs: null, ts: 0 };
       return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid) + '&t=' + Date.now(), { cache: 'no-store' })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           var qs = (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null;
-          if (qs) { try { console.info('[TMW Intelligence] ' + qs.length + ' saved queries found on your account'); } catch(_){} }
-          return qs;
+          return { qs: qs, ts: (d && d.ts) || 0 };
         })
-        .catch(function(){ return null; });
+        .catch(function(){ return { qs: null, ts: 0 }; });
     });
   }
+  // Live cross-device sync: while the overlay is open, adopt a thread written by
+  // ANOTHER device (cloud ts newer than our last sync) with no page refresh.
+  // The ts gate means this device's OWN saves never trigger a re-adopt, and a
+  // pending local save isn't clobbered (cloud ts only advances once it lands).
+  function _reconcileCloud(){
+    if (!root.classList.contains('open')) return;
+    fetchServerThread().then(function(res){
+      if (!res || !res.ts || res.ts <= _syncedTs) return;   // nothing newer than what we have
+      _syncedTs = res.ts;
+      if (res.qs && res.qs.join('') !== _threadQs().join('')) {
+        _userInteracted = false;
+        _resumeReplay(res.qs);
+      }
+    });
+  }
+  // Poll while the overlay is open so another device's update lands within ~10s
+  // even with both screens visible (no focus change). The listeners below make a
+  // device-switch (tab regains focus/visibility) sync instantly.
+  var _syncPoll = null;
+  function _startSyncPoll(){ clearInterval(_syncPoll); _syncPoll = setInterval(_reconcileCloud, 10000); }
+  function _stopSyncPoll(){ clearInterval(_syncPoll); _syncPoll = null; }
+  try {
+    document.addEventListener('visibilitychange', function(){ if (!document.hidden) _reconcileCloud(); });
+    window.addEventListener('focus', function(){ _reconcileCloud(); });
+  } catch(_){}
   function saveThread(){
     try {
       var qs = _threadQs();
@@ -3636,7 +3664,9 @@
 
       // Always reconcile with the cloud. fetchServerThread resolves the member
       // itself and returns null when logged out, so this is a safe no-op then.
-      fetchServerThread().then(function(serverQs){
+      fetchServerThread().then(function(res){
+        var serverQs = res && res.qs;
+        if (res && res.ts) _syncedTs = res.ts;   // baseline for live polling
         if (!serverQs || !serverQs.length) {
           if (localQs && localQs.length) saveThreadToServer();   // cloud empty: migrate this device up
           return;
@@ -3660,9 +3690,11 @@
     // waiting for the 60s interval.
     pushHash();
     try { if (window.__tmwPing) window.__tmwPing(); } catch(_){}
+    _startSyncPoll();   // live cross-device sync while open
   }
   function close(){
     if (!root.classList.contains('open')) return;
+    _stopSyncPoll();
     root.classList.remove('open');
     document.documentElement.style.overflow = '';
     setTimeout(function(){ window.scrollTo(0, _savedScrollY); }, 0);
