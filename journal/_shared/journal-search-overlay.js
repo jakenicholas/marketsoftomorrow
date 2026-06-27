@@ -2096,8 +2096,14 @@
     window.addEventListener('focus', function(){ _reconcileCloud(); });
   } catch(_){}
   function saveThread(){
+    var qs = _threadQs();
+    // Defense: before the user has actually submitted this session, never clobber a
+    // LONGER saved thread with a shorter one (guards against a race writing before a
+    // restore completes). Real submits set _userInteracted, so they always save.
+    if (!_userInteracted && qs.length) {
+      try { var stored = readThread(); if (stored && stored.length > qs.length) return; } catch(_){}
+    }
     try {
-      var qs = _threadQs();
       if (qs.length) localStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
       else localStorage.removeItem(_THREAD_KEY);
     } catch(_){}
@@ -2119,8 +2125,8 @@
   var _replaySeq = 0;        // bumps to cancel an in-flight replay (adopt-cloud / user-takeover)
   var _userInteracted = false;   // set on a user submit; blocks a late cloud-resume from overwriting their turn
   var _replaying = false;        // true while restoring a saved thread — suppresses analytics + quota (it's a re-render, not a new query)
-  function _resumeReplay(qs){
-    if (!qs || !qs.length) return;
+  function _resumeReplay(qs, done){
+    if (!qs || !qs.length) { if (done) done(); return; }
     var mySeq = ++_replaySeq;
     input.value = '';
     _thread = [];
@@ -2129,8 +2135,8 @@
     _replaying = true;                         // suppress analytics/quota for restored turns
     loadData().then(function(){
       (function next(i){
-        if (mySeq !== _replaySeq) { _replaying = false; return; }   // superseded → stop suppressing
-        if (i >= qs.length) { _replaying = false; return; }          // done → tracking back on
+        if (mySeq !== _replaySeq) { _replaying = false; return; }   // superseded → stop suppressing (NO done — a user took over)
+        if (i >= qs.length) { _replaying = false; if (done) done(); return; }   // done → tracking back on + run the continuation
         var q = qs[i];
         _thread.push({ q: q, parsed: null, answer: null });
         newTurn(q);
@@ -2138,6 +2144,24 @@
         (p && p.then ? p : Promise.resolve()).then(function(){ if (mySeq === _replaySeq) setTimeout(function(){ next(i + 1); }, 0); });
       })(0);
     });
+  }
+  // open(initialQuery) entry (e.g. a /?q=… deep link or an "open in search" launcher):
+  // RESTORE the saved conversation first, THEN append this query as a follow-up turn —
+  // so the deep link continues the thread instead of starting (and overwriting) a new one.
+  function _resumeThenSubmit(initialQuery){
+    var baseQs = readThread();
+    if (!baseQs) { var _r0 = readLastQuery(); if (_r0) baseQs = [_r0]; }
+    if (baseQs && baseQs.length) { _userInteracted = false; _resumeReplay(baseQs, function(){ submitQuery(initialQuery); }); return; }
+    // No local thread (cache cleared / different device): check the cloud, but don't
+    // stall the answer if it's slow or the user is logged out.
+    var fired = false;
+    var t = setTimeout(function(){ if (!fired) { fired = true; submitQuery(initialQuery); } }, 1500);
+    fetchServerThread().then(function(res){
+      if (fired) return; fired = true; clearTimeout(t);
+      var serverQs = res && res.qs;
+      if (serverQs && serverQs.length) { _userInteracted = false; _resumeReplay(serverQs, function(){ submitQuery(initialQuery); }); }
+      else submitQuery(initialQuery);
+    }).catch(function(){ if (!fired) { fired = true; clearTimeout(t); submitQuery(initialQuery); } });
   }
   // Prior turns (oldest→newest, capped) as { q, answer } for the LLM's context.
   function threadHistory(){
@@ -3651,7 +3675,7 @@
     // burned queries since the last time the overlay was opened.
     refreshProPill();
     if (initialQuery) {
-      submitQuery(initialQuery);
+      _resumeThenSubmit(initialQuery);   // restore the saved thread, then append this query (was: blow it away)
     } else if (_thread.length) {
       // Same-session reopen — the rendered thread is still in the DOM; leave it.
     } else {
