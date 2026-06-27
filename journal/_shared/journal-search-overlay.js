@@ -3274,22 +3274,26 @@
     _savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.style.overflow = 'hidden';
     root.classList.add('open');
-    setState('starter');
     // Refresh the PRO / quota badge in the teach card -- the user may have
     // burned queries since the last time the overlay was opened.
     refreshProPill();
     if (initialQuery) {
       input.value = initialQuery;
+      setState('thinking');   // a query is coming → never flash the teach screen
       onInput();
     } else {
-      // Resume the last session — reopen to the same populated results, not a
-      // blank reset. Re-running is free (already-seen query, server-cached answer).
+      // Resume the last session — reopen STRAIGHT to the populated results, not a
+      // blank reset. Show the resume-loading state immediately (NOT the teach
+      // screen, which used to flash for ~1s while the data reloaded), then render
+      // the results. Re-running is free (already-seen query, cached answer).
       var _resume = readLastQuery();
       if (_resume) {
         input.value = _resume;
+        setState('thinking');
         loadData().then(function(){ runQuery(_resume); });
       } else {
         input.value = '';
+        setState('starter');   // nothing to resume → the teach screen is correct
       }
     }
     // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
