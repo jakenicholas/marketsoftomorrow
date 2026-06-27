@@ -330,6 +330,71 @@ async function handleIntelThread(request, env, origin, url) {
   return json({ ok: true, ts }, {}, env, origin);
 }
 
+// ── Topaz Gigapixel upscale proxy ───────────────────────────────────────────
+// Admin-only (the Studio Design editor reaches it via /api/topaz/* with the
+// admin token). The Topaz API key lives ONLY here as the TOPAZ_API_KEY secret —
+// never shipped to the browser. Topaz's image API is async, so three sub-routes:
+//   POST /topaz/enhance   (multipart: image + model/output_width/output_height) → {process_id, eta}
+//   GET  /topaz/status?id=<process_id>  → {status}  ("Completed" when done)
+//   GET  /topaz/download?id=<process_id> → streams the finished image bytes
+async function handleTopazUpscale(request, env, origin, url) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  if (!env.TOPAZ_API_KEY) return json({ error: 'TOPAZ_API_KEY not set — add it as a worker secret (wrangler secret put TOPAZ_API_KEY).' }, { status: 503 }, env, origin);
+  const TOPAZ = 'https://api.topazlabs.com/image/v1';
+  const KEY = { 'X-API-Key': env.TOPAZ_API_KEY };
+  const sub = url.pathname.replace(/^\/topaz\/?/, '');
+
+  if (sub === 'enhance' && request.method === 'POST') {
+    let form;
+    try { form = await request.formData(); } catch { return json({ error: 'expected multipart/form-data' }, { status: 400 }, env, origin); }
+    const file = form.get('image');
+    if (!file || typeof file === 'string') return json({ error: 'image file is required' }, { status: 400 }, env, origin);
+    const out = new FormData();
+    out.append('image', file, (file.name || 'export.png'));
+    out.append('model', String(form.get('model') || 'Standard V2'));
+    out.append('output_format', String(form.get('output_format') || 'png'));
+    const ow = form.get('output_width'), oh = form.get('output_height');
+    if (ow) out.append('output_width', String(parseInt(ow, 10) || ''));
+    if (oh) out.append('output_height', String(parseInt(oh, 10) || ''));
+    let r;
+    try { r = await fetch(TOPAZ + '/enhance/async', { method: 'POST', headers: KEY, body: out }); }
+    catch (e) { return json({ error: 'topaz unreachable: ' + e.message }, { status: 502 }, env, origin); }
+    const txt = await r.text(); let j = {}; try { j = JSON.parse(txt); } catch {}
+    if (!r.ok) return json({ error: 'topaz enhance failed', http: r.status, detail: (j && (j.detail || j.error)) || txt.slice(0, 300) }, { status: 502 }, env, origin);
+    return json({ ok: true, process_id: j.process_id, eta: j.eta }, {}, env, origin);
+  }
+
+  if (sub === 'status' && request.method === 'GET') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+    let r; try { r = await fetch(TOPAZ + '/status/' + encodeURIComponent(id), { headers: KEY }); }
+    catch (e) { return json({ error: 'topaz unreachable: ' + e.message }, { status: 502 }, env, origin); }
+    const j = await r.json().catch(() => ({}));
+    return json({ ok: r.ok, status: j.status || null, progress: j.progress, eta: j.eta }, { status: r.ok ? 200 : 502 }, env, origin);
+  }
+
+  if (sub === 'download' && request.method === 'GET') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return json({ error: 'id required' }, { status: 400 }, env, origin);
+    let r; try { r = await fetch(TOPAZ + '/download/' + encodeURIComponent(id), { headers: KEY }); }
+    catch (e) { return json({ error: 'topaz unreachable: ' + e.message }, { status: 502 }, env, origin); }
+    const j = await r.json().catch(() => ({}));
+    const durl = (j && (j.download_url || j.url)) || '';
+    if (!r.ok || !durl) return json({ error: 'topaz download not ready', http: r.status }, { status: 502 }, env, origin);
+    // Fetch the presigned URL server-side and stream the bytes back (no CORS,
+    // and the editor never sees the temporary URL).
+    let img; try { img = await fetch(durl); } catch (e) { return json({ error: 'presigned fetch failed: ' + e.message }, { status: 502 }, env, origin); }
+    if (!img.ok) return json({ error: 'presigned fetch failed', http: img.status }, { status: 502 }, env, origin);
+    return new Response(img.body, {
+      status: 200,
+      headers: { 'Content-Type': img.headers.get('Content-Type') || 'image/png', 'Cache-Control': 'no-store', ...corsHeaders(env, origin) },
+    });
+  }
+
+  return json({ error: 'unknown topaz route' }, { status: 404 }, env, origin);
+}
+
 // GET /people — list of identified members, most recently active first.
 // Returns rich per-member stats (sessions, active_days) computed from the
 // raw events table. Cheap at low volume; if rows ever exceed ~10k we'd
@@ -7113,6 +7178,10 @@ export default {
       // Device-to-device TMW Intelligence chat resume (logged-in members).
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-thread') {
         return await handleIntelThread(request, env, origin, url);
+      }
+      // Topaz Gigapixel upscale proxy (admin-only — Studio Design export).
+      if (url.pathname.startsWith('/topaz/')) {
+        return await handleTopazUpscale(request, env, origin, url);
       }
       // First-party post view counter (public): beacon in, count map out.
       if (request.method === 'POST' && url.pathname === '/view') {
