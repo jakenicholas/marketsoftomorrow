@@ -908,7 +908,7 @@
       "days_out": 1283,
       "delivery_date": "2029-12-31",
       "inflight_undated": 0,
-      "pattern_summary": "Phased master plan — 3 components delivering through 2029; latest dated phase (Nora Apartments) ~3.5 years out."
+      "pattern_summary": "Phased master plan — 3 components delivering through 2029; latest dated phase (Nora House) ~3.5 years out."
     },
     "1428-brickell": {
       "estimate_years": 2.5,
@@ -3366,7 +3366,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Park",
+      "project_type": "Museum",
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
@@ -3524,10 +3524,10 @@
     "nora-house": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
-      "days_out": 1206,
-      "delivery_date": "2029-10-15",
+      "days_out": 1283,
+      "delivery_date": "2029-12-31",
       "source": "known_date",
-      "precision": "month",
+      "precision": "year",
       "confidence": "medium",
       "project_type": "Residences",
       "metro": "Palm Beach",
@@ -4743,12 +4743,12 @@
       "range_high": 7.8,
       "confidence": "high",
       "comparable_count": 13,
-      "good_count": 5,
-      "exact_count": 5,
+      "good_count": 6,
+      "exact_count": 6,
       "used_relaxed": false,
-      "avg_match_score": 0.59,
-      "avg_distance_km": 302.0,
-      "avg_distance_mi": 187.7,
+      "avg_match_score": 0.57,
+      "avg_distance_km": 421.0,
+      "avg_distance_mi": 261.6,
       "scale_used": true,
       "firm_signal": {
         "firm": "Jeff Greene",
@@ -4764,20 +4764,11 @@
       "metro": "Palm Beach",
       "comparables": [
         {
-          "name": "Alba",
-          "slug": "alba",
-          "location": "West Palm Beach",
-          "years": 2.8,
-          "score": 0.85,
-          "distance_km": 2.3,
-          "distance_mi": 1.4
-        },
-        {
           "name": "Nautilus 220",
           "slug": "nautilus-220",
           "location": "Lake Park",
           "years": 3.2,
-          "score": 0.85,
+          "score": 1.0,
           "distance_km": 6.8,
           "distance_mi": 4.2
         },
@@ -4789,6 +4780,15 @@
           "score": 0.76,
           "distance_km": 181.4,
           "distance_mi": 112.7
+        },
+        {
+          "name": "Inscription",
+          "slug": "inscription",
+          "location": "West Palm Beach",
+          "years": 2.0,
+          "score": 0.7,
+          "distance_km": 3.3,
+          "distance_mi": 2.0
         }
       ],
       "pattern_summary": "Among 13 residences projects in TMW's data, the median build time is 3.1 years (range 1.7–7.8). Adjusted to ~5.4 years for Jeff Greene's own track record (~8.7-year typical pace across 1 prior project).",

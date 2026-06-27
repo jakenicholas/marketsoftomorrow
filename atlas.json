@@ -31,7 +31,7 @@
     },
     {
       "type": "Museum",
-      "count": 10
+      "count": 11
     },
     {
       "type": "Stadium",
@@ -43,7 +43,7 @@
     },
     {
       "type": "Park",
-      "count": 7
+      "count": 6
     },
     {
       "type": "Retail",
@@ -1339,7 +1339,7 @@
       "yr": 2028,
       "sm": "2024-12",
       "ci": "West Palm Beach",
-      "u": 275,
+      "u": 287,
       "k": 0,
       "fl": 26,
       "dv": [
@@ -1360,7 +1360,7 @@
       "ty": "Residences",
       "sl": "Breaking Ground",
       "yr": 2028,
-      "sm": "2026-06",
+      "sm": "2024-12",
       "ci": "West Palm Beach",
       "u": 193,
       "k": 0,
@@ -1716,7 +1716,7 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Breaking Ground",
+      "sl": "Construction",
       "yr": 2027,
       "sm": "2026-04",
       "ci": "West Palm Beach",
@@ -4594,7 +4594,7 @@
     },
     {
       "st": "FL",
-      "ty": "Park",
+      "ty": "Museum",
       "sl": "Announced",
       "yr": 2028,
       "sm": "2026-12",
@@ -4817,7 +4817,7 @@
       "ty": "Residences",
       "sl": "Announced",
       "yr": 2029,
-      "sm": "2027-01",
+      "sm": "2027-12",
       "ci": "West Palm Beach",
       "u": 117,
       "k": 0,
@@ -6077,9 +6077,9 @@
       "yr": null,
       "sm": null,
       "ci": "West Palm Beach",
-      "u": 152,
+      "u": 281,
       "k": 0,
-      "fl": 32,
+      "fl": 31,
       "dv": [
         [
           "Jeff Greene",
@@ -16414,13 +16414,13 @@
     "total_projects": 642,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 242,
+    "under_construction": 243,
     "opening_this_year": 97
   },
   "scale": {
-    "units": 239011,
+    "units": 239152,
     "keys": 41070,
-    "floors": 9701
+    "floors": 9700
   },
   "leaderboards": {
     "developers": [
@@ -17361,10 +17361,11 @@
       {
         "name": "Museum",
         "sub": "2% of pipeline",
-        "count": 10,
+        "count": 11,
         "states": [
           "Other",
           "AE",
+          "FL",
           "NY",
           "UK",
           "TN"
@@ -17390,7 +17391,7 @@
       {
         "name": "Park",
         "sub": "1% of pipeline",
-        "count": 7,
+        "count": 6,
         "states": [
           "FL",
           "TN",
@@ -18341,16 +18342,6 @@
           ]
         },
         {
-          "name": "Park",
-          "sub": "2% of pipeline",
-          "count": 5,
-          "states": [
-            "FL",
-            "TN",
-            "Other"
-          ]
-        },
-        {
           "name": "Golf",
           "sub": "1% of pipeline",
           "count": 4,
@@ -18359,6 +18350,16 @@
             "FL",
             "TN",
             "SC"
+          ]
+        },
+        {
+          "name": "Park",
+          "sub": "1% of pipeline",
+          "count": 4,
+          "states": [
+            "FL",
+            "TN",
+            "Other"
           ]
         },
         {
@@ -18408,6 +18409,19 @@
           "count": 1,
           "states": [
             "FL"
+          ]
+        },
+        {
+          "name": "Museum",
+          "sub": "0% of pipeline",
+          "count": 1,
+          "states": [
+            "Other",
+            "AE",
+            "FL",
+            "NY",
+            "UK",
+            "TN"
           ]
         }
       ]
@@ -19086,6 +19100,7 @@
           "states": [
             "Other",
             "AE",
+            "FL",
             "NY",
             "UK",
             "TN"
@@ -19764,6 +19779,7 @@
           "states": [
             "Other",
             "AE",
+            "FL",
             "NY",
             "UK",
             "TN"
@@ -20685,6 +20701,7 @@
           "states": [
             "Other",
             "AE",
+            "FL",
             "NY",
             "UK",
             "TN"
@@ -21241,6 +21258,7 @@
           "states": [
             "Other",
             "AE",
+            "FL",
             "NY",
             "UK",
             "TN"
@@ -21658,12 +21676,12 @@
     "FL": {
       "hero_stats": {
         "total_projects": 311,
-        "under_construction": 110
+        "under_construction": 111
       },
       "scale": {
-        "units": 71570,
+        "units": 71711,
         "keys": 10575,
-        "floors": 5729
+        "floors": 5728
       },
       "status_distribution": [
         {
@@ -21672,11 +21690,11 @@
         },
         {
           "label": "Breaking Ground",
-          "count": 15
+          "count": 14
         },
         {
           "label": "Construction",
-          "count": 110
+          "count": 111
         },
         {
           "label": "Opening Soon",
@@ -21746,7 +21764,7 @@
         {
           "month": "Jun",
           "year": 2026,
-          "count": 14
+          "count": 13
         }
       ]
     },
@@ -22695,11 +22713,11 @@
     },
     {
       "label": "Breaking Ground",
-      "count": 30
+      "count": 29
     },
     {
       "label": "Construction",
-      "count": 242
+      "count": 243
     },
     {
       "label": "Opening Soon",
@@ -22769,7 +22787,7 @@
     {
       "month": "Jun",
       "year": 2026,
-      "count": 19
+      "count": 18
     }
   ],
   "openings_by_year": [
@@ -22842,6 +22860,20 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-shorecrest-flagler-drive-construction-2026-06-27",
+      "type": "status_change",
+      "tag": "Under construction",
+      "title": "Shorecrest Flagler Drive  Under construction",
+      "project_slug": "shorecrest-flagler-drive",
+      "project_title": "Shorecrest Flagler Drive",
+      "city": "West Palm Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0571ca7200743de980d42d760494d6f~mv2.jpeg",
+      "event_date": "2026-04-02",
+      "source_url": "https://www.wflx.com/2026/04/02/west-palm-beach-skyline-get-new-28-story-waterfront-condo-starting-32m/",
+      "link": "https://www.oftmw.com/map/?project=shorecrestflaglerdrive",
+      "timestamp": "2026-06-27T21:23:28.775Z"
+    },
     {
       "id": "ms-canyon-ranch-austin-bookings-2026-06-27",
       "type": "status_change",
@@ -23515,20 +23547,6 @@
       "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/127b18ee55e5-louis-vuitton-hotel-paris-champs-elysees-trunk-facade-2026.jpg.webp",
       "link": "https://www.oftmw.com/map/",
       "timestamp": "2026-06-26T18:31:00.708092+00:00"
-    },
-    {
-      "id": "ms-1-hotel-austin-bookings-2026-06-26",
-      "type": "status_change",
-      "tag": "Bookings open",
-      "title": "1 Hotel Austin  Bookings open",
-      "project_slug": "1-hotel-austin",
-      "project_title": "1 Hotel Austin",
-      "city": "Austin",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg",
-      "event_date": "2026-04-29",
-      "source_url": "https://www.hospitalitynet.org/announcement/41014384/1-hotel-austin-now-accepting-reservations",
-      "link": "https://www.oftmw.com/map/?project=1hotelaustin",
-      "timestamp": "2026-06-26T17:25:36.632Z"
     }
   ],
   "most_covered": [
