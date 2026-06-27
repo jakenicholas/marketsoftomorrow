@@ -221,6 +221,43 @@ const TOOLS = [
     },
   },
   {
+    name: 'write_article_and_post',
+    description: 'ONE step for "write an article and build/create a post": creates a journal ARTICLE draft AND a carousel POST design draft in the Studio, then reports BOTH so you can tell the user when both are done. You supply the article body (body_markdown) and the carousel slide copy (slides); photos from a media FOLDER are sprinkled into the article body AND placed behind the design slides. Nothing publishes — both are drafts. Use this whenever the user asks for an article and a post together. (For just one, use create_post_draft or create_design_draft.)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title:         { type: 'string', description: 'Shared title for the article and the design.' },
+        body_markdown: { type: 'string', description: 'Article body in Markdown (same syntax as create_post_draft). Folder photos are auto-inserted between paragraphs; you may also place ![alt](url) yourself.' },
+        slides: {
+          type: 'array',
+          description: 'Carousel slides for the design — one per slide: { text, template?, image?, tagline? }. Same shape as create_design_draft.',
+          items: {
+            type: 'object',
+            properties: {
+              text:     { type: 'string', description: 'Headline copy for this slide.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
+              image:    { type: 'string', description: 'Explicit photo URL — overrides the folder photo for this slide.' },
+              tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
+            },
+            required: ['text'],
+          },
+        },
+        caption:        { type: 'string', description: 'Instagram caption for the carousel post.' },
+        folder:         { type: 'string', description: 'Media-library folder holding the photos to use in BOTH the article and the post (newest-first). The first photo becomes the article cover unless cover_image is set.' },
+        excerpt:        { type: 'string', description: 'Article summary (optional; auto-derived).' },
+        category:       { type: 'string', description: 'Article category (optional).' },
+        cover_image:    { type: 'string', description: 'Explicit article cover URL (optional; defaults to the folder\'s first photo).' },
+        linked_project: { type: 'string', description: 'Map of Tomorrow project slug to embed in the article (optional).' },
+        post_type:      { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Article classification (default Editorial).' },
+        project_slug:   { type: 'string', description: 'Dashboard project link for the article (optional).' },
+        campaign_id:    { type: 'string', description: 'Campaign id to link the article to (optional).' },
+        account_handle: { type: 'string', description: 'Carousel account handle, default "floridaoftomorrow".' },
+        account_name:   { type: 'string', description: 'Carousel display name, default "FLORIDAOFTOMORROW".' },
+      },
+      required: ['title', 'slides'],
+    },
+  },
+  {
     name: 'update_post_draft',
     description: 'Edit an existing journal article DRAFT (only status=draft — refuses to touch published/scheduled posts). Update any of title, excerpt, category, cover image, and/or FULL-REPLACE the body from Markdown. ⚠️ body_markdown does a COMPLETE rewrite of the HTML body via Markdown conversion — it FLATTENS rich HTML (embedded <figure>/<figcaption> images, slideshow/grid GALLERIES, project-card embeds) that Markdown cannot represent. For ANY change to a body that contains images/galleries, do NOT pass body_markdown — use edit_post_draft (surgical find/replace) instead. Reserve body_markdown here for plain-text drafts or a deliberate full rewrite. Returns the Studio edit URL.',
     inputSchema: {
@@ -793,6 +830,25 @@ function parseJSON(s, fallback) { try { return JSON.parse(s); } catch (_) { retu
 function slugify(s) {
   return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 160) || 'untitled';
+}
+
+// Sprinkle image URLs through a Markdown body — one ![](url) figure spread evenly
+// between paragraphs (skips inserting right after a heading).
+function sprinkleImagesIntoMarkdown(md, images) {
+  if (!images || !images.length) return md || '';
+  const blocks = String(md || '').split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  if (!blocks.length) return images.map((u) => `![](${u})`).join('\n\n');
+  const n = images.length;
+  const gap = Math.max(2, Math.floor(blocks.length / (n + 1)));
+  const out = []; let imgI = 0;
+  blocks.forEach((b, i) => {
+    out.push(b);
+    if (imgI < n && i < blocks.length - 1 && (i + 1) % gap === 0 && !/^#{1,3}\s/.test(blocks[i + 1] || '')) {
+      out.push(`![](${images[imgI++]})`);
+    }
+  });
+  while (imgI < n) out.push(`![](${images[imgI++]})`);   // leftovers → end
+  return out.join('\n\n');
 }
 
 function mdToHtml(md) {
@@ -1603,6 +1659,43 @@ const IMPL = {
       note: 'Saved as a Design DRAFT. Open edit_url in the Studio Design editor — the slides build onto the locked TMW templates (fonts, logo, gradient). '
         + (args.folder ? (folderImages.length ? `Pulled ${withPhotos} photo(s) from folder "${args.folder}".` : `Folder "${args.folder}" had no images — add photos in the editor.`) : 'No folder given — add photos per slide in the editor.')
         + ' From there: tweak text/photos, then Download PNGs or Send to Carousels.',
+    };
+  },
+
+  async write_article_and_post(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    if (!args.title || !String(args.title).trim()) throw new Error('title is required');
+    if (!Array.isArray(args.slides) || !args.slides.length) throw new Error('slides is required (the carousel post copy)');
+    // Shared folder photos (newest-first) → article body + design slides.
+    let images = [];
+    if (args.folder) {
+      const rows = await env.DB.prepare(
+        `SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`
+      ).bind(String(args.folder)).all();
+      images = (rows.results || []).map((r) => r.url).filter(Boolean);
+    }
+    // 1) ARTICLE — cover = first photo (unless given); the rest sprinkle through the body.
+    const cover    = args.cover_image || images[0] || undefined;
+    const bodyImgs = args.cover_image ? images : images.slice(1);
+    const body     = sprinkleImagesIntoMarkdown(args.body_markdown || '', bodyImgs);
+    const article  = await IMPL.create_post_draft({
+      title: args.title, body_markdown: body, excerpt: args.excerpt, category: args.category,
+      cover_image: cover, linked_project: args.linked_project, post_type: args.post_type,
+      project_slug: args.project_slug, campaign_id: args.campaign_id,
+    }, env);
+    // 2) POST design — slides + the same folder.
+    const design = await IMPL.create_design_draft({
+      title: args.title, caption: args.caption, folder: args.folder, slides: args.slides,
+      account_handle: args.account_handle, account_name: args.account_name,
+    }, env);
+    return {
+      ok: true,
+      article: { slug: article.slug, edit_url: article.edit_url },
+      design:  { slug: design.slug, slide_count: design.slide_count, edit_url: design.edit_url },
+      photos_used: images.length,
+      note: `✅ Both drafts created.\n• ARTICLE draft → ${article.edit_url}\n• POST design (${design.slide_count} slides) → ${design.edit_url}\n`
+        + (images.length ? `Used ${images.length} photo(s) from folder "${args.folder}" across both.` : (args.folder ? `Folder "${args.folder}" had no photos yet — add them and they'll appear in the editors.` : 'No folder given — add photos in each editor.'))
+        + ' Both are drafts; review/finish in the Studio. Tell the user both are ready.',
     };
   },
 
