@@ -1884,7 +1884,10 @@
       var on = (name === 'results' || name === 'empty');
       fbEl.classList.toggle('show', on);
       if (on) {
-        fbEl.setAttribute('data-q', _lastQuery || '');
+        // NOTE: use data-fbq, NOT data-q — the suggestion click handler treats
+        // any [data-q] click as "run this query", so a data-q here made clicking
+        // a thumb re-submit the query as a duplicate turn.
+        fbEl.setAttribute('data-fbq', _lastQuery || '');
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
       }
@@ -2082,7 +2085,7 @@
     var rating = btn.getAttribute('data-rating');
     if (rating !== 'up' && rating !== 'down') return;
     sendFeedback(rating, {
-      q: fbEl.getAttribute('data-q') || _lastQuery,
+      q: fbEl.getAttribute('data-fbq') || _lastQuery,
       results: parseInt(fbEl.getAttribute('data-results') || '', 10),
       kind: fbEl.getAttribute('data-kind') || ''
     });
@@ -3548,6 +3551,9 @@
   // lives in one place. Match-by-data-q so any future suggestion variant
   // (different markup, same intent) just needs to carry the attribute.
   root.addEventListener('click', function(e){
+    // Never treat a feedback-row click as a query submission (the thumbs live
+    // inside the answer; a stray data-* there must not re-run the query).
+    if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
     var sug = e.target.closest && e.target.closest('[data-q]');
     if (sug) {
       var q = sug.getAttribute('data-q');
