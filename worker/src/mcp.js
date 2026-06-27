@@ -475,6 +475,21 @@ const TOOLS = [
     },
   },
   {
+    name: 'scrape_website_images',
+    description: 'Scrape the images off a public web page (e.g. a hotel\'s website or gallery) and save them into the Studio media library under a PROJECT folder, so they can be pulled into a journal article (sprinkled in) AND into the Carousel Design editor. Give the page URL and a project / hotel name. Grabs <img> (largest srcset candidate), <picture>/<source>, lazy-loaded data-src/data-srcset, OpenGraph + Twitter card images, and CSS background images; skips tiny icons / tracking pixels / SVGs. Returns the saved image URLs + the folder name. USE THIS when the user drops a website link and says "save images" / "grab the photos" / "scrape this site".',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url:     { type: 'string', description: 'Public http(s) URL of the page to scrape images from (often the hotel\'s gallery / homepage).' },
+        project: { type: 'string', description: 'Project / hotel name — the images land in media folder "Projects / <project>".' },
+        folder:  { type: 'string', description: 'Override the destination folder (default "Projects / <project>").' },
+        limit:   { type: 'integer', description: 'Max images to save (default 30, max 60).' },
+        min_kb:  { type: 'integer', description: 'Skip images smaller than this many KB (default 8) to drop icons / pixels.' },
+      },
+      required: ['url', 'project'],
+    },
+  },
+  {
     name: 'create_media_folder',
     description: 'Create a media folder in the Studio library (so photos can be uploaded into it). Optionally star it as a favorite so it sorts first.',
     inputSchema: {
@@ -2226,6 +2241,81 @@ const IMPL = {
          url=excluded.url, folder=excluded.folder`
     ).bind(key, fname, ct, buf.byteLength, alt || null, caption || null, 'studio-mcp', ts, url, folder || '').run();
     return { ok: true, key, url, folder: folder || '(unfiled)', mime_type: ct, size_bytes: buf.byteLength };
+  },
+
+  async scrape_website_images(args, env) {
+    if (!env.MEDIA || !env.DB) throw new Error('media storage not configured');
+    const pageUrl = String(args.url || '').trim();
+    if (!/^https?:\/\//i.test(pageUrl)) throw new Error('url must be a public http(s) URL');
+    const project = String(args.project || '').trim().slice(0, 120);
+    if (!project) throw new Error('project name is required');
+    const folder  = (String(args.folder || '').trim() || ('Projects / ' + project)).slice(0, 160);
+    const limit   = Math.min(Math.max(parseInt(args.limit, 10) || 30, 1), 60);
+    const minBytes = Math.max(0, (parseInt(args.min_kb, 10) || 8)) * 1024;
+
+    // 1) fetch the page + collect candidate image URLs via HTMLRewriter.
+    const base = new URL(pageUrl);
+    const found = new Set();
+    const add = (u) => { if (!u) return; u = String(u).trim(); if (!u || /^data:/i.test(u)) return; try { found.add(new URL(u, base).toString()); } catch (_) {} };
+    const bestSrcset = (ss) => { let best = null, bw = -1; String(ss).split(',').forEach((p) => { const parts = p.trim().split(/\s+/); const u = parts[0]; const w = parseInt((parts[1] || '0').replace(/[^\d]/g, '')) || 0; if (u && w >= bw) { bw = w; best = u; } }); return best; };
+    let pageRes;
+    try { pageRes = await fetch(pageUrl, { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (TMW Studio image scraper)' } }); }
+    catch (e) { throw new Error('could not fetch page: ' + e.message); }
+    if (!pageRes.ok) throw new Error('page fetch failed (HTTP ' + pageRes.status + ')');
+    const rw = new HTMLRewriter()
+      .on('img', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src'));
+        ['data-src', 'data-lazy-src', 'data-original'].forEach((a) => add(el.getAttribute(a)));
+        const dss = el.getAttribute('data-srcset'); if (dss) add(bestSrcset(dss)); } })
+      .on('source', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src')); } })
+      .on('meta', { element(el) { const p = (el.getAttribute('property') || el.getAttribute('name') || '').toLowerCase(); if (p === 'og:image' || p === 'og:image:url' || p === 'twitter:image' || p === 'twitter:image:src') add(el.getAttribute('content')); } })
+      .on('link', { element(el) { if ((el.getAttribute('rel') || '').toLowerCase() === 'image_src') add(el.getAttribute('href')); } })
+      .on('[style]', { element(el) { const s = el.getAttribute('style') || ''; const m = s.match(/url\((['"]?)([^'")]+)\1\)/i); if (m) add(m[2]); } });
+    try { await rw.transform(pageRes).text(); } catch (e) { throw new Error('could not parse page HTML: ' + e.message); }
+
+    // 2) fetch + store each (size filter, small concurrency).
+    const candidates = [...found];
+    const saved = [], skipped = [];
+    const ts = Math.floor(Date.now() / 1000);
+    try { await ensureMediaFoldersTable(env); await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, 0, ?2)').bind(folder, ts).run(); } catch (_) {}
+    let idx = 0;
+    const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif' };
+    async function pump() {
+      while (idx < candidates.length && saved.length < limit) {
+        const src = candidates[idx++];
+        try {
+          const r = await fetch(src, { redirect: 'follow' });
+          if (!r.ok) { skipped.push({ url: src, reason: 'http ' + r.status }); continue; }
+          const ct = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+          if (!/^image\//.test(ct) || /svg/.test(ct)) { skipped.push({ url: src, reason: 'not a raster image' }); continue; }
+          const buf = await r.arrayBuffer();
+          if (buf.byteLength < minBytes) { skipped.push({ url: src, reason: 'too small' }); continue; }
+          if (buf.byteLength > 25 * 1024 * 1024) { skipped.push({ url: src, reason: 'too large' }); continue; }
+          let fname = ''; try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {}
+          fname = (fname || 'image').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
+          if (EXT[ct] && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += EXT[ct];
+          const key = buildMediaKey(fname);
+          await env.MEDIA.put(key, buf, { httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename: fname, folder } });
+          const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+          const purl = publicBase ? `${publicBase}/${key}` : '';
+          await env.DB.prepare(
+            `INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+             ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder`
+          ).bind(key, fname, ct, buf.byteLength, project, null, 'studio-mcp', ts, purl, folder).run();
+          saved.push({ url: purl, filename: fname, size_bytes: buf.byteLength });
+        } catch (e) { skipped.push({ url: src, reason: (e && e.message) || 'error' }); }
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(6, Math.max(1, candidates.length)) }, pump));
+
+    return {
+      ok: true, project, folder,
+      candidates_found: candidates.length, saved: saved.length, skipped: skipped.length,
+      images: saved.map((s) => s.url),
+      note: saved.length
+        ? `Saved ${saved.length} image(s) to media folder "${folder}". Pull them into an article (pass folder:"${folder}" to write_article_and_post / create_design_draft) or browse them in the Design editor's media picker. Source: ${pageUrl}.`
+        : `No images saved from ${pageUrl} — found ${candidates.length} candidate URL(s) but all were too small / non-image / unreachable. Try the hotel's gallery page, or lower min_kb.`,
+    };
   },
 
   async create_media_folder(args, env) {
