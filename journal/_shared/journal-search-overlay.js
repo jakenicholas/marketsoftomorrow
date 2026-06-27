@@ -136,6 +136,17 @@
     + '.tmw-ov-body::-webkit-scrollbar-track{background:transparent}'
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
     + '.tmw-ov-wrap{max-width:1080px;margin:0 auto;padding:0 22px}'
+    /* ── Chat thread: each turn = a sent user message + its full answer ── */
+    + '.tmw-ov-thread{display:flex;flex-direction:column;gap:30px}'
+    + '.tmw-ov-turn{display:flex;flex-direction:column;gap:14px}'
+    + '.tmw-ov-turn + .tmw-ov-turn{border-top:1px solid rgba(255,255,255,.07);padding-top:30px}'
+    + '.tmw-ov-msg-row{display:flex;justify-content:flex-end}'
+    + '.tmw-ov-msg{max-width:80%;background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(167,139,250,.13));'
+    +   'border:1px solid rgba(167,139,250,.38);color:#F4F1EA;font-family:"Inter",system-ui,sans-serif;'
+    +   'font-size:15px;line-height:1.4;font-weight:500;padding:11px 16px;border-radius:16px 16px 4px 16px;'
+    +   'box-shadow:0 2px 14px rgba(167,139,250,.12);word-break:break-word}'
+    + '.tmw-ov-answer{display:block}'
+    + '@media(max-width:640px){.tmw-ov-thread{gap:22px}.tmw-ov-turn + .tmw-ov-turn{padding-top:22px}.tmw-ov-msg{max-width:88%;font-size:14px}}'
 
     /* Starter (empty) state — spotlight layout: centered on page, no
        card / box around it. Just the small TMW Intelligence label + Pro
@@ -788,6 +799,28 @@
     if (slot) slot.innerHTML = renderProPill();
   }
 
+  // Per-turn answer block (chat thread). One of these is created for every query
+  // and appended to .tmw-ov-thread; the render functions write into ITS slots
+  // (re-pointed by newTurn). Same markup the single results view used before.
+  var TURN_ANSWER_HTML = ''
+    + '<div class="tmw-ov-thinking" data-state="thinking">'
+    +   '<div class="dots"><span></span><span></span><span></span></div>'
+    +   '<span>Searching the database</span>'
+    + '</div>'
+    + '<div data-state="results" class="tmw-ov-hidden">'
+    +   '<div data-slot="filter-pills"></div>'
+    +   '<div data-slot="intel-cta"></div>'
+    +   '<div data-slot="hero"></div>'
+    +   '<div data-slot="rows"></div>'
+    +   '<div data-slot="projects-grid"></div>'
+    +   '<div data-slot="entities"></div>'
+    +   '<div data-slot="articles-grid"></div>'
+    + '</div>'
+    + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
+    +   '<h3>Nothing matched in the database</h3>'
+    +   '<p>Try a firm name, city, or project. Or ask TMW Intelligence below — it can synthesize answers from the journal.</p>'
+    + '</div>';
+
   var root = document.createElement('div');
   root.className = 'tmw-ov-root';
   root.setAttribute('role', 'dialog');
@@ -815,25 +848,7 @@
     +         '</div>'
     +       '</div>'
 
-    +       '<div class="tmw-ov-thinking" data-state="thinking">'
-    +         '<div class="dots"><span></span><span></span><span></span></div>'
-    +         '<span>Searching the database</span>'
-    +       '</div>'
-
-    +       '<div data-state="results" class="tmw-ov-hidden">'
-    +         '<div data-slot="filter-pills"></div>'
-    +         '<div data-slot="intel-cta"></div>'
-    +         '<div data-slot="hero"></div>'
-    +         '<div data-slot="rows"></div>'
-    +         '<div data-slot="projects-grid"></div>'
-    +         '<div data-slot="entities"></div>'
-    +         '<div data-slot="articles-grid"></div>'
-    +       '</div>'
-
-    +       '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
-    +         '<h3>Nothing matched in the database</h3>'
-    +         '<p>Try a firm name, city, or project. Or ask TMW Intelligence below — it can synthesize answers from the journal.</p>'
-    +       '</div>'
+    +       '<div class="tmw-ov-thread"></div>'
 
     +     '</div>'
     +   '</div>'
@@ -875,17 +890,12 @@
   var input  = root.querySelector('.tmw-ov-bar input');
   var go     = root.querySelector('.tmw-ov-bar .go');
   var closeBtn = root.querySelector('.tmw-ov-close');
-  var sStarter = root.querySelector('[data-state="starter"]');
-  var sThinking= root.querySelector('[data-state="thinking"]');
-  var sResults = root.querySelector('[data-state="results"]');
-  var sEmpty   = root.querySelector('[data-state="empty"]');
-  var slotFilterPills = root.querySelector('[data-slot="filter-pills"]');
-  var slotIntel= root.querySelector('[data-slot="intel-cta"]');
-  var slotHero = root.querySelector('[data-slot="hero"]');
-  var slotRows = root.querySelector('[data-slot="rows"]');
-  var slotProjGrid  = root.querySelector('[data-slot="projects-grid"]');
-  var slotEntities  = root.querySelector('[data-slot="entities"]');
-  var slotArticles  = root.querySelector('[data-slot="articles-grid"]');
+  var sStarter = root.querySelector('[data-state="starter"]');   // standalone teach card (empty thread)
+  var _threadEl = root.querySelector('.tmw-ov-thread');           // holds the chat turns
+  // Per-turn render targets — null until newTurn() points them at the current
+  // turn's elements. Every render path writes into these (unchanged).
+  let sThinking = null, sResults = null, sEmpty = null;
+  let slotFilterPills = null, slotIntel = null, slotHero = null, slotRows = null, slotProjGrid = null, slotEntities = null, slotArticles = null;
   var bodyEl   = root.querySelector('.tmw-ov-body');
 
   // ── data loading (mirrors /search/) ────────────────────────────────
@@ -1824,18 +1834,59 @@
   }
 
   // ── orchestration ─────────────────────────────────────────────────
+  // Chat thread: every query gets its own turn (user message + answer block).
+  // newTurn() appends a turn and RE-POINTS the render targets at it, so all the
+  // existing render functions keep writing into "the current turn" unchanged.
+  function newTurn(userText){
+    sStarter.classList.add('tmw-ov-hidden');        // hide the teach card once a conversation starts
+    var turn = document.createElement('div');
+    turn.className = 'tmw-ov-turn';
+    turn.innerHTML = '<div class="tmw-ov-msg-row"><div class="tmw-ov-msg">' + esc(userText) + '</div></div>'
+      + '<div class="tmw-ov-answer">' + TURN_ANSWER_HTML + '</div>';
+    _threadEl.appendChild(turn);
+    // Re-point the per-turn render targets at this turn.
+    sThinking = turn.querySelector('[data-state="thinking"]');
+    sResults  = turn.querySelector('[data-state="results"]');
+    sEmpty    = turn.querySelector('[data-state="empty"]');
+    slotFilterPills = turn.querySelector('[data-slot="filter-pills"]');
+    slotIntel = turn.querySelector('[data-slot="intel-cta"]');
+    slotHero  = turn.querySelector('[data-slot="hero"]');
+    slotRows  = turn.querySelector('[data-slot="rows"]');
+    slotProjGrid = turn.querySelector('[data-slot="projects-grid"]');
+    slotEntities = turn.querySelector('[data-slot="entities"]');
+    slotArticles = turn.querySelector('[data-slot="articles-grid"]');
+    // Lead the viewport with the new message + its answer.
+    try { turn.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    catch(_) { try { bodyEl.scrollTop = bodyEl.scrollHeight; } catch(__){} }
+    return turn;
+  }
+
   function setState(name){
+    // 'starter' = the empty-thread teach screen (standalone, above the thread).
     sStarter.classList.toggle('tmw-ov-hidden', name !== 'starter');
-    sThinking.classList.toggle('show', name === 'thinking');
-    sResults.classList.toggle('tmw-ov-hidden', name !== 'results');
-    sEmpty.classList.toggle('tmw-ov-hidden', name !== 'empty');
-    // Thumbs feedback row only makes sense when actual results are on
-    // screen -- show on 'results' and 'empty' (a thumbs-down on an empty
-    // result page is the highest-signal feedback we can capture), hide
-    // everywhere else.
+    // thinking / results / empty operate on the CURRENT turn (re-pointed by
+    // newTurn). Guard in case a state is set before any turn exists.
+    if (sThinking) sThinking.classList.toggle('show', name === 'thinking');
+    if (sResults)  sResults.classList.toggle('tmw-ov-hidden', name !== 'results');
+    if (sEmpty)    sEmpty.classList.toggle('tmw-ov-hidden', name !== 'empty');
+    // Thumbs feedback row (bottom dock, reflects the latest answer) only makes
+    // sense when actual results are on screen.
     var fbEl = root.querySelector('.tmw-ov-feedback');
     if (fbEl) fbEl.classList.toggle('show', name === 'results' || name === 'empty');
-    bodyEl.scrollTop = 0;
+    // No scrollTop reset — newTurn() handles scrolling to the fresh turn.
+  }
+
+  // Single entry point for a user-initiated query: the text leaves the bar and
+  // becomes a sent message, a new turn is appended, and runQuery renders into it.
+  function submitQuery(q){
+    q = String(q || '').trim();
+    if (!q) return;
+    input.value = '';
+    if (go) go.classList.remove('ready');
+    _thread.push({ q: q, parsed: null, answer: null });
+    saveThread();
+    newTurn(q);
+    runQuery(q);
   }
 
   var _renderToken = 0;
@@ -1849,6 +1900,33 @@
   var _lastQuery = '';
   var _lastResultsTotal = 0;
   var _lastResultKind = ''; // 'text' | 'smart' | 'spotlight' | 'question' | 'empty'
+
+  // ── Chat thread state ───────────────────────────────────────────────
+  // The conversation: one record per turn. `parsed` (the structured query) and
+  // `answer` (the LLM reply) are filled in as the turn renders — `parsed` powers
+  // follow-up resolution, `answer` powers conversation context + persistence.
+  var _thread = [];                  // [{ q, parsed, answer }]
+  var _THREAD_KEY = 'tmw_intel_thread';
+  function saveThread(){
+    try {
+      var qs = _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12);
+      if (qs.length) localStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
+      else localStorage.removeItem(_THREAD_KEY);
+    } catch(_){}
+  }
+  function readThread(){
+    try {
+      var raw = localStorage.getItem(_THREAD_KEY); if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (o && Array.isArray(o.qs) && o.qs.length && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.qs;
+    } catch(_){}
+    return null;
+  }
+  // Prior turns (oldest→newest, capped) as { q, answer } for the LLM's context.
+  function threadHistory(){
+    return _thread.slice(0, -1).filter(function(t){ return t.q && t.answer; })
+      .slice(-3).map(function(t){ return { q: t.q, answer: t.answer }; });
+  }
 
   // ── Resume last session ─────────────────────────────────────────────
   // Persist the user's last query so re-opening TMW Intelligence returns them to
@@ -2000,7 +2078,9 @@
       return;
     }
 
-    loadData().then(function(){
+    // Returned so the thread-resume replay can await each turn in sequence
+    // (the global _renderToken would otherwise invalidate all but the last).
+    return loadData().then(function(){
       if (token !== _renderToken) return;
 
       // ── PHASE 2B: structured smart query ─────────────────────────────
@@ -2012,6 +2092,14 @@
       var smart = Core && Core.parseSmartQuery
         ? Core.parseSmartQuery(q, { firms: FIRMS, projects: PROJECTS })
         : null;
+      // Conversational: a partial follow-up ("what about Miami?", "and condos?")
+      // inherits the prior turn's unset dimensions (type/status/sort/firm/iconic)
+      // so the RESULTS stay on-topic, not just the narration.
+      var _prior = null;
+      for (var _ti = _thread.length - 2; _ti >= 0; _ti--){ if (_thread[_ti] && _thread[_ti].parsed){ _prior = _thread[_ti].parsed; break; } }
+      if (smart && _prior && Core.resolveFollowup) { smart = Core.resolveFollowup(smart, _prior); }
+      // Stash the parse on the current turn for the NEXT follow-up + the LLM.
+      if (_thread.length) _thread[_thread.length - 1].parsed = smart || null;
       // Dining isn't a project type — it's journal coverage. Route ANY food
       // query to the text path, which answers from the Food & Drink articles.
       // A coincidental firm match ("Nashville" → "The Nashville Predators") must
@@ -2348,27 +2436,32 @@
     var Core = window.TmwSearchCore;
     if (!Core) return;
     var facts = Core.buildSmartFacts(s, rows, iconicHits);
+    var hist = threadHistory();                              // prior turns → conversation context
+    var _intelSlot = slotIntel;                              // capture THIS turn's slot (it moves per turn)
+    var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
-      function setLive(){ var l = slotIntel.querySelector('.tmw-ov-intel-h .live'); if (l) l.innerHTML = '<i></i>Live answer'; }
+      function setLive(){ var l = _intelSlot.querySelector('.tmw-ov-intel-h .live'); if (l) l.innerHTML = '<i></i>Live answer'; }
       function fallback(){
-        var ansEl = slotIntel.querySelector('.tmw-ov-intel-ans');
+        var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (ansEl && ansEl.classList.contains('loading')) { ansEl.innerHTML = ansEl.getAttribute('data-fallback') || ''; ansEl.classList.remove('loading'); setLive(); }
       }
-      Core.askIntelligence(q, facts).then(function(res){
-        if (myToken !== _intelToken) return;
-        var ansEl = slotIntel.querySelector('.tmw-ov-intel-ans');
+      // Render into the CAPTURED slot (not the live `slotIntel`, which may have
+      // advanced to a newer turn) so the answer lands on its own message.
+      Core.askIntelligence(q, facts, hist).then(function(res){
+        var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (!ansEl) return;
         if (res && res.ok && res.answer){
           ansEl.textContent = res.answer; ansEl.classList.remove('loading'); setLive();
-          cacheAnswer(q, res.answer);           // remember for instant resume
+          cacheAnswer(q, res.answer);                        // remember for instant resume
+          if (_turnRec) _turnRec.answer = res.answer;        // feed the next follow-up's context
         } else {
-          fallback();                            // LLM unreachable → show the deterministic sentence
+          fallback();                                        // LLM unreachable → deterministic sentence
         }
       }).catch(fallback);
-    }, 160);   // was 700 — show the LLM promptly since it's now the FIRST (not a swap-in) answer
+    }, 160);
   }
 
   // Original text-match path -- extracted from runQuery body so the new
@@ -3278,22 +3371,33 @@
     // burned queries since the last time the overlay was opened.
     refreshProPill();
     if (initialQuery) {
-      input.value = initialQuery;
-      setState('thinking');   // a query is coming → never flash the teach screen
-      onInput();
+      submitQuery(initialQuery);
+    } else if (_thread.length) {
+      // Same-session reopen — the rendered thread is still in the DOM; leave it.
     } else {
-      // Resume the last session — reopen STRAIGHT to the populated results, not a
-      // blank reset. Show the resume-loading state immediately (NOT the teach
-      // screen, which used to flash for ~1s while the data reloaded), then render
-      // the results. Re-running is free (already-seen query, cached answer).
-      var _resume = readLastQuery();
-      if (_resume) {
-        input.value = _resume;
-        setState('thinking');
-        loadData().then(function(){ runQuery(_resume); });
+      // Resume the saved conversation: replay each turn into the thread. Replays
+      // are cheap (data loads once; LLM answers are cached → no new model calls
+      // for unchanged turns), and rendering each turn keeps its handlers live.
+      // Sequential so the global _renderToken doesn't invalidate earlier turns.
+      var _qs = readThread();
+      if (!_qs) { var _r = readLastQuery(); if (_r) _qs = [_r]; }
+      if (_qs && _qs.length) {
+        input.value = '';
+        _thread = [];
+        sStarter.classList.add('tmw-ov-hidden');   // hide the teach card NOW so it never flashes before replay
+        loadData().then(function(){
+          (function next(i){
+            if (i >= _qs.length) { saveThread(); return; }
+            var q = _qs[i];
+            _thread.push({ q: q, parsed: null, answer: null });
+            newTurn(q);
+            var p = runQuery(q);
+            (p && p.then ? p : Promise.resolve()).then(function(){ setTimeout(function(){ next(i + 1); }, 0); });
+          })(0);
+        });
       } else {
         input.value = '';
-        setState('starter');   // nothing to resume → the teach screen is correct
+        setState('starter');   // nothing to resume → the teach screen
       }
     }
     // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
@@ -3313,17 +3417,10 @@
     root.classList.remove('open');
     document.documentElement.style.overflow = '';
     setTimeout(function(){ window.scrollTo(0, _savedScrollY); }, 0);
+    // Keep the chat thread rendered + in memory so reopening continues the
+    // conversation (resume). Just cancel any in-flight render + clear the bar.
     setTimeout(function(){
       input.value = '';
-      setState('starter');
-      slotIntel.innerHTML = '';
-      slotHero.innerHTML = '';
-      slotRows.innerHTML = '';
-      slotProjGrid.innerHTML = '';
-      slotEntities.innerHTML = '';
-      slotArticles.innerHTML = '';
-      slotFilterPills.innerHTML = '';
-      sResults.removeAttribute('data-filter');
       _articlesAll = [];
       _articlesShown = 0;
       _renderToken++;
@@ -3366,14 +3463,14 @@
       // inline instead of redirecting to /search/. /search/ remains as a
       // canonical deep-link target for share URLs (?q=... permalinks) but
       // isn't a destination anyone needs to navigate to from the UI.
-      if (v) runQuery(v);
+      if (v) submitQuery(v);
     } else if (e.key === 'Escape') {
       close();
     }
   });
   go.addEventListener('click', function(){
     var v = (input.value || '').trim();
-    if (v) runQuery(v);
+    if (v) submitQuery(v);
   });
 
   // Suggestion click (teach-card row OR legacy starter chip) → fill the
@@ -3385,7 +3482,7 @@
     var sug = e.target.closest && e.target.closest('[data-q]');
     if (sug) {
       var q = sug.getAttribute('data-q');
-      if (q) { input.value = q; runQuery(q); }
+      if (q) { submitQuery(q); }
       return;
     }
     var more = e.target.closest && e.target.closest('[data-action="more-articles"]');
@@ -3406,8 +3503,11 @@
       for (var i = 0; i < allPills.length; i++) {
         allPills[i].classList.toggle('active', allPills[i] === pill);
       }
-      if (filter === 'all') sResults.removeAttribute('data-filter');
-      else sResults.setAttribute('data-filter', filter);
+      // Scope to THIS pill's own turn (it sits inside that turn's results div),
+      // so filtering an older turn doesn't reach into the latest one.
+      var resDiv = (pill.closest && pill.closest('[data-state="results"]')) || sResults;
+      if (filter === 'all') resDiv.removeAttribute('data-filter');
+      else resDiv.setAttribute('data-filter', filter);
       return;
     }
   });
@@ -3512,11 +3612,10 @@
   try {
     var _bootQ = new URLSearchParams(location.search).get('q');
     if (_bootQ && _bootQ.trim()) {
-      var _bq = _bootQ.trim();
-      open(_bq);
-      // actually RUN it (open only populates the bar) so a /?q=… link lands on
-      // results — used by the Studio Search-Health "open in search" arrows.
-      loadData().then(function(){ runQuery(_bq); });
+      // open() routes an initial query through submitQuery → it posts as the
+      // first message + renders its answer turn (a /?q=… deep-link lands on
+      // results, e.g. the Studio Search-Health "open in search" arrows).
+      open(_bootQ.trim());
     }
   } catch(_){}
 })();

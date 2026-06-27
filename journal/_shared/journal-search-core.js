@@ -235,11 +235,15 @@
   // Returns a Promise that resolves to { ok, answer, error }. Caller is
   // responsible for debouncing keystrokes and discarding stale responses
   // via its own token check.
-  function askIntelligence(q, facts) {
+  function askIntelligence(q, facts, history) {
+    var payload = { q: q, facts: facts };
+    // history: prior turns [{q, answer}] (oldest→newest) so the worker can
+    // resolve follow-ups + reference earlier answers. Omitted on a fresh thread.
+    if (history && history.length) payload.history = history;
     return fetch(WORKER_URL + '/smart-answer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: q, facts: facts })
+      body: JSON.stringify(payload)
     })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
@@ -247,6 +251,37 @@
       return { ok: false, answer: null };
     })
     .catch(function (e) { return { ok: false, answer: null, error: e }; });
+  }
+
+  // ── Conversational follow-up resolution ─────────────────────────────
+  // Merge a PARTIAL follow-up parse with the prior turn's so the RESULTS stay
+  // on-topic. "best hotels" → "what about Miami?" inherits the hotel topic →
+  // Miami hotels; "hotels in miami" → "and condos?" inherits the place → Miami
+  // condos. A full standalone query (has BOTH a topic and a place) is returned
+  // untouched. `now`/`prior` are parseSmartQuery() results; `now` is mutated.
+  function resolveFollowup(now, prior) {
+    if (!now || !prior) return now;
+    var hasTopic = !!(now.types && now.types.size) || !!now.iconic || !!now.firm;
+    var hasPlace = !!(now.cities && now.cities.length) || !!now.region || !!now.area;
+    if (hasTopic && hasPlace) return now;   // complete query — nothing to inherit
+    // Inherit the TOPIC (what they're asking about) when this turn only moved
+    // the place — or set neither.
+    if (!hasTopic) {
+      if (prior.types && prior.types.size && !(now.types && now.types.size)) { now.types = prior.types; now.typeLabel = prior.typeLabel; now.typeNoun = prior.typeNoun; }
+      if (prior.iconic && !now.iconic) now.iconic = prior.iconic;
+      if (prior.firm && !now.firm) now.firm = prior.firm;
+      if (prior.firmRank && !now.firmRank) now.firmRank = prior.firmRank;
+      if (prior.sort && !now.sort) now.sort = prior.sort;
+      if (prior.statuses && prior.statuses.size && !(now.statuses && now.statuses.size)) { now.statuses = prior.statuses; now.statusLabels = prior.statusLabels; }
+      if (prior.pipeline && !now.pipeline) now.pipeline = prior.pipeline;
+    }
+    // Inherit the PLACE when this turn only changed the topic — or set neither.
+    if (!hasPlace) {
+      if (prior.cities && prior.cities.length && !(now.cities && now.cities.length)) now.cities = prior.cities;
+      if (prior.region && !now.region) now.region = prior.region;
+      if (prior.area && !now.area) now.area = prior.area;
+    }
+    return now;
   }
 
   // ── hexagon spinner SVG (matches /search/'s HEX_SVG) ──────────────
@@ -1604,6 +1639,7 @@
     QUERY_STOPWORDS: QUERY_STOPWORDS,
     filterMeaningfulTokens: filterMeaningfulTokens,
     parseSmartQuery: parseSmartQuery,
+    resolveFollowup: resolveFollowup,
     smartFilter: smartFilter,
     smartRank: smartRank,
     rankByStatus: rankByStatus,

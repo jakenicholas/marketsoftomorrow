@@ -5997,6 +5997,11 @@ async function handleSmartAnswer(request, env, origin) {
   // isn't a real resolved smart query coming from the search page.
   const q = String(body.q || '').slice(0, 200).trim();
   const facts = (body.facts && typeof body.facts === 'object') ? body.facts : null;
+  // Conversation history (prior turns) for follow-up resolution — sanitized +
+  // capped to the last 3 {q, answer} pairs. Empty on a fresh thread.
+  const history = Array.isArray(body.history)
+    ? body.history.slice(-3).map(t => ({ q: String((t && t.q) || '').slice(0, 200), answer: String((t && t.answer) || '').slice(0, 1200) })).filter(t => t.q && t.answer)
+    : [];
   const count = Number(facts && facts.count) || 0;
   // Valid if we have development-project facts OR an iconic editorial list. The
   // latter lets a curation query ("best golf in california") answer purely from
@@ -6099,7 +6104,7 @@ async function handleSmartAnswer(request, env, origin) {
     }
   } catch { /* exemplars are optional */ }
 
-  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars));
+  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars) + '|' + JSON.stringify(history));
   const cache = caches.default;
   const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
   try {
@@ -6232,6 +6237,13 @@ async function handleSmartAnswer(request, env, origin) {
       + '"proposed", "in the pipeline", or "tracked in our database"; reserve that language for the `top` development projects only.';
   }
   system += '\n\n' + HERO_DIRECTIVE;
+  // Conversation mode: the current query may be a follow-up to the prior turns
+  // (provided as earlier messages). Resolve implicit references against them.
+  if (history.length) {
+    system = 'This is a MULTI-TURN conversation — earlier turns appear as prior messages. The current query may be a FOLLOW-UP; '
+      + 'resolve its pronouns and implicit places/types against the conversation (e.g. after "best hotels", "what about Miami?" means Miami hotels). '
+      + 'Answer ONLY the new turn from its verified facts; don\'t repeat the previous answer.\n\n' + system;
+  }
 
   let answer = null;
   try {
@@ -6246,7 +6258,10 @@ async function handleSmartAnswer(request, env, origin) {
         model: SMART_ANSWER_MODEL,
         max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
         system,
-        messages: [{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }],
+        messages: history.flatMap(t => ([
+          { role: 'user', content: t.q },
+          { role: 'assistant', content: t.answer },
+        ])).concat([{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }]),
       }),
     });
     if (!resp.ok) return fail('api_' + resp.status);
