@@ -3903,7 +3903,7 @@ async function handleCarouselPreviewToken(req, env, origin, url) {
 // The editable SOURCE for branded carousel graphics: per-slide template +
 // draggable text boxes + image placement. The rendered PNGs get pushed into the
 // `carousels` table for client review. Self-bootstraps like the carousels table.
-async function ensureDesignsTable(env) {
+export async function ensureDesignsTable(env) {
   if (!env.DB) return;
   await env.DB.batch([
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS designs (
@@ -3935,7 +3935,7 @@ function rowToDesign(r) {
   };
 }
 
-async function ensureUniqueDesignSlug(env, base, ignoreId) {
+export async function ensureUniqueDesignSlug(env, base, ignoreId) {
   let slug = (slugify(base || 'design') || 'design').slice(0, 100);
   let n = 0;
   while (true) {

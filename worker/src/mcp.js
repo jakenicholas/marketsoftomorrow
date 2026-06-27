@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -335,6 +335,36 @@ const TOOLS = [
         account_avatar: { type: 'string' },
       },
       required: ['slug'],
+    },
+  },
+
+  {
+    name: 'create_design_draft',
+    description: 'Create a NEW carousel DESIGN draft in the Studio "Design" editor — typesets carousel slide copy onto branded TMW templates (correct fonts, FLORIDA OF TMW logo, gradient) with a photo behind each slide, ready to review and export to PNG / push to Carousels. Make ONE design slide per carousel slide: the slide text becomes the headline and a photo sits behind it. Photos are pulled from a media FOLDER in upload order (one per slide, newest first) unless a slide passes its own image URL. Find folders with list_media_folders / list_media first. Default layout is centered_bottom (centered headline at the bottom over the photo). Returns the design slug + Studio edit URL — nothing publishes.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title:   { type: 'string', description: 'Design name shown in the editor (e.g. the post topic).' },
+        caption: { type: 'string', description: 'Instagram caption for the whole carousel (shared across the deck).' },
+        folder:  { type: 'string', description: 'Media-library folder to pull slide photos from, newest-first, one per slide. Omit only if every slide passes its own image.' },
+        slides: {
+          type: 'array',
+          description: 'Ordered carousel slides — one design slide each. Each: { text, template?, image?, tagline? }.',
+          items: {
+            type: 'object',
+            properties: {
+              text:     { type: 'string', description: 'Headline copy for this slide.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom. Use first_bl/first_tl/first_tr for a cover (title + location pin); photo_full for an image-only slide.' },
+              image:    { type: 'string', description: 'Explicit photo URL (R2/CDN). Overrides the folder photo for this slide.' },
+              tagline:  { type: 'string', description: 'Override the "MARKETS OF TOMORROW" tagline (rare).' },
+            },
+            required: ['text'],
+          },
+        },
+        account_handle: { type: 'string', description: 'Account handle without @, default "floridaoftomorrow".' },
+        account_name:   { type: 'string', description: 'Display name, default "FLORIDAOFTOMORROW".' },
+      },
+      required: ['slides'],
     },
   },
 
@@ -1519,6 +1549,60 @@ const IMPL = {
       ok: true, slug, status: 'draft',
       edit_url:    'https://admin.oftmw.com/carousel.html?slug=' + encodeURIComponent(slug),
       preview_url: `${previewHost}/c/${encodeURIComponent(slug)}?preview=${encodeURIComponent(token)}`,
+    };
+  },
+
+  async create_design_draft(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureDesignsTable(env);
+    const ALLOWED = new Set(['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full']);
+    const inSlides = Array.isArray(args.slides) ? args.slides : [];
+    if (!inSlides.length) throw new Error('slides is required (one entry per carousel slide)');
+    // Pull the folder's photos (newest first) to assign one per slide when no explicit image is given.
+    let folderImages = [];
+    if (args.folder) {
+      const rows = await env.DB.prepare(
+        `SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`
+      ).bind(String(args.folder)).all();
+      folderImages = (rows.results || []).map((r) => r.url).filter(Boolean);
+    }
+    // Build LIGHTWEIGHT seed slides — the Design editor materializes each from its
+    // locked template on load (single source of truth for fonts/positions/logo).
+    let photoIdx = 0;
+    const slides = inSlides.slice(0, 20).map((s) => {
+      const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
+      const seed = {};
+      if (s && s.text != null)    seed.headline = String(s.text).slice(0, 800);
+      if (s && s.tagline != null) seed.tagline  = String(s.tagline).slice(0, 200);
+      const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right)_/.test(template) ? folderImages[photoIdx++] : undefined);
+      if (img) seed.image = img;
+      return { template, _seed: seed };
+    });
+    const caption = String(args.caption || '').slice(0, 4000);
+    const title   = String(args.title || caption || 'Carousel design').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Carousel design';
+    const account = {
+      handle: (args.account_handle || 'floridaoftomorrow').toString().replace(/^@/, '').slice(0, 64),
+      name:   (args.account_name   || 'FLORIDAOFTOMORROW').toString().slice(0, 80),
+      avatar: null,
+    };
+    const doc = { caption, account, slides, carousel_slug: null };
+    const slug = await ensureUniqueDesignSlug(env, title, null);
+    const id   = 'dsgn-' + (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 12) : Math.random().toString(36).slice(2, 14));
+    const now  = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO designs (id, slug, title, doc_json, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, 'draft', ?5, ?5)`
+    ).bind(id, slug, title, JSON.stringify(doc).slice(0, 2_000_000), now).run();
+    const withPhotos = slides.filter((s) => s._seed.image).length;
+    return {
+      ok: true, id, slug, status: 'draft',
+      slide_count: slides.length,
+      slides_with_photos: withPhotos,
+      title,
+      edit_url: 'https://admin.oftmw.com/design.html?slug=' + encodeURIComponent(slug),
+      note: 'Saved as a Design DRAFT. Open edit_url in the Studio Design editor — the slides build onto the locked TMW templates (fonts, logo, gradient). '
+        + (args.folder ? (folderImages.length ? `Pulled ${withPhotos} photo(s) from folder "${args.folder}".` : `Folder "${args.folder}" had no images — add photos in the editor.`) : 'No folder given — add photos per slide in the editor.')
+        + ' From there: tweak text/photos, then Download PNGs or Send to Carousels.',
     };
   },
 
