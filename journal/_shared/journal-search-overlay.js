@@ -2182,8 +2182,18 @@
   // Generic nouns that should NOT drive neighborhood/submarket narrowing.
   var RESIDUAL_STOP = { tower:1,towers:1,condo:1,condos:1,residence:1,residences:1,
     project:1,projects:1,building:1,buildings:1,development:1,developments:1,
-    apartment:1,apartments:1,new:1,luxury:1,upcoming:1,recent:1,newest:1,
+    apartment:1,apartments:1,new:1,luxury:1,upcoming:1,recent:1,recently:1,newest:1,latest:1,
     tallest:1,biggest:1,largest:1,happening:1,activity:1,
+    // Forward / pipeline / status intent words — these drive the parse (pipeline,
+    // status), they're never a place qualifier. Without them here, a query like
+    // "new hotels OPENING in florida" used "opening" as a residual text filter and
+    // collapsed 51 FL hotels down to the 2 whose blurb literally said "opening".
+    opening:1,openings:1,opens:1,opened:1,coming:1,comes:1,come:1,soon:1,planned:1,
+    proposed:1,announced:1,unveiled:1,slated:1,scheduled:1,'set':1,debuting:1,debut:1,
+    launching:1,launch:1,underway:1,future:1,rising:1,rise:1,unbuilt:1,forthcoming:1,
+    pipeline:1,works:1,way:1,horizon:1,breaking:1,ground:1,groundbreaking:1,broke:1,
+    construction:1,completed:1,complete:1,delivered:1,delivering:1,delivers:1,finished:1,
+    just:1,now:1,currently:1,being:1,built:1,develop:1,developed:1,track:1,tracked:1,tracking:1,
     // Geographic filler words — keep the actual place name as the residual.
     // (NB: "district" is intentionally NOT here — it's part of "design district".)
     neighborhood:1,neighbourhood:1,neighborhoods:1,area:1,areas:1,submarket:1,
