@@ -1090,6 +1090,24 @@
   // _qPlaceTokens = the FULL ancestor token set of the query's place (city →
   // county → region → state); _qPlaceMatch = placeHit.match for linked projects.
   var _qPlaceTokens = null, _qPlaceMatch = null, _qProjBySlug = null;
+  // When the query names a US state, drop journal articles that are explicitly
+  // about a DIFFERENT state (e.g. a Texas/Florida golf piece on a "golf courses
+  // in california" search). Conservative: only excludes articles that name
+  // another state AND don't name the queried one — a CA article that only says
+  // "Tahoe" or "La Quinta" (no other state) is untouched.
+  var _qStateName = '';
+  var _US_STATES = ['florida','california','texas','new york','tennessee','illinois','utah','south carolina','hawaii','colorado','wyoming','nevada','pennsylvania','michigan','missouri','ohio','puerto rico','georgia','north carolina','arizona','massachusetts'];
+  function articleWrongState(title, hay){
+    if (!_qStateName) return false;
+    if (hay.indexOf(_qStateName) >= 0) return false;   // names the queried state anywhere → keep
+    // Only drop when the TITLE is about another state — a passing body mention of
+    // a bordering state (e.g. Tahoe's "Nevada's Carson Range") won't exclude an
+    // otherwise on-topic article.
+    for (var i = 0; i < _US_STATES.length; i++){
+      if (_US_STATES[i] !== _qStateName && title.indexOf(_US_STATES[i]) >= 0) return true;
+    }
+    return false;
+  }
   function projBySlug(){
     if (_qProjBySlug) return _qProjBySlug;
     _qProjBySlug = {};
@@ -1123,6 +1141,7 @@
     var _inPlace = articleInPlace(a);
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
+    if (!_inPlace && articleWrongState(title, hay)) return 0;   // title is about a different state → exclude
     var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
       ? window.TmwSearchCore.filterMeaningfulTokens(toks)
       : toks.filter(function(t){ return t.length>=3; });
@@ -2490,11 +2509,15 @@
     // Smart default tab (req 2/3): an iconic/"best X" ask leads with Journal; a
     // pipeline ask ("tallest towers") leads with Projects; anything else shows
     // just the Intelligence answer. The user can still click All / any tab.
-    // Lead with Journal ONLY when an iconic list actually populated (otherwise
-    // an iconic-cued query with no curated hits would hide its project rows and
-    // leave just loose journal articles). Falls back to Projects, then Intel.
-    var defFilter = (s.iconic && iconicHits.length) ? 'articles' : (rows.length ? 'projects' : 'intel');
+    // Iconic queries blend three strong layers — the Intelligence answer, the
+    // curated list, and journal coverage — so default to ALL (show everything)
+    // rather than isolating one tab. Otherwise: projects if we have them, else
+    // just the Intelligence answer.
+    var defFilter = (s.iconic && iconicHits.length) ? 'all' : (rows.length ? 'projects' : 'intel');
     sResults.setAttribute('data-filter', defFilter);
+    // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
+    // CA query). Only for an actual US state (stateCode set, or Florida).
+    _qStateName = (s.stateCode || s.region === 'Florida') ? norm(s.region) : '';
     renderArticleSection(q, token, { suppressFallback: iconicHits.length > 0 });
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
@@ -2663,7 +2686,7 @@
     // the brief window before journal-search-core.js finishes loading).
     var question = (Core ? Core.isQuestion : isQuestion)(q);
 
-    _qPlaceTokens = null; _qPlaceMatch = null;   // reset place-aware article matching per query
+    _qPlaceTokens = null; _qPlaceMatch = null; _qStateName = '';   // reset place-aware article matching per query
     var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
                           .filter(function(x){ return x.s >= MIN_PROJECT_SCORE; })
                           .sort(function(a,b){ return b.s - a.s; });

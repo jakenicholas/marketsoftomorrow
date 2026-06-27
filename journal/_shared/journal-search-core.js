@@ -962,6 +962,23 @@
     // string. The area (the borough/metro/region) is the place — drop the
     // redundant city so the whole area returns.
     if (area && cities.length) cities = [];
+    // US-STATE fallback. If no area / city / Florida resolved but the query names
+    // a state ("golf courses in CALIFORNIA", "hotels in TEXAS"), filter by it —
+    // projects carry a CountyState abbreviation, so the whole state resolves.
+    // Without this, an unrecognized state left the query place-less, which (a)
+    // returned no in-state projects and (b) let a follow-up inherit the PRIOR
+    // turn's place (e.g. California silently became Florida).
+    var stateCode = '';
+    if (!area && !cities.length && !region) {
+      for (var _sc in STATE_NAMES) {
+        if (!STATE_NAMES.hasOwnProperty(_sc)) continue;
+        if (STATE_NAMES[_sc].some(function (nm) { return hasWord(full, nm); })) {
+          stateCode = _sc;
+          region = STATE_NAMES[_sc][0].replace(/\b\w/g, function (c) { return c.toUpperCase(); }); // "california" → "California"
+          break;
+        }
+      }
+    }
     // year
     var yearMin = null, yearMax = null, yearLabel = '', yearMode = 'delivery';
     var TY = opts.thisYear || THIS_YEAR;
@@ -1113,7 +1130,7 @@
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-        region: region, area: area, cities: cities, pipeline: pipeline,
+        region: region, area: area, cities: cities, stateCode: stateCode, pipeline: pipeline,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
         sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
         iconic: iconic, q: full
@@ -1125,7 +1142,7 @@
       statuses: statuses, statusLabels: statusLabels,
       phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-      region: region, cities: cities,
+      region: region, cities: cities, stateCode: stateCode,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
       sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
       iconic: iconic, q: full
@@ -1190,6 +1207,7 @@
       // A resolved sub-region (South Florida, a metro, a county) filters by its
       // counties; a bare "Florida" keeps the robust lat/lng bbox check.
       if (s.area) { if (!inArea(p, s.area)) return false; }
+      else if (s.stateCode) { if (String(p.CountyState || '').trim() !== s.stateCode) return false; }
       else if (s.region === 'Florida' && !inFlorida(p)) return false;
       if (s.yearMin != null) {
         var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
@@ -1448,8 +1466,11 @@
       var uc = rows.filter(function (p) { return p.Delivery === 'Under Construction'; }).length;
       if (uc) stats.push({ v: '' + uc, k: 'Under construction' });
     }
+    // Golf is about the course, not the unit count — residences/keys totals are
+    // noise on a golf answer, so skip that stat entirely.
+    var _isGolf = s.iconic === 'golf' || (s.types && s.types.has && s.types.has('Golf'));
     var sumU = rows.reduce(function (a, p) { return a + unitsOf(p); }, 0);
-    if (sumU > 0) stats.push({ v: '~' + sumU.toLocaleString(), k: _unitTotalLabel });
+    if (sumU > 0 && !_isGolf) stats.push({ v: '~' + sumU.toLocaleString(), k: _unitTotalLabel });
     var nextYr = soonestFutureYear(rows);
     if (nextYr) stats.push({ v: '' + nextYr, k: 'First delivery' });
     return { html: sentence, stats: stats.slice(0, 4) };
