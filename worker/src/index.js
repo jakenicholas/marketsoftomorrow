@@ -5024,7 +5024,12 @@ async function handleUpload(req, env, origin) {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80) || 'upload';
-  const key = `${yyyy}/${mm}/${slugHash}-${safeName}`;
+  // Optional stable key (overwrite-on-resave, e.g. the Design editor saving a slide
+  // to a fixed path). Sanitised: no leading slash, no "..", limited charset.
+  const wantKey = (form.get('key') || '').toString().slice(0, 200).replace(/^\/+/, '');
+  const key = (wantKey && !wantKey.includes('..') && /^[a-zA-Z0-9][a-zA-Z0-9._/-]*$/.test(wantKey))
+    ? wantKey
+    : `${yyyy}/${mm}/${slugHash}-${safeName}`;
 
   // Hard limit on file size — R2 itself accepts up to 5GB but Workers
   // have a request-body cap and we don't want runaway uploads.
