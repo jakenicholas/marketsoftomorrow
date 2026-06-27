@@ -4169,19 +4169,24 @@ async function handleImageProxy(req, env, origin, url) {
   const ok = /\.r2\.dev$/.test(host) || /(^|\.)oftmw\.com$/.test(host) || /(^|\.)workers\.dev$/.test(host) || /(^|\.)r2\.cloudflarestorage\.com$/.test(host);
   if (u.protocol !== 'https:' || !ok) return json({ error: 'host not allowed' }, { status: 403 }, env, origin);
   let upstream;
-  try { upstream = await fetch(u.toString(), { cf: { cacheTtl: 3600, cacheEverything: true } }); }
+  const range = req.headers.get('range');
+  const fetchInit = range ? { headers: { Range: range } } : { cf: { cacheTtl: 3600, cacheEverything: true } };
+  try { upstream = await fetch(u.toString(), fetchInit); }
   catch (e) { return json({ error: 'fetch failed', detail: String(e) }, { status: 502 }, env, origin); }
   if (!upstream.ok) return json({ error: 'upstream ' + upstream.status }, { status: upstream.status }, env, origin);
   const ct = upstream.headers.get('content-type') || 'image/jpeg';
-  if (!/^image\//i.test(ct)) return json({ error: 'not an image' }, { status: 415 }, env, origin);
-  return new Response(upstream.body, {
-    headers: {
-      'Content-Type': ct,
-      'Cache-Control': 'public, max-age=86400',
-      'Access-Control-Allow-Origin': '*',
-      'Cross-Origin-Resource-Policy': 'cross-origin',
-    },
-  });
+  if (!/^(image|video)\//i.test(ct)) return json({ error: 'unsupported content type' }, { status: 415 }, env, origin);
+  const h = {
+    'Content-Type': ct,
+    'Cache-Control': 'public, max-age=86400',
+    'Access-Control-Allow-Origin': '*',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+  };
+  // Pass through range/length so video elements can play + seek the proxied stream.
+  const cl = upstream.headers.get('content-length'); if (cl) h['Content-Length'] = cl;
+  const ar = upstream.headers.get('accept-ranges'); if (ar) h['Accept-Ranges'] = ar;
+  const cr = upstream.headers.get('content-range'); if (cr) h['Content-Range'] = cr;
+  return new Response(upstream.body, { status: upstream.status, headers: h });
 }
 
 // GET /c/<slug>?preview=<token> — public Instagram-style preview page.
