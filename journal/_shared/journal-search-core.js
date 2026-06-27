@@ -268,8 +268,12 @@
     // that was scoping unrelated queries to the last turn's city/region.
     var qn = String(now.q || '').trim().toLowerCase().replace(/[?!.]+$/, '');
     var wc = qn ? qn.split(/\s+/).length : 0;
-    var isFragment = wc > 0 && (wc <= 4 || /^(and|or|but|what about|how about|whatabout|ok|okay|now|also|plus|then|in|for)\b/.test(qn));
+    var isFragment = wc > 0 && (wc <= 3 || /^(and|or|but|what about|how about|whatabout|ok|okay|now|also|plus|then|in|for)\b/.test(qn));
     if (!isFragment) return now;
+    // A query carrying its OWN forward/status/time intent is a standalone ask,
+    // not an elliptical follow-up — never inherit. ("new projects in austin" is
+    // pipeline+place; it must not pick up a prior "golf courses" topic.)
+    if (now.pipeline || (now.statuses && now.statuses.size) || now.yearMin != null) return now;
     var hasTopic = !!(now.types && now.types.size) || !!now.iconic || !!now.firm;
     var hasPlace = !!(now.cities && now.cities.length) || !!now.region || !!now.area;
     if (hasTopic && hasPlace) return now;   // complete query — nothing to inherit

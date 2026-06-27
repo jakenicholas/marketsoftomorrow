@@ -2163,7 +2163,7 @@
     // (the global _renderToken would otherwise invalidate all but the last).
     return loadData().then(function(){
       if (token !== _renderToken) return;
-
+      try {
       // ── PHASE 2B: structured smart query ─────────────────────────────
       // Try parseSmartQuery FIRST — if the query has enough structure
       // (status + place + type, sort + place, firm + anything, etc.) we
@@ -2196,6 +2196,15 @@
       // Otherwise fall through to text-match scoring + the question /
       // LLM path. Token re-checked inside runTextMatch.
       runTextMatch(q, token);
+      } catch (err) {
+        // A render bug must never strand the user on the loading spinner.
+        try { console.error('[tmw-search] render failed:', err); } catch(_){}
+        if (token === _renderToken) {
+          try { slotIntel.innerHTML=''; slotHero.innerHTML=''; slotRows.innerHTML=''; slotProjGrid.innerHTML=''; slotEntities.innerHTML=''; slotArticles.innerHTML=''; slotFilterPills.innerHTML=''; } catch(_){}
+          _lastResultsTotal = 0; _lastResultKind = 'empty';
+          setState('empty');
+        }
+      }
     });
   }
 
