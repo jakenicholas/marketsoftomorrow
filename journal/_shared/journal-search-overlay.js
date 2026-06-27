@@ -1735,9 +1735,9 @@
       bar = '<div class="r-bar"><span style="width:' + (maxMetric > 0 ? Math.round((u / maxMetric) * 100) : 0) + '%"></span></div>';
       metric = '<div class="r-metric"><div class="n">' + (u ? u.toLocaleString() : '—') + '</div><div class="l">Units</div></div>';
     } else if (sortKey === 'date') {
-      metric = '<div class="r-metric"><div class="n" style="font-size:14px">' + (esc(Core.fmtDelivery(p) || '—')) + '</div><div class="l">Delivers</div></div>';
+      metric = '<div class="r-metric"><div class="n" style="font-size:14px">' + (esc(Core.fmtDelivery(p) || '—')) + '</div><div class="l">' + Core.deliveryVerb(p) + '</div></div>';
     }
-    var deliveryNote = (!sortKey && Core.fmtDelivery(p)) ? ('<span class="dot"></span><span>Delivers ' + esc(Core.fmtDelivery(p)) + '</span>') : '';
+    var deliveryNote = (!sortKey && Core.fmtDelivery(p)) ? ('<span class="dot"></span><span>' + Core.deliveryVerb(p) + ' ' + esc(Core.fmtDelivery(p)) + '</span>') : '';
     var sub = '<span class="sb '+badge.cls+'"><i></i>'+esc(badge.label)+'</span>'
             + (_locOf(p) ? '<span class="dot"></span><span>'+esc(_locOf(p))+'</span>' : '')
             + deliveryNote;

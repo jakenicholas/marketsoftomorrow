@@ -124,6 +124,18 @@
     var y = yearOf(p);
     return y ? ('' + y) : '';
   }
+  // True when a project's delivery date is in the PAST (so copy reads "Delivered"
+  // rather than "Delivers"). Month-precision → past once that month is over;
+  // year-only → past once the whole year is over (conservative).
+  function isPastDelivery(p) {
+    var now = new Date();
+    var m = String(p.DeliveryDate || '').match(/(20\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, 1) < new Date(now.getFullYear(), now.getMonth(), 1);
+    var y = yearOf(p);
+    return y ? (y < now.getFullYear()) : false;
+  }
+  // "Delivered" (past) or "Delivers" (current/future).
+  function deliveryVerb(p) { return isPastDelivery(p) ? 'Delivered' : 'Delivers'; }
 
   // ── question detection (mirror /search/index.html) ────────────────
   // Anything ending with a "?", or starting with what/why/how/etc.,
@@ -1702,6 +1714,8 @@
     sizeScoreOf: sizeScoreOf,
     yearOf: yearOf,
     fmtDelivery: fmtDelivery,
+    isPastDelivery: isPastDelivery,
+    deliveryVerb: deliveryVerb,
     inFlorida: inFlorida,
     // Intelligence pipeline (question / LLM path)
     isQuestion: isQuestion,
