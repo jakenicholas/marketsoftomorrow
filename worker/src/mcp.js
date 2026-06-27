@@ -377,7 +377,7 @@ const TOOLS = [
 
   {
     name: 'create_design_draft',
-    description: 'Create a NEW carousel DESIGN draft in the Studio "Design" editor — typesets carousel slide copy onto branded TMW templates (correct fonts, FLORIDA OF TMW logo, gradient) with a photo behind each slide, ready to review and export to PNG / push to Carousels. Make ONE design slide per carousel slide: the slide text becomes the headline and a photo sits behind it. Photos are pulled from a media FOLDER in upload order (one per slide, newest first) unless a slide passes its own image URL. Find folders with list_media_folders / list_media first. Default layout is centered_bottom (centered headline at the bottom over the photo). Returns the design slug + Studio edit URL — nothing publishes.',
+    description: 'Create a NEW carousel DESIGN draft in the Studio "Design" editor — typesets carousel slide copy onto branded TMW templates (correct fonts, FLORIDA OF TMW logo, gradient) with a photo behind each slide, ready to review and export to PNG / push to Carousels. Make ONE design slide per carousel slide: the slide text becomes the headline and a photo sits behind it. Photos are pulled from a media FOLDER in upload order (one per slide, newest first) unless a slide passes its own image URL. Find folders with list_media_folders / list_media first. Default layout is centered_bottom (centered headline at the bottom over the photo). Returns the design slug + Studio edit URL — nothing publishes. ⚠️ Only for a brand-NEW design. If a design already exists for this post (you have its slug, or find it with list_design_drafts), EDIT it with update_design_draft instead of creating a duplicate.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -402,6 +402,56 @@ const TOOLS = [
         account_name:   { type: 'string', description: 'Display name, default "FLORIDAOFTOMORROW".' },
       },
       required: ['slides'],
+    },
+  },
+  {
+    name: 'list_design_drafts',
+    description: 'List existing Design drafts (newest first) so you can OPEN one and edit it with update_design_draft instead of creating a duplicate. Returns each design\'s slug, title, slide_count, and Studio edit URL. Use this when continuing work on a post that already has a design.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', description: 'Filter by status. Default "draft".' },
+        limit:  { type: 'number', description: 'Max rows (1–100, default 25).' },
+      },
+    },
+  },
+  {
+    name: 'get_design',
+    description: 'Read one Design draft\'s current content by slug — its title, caption, account, and every slide (index, template, text, tagline, image). Call this BEFORE update_design_draft so you edit from the real current state instead of guessing.',
+    inputSchema: {
+      type: 'object',
+      properties: { slug: { type: 'string', description: 'The design slug (from list_design_drafts or a create_design_draft result).' } },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'update_design_draft',
+    description: 'OPEN an existing Design draft and EDIT it in place — no new design is created. Use this (not create_design_draft) whenever you\'re iterating on a post that already has a design. Patches whatever you pass: caption, title, account. Pass a `slides` array to REPLACE the slides (same shape as create_design_draft — { text, template?, image?, tagline? } each, photos auto-filled from `folder` when no image given); omit `slides` to keep the current ones. Call get_design first to see what\'s there. Drafts only; returns the Studio edit URL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug:    { type: 'string', description: 'The design to edit (from list_design_drafts or a create result).' },
+        title:   { type: 'string', description: 'New design name (optional).' },
+        caption: { type: 'string', description: 'New Instagram caption for the carousel (optional).' },
+        folder:  { type: 'string', description: 'Media folder to pull slide photos from when replacing slides without explicit images (optional).' },
+        slides: {
+          type: 'array',
+          description: 'REPLACES all slides when provided (omit to keep current). One entry per slide: { text, template?, image?, tagline? } — same as create_design_draft.',
+          items: {
+            type: 'object',
+            properties: {
+              text:     { type: 'string', description: 'Headline copy for this slide.' },
+              template: { type: 'string', enum: ['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full'], description: 'Layout. Default centered_bottom.' },
+              image:    { type: 'string', description: 'Explicit photo URL (overrides the folder photo for this slide).' },
+              tagline:  { type: 'string', description: 'Override the tagline (rare).' },
+            },
+            required: ['text'],
+          },
+        },
+        account_handle: { type: 'string', description: 'Account handle without @ (optional).' },
+        account_name:   { type: 'string', description: 'Display name (optional).' },
+      },
+      required: ['slug'],
     },
   },
 
@@ -1671,6 +1721,106 @@ const IMPL = {
       note: 'Saved as a Design DRAFT. Open edit_url in the Studio Design editor — the slides build onto the locked TMW templates (fonts, logo, gradient). '
         + (args.folder ? (folderImages.length ? `Pulled ${withPhotos} photo(s) from folder "${args.folder}".` : `Folder "${args.folder}" had no images — add photos in the editor.`) : 'No folder given — add photos per slide in the editor.')
         + ' From there: tweak text/photos, then Download PNGs or Send to Carousels.',
+    };
+  },
+
+  // List existing design drafts so you can OPEN + edit one instead of making a new
+  // one. Returns slug + slide_count + edit URL for each, newest first.
+  async list_design_drafts(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureDesignsTable(env);
+    const status = (args && args.status) ? String(args.status) : 'draft';
+    const limit = Math.min(Math.max(parseInt(args && args.limit, 10) || 25, 1), 100);
+    const rows = await env.DB.prepare(
+      'SELECT slug, title, doc_json, status, updated_at FROM designs WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2'
+    ).bind(status, limit).all();
+    const designs = (rows.results || []).map((r) => {
+      let d = {}; try { d = JSON.parse(r.doc_json || '{}'); } catch (_) {}
+      return {
+        slug: r.slug, title: r.title, status: r.status,
+        slide_count: Array.isArray(d.slides) ? d.slides.length : 0,
+        updated_at: r.updated_at,
+        edit_url: 'https://admin.oftmw.com/design.html?slug=' + encodeURIComponent(r.slug),
+      };
+    });
+    return { ok: true, count: designs.length, designs };
+  },
+
+  // Read one design's current content (per-slide template/text/tagline/image)
+  // BEFORE editing it, so you know exactly what's there.
+  async get_design(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureDesignsTable(env);
+    const slug = String((args && args.slug) || '').trim();
+    if (!slug) throw new Error('slug is required (from list_design_drafts or a create_design_draft result)');
+    const row = await env.DB.prepare('SELECT slug, title, doc_json, status, updated_at FROM designs WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('No design with slug "' + slug + '". Use list_design_drafts to find it.');
+    let doc = {}; try { doc = JSON.parse(row.doc_json || '{}'); } catch (_) {}
+    const slides = (Array.isArray(doc.slides) ? doc.slides : []).map((s, i) => ({
+      index: i,
+      template: s && s.template,
+      text:    (s && s._seed && s._seed.headline) || '',
+      tagline: (s && s._seed && s._seed.tagline) || '',
+      image:   (s && s._seed && s._seed.image) || '',
+    }));
+    return {
+      ok: true, slug: row.slug, title: row.title, status: row.status,
+      caption: doc.caption || '', account: doc.account || null,
+      slide_count: slides.length, slides,
+      edit_url: 'https://admin.oftmw.com/design.html?slug=' + encodeURIComponent(row.slug),
+    };
+  },
+
+  // OPEN an existing design draft and EDIT it in place — no new design created.
+  // Patches caption / title / account when given; replaces the slides when a
+  // `slides` array is passed (same shape as create_design_draft), keeping them
+  // otherwise. Drafts only.
+  async update_design_draft(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    await ensureDesignsTable(env);
+    const slug = String((args && args.slug) || '').trim();
+    if (!slug) throw new Error('slug is required (the design to edit — from list_design_drafts or a create result)');
+    const row = await env.DB.prepare('SELECT id, slug, title, doc_json, status FROM designs WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('No design draft with slug "' + slug + '". Use list_design_drafts to find it.');
+    if (row.status && row.status !== 'draft') throw new Error('Design "' + slug + '" is ' + row.status + ' — only drafts can be edited.');
+    let doc = {}; try { doc = JSON.parse(row.doc_json || '{}'); } catch (_) {}
+    if (!doc || typeof doc !== 'object') doc = {};
+    doc.account = doc.account || { handle: 'floridaoftomorrow', name: 'FLORIDAOFTOMORROW', avatar: null };
+    if (args.caption != null)        doc.caption = String(args.caption).slice(0, 4000);
+    if (args.account_handle != null) doc.account.handle = String(args.account_handle).replace(/^@/, '').slice(0, 64);
+    if (args.account_name != null)   doc.account.name = String(args.account_name).slice(0, 80);
+    let title = row.title;
+    if (args.title != null && String(args.title).trim()) title = String(args.title).replace(/\s+/g, ' ').trim().slice(0, 120);
+    // Replace the slides only when provided (same lightweight-seed shape as create).
+    if (Array.isArray(args.slides)) {
+      if (!args.slides.length) throw new Error('slides, when provided, must have at least one entry (omit slides to keep the current ones).');
+      const ALLOWED = new Set(['centered_top','centered_bottom','left_top','left_bottom','right_top','right_bottom','first_bl','first_tl','first_tr','photo_full']);
+      let folderImages = [];
+      if (args.folder) {
+        const fr = await env.DB.prepare(
+          `SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`
+        ).bind(String(args.folder)).all();
+        folderImages = (fr.results || []).map((r) => r.url).filter(Boolean);
+      }
+      let photoIdx = 0;
+      doc.slides = args.slides.slice(0, 20).map((s) => {
+        const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
+        const seed = {};
+        if (s && s.text != null)    seed.headline = String(s.text).slice(0, 800);
+        if (s && s.tagline != null) seed.tagline  = String(s.tagline).slice(0, 200);
+        const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right)_/.test(template) ? folderImages[photoIdx++] : undefined);
+        if (img) seed.image = img;
+        return { template, _seed: seed };
+      });
+    }
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare('UPDATE designs SET title = ?2, doc_json = ?3, updated_at = ?4 WHERE slug = ?1')
+      .bind(slug, title, JSON.stringify(doc).slice(0, 2_000_000), now).run();
+    return {
+      ok: true, slug, status: 'draft', title,
+      slide_count: Array.isArray(doc.slides) ? doc.slides.length : 0,
+      edit_url: 'https://admin.oftmw.com/design.html?slug=' + encodeURIComponent(slug),
+      note: 'Updated the EXISTING design draft in place — no new design created. Open edit_url to review in the Studio Design editor.',
     };
   },
 
