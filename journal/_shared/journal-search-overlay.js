@@ -1946,6 +1946,8 @@
   function submitQuery(q){
     q = String(q || '').trim();
     if (!q) return;
+    _userInteracted = true;   // the user took over → don't let a pending cloud-resume overwrite their turn
+    _replaySeq++;             // cancel any in-flight resume replay
     input.value = '';
     if (go) go.classList.remove('ready');
     _thread.push({ q: q, parsed: null, answer: null });
@@ -2054,7 +2056,7 @@
   function fetchServerThread(){
     return _resolveMid().then(function(mid){
       if (!mid) return null;
-      return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid), { cache: 'no-store' })
+      return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid) + '&t=' + Date.now(), { cache: 'no-store' })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           var qs = (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null;
@@ -2085,20 +2087,24 @@
   // ones); cheap because data loads once and LLM answers are cached. Does NOT
   // re-save — saving happens on real user submits, so a replay can't clobber the
   // member's cloud thread while we're still reconciling it.
+  var _replaySeq = 0;        // bumps to cancel an in-flight replay (adopt-cloud / user-takeover)
+  var _userInteracted = false;   // set on a user submit; blocks a late cloud-resume from overwriting their turn
   function _resumeReplay(qs){
     if (!qs || !qs.length) return;
+    var mySeq = ++_replaySeq;
     input.value = '';
     _thread = [];
     if (_threadEl) _threadEl.innerHTML = '';   // clear any prior render (e.g. swapping a stale local thread for the cloud one)
     sStarter.classList.add('tmw-ov-hidden');   // never flash the teach card before the replay
     loadData().then(function(){
       (function next(i){
+        if (mySeq !== _replaySeq) return;      // a newer replay (or a user submit) superseded this one
         if (i >= qs.length) return;
         var q = qs[i];
         _thread.push({ q: q, parsed: null, answer: null });
         newTurn(q);
         var p = runQuery(q);
-        (p && p.then ? p : Promise.resolve()).then(function(){ setTimeout(function(){ next(i + 1); }, 0); });
+        (p && p.then ? p : Promise.resolve()).then(function(){ if (mySeq === _replaySeq) setTimeout(function(){ next(i + 1); }, 0); });
       })(0);
     });
   }
@@ -3623,8 +3629,9 @@
       // their CLOUD thread so they pick up where they left off on another device.
       var localQs = readThread();
       if (!localQs) { var _r = readLastQuery(); if (_r) localQs = [_r]; }
-      var replayedKey = '';
-      if (localQs && localQs.length) { _resumeReplay(localQs); replayedKey = localQs.join(''); }
+      _userInteracted = false;   // fresh open: a pending cloud-resume may take over
+      var localKey = (localQs || []).join('');
+      if (localQs && localQs.length) { _resumeReplay(localQs); }
       else { input.value = ''; setState('starter'); }   // teach for now; the cloud check may replace it
 
       // Always reconcile with the cloud. fetchServerThread resolves the member
@@ -3636,8 +3643,8 @@
         }
         // Adopt the cloud thread (a more-recently-active device) only if the user
         // has not started a new turn since open and it differs from what we replayed.
-        var serverKey = serverQs.join('');
-        if (serverKey !== replayedKey && _threadQs().join('') === replayedKey) {
+        // (compare cloud to local below)
+        if (!_userInteracted && serverQs.join('') !== localKey) {
           _resumeReplay(serverQs);
         }
       });
