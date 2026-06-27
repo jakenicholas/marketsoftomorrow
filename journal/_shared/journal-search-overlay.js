@@ -698,6 +698,7 @@
     + 'text-transform:uppercase;font-weight:700;color:#ECEAE5;background:#141714;border:1px solid rgba(255,255,255,.14);'
     + 'border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .2s,background .2s,color .2s}'
     + '.tmw-ov-loadmore:hover{border-color:#1FDF67;color:#fff;background:#1a1d1a}'
+    + '.tmw-ov-row-hidden{display:none}'   /* project rows past the first page, revealed by Load more */
 
     + '.tmw-ov-hidden{display:none!important}'
 
@@ -2446,10 +2447,18 @@
       var maxMetric = 1;
       if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, restRows.map(Core.floorsOf).concat([1]));
       else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, restRows.map(Core.unitsOf).concat([1]));
-      var SMART_CAP = 40;
+      var SMART_CAP = 40, ROW_PAGE = 10;
       var shown = restRows.slice(0, SMART_CAP);
-      // Ranks start at 2 since rank 1 is the hero card above.
-      var rowsHtml = shown.map(function(p, i){ return renderSmartRow(p, i + 2, s, maxMetric); }).join('');
+      // Ranks start at 2 since rank 1 is the hero card above. Show the first
+      // page; rows past it render hidden and reveal via the Load-more button.
+      var rowsHtml = shown.map(function(p, i){
+        var html = renderSmartRow(p, i + 2, s, maxMetric);
+        return i >= ROW_PAGE ? html.replace('class="tmw-ov-row ', 'class="tmw-ov-row tmw-ov-row-hidden ') : html;
+      }).join('');
+      var hiddenCount = Math.max(0, shown.length - ROW_PAGE);
+      var moreBtn = hiddenCount > 0
+        ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hiddenCount)+' more</button>'
+        : '';
       var foot = (restRows.length > SMART_CAP)
         ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>'
         : '';
@@ -2457,6 +2466,7 @@
       slotRows.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">'
         + renderSmartHeader(s, shown, !!heroProject)
         + '<div class="tmw-ov-rows">' + rowsHtml + '</div>'
+        + moreBtn
         + foot
         + '</div>';
     } else {
@@ -3580,6 +3590,22 @@
     if (more) {
       e.preventDefault();
       appendArticles();
+      return;
+    }
+    // Load-more for project rows: reveal the next page of hidden rows within
+    // THIS turn's section (self-contained, so it works on any turn in the thread).
+    var moreRows = e.target.closest && e.target.closest('[data-action="more-rows"]');
+    if (moreRows) {
+      e.preventDefault();
+      var sec = moreRows.closest('.tmw-ov-sec');
+      if (sec) {
+        var hidden = sec.querySelectorAll('.tmw-ov-row.tmw-ov-row-hidden');
+        var ROW_PAGE = 10;
+        for (var ri = 0; ri < Math.min(ROW_PAGE, hidden.length); ri++) hidden[ri].classList.remove('tmw-ov-row-hidden');
+        var left = sec.querySelectorAll('.tmw-ov-row.tmw-ov-row-hidden').length;
+        if (left > 0) moreRows.textContent = 'Load ' + Math.min(ROW_PAGE, left) + ' more';
+        else moreRows.remove();
+      }
       return;
     }
     // Filter pill click: swap the active pill's class + write the new

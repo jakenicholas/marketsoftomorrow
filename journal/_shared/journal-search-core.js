@@ -1068,10 +1068,19 @@
     // ("best new hotels" → pipeline), so iconic only fires when !pipeline.
     var ICONIC_CUE = /\b(best|top|top[- ]?tier|top[- ]?rated|highest[- ]?rated|good|great|greatest|grandest|finest|iconic|legendary|famous|renowned|acclaimed|celebrated|storied|revered|esteemed|prestigious|premier|premium|elite|luxury|luxurious|exclusive|exquisite|exceptional|coveted|prized|sought[- ]?after|leading|foremost|ultimate|definitive|quintessential|marquee|classic|must[- ]?(?:visit|see|try|stay|play)|favou?rite|world[- ]?class|standout|notable|signature|flagship)\b/;
     var iconic = null;
-    if (ICONIC_CUE.test(full) && !pipeline) {
-      if (hasWord(full, 'golf')) iconic = 'golf';
-      else if (/\b(restaurants?|dining|dine|eateries|eatery|food|cuisine)\b/.test(full)) iconic = 'restaurants';
-      else if (/\b(hotels?|resorts?|stays?|lodging)\b/.test(full)) iconic = 'hotels';
+    if (!pipeline) {
+      var _cue = ICONIC_CUE.test(full);
+      // Golf is inherently an EDITORIAL category for us — golf *projects* in the
+      // pipeline are rare, so "golf courses in california" (no "best" cue, and a
+      // place the FL-centric project parser can't resolve) should surface the
+      // curated iconic golf list, place-matched on the items' own geography —
+      // NOT fall through to a keyword text-match (which returned random CA
+      // projects). Skipped when a status is named (e.g. "golf under construction"),
+      // which is a genuine pipeline-project ask. (A specific course NAME is caught
+      // earlier by the title-substring guard, so this won't hijack name lookups.)
+      if (hasWord(full, 'golf') && !statuses.size) iconic = 'golf';
+      else if (_cue && /\b(restaurants?|dining|dine|eateries|eatery|food|cuisine)\b/.test(full)) iconic = 'restaurants';
+      else if (_cue && /\b(hotels?|resorts?|stays?|lodging)\b/.test(full)) iconic = 'hotels';
     }
 
     var place = region || cities.length;
