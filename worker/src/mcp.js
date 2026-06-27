@@ -2166,11 +2166,11 @@ const IMPL = {
       if (per != null) income = per;
     }
     await env.DB.prepare(
-      `INSERT INTO posts (id, slug, title, excerpt, body_html, cover_image, categories, tags,
+      `INSERT INTO posts (id, slug, title, excerpt, seo_description, body_html, cover_image, categories, tags,
                           author_name, status, published_at, reading_time_min, body_source,
                           post_type, income, contact_id, project_slug, campaign_id, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?15)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, now).run();
+       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?15)`
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, now).run();   // seo_description mirrors excerpt (?4)
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
@@ -2201,8 +2201,13 @@ const IMPL = {
       sets.push(`body_html = ?${p++}`); params.push(finalBody);
       if (args.body_markdown != null) { sets.push(`reading_time_min = ?${p++}`); params.push(Math.max(1, Math.round(stripHtml(finalBody).split(/\s+/).filter(Boolean).length / 200))); }
     }
-    if (args.excerpt != null) { sets.push(`excerpt = ?${p++}`); params.push(String(args.excerpt)); }
-    else if (derivedExcerpt && args.body_markdown != null) { sets.push(`excerpt = ?${p++}`); params.push(derivedExcerpt); }
+    // Excerpt (explicit, or derived from a body rewrite) — also mirrors into the SEO meta description.
+    let effExcerpt = (args.excerpt != null) ? String(args.excerpt)
+                   : (derivedExcerpt && args.body_markdown != null) ? derivedExcerpt : null;
+    if (effExcerpt != null) {
+      sets.push(`excerpt = ?${p++}`); params.push(effExcerpt);
+      sets.push(`seo_description = ?${p++}`); params.push(effExcerpt);
+    }
     if (args.category != null) { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
     if (args.cover_image != null) { sets.push(`cover_image = ?${p++}`); params.push(String(args.cover_image)); }
     if (args.post_type != null)    { sets.push(`post_type = ?${p++}`);    params.push(normalizePostTypeMcp(args.post_type)); }
