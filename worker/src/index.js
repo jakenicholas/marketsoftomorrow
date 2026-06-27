@@ -4171,20 +4171,20 @@ async function handleImageProxy(req, env, origin, url) {
   let upstream;
   const range = req.headers.get('range');
   // ?w=<px>(&q=<1-100>) → downscaled thumbnail via Cloudflare Image Resizing.
-  // If the account isn't entitled, cf.image is a no-op and the original is
-  // returned, so this never regresses — it just gets faster where enabled.
   const w = parseInt(url.searchParams.get('w') || '', 10);
   const q = parseInt(url.searchParams.get('q') || '', 10);
-  let fetchInit;
-  if (range) {
-    fetchInit = { headers: { Range: range } };
-  } else if (w >= 16 && w <= 2000) {
-    fetchInit = { cf: { cacheTtl: 86400, cacheEverything: true, image: { width: w, quality: (q >= 1 && q <= 100) ? q : 74, fit: 'scale-down', format: 'auto' } } };
-  } else {
-    fetchInit = { cf: { cacheTtl: 3600, cacheEverything: true } };
+  const wantResize = !range && w >= 16 && w <= 2000;
+  const plainInit = range ? { headers: { Range: range } } : { cf: { cacheTtl: 3600, cacheEverything: true } };
+  const resizeInit = { cf: { cacheTtl: 86400, cacheEverything: true, image: { width: w, quality: (q >= 1 && q <= 100) ? q : 74, fit: 'scale-down', format: 'auto' } } };
+  try { upstream = await fetch(u.toString(), wantResize ? resizeInit : plainInit); }
+  catch (e) { upstream = null; }
+  // If resizing failed (e.g. Image Resizing not enabled on the account), fall
+  // back to the original so thumbnails never break — strictly no regression.
+  if (wantResize && (!upstream || !upstream.ok)) {
+    try { upstream = await fetch(u.toString(), { cf: { cacheTtl: 3600, cacheEverything: true } }); }
+    catch (e) { upstream = null; }
   }
-  try { upstream = await fetch(u.toString(), fetchInit); }
-  catch (e) { return json({ error: 'fetch failed', detail: String(e) }, { status: 502 }, env, origin); }
+  if (!upstream) return json({ error: 'fetch failed' }, { status: 502 }, env, origin);
   if (!upstream.ok) return json({ error: 'upstream ' + upstream.status }, { status: upstream.status }, env, origin);
   const ct = upstream.headers.get('content-type') || 'image/jpeg';
   if (!/^(image|video)\//i.test(ct)) return json({ error: 'unsupported content type' }, { status: 415 }, env, origin);
