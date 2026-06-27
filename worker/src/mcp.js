@@ -476,17 +476,21 @@ const TOOLS = [
   },
   {
     name: 'scrape_website_images',
-    description: 'Scrape the images off a public web page (e.g. a hotel\'s website or gallery) and save them into the Studio media library under a PROJECT folder, so they can be pulled into a journal article (sprinkled in) AND into the Carousel Design editor. Give the page URL and a project / hotel name. Grabs <img> (largest srcset candidate), <picture>/<source>, lazy-loaded data-src/data-srcset, OpenGraph + Twitter card images, and CSS background images; skips tiny icons / tracking pixels / SVGs. Returns the saved image URLs + the folder name. USE THIS when the user drops a website link and says "save images" / "grab the photos" / "scrape this site".',
+    description: 'Gather a property\'s imagery into the Studio media library under a PROJECT folder, so it can be pulled into a journal article AND the Carousel Design editor. Scrapes one or more page URLs (<img> largest srcset, <picture>/<source>, lazy data-src, OG/Twitter cards, CSS background-images; skips tiny icons/SVGs). TMW\'s publication runs on RESORT-SPACE imagery — building & amenity photos / RENDERINGS showing what the spaces look like (rooms, villas, suites, pools, lobby, spa, restaurants, exterior, aerial) — NOT lifestyle/people shots. So it SCORES every image and saves resort-space shots first, and when a site is thin on them it can WEB-SEARCH (search_web) for more source pages (official gallery, press kits, Condé Nast/Travel+Leisure/AD/dezeen) and scrape those too. Returns per-category counts so you know your coverage. USE THIS when the user drops a website link and says "save images" / "grab the photos", or asks to make sure there are enough resort/building/rendering images.',
     inputSchema: {
       type: 'object',
       properties: {
-        url:     { type: 'string', description: 'Public http(s) URL of the page to scrape images from (often the hotel\'s gallery / homepage).' },
-        project: { type: 'string', description: 'Project / hotel name — the images land in media folder "Projects / <project>".' },
-        folder:  { type: 'string', description: 'Override the destination folder (default "Projects / <project>").' },
-        limit:   { type: 'integer', description: 'Max images to save (default 30, max 60).' },
-        min_kb:  { type: 'integer', description: 'Skip images smaller than this many KB (default 8) to drop icons / pixels.' },
+        url:          { type: 'string', description: 'Primary page to scrape (the hotel\'s gallery / homepage). Optional if you pass urls[] or search_web:true.' },
+        urls:         { type: 'array', items: { type: 'string' }, description: 'Additional source pages to scrape into the same folder (e.g. press-kit + review-article pages you found).' },
+        project:      { type: 'string', description: 'Project / hotel name — images land in media folder "Projects / <project>".' },
+        folder:       { type: 'string', description: 'Override the destination folder (default "Projects / <project>").' },
+        search_web:   { type: 'boolean', description: 'Web-search for MORE resort-space source pages and scrape them too. Default behavior (omit) = auto: only searches when fewer than ensure_space resort-space images were found. true = always; false = never.' },
+        search_query: { type: 'string', description: 'Override the web-search query (default: the project name + resort-space terms).' },
+        ensure_space: { type: 'integer', description: 'Target number of resort-SPACE (building/amenity/rendering) images before stopping the web search (default 6).' },
+        limit:        { type: 'integer', description: 'Max images to save total (default 30, max 60).' },
+        min_kb:       { type: 'integer', description: 'Skip images smaller than this many KB (default 8) to drop icons / pixels.' },
       },
-      required: ['url', 'project'],
+      required: ['project'],
     },
   },
   {
@@ -1162,6 +1166,87 @@ function buildMediaKey(filename) {
 
 async function ensureMediaFoldersTable(env) {
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)').run();
+}
+
+// ── Website image scraping (for scrape_website_images) ───────────────────────
+// Resort SPACE = building / amenity / rendering imagery (what the publication runs
+// on); LIFESTYLE = people / activities (nice-to-have, not the focus).
+const SPACE_RE = /(villa|suite|room|residence|penthouse|pool|lobby|spa|restaurant|dining|bar|lounge|exterior|facade|aerial|drone|render|rendering|beach|resort|amenit|architect|terrace|balcony|ocean|seaview|view|wellness|golf|reception|building|interior|bedroom|bathroom|kitchen|deck|rooftop|courtyard|garden|entrance|lobby|suite)/i;
+const LIFE_RE  = /(people|person|couple|family|guest|portrait|lifestyle|polo|zipline|horse|riding|yoga|surf|hik|adventure|activit|chef|staff|woman|man|child|kid|wedding|event|party|cocktail|drink|dish|food|plate)/i;
+function scoreImageUrl(u) {
+  const s = (() => { try { return decodeURIComponent(u).toLowerCase(); } catch { return String(u).toLowerCase(); } })();
+  let sc = 0; if (SPACE_RE.test(s)) sc += 2; if (LIFE_RE.test(s)) sc -= 2;
+  return { score: sc, cat: sc > 0 ? 'space' : sc < 0 ? 'lifestyle' : 'other' };
+}
+// Pull candidate image URLs out of one page via HTMLRewriter.
+async function extractPageImages(pageUrl) {
+  let base; try { base = new URL(pageUrl); } catch { return []; }
+  const found = new Set();
+  const add = (u) => { if (!u) return; u = String(u).trim(); if (!u || /^data:/i.test(u)) return; try { found.add(new URL(u, base).toString()); } catch (_) {} };
+  const bestSrcset = (ss) => { let best = null, bw = -1; String(ss).split(',').forEach((p) => { const parts = p.trim().split(/\s+/); const u = parts[0]; const w = parseInt((parts[1] || '0').replace(/[^\d]/g, '')) || 0; if (u && w >= bw) { bw = w; best = u; } }); return best; };
+  let res; try { res = await fetch(pageUrl, { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (TMW Studio image scraper)' } }); } catch (_) { return []; }
+  if (!res.ok) return [];
+  const rw = new HTMLRewriter()
+    .on('img', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src'));
+      ['data-src', 'data-lazy-src', 'data-original'].forEach((a) => add(el.getAttribute(a)));
+      const dss = el.getAttribute('data-srcset'); if (dss) add(bestSrcset(dss)); } })
+    .on('source', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src')); } })
+    .on('meta', { element(el) { const p = (el.getAttribute('property') || el.getAttribute('name') || '').toLowerCase(); if (p === 'og:image' || p === 'og:image:url' || p === 'twitter:image' || p === 'twitter:image:src') add(el.getAttribute('content')); } })
+    .on('link', { element(el) { if ((el.getAttribute('rel') || '').toLowerCase() === 'image_src') add(el.getAttribute('href')); } })
+    .on('[style]', { element(el) { const s = el.getAttribute('style') || ''; const m = s.match(/url\((['"]?)([^'")]+)\1\)/i); if (m) add(m[2]); } });
+  try { await rw.transform(res).text(); } catch (_) {}
+  return [...found];
+}
+// Ask Claude (web_search) for more SOURCE PAGES likely to hold resort-space imagery.
+async function webSearchSourcePages(env, query, max) {
+  if (!env.ANTHROPIC_API_KEY) return [];
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 1024,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
+        messages: [{ role: 'user', content:
+          'Find web pages with PHOTOS or RENDERINGS of a resort property\'s SPACES — guest rooms / villas / suites, pools, lobby, spa, restaurants & bars, building exterior / facade, aerial / drone shots, and architectural renderings (NOT lifestyle/people shots). Search for: "' + query + '". '
+          + 'Prefer the official hotel site gallery & press kit and reputable travel/design publications (Condé Nast, Travel+Leisure, Architectural Digest, dezeen, etc.). '
+          + 'Return ONLY a JSON array (no prose, no markdown) of up to ' + max + ' page URLs most likely to contain such imagery, best first.' }],
+      }),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    const txt = (d.content || []).filter((b) => b && b.type === 'text').map((b) => b.text).join('\n');
+    const m = txt.match(/\[[\s\S]*\]/); if (!m) return [];
+    let arr; try { arr = JSON.parse(m[0]); } catch { return []; }
+    return (Array.isArray(arr) ? arr : []).filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u)).slice(0, max);
+  } catch (_) { return []; }
+}
+// Fetch one image URL, validate, store in R2 + index in media. Returns {url,...} or {skip}.
+async function storeScrapedImage(env, src, folder, project, minBytes) {
+  const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif' };
+  try {
+    const r = await fetch(src, { redirect: 'follow' });
+    if (!r.ok) return { skip: 'http ' + r.status };
+    const ct = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (!/^image\//.test(ct) || /svg/.test(ct)) return { skip: 'not a raster image' };
+    const buf = await r.arrayBuffer();
+    if (buf.byteLength < minBytes) return { skip: 'too small' };
+    if (buf.byteLength > 25 * 1024 * 1024) return { skip: 'too large' };
+    let fname = ''; try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {}
+    fname = (fname || 'image').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
+    if (EXT[ct] && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += EXT[ct];
+    const key = buildMediaKey(fname);
+    await env.MEDIA.put(key, buf, { httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename: fname, folder } });
+    const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+    const purl = publicBase ? `${publicBase}/${key}` : '';
+    const ts = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(
+      `INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
+       ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder`
+    ).bind(key, fname, ct, buf.byteLength, project, null, 'studio-mcp', ts, purl, folder).run();
+    return { url: purl, filename: fname, size_bytes: buf.byteLength };
+  } catch (e) { return { skip: (e && e.message) || 'error' }; }
 }
 async function ensureBrandNotesTable(env) {
   await env.DB.prepare(
@@ -2245,76 +2330,67 @@ const IMPL = {
 
   async scrape_website_images(args, env) {
     if (!env.MEDIA || !env.DB) throw new Error('media storage not configured');
-    const pageUrl = String(args.url || '').trim();
-    if (!/^https?:\/\//i.test(pageUrl)) throw new Error('url must be a public http(s) URL');
     const project = String(args.project || '').trim().slice(0, 120);
     if (!project) throw new Error('project name is required');
     const folder  = (String(args.folder || '').trim() || ('Projects / ' + project)).slice(0, 160);
     const limit   = Math.min(Math.max(parseInt(args.limit, 10) || 30, 1), 60);
     const minBytes = Math.max(0, (parseInt(args.min_kb, 10) || 8)) * 1024;
+    const wantSpace = Math.max(0, parseInt(args.ensure_space, 10) || 6);   // target # of resort-SPACE images
+    const webMode = args.search_web; // true = always web-search; false = never; undefined/'auto' = only if space-thin
 
-    // 1) fetch the page + collect candidate image URLs via HTMLRewriter.
-    const base = new URL(pageUrl);
-    const found = new Set();
-    const add = (u) => { if (!u) return; u = String(u).trim(); if (!u || /^data:/i.test(u)) return; try { found.add(new URL(u, base).toString()); } catch (_) {} };
-    const bestSrcset = (ss) => { let best = null, bw = -1; String(ss).split(',').forEach((p) => { const parts = p.trim().split(/\s+/); const u = parts[0]; const w = parseInt((parts[1] || '0').replace(/[^\d]/g, '')) || 0; if (u && w >= bw) { bw = w; best = u; } }); return best; };
-    let pageRes;
-    try { pageRes = await fetch(pageUrl, { redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (TMW Studio image scraper)' } }); }
-    catch (e) { throw new Error('could not fetch page: ' + e.message); }
-    if (!pageRes.ok) throw new Error('page fetch failed (HTTP ' + pageRes.status + ')');
-    const rw = new HTMLRewriter()
-      .on('img', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src'));
-        ['data-src', 'data-lazy-src', 'data-original'].forEach((a) => add(el.getAttribute(a)));
-        const dss = el.getAttribute('data-srcset'); if (dss) add(bestSrcset(dss)); } })
-      .on('source', { element(el) { const ss = el.getAttribute('srcset'); if (ss) add(bestSrcset(ss)); else add(el.getAttribute('src')); } })
-      .on('meta', { element(el) { const p = (el.getAttribute('property') || el.getAttribute('name') || '').toLowerCase(); if (p === 'og:image' || p === 'og:image:url' || p === 'twitter:image' || p === 'twitter:image:src') add(el.getAttribute('content')); } })
-      .on('link', { element(el) { if ((el.getAttribute('rel') || '').toLowerCase() === 'image_src') add(el.getAttribute('href')); } })
-      .on('[style]', { element(el) { const s = el.getAttribute('style') || ''; const m = s.match(/url\((['"]?)([^'")]+)\1\)/i); if (m) add(m[2]); } });
-    try { await rw.transform(pageRes).text(); } catch (e) { throw new Error('could not parse page HTML: ' + e.message); }
+    // Primary source pages (url + urls[]), https only, deduped.
+    const pages = [...new Set([String(args.url || ''), ...(Array.isArray(args.urls) ? args.urls : [])]
+      .map((s) => String(s || '').trim()).filter((s) => /^https?:\/\//i.test(s)))];
+    if (!pages.length && webMode !== true) throw new Error('provide a url (or urls[]), or set search_web:true with a project name');
 
-    // 2) fetch + store each (size filter, small concurrency).
-    const candidates = [...found];
-    const saved = [], skipped = [];
     const ts = Math.floor(Date.now() / 1000);
     try { await ensureMediaFoldersTable(env); await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1, 0, ?2)').bind(folder, ts).run(); } catch (_) {}
-    let idx = 0;
-    const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif' };
-    async function pump() {
-      while (idx < candidates.length && saved.length < limit) {
-        const src = candidates[idx++];
-        try {
-          const r = await fetch(src, { redirect: 'follow' });
-          if (!r.ok) { skipped.push({ url: src, reason: 'http ' + r.status }); continue; }
-          const ct = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-          if (!/^image\//.test(ct) || /svg/.test(ct)) { skipped.push({ url: src, reason: 'not a raster image' }); continue; }
-          const buf = await r.arrayBuffer();
-          if (buf.byteLength < minBytes) { skipped.push({ url: src, reason: 'too small' }); continue; }
-          if (buf.byteLength > 25 * 1024 * 1024) { skipped.push({ url: src, reason: 'too large' }); continue; }
-          let fname = ''; try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {}
-          fname = (fname || 'image').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
-          if (EXT[ct] && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += EXT[ct];
-          const key = buildMediaKey(fname);
-          await env.MEDIA.put(key, buf, { httpMetadata: { contentType: ct, cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename: fname, folder } });
-          const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
-          const purl = publicBase ? `${publicBase}/${key}` : '';
-          await env.DB.prepare(
-            `INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)
-             ON CONFLICT(key) DO UPDATE SET filename=excluded.filename, mime_type=excluded.mime_type, size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder`
-          ).bind(key, fname, ct, buf.byteLength, project, null, 'studio-mcp', ts, purl, folder).run();
-          saved.push({ url: purl, filename: fname, size_bytes: buf.byteLength });
-        } catch (e) { skipped.push({ url: src, reason: (e && e.message) || 'error' }); }
+
+    const saved = [], skipped = []; const seen = new Set(); const counts = { space: 0, lifestyle: 0, other: 0 };
+    // Store SPACE-first up to the limit; tag each with its guessed category.
+    async function ingest(urls) {
+      const ranked = urls.filter((u) => !seen.has(u)).map((u) => ({ u, ...scoreImageUrl(u) })).sort((a, b) => b.score - a.score);
+      for (const c of ranked) {
+        if (saved.length >= limit) break;
+        seen.add(c.u);
+        const res = await storeScrapedImage(env, c.u, folder, project, minBytes);
+        if (res.skip) { skipped.push({ url: c.u, reason: res.skip }); continue; }
+        saved.push({ url: res.url, filename: res.filename, category: c.cat }); counts[c.cat]++;
       }
     }
-    await Promise.all(Array.from({ length: Math.min(6, Math.max(1, candidates.length)) }, pump));
+
+    // 1) primary pages
+    let primaryCands = [];
+    for (const p of pages) primaryCands.push(...await extractPageImages(p));
+    primaryCands = [...new Set(primaryCands)];
+    await ingest(primaryCands);
+
+    // 2) supplement from the web when resort-SPACE coverage is thin (or always, if asked).
+    let webPages = [];
+    const needMore = counts.space < wantSpace && saved.length < limit;
+    if (env.ANTHROPIC_API_KEY && webMode !== false && (webMode === true || needMore)) {
+      const q = String(args.search_query || '').trim()
+        || (project + ' resort hotel renderings photos — guest rooms villas suites pool lobby spa restaurant exterior facade aerial');
+      webPages = await webSearchSourcePages(env, q, 8);
+      let webCands = [];
+      for (const p of webPages) { if (pages.includes(p)) continue; webCands.push(...await extractPageImages(p)); }
+      webCands = [...new Set(webCands)];
+      // bias web ingest toward SPACE shots: drop obvious lifestyle when we already have plenty
+      await ingest(webCands.filter((u) => counts.space < wantSpace ? scoreImageUrl(u).cat !== 'lifestyle' : true));
+      if (saved.length < limit) await ingest(webCands);   // backfill with whatever's left
+    }
 
     return {
       ok: true, project, folder,
-      candidates_found: candidates.length, saved: saved.length, skipped: skipped.length,
+      sources: pages, web_sources: webPages,
+      saved: saved.length, by_category: counts, skipped: skipped.length,
       images: saved.map((s) => s.url),
       note: saved.length
-        ? `Saved ${saved.length} image(s) to media folder "${folder}". Pull them into an article (pass folder:"${folder}" to write_article_and_post / create_design_draft) or browse them in the Design editor's media picker. Source: ${pageUrl}.`
-        : `No images saved from ${pageUrl} — found ${candidates.length} candidate URL(s) but all were too small / non-image / unreachable. Try the hotel's gallery page, or lower min_kb.`,
+        ? `Saved ${saved.length} image(s) to "${folder}" (${counts.space} resort-space, ${counts.lifestyle} lifestyle, ${counts.other} other)`
+          + (webPages.length ? `, ${webPages.length} of them supplemented from web search` : '') + '. '
+          + (counts.space < wantSpace ? `Heads up: only ${counts.space} clear resort-space (building/amenity/rendering) shot(s) — the rest may be lifestyle or unlabeled. Consider re-running with search_web:true or pointing url at the hotel's gallery/press page. ` : '')
+          + `Pull this folder into an article (write_article_and_post / create_design_draft) or the Design editor's media picker.`
+        : `No images saved — sources had no usable images (too small / non-image / unreachable). Try the hotel's gallery page, set search_web:true, or lower min_kb.`,
     };
   },
 
