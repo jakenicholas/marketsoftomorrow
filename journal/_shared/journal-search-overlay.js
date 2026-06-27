@@ -985,7 +985,12 @@
     if (title===full) s+=120;
     else if (title.indexOf(full)===0) s+=50;
     else if (full && fieldHit(title, full)) s+=28;
-    if (full && city===full) s+=22;
+    // When the query IS a town name, projects actually IN that town win — a title
+    // that merely contains the town in a DIFFERENT town must not outrank it. (e.g.
+    // searching "palm beach" → the exclusive island first, not a West Palm Beach
+    // college whose title starts with "Palm Beach".)
+    if (full && city===full) s+=55;
+    else if (full==='palm beach' && city==='west palm beach') s+=18;   // island first, then West Palm Beach
     if (full && nbhd && nbhd===full) s+=24;          // exact neighborhood match
     else if (full && nbhd && fieldHit(nbhd, full)) s+=16;
     for (var i=0;i<toks.length;i++){
@@ -1976,20 +1981,23 @@
   var _thread = [];                  // [{ q, parsed, answer }]
   var _THREAD_KEY = 'tmw_intel_thread';
   // Sticky output preference: once the user clicks a tab (Intelligence / Projects
-  // / Journal / All), that becomes the default lens for FOLLOWING queries instead
-  // of re-guessing per query. Persists per device. Falls back to the per-query
-  // smart default only when the chosen category isn't available for that result.
+  // / Journal / All) THIS session, that becomes the default lens for FOLLOWING
+  // queries instead of re-guessing per query. Deliberately SESSION-ONLY (not
+  // restored from a prior visit) — every fresh load starts on All (see below).
   var _FILTER_KEY = 'tmw_intel_filter_pref';
   var _stickyFilter = '';
-  try { _stickyFilter = localStorage.getItem(_FILTER_KEY) || ''; } catch(_){}
   function _setStickyFilter(f){
     _stickyFilter = f || '';
     try { if (_stickyFilter) localStorage.setItem(_FILTER_KEY, _stickyFilter); else localStorage.removeItem(_FILTER_KEY); } catch(_){}
   }
+  // The FIRST result view of a page load always defaults to All, regardless of any
+  // sticky lens — "every time you load into search, you land on All."
+  var _sessionFirstView = true;
   // Honor the sticky preference when its category has content for this result;
   // otherwise use the computed smart default. counts: {intel, projects, firms}.
   function _stickyDefault(computed, counts){
     counts = counts || {};
+    if (_sessionFirstView) { _sessionFirstView = false; return 'all'; }   // fresh load → All
     if (!_stickyFilter) return computed;
     if (_stickyFilter === 'all' || _stickyFilter === 'articles') return _stickyFilter;  // All + Journal always available
     if (_stickyFilter === 'intel' && counts.intel) return 'intel';
@@ -3481,6 +3489,9 @@
     // (Re)build the filter pills with the live article count, preserving the
     // active filter so a body-merge re-render doesn't snap back to "All".
     var active = sResults.getAttribute('data-filter') || 'all';
+    // Sticky "Journal" carried into a query that matched NO stories → fall back to
+    // All (don't strand the user on an empty Journal lens).
+    if (active === 'articles' && count === 0) { active = 'all'; sResults.setAttribute('data-filter', 'all'); }
     slotFilterPills.innerHTML = renderFilterPills({
       intel: _lastFilterCounts.intel,
       projects: _lastFilterCounts.projects,
