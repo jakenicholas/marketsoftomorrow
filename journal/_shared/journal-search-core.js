@@ -1053,13 +1053,6 @@
       pipeline = true;
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
     }
-    // Forward-looking "what's coming / new" asks order by the lifecycle spine
-    // (coming soon → recently opened → under construction by soonest completion →
-    // breaking ground → announced), NEVER by recency — a recency sort floats the
-    // most recently-ADDED project (often a just-Announced one) into the hero,
-    // which is exactly backwards. Quantitative sorts (tallest / most units /
-    // soonest delivery) still apply.
-    if (pipeline && sort && sort.key === 'updated') sort = null;
 
     // ICONIC LISTS. A curation ask ("best hotels", "good golf in california",
     // "iconic restaurants in miami") should surface our editorial iconic list
@@ -1256,6 +1249,25 @@
     return rows;
   }
 
+  // The project's real announcement/coverage date for the "Newest" sort — the
+  // most recent source_published across its StatusHistory dossier. NOT UpdatedAt:
+  // that's when we last TOUCHED the DB row (a re-fetch / reclassification), so a
+  // months-old project re-enriched today would wrongly read as "newest". (PBKC,
+  // announced 2025-06-30 but reclassified today, was beating 201 Arkona, truly
+  // announced this week.) Falls back to UpdatedAt only when no dated source exists.
+  function announcedAtOf(p) {
+    var sh = p && p.StatusHistory;
+    if (typeof sh === 'string') { try { sh = JSON.parse(sh); } catch (_) { sh = null; } }
+    var best = '';
+    if (Array.isArray(sh)) {
+      for (var i = 0; i < sh.length; i++) {
+        var d = sh[i] && sh[i].source_published ? String(sh[i].source_published) : '';
+        if (d && d > best) best = d;   // yyyy-mm-dd → lexical compare is chronological
+      }
+    }
+    return best || String((p && p.UpdatedAt) || '');
+  }
+
   function smartRank(rows, s) {
     var big = 1e9;
     if (s.sort && s.sort.key === 'floors') {
@@ -1274,7 +1286,9 @@
         return da < db ? -1 * ddir : da > db ? 1 * ddir : 0;
       });
     } else if (s.sort && s.sort.key === 'updated') {
-      rows.sort(function (a, b) { return String(b.UpdatedAt || '').localeCompare(String(a.UpdatedAt || '')); });
+      // "Newest" = most recently ANNOUNCED, by the dossier's source_published —
+      // not by when the DB row was last touched (see announcedAtOf).
+      rows.sort(function (a, b) { return announcedAtOf(b).localeCompare(announcedAtOf(a)); });
     } else {
       // DEFAULT — the unified status spine. Replaces the old "featured then
       // tallest" / rolling / opening-soon heuristics: rankByStatus already folds
