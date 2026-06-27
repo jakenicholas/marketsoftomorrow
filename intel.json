@@ -4919,16 +4919,16 @@
     "the-nora-hotel": {
       "estimate_years": 0.3,
       "estimate_label": "~4 months",
-      "days_out": 114,
-      "delivery_date": "2026-10-19",
+      "days_out": 110,
+      "delivery_date": "2026-10-15",
       "source": "known_date",
-      "precision": "day",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Hotel",
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Developer-announced opening in ~4 months.",
+      "pattern_summary": "Targeted for opening in ~4 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -11407,7 +11407,7 @@
       "good_count": 1,
       "exact_count": 1,
       "used_relaxed": true,
-      "avg_match_score": 0.6,
+      "avg_match_score": 0.65,
       "avg_distance_km": 953.8,
       "avg_distance_mi": 592.7,
       "scale_used": true,
@@ -11421,9 +11421,18 @@
           "slug": "the-belgrove-resort-spa",
           "location": "West Palm Beach",
           "years": 8.1,
-          "score": 1.0,
+          "score": 0.85,
           "distance_km": 13.9,
           "distance_mi": 8.7
+        },
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.64,
+          "distance_km": 2664.6,
+          "distance_mi": 1655.7
         },
         {
           "name": "Naples Beach Club, A Four Seasons Resort",
@@ -11433,15 +11442,6 @@
           "score": 0.46,
           "distance_km": 183.0,
           "distance_mi": 113.7
-        },
-        {
-          "name": "Siari, a Ritz-Carlton Reserve",
-          "slug": "siari-a-ritz-carlton-reserve",
-          "location": "Riviera Nayarit",
-          "years": 1.6,
-          "score": 0.34,
-          "distance_km": 2664.6,
-          "distance_mi": 1655.7
         }
       ],
       "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1).",
@@ -11563,65 +11563,12 @@
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
-    },
-    "one-domino-square": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 1.7,
-      "range_high": 4.3,
-      "confidence": "low",
-      "comparable_count": 13,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 0.47,
-      "avg_distance_km": 1130.6,
-      "avg_distance_mi": 702.5,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "New York",
-      "comparables": [
-        {
-          "name": "200 East 83rd",
-          "slug": "200-east-83rd",
-          "location": "New York City",
-          "years": 4.0,
-          "score": 0.85,
-          "distance_km": 7.1,
-          "distance_mi": 4.4
-        },
-        {
-          "name": "DELUX WeHo",
-          "slug": "delux-weho",
-          "location": "Nashville",
-          "years": 1.7,
-          "score": 0.64,
-          "distance_km": 1223.6,
-          "distance_mi": 760.3
-        },
-        {
-          "name": "The Bellemont",
-          "slug": "the-bellemont",
-          "location": "New York City",
-          "years": 2.0,
-          "score": 0.55,
-          "distance_km": 7.4,
-          "distance_mi": 4.6
-        }
-      ],
-      "pattern_summary": "Among 13 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.3).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
     }
   },
   "stats": {
     "high": 6,
     "medium": 15,
-    "low": 47,
+    "low": 46,
     "known_date": 403,
     "completed": 60,
     "skipped": 60,
