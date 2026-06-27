@@ -101,3 +101,12 @@ bucket_name = "tmw-media"
 #                               through Stripe, so this gives real MRR (annual
 #                               amortized) + actual collected revenue. Run:
 #                                   wrangler secret put STRIPE_SECRET_KEY
+#   CF_ACCOUNT_ID             — Cloudflare account ID (the hex string in any
+#                               dashboard URL: dash.cloudflare.com/<this>). Used
+#                               for the Stream API (carousel video transcode). Run:
+#                                   wrangler secret put CF_ACCOUNT_ID
+#   STREAM_API_TOKEN          — Cloudflare API token with the "Stream:Edit"
+#                               permission. Create at dash.cloudflare.com →
+#                               My Profile → API Tokens → Create Token → custom →
+#                               Account · Stream · Edit. Then:
+#                                   wrangler secret put STREAM_API_TOKEN

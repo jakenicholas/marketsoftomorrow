@@ -4201,6 +4201,67 @@ async function handleImageProxy(req, env, origin, url) {
   return new Response(upstream.body, { status: upstream.status, headers: h });
 }
 
+// ─── Cloudflare Stream (video transcode for carousels) ─────────────────────
+// Source videos can be huge (e.g. 400MB drone clips) — they can't play for a
+// client or fit a carousel. We copy each one into Stream ONCE (server-side,
+// from its public R2 URL), which transcodes it into a lightweight adaptive HLS
+// stream + thumbnail. Keyed by source URL in stream_videos so a clip is only
+// transcoded once. Needs env.CF_ACCOUNT_ID + env.STREAM_API_TOKEN.
+async function ensureStreamTable(env) {
+  if (!env.DB) return;
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS stream_videos (
+    src_url    TEXT PRIMARY KEY,
+    uid        TEXT,
+    state      TEXT NOT NULL DEFAULT 'queued',
+    hls        TEXT,
+    thumbnail  TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`).run();
+}
+function streamConfigured(env) { return !!(env.STREAM_API_TOKEN && env.CF_ACCOUNT_ID); }
+async function streamApi(env, path, init) {
+  const r = await fetch('https://api.cloudflare.com/client/v4/accounts/' + env.CF_ACCOUNT_ID + '/stream' + path,
+    Object.assign({}, init, { headers: Object.assign({ 'Authorization': 'Bearer ' + env.STREAM_API_TOKEN }, (init && init.headers) || {}) }));
+  let j = null; try { j = await r.json(); } catch (_) {}
+  return { ok: r.ok, status: r.status, j };
+}
+// POST /admin/stream/ensure {url} → copy the source video into Stream (once) and
+// return its uid + state. Idempotent: re-ensuring a known URL returns the cached row.
+async function handleStreamEnsure(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!streamConfigured(env)) return json({ error: 'Stream not configured (set CF_ACCOUNT_ID + STREAM_API_TOKEN)' }, { status: 503 }, env, origin);
+  await ensureStreamTable(env);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const url = String(body.url || '').trim();
+  if (!/^https:\/\//.test(url)) return json({ error: 'bad url' }, { status: 400 }, env, origin);
+  const existing = await env.DB.prepare(`SELECT * FROM stream_videos WHERE src_url = ?1`).bind(url).first();
+  if (existing && existing.uid) return json({ uid: existing.uid, state: existing.state }, {}, env, origin);
+  const name = url.split('/').pop().slice(0, 120);
+  const { ok, status, j } = await streamApi(env, '/copy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, meta: { name } }) });
+  const uid = j && j.result && j.result.uid;
+  if (!ok || !uid) return json({ error: 'Stream copy failed', status, detail: (j && j.errors) || null }, { status: 502 }, env, origin);
+  const now = Date.now();
+  await env.DB.prepare(`INSERT INTO stream_videos (src_url, uid, state, created_at, updated_at) VALUES (?1,?2,?3,?4,?4)
+    ON CONFLICT(src_url) DO UPDATE SET uid=?2, state=?3, updated_at=?4`).bind(url, uid, 'queued', now).run();
+  return json({ uid, state: 'queued' }, {}, env, origin);
+}
+// GET /stream-info?uid=<uid> → live transcode state + HLS + thumbnail. PUBLIC
+// (the client carousel page polls this); only exposes playback info for a uid.
+async function handleStreamInfo(req, env, origin) {
+  if (!streamConfigured(env)) return json({ error: 'not configured' }, { status: 503 }, env, origin);
+  const uid = (new URL(req.url).searchParams.get('uid') || '').trim();
+  if (!/^[a-f0-9]{20,}$/i.test(uid)) return json({ error: 'bad uid' }, { status: 400 }, env, origin);
+  const { ok, j } = await streamApi(env, '/' + uid, { method: 'GET' });
+  const res = j && j.result;
+  if (!ok || !res) return json({ error: 'lookup failed' }, { status: 502 }, env, origin);
+  const state = (res.status && res.status.state) || 'queued';
+  const hls = (res.playback && res.playback.hls) || '';
+  const thumbnail = res.thumbnail || '';
+  if (env.DB) { try { await ensureStreamTable(env); await env.DB.prepare(`UPDATE stream_videos SET state=?2, hls=?3, thumbnail=?4, updated_at=?5 WHERE uid=?1`).bind(uid, state, hls, thumbnail, Date.now()).run(); } catch (_) {} }
+  return json({ uid, state, ready: state === 'ready', hls, thumbnail }, { headers: { 'Cache-Control': state === 'ready' ? 'public, max-age=300' : 'no-store' } }, env, origin);
+}
+
 // GET /c/<slug>?preview=<token> — public Instagram-style preview page.
 // Self-contained HTML+CSS+JS so a deploy needs no extra static assets.
 async function handleCarouselPublic(req, env, slug) {
@@ -4251,6 +4312,13 @@ function renderCarouselHtml(c) {
   // Build slide HTML — each slide is a square (1:1) tile.
   const slideHtml = slides.map((s, i) => {
     if (s.type === 'video') {
+      // Stream-backed video: HLS attached client-side once transcoded; the
+      // text/logo overlay (transparent PNG) composites on top to keep the design.
+      if (s.stream_uid) {
+        const ov = s.overlay ? `<img class="ov" src="${escHtml(s.overlay)}" alt="">` : '';
+        const poster = s.poster ? ` poster="${escHtml(s.poster)}"` : '';
+        return `<div class="slide vid" data-i="${i}"><video class="strm" data-uid="${escAttr(s.stream_uid)}"${poster} muted playsinline loop preload="none"></video>${ov}</div>`;
+      }
       const poster = s.poster ? ` poster="${escHtml(s.poster)}"` : '';
       return `<div class="slide" data-i="${i}"><video src="${escHtml(s.url)}"${poster} muted playsinline loop ${i===0?'autoplay':''}></video></div>`;
     }
@@ -4315,6 +4383,8 @@ function renderCarouselHtml(c) {
   .track { display:flex; height:100%; width:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
   .slide { flex:0 0 100%; min-width:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
   .slide img, .slide video { width:100%; height:100%; object-fit:cover; display:block; }
+  .slide.vid { background:#0b0d0c; }
+  .slide .ov { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
   .arrow { position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; border-radius:50%;
     background:rgba(0,0,0,.55); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
     backdrop-filter:blur(8px); transition:opacity .15s, background .15s; z-index:3; }
@@ -4426,7 +4496,29 @@ function renderCarouselHtml(c) {
   {
   }
 })();
+// Stream-backed video slides: poll /stream-info for each until transcoded, then
+// attach the adaptive HLS (hls.js, or native on Safari). Overlay sits on top.
+(function(){
+  var vids=[].slice.call(document.querySelectorAll('video.strm')); if(!vids.length) return;
+  function attach(v, hls){
+    if(v.canPlayType('application/vnd.apple.mpegurl')){ v.src=hls; }
+    else if(window.Hls && window.Hls.isSupported()){ var h=new window.Hls({autoStartLoad:true}); h.loadSource(hls); h.attachMedia(v); }
+    else { v.src=hls; }
+    var p=v.play(); if(p&&p.catch) p.catch(function(){});
+  }
+  vids.forEach(function(v){
+    var uid=v.getAttribute('data-uid'); if(!uid) return; var tries=0;
+    (function poll(){
+      fetch('/stream-info?uid='+encodeURIComponent(uid)).then(function(r){return r.json();}).then(function(d){
+        if(d&&d.thumbnail&&!v.getAttribute('poster')) v.setAttribute('poster', d.thumbnail);
+        if(d&&d.ready&&d.hls){ attach(v, d.hls); }
+        else if(tries++<60){ setTimeout(poll, 5000); }
+      }).catch(function(){ if(tries++<60) setTimeout(poll, 5000); });
+    })();
+  });
+})();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js" defer></script>
 </body>
 </html>`;
 }
@@ -7408,6 +7500,10 @@ export default {
         if (denied) return denied;
         return await handleImageProxy(request, env, origin, url);
       }
+      // Cloudflare Stream: copy a big video into Stream (admin), and a public
+      // info endpoint the client carousel polls for the HLS URL once transcoded.
+      if (request.method === 'POST' && url.pathname === '/admin/stream/ensure') return await handleStreamEnsure(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/stream-info')        return await handleStreamInfo(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
