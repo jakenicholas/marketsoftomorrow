@@ -289,6 +289,47 @@ async function handleEventIngest(req, env, origin) {
   return json({ ok: true }, {}, env, origin);
 }
 
+// /intel-thread — device-to-device TMW Intelligence chat resume for logged-in
+// members. GET ?member_id=mem_… returns the saved query list; POST { member_id,
+// qs:[…] } upserts it. First-party only (trusted Origin, same gate as /event);
+// only real Memberstack accounts (mem_*) get a row, so anon/bot traffic never
+// writes. Stores just the query strings (answers replay + re-cache on the new
+// device) — small, and not sensitive.
+async function handleIntelThread(request, env, origin, url) {
+  const reqOrigin = request.headers.get('Origin') || '';
+  const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  const originOk = !!reqOrigin && (allowList.includes(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*pages\.dev$/i.test(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(reqOrigin));
+  if (!originOk) return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+
+  try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS intel_threads (member_id TEXT PRIMARY KEY, thread_json TEXT, updated_at INTEGER)').run(); } catch (_) {}
+
+  if (request.method === 'GET') {
+    const memberId = url.searchParams.get('member_id') || '';
+    if (memberId.indexOf('mem_') !== 0) return json({ ok: true, qs: [], ts: 0 }, {}, env, origin);
+    let row = null;
+    try { row = await env.DB.prepare('SELECT thread_json, updated_at FROM intel_threads WHERE member_id = ?').bind(memberId).first(); } catch (_) {}
+    let qs = [];
+    try { if (row && row.thread_json) qs = JSON.parse(row.thread_json); } catch (_) {}
+    return json({ ok: true, qs: Array.isArray(qs) ? qs : [], ts: (row && row.updated_at) || 0 }, {}, env, origin);
+  }
+
+  // POST — upsert (last write wins; the most-recently-active device is truth).
+  let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const memberId = String(body.member_id || '');
+  if (memberId.indexOf('mem_') !== 0) return json({ ok: true, skipped: 'not a member account' }, {}, env, origin);
+  const qs = Array.isArray(body.qs)
+    ? body.qs.filter(q => typeof q === 'string' && q.trim()).map(q => q.slice(0, 200)).slice(-12)
+    : [];
+  const ts = Date.now();
+  try {
+    if (qs.length) await env.DB.prepare('INSERT OR REPLACE INTO intel_threads (member_id, thread_json, updated_at) VALUES (?,?,?)').bind(memberId, JSON.stringify(qs), ts).run();
+    else await env.DB.prepare('DELETE FROM intel_threads WHERE member_id = ?').bind(memberId).run();
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+  return json({ ok: true, ts }, {}, env, origin);
+}
+
 // GET /people — list of identified members, most recently active first.
 // Returns rich per-member stats (sessions, active_days) computed from the
 // raw events table. Cheap at low volume; if rows ever exceed ~10k we'd
@@ -7054,6 +7095,10 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/event') {
         return await handleEventIngest(request, env, origin);
+      }
+      // Device-to-device TMW Intelligence chat resume (logged-in members).
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-thread') {
+        return await handleIntelThread(request, env, origin, url);
       }
       // First-party post view counter (public): beacon in, count map out.
       if (request.method === 'POST' && url.pathname === '/view') {

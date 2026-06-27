@@ -1972,12 +1972,40 @@
   // follow-up resolution, `answer` powers conversation context + persistence.
   var _thread = [];                  // [{ q, parsed, answer }]
   var _THREAD_KEY = 'tmw_intel_thread';
+  // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
+  function _memberId(){
+    try { var m = window.__tmwMember; return (m && typeof m.id === 'string' && m.id.indexOf('mem_') === 0) ? m.id : ''; } catch(_) { return ''; }
+  }
+  function _threadQs(){ return _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12); }
+  var _serverSaveTimer = null;
+  // Push the query list to the worker so the same member resumes on any device.
+  // Debounced + best-effort; the localStorage copy remains the offline fallback.
+  function saveThreadToServer(){
+    var mid = _memberId(); if (!mid) return;
+    clearTimeout(_serverSaveTimer);
+    _serverSaveTimer = setTimeout(function(){
+      try {
+        fetch(WORKER_URL + '/intel-thread', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+          body: JSON.stringify({ member_id: mid, qs: _threadQs() })
+        }).catch(function(){});
+      } catch(_){}
+    }, 1200);
+  }
+  function fetchServerThread(){
+    var mid = _memberId(); if (!mid) return Promise.resolve(null);
+    return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid), { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ return (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null; })
+      .catch(function(){ return null; });
+  }
   function saveThread(){
     try {
-      var qs = _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12);
+      var qs = _threadQs();
       if (qs.length) localStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
       else localStorage.removeItem(_THREAD_KEY);
     } catch(_){}
+    saveThreadToServer();   // mirror to the member's cloud thread (logged-in only)
   }
   function readThread(){
     try {
@@ -1986,6 +2014,28 @@
       if (o && Array.isArray(o.qs) && o.qs.length && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.qs;
     } catch(_){}
     return null;
+  }
+  // Replay a saved query list into the thread (used by resume). Re-renders each
+  // turn sequentially (so the global _renderToken doesn't invalidate earlier
+  // ones); cheap because data loads once and LLM answers are cached. Does NOT
+  // re-save — saving happens on real user submits, so a replay can't clobber the
+  // member's cloud thread while we're still reconciling it.
+  function _resumeReplay(qs){
+    if (!qs || !qs.length) return;
+    input.value = '';
+    _thread = [];
+    if (_threadEl) _threadEl.innerHTML = '';   // clear any prior render (e.g. swapping a stale local thread for the cloud one)
+    sStarter.classList.add('tmw-ov-hidden');   // never flash the teach card before the replay
+    loadData().then(function(){
+      (function next(i){
+        if (i >= qs.length) return;
+        var q = qs[i];
+        _thread.push({ q: q, parsed: null, answer: null });
+        newTurn(q);
+        var p = runQuery(q);
+        (p && p.then ? p : Promise.resolve()).then(function(){ setTimeout(function(){ next(i + 1); }, 0); });
+      })(0);
+    });
   }
   // Prior turns (oldest→newest, capped) as { q, answer } for the LLM's context.
   function threadHistory(){
@@ -3500,29 +3550,32 @@
     } else if (_thread.length) {
       // Same-session reopen — the rendered thread is still in the DOM; leave it.
     } else {
-      // Resume the saved conversation: replay each turn into the thread. Replays
-      // are cheap (data loads once; LLM answers are cached → no new model calls
-      // for unchanged turns), and rendering each turn keeps its handlers live.
-      // Sequential so the global _renderToken doesn't invalidate earlier turns.
-      var _qs = readThread();
-      if (!_qs) { var _r = readLastQuery(); if (_r) _qs = [_r]; }
-      if (_qs && _qs.length) {
-        input.value = '';
-        _thread = [];
-        sStarter.classList.add('tmw-ov-hidden');   // hide the teach card NOW so it never flashes before replay
-        loadData().then(function(){
-          (function next(i){
-            if (i >= _qs.length) { saveThread(); return; }
-            var q = _qs[i];
-            _thread.push({ q: q, parsed: null, answer: null });
-            newTurn(q);
-            var p = runQuery(q);
-            (p && p.then ? p : Promise.resolve()).then(function(){ setTimeout(function(){ next(i + 1); }, 0); });
-          })(0);
+      // Resume the saved conversation. Replay this device's LOCAL thread instantly
+      // (offline-safe, no flash); for a logged-in member, then reconcile against
+      // their CLOUD thread so they pick up where they left off on another device.
+      var localQs = readThread();
+      if (!localQs) { var _r = readLastQuery(); if (_r) localQs = [_r]; }
+      var mid = _memberId();
+      var replayedKey = '';
+      if (localQs && localQs.length) { _resumeReplay(localQs); replayedKey = localQs.join(''); }
+      else if (!mid) { input.value = ''; setState('starter'); }
+      else { input.value = ''; sStarter.classList.add('tmw-ov-hidden'); }   // logged-in + no local → blank briefly while we check the cloud (no teach flash)
+
+      if (mid) {
+        fetchServerThread().then(function(serverQs){
+          if (!serverQs || !serverQs.length) {
+            if (localQs && localQs.length) saveThreadToServer();   // cloud empty → migrate this device's thread up
+            else if (!_thread.length) setState('starter');          // nothing anywhere → teach screen
+            return;
+          }
+          // Adopt the cloud thread (a more-recently-active device) only if the
+          // user hasn't started a new turn since open and it differs from what
+          // we already replayed — never yank a conversation out from under them.
+          var serverKey = serverQs.join('');
+          if (serverKey !== replayedKey && _threadQs().join('') === replayedKey) {
+            _resumeReplay(serverQs);
+          }
         });
-      } else {
-        input.value = '';
-        setState('starter');   // nothing to resume → the teach screen
       }
     }
     // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
