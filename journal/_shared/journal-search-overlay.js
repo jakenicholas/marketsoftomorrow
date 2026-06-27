@@ -131,11 +131,15 @@
     + '.tmw-ov-hxs-ring{transform-origin:50% 50%;animation:tmwOvHxsRing 4.2s ease-out infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-hxs-spin,.tmw-ov-hxs-ring{animation:none}.tmw-ov-hxs-ring{opacity:0}}'
 
-    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 220px;-webkit-overflow-scrolling:touch}'
+    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 220px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}'
     + '.tmw-ov-body::-webkit-scrollbar{width:8px}'
     + '.tmw-ov-body::-webkit-scrollbar-track{background:transparent}'
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
     + '.tmw-ov-wrap{max-width:1080px;margin:0 auto;padding:0 22px}'
+    /* Bottom-anchor the thread when it's shorter than the viewport (a short
+       answer rests just above the search box, chat-style); margin-top:auto
+       collapses to 0 once the content overflows, so scrolling stays normal. */
+    + '.tmw-ov-wrap{margin-top:auto;width:100%}'
     /* ── Chat thread: each turn = a sent user message + its full answer ── */
     + '.tmw-ov-thread{display:flex;flex-direction:column;gap:30px}'
     + '.tmw-ov-turn{display:flex;flex-direction:column;gap:14px}'
@@ -146,7 +150,12 @@
     +   'font-size:15px;line-height:1.4;font-weight:500;padding:11px 16px;border-radius:16px 16px 4px 16px;'
     +   'box-shadow:0 2px 14px rgba(167,139,250,.12);word-break:break-word}'
     + '.tmw-ov-answer{display:block}'
-    + '@media(max-width:640px){.tmw-ov-thread{gap:22px}.tmw-ov-turn + .tmw-ov-turn{padding-top:22px}.tmw-ov-msg{max-width:88%;font-size:14px}}'
+    /* Per-answer thumbs: bottom-right of each turn, votes on that turn alone.
+       Pin the "Noted" confirmation under the right-aligned buttons (the base
+       rule centers it on the row, which is full-width here). */
+    + '.tmw-ov-turn-fb{justify-content:flex-end;width:100%;margin-top:16px}'
+    + '.tmw-ov-turn-fb .tmw-ov-fb-thanks{left:auto;right:6px;transform:none}'
+    + '@media(max-width:640px){.tmw-ov-thread{gap:22px}.tmw-ov-turn + .tmw-ov-turn{padding-top:22px}.tmw-ov-msg{max-width:88%;font-size:14px}.tmw-ov-turn-fb{margin-top:12px}}'
 
     /* Starter (empty) state — spotlight layout: centered on page, no
        card / box around it. Just the small TMW Intelligence label + Pro
@@ -246,7 +255,6 @@
        go solid-purple-with-ink-text when active. The count subscript is
        slightly muted so the label reads first. */
     + '.tmw-ov-fp-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;'
-    + 'padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.06);'
     + 'animation:tmwOvFadeIn .3s ease both}'
     + '.tmw-ov-fp{display:inline-flex;align-items:center;gap:6px;'
     + 'background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.25);'
@@ -819,6 +827,17 @@
     + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
     +   '<h3>Nothing matched in the database</h3>'
     +   '<p>Try a firm name, city, or project. Or ask TMW Intelligence below — it can synthesize answers from the journal.</p>'
+    + '</div>'
+    // Per-answer feedback — bottom-right, votes on THIS turn only (feeds the
+    // backend intel improver). Shown on results/empty via setState.
+    + '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
+    +   '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
+    +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
+    +   '</button>'
+    +   '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
+    +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
+    +   '</button>'
+    +   '<span class="tmw-ov-fb-thanks">Noted</span>'
     + '</div>';
 
   var root = document.createElement('div');
@@ -852,21 +871,9 @@
 
     +     '</div>'
     +   '</div>'
-    /* Bottom dock wraps the thumbs feedback row + the search bar in a
-       single flex-column container. Both children sit centered via
-       align-items:center -- no more manual transforms. Order is feedback
-       on top, bar below, with a small gap. */
+    /* Bottom dock holds the search bar. (Thumbs feedback now lives per-answer,
+       bottom-right of each turn, not in the dock.) */
     +   '<div class="tmw-ov-dock">'
-    +     '<div class="tmw-ov-feedback" data-feedback>'
-    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
-    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
-    +       '</button>'
-    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
-    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
-    +       '</button>'
-    +       '<span class="tmw-ov-fb-thanks">Noted</span>'
-    +     '</div>'
-
     +     '<div class="tmw-ov-bar">'
     +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
@@ -1795,7 +1802,7 @@
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
     var placeLbl = iconicPlaceLabel(s.iconic, items);
     var hero = items[0], rest = items.slice(1);
-    var heroSec = '<div class="tmw-ov-sec" data-cat="projects">' + renderIconicHero(hero, s) + '</div>';
+    var heroSec = '<div class="tmw-ov-sec" data-cat="articles">' + renderIconicHero(hero, s) + '</div>';
     if (!rest.length) return heroSec;
     var CAP = 24, shown = rest.slice(0, CAP);
     var singular = noun.replace(/ courses$/, ' course').replace(/^(hotels|restaurants)$/, function(m){ return m.slice(0, -1); });
@@ -1806,7 +1813,7 @@
       + '<a class="map-link" href="https://www.oftmw.com/'+s.iconic+'/">'+ICON_STAR+' Full list</a></div>';
     var foot = '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · curated iconic '+esc(noun)
       + (rest.length > CAP ? ' · showing top '+(CAP + 1)+' of '+items.length : '') + '</div>';
-    return heroSec + '<div class="tmw-ov-sec" data-cat="projects">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
+    return heroSec + '<div class="tmw-ov-sec" data-cat="articles">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
   }
   function buildIconicAnswerHtml(s, items, projectRows){
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
@@ -1855,9 +1862,9 @@
     slotProjGrid = turn.querySelector('[data-slot="projects-grid"]');
     slotEntities = turn.querySelector('[data-slot="entities"]');
     slotArticles = turn.querySelector('[data-slot="articles-grid"]');
-    // Lead the viewport with the new message + its answer.
-    try { turn.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
-    catch(_) { try { bodyEl.scrollTop = bodyEl.scrollHeight; } catch(__){} }
+    // Lead the viewport with the new message immediately (its answer fills in
+    // below as it renders; setState repositions once results land).
+    positionLatestTurn(true);
     return turn;
   }
 
@@ -1869,11 +1876,39 @@
     if (sThinking) sThinking.classList.toggle('show', name === 'thinking');
     if (sResults)  sResults.classList.toggle('tmw-ov-hidden', name !== 'results');
     if (sEmpty)    sEmpty.classList.toggle('tmw-ov-hidden', name !== 'empty');
-    // Thumbs feedback row (bottom dock, reflects the latest answer) only makes
-    // sense when actual results are on screen.
-    var fbEl = root.querySelector('.tmw-ov-feedback');
-    if (fbEl) fbEl.classList.toggle('show', name === 'results' || name === 'empty');
-    // No scrollTop reset — newTurn() handles scrolling to the fresh turn.
+    // Per-turn thumbs row: show on results/empty and stamp it with THIS turn's
+    // query context so a vote describes the right answer (feeds the intel improver).
+    var turn = (sResults && sResults.closest) ? sResults.closest('.tmw-ov-turn') : null;
+    var fbEl = turn ? turn.querySelector('.tmw-ov-feedback') : null;
+    if (fbEl) {
+      var on = (name === 'results' || name === 'empty');
+      fbEl.classList.toggle('show', on);
+      if (on) {
+        fbEl.setAttribute('data-q', _lastQuery || '');
+        fbEl.setAttribute('data-results', String(_lastResultsTotal));
+        fbEl.setAttribute('data-kind', _lastResultKind || '');
+      }
+      // Position the answer: long → lead with its message at top; short → the
+      // flex bottom-anchor rests it above the search box.
+      if (on) positionLatestTurn(true);
+    }
+  }
+
+  // Scroll the just-rendered turn into a comfortable position. When the thread
+  // overflows the viewport, lead with this turn's message at the top so a long
+  // answer is fully visible; when it fits, the .tmw-ov-wrap bottom-anchor has
+  // already rested it just above the search box, so leave it.
+  function positionLatestTurn(immediate){
+    if (!bodyEl || !_threadEl) return;
+    var turn = (sResults && sResults.closest && sResults.closest('.tmw-ov-turn')) || _threadEl.lastElementChild;
+    if (!turn) return;
+    var overflow = bodyEl.scrollHeight > bodyEl.clientHeight + 4;
+    if (overflow) {
+      var msg = turn.querySelector('.tmw-ov-msg-row') || turn;
+      var target = Math.max(0, msg.offsetTop - 16);
+      if (immediate) bodyEl.scrollTop = target;
+      else try { bodyEl.scrollTo({ top: target, behavior: 'smooth' }); } catch(_) { bodyEl.scrollTop = target; }
+    }
   }
 
   // Single entry point for a user-initiated query: the text leaves the bar and
@@ -1980,7 +2015,8 @@
   // Reset the feedback row to its unvoted, dim state. Called at the top
   // of every runQuery so a previous vote doesn\'t bleed across queries.
   function resetFeedback(){
-    var fbEl = root.querySelector('.tmw-ov-feedback');
+    var turn = (sResults && sResults.closest) ? sResults.closest('.tmw-ov-turn') : null;
+    var fbEl = turn ? turn.querySelector('.tmw-ov-feedback') : null;
     if (!fbEl) return;
     fbEl.classList.remove('voted');
     var btns = fbEl.querySelectorAll('.tmw-ov-fb-btn');
@@ -1993,9 +2029,11 @@
   // the same `events` D1 table) but with event_name="search_feedback"
   // so the admin can roll up these specifically. Best-effort -- a
   // dropped beacon shouldn\'t affect the user\'s flow.
-  function sendFeedback(rating){
+  function sendFeedback(rating, ctx){
     try {
-      if (!_lastQuery) return;
+      ctx = ctx || {};
+      var fq = ctx.q || _lastQuery;          // the voted turn's query (per-answer)
+      if (!fq) return;
       var m = window.__tmwMember || null;
       var pro = !!(window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro());
       var did = '';
@@ -2009,10 +2047,10 @@
         referrer: document.referrer || null,
         client_ts: Math.floor(Date.now() / 1000),
         props: {
-          q: String(_lastQuery).slice(0, 200),
+          q: String(fq).slice(0, 200),
           rating: rating, // 'up' or 'down'
-          results: _lastResultsTotal,
-          result_kind: _lastResultKind,
+          results: (ctx.results != null && !isNaN(ctx.results)) ? ctx.results : _lastResultsTotal,
+          result_kind: ctx.kind || _lastResultKind,
           source: 'overlay'
         }
       });
@@ -2033,7 +2071,11 @@
     if (!fbEl || fbEl.classList.contains('voted')) return;
     var rating = btn.getAttribute('data-rating');
     if (rating !== 'up' && rating !== 'down') return;
-    sendFeedback(rating);
+    sendFeedback(rating, {
+      q: fbEl.getAttribute('data-q') || _lastQuery,
+      results: parseInt(fbEl.getAttribute('data-results') || '', 10),
+      kind: fbEl.getAttribute('data-kind') || ''
+    });
     fbEl.classList.add('voted');
     var btns = fbEl.querySelectorAll('.tmw-ov-fb-btn');
     for (var i = 0; i < btns.length; i++){
@@ -2403,9 +2445,15 @@
     // loaded set and the worker body-scan. "Intel" is always present (a smart
     // query always produces an answer); the Journal tab is always present too.
     _heroArticleRef = null; // structured hero is always a project
-    _lastFilterCounts = { intel: true, projects: rows.length + iconicHits.length, firms: 0 };
-    sResults.removeAttribute('data-filter');
-    renderArticleSection(q, token);
+    // Iconic editorial picks count under Journal now (they're TMW curation, not
+    // pipeline projects), so the "best hotels" ask lands on the Journal tab.
+    _lastFilterCounts = { intel: true, projects: rows.length, firms: 0, iconicArticles: iconicHits.length };
+    // Smart default tab (req 2/3): an iconic/"best X" ask leads with Journal; a
+    // pipeline ask ("tallest towers") leads with Projects; anything else shows
+    // just the Intelligence answer. The user can still click All / any tab.
+    var defFilter = s.iconic ? 'articles' : (rows.length ? 'projects' : 'intel');
+    sResults.setAttribute('data-filter', defFilter);
+    renderArticleSection(q, token, { suppressFallback: iconicHits.length > 0 });
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
     // Skip the upgrade when the firm-in-place fallback fired — the deterministic
@@ -2918,7 +2966,8 @@
       slotEntities.innerHTML = '';
       _heroArticleRef = null;
       _lastFilterCounts = { intel: question, projects: 0, firms: 0 };
-      sResults.removeAttribute('data-filter');
+      // No DB hits — the Intelligence answer is the response, so lead with it.
+      sResults.setAttribute('data-filter', question ? 'intel' : 'articles');
       renderArticleSection(q, token);
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
@@ -3099,7 +3148,12 @@
       projects: restProjects.length + (heroProject ? 1 : 0),
       firms:    restFirms.length + restCities.length + (heroFirm ? 1 : 0),
     };
-    sResults.removeAttribute('data-filter');
+    // Smart default tab: lead with whatever the lookup actually found —
+    // projects, then firms/places, then journal, then the Intelligence answer.
+    var defF = _lastFilterCounts.projects > 0 ? 'projects'
+             : _lastFilterCounts.firms > 0 ? 'firms'
+             : (question ? 'intel' : 'articles');
+    sResults.setAttribute('data-filter', defF);
     renderArticleSection(q, token);
 
     _lastResultsTotal = totalHits;
@@ -3165,8 +3219,10 @@
     } else {
       // No matches — the always-on Journal tab still gets the latest stories as
       // a browse fallback (hidden in All, shown under the Journal filter).
+      // Skipped when an iconic editorial list is already the Journal answer, so
+      // "best hotels" doesn't trail unrelated latest posts under its curated list.
       var recent = ARTICLES.slice(0, 9);
-      slotArticles.innerHTML = recent.length
+      slotArticles.innerHTML = (recent.length && !opts.suppressFallback)
         ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
             + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
             + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
@@ -3181,7 +3237,7 @@
       intel: _lastFilterCounts.intel,
       projects: _lastFilterCounts.projects,
       firms: _lastFilterCounts.firms,
-      articles: count,
+      articles: count + (_lastFilterCounts.iconicArticles || 0),  // iconic picks live under Journal now
     });
     var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="'+active+'"]');
     if (ap){ var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i=0;i<ps.length;i++) ps[i].classList.toggle('active', ps[i]===ap); }
