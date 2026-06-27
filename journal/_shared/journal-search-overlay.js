@@ -1862,9 +1862,10 @@
     slotProjGrid = turn.querySelector('[data-slot="projects-grid"]');
     slotEntities = turn.querySelector('[data-slot="entities"]');
     slotArticles = turn.querySelector('[data-slot="articles-grid"]');
-    // Lead the viewport with the new message immediately (its answer fills in
-    // below as it renders; setState repositions once results land).
-    positionLatestTurn(true);
+    // Bring the new message + loader into view immediately (at the bottom, above
+    // the bar) while the answer loads; setState does the authoritative long/short
+    // positioning once results land.
+    try { bodyEl.scrollTop = bodyEl.scrollHeight; } catch(_){}
     return turn;
   }
 
@@ -1891,27 +1892,32 @@
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
       }
-      // NOTE: do NOT scroll here. setState fires on every render AND async
-      // re-render (LLM upgrade, journal body-scan), so scrolling here yanked the
-      // view back down whenever the user had scrolled up to read/vote on an
-      // earlier turn. Scrolling happens once, on the user's new turn (newTurn).
+      // Position the freshly-answered turn: long → message pinned to top, short
+      // → bottom-anchored above the bar. setState('results'/'empty') fires ONCE
+      // per query (the LLM upgrade + journal body-scan re-render their slots
+      // without calling setState), so this never fires on async re-renders and
+      // won't yank the view when the user has scrolled up to an earlier turn.
+      if (on) positionLatestTurn();
     }
   }
 
-  // Scroll the just-rendered turn into a comfortable position. When the thread
-  // overflows the viewport, lead with this turn's message at the top so a long
-  // answer is fully visible; when it fits, the .tmw-ov-wrap bottom-anchor has
-  // already rested it just above the search box, so leave it.
-  function positionLatestTurn(immediate){
+  // Position the just-answered turn (called ONCE per query, from setState after
+  // the answer has rendered — so the long/short decision is based on the real
+  // height). Long turn → pin the user message to the top so the full answer
+  // leads the viewport. Short turn → rest its bottom just above the search bar
+  // (bottom-anchor). DOCK_RESERVE ≈ the search dock's height, so "fits" means
+  // "fits in the space above the bar."
+  var DOCK_RESERVE = 170;
+  function positionLatestTurn(){
     if (!bodyEl || !_threadEl) return;
     var turn = (sResults && sResults.closest && sResults.closest('.tmw-ov-turn')) || _threadEl.lastElementChild;
     if (!turn) return;
-    var overflow = bodyEl.scrollHeight > bodyEl.clientHeight + 4;
-    if (overflow) {
+    var fits = turn.offsetHeight <= (bodyEl.clientHeight - DOCK_RESERVE);
+    if (fits) {
+      bodyEl.scrollTop = bodyEl.scrollHeight;             // bottom-anchor (just above the dock)
+    } else {
       var msg = turn.querySelector('.tmw-ov-msg-row') || turn;
-      var target = Math.max(0, msg.offsetTop - 16);
-      if (immediate) bodyEl.scrollTop = target;
-      else try { bodyEl.scrollTo({ top: target, behavior: 'smooth' }); } catch(_) { bodyEl.scrollTop = target; }
+      bodyEl.scrollTop = Math.max(0, msg.offsetTop - 14); // top-anchor the user message
     }
   }
 
