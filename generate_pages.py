@@ -1148,7 +1148,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         phases_note_html = f'<div class="pp-phases-note">{_pn}</div>'
 
     developer = truncate_developer(row.get('Developer','').strip())
-    architect = row.get('Architect','').strip().split(',')[0].strip()
+    architect = truncate_developer(row.get('Architect','').strip())   # keep multi-architect (was first-only)
     description = row.get('DescriptionLong','').strip() or row.get('Description','').strip()
     image = row.get('ImageURL','').strip() or DEFAULT_IMAGE
     website = row.get('OfficialWebsite','').strip()
@@ -1328,14 +1328,16 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     _dev_slugs = [s.strip() for s in (row.get('DeveloperSlugs', '') or '').split(',') if s.strip()]
     _arch_names = [n.strip() for n in (row.get('Architect', '') or '').split(',') if n.strip()]
     _arch_slugs = [s.strip() for s in (row.get('ArchitectSlugs', '') or '').split(',') if s.strip()]
-    dev_card = _firm_card(_dev_names[0] if _dev_names else '',
-                          _dev_slugs[0] if _dev_slugs else '', 'Developer')
-    arch_card = _firm_card(_arch_names[0] if _arch_names else '',
-                           _arch_slugs[0] if _arch_slugs else '', 'Architect')
+    # Show EVERY developer + architect (a project can have multiple of each), each
+    # as its own card — all developers, then all architects.
+    dev_cards  = ''.join(_firm_card(n, (_dev_slugs[i]  if i < len(_dev_slugs)  else ''), 'Developer')
+                         for i, n in enumerate(_dev_names))
+    arch_cards = ''.join(_firm_card(n, (_arch_slugs[i] if i < len(_arch_slugs) else ''), 'Architect')
+                         for i, n in enumerate(_arch_names))
     firms_section = ''
-    if dev_card or arch_card:
+    if dev_cards or arch_cards:
         firms_section = (f'<div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div>'
-                         f'<div class="pp-firms">{dev_card}{arch_card}</div></div>')
+                         f'<div class="pp-firms">{dev_cards}{arch_cards}</div></div>')
 
     # Watch button (moved out of the template so it can live inside the hero).
     watch_btn = (
