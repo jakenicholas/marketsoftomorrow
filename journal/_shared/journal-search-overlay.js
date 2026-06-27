@@ -2454,48 +2454,43 @@
       }
       return rs[0];
     }
-    var heroProject = pickHero(rows, s);
-    var restRows = rows.filter(function (r) { return r !== heroProject; });
-    if (heroProject) {
-      slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">' + renderProjectHero(heroProject) + '</div>';
-    } else {
-      slotHero.innerHTML = '';
-    }
-
-    if (restRows.length){
-      var maxMetric = 1;
-      if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, restRows.map(Core.floorsOf).concat([1]));
-      else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, restRows.map(Core.unitsOf).concat([1]));
-      var SMART_CAP = 40, ROW_PAGE = 10;
-      var shown = restRows.slice(0, SMART_CAP);
-      // Ranks start at 2 since rank 1 is the hero card above. Show the first
-      // page; rows past it render hidden and reveal via the Load-more button.
-      var rowsHtml = shown.map(function(p, i){
-        var html = renderSmartRow(p, i + 2, s, maxMetric);
+    var SMART_CAP = 40, ROW_PAGE = 10;
+    var maxMetric = 1;
+    if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, rows.map(Core.floorsOf).concat([1]));
+    else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, rows.map(Core.unitsOf).concat([1]));
+    // Render a paginated project-rows section (header + first ROW_PAGE rows +
+    // the rest hidden behind a Load-more button). startRank = the first row's #.
+    function renderRowsSection(rowsArr, headHtml, startRank, withCredit){
+      if (!rowsArr.length) return '';
+      var shownR = rowsArr.slice(0, SMART_CAP);
+      var rowsH = shownR.map(function(p, i){
+        var html = renderSmartRow(p, i + startRank, s, maxMetric);
         return i >= ROW_PAGE ? html.replace('class="tmw-ov-row ', 'class="tmw-ov-row tmw-ov-row-hidden ') : html;
       }).join('');
-      var hiddenCount = Math.max(0, shown.length - ROW_PAGE);
-      var moreBtn = hiddenCount > 0
-        ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hiddenCount)+' more</button>'
-        : '';
-      var foot = (restRows.length > SMART_CAP)
-        ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rows.length+' — refine your question to narrow it.</div>'
-        : '';
-      foot += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
-      slotRows.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">'
-        + renderSmartHeader(s, shown, !!heroProject)
-        + '<div class="tmw-ov-rows">' + rowsHtml + '</div>'
-        + moreBtn
-        + foot
-        + '</div>';
-    } else {
-      slotRows.innerHTML = '';
+      var hc = Math.max(0, shownR.length - ROW_PAGE);
+      var mb = hc > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hc)+' more</button>' : '';
+      var ft = (rowsArr.length > SMART_CAP) ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rowsArr.length+' — refine your question to narrow it.</div>' : '';
+      if (withCredit) ft += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
+      return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + mb + ft + '</div>';
     }
-    // Blend the iconic editorial list ABOVE the project rows (it's the direct
-    // answer to a "best/iconic X" ask). For an iconic-only query (no project
-    // rows) it's the whole result set.
+
+    // ONE hero at a time. When the answer is iconic (the curated list), its top
+    // pick IS the hero — DB projects (forthcoming golf in that place) drop to a
+    // secondary "In development" rows section, never a competing hero card. When
+    // there's no iconic list (a pipeline / "new golf courses" ask), the DB
+    // project is the hero as before.
     if (iconicHits.length){
-      slotRows.innerHTML = renderIconicSection(iconicHits, s) + slotRows.innerHTML;
+      slotHero.innerHTML = '';   // iconic pick (inside renderIconicSection) is the hero
+      var devHead = '<div class="tmw-ov-smart-head"><h3>In development</h3>'
+        + '<span class="sub">' + rows.length + ' tracked ' + (rows.length === 1 ? 'project' : 'projects') + '</span></div>';
+      var devSection = renderRowsSection(rows, devHead, 1, false);
+      slotRows.innerHTML = renderIconicSection(iconicHits, s) + devSection;
+    } else {
+      var heroProject = pickHero(rows, s);
+      var restRows = rows.filter(function (r) { return r !== heroProject; });
+      slotHero.innerHTML = heroProject ? ('<div class="tmw-ov-sec" data-cat="projects">' + renderProjectHero(heroProject) + '</div>') : '';
+      // Rows start at rank 2 (hero is #1).
+      slotRows.innerHTML = renderRowsSection(restRows, renderSmartHeader(s, restRows.slice(0, SMART_CAP), !!heroProject), 2, true);
     }
 
     // Journal + filter pills via the shared renderer, so architect/city/status

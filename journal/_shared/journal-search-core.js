@@ -1065,7 +1065,7 @@
         hasWord(full, 'launching') || hasWord(full, 'underway') || hasWord(full, 'future') ||
         hasWord(full, 'rising') || hasWord(full, 'unbuilt') || hasWord(full, 'forthcoming') ||
         /\b(coming soon|coming to|in the works|on the way|in the pipeline|set to (?:open|launch|deliver|complete|debut)|coming up|break(?:ing|s)? ground|broke ground|groundbreaking|under construction|being built|being developed|in development|under development|getting built|scheduled to (?:open|complete)|in the making|on the horizon|just announced|newly (?:built|opened|completed|launched|delivered))\b/.test(full) ||
-        /\bnew (?:condos?|towers?|projects?|developments?|buildings?|hotels?|resorts?|residences?|construction|builds?|high[- ]?rises?|skyscrapers?|communit(?:y|ies))\b/.test(full)
+        /\bnew (?:condos?|towers?|projects?|developments?|buildings?|hotels?|resorts?|residences?|construction|builds?|high[- ]?rises?|skyscrapers?|communit(?:y|ies)|golf(?: courses?| clubs?)?|courses?)\b/.test(full)
     )) {
       pipeline = true;
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
