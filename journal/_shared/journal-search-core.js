@@ -1129,7 +1129,10 @@
     // converge to the same city/region/firm view rather than getting
     // punished by the strict count check + falling into a text-match that
     // requires every generic word ("projects", "coming") in each title.
-    if (firm || place || firmRank || iconic) {
+    // A forward-pipeline ask with a type ("new hotels opening around the world",
+    // "condos coming soon") is a database query even with no place named — show
+    // the whole pipeline of that type globally, not just journal coverage.
+    if (firm || place || firmRank || iconic || (pipeline && types.size) || (rolling && types.size)) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,

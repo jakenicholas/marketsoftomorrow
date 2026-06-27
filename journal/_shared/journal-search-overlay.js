@@ -1994,28 +1994,53 @@
     }, 100);
   })();
   function _memberId(){ return _mid; }
+  // Resolve the logged-in Memberstack id ON DEMAND (the init poll may not have
+  // finished, or __tmwMember may never be set on this page). Cached once found.
+  function _resolveMid(){
+    if (_mid) return Promise.resolve(_mid);
+    try {
+      if (window.__tmwMember && typeof window.__tmwMember.id === 'string' && window.__tmwMember.id.indexOf('mem_') === 0) { _mid = window.__tmwMember.id; return Promise.resolve(_mid); }
+      var ms = window.$memberstackDom;
+      if (ms && ms.getCurrentMember) {
+        return ms.getCurrentMember().then(function(r){
+          var m = r && r.data;
+          if (m && typeof m.id === 'string' && m.id.indexOf('mem_') === 0) _mid = m.id;
+          return _mid;
+        }).catch(function(){ return ''; });
+      }
+    } catch(_){}
+    return Promise.resolve('');
+  }
   function _threadQs(){ return _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12); }
   var _serverSaveTimer = null;
   // Push the query list to the worker so the same member resumes on any device.
   // Debounced + best-effort; the localStorage copy remains the offline fallback.
   function saveThreadToServer(){
-    var mid = _memberId(); if (!mid) return;
     clearTimeout(_serverSaveTimer);
     _serverSaveTimer = setTimeout(function(){
-      try {
-        fetch(WORKER_URL + '/intel-thread', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
-          body: JSON.stringify({ member_id: mid, qs: _threadQs() })
-        }).catch(function(){});
-      } catch(_){}
+      _resolveMid().then(function(mid){
+        if (!mid) return;   // logged out → device-local only
+        try {
+          fetch(WORKER_URL + '/intel-thread', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+            body: JSON.stringify({ member_id: mid, qs: _threadQs() })
+          }).then(function(){ try { console.info('[TMW Intelligence] conversation synced to your account'); } catch(_){} }).catch(function(){});
+        } catch(_){}
+      });
     }, 1200);
   }
   function fetchServerThread(){
-    var mid = _memberId(); if (!mid) return Promise.resolve(null);
-    return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid), { cache: 'no-store' })
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){ return (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null; })
-      .catch(function(){ return null; });
+    return _resolveMid().then(function(mid){
+      if (!mid) return null;
+      return fetch(WORKER_URL + '/intel-thread?member_id=' + encodeURIComponent(mid), { cache: 'no-store' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var qs = (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null;
+          if (qs) { try { console.info('[TMW Intelligence] ' + qs.length + ' saved queries found on your account'); } catch(_){} }
+          return qs;
+        })
+        .catch(function(){ return null; });
+    });
   }
   function saveThread(){
     try {
@@ -3573,28 +3598,24 @@
       // their CLOUD thread so they pick up where they left off on another device.
       var localQs = readThread();
       if (!localQs) { var _r = readLastQuery(); if (_r) localQs = [_r]; }
-      var mid = _memberId();
       var replayedKey = '';
       if (localQs && localQs.length) { _resumeReplay(localQs); replayedKey = localQs.join(''); }
-      else if (!mid) { input.value = ''; setState('starter'); }
-      else { input.value = ''; sStarter.classList.add('tmw-ov-hidden'); }   // logged-in + no local → blank briefly while we check the cloud (no teach flash)
+      else { input.value = ''; setState('starter'); }   // teach for now; the cloud check may replace it
 
-      if (mid) {
-        fetchServerThread().then(function(serverQs){
-          if (!serverQs || !serverQs.length) {
-            if (localQs && localQs.length) saveThreadToServer();   // cloud empty → migrate this device's thread up
-            else if (!_thread.length) setState('starter');          // nothing anywhere → teach screen
-            return;
-          }
-          // Adopt the cloud thread (a more-recently-active device) only if the
-          // user hasn't started a new turn since open and it differs from what
-          // we already replayed — never yank a conversation out from under them.
-          var serverKey = serverQs.join('');
-          if (serverKey !== replayedKey && _threadQs().join('') === replayedKey) {
-            _resumeReplay(serverQs);
-          }
-        });
-      }
+      // Always reconcile with the cloud. fetchServerThread resolves the member
+      // itself and returns null when logged out, so this is a safe no-op then.
+      fetchServerThread().then(function(serverQs){
+        if (!serverQs || !serverQs.length) {
+          if (localQs && localQs.length) saveThreadToServer();   // cloud empty: migrate this device up
+          return;
+        }
+        // Adopt the cloud thread (a more-recently-active device) only if the user
+        // has not started a new turn since open and it differs from what we replayed.
+        var serverKey = serverQs.join('');
+        if (serverKey !== replayedKey && _threadQs().join('') === replayedKey) {
+          _resumeReplay(serverQs);
+        }
+      });
     }
     // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
     try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_){}
