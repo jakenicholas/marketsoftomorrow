@@ -14622,6 +14622,10 @@
       // frame it past the modal and open the FULL project modal. If a covered
       // load raised the "Flying you there" veil, lift it as the fly-in begins.
       {
+        // MOBILE deep-link: close the Interactive Layers panel NOW — while the
+        // veil still covers it — so it never flashes. This is the post-init
+        // setPanelOpen path (image-safe; only a BUILD-TIME close broke loading).
+        if (isMobile) { try { if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') window._tmwToggleLayers(); } catch(_){} }
         _revealCover(0);
         // Without zoomToPinOnly the pin doesn't turn pink and the camera
         // doesn't move. We call it first so the pink-pin paint takes
@@ -14677,10 +14681,7 @@
           // DESKTOP: the full project modal (pink pin + nametag set above).
           // Deep-links are pre-gated, so skip the popup's paywall check.
           if (isMobile && typeof showPopup === 'function') {
-            // Close the Interactive Layers panel for this deep-link case so the
-            // pin popup owns the small viewport (skipPaywall keeps showPopup from
-            // doing this itself).
-            try { if (window._tmwLayersOpen && typeof window._tmwToggleLayers === 'function') window._tmwToggleLayers(); } catch(_){}
+            // Layers panel already closed up top (before the veil lifted).
             showPopup(match, { skipPaywall: true });
           }
           else { window.openProjectModal(match, 'deeplink'); }
