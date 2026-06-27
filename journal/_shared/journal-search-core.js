@@ -261,6 +261,29 @@
   // untouched. `now`/`prior` are parseSmartQuery() results; `now` is mutated.
   function resolveFollowup(now, prior) {
     if (!now || !prior) return now;
+    // LOCATION PRONOUN: "any new hotels THERE?", "what about over there", "that
+    // city/area/market" → reuse the last referenced place, even when the query
+    // is otherwise complete (own topic / pipeline). Existential "are there …"
+    // is excluded so it doesn't false-trigger.
+    var _nq = String(now.q || '').toLowerCase();
+    var _hasOwnPlace = !!(now.cities && now.cities.length) || !!now.region || !!now.area || !!now.stateCode;
+    var _locPronoun =
+      (/\bthere\b/.test(_nq) && !/\b(?:are|is|was|were|aren'?t|isn'?t|ai n'?t)\s+there\b/.test(_nq))
+      || /\b(over there|that (?:area|city|place|region|market|metro|state|country|island)|the same (?:area|city|place|region|market))\b/.test(_nq);
+    if (_locPronoun && !_hasOwnPlace) {
+      if (prior.cities && prior.cities.length) now.cities = prior.cities.slice();
+      if (prior.region && !now.region) now.region = prior.region;
+      if (prior.area && !now.area) now.area = prior.area;
+      if (prior.stateCode && !now.stateCode) now.stateCode = prior.stateCode;
+      // If the pronoun query also lacks a topic ("what about there?"), carry the
+      // prior topic too so it reads as the same ask in the inherited place.
+      if (!(now.types && now.types.size) && !now.iconic && !now.firm) {
+        if (prior.types && prior.types.size) { now.types = prior.types; now.typeLabel = prior.typeLabel; now.typeNoun = prior.typeNoun; }
+        if (prior.iconic) now.iconic = prior.iconic;
+        if (prior.firm) now.firm = prior.firm;
+      }
+      return now;
+    }
     // Only resolve GENUINE elliptical follow-ups — a short fragment ("what about
     // Miami?", "and condos?", "newest?") or one opening with a follow-up
     // connector. A COMPLETE query ("new hotels coming to usa", "best hotels in
