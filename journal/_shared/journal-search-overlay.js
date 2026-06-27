@@ -1973,9 +1973,27 @@
   var _thread = [];                  // [{ q, parsed, answer }]
   var _THREAD_KEY = 'tmw_intel_thread';
   // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
-  function _memberId(){
-    try { var m = window.__tmwMember; return (m && typeof m.id === 'string' && m.id.indexOf('mem_') === 0) ? m.id : ''; } catch(_) { return ''; }
-  }
+  // The map page (and others) don't all load member-track.js / set __tmwMember,
+  // so resolve the member directly from Memberstack and cache it. Falls back to
+  // __tmwMember when that's the only thing set.
+  var _mid = '';
+  (function _pollMember(){
+    var tries = 0;
+    var t = setInterval(function(){
+      try {
+        if (window.__tmwMember && typeof window.__tmwMember.id === 'string' && window.__tmwMember.id.indexOf('mem_') === 0) { _mid = window.__tmwMember.id; clearInterval(t); return; }
+        var ms = window.$memberstackDom;
+        if (ms && ms.getCurrentMember){
+          clearInterval(t);
+          ms.getCurrentMember().then(function(r){
+            var m = r && r.data;
+            if (m && typeof m.id === 'string' && m.id.indexOf('mem_') === 0) _mid = m.id;
+          }).catch(function(){});
+        } else if (++tries > 120) { clearInterval(t); }   // ~12s — Memberstack never loaded / logged out
+      } catch(_){ clearInterval(t); }
+    }, 100);
+  })();
+  function _memberId(){ return _mid; }
   function _threadQs(){ return _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12); }
   var _serverSaveTimer = null;
   // Push the query list to the worker so the same member resumes on any device.
