@@ -4170,7 +4170,19 @@ async function handleImageProxy(req, env, origin, url) {
   if (u.protocol !== 'https:' || !ok) return json({ error: 'host not allowed' }, { status: 403 }, env, origin);
   let upstream;
   const range = req.headers.get('range');
-  const fetchInit = range ? { headers: { Range: range } } : { cf: { cacheTtl: 3600, cacheEverything: true } };
+  // ?w=<px>(&q=<1-100>) → downscaled thumbnail via Cloudflare Image Resizing.
+  // If the account isn't entitled, cf.image is a no-op and the original is
+  // returned, so this never regresses — it just gets faster where enabled.
+  const w = parseInt(url.searchParams.get('w') || '', 10);
+  const q = parseInt(url.searchParams.get('q') || '', 10);
+  let fetchInit;
+  if (range) {
+    fetchInit = { headers: { Range: range } };
+  } else if (w >= 16 && w <= 2000) {
+    fetchInit = { cf: { cacheTtl: 86400, cacheEverything: true, image: { width: w, quality: (q >= 1 && q <= 100) ? q : 74, fit: 'scale-down', format: 'auto' } } };
+  } else {
+    fetchInit = { cf: { cacheTtl: 3600, cacheEverything: true } };
+  }
   try { upstream = await fetch(u.toString(), fetchInit); }
   catch (e) { return json({ error: 'fetch failed', detail: String(e) }, { status: 502 }, env, origin); }
   if (!upstream.ok) return json({ error: 'upstream ' + upstream.status }, { status: upstream.status }, env, origin);
