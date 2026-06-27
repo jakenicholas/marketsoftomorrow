@@ -931,6 +931,14 @@
     var full = norm(q);
     if (full.split(/\s+/).filter(Boolean).length < 2) return null;  // bare names → normal search
 
+    // A query that IS a city/town name must NOT be captured by the literal-name
+    // escape hatch below — tons of titles contain the town ("Palm Beach" is in
+    // dozens), so the hatch would route a PLACE search to plain text and skip the
+    // Intelligence synthesis. A place query should reach the structured path so it
+    // searches that area's projects and synthesizes an answer.
+    var _projs = opts.projects || [];
+    var _fullIsPlace = false;
+    try { buildCitySet(_projs).forEach(function (disp, nc) { if (nc === full) _fullIsPlace = true; }); } catch (_) {}
     // LITERAL PROJECT-NAME ESCAPE HATCH. If the full query string appears
     // verbatim in a tracked project's title, prefer text-match scoring
     // over structured smart parsing. Without this, queries like
@@ -938,9 +946,8 @@
     // (because "campus" is an Education synonym) and the smart filter
     // returned 0 results -- "We don't track any schools tied to Oracle"
     // -- even though Oracle Campus IS a tracked project. Scanning project
-    // titles is O(n) and cheap (a few hundred entries).
-    var _projs = opts.projects || [];
-    for (var _pi = 0; _pi < _projs.length; _pi++) {
+    // titles is O(n) and cheap (a few hundred entries). Skipped for place names.
+    for (var _pi = 0; !_fullIsPlace && _pi < _projs.length; _pi++) {
       if (norm(_projs[_pi].Title || '').indexOf(full) >= 0) return null;
     }
 
