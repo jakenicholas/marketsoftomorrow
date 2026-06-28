@@ -4015,6 +4015,86 @@ async function handleSocialHandlesSave(req, env, origin) {
   return json({ ok: true }, {}, env, origin);
 }
 
+// ── Threads: per-account OAuth + token store + publish ──────────────────────
+// Unlike IG/FB (one system-user token), Threads needs a long-lived token per
+// account, obtained via OAuth. The connect URL is minted in an admin-gated step
+// (signed state); the public callback trusts that signature.
+const THREADS_SCOPES = 'threads_basic,threads_content_publish';
+function threadsRedirect(env) { return env.THREADS_REDIRECT || 'https://tmw.jake-ab7.workers.dev/threads/callback'; }
+async function ensureThreadsTokensTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS threads_tokens (
+    account_key TEXT PRIMARY KEY, threads_user_id TEXT, access_token TEXT, expires_at INTEGER, updated_at INTEGER)`).run();
+}
+async function handleThreadsConnectUrl(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.THREADS_APP_ID || !env.SESSION_SECRET) return json({ error: 'Threads not configured (need THREADS_APP_ID + SESSION_SECRET).' }, { status: 500 }, env, origin);
+  const key = (url.searchParams.get('key') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if (!key) return json({ error: 'key required' }, { status: 400 }, env, origin);
+  const state = await signPayload({ tk: key, exp: Math.floor(Date.now() / 1000) + 600 }, env.SESSION_SECRET);
+  const auth = 'https://threads.net/oauth/authorize?' + new URLSearchParams({
+    client_id: env.THREADS_APP_ID, redirect_uri: threadsRedirect(env), scope: THREADS_SCOPES, response_type: 'code', state
+  });
+  return json({ url: auth }, {}, env, origin);
+}
+async function handleThreadsCallback(req, env, origin, url) {
+  const html = (msg, ok) => new Response(
+    '<!doctype html><meta charset=utf-8><body style="font:15px system-ui;background:#0b0e0c;color:#fff;padding:48px;text-align:center">'
+    + (ok ? '✅ ' : '⚠️ ') + msg + '<br><br><a style="color:#A78BFA" href="https://admin.oftmw.com/social-accounts.html">Back to Accounts →</a>',
+    { status: ok ? 200 : 400, headers: { 'content-type': 'text/html' } });
+  const code = url.searchParams.get('code') || '', state = url.searchParams.get('state') || '';
+  if (url.searchParams.get('error')) return html('Threads denied the connection: ' + (url.searchParams.get('error_description') || url.searchParams.get('error')), false);
+  if (!code || !state) return html('Missing code/state.', false);
+  if (!env.THREADS_APP_ID || !env.THREADS_APP_SECRET || !env.SESSION_SECRET) return html('Threads not configured on the worker.', false);
+  const s = await verifyPayload(state, env.SESSION_SECRET);
+  if (!s || !s.tk) return html('Invalid or expired connect link — start again from the Accounts page.', false);
+  try {
+    const tk = await fetch('https://graph.threads.net/oauth/access_token', {
+      method: 'POST', body: new URLSearchParams({ client_id: env.THREADS_APP_ID, client_secret: env.THREADS_APP_SECRET, code, grant_type: 'authorization_code', redirect_uri: threadsRedirect(env) })
+    }).then(r => r.json());
+    if (!tk.access_token) return html('Token exchange failed: ' + metaErr(tk), false);
+    const ll = await fetch('https://graph.threads.net/access_token?' + new URLSearchParams({ grant_type: 'th_exchange_token', client_secret: env.THREADS_APP_SECRET, access_token: tk.access_token })).then(r => r.json());
+    const longTok = ll.access_token || tk.access_token;
+    const expSec = ll.expires_in || 5184000;
+    await ensureThreadsTokensTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(`INSERT INTO threads_tokens (account_key, threads_user_id, access_token, expires_at, updated_at) VALUES (?1,?2,?3,?4,?5)
+      ON CONFLICT(account_key) DO UPDATE SET threads_user_id=?2, access_token=?3, expires_at=?4, updated_at=?5`)
+      .bind(s.tk, String(tk.user_id || ''), longTok, now + expSec, now).run();
+    return html('Threads connected for <b>' + s.tk + '</b>. You can close this tab.', true);
+  } catch (e) { return html('Connect error: ' + String(e && e.message || e), false); }
+}
+async function handleThreadsStatus(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureThreadsTokensTable(env);
+  const { results } = await env.DB.prepare(`SELECT account_key, threads_user_id, expires_at FROM threads_tokens`).all();
+  return json({ items: results || [] }, {}, env, origin);
+}
+async function publishThreads(threadsUserId, text, token) {
+  const base = 'https://graph.threads.net/v1.0/' + threadsUserId;
+  const create = await fetch(base + '/threads', { method: 'POST', body: new URLSearchParams({ media_type: 'TEXT', text: String(text || '').slice(0, 500), access_token: token }) }).then(r => r.json());
+  if (!create.id) throw new Error('Threads container failed — ' + metaErr(create));
+  const pub = await fetch(base + '/threads_publish', { method: 'POST', body: new URLSearchParams({ creation_id: create.id, access_token: token }) }).then(r => r.json());
+  if (!pub.id) throw new Error('Threads publish failed — ' + metaErr(pub));
+  const perm = await fetch('https://graph.threads.net/v1.0/' + pub.id + '?' + new URLSearchParams({ fields: 'permalink', access_token: token })).then(r => r.json());
+  return { id: pub.id, url: perm.permalink || '' };
+}
+async function refreshThreadsTokens(env) {
+  try {
+    if (!env.DB) return;
+    await ensureThreadsTokensTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    const { results } = await env.DB.prepare(`SELECT account_key, access_token, updated_at FROM threads_tokens WHERE expires_at < ?1`).bind(now + 7 * 86400).all();
+    for (const r of (results || [])) {
+      if (now - (r.updated_at || 0) < 86400) continue;   // must be ≥24h old to refresh
+      const rr = await fetch('https://graph.threads.net/refresh_access_token?' + new URLSearchParams({ grant_type: 'th_refresh_token', access_token: r.access_token })).then(x => x.json()).catch(() => ({}));
+      if (rr.access_token) {
+        await env.DB.prepare(`UPDATE threads_tokens SET access_token=?1, expires_at=?2, updated_at=?3 WHERE account_key=?4`)
+          .bind(rr.access_token, now + (rr.expires_in || 5184000), now, r.account_key).run();
+      }
+    }
+  } catch (_) {}
+}
+
 // ── Live publish: Instagram + Facebook via the Meta system-user token ───────
 const META_GRAPH = 'https://graph.facebook.com/v21.0';
 function metaErr(j) {
@@ -4103,6 +4183,11 @@ async function handlePublish(req, env, origin) {
       if (!acct.page_id) return json({ error: `@${handle} has no Facebook Page ID set (Accounts page).` }, { status: 400 }, env, origin);
       if (!slides.length) return json({ error: 'No image slide to publish.' }, { status: 400 }, env, origin);
       result = await publishFacebook(acct.page_id, slides[0].url, caption, token);
+    } else if (platform === 'threads') {
+      await ensureThreadsTokensTable(env);
+      const tok = await env.DB.prepare(`SELECT * FROM threads_tokens WHERE account_key = ?1`).bind(acct.key).first();
+      if (!tok || !tok.access_token) return json({ error: `Threads isn't connected for @${handle}. Connect it on the Accounts page.` }, { status: 400 }, env, origin);
+      result = await publishThreads(tok.threads_user_id, caption, tok.access_token);
     } else {
       return json({ error: `Auto-publish isn't wired for ${platform} yet — it stays assisted.` }, { status: 400 }, env, origin);
     }
@@ -7925,6 +8010,9 @@ export default {
       if (request.method === 'POST' && url.pathname === '/social-accounts') return await handleSocialAccountsSave(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-handles') return await handleSocialHandlesList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/social-handles') return await handleSocialHandlesSave(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/threads/connect-url') return await handleThreadsConnectUrl(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/threads/callback')    return await handleThreadsCallback(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/threads/status')       return await handleThreadsStatus(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
@@ -8135,5 +8223,6 @@ export default {
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
+    ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
   },
 };
