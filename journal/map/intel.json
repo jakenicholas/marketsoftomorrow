@@ -6894,21 +6894,39 @@
       "delivery_speculative": false
     },
     "sharaan-resort-by-jean-nouvel": {
-      "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 186,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 1.6,
+      "estimate_label": "~1.6 years",
+      "range_low": 1.6,
+      "range_high": 1.6,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 13425.0,
+      "avg_distance_mi": 8341.9,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "comparables": [
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 13425.0,
+          "distance_mi": 8341.9
+        }
+      ],
+      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 1.6 years.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "wynn-al-marjan-island": {
       "estimate_years": 1.5,
@@ -11790,8 +11808,8 @@
   "stats": {
     "high": 6,
     "medium": 15,
-    "low": 46,
-    "known_date": 415,
+    "low": 47,
+    "known_date": 414,
     "completed": 60,
     "skipped": 62,
     "no_type": 0,
