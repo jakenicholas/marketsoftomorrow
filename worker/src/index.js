@@ -4304,7 +4304,7 @@ function slugOf(p) { return String(p.slug || p.Slug || p.id || '').trim(); }
 // slug (cyrb53, deterministic so reindex overwrites rather than duplicating).
 function vecId(kind, slug) {
   const id = kind + ':' + slug;
-  if (id.length <= 64) return id;
+  if (new TextEncoder().encode(id).length <= 64) return id;   // 64-BYTE cap (multibyte-safe)
   let h1 = 0xdeadbeef ^ slug.length, h2 = 0x41c6ce57 ^ slug.length;
   for (let i = 0; i < slug.length; i++) { const c = slug.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
   h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
