@@ -811,10 +811,10 @@
     + '.tmw-ov-projview.open{display:block}'
     + '.tmw-ov-projview-body{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:#0b0d0b}'
     /* ── Native project card (replaces the iframe embed) ── */
-    + '.tmw-pv{display:flex;flex-direction:column;color:#fff;min-height:100%}'
-    /* Hero grows to absorb slack so the body (CTAs) anchors near the frame
-       bottom; 300px floor, never shrinks (long descriptions just scroll). */
-    + '.tmw-pv-hero{position:relative;width:100%;flex:1 0 300px;background:#151815;overflow:hidden}'
+    + '.tmw-pv{display:flex;flex-direction:column;color:#fff;height:100%}'
+    /* Card fills the frame exactly; hero flexes (grow + shrink) to absorb the
+       slack so the whole card fits with no scroll, CTAs anchored at the bottom. */
+    + '.tmw-pv-hero{position:relative;width:100%;flex:1 1 200px;min-height:150px;background:#151815;overflow:hidden}'
     + '.tmw-pv-track{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}'
     + '.tmw-pv-track::-webkit-scrollbar{display:none}'
     + '.tmw-pv-track img{width:100%;height:100%;flex:0 0 100%;object-fit:cover;scroll-snap-align:center;display:block}'
@@ -837,11 +837,11 @@
     + '.tmw-pv-spine-stages span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#6f776f;white-space:nowrap}'
     + '.tmw-pv-spine-stages span.on{color:#b9a6ff;font-weight:700}'
     /* stat tiles */
-    + '.tmw-pv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}'
+    + '.tmw-pv-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}'
     + '.tmw-pv-stat{background:#141714;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 13px;min-width:0}'
     + '.tmw-pv-stat .v{font-size:18px;font-weight:600;color:#fff;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
     + '.tmw-pv-stat .k{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#8b938b;margin-top:3px}'
-    + '.tmw-pv-desc{font-size:14.5px;line-height:1.55;color:#d7ddd7;margin:0}'
+    + '.tmw-pv-desc{font-size:14.5px;line-height:1.55;color:#d7ddd7;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
     + '.tmw-pv-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}'
     + '.tmw-pv-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:11px 16px;border-radius:12px;cursor:pointer;text-decoration:none;transition:transform .15s,background .15s,border-color .15s}'
     + '.tmw-pv-btn.primary{background:#fff;color:#0b0d0b;border:1px solid #fff}'
@@ -857,7 +857,7 @@
     + '.tmw-pv-map-foot .ml{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
     + '.tmw-pv-back{position:absolute;top:16px;left:18px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}'
     + '.tmw-pv-back svg{width:14px;height:14px}'
-    + '@media(max-width:700px){.tmw-pv-hero{flex-basis:210px}.tmw-pv-title{font-size:25px}.tmw-pv-body{padding:4px 16px 22px;gap:13px}.tmw-pv-stats{grid-template-columns:repeat(2,1fr)}.tmw-pv-stat .v{font-size:16px}}'
+    + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
        bar (the dock) instead of scrolling behind it — leave room for the dock
@@ -1761,14 +1761,12 @@
             + '<span class="tmw-pv-count"><b data-pvidx>1</b> / ' + imgs.length + '</span>'
           : '')
       : '<div class="tmw-pv-track" style="background:#15181a"></div>';
-    var startV = firstField(p, ['StartDate','StartYear','Start']) || '—';
-    var compV = (Core && Core.fmtDelivery ? Core.fmtDelivery(p) : '') || p.DeliveryDate || '—';
     var keys = parseInt(p.Keys || p.keys || 0, 10) || 0;
     var units = (Core && Core.unitsOf) ? Core.unitsOf(p) : (parseInt(p.Units || 0, 10) || 0);
     var floors = (Core && Core.floorsOf) ? Core.floorsOf(p) : (parseInt(p.Floors || 0, 10) || 0);
     var uTile = keys ? { v: keys, k: 'Keys' } : { v: units, k: 'Units' };
     function tile(v, k){ return '<div class="tmw-pv-stat"><div class="v">' + esc(v != null && v !== '' && v !== 0 ? (v.toLocaleString ? v.toLocaleString() : String(v)) : '—') + '</div><div class="k">' + k + '</div></div>'; }
-    var stats = tile(startV, 'Start') + tile(compV, 'Completion') + tile(uTile.v, uTile.k) + tile(floors, 'Floors');
+    var stats = tile(uTile.v, uTile.k) + tile(floors, 'Floors');
     var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
     var type = firstField(p, ['ProjectType','PreferredType']);
     var slug = p.Slug || p.slug || '';
