@@ -4121,7 +4121,7 @@ async function handleCarouselsCreate(req, env, origin) {
   const title = (body.title || '').toString().slice(0, 200);   // project name shipped from Design
   const link = (body.link || '').toString().slice(0, 600);
   const collaborators = (body.collaborators || '').toString().slice(0, 600);
-  const distributionJson = JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 20000);
+  const distributionJson = JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 60000);
   try {
     await env.DB.prepare(
       `INSERT INTO carousels (id, slug, title, caption, link, collaborators, distribution_json, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
@@ -4171,7 +4171,7 @@ async function handleCarouselsUpdate(req, env, origin, slug) {
   if ('title'          in body) { sets.push(`title = ?${p++}`);          params.push(String(body.title || '').slice(0, 200)); }
   if ('link'           in body) { sets.push(`link = ?${p++}`);           params.push(String(body.link || '').slice(0, 600)); }
   if ('collaborators'  in body) { sets.push(`collaborators = ?${p++}`);  params.push(String(body.collaborators || '').slice(0, 600)); }
-  if ('distribution'   in body) { sets.push(`distribution_json = ?${p++}`); params.push(JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 20000)); }
+  if ('distribution'   in body) { sets.push(`distribution_json = ?${p++}`); params.push(JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 60000)); }
   if ('caption'        in body) { sets.push(`caption = ?${p++}`);        params.push(String(body.caption || '').slice(0, 4000)); }
   if ('account_handle' in body) { sets.push(`account_handle = ?${p++}`); params.push(String(body.account_handle || 'floridaoftomorrow').replace(/^@/, '').slice(0, 64)); }
   if ('account_name'   in body) { sets.push(`account_name   = ?${p++}`); params.push(String(body.account_name   || 'FLORIDAOFTOMORROW').slice(0, 80)); }
