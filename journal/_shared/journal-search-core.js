@@ -414,7 +414,6 @@
   // query never narrows to the wrong bucket.
   var TYPE_GROUPS = [
     { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium','flat','penthouse','co-op','coop'] },
-    { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','high-rises','highrise','highrises','high rise','high rises','skyscraper','skyscrapers','mid-rise','mid-rises','midrise','midrises'] },
     { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home','multifamily','multi-family','rental','build-to-rent','senior living','active adult','assisted living'] },
     { token:'Estates',    label:'Estates / Homes',    noun:'home',      syn:['estate','estates','single-family','single family','single-family home','house','houses','townhouse','townhouses','townhome','townhomes','villa','villas'] },
     // 'Resort' was retired and merged into Hotel — its query words route here so
@@ -473,6 +472,8 @@
   var QUERY_STOPWORDS = new Set([
     // intent nouns
     'projects','project','things','stuff','one','ones',
+    // height descriptors (handled as a floors filter, not project-name tokens)
+    'tower','towers','highrise','highrises','high-rise','rise','rises','skyscraper','skyscrapers','supertall','midrise','mid-rise',
     // intent verbs
     'show','find','give','tell','list','see','look','check','search','want','need',
     'describe','explain','summarize','summarise','share','walk','compare','learn','know',
@@ -1062,6 +1063,13 @@
     if (yrs.length) { yearMin = Math.min.apply(null, yrs); yearMax = Math.max.apply(null, yrs); yearLabel = yearMin === yearMax ? ('' + yearMin) : (yearMin + '–' + yearMax); }
     else if (hasWord(full, 'this year')) { yearMin = yearMax = TY; yearLabel = 'this year'; }
     else if (hasWord(full, 'next year')) { yearMin = yearMax = TY + 1; yearLabel = '' + (TY + 1); }
+    // height (floors) band — a high-rise is ANY 12+ story building (residential,
+    // office, hotel); a supertall is ~70+ stories (≈300m+); a mid-rise is 5–11.
+    // This is a height filter ACROSS all types, never a type filter.
+    var floorsMin = null, floorsMax = null, heightLabel = '';
+    if (hasWord(full, 'supertall') || hasWord(full, 'super tall') || hasWord(full, 'super-tall')) { floorsMin = 70; heightLabel = '70+ stories'; }
+    else if (hasWord(full, 'high rise') || hasWord(full, 'highrise') || hasWord(full, 'high-rise') || hasWord(full, 'skyscraper')) { floorsMin = 12; heightLabel = '12+ stories'; }
+    else if (hasWord(full, 'mid rise') || hasWord(full, 'midrise') || hasWord(full, 'mid-rise')) { floorsMin = 5; floorsMax = 11; heightLabel = '5–11 stories'; }
 
     // "breaking ground in 2026" is a phase-event query, not a delivery query.
     // The Breaking Ground status above is a CURRENT-state filter; projects
@@ -1195,7 +1203,7 @@
       // match — e.g. detectFirm latching onto a firm literally named "MG Developer".
       firm = null;
     }
-    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0) + (iconic ? 1 : 0);
+    var count = (statuses.size ? 1 : 0) + (phases.size ? 1 : 0) + (types.size ? 1 : 0) + (place ? 1 : 0) + (yearMin != null ? 1 : 0) + (sort ? 1 : 0) + (firm ? 1 : 0) + (firmRank ? 1 : 0) + (iconic ? 1 : 0) + (floorsMin != null ? 1 : 0);
     // Geographic / firm anchor alone is enough to trigger smart. "projects
     // coming to nashville", "deals in florida", "show me kengo kuma" all
     // converge to the same city/region/firm view rather than getting
@@ -1204,13 +1212,14 @@
     // A forward-pipeline ask with a type ("new hotels opening around the world",
     // "condos coming soon") is a database query even with no place named — show
     // the whole pipeline of that type globally, not just journal coverage.
-    if (firm || place || firmRank || iconic || (pipeline && types.size) || (rolling && types.size)) {
+    if (firm || place || firmRank || iconic || floorsMin != null || (pipeline && types.size) || (rolling && types.size)) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
         region: region, area: area, cities: cities, stateCode: stateCode, pipeline: pipeline,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
+        floorsMin: floorsMin, floorsMax: floorsMax, heightLabel: heightLabel,
         sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
         iconic: iconic, q: full
       };
@@ -1223,6 +1232,7 @@
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
       region: region, cities: cities, stateCode: stateCode,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
+      floorsMin: floorsMin, floorsMax: floorsMax, heightLabel: heightLabel,
       sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
       iconic: iconic, q: full
     };
@@ -1291,6 +1301,15 @@
       if (s.yearMin != null) {
         var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
         if (y == null || y < s.yearMin || y > s.yearMax) return false;
+      }
+      // Height band ("high rises" 12+, "supertall" 70+, "mid-rise" 5–11). Lenient
+      // on unknown floors (0) — a missing Floors field shouldn't drop a project
+      // from a "high rises in X" pull; only EXCLUDE when the height is known and
+      // outside the band.
+      if (s.floorsMin != null) {
+        var _fl = floorsOf(p);
+        if (_fl > 0 && _fl < s.floorsMin) return false;
+        if (_fl > 0 && s.floorsMax != null && _fl > s.floorsMax) return false;
       }
       if (s.rollMin) {
         var _m = String(p.DeliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);
