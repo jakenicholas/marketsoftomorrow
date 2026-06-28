@@ -2517,13 +2517,28 @@
       if (smart && isFoodQuery(q) && !(smart.types && smart.types.size)) {
         smart = null;
       }
+      // CONCEPT QUESTION that merely mentions a place ("what is the live local
+      // act and how is it changing florida development") — the TOPIC, not the
+      // place, is the subject, so don't dump the generic place pipeline; route to
+      // the topic-relevant semantic path. A place-trajectory question ("why is
+      // west palm beach growing so fast") has only growth/change DESCRIPTORS
+      // beyond the place, not a real concept, so it KEEPS the place pipeline.
+      var _conceptQ = false;
+      if (smart && (Core && Core.isQuestion ? Core.isQuestion(q) : isQuestion(q))
+          && !(smart.types && smart.types.size) && !smart.firm && !smart.firmRank && !smart.iconic && !smart.sort && smart.floorsMin == null) {
+        var _placeStr = ((smart.cities || []).join(' ') + ' ' + (smart.region || '') + ' ' + (smart.area || '')).toLowerCase();
+        var _descr = /^(grow|grows|growing|growth|fast|faster|boom|booming|hot|happening|going|changing|change|changed|develop|developing|development|developments|market|markets|doing|driving|driven|popular|trend|trending|trends|active|activity|new|newest|rising|rise|coming|now|today|currently|recent|recently|big|bigger|biggest|expanding|expansion|attracting|drawing)$/;
+        var _toks = (Core && Core.filterMeaningfulTokens ? Core.filterMeaningfulTokens(tokenize(q)) : tokenize(q).filter(function (t) { return t.length >= 3; }))
+          .filter(function (t) { return _placeStr.indexOf(t) < 0 && !_descr.test(t); });
+        if (_toks.length >= 2) { _conceptQ = true; smart = null; }
+      }
       if (smart) {
         renderStructuredSmart(q, smart, token);
         return;
       }
       // Otherwise fall through to text-match scoring + the question /
       // LLM path. Token re-checked inside runTextMatch.
-      runTextMatch(q, token);
+      runTextMatch(q, token, { conceptQ: _conceptQ });
       } catch (err) {
         // A render bug must never strand the user on the loading spinner.
         try { console.error('[tmw-search] render failed:', err); } catch(_){}
@@ -3148,7 +3163,10 @@
       // Not for a firm-RANKING ask ("most active developer in Miami") — that
       // answer is a firm leaderboard; let the existing city/firm path own it.
       var _firmRank = _sq && _sq.firmRank;
-      if (!_literal && !_firmDom && !_firmRank) {
+      // A concept question that only mentions the place ("...changing florida
+      // development") must NOT rebuild the generic place pipeline — let it fall
+      // through to the topic-relevant semantic enrichment instead.
+      if (!_literal && !_firmDom && !_firmRank && !opts.conceptQ) {
         var _rows = PROJECTS.filter(placeHit.match);
         // refine by type / status when the query named them
         if (_sq && _sq.types && _sq.types.size) {
