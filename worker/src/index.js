@@ -4378,6 +4378,46 @@ async function reindexAll(env) {
   } catch (e) { stats.articlesError = String(e && e.message || e); }
   return stats;
 }
+
+// POST /admin/knowledge — the proactive "Onyx study" routine banks evergreen
+// real-estate domain knowledge (term definitions, city profiles, sector trends)
+// that Onyx reads as BACKGROUND on every answer. Each note is embedded into the
+// same Vectorize index with kind:'knowledge' (one note per topic — re-studying a
+// topic upserts/refreshes it). Onyx retrieves the relevant notes per query and
+// uses them for expert context, never as a TMW project fact.
+async function handleKnowledgeIngest(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured' }, { status: 503 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const notes = (Array.isArray(body && body.notes) ? body.notes : []).slice(0, 50)
+    .map((n) => ({
+      topic: String((n && n.topic) || '').trim().slice(0, 120),
+      text: String((n && n.text) || '').trim().slice(0, 600),
+      source: String((n && n.source) || '').trim().slice(0, 300),
+    }))
+    .filter((n) => n.topic && n.text.length >= 20);
+  if (!notes.length) return json({ error: 'no valid notes (need topic + text>=20 chars)' }, { status: 400 }, env, origin);
+  let added = 0;
+  try {
+    for (let i = 0; i < notes.length; i += 40) {
+      const chunk = notes.slice(i, i + 40);
+      const vecs = await embedTexts(env, chunk.map((n) => n.topic + ': ' + n.text));
+      const items = chunk.map((n, k) => ({
+        id: vecId('knowledge', n.topic.toLowerCase()),
+        values: vecs[k],
+        metadata: { kind: 'knowledge', topic: n.topic, text: n.text, source: n.source, ts: Math.floor(Date.now() / 1000) },
+      })).filter((it) => Array.isArray(it.values));
+      if (items.length) { await env.VECTORIZE.upsert(items); added += items.length; }
+    }
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1, ?2, ?3, ?4)`)
+        .bind(Math.floor(Date.now() / 1000), 'system:onyx-study', 'intel_knowledge',
+          JSON.stringify({ added, topics: notes.map((n) => n.topic) })).run();
+    } catch (_) { /* logging is best-effort */ }
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
+  return json({ ok: true, added }, {}, env, origin);
+}
 // GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
 async function handleSemanticSearch(req, env, origin) {
   if (!retrievalReady(env)) return json({ error: 'retrieval not configured', matches: [] }, { status: 503 }, env, origin);
@@ -6467,13 +6507,21 @@ async function handleSmartAnswer(request, env, origin) {
       const recallQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ').replace(/\s+/g, ' ').trim() || q;
       const [vec] = await embedTexts(env, [recallQ]);
       if (Array.isArray(vec)) {
-        const rq = await env.VECTORIZE.query(vec, { topK: 12, returnMetadata: 'all' });
+        const rq = await env.VECTORIZE.query(vec, { topK: 18, returnMetadata: 'all' });
         const have = new Set((compact.top || []).map(t => String(t.id)));
-        const rel = (rq.matches || [])
-          .filter(m => (m.score || 0) >= 0.62 && m.metadata && m.metadata.title && !have.has(String(m.metadata.slug)))
+        const ms = rq.matches || [];
+        // Real project/article matches the keyword pass missed — citeable.
+        const rel = ms
+          .filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.62 && m.metadata.title && !have.has(String(m.metadata.slug)))
           .slice(0, 6)
           .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         if (rel.length) compact.related = rel;
+        // Banked domain knowledge (Onyx self-study) — expert CONTEXT, not project facts.
+        const bg = ms
+          .filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
+          .slice(0, 3)
+          .map(m => String(m.metadata.text).slice(0, 400));
+        if (bg.length) compact.background = bg;
       }
     } catch (_) { /* retrieval is best-effort grounding */ }
   }
@@ -6622,6 +6670,10 @@ async function handleSmartAnswer(request, env, origin) {
     'holds a real match (e.g. a mass-timber tower for a mass-timber question). The ONLY limit: you have no figures ' +
     'or dates for `related` items, so never invent units, floors, heights, delivery dates, or financials for them — ' +
     'name them, place them, and state their status, but attribute specific numbers only to `top`.' +
+    '\n- BACKGROUND — `background`, if present, is general real-estate domain knowledge our analysts have studied ' +
+    '(what a term means, why a sector or market is moving, how a financing/zoning mechanism works). Draw on it to ' +
+    'EXPLAIN and add expert context so the answer teaches, but it is NOT a TMW project fact: never present it as a ' +
+    'specific development, figure, or claim about a named project.' +
     (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'
       + learnedRules.map(r => '- ' + r).join('\n') : '') +
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
@@ -7686,6 +7738,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/stream-info')        return await handleStreamInfo(request, env, origin);
       // Semantic retrieval (TMW Intelligence): rebuild the index (admin) + query it (public).
       if (request.method === 'POST' && url.pathname === '/admin/reindex')      return await handleReindex(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/knowledge')     return await handleKnowledgeIngest(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
