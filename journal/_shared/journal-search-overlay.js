@@ -800,11 +800,13 @@
     + '.tmw-ov-pcard-body .meta .st.sb-open{color:#42EB81}'
     + '.tmw-ov-pcard-body .meta .st.sb-announced{color:#9AA39C}'
     + '.tmw-ov-pcard-body .meta .st.sb-journal{color:#f0d68a}'
-    /* Embedded project-view frame — full-bleed inside the lightbox, fixed size
-       regardless of the answer height; X returns to the result. */
+    /* Embedded project-view frame — fills the ANSWER BUBBLE (not the screen).
+       The host bubble is forced to a fixed height while open so every embed is
+       the same size regardless of the original answer height; X returns. */
     + '.tmw-ov-projview{position:absolute;inset:0;z-index:9;display:none;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
     + '.tmw-ov-projview.open{display:block}'
     + '.tmw-ov-projview-frame{width:100%;height:100%;border:0;display:block;background:#0a0c0a}'
+    + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
     + '.tmw-ov-projview-x{position:absolute;top:16px;right:18px;z-index:2;width:42px;height:42px;border-radius:50%;'
     + 'background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;'
     + 'cursor:pointer;padding:0;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:background .15s,transform .15s}'
@@ -4103,6 +4105,7 @@
   // "New chat": clear the conversation + return to the TMW Intelligence
   // homescreen (the teach/starter screen), keeping the overlay open.
   function newChat(){
+    closeProj();   // park the embed out of the thread before we wipe it
     _thread = [];
     if (_threadEl) _threadEl.innerHTML = '';
     try { localStorage.removeItem(_THREAD_KEY); } catch (_) {}
@@ -4143,8 +4146,15 @@
   var projview = root.querySelector('.tmw-ov-projview');
   var projframe = root.querySelector('.tmw-ov-projview-frame');
   var projX = root.querySelector('.tmw-ov-projview-x');
-  function openProj(url){
+  var projLbHome = root.querySelector('.tmw-ov-lb') || root;   // where it parks when closed
+  var _projHost = null;                                        // the answer bubble currently hosting it
+  function openProj(url, bubble){
     if (!projview || !projframe || !url) return;
+    var host = bubble || _projHost;
+    if (!host) return;
+    host.appendChild(projview);                 // mount the frame INSIDE the answer bubble
+    host.classList.add('tmw-ov-proj-open');     // bubble → fixed height
+    _projHost = host;
     projframe.src = url;
     projview.classList.add('open');
     projview.setAttribute('aria-hidden', 'false');
@@ -4153,7 +4163,9 @@
     if (!projview || !projview.classList.contains('open')) return false;
     projview.classList.remove('open');
     projview.setAttribute('aria-hidden', 'true');
-    if (projframe) projframe.src = 'about:blank';   // stop loading + reset scroll
+    if (_projHost) { _projHost.classList.remove('tmw-ov-proj-open'); _projHost = null; }
+    if (projLbHome) projLbHome.appendChild(projview);   // park back out of the turn so it survives thread clears
+    if (projframe) projframe.src = 'about:blank';        // stop loading + reset scroll
     return true;
   }
   if (projX) projX.addEventListener('click', closeProj);
@@ -4162,11 +4174,12 @@
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
-    // Project card/row → open the embedded SEO project page in-overlay.
+    // Project card/row → open the SEO project page embedded in THIS answer bubble.
     var projLink = e.target.closest && e.target.closest('[data-projurl]');
     if (projLink) {
       e.preventDefault();
-      openProj(projLink.getAttribute('data-projurl'));
+      var bubble = projLink.closest('[data-state="results"]');
+      openProj(projLink.getAttribute('data-projurl'), bubble);
       return;
     }
     var sug = e.target.closest && e.target.closest('[data-q]');
