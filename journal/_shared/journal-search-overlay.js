@@ -2625,6 +2625,10 @@
       .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
       .replace(/\s+/g, ' ').trim();
     var toks = (Core.filterMeaningfulTokens ? Core.filterMeaningfulTokens(tokenize(topicQ)) : tokenize(topicQ).filter(function(t){ return t.length >= 3; }));
+    // Drop growth/change DESCRIPTORS so they don't pollute the bio match — e.g.
+    // "...how is it changing..." must not require the bio to contain "changing".
+    var _descr = /^(grow|grows|growing|growth|fast|faster|boom|booming|hot|happening|going|changing|change|changed|develop|developing|driving|driven|popular|trend|trending|trends|active|activity|newest|rising|rise|coming|currently|recent|recently|bigger|biggest|expanding|expansion|attracting|drawing|its|like|happen)$/;
+    toks = toks.filter(function(t){ return !_descr.test(t); });
 
     function paint(rp){
       if (token !== _renderToken || !rp || !rp.length) return;
