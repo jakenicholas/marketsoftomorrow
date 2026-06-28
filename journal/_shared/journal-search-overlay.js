@@ -4031,6 +4031,11 @@
       // so filtering an older turn doesn't reach into the latest one.
       var resDiv = (pill.closest && pill.closest('[data-state="results"]')) || sResults;
       resDiv.setAttribute('data-filter', filter);
+      // Snap to the top of this turn (its tab bar) so switching tabs — e.g. from
+      // the "N more projects" link at the bottom — lands at the top of the new
+      // view, not wherever the user was scrolled to.
+      var _turn = resDiv.closest && resDiv.closest('.tmw-ov-turn');
+      if (_turn && _turn.scrollIntoView) _turn.scrollIntoView({ block: 'start', behavior: 'smooth' });
       return;
     }
   });

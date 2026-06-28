@@ -414,7 +414,7 @@
   // query never narrows to the wrong bucket.
   var TYPE_GROUPS = [
     { token:'Residences', label:'Condo / Residences', noun:'condo',     syn:['condo','condominium','flat','penthouse','co-op','coop'] },
-    { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','highrise','skyscraper','mid-rise','midrise'] },
+    { token:'Residences', label:'Tower / High-rise',  noun:'tower',     syn:['tower','high-rise','high-rises','highrise','highrises','high rise','high rises','skyscraper','skyscrapers','mid-rise','mid-rises','midrise','midrises'] },
     { token:'Residences', label:'Residences',         noun:'residence', syn:['residence','residential','apartment','home','multifamily','multi-family','rental','build-to-rent','senior living','active adult','assisted living'] },
     { token:'Estates',    label:'Estates / Homes',    noun:'home',      syn:['estate','estates','single-family','single family','single-family home','house','houses','townhouse','townhouses','townhome','townhomes','villa','villas'] },
     // 'Resort' was retired and merged into Hotel — its query words route here so
