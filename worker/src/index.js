@@ -6460,14 +6460,19 @@ async function handleSmartAnswer(request, env, origin) {
   // into the cache key (it's part of `compact`). Best-effort.
   if (retrievalReady(env)) {
     try {
-      const [vec] = await embedTexts(env, [q]);
+      // Search the TOPIC, not the verbose question — "what mass timber projects
+      // are happening around the world" dilutes the embedding toward "around the
+      // world" and buries the actual mass-timber project. Strip question/scope
+      // filler so the topic drives recall.
+      const recallQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ').replace(/\s+/g, ' ').trim() || q;
+      const [vec] = await embedTexts(env, [recallQ]);
       if (Array.isArray(vec)) {
         const rq = await env.VECTORIZE.query(vec, { topK: 12, returnMetadata: 'all' });
         const have = new Set((compact.top || []).map(t => String(t.id)));
         const rel = (rq.matches || [])
           .filter(m => (m.score || 0) >= 0.62 && m.metadata && m.metadata.title && !have.has(String(m.metadata.slug)))
           .slice(0, 6)
-          .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), kind: m.metadata.kind || 'project' }));
+          .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         if (rel.length) compact.related = rel;
       }
     } catch (_) { /* retrieval is best-effort grounding */ }
@@ -6607,14 +6612,16 @@ async function handleSmartAnswer(request, env, origin) {
     'cite the specific component that is opening if the facts name one. A district can still be the lead per ' +
     'rule 3, but frame its timeline as phased, not a single completion.\n' +
     '- Only assert a construction milestone if the facts explicitly say so.\n' +
-    '- Never say "on the map" — TMW coverage is a DATABASE of developments. Say "we track", "tracked", or "in our database".\n' +
+    '- Speak about the real world with the authority of an analyst — NEVER reference our own database/dataset/set/system, and never say "we track", "tracked", "in our database", "verified database", "the dataset", or "on the map". State facts plainly as fact. Only when there is genuinely no data on the subject, say "Nothing in our system yet" and pivot.\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
     'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
-    '\n- RELATED (recall only): `related`, if present, lists other items in our database closest in MEANING to ' +
-    'the query that the keyword facts missed — NAMES ONLY, with NO verified details. `top` is always the source ' +
-    'of truth; lead and ground everything in it. You MAY name ONE `related` item as a brief aside ONLY if it ' +
-    'genuinely fits and `top` is thin — but you have ZERO facts about it, so NEVER state its status, figures, ' +
-    'dates, or specifics. If `top` already answers well, ignore `related` entirely.' +
+    '\n- ALSO IN OUR DATA — `related`, if present, lists REAL projects/articles that match the query by MEANING ' +
+    'but the keyword `top` missed; each carries name, location, kind, and status. These are genuine matches you ' +
+    'MAY cite by NAME, LOCATION, and STATUS. When `top` is thin, empty, or OFF-TOPIC for what was asked, LEAD with ' +
+    'the most relevant `related` items and answer from them — it is FALSE to claim we have nothing when `related` ' +
+    'holds a real match (e.g. a mass-timber tower for a mass-timber question). The ONLY limit: you have no figures ' +
+    'or dates for `related` items, so never invent units, floors, heights, delivery dates, or financials for them — ' +
+    'name them, place them, and state their status, but attribute specific numbers only to `top`.' +
     (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'
       + learnedRules.map(r => '- ' + r).join('\n') : '') +
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
