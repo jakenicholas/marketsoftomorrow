@@ -163,8 +163,15 @@
     /* Per-answer thumbs: bottom-right of each turn, votes on that turn alone.
        Pin the "Noted" confirmation under the right-aligned buttons (the base
        rule centers it on the row, which is full-width here). */
-    + '.tmw-ov-turn-fb{justify-content:flex-end;width:100%;margin-top:16px}'
+    + '.tmw-ov-turn-fb{justify-content:space-between;align-items:center;width:100%;margin-top:16px}'
     + '.tmw-ov-turn-fb .tmw-ov-fb-thanks{left:auto;right:6px;transform:none}'
+    /* Live/Thinking indicator relocated (by setState) from the answer header to
+       the bottom feedback row — left-aligned, on the thumbs' horizontal line. */
+    + '.tmw-ov-feedback .live{margin-left:0;display:flex;align-items:center;gap:7px;font-size:10px;'
+    + 'letter-spacing:.16em;text-transform:uppercase;color:#9AA39C;font-weight:700;font-style:normal}'
+    + '.tmw-ov-feedback .live i{width:6px;height:6px;border-radius:50%;background:#B9A6FF;'
+    + 'box-shadow:0 0 8px #B9A6FF;font-style:normal;display:inline-block}'
+    + '.tmw-ov-feedback .live.dim i{background:#6c706c;box-shadow:none}'
     + '@media(max-width:640px){.tmw-ov-thread{gap:22px}.tmw-ov-turn + .tmw-ov-turn{padding-top:22px}.tmw-ov-msg{max-width:88%;font-size:14px}.tmw-ov-turn-fb{margin-top:12px}}'
 
     /* Starter (empty) state — spotlight layout: centered on page, no
@@ -364,8 +371,9 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-fp-row{margin:0 0 14px}'
     /* Overview drops journal articles (they live under the Journal tab now) */
     + '[data-state="results"][data-filter="overview"] [data-slot="articles-grid"]{display:none}'
-    /* Thumbs tuck into the card's bottom-right (no tall gap above them) */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-turn-fb{margin-top:4px}'
+    /* Feedback row (live indicator left, thumbs right) gets breathing room above
+       so it sits centered in the card's bottom padding, not crowding the last row */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-turn-fb{margin-top:22px}'
     /* "Understood as" line removed entirely — not needed */
     + '.tmw-ov-understood{display:none!important}'
 
@@ -589,7 +597,7 @@
     + 'letter-spacing:.12em;text-transform:uppercase;color:#9AA39C}'
     + '.tmw-ov-intel-h .live i{width:6px;height:6px;border-radius:50%;background:#B9A6FF;box-shadow:0 0 8px #B9A6FF;font-style:normal}'
     + '.tmw-ov-intel-h .live.dim i{background:#6c706c;box-shadow:none}'
-    + '.tmw-ov-intel-ans{font-family:"Fraunces",Georgia,serif;font-size:15px;line-height:1.6;color:#fff;font-weight:400;max-width:none}'
+    + '.tmw-ov-intel-ans{font-family:"Inter",-apple-system,system-ui,sans-serif;font-size:14.5px;line-height:1.65;color:#E9E7E1;font-weight:400;letter-spacing:.005em;max-width:none}'
     + '.tmw-ov-intel-ans.loading{color:#9AA39C;font-style:italic}'
     + '.tmw-ov-intel-ans .hl{color:#B9A6FF;font-weight:600}'
     + '.tmw-ov-intel-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(167,139,250,.18);'
@@ -2002,6 +2010,10 @@
         fbEl.setAttribute('data-fbq', _lastQuery || '');
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
+        // Relocate the live/thinking indicator from the answer header into this
+        // feedback row (left side) so it lands on the thumbs' horizontal line.
+        var _liveEl = turn && turn.querySelector('.tmw-ov-intel-h .live');
+        if (_liveEl && _liveEl.parentNode !== fbEl) fbEl.insertBefore(_liveEl, fbEl.firstChild);
       }
       // Position the freshly-answered turn: long → message pinned to top, short
       // → bottom-anchored above the bar. setState('results'/'empty') fires ONCE
@@ -2838,7 +2850,7 @@
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
-      function setLive(){ var l = _intelSlot.querySelector('.tmw-ov-intel-h .live'); if (l) l.innerHTML = '<i></i>Live answer'; }
+      function setLive(){ var t = _intelSlot.closest && _intelSlot.closest('.tmw-ov-turn'); var l = (t && t.querySelector('.live')) || _intelSlot.querySelector('.tmw-ov-intel-h .live'); if (l) l.innerHTML = '<i></i>Live answer'; }
       function fallback(){
         var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (ansEl && ansEl.classList.contains('loading')) { ansEl.innerHTML = ansEl.getAttribute('data-fallback') || ''; ansEl.classList.remove('loading'); setLive(); }
