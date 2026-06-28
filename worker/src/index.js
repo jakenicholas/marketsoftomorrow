@@ -4055,11 +4055,13 @@ async function handleThreadsCallback(req, env, origin, url) {
     const ll = await fetch('https://graph.threads.net/access_token?' + new URLSearchParams({ grant_type: 'th_exchange_token', client_secret: env.THREADS_APP_SECRET, access_token: tk.access_token })).then(r => r.json());
     const longTok = ll.access_token || tk.access_token;
     const expSec = ll.expires_in || 5184000;
+    let uid = String(tk.user_id || '');
+    try { const me = await fetch('https://graph.threads.net/v1.0/me?fields=id&access_token=' + encodeURIComponent(longTok)).then(r => r.json()); if (me && me.id) uid = String(me.id); } catch (_) {}
     await ensureThreadsTokensTable(env);
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare(`INSERT INTO threads_tokens (account_key, threads_user_id, access_token, expires_at, updated_at) VALUES (?1,?2,?3,?4,?5)
       ON CONFLICT(account_key) DO UPDATE SET threads_user_id=?2, access_token=?3, expires_at=?4, updated_at=?5`)
-      .bind(s.tk, String(tk.user_id || ''), longTok, now + expSec, now).run();
+      .bind(s.tk, uid, longTok, now + expSec, now).run();
     return html('Threads connected for <b>' + s.tk + '</b>. You can close this tab.', true);
   } catch (e) { return html('Connect error: ' + String(e && e.message || e), false); }
 }
@@ -4082,7 +4084,12 @@ function handleThreadsDeletionStatus(url) {
     { status: 200, headers: { 'content-type': 'text/html' } });
 }
 async function publishThreads(threadsUserId, text, token) {
-  const base = 'https://graph.threads.net/v1.0/' + threadsUserId;
+  // The OAuth user_id can mismatch the Graph object id — resolve it from the token.
+  let uid = threadsUserId;
+  const me = await fetch('https://graph.threads.net/v1.0/me?fields=id&access_token=' + encodeURIComponent(token)).then(r => r.json()).catch(() => ({}));
+  if (me && me.id) uid = me.id;
+  if (!uid) throw new Error('Threads: could not resolve the account from its token — ' + metaErr(me));
+  const base = 'https://graph.threads.net/v1.0/' + uid;
   const create = await fetch(base + '/threads', { method: 'POST', body: new URLSearchParams({ media_type: 'TEXT', text: String(text || '').slice(0, 500), access_token: token }) }).then(r => r.json());
   if (!create.id) throw new Error('Threads container failed — ' + metaErr(create));
   const pub = await fetch(base + '/threads_publish', { method: 'POST', body: new URLSearchParams({ creation_id: create.id, access_token: token }) }).then(r => r.json());
