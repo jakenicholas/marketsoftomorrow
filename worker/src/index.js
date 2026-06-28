@@ -3990,7 +3990,7 @@ async function metaPost(path, params) {
   const r = await fetch(`${META_GRAPH}/${path}`, { method: 'POST', body: new URLSearchParams(params) });
   return r.json().catch(() => ({}));
 }
-async function metaGet(path, params) {
+async function graphGet(path, params) {
   const r = await fetch(`${META_GRAPH}/${path}?` + new URLSearchParams(params));
   return r.json().catch(() => ({}));
 }
@@ -4019,19 +4019,19 @@ async function publishInstagram(igUserId, slides, caption, collaborators, token)
   }
   // containers process async; poll status briefly before publishing
   for (let i = 0; i < 8; i++) {
-    const st = await metaGet(`${creationId}`, { fields: 'status_code', access_token: token });
+    const st = await graphGet(`${creationId}`, { fields: 'status_code', access_token: token });
     if (st.status_code === 'FINISHED') break;
     if (st.status_code === 'ERROR') throw new Error('Instagram failed to process the media — ' + metaErr(st));
     await new Promise(r => setTimeout(r, 2000));
   }
   const pub = await metaPost(`${igUserId}/media_publish`, { creation_id: creationId, access_token: token });
   if (!pub.id) throw new Error('Instagram publish failed — ' + metaErr(pub));
-  const perm = await metaGet(`${pub.id}`, { fields: 'permalink', access_token: token });
+  const perm = await graphGet(`${pub.id}`, { fields: 'permalink', access_token: token });
   return { id: pub.id, url: perm.permalink || '' };
 }
 // Facebook: post slide 1 as a Page photo with the caption (link lives in the caption text).
 async function publishFacebook(pageId, imageUrl, caption, token) {
-  const pt = await metaGet(`${pageId}`, { fields: 'access_token', access_token: token });
+  const pt = await graphGet(`${pageId}`, { fields: 'access_token', access_token: token });
   if (!pt.access_token) throw new Error('Could not get the Page token — ' + metaErr(pt) + '. (Check pages_manage_posts + the Page is assigned to the system user.)');
   const j = await metaPost(`${pageId}/photos`, { url: imageUrl, caption, access_token: pt.access_token });
   const postId = j.post_id || j.id;
