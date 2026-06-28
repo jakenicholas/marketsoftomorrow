@@ -370,8 +370,8 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
     /* Removed: the fact-chip stats grid (the LLM answer already states them) and
        the inline Onyx 4.1 header badge (moved to the "i" info button). */
-    + '.tmw-ov-intel-stats{display:none}'
-    + '.tmw-ov-model{display:none}'
+    + '.tmw-ov-intel-stats{display:none!important}'
+    + '.tmw-ov-model{display:none!important}'
     /* "i" info button — top-right of the reply card; hover/focus reveals the model. */
     + '.tmw-ov-info{display:none;position:absolute;top:14px;right:16px;z-index:4;width:20px;height:20px;'
     + 'border-radius:50%;border:1px solid rgba(167,139,250,.55);background:rgba(167,139,250,.12);color:#C9BCF5;'
