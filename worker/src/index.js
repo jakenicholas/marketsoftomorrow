@@ -4315,6 +4315,19 @@ function vecId(kind, slug) {
 async function handleReindex(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE bindings + the tmw-knowledge index)' }, { status: 503 }, env, origin);
+  const stats = await reindexAll(env);
+  return json({ ok: true, ...stats }, {}, env, origin);
+}
+// Runs ~daily from the cron so the index tracks new projects/articles.
+async function maybeReindex(env) {
+  if (!retrievalReady(env) || !env.DB) return;
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='reindex_at'").first();
+  if (row && (now - (parseInt(row.value, 10) || 0)) < 20 * 3600) return;   // ~daily
+  await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('reindex_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run();
+  try { await reindexAll(env); } catch (_) {}
+}
+async function reindexAll(env) {
   const stats = { projects: 0, articles: 0 };
   // 1) Projects — from the public map JSON.
   try {
@@ -4347,7 +4360,7 @@ async function handleReindex(req, env, origin) {
       if (items.length) { await env.VECTORIZE.upsert(items); stats.articles += items.length; }
     }
   } catch (e) { stats.articlesError = String(e && e.message || e); }
-  return json({ ok: true, ...stats }, {}, env, origin);
+  return stats;
 }
 // GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
 async function handleSemanticSearch(req, env, origin) {
@@ -7820,5 +7833,6 @@ export default {
     ctx.waitUntil(migrationTick(env));
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
+    ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
   },
 };
