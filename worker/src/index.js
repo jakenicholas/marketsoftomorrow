@@ -6424,6 +6424,26 @@ async function handleSmartAnswer(request, env, origin) {
     } : null,
   };
 
+  // Semantic RECALL — the items in our database (projects + journal) closest in
+  // meaning to the query, beyond the client's keyword facts. Names only, no
+  // verified details: used purely so the model can NOTE a relevant project the
+  // keyword pass missed. Fenced hard in the prompt so it can't fabricate. Folded
+  // into the cache key (it's part of `compact`). Best-effort.
+  if (retrievalReady(env)) {
+    try {
+      const [vec] = await embedTexts(env, [q]);
+      if (Array.isArray(vec)) {
+        const rq = await env.VECTORIZE.query(vec, { topK: 12, returnMetadata: 'all' });
+        const have = new Set((compact.top || []).map(t => String(t.id)));
+        const rel = (rq.matches || [])
+          .filter(m => (m.score || 0) >= 0.62 && m.metadata && m.metadata.title && !have.has(String(m.metadata.slug)))
+          .slice(0, 6)
+          .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), kind: m.metadata.kind || 'project' }));
+        if (rel.length) compact.related = rel;
+      }
+    } catch (_) { /* retrieval is best-effort grounding */ }
+  }
+
   // Learned editorial rules — written by the nightly intel-review routine so the
   // model improves as we critique past answers. Best-effort; optional.
   let learnedRules = [];
@@ -6561,6 +6581,11 @@ async function handleSmartAnswer(request, env, origin) {
     '- Never say "on the map" — TMW coverage is a DATABASE of developments. Say "we track", "tracked", or "in our database".\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
     'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
+    '\n- RELATED (recall only): `related`, if present, lists other items in our database closest in MEANING to ' +
+    'the query that the keyword facts missed — NAMES ONLY, with NO verified details. `top` is always the source ' +
+    'of truth; lead and ground everything in it. You MAY name ONE `related` item as a brief aside ONLY if it ' +
+    'genuinely fits and `top` is thin — but you have ZERO facts about it, so NEVER state its status, figures, ' +
+    'dates, or specifics. If `top` already answers well, ignore `related` entirely.' +
     (learnedRules.length ? '\n\nLearned house rules (from editor review of past answers — apply these too):\n'
       + learnedRules.map(r => '- ' + r).join('\n') : '') +
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
