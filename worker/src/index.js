@@ -4300,6 +4300,17 @@ function projectText(p) {
   return parts.filter(Boolean).join('. ').slice(0, 1600);
 }
 function slugOf(p) { return String(p.slug || p.Slug || p.id || '').trim(); }
+// Vectorize caps ids at 64 bytes — keep "kind:slug" when it fits, else hash the
+// slug (cyrb53, deterministic so reindex overwrites rather than duplicating).
+function vecId(kind, slug) {
+  const id = kind + ':' + slug;
+  if (id.length <= 64) return id;
+  let h1 = 0xdeadbeef ^ slug.length, h2 = 0x41c6ce57 ^ slug.length;
+  for (let i = 0; i < slug.length; i++) { const c = slug.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return kind + ':' + (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
 // POST /admin/reindex — rebuild the Vectorize index from projects + journal.
 async function handleReindex(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
@@ -4314,7 +4325,7 @@ async function handleReindex(req, env, origin) {
     for (let i = 0; i < docs.length; i += 90) {
       const chunk = docs.slice(i, i + 90);
       const vecs = await embedTexts(env, chunk.map((d) => d.text));
-      const items = chunk.map((d, k) => ({ id: 'project:' + d.slug, values: vecs[k], metadata: {
+      const items = chunk.map((d, k) => ({ id: vecId('project', d.slug), values: vecs[k], metadata: {
         kind: 'project', slug: d.slug,
         title: String(d.p.Title || d.p.Name || d.p.name || '').slice(0, 200),
         city: String(d.p.City || d.p.city || '').slice(0, 80),
@@ -4330,7 +4341,7 @@ async function handleReindex(req, env, origin) {
     for (let i = 0; i < rows.length; i += 90) {
       const chunk = rows.slice(i, i + 90);
       const vecs = await embedTexts(env, chunk.map((x) => [x.title, x.main_category, x.excerpt].filter(Boolean).join('. ').slice(0, 1600)));
-      const items = chunk.map((x, k) => ({ id: 'article:' + x.slug, values: vecs[k], metadata: {
+      const items = chunk.map((x, k) => ({ id: vecId('article', x.slug), values: vecs[k], metadata: {
         kind: 'article', slug: String(x.slug).slice(0, 200), title: String(x.title || '').slice(0, 200),
       } })).filter((it) => Array.isArray(it.values));
       if (items.length) { await env.VECTORIZE.upsert(items); stats.articles += items.length; }
