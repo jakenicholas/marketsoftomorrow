@@ -1314,6 +1314,17 @@
         var _fl = floorsOf(p);
         if (_fl > 0 && _fl < s.floorsMin) return false;
         if (_fl > 0 && s.floorsMax != null && _fl > s.floorsMax) return false;
+        // Unknown height on a high-rise query (12+): a high-rise is a tower —
+        // residential / office / hotel / mixed-use. A museum, university, library,
+        // park or civic building with no floors data must NOT leniently pass.
+        // Only drop when the type is non-tower AND carries no tower tag (so a
+        // mixed-use tower tagged "...,Cultural" still survives).
+        if (_fl === 0 && s.floorsMin >= 12) {
+          var _ty = norm((p.ProjectType || '') + ' ' + (p.PreferredType || ''));
+          var _nonTower = /museum|cultural|education|universit|college|school|library|civic|government|recreation|hospital|medical|worship|church|stadium|arena|\bpark\b/.test(_ty);
+          var _tower = /residen|office|hotel|condo|apartment|multifamily|mixed|tower|living|hospitality/.test(_ty);
+          if (_nonTower && !_tower) return false;
+        }
       }
       if (s.rollMin) {
         var _m = String(p.DeliveryDate || '').match(/^(\d{4})(?:-(\d{2}))?/);

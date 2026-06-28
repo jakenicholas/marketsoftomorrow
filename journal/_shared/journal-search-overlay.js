@@ -2953,7 +2953,7 @@
     // pipeline ranked by the spine — never let its phrasing ("growing", "fast")
     // act as a project-name or neighborhood filter that narrows the set.
     var _isQ = (Core && Core.isQuestion ? Core.isQuestion : isQuestion)(q);
-    var titleHit = (!_isQ && (s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size)) ? pickTitleScopedProject(q, rows) : null;
+    var titleHit = (!_isQ && (s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size) && s.floorsMin == null) ? pickTitleScopedProject(q, rows) : null;
     if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
@@ -2962,7 +2962,7 @@
     // named a place to narrow WITHIN. For global type/status queries like "hotels
     // opening around the world soon", leftover words ("world") must not filter the
     // set down to the handful of projects that happen to mention them.
-    if (!_isQ && !titleHit && (s.cities.length || s.region) && !s.iconic) {
+    if (!_isQ && !titleHit && (s.cities.length || s.region) && !s.iconic && s.floorsMin == null) {
       var resid = applyResidualText(q, s, rows);
       rows = resid.rows;
       if (resid.label) s._areaLabel = resid.label;
