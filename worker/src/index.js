@@ -3979,6 +3979,113 @@ async function handleSocialAccountsSave(req, env, origin) {
   return json({ ok: true, items: results || [] }, {}, env, origin);
 }
 
+// ── Live publish: Instagram + Facebook via the Meta system-user token ───────
+const META_GRAPH = 'https://graph.facebook.com/v21.0';
+function metaErr(j) {
+  const e = j && j.error;
+  if (!e) return JSON.stringify(j).slice(0, 300);
+  return (e.error_user_msg || e.message || 'unknown error') + (e.code ? ' (code ' + e.code + ')' : '');
+}
+async function metaPost(path, params) {
+  const r = await fetch(`${META_GRAPH}/${path}`, { method: 'POST', body: new URLSearchParams(params) });
+  return r.json().catch(() => ({}));
+}
+async function metaGet(path, params) {
+  const r = await fetch(`${META_GRAPH}/${path}?` + new URLSearchParams(params));
+  return r.json().catch(() => ({}));
+}
+// Instagram: single image → simple container; multiple → carousel. Collaborators
+// (IG usernames) are invited via the `collaborators` param; they accept manually.
+async function publishInstagram(igUserId, slides, caption, collaborators, token) {
+  let creationId;
+  if (slides.length === 1) {
+    const p = { image_url: slides[0].url, caption, access_token: token };
+    if (collaborators.length) p.collaborators = JSON.stringify(collaborators);
+    const j = await metaPost(`${igUserId}/media`, p);
+    if (!j.id) throw new Error('Instagram rejected the image — ' + metaErr(j) + '. (Images must be a public JPEG.)');
+    creationId = j.id;
+  } else {
+    const children = [];
+    for (const s of slides) {
+      const j = await metaPost(`${igUserId}/media`, { image_url: s.url, is_carousel_item: 'true', access_token: token });
+      if (!j.id) throw new Error('Instagram rejected a slide — ' + metaErr(j) + '. (Images must be a public JPEG.)');
+      children.push(j.id);
+    }
+    const p = { media_type: 'CAROUSEL', children: children.join(','), caption, access_token: token };
+    if (collaborators.length) p.collaborators = JSON.stringify(collaborators);
+    const j = await metaPost(`${igUserId}/media`, p);
+    if (!j.id) throw new Error('Instagram carousel container failed — ' + metaErr(j));
+    creationId = j.id;
+  }
+  // containers process async; poll status briefly before publishing
+  for (let i = 0; i < 8; i++) {
+    const st = await metaGet(`${creationId}`, { fields: 'status_code', access_token: token });
+    if (st.status_code === 'FINISHED') break;
+    if (st.status_code === 'ERROR') throw new Error('Instagram failed to process the media — ' + metaErr(st));
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  const pub = await metaPost(`${igUserId}/media_publish`, { creation_id: creationId, access_token: token });
+  if (!pub.id) throw new Error('Instagram publish failed — ' + metaErr(pub));
+  const perm = await metaGet(`${pub.id}`, { fields: 'permalink', access_token: token });
+  return { id: pub.id, url: perm.permalink || '' };
+}
+// Facebook: post slide 1 as a Page photo with the caption (link lives in the caption text).
+async function publishFacebook(pageId, imageUrl, caption, token) {
+  const pt = await metaGet(`${pageId}`, { fields: 'access_token', access_token: token });
+  if (!pt.access_token) throw new Error('Could not get the Page token — ' + metaErr(pt) + '. (Check pages_manage_posts + the Page is assigned to the system user.)');
+  const j = await metaPost(`${pageId}/photos`, { url: imageUrl, caption, access_token: pt.access_token });
+  const postId = j.post_id || j.id;
+  if (!postId) throw new Error('Facebook post failed — ' + metaErr(j));
+  return { id: postId, url: 'https://www.facebook.com/' + postId };
+}
+async function handlePublish(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const platform = String(body.platform || '').toLowerCase();
+  const slug = String(body.slug || '');
+  const handle = String(body.account_handle || '').replace(/^@/, '').toLowerCase().trim();
+  const caption = String(body.caption || '');
+  const collaborators = Array.isArray(body.collaborators)
+    ? body.collaborators.map(s => String(s).replace(/^@/, '').trim()).filter(Boolean).slice(0, 5) : [];
+  const slides = (Array.isArray(body.slides) ? body.slides : [])
+    .filter(s => s && s.url && s.type !== 'video').map(s => ({ url: String(s.url) }));
+  const token = env.META_SYSTEM_TOKEN;
+
+  await ensureSocialAccountsTable(env);
+  const acct = await env.DB.prepare(`SELECT * FROM social_accounts WHERE LOWER(ig_handle) = ?1 LIMIT 1`).bind(handle).first();
+  if (!acct) return json({ error: `No account for @${handle}. Add it on the Accounts page first.` }, { status: 400 }, env, origin);
+
+  try {
+    let result;
+    if (platform === 'instagram') {
+      if (!acct.ig_user_id) return json({ error: `@${handle} has no IG user ID set (Accounts page).` }, { status: 400 }, env, origin);
+      if (!slides.length) return json({ error: 'No image slides to publish (video auto-publish is not wired yet).' }, { status: 400 }, env, origin);
+      result = await publishInstagram(acct.ig_user_id, slides.slice(0, 10), caption, collaborators, token);
+    } else if (platform === 'facebook') {
+      if (!acct.page_id) return json({ error: `@${handle} has no Facebook Page ID set (Accounts page).` }, { status: 400 }, env, origin);
+      if (!slides.length) return json({ error: 'No image slide to publish.' }, { status: 400 }, env, origin);
+      result = await publishFacebook(acct.page_id, slides[0].url, caption, token);
+    } else {
+      return json({ error: `Auto-publish isn't wired for ${platform} yet — it stays assisted.` }, { status: 400 }, env, origin);
+    }
+    if (slug) {
+      try {
+        await ensureCarouselTable(env);
+        const row = await env.DB.prepare(`SELECT distribution_json FROM carousels WHERE slug = ?1`).bind(slug).first();
+        let dist = {}; try { dist = JSON.parse(row?.distribution_json || '{}') || {}; } catch { dist = {}; }
+        dist[platform] = Object.assign({}, dist[platform], { status: 'posted', posted_at: Math.floor(Date.now() / 1000), post_url: result.url || '' });
+        await env.DB.prepare(`UPDATE carousels SET distribution_json = ?1, updated_at = ?2 WHERE slug = ?3`)
+          .bind(JSON.stringify(dist), Math.floor(Date.now() / 1000), slug).run();
+      } catch (_) {}
+    }
+    return json({ ok: true, platform, id: result.id, url: result.url }, {}, env, origin);
+  } catch (e) {
+    return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin);
+  }
+}
+
 async function handleCarouselsList(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -7780,6 +7887,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/carousels') return await handleCarouselsCreate(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-accounts') return await handleSocialAccountsList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/social-accounts') return await handleSocialAccountsSave(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
