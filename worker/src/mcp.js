@@ -252,6 +252,7 @@ const TOOLS = [
         post_type:      { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Article classification (default Editorial).' },
         project_slug:   { type: 'string', description: 'Dashboard project link for the article (optional).' },
         campaign_id:    { type: 'string', description: 'Campaign id to link the article to (optional).' },
+        location: { type: 'string', description: 'The project CITY (e.g. "Lake Anna, Virginia") — fills the design cover slide\'s location pin automatically. Set whenever the post is about a place.' },
         account_handle: { type: 'string', description: 'Carousel account handle, default "floridaoftomorrow".' },
         account_name:   { type: 'string', description: 'Carousel display name, default "FLORIDAOFTOMORROW".' },
       },
@@ -400,6 +401,7 @@ const TOOLS = [
             required: ['text'],
           },
         },
+        location: { type: 'string', description: 'The project CITY (e.g. "Miami", "Lake Anna, Virginia"). Set this whenever the post is about a place — it fills the cover slide\'s location pin automatically, so you don\'t need a per-slide location. Set it once here.' },
         account_handle: { type: 'string', description: 'Account handle without @, default "floridaoftomorrow".' },
         account_name:   { type: 'string', description: 'Display name, default "FLORIDAOFTOMORROW".' },
       },
@@ -451,6 +453,7 @@ const TOOLS = [
             required: ['text'],
           },
         },
+        location: { type: 'string', description: 'The project CITY for the cover slide\'s location pin (auto-applied to the first_* slide). Set once instead of per-slide.' },
         account_handle: { type: 'string', description: 'Account handle without @ (optional).' },
         account_name:   { type: 'string', description: 'Display name (optional).' },
       },
@@ -1800,12 +1803,17 @@ const IMPL = {
     // Build LIGHTWEIGHT seed slides — the Design editor materializes each from its
     // locked template on load (single source of truth for fonts/positions/logo).
     let photoIdx = 0;
+    // Top-level location → the project city for the cover pin. Applied to any
+    // first_* (cover) slide that doesn't carry its own location, so the agent
+    // sets it ONCE instead of remembering a per-slide field.
+    const coverLoc = (args.location != null) ? String(args.location).slice(0, 60) : null;
     const slides = inSlides.slice(0, 20).map((s) => {
       const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
       const seed = {};
       if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
       if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);
       if (s && s.location != null) seed.location = String(s.location).slice(0, 60);   // cover-slide pin text (the project city)
+      else if (coverLoc && /^first_/.test(template)) seed.location = coverLoc;
       // first_* cover slides get a background photo too (they were excluded before).
       const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right|first)_/.test(template) ? folderImages[photoIdx++] : undefined);
       if (img) seed.image = img;
@@ -1918,12 +1926,14 @@ const IMPL = {
         folderImages = (fr.results || []).map((r) => r.url).filter(Boolean);
       }
       let photoIdx = 0;
+      const coverLoc = (args.location != null) ? String(args.location).slice(0, 60) : null;
       doc.slides = args.slides.slice(0, 20).map((s) => {
         const template = (s && ALLOWED.has(s.template)) ? s.template : 'centered_bottom';
         const seed = {};
         if (s && s.text != null)     seed.headline = String(s.text).slice(0, 800);
         if (s && s.tagline != null)  seed.tagline  = String(s.tagline).slice(0, 200);
         if (s && s.location != null) seed.location = String(s.location).slice(0, 60);   // cover-slide pin text (the project city)
+        else if (coverLoc && /^first_/.test(template)) seed.location = coverLoc;
         const img = (s && s.image) ? String(s.image) : (template === 'photo_full' || /^(centered|left|right|first)_/.test(template) ? folderImages[photoIdx++] : undefined);
         if (img) seed.image = img;
         return { template, _seed: seed };
@@ -1964,6 +1974,7 @@ const IMPL = {
     // 2) POST design — slides + the same folder.
     const design = await IMPL.create_design_draft({
       title: args.title, caption: args.caption, folder: args.folder, slides: args.slides,
+      location: args.location,
       account_handle: args.account_handle, account_name: args.account_name,
     }, env);
     return {
