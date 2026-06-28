@@ -2708,7 +2708,11 @@
     // Title-scope to ONE project only for a bare place query (e.g. "viceroy fort
     // lauderdale"). When a TYPE was named ("high rises in west palm beach"), it's
     // a browse of that type in the place — never collapse it to a single project.
-    var titleHit = ((s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size)) ? pickTitleScopedProject(q, rows) : null;
+    // A QUESTION ("why is west palm beach growing so fast") wants the FULL place
+    // pipeline ranked by the spine — never let its phrasing ("growing", "fast")
+    // act as a project-name or neighborhood filter that narrows the set.
+    var _isQ = (Core && Core.isQuestion ? Core.isQuestion : isQuestion)(q);
+    var titleHit = (!_isQ && (s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size)) ? pickTitleScopedProject(q, rows) : null;
     if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
@@ -2717,7 +2721,7 @@
     // named a place to narrow WITHIN. For global type/status queries like "hotels
     // opening around the world soon", leftover words ("world") must not filter the
     // set down to the handful of projects that happen to mention them.
-    if (!titleHit && (s.cities.length || s.region) && !s.iconic) {
+    if (!_isQ && !titleHit && (s.cities.length || s.region) && !s.iconic) {
       var resid = applyResidualText(q, s, rows);
       rows = resid.rows;
       if (resid.label) s._areaLabel = resid.label;
