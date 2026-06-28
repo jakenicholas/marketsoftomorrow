@@ -4268,6 +4268,96 @@ async function handleStreamInfo(req, env, origin) {
   return json({ uid, state, ready: state === 'ready', hls, thumbnail }, { headers: { 'Cache-Control': state === 'ready' ? 'public, max-age=300' : 'no-store' } }, env, origin);
 }
 
+// ─── Semantic retrieval (TMW Intelligence, grounded) ───────────────────────
+// Embeds the project + journal corpus into a Cloudflare Vectorize index so
+// Intelligence can RETRIEVE the most relevant projects/articles by meaning, not
+// brittle keyword rules. Needs the AI binding (Workers AI embeddings) + a
+// VECTORIZE binding named "tmw-knowledge" (768-dim, cosine). Until both bindings
+// exist the endpoints return 503 and the client falls back to keyword search.
+const EMBED_MODEL = '@cf/baai/bge-base-en-v1.5';   // 768-dim
+function retrievalReady(env) { return !!(env && env.AI && env.VECTORIZE); }
+async function embedTexts(env, texts) {
+  const out = [];
+  for (let i = 0; i < texts.length; i += 90) {           // Workers AI batch cap
+    const r = await env.AI.run(EMBED_MODEL, { text: texts.slice(i, i + 90) });
+    for (const v of (r && r.data) || []) out.push(v);
+  }
+  return out;
+}
+function projectText(p) {
+  const g = (...k) => { for (const key of k) { const v = p[key]; if (v != null && v !== '') return v; } return ''; };
+  const arr = (...k) => { for (const key of k) { const v = p[key]; if (Array.isArray(v) && v.length) return v; if (typeof v === 'string' && v.trim()) return v.split(',').map((s) => s.trim()).filter(Boolean); } return []; };
+  const parts = [];
+  parts.push(g('Title', 'Name', 'name', 'title'));
+  const city = g('City', 'city'), st = g('State', 'state');
+  if (city) parts.push('in ' + city + (st ? ', ' + st : ''));
+  const types = arr('Types', 'types', 'ProjectType', 'PreferredType');
+  if (types.length) parts.push(types.join(', '));
+  const status = g('Status', 'status'); if (status) parts.push('status: ' + status);
+  const arch = arr('Architects', 'architects'); if (arch.length) parts.push('architect ' + arch.join(', '));
+  const dev = arr('Developers', 'developers'); if (dev.length) parts.push('developer ' + dev.join(', '));
+  const desc = g('DescriptionLong', 'description_long', 'Description', 'description'); if (desc) parts.push(String(desc));
+  return parts.filter(Boolean).join('. ').slice(0, 1600);
+}
+function slugOf(p) { return String(p.slug || p.Slug || p.id || '').trim(); }
+// POST /admin/reindex — rebuild the Vectorize index from projects + journal.
+async function handleReindex(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE bindings + the tmw-knowledge index)' }, { status: 503 }, env, origin);
+  const stats = { projects: 0, articles: 0 };
+  // 1) Projects — from the public map JSON.
+  try {
+    const r = await fetch('https://www.oftmw.com/map/projects-flat.json', { cf: { cacheTtl: 30 } });
+    const j = await r.json();
+    const rows = Array.isArray(j) ? j : (j.projects || j.rows || []);
+    const docs = rows.map((p) => ({ slug: slugOf(p), text: projectText(p), p })).filter((d) => d.slug && d.text);
+    for (let i = 0; i < docs.length; i += 90) {
+      const chunk = docs.slice(i, i + 90);
+      const vecs = await embedTexts(env, chunk.map((d) => d.text));
+      const items = chunk.map((d, k) => ({ id: 'project:' + d.slug, values: vecs[k], metadata: {
+        kind: 'project', slug: d.slug,
+        title: String(d.p.Title || d.p.Name || d.p.name || '').slice(0, 200),
+        city: String(d.p.City || d.p.city || '').slice(0, 80),
+        status: String(d.p.Status || d.p.status || '').slice(0, 40),
+      } })).filter((it) => Array.isArray(it.values));
+      if (items.length) { await env.VECTORIZE.upsert(items); stats.projects += items.length; }
+    }
+  } catch (e) { stats.projectsError = String(e && e.message || e); }
+  // 2) Journal articles — from the published posts in D1.
+  try {
+    const r = await env.DB.prepare(`SELECT slug, title, excerpt, main_category FROM posts WHERE status = 'published' LIMIT 2000`).all();
+    const rows = (r.results || []).filter((x) => x.slug);
+    for (let i = 0; i < rows.length; i += 90) {
+      const chunk = rows.slice(i, i + 90);
+      const vecs = await embedTexts(env, chunk.map((x) => [x.title, x.main_category, x.excerpt].filter(Boolean).join('. ').slice(0, 1600)));
+      const items = chunk.map((x, k) => ({ id: 'article:' + x.slug, values: vecs[k], metadata: {
+        kind: 'article', slug: String(x.slug).slice(0, 200), title: String(x.title || '').slice(0, 200),
+      } })).filter((it) => Array.isArray(it.values));
+      if (items.length) { await env.VECTORIZE.upsert(items); stats.articles += items.length; }
+    }
+  } catch (e) { stats.articlesError = String(e && e.message || e); }
+  return json({ ok: true, ...stats }, {}, env, origin);
+}
+// GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
+async function handleSemanticSearch(req, env, origin) {
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured', matches: [] }, { status: 503 }, env, origin);
+  const url = new URL(req.url);
+  const q = (url.searchParams.get('q') || '').trim().slice(0, 500);
+  if (!q) return json({ matches: [] }, {}, env, origin);
+  const k = Math.min(30, Math.max(1, parseInt(url.searchParams.get('k') || '14', 10) || 14));
+  const kind = url.searchParams.get('kind') || '';
+  try {
+    const [vec] = await embedTexts(env, [q]);
+    if (!Array.isArray(vec)) return json({ matches: [] }, {}, env, origin);
+    const res = await env.VECTORIZE.query(vec, { topK: k, returnMetadata: 'all' });
+    let matches = (res.matches || []).map((m) => ({ id: m.id, score: m.score, ...(m.metadata || {}) }));
+    if (kind) matches = matches.filter((m) => m.kind === kind);
+    return json({ q, matches }, { headers: { 'Cache-Control': 'public, max-age=120' } }, env, origin);
+  } catch (e) {
+    return json({ error: String(e && e.message || e), matches: [] }, { status: 502 }, env, origin);
+  }
+}
+
 // GET /c/<slug>?preview=<token> — public Instagram-style preview page.
 // Self-contained HTML+CSS+JS so a deploy needs no extra static assets.
 async function handleCarouselPublic(req, env, slug) {
@@ -7510,6 +7600,9 @@ export default {
       // info endpoint the client carousel polls for the HLS URL once transcoded.
       if (request.method === 'POST' && url.pathname === '/admin/stream/ensure') return await handleStreamEnsure(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/stream-info')        return await handleStreamInfo(request, env, origin);
+      // Semantic retrieval (TMW Intelligence): rebuild the index (admin) + query it (public).
+      if (request.method === 'POST' && url.pathname === '/admin/reindex')      return await handleReindex(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
