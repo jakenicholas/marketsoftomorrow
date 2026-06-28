@@ -349,7 +349,9 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot{display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{margin-bottom:9px}'
+    /* Hide the "TMW INTELLIGENCE" header row — the "i" info button (top-right of
+       the card) now carries the model attribution. The answer text leads. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{display:none}'
     /* hero → a compact thumbnail row: title + location only */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero{display:flex;min-height:0;box-shadow:none;border-radius:12px;margin-bottom:8px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .media{min-height:0;width:84px;flex:0 0 84px}'
@@ -459,6 +461,16 @@
     + '.tmw-ov-row .r-name{font-family:"Fraunces",Georgia,serif;font-size:16px;font-weight:600;color:#fff;'
     + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
     + '.tmw-ov-row .r-sub{display:flex;align-items:center;gap:9px;margin-top:4px;font-size:11.5px;color:#9AA39C;flex-wrap:wrap}'
+    /* Mobile rows: let the project name WRAP (no mid-name "…" truncation),
+       tighten the gaps + rank/icon, and top-align so a 2-line title reads clean. */
+    + '@media(max-width:640px){'
+    +   '.tmw-ov-row{gap:11px;padding:12px 13px;align-items:flex-start}'
+    +   '.tmw-ov-row .rank{width:16px;font-size:14px;line-height:1.3}'
+    +   '.tmw-ov-row .r-ico{width:26px;height:26px}'
+    +   '.tmw-ov-row .r-main{align-self:center}'
+    +   '.tmw-ov-row .r-name{white-space:normal;font-size:15px;line-height:1.25}'
+    +   '.tmw-ov-row .r-sub{font-size:11px;gap:5px 8px;margin-top:5px}'
+    + '}'
     + '.tmw-ov-row .sb{display:inline-flex;align-items:center;gap:6px;font-weight:600}'
     + '.tmw-ov-row .sb i{width:5px;height:5px;border-radius:50%;font-style:normal}'
     + '.tmw-ov-row .sb-construction,.tmw-ov-row .sb-breaking{color:#f0d68a}'
