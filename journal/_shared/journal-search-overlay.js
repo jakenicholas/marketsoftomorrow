@@ -289,6 +289,24 @@
     + '.tmw-ov-jfallback{display:none}'
     + '[data-state="results"][data-filter="articles"] .tmw-ov-jfallback{display:block}'
 
+    /* Onyx 4.1 — answer-first OVERVIEW lens (the default). Shows the
+       Intelligence answer + hero + a capped taste of each section; the
+       counts-bar pills drill into any single category for the full set.
+       Caps are scoped to [data-filter="overview"] so the category tabs
+       (Projects / Firms / Journal) still render everything. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-grid > *:nth-child(n+4){display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-chiprow > *:nth-child(n+7){display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-alist > *:nth-child(n+3){display:none}'
+    /* "See all N →" — visible only in Overview (each category tab already
+       shows its full set, so the link would be redundant there). */
+    + '.tmw-ov-seeall{display:none;align-items:center;gap:6px;margin-top:14px;background:none;border:0;'
+    + 'padding:0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:#B9A6FF;letter-spacing:.01em}'
+    + '.tmw-ov-seeall:hover{color:#fff}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-seeall{display:inline-flex}'
+    /* Onyx 4.1 model badge in the answer header */
+    + '.tmw-ov-model{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;'
+    + 'color:#1a1408;background:#A78BFA;padding:2px 7px;border-radius:999px;margin-left:8px;align-self:center}'
+
     /* Section heading */
     + '.tmw-ov-sec{margin-bottom:30px;animation:tmwOvFadeIn .35s ease both}'
     + '.tmw-ov-sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}'
@@ -817,9 +835,9 @@
     +   '<span>Searching the database</span>'
     + '</div>'
     + '<div data-state="results" class="tmw-ov-hidden">'
-    +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="intel-cta"></div>'
     +   '<div data-slot="hero"></div>'
+    +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="rows"></div>'
     +   '<div data-slot="projects-grid"></div>'
     +   '<div data-slot="entities"></div>'
@@ -1461,11 +1479,12 @@
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
+      +     '<span class="tmw-ov-model" title="The model powering TMW Intelligence">Onyx 4.1</span>'
       +     '<span class="live">'+live+'</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
       +   '<div class="tmw-ov-intel-foot">'
-      +     '<span class="ai">TMW Intelligence</span> · synthesized from the journal &amp; database'
+      +     '<span class="ai">Onyx 4.1</span> · TMW Intelligence, synthesized from the journal &amp; database'
       +   '</div>'
       + '</section>';
   }
@@ -2000,14 +2019,14 @@
   // journal match count is known.)
   function _stickyDefault(computed, counts){
     counts = counts || {};
-    if (_sessionFirstView) { _sessionFirstView = false; return 'all'; }   // fresh load → All
+    if (_sessionFirstView) { _sessionFirstView = false; return 'overview'; }   // fresh load → Overview
     if (!_stickyFilter) return computed;
-    if (_stickyFilter === 'all') return 'all';
+    if (_stickyFilter === 'all' || _stickyFilter === 'overview') return 'overview';   // 'all' = legacy sticky
     if (_stickyFilter === 'articles') return 'articles';   // provisional (see renderArticleSection)
     if (_stickyFilter === 'intel'    && counts.intel)        return 'intel';
     if (_stickyFilter === 'projects' && counts.projects > 0) return 'projects';
     if (_stickyFilter === 'firms'    && counts.firms > 0)    return 'firms';
-    return counts.intel ? 'intel' : 'all';   // sticky lens empty for this query → Intelligence, else All
+    return counts.intel ? 'intel' : 'overview';   // sticky lens empty for this query → Intelligence, else Overview
   }
   // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
   // The map page (and others) don't all load member-track.js / set __tmwMember,
@@ -2705,7 +2724,7 @@
     // curated list, and journal coverage — so default to ALL (show everything)
     // rather than isolating one tab. Otherwise: projects if we have them, else
     // just the Intelligence answer.
-    var defFilter = (s.iconic && iconicHits.length) ? 'all' : (rows.length ? 'projects' : 'intel');
+    var defFilter = (s.iconic && iconicHits.length) ? 'overview' : (rows.length ? 'projects' : 'intel');
     defFilter = _stickyDefault(defFilter, { intel: true, projects: rows.length, firms: 0 });
     sResults.setAttribute('data-filter', defFilter);
     // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
@@ -3350,6 +3369,7 @@
         + '<div class="tmw-ov-sec" data-cat="projects">'
         +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+(heroProject?' more':' total')+'</span></div>'
         +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
+        +   (restProjects.length > 3 ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">See all '+restProjects.length+' projects <span aria-hidden="true">&rarr;</span></button>' : '')
         + '</div>';
     } else {
       slotProjGrid.innerHTML = '';
@@ -3387,6 +3407,7 @@
         + '<div class="tmw-ov-sec" data-cat="firms">'
         +   '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">'+(restFirms.length + restCities.length)+' total</span></div>'
         +   '<div class="tmw-ov-chiprow">'+entityHtml+'</div>'
+        +   ((restFirms.length + restCities.length) > 6 ? '<button class="tmw-ov-seeall" type="button" data-goto="firms">See all '+(restFirms.length + restCities.length)+' firms &amp; places <span aria-hidden="true">&rarr;</span></button>' : '')
         + '</div>';
     } else {
       slotEntities.innerHTML = '';
@@ -3431,12 +3452,12 @@
       projects: restProjects.length + (heroProject ? 1 : 0),
       firms:    restFirms.length + restCities.length + (heroFirm ? 1 : 0),
     };
-    // Smart default tab: lead with whatever the lookup actually found —
-    // projects, then firms/places, then journal, then the Intelligence answer.
-    var defF = _lastFilterCounts.projects > 0 ? 'projects'
-             : _lastFilterCounts.firms > 0 ? 'firms'
-             : (question ? 'intel' : 'articles');
-    defF = _stickyDefault(defF, _lastFilterCounts);   // honor the user's chosen lens if available
+    // Onyx 4.1 redesign: every query defaults to the answer-first OVERVIEW —
+    // the analyst answer + the single best hero + a capped taste of each
+    // section. The counts-bar pills drill into any one category for the full
+    // set. A user who explicitly picked a lens last query gets it back via
+    // stickiness; otherwise Overview leads.
+    var defF = _stickyDefault('overview', _lastFilterCounts);
     sResults.setAttribute('data-filter', defF);
     renderArticleSection(q, token);
 
@@ -3498,6 +3519,7 @@
         + '<div class="tmw-ov-sec" data-cat="articles">'
         +   '<div class="tmw-ov-sec-head"><h3>From the journal</h3><span class="count">'+count+' total</span></div>'
         +   '<div class="tmw-ov-alist"></div>'
+        +   (count > 2 ? '<button class="tmw-ov-seeall" type="button" data-goto="articles">See all '+count+' stories <span aria-hidden="true">&rarr;</span></button>' : '')
         + '</div>';
       appendArticles();
     } else {
@@ -3516,10 +3538,10 @@
 
     // (Re)build the filter pills with the live article count, preserving the
     // active filter so a body-merge re-render doesn't snap back to "All".
-    var active = sResults.getAttribute('data-filter') || 'all';
+    var active = sResults.getAttribute('data-filter') || 'overview';
     // Sticky "Journal" carried into a query that matched NO stories → fall back to
-    // Intelligence (or All if this query produced no Intelligence answer).
-    if (active === 'articles' && count === 0) { active = (_lastFilterCounts.intel ? 'intel' : 'all'); sResults.setAttribute('data-filter', active); }
+    // Intelligence (or Overview if this query produced no Intelligence answer).
+    if (active === 'articles' && count === 0) { active = (_lastFilterCounts.intel ? 'intel' : 'overview'); sResults.setAttribute('data-filter', active); }
     slotFilterPills.innerHTML = renderFilterPills({
       intel: _lastFilterCounts.intel,
       projects: _lastFilterCounts.projects,
@@ -3533,7 +3555,7 @@
 
   function renderFilterPills(counts){
     var pills = [];
-    pills.push('<button class="tmw-ov-fp active" type="button" data-filter="all">All</button>');
+    pills.push('<button class="tmw-ov-fp active" type="button" data-filter="overview">Overview</button>');
     if (counts.intel) {
       pills.push('<button class="tmw-ov-fp" type="button" data-filter="intel">Intelligence</button>');
     }
@@ -3857,14 +3879,27 @@
       }
       return;
     }
-    // Filter pill click: swap the active pill's class + write the new
-    // filter to the results state's data-filter attribute. CSS hides
-    // sections whose data-cat doesn\'t match. data-filter="all" clears
-    // the attribute so every category shows again.
+    // "See all N →" inside a capped Overview section: jump to that category's
+    // full view by activating its counts-bar pill (reuses the pill logic below).
+    var seeall = e.target.closest && e.target.closest('.tmw-ov-seeall');
+    if (seeall) {
+      e.preventDefault();
+      var goto = seeall.getAttribute('data-goto');
+      var saRes = (seeall.closest && seeall.closest('[data-state="results"]')) || sResults;
+      var targetPill = saRes.querySelector('.tmw-ov-fp[data-filter="'+goto+'"]');
+      if (targetPill) targetPill.click();
+      else saRes.setAttribute('data-filter', goto);
+      return;
+    }
+    // Filter pill click: swap the active pill's class + write the new filter to
+    // the results state's data-filter attribute. CSS hides sections whose
+    // data-cat doesn\'t match; "overview" (the default) shows all sections but
+    // caps each to a preview. Always SET the attribute (overview included) so
+    // the cap CSS applies.
     var pill = e.target.closest && e.target.closest('.tmw-ov-fp');
     if (pill) {
       e.preventDefault();
-      var filter = pill.getAttribute('data-filter') || 'all';
+      var filter = pill.getAttribute('data-filter') || 'overview';
       _setStickyFilter(filter);   // remember this lens for following queries
       var allPills = pill.parentNode ? pill.parentNode.querySelectorAll('.tmw-ov-fp') : [];
       for (var i = 0; i < allPills.length; i++) {
@@ -3873,8 +3908,7 @@
       // Scope to THIS pill's own turn (it sits inside that turn's results div),
       // so filtering an older turn doesn't reach into the latest one.
       var resDiv = (pill.closest && pill.closest('[data-state="results"]')) || sResults;
-      if (filter === 'all') resDiv.removeAttribute('data-filter');
-      else resDiv.setAttribute('data-filter', filter);
+      resDiv.setAttribute('data-filter', filter);
       return;
     }
   });
