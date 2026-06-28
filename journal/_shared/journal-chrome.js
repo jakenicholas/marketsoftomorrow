@@ -203,10 +203,11 @@
         document.documentElement.classList.add('tmw-embed');
         var es = document.createElement('style');
         es.setAttribute('data-tmw-embed', '');
-        es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.tmw-dock,.banner-ad,'
-          // map's own wordmark/logo variants (the map keeps its sidebar but the
-          // "MARKETS OF TMW" lockup is chrome — hide it in embed):
-          + '.tmw-hs-wm,.tmw-wordmark,.v2-tmw-logo,#header-logo-link{display:none!important}'
+        es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.banner-ad,'
+          // map's own header skeleton + wordmark/logo variants (keep the sidebar
+          // and the search dock; the "MARKETS OF TMW" lockup + skeleton bar are
+          // chrome — hide them):
+          + '#tmw-head-skel,.tmw-hs-wrap,.tmw-hs-wm,.tmw-wordmark,.v2-tmw-logo,#header-logo-link{display:none!important}'
           + 'body{padding-top:0!important}#app-container{padding-top:0!important}';
         document.head.appendChild(es);
         // Keep the embed context across in-frame navigation (e.g. project page's

@@ -4,6 +4,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <!-- Embedded in the Onyx answer bubble (?embed=1): kill the header skeleton +
+       wordmark SYNCHRONOUSLY, before first paint, so there's no flash. (The
+       deferred journal-chrome.js also hides these, but only after parse.) -->
+  <script>(function(){try{if(/[?&]embed=1(?:&|$)/.test(location.search)){document.documentElement.classList.add('tmw-embed');var s=document.createElement('style');s.setAttribute('data-tmw-embed-pre','');s.textContent='#tmw-head-skel,.tmw-hs-wrap,.tmw-hs-wm{display:none!important}body{padding-top:0!important}#app-container{padding-top:0!important}';(document.head||document.documentElement).appendChild(s);}}catch(e){}})();</script>
   <!-- Map loading splash ALWAYS shows (every visit, regardless of session
        state). Timing locked to 2s; the hex-to-search animation below is
        also 2s so the full mark plays before the overlay fades. The
