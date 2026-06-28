@@ -345,6 +345,10 @@
        sliver (the bug in the first attempt). */
     + '.tmw-ov-wrap{width:100%}'
     + '[data-state="results"][data-filter="overview"]{position:relative;background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px;box-sizing:border-box}'
+    /* Spotlight (curated partner) gets the SAME black bubble as overview, but
+       none of the overview flatten/cap rules — it keeps its custom layout,
+       just boxed for consistency. */
+    + '[data-state="results"][data-filter="spotlight"]{position:relative;background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px;box-sizing:border-box}'
     /* answer panel → plain text block (no inner box / glow / footer) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
@@ -1223,6 +1227,21 @@
   function isFoodQuery(q){
     var toks = norm(q).split(/\s+/);
     for (var i = 0; i < toks.length; i++){ if (FOOD_INTENT[toks[i]]) return true; }
+    return false;
+  }
+  // Wellness/fitness is journal COVERAGE (pilates, biohacking, gyms, recovery,
+  // longevity, spas), not a project type — route these to the text/article path
+  // so they answer from our wellness articles instead of mis-matching a firm or
+  // dumping a generic project pipeline. Mirrors the food gate.
+  var WELLNESS_INTENT = {
+    wellness:1, fitness:1, gym:1, gyms:1, pilates:1, yoga:1, spa:1, spas:1,
+    sauna:1, saunas:1, biohacking:1, biohack:1, longevity:1, recovery:1,
+    'reformer':1, wellbeing:1, 'well-being':1, holistic:1, healthclub:1,
+    bathhouse:1, bathhouses:1, contrast:1, cryotherapy:1, cryo:1, ['cold-plunge']:1
+  };
+  function isWellnessQuery(q){
+    var toks = norm(q).split(/\s+/);
+    for (var i = 0; i < toks.length; i++){ if (WELLNESS_INTENT[toks[i]]) return true; }
     return false;
   }
   function isFoodArticle(a){
@@ -2537,7 +2556,7 @@
       slotEntities.innerHTML = '';
       slotArticles.innerHTML = '';
       slotFilterPills.innerHTML = '';
-      sResults.removeAttribute('data-filter');
+      sResults.setAttribute('data-filter', 'spotlight');   // black bubble, no overview flatten/caps
       sEmpty.classList.add('tmw-ov-hidden');
       _lastResultsTotal = 1;
       _lastResultKind = 'spotlight';
@@ -2573,6 +2592,11 @@
       // NOT keep it in the project readout. Only an explicit project TYPE in the
       // query ("hotels with restaurants") keeps the structured parse.
       if (smart && isFoodQuery(q) && !(smart.types && smart.types.size)) {
+        smart = null;
+      }
+      // Wellness/fitness is journal coverage too — route to the text/article path
+      // (unless an explicit project TYPE is named, e.g. "wellness resort hotels").
+      if (smart && isWellnessQuery(q) && !(smart.types && smart.types.size)) {
         smart = null;
       }
       // CONCEPT QUESTION that merely mentions a place ("what is the live local

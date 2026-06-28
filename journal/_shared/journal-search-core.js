@@ -458,7 +458,11 @@
 
   // Generic / structural words that shouldn't count toward a firm-name token
   // match. "Related Group" is just "Related"; "Foster + Partners" is "Foster".
-  var FIRM_STOP = new Set(['the','of','and','group','partners','studio','architects','architecture','development','developments','developers','design','company','co','llc','inc','associates','international','global','real','estate','properties','holdings','capital','ventures','collective','residential','residences','tower','towers','project','projects','building','buildings','condo','condos','hotel','hotels','tallest','newest']);
+  var FIRM_STOP = new Set(['the','of','and','group','partners','studio','architects','architecture','development','developments','developers','design','company','co','llc','inc','associates','international','global','real','estate','properties','holdings','capital','ventures','collective','residential','residences','tower','towers','project','projects','building','buildings','condo','condos','hotel','hotels','tallest','newest',
+    // generic category words — a developer literally named "IQ Concept
+    // Developments" must NOT get matched by "wellness concepts"; these are
+    // topics, not firm signals:
+    'concept','concepts','wellness','fitness','lifestyle','pilates','recovery','longevity','biohacking']);
 
   // Words that should NOT count as "meaningful tokens" in the multi-token
   // strict-filter that excludes weak matches from the grid. These are
