@@ -1784,7 +1784,7 @@
       +   '<div class="tmw-pv-stats">' + stats + '</div>'
       +   (desc ? '<p class="tmw-pv-desc">' + esc(desc) + '</p>' : '')
       +   '<div class="tmw-pv-cta">'
-      +     (hasGeo ? '<button class="tmw-pv-btn primary" data-mapcard type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</button>' : '')
+      +     (hasGeo ? '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</a>' : '')
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/" target="_blank" rel="noopener">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
       +   '</div>'
       + '</div></div>';
@@ -4337,10 +4337,8 @@
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
-    // Inside the open card: map-card / back / carousel arrows.
+    // Inside the open card: carousel arrows.
     if (projview && projview.classList.contains('open')) {
-      if (e.target.closest('[data-mapcard]')) { e.preventDefault(); if (_projP) { projbody.scrollTop = 0; projbody.innerHTML = renderMapCardView(_projP); } return; }
-      if (e.target.closest('[data-pvback]'))  { e.preventDefault(); if (_projP) _paintProjCard(); return; }
       var arrow = e.target.closest('[data-pvprev],[data-pvnext]');
       if (arrow) {
         e.preventDefault();
