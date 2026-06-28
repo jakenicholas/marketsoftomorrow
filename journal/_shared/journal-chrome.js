@@ -204,8 +204,20 @@
         var es = document.createElement('style');
         es.setAttribute('data-tmw-embed', '');
         es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.tmw-dock,.banner-ad{display:none!important}'
-          + 'body{padding-top:0!important}';
+          + 'body{padding-top:0!important}#app-container{padding-top:0!important}';
         document.head.appendChild(es);
+        // Keep the embed context across in-frame navigation (e.g. project page's
+        // "View on Map" → /map/?project=…): stamp embed=1 onto same-origin links
+        // so the destination also loads chrome-less. New-tab links break out.
+        document.addEventListener('click', function (e) {
+          var a = e.target && e.target.closest && e.target.closest('a[href]');
+          if (!a || a.target === '_blank') return;
+          var u; try { u = new URL(a.getAttribute('href'), location.href); } catch (_) { return; }
+          if (u.origin === location.origin && !/[?&]embed=1\b/.test(u.search)) {
+            u.searchParams.set('embed', '1');
+            a.setAttribute('href', u.href);
+          }
+        }, true);
       } catch (e) {}
       return;   // skip header/footer injection entirely
     }

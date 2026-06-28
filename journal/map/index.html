@@ -12858,18 +12858,31 @@
     // edge-to-edge map, click again to restore. The map canvas is already
     // full-height behind the header; dispatching a resize keeps Mapbox crisp.
     (function(){
+      // Embedded inside the Onyx answer bubble (?embed=1): render edge-to-edge
+      // (reuse the full-screen layout so there's no header gap), and make the
+      // full-screen button BREAK OUT to the real map page in the full browser
+      // rather than toggle an in-frame view.
+      var EMBED = /[?&]embed=1\b/.test(location.search);
+      if (EMBED) { try { document.body.classList.add('tmw-mapfs'); } catch(e){} }
       var fsBtn = document.getElementById('tmwMapFsBtn');
       if (!fsBtn) return;
       fsBtn.addEventListener('click', function(){
+        if (EMBED && window.self !== window.top) {
+          try {
+            var u = new URL(location.href); u.searchParams.delete('embed');
+            window.top.location.href = u.href;   // open the same map view full-browser
+            return;
+          } catch (e) {}
+        }
         var on = document.body.classList.toggle('tmw-mapfs');
         fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
         fsBtn.setAttribute('title', on ? 'Exit full screen' : 'Full screen map');
         fsBtn.setAttribute('aria-label', on ? 'Exit full screen map' : 'Full screen map');
         setTimeout(function(){ try { window.dispatchEvent(new Event('resize')); } catch(e){} }, 280);
       });
-      // Esc exits full screen.
+      // Esc exits full screen (non-embed only — in embed there's nothing to exit to).
       document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape' && document.body.classList.contains('tmw-mapfs')) fsBtn.click();
+        if (e.key === 'Escape' && !EMBED && document.body.classList.contains('tmw-mapfs')) fsBtn.click();
       });
     })();
 
