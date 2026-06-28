@@ -454,8 +454,10 @@
     + '.tmw-ov-row:hover{border-color:rgba(255,255,255,.14);transform:translateY(-1px)}'
     + '.tmw-ov-row .rank{flex:0 0 auto;width:24px;font-family:"Fraunces",Georgia,serif;font-size:16px;font-weight:700;color:#9AA39C;text-align:center}'
     + '.tmw-ov-row.lead .rank{color:#B9A6FF}'
-    + '.tmw-ov-row .r-ico{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:#222622;'
+    + '.tmw-ov-row .r-ico{flex:0 0 auto;width:46px;height:46px;border-radius:9px;background:#222622;overflow:hidden;'
     + 'display:flex;align-items:center;justify-content:center;color:#C2C9C3}'
+    + '.tmw-ov-row .r-ico.has-img{background:#0c0e0c}'
+    + '.tmw-ov-row .r-ico img{width:100%;height:100%;object-fit:cover;display:block}'
     + '.tmw-ov-row .r-ico svg{width:15px;height:15px}'
     + '.tmw-ov-row .r-main{flex:1;min-width:0}'
     + '.tmw-ov-row .r-name{font-family:"Fraunces",Georgia,serif;font-size:16px;font-weight:600;color:#fff;'
@@ -1880,9 +1882,13 @@
     var sub = '<span class="sb '+badge.cls+'"><i></i>'+esc(badge.label)+'</span>'
             + (_locOf(p) ? '<span class="dot"></span><span>'+esc(_locOf(p))+'</span>' : '')
             + deliveryNote;
+    var rImg = firstField(p, ['ImageURL','Image2','Image3']);
+    var rMedia = rImg
+      ? '<img src="'+esc(rImg)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+      : ICON_BLDG;
     return '<a class="tmw-ov-row '+(rank === 1 && sortKey ? 'lead' : '')+'" href="'+esc(mapLink(p.Title, true))+'">'
       + '<div class="rank">'+rank+'</div>'
-      + '<div class="r-ico">'+ICON_BLDG+'</div>'
+      + '<div class="r-ico'+(rImg ? ' has-img' : '')+'">'+rMedia+'</div>'
       + '<div class="r-main"><div class="r-name">'+esc(p.Title)+'</div><div class="r-sub">'+sub+'</div></div>'
       + bar
       + metric
@@ -2601,8 +2607,13 @@
       if (token !== _renderToken) return;
       if (slotProjGrid.querySelector('.tmw-ov-grid, .tmw-ov-rows')) return;   // projects already shown — leave them
       var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
-      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, MAX_PROJECTS_GRID);
+      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean);
       if (!rp.length) return;
+      // Order by the status spine (featured > coming soon > recently opened >
+      // under construction > breaking ground > announced), not raw semantic
+      // relevance, so the freshest/most-newsworthy projects lead.
+      if (Core.rankByStatus) Core.rankByStatus(rp, {});
+      rp = rp.slice(0, MAX_PROJECTS_GRID);
       var sa = (rp.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+(rp.length - 3)+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
       slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects"><div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
         + '<div class="tmw-ov-grid">' + rp.map(renderProjectCard).join('') + '</div>' + sa + '</div>';
