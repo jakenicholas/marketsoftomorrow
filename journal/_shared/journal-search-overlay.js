@@ -793,6 +793,23 @@
     + 'display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px}'
     + '.tmw-ov-pcard-body .meta .openmap{color:#1FDF67;font-size:15px;line-height:1;transition:transform .2s}'
     + '.tmw-ov-pcard:hover .meta .openmap{transform:translateX(2px)}'
+    /* Status text keeps its lifecycle color (matches the row badges). */
+    + '.tmw-ov-pcard-body .meta .st{font-weight:600}'
+    + '.tmw-ov-pcard-body .meta .st.sb-construction,.tmw-ov-pcard-body .meta .st.sb-breaking{color:#f0d68a}'
+    + '.tmw-ov-pcard-body .meta .st.sb-soon{color:#FFB86b}'
+    + '.tmw-ov-pcard-body .meta .st.sb-open{color:#42EB81}'
+    + '.tmw-ov-pcard-body .meta .st.sb-announced{color:#9AA39C}'
+    + '.tmw-ov-pcard-body .meta .st.sb-journal{color:#f0d68a}'
+    /* Embedded project-view frame — full-bleed inside the lightbox, fixed size
+       regardless of the answer height; X returns to the result. */
+    + '.tmw-ov-projview{position:absolute;inset:0;z-index:9;display:none;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
+    + '.tmw-ov-projview.open{display:block}'
+    + '.tmw-ov-projview-frame{width:100%;height:100%;border:0;display:block;background:#0a0c0a}'
+    + '.tmw-ov-projview-x{position:absolute;top:16px;right:18px;z-index:2;width:42px;height:42px;border-radius:50%;'
+    + 'background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;'
+    + 'cursor:pointer;padding:0;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:background .15s,transform .15s}'
+    + '.tmw-ov-projview-x:hover{background:rgba(26,26,32,.92);transform:scale(1.05)}'
+    + '.tmw-ov-projview-x svg{width:17px;height:17px;display:block}'
 
     /* Firms & places chiprow */
     + '.tmw-ov-chiprow{display:flex;flex-wrap:wrap;gap:10px}'
@@ -1018,6 +1035,15 @@
     +       '</form>'
     +     '</div>'  /* close .tmw-ov-bar */
     +   '</div>'    /* close .tmw-ov-dock */
+    /* Embedded project view — clicking a project opens its full SEO page in a
+       fixed-size frame here (incl. the "view on map" button) instead of leaving
+       Onyx. The X returns to the query result. */
+    +   '<div class="tmw-ov-projview" aria-hidden="true">'
+    +     '<button class="tmw-ov-projview-x" type="button" aria-label="Close project view">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+    +     '</button>'
+    +     '<iframe class="tmw-ov-projview-frame" title="Project details" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+    +   '</div>'
     + '</div>';    /* close .tmw-ov-lb */
 
   // Mount when body is available
@@ -1484,6 +1510,26 @@
       + '</article>';
   }
 
+  // Journal article as a PROJECT-CARD tile (Jake: "lean into the project card
+  // design"). Same .tmw-ov-pcard shell as renderProjectCard — cover image on
+  // top, title, "From the journal" where the location sits, the publish date
+  // (gold) where the status sits, and the arrow.
+  function renderArticlePCard(a){
+    var img = a.cover_image || '';
+    var media = img
+      ? '<img src="'+esc(img)+'" alt="'+esc(a.title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      : '<div class="ph"></div>';
+    var date = a.published_iso ? new Date(a.published_iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var href = 'https://www.oftmw.com/post/'+encodeURIComponent(a.slug||'')+'/';
+    return '<a class="tmw-ov-pcard tmw-ov-acard" href="'+esc(href)+'">'
+      + '<div class="tmw-ov-pcard-media">'+media+'</div>'
+      + '<div class="tmw-ov-pcard-body">'
+      +   '<h4>'+esc(a.title)+'</h4>'
+      +   '<div class="loc">From the journal</div>'
+      +   '<div class="meta"><span class="st sb-journal">'+esc(date||'Journal')+'</span><span class="openmap">→</span></div>'
+      + '</div></a>';
+  }
+
   // Firm hero — gradient-panel media (no cover image) with the firm
   // initial as a soft mark. Same body geometry + CTA row as the project
   // and article heroes.
@@ -1718,18 +1764,28 @@
   // Compact "Nearby Project" card (for the grid section). Image-on-top
   // layout matches /search/'s .pcard exactly. Links open the map deeplink
   // with fullscreen so the user lands directly on the marker + drawer.
+  // data-projurl marks a card/row as a project whose click opens the embedded
+  // SEO page in-overlay (intercepted in the delegated click handler) instead of
+  // leaving for the map.
+  function _projAttr(p){
+    var slug = p && (p.Slug || p.slug);
+    return slug ? ' data-projurl="https://www.oftmw.com/projects/' + esc(String(slug)) + '/"' : '';
+  }
+
   function renderProjectCard(p){
     var img = firstField(p, ['ImageURL','Image2','Image3']);
     var media = img
       ? '<img src="'+esc(img)+'" alt="'+esc(p.Title)+'" loading="lazy" onerror="this.style.display=\'none\'">'
       : '<div class="ph"></div>';
     var status = p.Delivery || '';
-    return '<a class="tmw-ov-pcard" href="'+esc(mapLink(p.Title, true))+'">'
+    var Core = window.TmwSearchCore;
+    var bcls = (Core && Core.STATUS_BADGE && Core.STATUS_BADGE[p.Delivery] && Core.STATUS_BADGE[p.Delivery].cls) || 'sb-announced';
+    return '<a class="tmw-ov-pcard" href="'+esc(mapLink(p.Title, true))+'"'+_projAttr(p)+'>'
       + '<div class="tmw-ov-pcard-media">'+media+'</div>'
       + '<div class="tmw-ov-pcard-body">'
       +   '<h4>'+esc(p.Title)+'</h4>'
       +   (_locOf(p) ? '<div class="loc">'+esc(_locOf(p))+'</div>' : '')
-      +   '<div class="meta"><span>'+esc(status)+'</span><span class="openmap">→</span></div>'
+      +   '<div class="meta"><span class="st '+bcls+'">'+esc(status)+'</span><span class="openmap">→</span></div>'
       + '</div></a>';
   }
 
@@ -1886,7 +1942,7 @@
     var rMedia = rImg
       ? '<img src="'+esc(rImg)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
       : ICON_BLDG;
-    return '<a class="tmw-ov-row '+(rank === 1 && sortKey ? 'lead' : '')+'" href="'+esc(mapLink(p.Title, true))+'">'
+    return '<a class="tmw-ov-row '+(rank === 1 && sortKey ? 'lead' : '')+'" href="'+esc(mapLink(p.Title, true))+'"'+_projAttr(p)+'>'
       + '<div class="rank">'+rank+'</div>'
       + '<div class="r-ico'+(rImg ? ' has-img' : '')+'">'+rMedia+'</div>'
       + '<div class="r-main"><div class="r-name">'+esc(p.Title)+'</div><div class="r-sub">'+sub+'</div></div>'
@@ -3523,7 +3579,7 @@
       var heroHtml = '';
       var heroCat = 'projects';
       if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
-      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); heroCat = 'articles'; }
+      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = '<div class="tmw-ov-grid">' + renderArticlePCard(heroArticle) + '</div>'; heroCat = 'articles'; }
       else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm);       heroCat = 'firms'; }
       slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="'+heroCat+'">' + heroHtml + '</div>';
     } else {
@@ -3859,7 +3915,7 @@
     }
     if (!a || a === _heroArticleRef) return;
     _heroArticleRef = a;
-    slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="articles">' + renderArticleHero(a) + '</div>';
+    slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="articles"><div class="tmw-ov-grid">' + renderArticlePCard(a) + '</div></div>';
     try { renderArticleSection(q, token, { fromBodyMerge: true }); } catch(_){}
   }
 
@@ -4002,6 +4058,7 @@
   }
   function close(){
     if (!root.classList.contains('open')) return;
+    closeProj();   // tear down any embedded project view so reopening is clean
     _stopSyncPoll();
     root.classList.remove('open');
     document.documentElement.style.overflow = '';
@@ -4080,10 +4137,38 @@
   // delegated handler for everything inside the overlay so the wiring
   // lives in one place. Match-by-data-q so any future suggestion variant
   // (different markup, same intent) just needs to carry the attribute.
+  // ── Embedded project view ───────────────────────────────────────────
+  // Clicking a project opens its full SEO page in a fixed frame over the
+  // result (keeping the user inside Onyx) instead of navigating to the map.
+  var projview = root.querySelector('.tmw-ov-projview');
+  var projframe = root.querySelector('.tmw-ov-projview-frame');
+  var projX = root.querySelector('.tmw-ov-projview-x');
+  function openProj(url){
+    if (!projview || !projframe || !url) return;
+    projframe.src = url;
+    projview.classList.add('open');
+    projview.setAttribute('aria-hidden', 'false');
+  }
+  function closeProj(){
+    if (!projview || !projview.classList.contains('open')) return false;
+    projview.classList.remove('open');
+    projview.setAttribute('aria-hidden', 'true');
+    if (projframe) projframe.src = 'about:blank';   // stop loading + reset scroll
+    return true;
+  }
+  if (projX) projX.addEventListener('click', closeProj);
+
   root.addEventListener('click', function(e){
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
+    // Project card/row → open the embedded SEO project page in-overlay.
+    var projLink = e.target.closest && e.target.closest('[data-projurl]');
+    if (projLink) {
+      e.preventDefault();
+      openProj(projLink.getAttribute('data-projurl'));
+      return;
+    }
     var sug = e.target.closest && e.target.closest('[data-q]');
     if (sug) {
       var q = sug.getAttribute('data-q');
@@ -4184,7 +4269,7 @@
 
   // ── global hotkey: "/" opens, Esc closes ──────────────────────────
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && root.classList.contains('open')) { close(); return; }
+    if (e.key === 'Escape' && root.classList.contains('open')) { if (closeProj()) return; close(); return; }
     if (e.key === '/' && !root.classList.contains('open')) {
       var ae = document.activeElement;
       var tag = ae && ae.tagName;
