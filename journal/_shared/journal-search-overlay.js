@@ -131,7 +131,7 @@
     + '.tmw-ov-hxs-ring{transform-origin:50% 50%;animation:tmwOvHxsRing 4.2s ease-out infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-hxs-spin,.tmw-ov-hxs-ring{animation:none}.tmw-ov-hxs-ring{opacity:0}}'
 
-    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 220px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}'
+    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 120px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}'
     + '.tmw-ov-body::-webkit-scrollbar{width:8px}'
     + '.tmw-ov-body::-webkit-scrollbar-track{background:transparent}'
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
@@ -310,9 +310,10 @@
     + 'padding:0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:#B9A6FF;letter-spacing:.01em}'
     + '.tmw-ov-seeall:hover{color:#fff}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-seeall{display:inline-flex}'
-    /* Onyx 4.1 model badge in the answer header */
+    /* Onyx 4.1 model badge — transparent purple fill + glowing purple border */
     + '.tmw-ov-model{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;'
-    + 'color:#1a1408;background:#A78BFA;padding:2px 7px;border-radius:999px;margin-left:8px;align-self:center}'
+    + 'color:#D8CCFA;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.75);'
+    + 'box-shadow:0 0 10px rgba(167,139,250,.55);padding:2px 8px;border-radius:999px;margin-left:8px;align-self:center}'
 
     /* ── Onyx Overview = ONE compact reply card ───────────────────────────
        Wrap the whole turn in a single bubble and strip the inner panel/hero/
@@ -350,6 +351,12 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-fp-row{margin:0 0 14px}'
+    /* Overview drops journal articles (they live under the Journal tab now) */
+    + '[data-state="results"][data-filter="overview"] [data-slot="articles-grid"]{display:none}'
+    /* Thumbs tuck into the card's bottom-right (no tall gap above them) */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-turn-fb{margin-top:4px}'
+    /* "Understood as" line removed entirely — not needed */
+    + '.tmw-ov-understood{display:none!important}'
 
 
     /* Section heading */
@@ -771,7 +778,7 @@
     +   '.tmw-ov-bar{bottom:18px;width:calc(100vw - 22px)}'
     +   '.tmw-ov-row .r-bar{display:none}'
     +   '.tmw-ov-close{top:14px;right:14px;width:34px;height:34px}'
-    +   '.tmw-ov-body{padding:8px 0 130px}'
+    +   '.tmw-ov-body{padding:8px 0 96px}'
     +   '.tmw-ov-wrap{padding:0 16px}'
     + '}';
 
@@ -880,28 +887,29 @@
     +   '<span>Searching the database</span>'
     + '</div>'
     + '<div data-state="results" class="tmw-ov-hidden">'
+    +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="intel-cta"></div>'
     +   '<div data-slot="hero"></div>'
-    +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="rows"></div>'
     +   '<div data-slot="projects-grid"></div>'
     +   '<div data-slot="entities"></div>'
     +   '<div data-slot="articles-grid"></div>'
+    // Per-answer feedback — sits in the bottom-right of the reply card, votes on
+    // THIS turn only (feeds the backend intel improver). Inside the results box
+    // so it reads as part of the message. setState finds it via turn.querySelector.
+    +   '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
+    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
+    +     '</button>'
+    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
+    +     '</button>'
+    +     '<span class="tmw-ov-fb-thanks">Noted</span>'
+    +   '</div>'
     + '</div>'
     + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
     +   '<h3>Nothing matched in the database</h3>'
     +   '<p>Try a firm name, city, or project. Or ask TMW Intelligence below — it can synthesize answers from the journal.</p>'
-    + '</div>'
-    // Per-answer feedback — bottom-right, votes on THIS turn only (feeds the
-    // backend intel improver). Shown on results/empty via setState.
-    + '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
-    +   '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
-    +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
-    +   '</button>'
-    +   '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
-    +     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
-    +   '</button>'
-    +   '<span class="tmw-ov-fb-thanks">Noted</span>'
     + '</div>';
 
   var root = document.createElement('div');
@@ -3605,9 +3613,6 @@
   function renderFilterPills(counts){
     var pills = [];
     pills.push('<button class="tmw-ov-fp active" type="button" data-filter="overview">Overview</button>');
-    if (counts.intel) {
-      pills.push('<button class="tmw-ov-fp" type="button" data-filter="intel">Intelligence</button>');
-    }
     if (counts.projects > 0) {
       pills.push('<button class="tmw-ov-fp" type="button" data-filter="projects">Projects <span class="tmw-ov-fp-n">'+counts.projects+'</span></button>');
     }
