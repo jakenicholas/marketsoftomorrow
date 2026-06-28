@@ -4048,7 +4048,7 @@ async function handlePublish(req, env, origin) {
   const handle = String(body.account_handle || '').replace(/^@/, '').toLowerCase().trim();
   const caption = String(body.caption || '');
   const collaborators = Array.isArray(body.collaborators)
-    ? body.collaborators.map(s => String(s).replace(/^@/, '').trim()).filter(Boolean).slice(0, 5) : [];
+    ? body.collaborators.map(s => String(s).replace(/^@/, '').trim()).filter(Boolean).slice(0, 3) : [];   // IG caps at 3
   const slides = (Array.isArray(body.slides) ? body.slides : [])
     .filter(s => s && s.url && s.type !== 'video').map(s => ({ url: String(s.url) }));
   const token = env.META_SYSTEM_TOKEN;
