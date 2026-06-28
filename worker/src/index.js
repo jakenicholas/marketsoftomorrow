@@ -3979,6 +3979,42 @@ async function handleSocialAccountsSave(req, env, origin) {
   return json({ ok: true, items: results || [] }, {}, env, origin);
 }
 
+// ── Social handles memory: firm/project name → Instagram handle ─────────────
+// Remembers a collaborator's @handle the first time it's looked up, so the
+// carousel collaborator-finder can pre-fill it next time that firm appears.
+async function ensureSocialHandlesTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_handles (
+    key TEXT PRIMARY KEY, name TEXT, type TEXT, ig_handle TEXT, updated_at INTEGER)`).run();
+}
+async function handleSocialHandlesList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureSocialHandlesTable(env);
+  const { results } = await env.DB.prepare(`SELECT name, type, ig_handle FROM social_handles ORDER BY name ASC`).all();
+  return json({ items: results || [] }, {}, env, origin);
+}
+async function handleSocialHandlesSave(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureSocialHandlesTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = String(body.name || '').trim().slice(0, 160);
+  const type = String(body.type || '').trim().slice(0, 40);
+  const handle = String(body.ig_handle || '').replace(/^@/, '').trim().slice(0, 64);
+  if (!name) return json({ error: 'name required' }, { status: 400 }, env, origin);
+  const key = name.toLowerCase().replace(/\s+/g, ' ').trim();
+  const now = Math.floor(Date.now() / 1000);
+  if (!handle) {
+    await env.DB.prepare(`DELETE FROM social_handles WHERE key = ?1`).bind(key).run();
+  } else {
+    await env.DB.prepare(
+      `INSERT INTO social_handles (key,name,type,ig_handle,updated_at) VALUES (?1,?2,?3,?4,?5)
+       ON CONFLICT(key) DO UPDATE SET name=?2, type=?3, ig_handle=?4, updated_at=?5`
+    ).bind(key, name, type, handle, now).run();
+  }
+  return json({ ok: true }, {}, env, origin);
+}
+
 // ── Live publish: Instagram + Facebook via the Meta system-user token ───────
 const META_GRAPH = 'https://graph.facebook.com/v21.0';
 function metaErr(j) {
@@ -7887,6 +7923,8 @@ export default {
       if (request.method === 'POST' && url.pathname === '/carousels') return await handleCarouselsCreate(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-accounts') return await handleSocialAccountsList(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/social-accounts') return await handleSocialAccountsSave(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/social-handles') return await handleSocialHandlesList(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/social-handles') return await handleSocialHandlesSave(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
