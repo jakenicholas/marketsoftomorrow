@@ -1993,17 +1993,21 @@
   // The FIRST result view of a page load always defaults to All, regardless of any
   // sticky lens — "every time you load into search, you land on All."
   var _sessionFirstView = true;
-  // Honor the sticky preference when its category has content for this result;
-  // otherwise use the computed smart default. counts: {intel, projects, firms}.
+  // Honor the sticky preference when its category has content for THIS query;
+  // otherwise fall back to Intelligence (the always-relevant synthesis) — or All
+  // if this query produced no Intelligence answer. counts: {intel, projects, firms}.
+  // ('articles' is provisional here — renderArticleSection corrects it once the
+  // journal match count is known.)
   function _stickyDefault(computed, counts){
     counts = counts || {};
     if (_sessionFirstView) { _sessionFirstView = false; return 'all'; }   // fresh load → All
     if (!_stickyFilter) return computed;
-    if (_stickyFilter === 'all' || _stickyFilter === 'articles') return _stickyFilter;  // All + Journal always available
-    if (_stickyFilter === 'intel' && counts.intel) return 'intel';
+    if (_stickyFilter === 'all') return 'all';
+    if (_stickyFilter === 'articles') return 'articles';   // provisional (see renderArticleSection)
+    if (_stickyFilter === 'intel'    && counts.intel)        return 'intel';
     if (_stickyFilter === 'projects' && counts.projects > 0) return 'projects';
-    if (_stickyFilter === 'firms' && counts.firms > 0) return 'firms';
-    return computed;
+    if (_stickyFilter === 'firms'    && counts.firms > 0)    return 'firms';
+    return counts.intel ? 'intel' : 'all';   // sticky lens empty for this query → Intelligence, else All
   }
   // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
   // The map page (and others) don't all load member-track.js / set __tmwMember,
@@ -3490,8 +3494,8 @@
     // active filter so a body-merge re-render doesn't snap back to "All".
     var active = sResults.getAttribute('data-filter') || 'all';
     // Sticky "Journal" carried into a query that matched NO stories → fall back to
-    // All (don't strand the user on an empty Journal lens).
-    if (active === 'articles' && count === 0) { active = 'all'; sResults.setAttribute('data-filter', 'all'); }
+    // Intelligence (or All if this query produced no Intelligence answer).
+    if (active === 'articles' && count === 0) { active = (_lastFilterCounts.intel ? 'intel' : 'all'); sResults.setAttribute('data-filter', active); }
     slotFilterPills.innerHTML = renderFilterPills({
       intel: _lastFilterCounts.intel,
       projects: _lastFilterCounts.projects,
