@@ -320,8 +320,14 @@
       if (prior.firm && !now.firm) now.firm = prior.firm;
       if (prior.firmRank && !now.firmRank) now.firmRank = prior.firmRank;
       if (prior.sort && !now.sort) now.sort = prior.sort;
-      if (prior.statuses && prior.statuses.size && !(now.statuses && now.statuses.size)) { now.statuses = prior.statuses; now.statusLabels = prior.statusLabels; }
-      if (prior.pipeline && !now.pipeline) now.pipeline = prior.pipeline;
+      // Only inherit the prior STATUS / pipeline scope when this turn did NOT name
+      // its OWN place. A fresh place query ("palm beach" after "recent openings in
+      // west palm beach") must show the WHOLE place — every status — not get
+      // narrowed to the prior turn's status window (which dropped 5 of 7 projects).
+      if (!hasPlace) {
+        if (prior.statuses && prior.statuses.size && !(now.statuses && now.statuses.size)) { now.statuses = prior.statuses; now.statusLabels = prior.statusLabels; }
+        if (prior.pipeline && !now.pipeline) now.pipeline = prior.pipeline;
+      }
     }
     // Inherit the PLACE when this turn only changed the topic — or set neither.
     if (!hasPlace) {
