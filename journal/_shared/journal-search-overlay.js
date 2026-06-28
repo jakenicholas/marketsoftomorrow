@@ -2603,17 +2603,20 @@
   function enrichSemanticProjects(q, token, artCount){
     var Core = window.TmwSearchCore;
     if (!Core || !Core.semanticSearch || !slotProjGrid) return;
-    Core.semanticSearch(q).then(function(sem){
+    // Search the TOPIC, not the verbose question — "what mass timber projects are
+    // happening around the world" dilutes the embedding toward "around the world"
+    // and buries the actual mass-timber project. Strip question/scope filler so
+    // the topic (mass timber) drives recall.
+    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    if (topicQ.length < 3) topicQ = q;
+    Core.semanticSearch(topicQ).then(function(sem){
       if (token !== _renderToken) return;
       if (slotProjGrid.querySelector('.tmw-ov-grid, .tmw-ov-rows')) return;   // projects already shown — leave them
       var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
-      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean);
+      // Keep SEMANTIC relevance order for concept questions — the most on-topic
+      // projects lead (do NOT spine-rank here; that's for place pipelines).
+      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, MAX_PROJECTS_GRID);
       if (!rp.length) return;
-      // Order by the status spine (featured > coming soon > recently opened >
-      // under construction > breaking ground > announced), not raw semantic
-      // relevance, so the freshest/most-newsworthy projects lead.
-      if (Core.rankByStatus) Core.rankByStatus(rp, {});
-      rp = rp.slice(0, MAX_PROJECTS_GRID);
       var sa = (rp.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+(rp.length - 3)+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
       slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects"><div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
         + '<div class="tmw-ov-grid">' + rp.map(renderProjectCard).join('') + '</div>' + sa + '</div>';
