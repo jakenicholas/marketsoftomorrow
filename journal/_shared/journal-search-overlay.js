@@ -2719,15 +2719,13 @@
     // Iconic editorial picks count under Journal now (they're TMW curation, not
     // pipeline projects), so the "best hotels" ask lands on the Journal tab.
     _lastFilterCounts = { intel: true, projects: rows.length, firms: 0, iconicArticles: iconicHits.length };
-    // Smart default tab (req 2/3): an iconic/"best X" ask leads with Journal; a
-    // pipeline ask ("tallest towers") leads with Projects; anything else shows
-    // just the Intelligence answer. The user can still click All / any tab.
-    // Iconic queries blend three strong layers — the Intelligence answer, the
-    // curated list, and journal coverage — so default to ALL (show everything)
-    // rather than isolating one tab. Otherwise: projects if we have them, else
-    // just the Intelligence answer.
-    var defFilter = (s.iconic && iconicHits.length) ? 'overview' : (rows.length ? 'projects' : 'intel');
-    defFilter = _stickyDefault(defFilter, { intel: true, projects: rows.length, firms: 0 });
+    // Onyx 4.1 redesign: the smart path defaults to the answer-first OVERVIEW
+    // too — the Intelligence answer + hero + the ranked rows (and a capped
+    // taste of journal), with the counts bar to drill in. Previously pipeline
+    // asks ("tallest towers") isolated the Projects tab and HID the answer,
+    // which is exactly the firehose-vs-lead problem this redesign fixes. A
+    // user who explicitly picked a lens last query still gets it via sticky.
+    var defFilter = _stickyDefault('overview', { intel: true, projects: rows.length, firms: 0 });
     sResults.setAttribute('data-filter', defFilter);
     // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
     // CA query). Only for an actual US state (stateCode set, or Florida).
