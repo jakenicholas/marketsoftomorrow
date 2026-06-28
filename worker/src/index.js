@@ -3423,6 +3423,11 @@ export async function ensureCarouselTable(env) {
   // Project name shipped from the Design editor (shown in the carousels list).
   // Idempotent: no-op once the column exists.
   try { await env.DB.prepare(`ALTER TABLE carousels ADD COLUMN title TEXT`).run(); } catch (_) {}
+  // Distribution: the landing link (FB/LinkedIn/X/Threads), the Instagram
+  // collaborator handles, and per-platform approval/post status (JSON).
+  try { await env.DB.prepare(`ALTER TABLE carousels ADD COLUMN link TEXT`).run(); } catch (_) {}
+  try { await env.DB.prepare(`ALTER TABLE carousels ADD COLUMN collaborators TEXT`).run(); } catch (_) {}
+  try { await env.DB.prepare(`ALTER TABLE carousels ADD COLUMN distribution_json TEXT`).run(); } catch (_) {}
 }
 
 // ─── Contacts + post-extension bootstrap ───────────────────────────────────
@@ -3860,11 +3865,16 @@ function rowToCarousel(r) {
   if (!r) return null;
   let slides = [];
   try { slides = JSON.parse(r.slides || '[]'); if (!Array.isArray(slides)) slides = []; } catch { slides = []; }
+  let distribution = {};
+  try { distribution = JSON.parse(r.distribution_json || '{}'); if (!distribution || typeof distribution !== 'object') distribution = {}; } catch { distribution = {}; }
   return {
     id: r.id,
     slug: r.slug,
     title: r.title || '',
     caption: r.caption || '',
+    link: r.link || '',
+    collaborators: r.collaborators || '',
+    distribution,
     account_handle: r.account_handle || 'floridaoftomorrow',
     account_name:   r.account_name   || 'FLORIDAOFTOMORROW',
     account_avatar: r.account_avatar || null,
@@ -3937,11 +3947,14 @@ async function handleCarouselsCreate(req, env, origin) {
   const accountName   = (body.account_name   || 'FLORIDAOFTOMORROW').toString().slice(0, 80);
   const accountAvatar = body.account_avatar ? String(body.account_avatar) : null;
   const title = (body.title || '').toString().slice(0, 200);   // project name shipped from Design
+  const link = (body.link || '').toString().slice(0, 600);
+  const collaborators = (body.collaborators || '').toString().slice(0, 600);
+  const distributionJson = JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 20000);
   try {
     await env.DB.prepare(
-      `INSERT INTO carousels (id, slug, title, caption, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'draft', ?9, ?9)`
-    ).bind(id, slug, title, caption, accountHandle, accountName, accountAvatar, slides, now).run();
+      `INSERT INTO carousels (id, slug, title, caption, link, collaborators, distribution_json, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'draft', ?12, ?12)`
+    ).bind(id, slug, title, caption, link, collaborators, distributionJson, accountHandle, accountName, accountAvatar, slides, now).run();
   } catch (e) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
@@ -3984,6 +3997,9 @@ async function handleCarouselsUpdate(req, env, origin, slug) {
 
   const sets = [], params = []; let p = 1;
   if ('title'          in body) { sets.push(`title = ?${p++}`);          params.push(String(body.title || '').slice(0, 200)); }
+  if ('link'           in body) { sets.push(`link = ?${p++}`);           params.push(String(body.link || '').slice(0, 600)); }
+  if ('collaborators'  in body) { sets.push(`collaborators = ?${p++}`);  params.push(String(body.collaborators || '').slice(0, 600)); }
+  if ('distribution'   in body) { sets.push(`distribution_json = ?${p++}`); params.push(JSON.stringify((body.distribution && typeof body.distribution === 'object') ? body.distribution : {}).slice(0, 20000)); }
   if ('caption'        in body) { sets.push(`caption = ?${p++}`);        params.push(String(body.caption || '').slice(0, 4000)); }
   if ('account_handle' in body) { sets.push(`account_handle = ?${p++}`); params.push(String(body.account_handle || 'floridaoftomorrow').replace(/^@/, '').slice(0, 64)); }
   if ('account_name'   in body) { sets.push(`account_name   = ?${p++}`); params.push(String(body.account_name   || 'FLORIDAOFTOMORROW').slice(0, 80)); }
