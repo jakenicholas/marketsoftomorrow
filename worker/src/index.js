@@ -4071,6 +4071,16 @@ async function handleThreadsStatus(req, env, origin) {
   const { results } = await env.DB.prepare(`SELECT account_key, threads_user_id, expires_at FROM threads_tokens`).all();
   return json({ items: results || [] }, {}, env, origin);
 }
+async function handleThreadsDisconnect(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body; try { body = await req.json(); } catch { body = {}; }
+  const key = String(body.key || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  if (!key) return json({ error: 'key required' }, { status: 400 }, env, origin);
+  await ensureThreadsTokensTable(env);
+  await env.DB.prepare(`DELETE FROM threads_tokens WHERE account_key = ?1`).bind(key).run();
+  return json({ ok: true }, {}, env, origin);
+}
 // Required by Meta to save the Threads use case: deauthorize + data-deletion callbacks (public, Meta calls them).
 function handleThreadsDeauth() { return new Response('ok', { status: 200, headers: { 'content-type': 'text/plain' } }); }
 function handleThreadsDelete() {
@@ -8032,6 +8042,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/threads/connect-url') return await handleThreadsConnectUrl(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/threads/callback')    return await handleThreadsCallback(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/threads/status')       return await handleThreadsStatus(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/threads/disconnect')    return await handleThreadsDisconnect(request, env, origin);
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/deauth') return handleThreadsDeauth();
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/delete') return handleThreadsDelete();
       if (request.method === 'GET'  && url.pathname === '/threads/deletion-status') return handleThreadsDeletionStatus(url);
