@@ -3914,6 +3914,71 @@ async function ensureUniqueCarouselSlug(env, base, ignoreId) {
   }
 }
 
+// ── Social accounts ────────────────────────────────────────────────────────
+// One row per brand: the IG handle, the Facebook Page ID + linked IG user ID
+// (used by Phase-2 auto-publish), and the default Instagram collaborators.
+const SOCIAL_SEED = [
+  { key:'florida',   name:'Florida of Tomorrow',   ig_handle:'floridaoftomorrow',   page_id:'',                 ig_user_id:'' },
+  { key:'newyork',   name:'New York of Tomorrow',  ig_handle:'newyorkoftomorrow',   page_id:'',                 ig_user_id:'' },
+  { key:'tennessee', name:'Tennessee of Tomorrow', ig_handle:'tennesseeoftomorrow', page_id:'',                 ig_user_id:'' },
+  { key:'caribbean', name:'Caribbean of Tomorrow', ig_handle:'caribbeanoftomorrow', page_id:'',                 ig_user_id:'' },
+  { key:'hotels',    name:'Hotels of Tomorrow',    ig_handle:'hotelsoftomorrow',    page_id:'550439731466543',  ig_user_id:'' },
+  { key:'markets',   name:'Markets of Tomorrow',   ig_handle:'marketsoftomorrow',   page_id:'',                 ig_user_id:'17841428559742932' },
+  { key:'rockies',   name:'Rockies of Tomorrow',   ig_handle:'rockiesoftomorrow',   page_id:'',                 ig_user_id:'' },
+];
+async function ensureSocialAccountsTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_accounts (
+    key TEXT PRIMARY KEY, name TEXT, ig_handle TEXT, page_id TEXT, ig_user_id TEXT,
+    collaborators TEXT, sort_order INTEGER, updated_at INTEGER)`).run();
+  const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM social_accounts`).first();
+  if (row && Number(row.n) === 0) {
+    const now = Math.floor(Date.now() / 1000);
+    for (let i = 0; i < SOCIAL_SEED.length; i++) {
+      const s = SOCIAL_SEED[i];
+      await env.DB.prepare(
+        `INSERT OR IGNORE INTO social_accounts (key,name,ig_handle,page_id,ig_user_id,collaborators,sort_order,updated_at)
+         VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`
+      ).bind(s.key, s.name, s.ig_handle, s.page_id || '', s.ig_user_id || '', '', i, now).run();
+    }
+  }
+}
+async function handleSocialAccountsList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureSocialAccountsTable(env);
+  const { results } = await env.DB.prepare(`SELECT * FROM social_accounts ORDER BY sort_order ASC, name ASC`).all();
+  return json({ items: results || [] }, {}, env, origin);
+}
+async function handleSocialAccountsSave(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureSocialAccountsTable(env);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const items = Array.isArray(body.items) ? body.items : [];
+  const now = Math.floor(Date.now() / 1000);
+  const clean = (s, n) => String(s == null ? '' : s).slice(0, n);
+  const seen = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i] || {};
+    let key = clean(it.key || it.name, 64).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    if (!key) continue;
+    seen.push(key);
+    await env.DB.prepare(
+      `INSERT INTO social_accounts (key,name,ig_handle,page_id,ig_user_id,collaborators,sort_order,updated_at)
+       VALUES (?1,?2,?3,?4,?5,?6,?7,?8)
+       ON CONFLICT(key) DO UPDATE SET name=?2, ig_handle=?3, page_id=?4, ig_user_id=?5, collaborators=?6, sort_order=?7, updated_at=?8`
+    ).bind(key, clean(it.name, 120), clean(it.ig_handle, 64).replace(/^@/, ''), clean(it.page_id, 40),
+           clean(it.ig_user_id, 40), clean(it.collaborators, 600), i, now).run();
+  }
+  // drop rows the client removed
+  if (seen.length) {
+    const placeholders = seen.map((_, i) => `?${i + 1}`).join(',');
+    await env.DB.prepare(`DELETE FROM social_accounts WHERE key NOT IN (${placeholders})`).bind(...seen).run();
+  }
+  const { results } = await env.DB.prepare(`SELECT * FROM social_accounts ORDER BY sort_order ASC`).all();
+  return json({ ok: true, items: results || [] }, {}, env, origin);
+}
+
 async function handleCarouselsList(req, env, origin, url) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -7713,6 +7778,8 @@ export default {
       // preview token — same flow as article-draft previews).
       if (request.method === 'GET'  && url.pathname === '/carousels') return await handleCarouselsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/carousels') return await handleCarouselsCreate(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/social-accounts') return await handleSocialAccountsList(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/social-accounts') return await handleSocialAccountsSave(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
