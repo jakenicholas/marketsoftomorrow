@@ -2897,6 +2897,16 @@
                                        .sort(function(a,b){ return b.s - a.s; });
 
     var totalHits = pScored.length + fScored.length + aScored.length;
+    // SEMANTIC RESCUE seed: this is a re-invoke carrying projects/articles the
+    // keyword pass missed (only happens when the first pass found NOTHING). Seed
+    // the scored lists so the normal render path runs with relevant candidates.
+    if (opts.rescueProjects && opts.rescueProjects.length) {
+      pScored = opts.rescueProjects.map(function (p, i) { return { p: p, s: opts.rescueProjects.length - i }; });
+      if (opts.rescueArticles && opts.rescueArticles.length) {
+        aScored = opts.rescueArticles.map(function (a, i) { return { a: a, s: opts.rescueArticles.length - i }; });
+      }
+      totalHits = pScored.length + fScored.length + aScored.length;
+    }
 
     // STRONG LITERAL PROJECT-NAME MATCH? When the user typed the full
     // name (or a substantial substring) of a tracked project, treat
@@ -3192,27 +3202,41 @@
 
     // Empty state: not a question, nothing matched, nothing to show.
     if (!totalHits && !question){
-      slotHero.innerHTML = '';
-      slotProjGrid.innerHTML = '';
-      slotEntities.innerHTML = '';
-      slotArticles.innerHTML = '';
-      slotFilterPills.innerHTML = '';
-      sResults.removeAttribute('data-filter');
-      _lastResultsTotal = 0;
-      _lastResultKind = 'empty';
-      // Log the zero-result query — this is the single most valuable coverage
-      // signal (it feeds the worker's /search-gaps no_results bucket: firms,
-      // projects and places to add next). The success path logs further down,
-      // but this branch returns first, so without this a search that finds
-      // nothing would never be recorded. Now that the confidence floor drops
-      // weak description-only matches, more real gaps land here — so capturing
-      // them matters more, not less.
-      try {
-        if (!_replaying && window.tmwIntel && window.tmwIntel.trackSearch) {
-          window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
-        }
-      } catch(_){}
-      setState('empty');
+      var showEmptyState = function(){
+        slotHero.innerHTML = '';
+        slotProjGrid.innerHTML = '';
+        slotEntities.innerHTML = '';
+        slotArticles.innerHTML = '';
+        slotFilterPills.innerHTML = '';
+        sResults.removeAttribute('data-filter');
+        _lastResultsTotal = 0;
+        _lastResultKind = 'empty';
+        // Log the zero-result query — the single most valuable coverage signal
+        // (feeds the worker's /search-gaps no_results bucket).
+        try {
+          if (!_replaying && window.tmwIntel && window.tmwIntel.trackSearch) {
+            window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
+          }
+        } catch(_){}
+        setState('empty');
+      };
+      // SEMANTIC RESCUE: keyword search dead-ended — fall back to meaning-based
+      // retrieval over the whole corpus before showing "nothing matched". Maps
+      // the returned slugs to real project/article objects and re-renders through
+      // the normal path. Purely additive: only fires when keyword found nothing.
+      if (!opts._rescued && Core && Core.semanticSearch){
+        Core.semanticSearch(q).then(function(sem){
+          if (token !== _renderToken) return;
+          var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
+          var aBy = {}; ARTICLES.forEach(function(a){ var s = a.slug || a.Slug; if (s) aBy[s] = a; });
+          var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, 18);
+          var ra = (sem.articles || []).map(function(s){ return aBy[s]; }).filter(Boolean).slice(0, 12);
+          if (rp.length || ra.length) runTextMatch(q, token, { rescueProjects: rp, rescueArticles: ra, _rescued: true });
+          else showEmptyState();
+        }).catch(showEmptyState);
+        return;
+      }
+      showEmptyState();
       return;
     }
     if (!totalHits){

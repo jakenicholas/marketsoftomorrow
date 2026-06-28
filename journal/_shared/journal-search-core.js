@@ -265,6 +265,30 @@
     .catch(function (e) { return { ok: false, answer: null, error: e }; });
   }
 
+  // Semantic search over the Vectorize-embedded corpus — returns project +
+  // article SLUGS ranked by meaning. Used to RESCUE dead-end keyword searches.
+  // Best-effort + cached per query; resolves to empty arrays if unavailable.
+  var _semCache = {};
+  function semanticSearch(q) {
+    q = String(q || '').trim();
+    if (!q) return Promise.resolve({ projects: [], articles: [] });
+    if (_semCache[q]) return _semCache[q];
+    var p = fetch(WORKER_URL + '/semantic-search?q=' + encodeURIComponent(q) + '&k=20')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var projects = [], articles = [];
+        ((d && d.matches) || []).forEach(function (m) {
+          if (!m || !m.slug) return;
+          if (m.kind === 'project') projects.push(m.slug);
+          else if (m.kind === 'article') articles.push(m.slug);
+        });
+        return { projects: projects, articles: articles };
+      })
+      .catch(function () { return { projects: [], articles: [] }; });
+    _semCache[q] = p;
+    return p;
+  }
+
   // ── Conversational follow-up resolution ─────────────────────────────
   // Merge a PARTIAL follow-up parse with the prior turn's so the RESULTS stay
   // on-topic. "best hotels" → "what about Miami?" inherits the hotel topic →
@@ -1742,6 +1766,7 @@
     placeTokensOf: placeTokensOf,
     resolvePlace: resolvePlace,
     askIntelligence: askIntelligence,
+    semanticSearch: semanticSearch,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,
     matchSpotlight: matchSpotlight,
