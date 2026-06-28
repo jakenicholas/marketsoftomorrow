@@ -2588,6 +2588,33 @@
   // dominates the runner-up, return it — the query is about that one
   // project, not the city set. Otherwise return null and let the smart
   // path render the full aggregate.
+  // Surface RELATED projects via the semantic index when keyword search found
+  // none (concept/term questions like "what is mass timber" → 120 S. Dixie
+  // Highway, which the keyword pass misses but the index relates). Additive +
+  // async; renders a "Related projects" section, flips to the answer-first
+  // Overview, and rebuilds the counts bar so the Projects tab appears. Never
+  // overwrites real keyword/spine projects.
+  function enrichSemanticProjects(q, token, artCount){
+    var Core = window.TmwSearchCore;
+    if (!Core || !Core.semanticSearch || !slotProjGrid) return;
+    Core.semanticSearch(q).then(function(sem){
+      if (token !== _renderToken) return;
+      if (slotProjGrid.querySelector('.tmw-ov-grid, .tmw-ov-rows')) return;   // projects already shown — leave them
+      var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
+      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, MAX_PROJECTS_GRID);
+      if (!rp.length) return;
+      var sa = (rp.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+(rp.length - 3)+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
+      slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects"><div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
+        + '<div class="tmw-ov-grid">' + rp.map(renderProjectCard).join('') + '</div>' + sa + '</div>';
+      _lastFilterCounts.projects = rp.length;
+      sResults.setAttribute('data-filter', _stickyDefault('overview', _lastFilterCounts));
+      slotFilterPills.innerHTML = renderFilterPills({ intel: _lastFilterCounts.intel, projects: rp.length, firms: _lastFilterCounts.firms || 0, articles: (typeof artCount === 'number' ? artCount : 0) });
+      var f = sResults.getAttribute('data-filter') || 'overview';
+      var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="' + f + '"]');
+      if (ap) { var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('active', ps[i] === ap); }
+    }).catch(function(){});
+  }
+
   function pickTitleScopedProject(q, rows){
     if (!rows || rows.length < 2) return null;
     var Core = window.TmwSearchCore;
@@ -3404,30 +3431,7 @@
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
       setState('results');
-      // Concept/term questions ("what is mass timber") rarely keyword-match a
-      // project title, but the index knows which projects RELATE to the topic
-      // (e.g. mass timber → 120 S. Dixie Highway). Surface those below the answer
-      // so the question still grounds in real projects — additive, never blocks
-      // the answer that's already firing.
-      if (window.TmwSearchCore && window.TmwSearchCore.semanticSearch) {
-        window.TmwSearchCore.semanticSearch(q).then(function(sem){
-          if (token !== _renderToken) return;
-          var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
-          var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, MAX_PROJECTS_GRID);
-          if (!rp.length) return;
-          var sa = (rp.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+(rp.length - 3)+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
-          slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects">'
-            + '<div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
-            + '<div class="tmw-ov-grid">' + rp.map(renderProjectCard).join('') + '</div>' + sa + '</div>';
-          _lastFilterCounts.projects = rp.length;
-          // Now that there ARE projects, lead with the answer-first Overview and
-          // rebuild the counts bar so the Projects tab appears.
-          sResults.setAttribute('data-filter', _stickyDefault('overview', _lastFilterCounts));
-          slotFilterPills.innerHTML = renderFilterPills({ intel: _lastFilterCounts.intel, projects: rp.length, firms: 0, articles: _ac || 0 });
-          var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="' + (sResults.getAttribute('data-filter') || 'overview') + '"]');
-          if (ap) { var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('active', ps[i] === ap); }
-        }).catch(function(){});
-      }
+      enrichSemanticProjects(q, token, _ac);
       return;
     }
 
@@ -3613,11 +3617,15 @@
     // stickiness; otherwise Overview leads.
     var defF = _stickyDefault('overview', _lastFilterCounts);
     sResults.setAttribute('data-filter', defF);
-    renderArticleSection(q, token);
+    var _artC = renderArticleSection(q, token);
 
     _lastResultsTotal = totalHits;
     _lastResultKind = question ? 'question' : 'text';
     setState('results');
+    // No project rows landed (e.g. a concept question that only hit articles) —
+    // surface the projects the index relates to the topic. Additive; the helper
+    // no-ops if real projects are already shown.
+    if (!(restProjects.length + (heroProject ? 1 : 0))) enrichSemanticProjects(q, token, _artC);
 
     // Log plain text-match queries to the Studio analytics tab. Question
     // + structured-smart paths log via tmwIntel.count/track elsewhere;
