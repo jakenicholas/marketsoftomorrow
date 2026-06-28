@@ -195,6 +195,20 @@
   ].join('');
 
   function mount() {
+    // Embedded mode (?embed=1) — the page is being shown inside the Onyx
+    // answer bubble, so suppress the site chrome: no header, no footer, no
+    // floating dock/search bar, no top padding. Just the project content.
+    if (/[?&]embed=1\b/.test(location.search)) {
+      try {
+        document.documentElement.classList.add('tmw-embed');
+        var es = document.createElement('style');
+        es.setAttribute('data-tmw-embed', '');
+        es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.tmw-dock,.banner-ad{display:none!important}'
+          + 'body{padding-top:0!important}';
+        document.head.appendChild(es);
+      } catch (e) {}
+      return;   // skip header/footer injection entirely
+    }
     var style = document.createElement('style');
     style.setAttribute('data-tmw-chrome', '');
     style.textContent = css;

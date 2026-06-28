@@ -4155,7 +4155,8 @@
     host.appendChild(projview);                 // mount the frame INSIDE the answer bubble
     host.classList.add('tmw-ov-proj-open');     // bubble → fixed height
     _projHost = host;
-    projframe.src = url;
+    projframe.src = url + (url.indexOf('?') < 0 ? '?' : '&') + 'embed=1';   // page hides its own chrome
+
     projview.classList.add('open');
     projview.setAttribute('aria-hidden', 'false');
   }
