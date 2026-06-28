@@ -809,7 +809,53 @@
        the same size regardless of the original answer height; X returns. */
     + '.tmw-ov-projview{position:absolute;inset:0;z-index:9;display:none;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
     + '.tmw-ov-projview.open{display:block}'
-    + '.tmw-ov-projview-frame{width:100%;height:100%;border:0;display:block;background:#0a0c0a}'
+    + '.tmw-ov-projview-body{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:#0b0d0b}'
+    /* ── Native project card (replaces the iframe embed) ── */
+    + '.tmw-pv{display:flex;flex-direction:column;color:#fff}'
+    + '.tmw-pv-hero{position:relative;width:100%;aspect-ratio:16/10;background:#15181500;overflow:hidden;flex:0 0 auto}'
+    + '.tmw-pv-track{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}'
+    + '.tmw-pv-track::-webkit-scrollbar{display:none}'
+    + '.tmw-pv-track img{width:100%;height:100%;flex:0 0 100%;object-fit:cover;scroll-snap-align:center;display:block}'
+    + '.tmw-pv-hero .scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,9,8,.96) 2%,rgba(8,9,8,.5) 26%,transparent 55%);pointer-events:none}'
+    + '.tmw-pv-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(10,12,10,.6);border:1px solid rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}'
+    + '.tmw-pv-arrow.prev{left:14px}.tmw-pv-arrow.next{right:14px}'
+    + '.tmw-pv-arrow svg{width:16px;height:16px}'
+    + '.tmw-pv-count{position:absolute;bottom:14px;right:16px;z-index:2;font-size:11px;letter-spacing:.04em;color:#cfd6cf;background:rgba(10,12,10,.6);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:3px 9px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}'
+    + '.tmw-pv-badge{position:absolute;left:18px;bottom:16px;z-index:2;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(10,12,10,.66);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
+    + '.tmw-pv-badge i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}'
+    + '.tmw-pv-badge.sb-construction,.tmw-pv-badge.sb-breaking{color:#f0d68a}.tmw-pv-badge.sb-soon{color:#FFB86b}.tmw-pv-badge.sb-open{color:#42EB81}.tmw-pv-badge.sb-announced{color:#9AA39C}'
+    + '.tmw-pv-body{padding:4px 22px 26px;display:flex;flex-direction:column;gap:16px}'
+    + '.tmw-pv-title{font-family:"Fraunces",Georgia,serif;font-size:30px;line-height:1.05;font-weight:600;letter-spacing:-.02em;margin:0}'
+    + '.tmw-pv-loc{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;margin-top:-8px}'
+    /* status spine */
+    + '.tmw-pv-spine{margin:2px 0}'
+    + '.tmw-pv-spine-bar{position:relative;height:5px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}'
+    + '.tmw-pv-spine-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#7b5cff,#9b7bff)}'
+    + '.tmw-pv-spine-stages{display:flex;justify-content:space-between;margin-top:8px;gap:4px}'
+    + '.tmw-pv-spine-stages span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#6f776f;white-space:nowrap}'
+    + '.tmw-pv-spine-stages span.on{color:#b9a6ff;font-weight:700}'
+    /* stat tiles */
+    + '.tmw-pv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}'
+    + '.tmw-pv-stat{background:#141714;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 13px;min-width:0}'
+    + '.tmw-pv-stat .v{font-size:18px;font-weight:600;color:#fff;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+    + '.tmw-pv-stat .k{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#8b938b;margin-top:3px}'
+    + '.tmw-pv-desc{font-size:14.5px;line-height:1.55;color:#d7ddd7;margin:0}'
+    + '.tmw-pv-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}'
+    + '.tmw-pv-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:11px 16px;border-radius:12px;cursor:pointer;text-decoration:none;transition:transform .15s,background .15s,border-color .15s}'
+    + '.tmw-pv-btn.primary{background:#fff;color:#0b0d0b;border:1px solid #fff}'
+    + '.tmw-pv-btn.primary:hover{transform:translateY(-1px)}'
+    + '.tmw-pv-btn.ghost{background:rgba(255,255,255,.04);color:#fff;border:1px solid rgba(255,255,255,.2)}'
+    + '.tmw-pv-btn.ghost:hover{border-color:rgba(255,255,255,.4)}'
+    + '.tmw-pv-btn svg{width:15px;height:15px}'
+    /* ── Native map card ── */
+    + '.tmw-pv-map{display:flex;flex-direction:column;height:100%}'
+    + '.tmw-pv-map-img{flex:1 1 auto;width:100%;object-fit:cover;display:block;background:#10120f;min-height:0}'
+    + '.tmw-pv-map-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:#0b0d0b;border-top:1px solid rgba(255,255,255,.08)}'
+    + '.tmw-pv-map-foot .mt{font-family:"Fraunces",Georgia,serif;font-size:16px;color:#fff;font-weight:600}'
+    + '.tmw-pv-map-foot .ml{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
+    + '.tmw-pv-back{position:absolute;top:16px;left:18px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}'
+    + '.tmw-pv-back svg{width:14px;height:14px}'
+    + '@media(max-width:700px){.tmw-pv-title{font-size:25px}.tmw-pv-body{padding:4px 16px 22px;gap:13px}.tmw-pv-stats{grid-template-columns:repeat(2,1fr)}.tmw-pv-stat .v{font-size:16px}}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
        bar (the dock) instead of scrolling behind it — leave room for the dock
@@ -1052,7 +1098,7 @@
     +     '<button class="tmw-ov-projview-x" type="button" aria-label="Close project view">'
     +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
     +     '</button>'
-    +     '<iframe class="tmw-ov-projview-frame" title="Project details" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+    +     '<div class="tmw-ov-projview-body"></div>'
     +   '</div>'
     + '</div>';    /* close .tmw-ov-lb */
 
@@ -1688,6 +1734,72 @@
       + '</section>';
   }
 
+  // ── Native project + map cards (open in-place inside the answer bubble,
+  //    replacing the old SEO-page iframe embed). All data comes from the
+  //    project object we already hold client-side. ──────────────────────────
+  var MAPBOX_TOKEN = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var SPINE_ORDER = ['Announced','Breaking Ground','Under Construction','Opening Soon','Now Open'];
+  var SPINE_SHORT = { 'Announced':'Announced','Breaking Ground':'Breaking','Under Construction':'Construction','Opening Soon':'Opening soon','Now Open':'Now open' };
+  function _spinePct(st){ var i = SPINE_ORDER.indexOf(st); return i < 0 ? 8 : [8,32,62,88,100][i]; }
+  function _projImages(p){
+    var out = [];
+    ['ImageURL','Image2','Image3','Image4','Image5'].forEach(function(k){ var v = p[k]; if (v && out.indexOf(v) < 0) out.push(v); });
+    return out;
+  }
+  function renderProjView(p){
+    var Core = window.TmwSearchCore;
+    var st = p.Delivery || 'Announced';
+    var badge = (Core && Core.STATUS_BADGE && Core.STATUS_BADGE[st]) || { cls:'sb-announced', label: st };
+    var imgs = _projImages(p);
+    var hero = imgs.length
+      ? '<div class="tmw-pv-track">' + imgs.map(function(u){ return '<img src="'+esc(u)+'" alt="'+esc(p.Title || '')+'" loading="lazy" onerror="this.style.display=\'none\'">'; }).join('') + '</div>'
+        + (imgs.length > 1
+          ? '<button class="tmw-pv-arrow prev" data-pvprev type="button" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>'
+            + '<button class="tmw-pv-arrow next" data-pvnext type="button" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>'
+            + '<span class="tmw-pv-count"><b data-pvidx>1</b> / ' + imgs.length + '</span>'
+          : '')
+      : '<div class="tmw-pv-track" style="background:#15181a"></div>';
+    var startV = firstField(p, ['StartDate','StartYear','Start']) || '—';
+    var compV = (Core && Core.fmtDelivery ? Core.fmtDelivery(p) : '') || p.DeliveryDate || '—';
+    var keys = parseInt(p.Keys || p.keys || 0, 10) || 0;
+    var units = (Core && Core.unitsOf) ? Core.unitsOf(p) : (parseInt(p.Units || 0, 10) || 0);
+    var floors = (Core && Core.floorsOf) ? Core.floorsOf(p) : (parseInt(p.Floors || 0, 10) || 0);
+    var uTile = keys ? { v: keys, k: 'Keys' } : { v: units, k: 'Units' };
+    function tile(v, k){ return '<div class="tmw-pv-stat"><div class="v">' + esc(v != null && v !== '' && v !== 0 ? (v.toLocaleString ? v.toLocaleString() : String(v)) : '—') + '</div><div class="k">' + k + '</div></div>'; }
+    var stats = tile(startV, 'Start') + tile(compV, 'Completion') + tile(uTile.v, uTile.k) + tile(floors, 'Floors');
+    var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
+    var type = firstField(p, ['ProjectType','PreferredType']);
+    var slug = p.Slug || p.slug || '';
+    var spine = '<div class="tmw-pv-spine"><div class="tmw-pv-spine-bar"><div class="tmw-pv-spine-fill" style="width:' + _spinePct(st) + '%"></div></div>'
+      + '<div class="tmw-pv-spine-stages">' + SPINE_ORDER.map(function(s){ return '<span class="' + (s === st ? 'on' : '') + '">' + esc(SPINE_SHORT[s] || s) + '</span>'; }).join('') + '</div></div>';
+    var hasGeo = p.Latitude && p.Longitude;
+    return '<div class="tmw-pv">'
+      + '<div class="tmw-pv-hero">' + hero + '<div class="scrim"></div><span class="tmw-pv-badge ' + badge.cls + '"><i></i>' + esc(badge.label || st) + '</span></div>'
+      + '<div class="tmw-pv-body">'
+      +   '<h2 class="tmw-pv-title">' + esc(p.Title || '') + '</h2>'
+      +   '<div class="tmw-pv-loc">' + esc(_locOf(p) || '') + (type ? ' &middot; ' + esc(type) : '') + '</div>'
+      +   spine
+      +   '<div class="tmw-pv-stats">' + stats + '</div>'
+      +   (desc ? '<p class="tmw-pv-desc">' + esc(desc) + '</p>' : '')
+      +   '<div class="tmw-pv-cta">'
+      +     (hasGeo ? '<button class="tmw-pv-btn primary" data-mapcard type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</button>' : '')
+      +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/" target="_blank" rel="noopener">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
+      +   '</div>'
+      + '</div></div>';
+  }
+  function renderMapCardView(p){
+    var lng = p.Longitude, lat = p.Latitude, slug = p.Slug || p.slug || '';
+    var url = 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9b5cff(' + lng + ',' + lat + ')/' + lng + ',' + lat + ',13.4,0/1000x560?access_token=' + MAPBOX_TOKEN;
+    return '<div class="tmw-pv-map">'
+      + '<button class="tmw-pv-back" data-pvback type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>'
+      + '<img class="tmw-pv-map-img" src="' + esc(url) + '" alt="Map of ' + esc(p.Title || '') + '" loading="lazy">'
+      + '<div class="tmw-pv-map-foot">'
+      +   '<div><div class="mt">' + esc(p.Title || '') + '</div><div class="ml">' + esc(_locOf(p) || '') + '</div></div>'
+      +   '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '">Open full map <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
+      + '</div>'
+      + '</div>';
+  }
+
   // Partner-of-Tomorrow spotlight — curated answer for queries naming an
   // experiential partner (TREMBLE, Humanaut, etc.). NEVER gated and never
   // calls the LLM; the prose comes from the spotlight table.
@@ -1789,12 +1901,12 @@
   // Compact "Nearby Project" card (for the grid section). Image-on-top
   // layout matches /search/'s .pcard exactly. Links open the map deeplink
   // with fullscreen so the user lands directly on the marker + drawer.
-  // data-projurl marks a card/row as a project whose click opens the embedded
-  // SEO page in-overlay (intercepted in the delegated click handler) instead of
-  // leaving for the map.
+  // data-projslug marks a card/row as a project whose click opens the native
+  // project card in-overlay (intercepted in the delegated click handler) instead
+  // of leaving for the map.
   function _projAttr(p){
     var slug = p && (p.Slug || p.slug);
-    return slug ? ' data-projurl="https://www.oftmw.com/projects/' + esc(String(slug)) + '/"' : '';
+    return slug ? ' data-projslug="' + esc(String(slug)) + '"' : '';
   }
 
   function renderProjectCard(p){
@@ -4168,27 +4280,40 @@
   // delegated handler for everything inside the overlay so the wiring
   // lives in one place. Match-by-data-q so any future suggestion variant
   // (different markup, same intent) just needs to carry the attribute.
-  // ── Embedded project view ───────────────────────────────────────────
-  // Clicking a project opens its full SEO page in a fixed frame over the
-  // result (keeping the user inside Onyx) instead of navigating to the map.
+  // ── Native project / map card ───────────────────────────────────────
+  // Clicking a project opens a native card (hero, status spine, stats, desc,
+  // CTAs) inside a fixed-height frame in THIS answer bubble — no iframe, no
+  // site chrome. "View on map" flips to a static map card with a full-map
+  // breakout. Everything is built from the project object we already hold.
   var projview = root.querySelector('.tmw-ov-projview');
-  var projframe = root.querySelector('.tmw-ov-projview-frame');
+  var projbody = root.querySelector('.tmw-ov-projview-body');
   var projX = root.querySelector('.tmw-ov-projview-x');
   var projLbHome = root.querySelector('.tmw-ov-lb') || root;   // where it parks when closed
   var _projHost = null;                                        // the answer bubble currently hosting it
-  function openProj(url, bubble){
-    if (!projview || !projframe || !url) return;
+  var _projP = null;                                           // the project currently shown
+  function _projBySlug(slug){
+    for (var i = 0; i < PROJECTS.length; i++){ if ((PROJECTS[i].Slug || PROJECTS[i].slug) === slug) return PROJECTS[i]; }
+    return null;
+  }
+  function _paintProjCard(){
+    projbody.scrollTop = 0;
+    projbody.innerHTML = renderProjView(_projP);
+    var tk = projbody.querySelector('.tmw-pv-track'), idxEl = projbody.querySelector('[data-pvidx]');
+    if (tk && idxEl) tk.addEventListener('scroll', function(){ idxEl.textContent = String(Math.round(tk.scrollLeft / Math.max(1, tk.clientWidth)) + 1); }, { passive: true });
+  }
+  function openProjCard(p, bubble){
+    if (!projview || !projbody || !p) return;
     var host = bubble || _projHost;
     if (!host) return;
-    host.appendChild(projview);                 // mount the frame INSIDE the answer bubble
+    _projP = p;
+    host.appendChild(projview);                 // mount INSIDE the answer bubble
     host.classList.add('tmw-ov-proj-open');     // bubble → fixed height
     _projHost = host;
-    projframe.src = url + (url.indexOf('?') < 0 ? '?' : '&') + 'embed=1';   // page hides its own chrome
-
+    _paintProjCard();
     projview.classList.add('open');
     projview.setAttribute('aria-hidden', 'false');
-    // Scroll the turn (query bubble + embed) to the top so the fixed-height
-    // embed sits fully in view above the search dock, not half-behind it.
+    // Scroll the turn (query bubble + card) to the top so the fixed-height
+    // card sits fully in view above the search dock, not half-behind it.
     try {
       var turnEl = host.closest('.tmw-ov-turn') || host;
       requestAnimationFrame(function(){ turnEl.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
@@ -4200,7 +4325,8 @@
     projview.setAttribute('aria-hidden', 'true');
     if (_projHost) { _projHost.classList.remove('tmw-ov-proj-open'); _projHost = null; }
     if (projLbHome) projLbHome.appendChild(projview);   // park back out of the turn so it survives thread clears
-    if (projframe) projframe.src = 'about:blank';        // stop loading + reset scroll
+    if (projbody) projbody.innerHTML = '';
+    _projP = null;
     return true;
   }
   if (projX) projX.addEventListener('click', closeProj);
@@ -4209,12 +4335,24 @@
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
-    // Project card/row → open the SEO project page embedded in THIS answer bubble.
-    var projLink = e.target.closest && e.target.closest('[data-projurl]');
+    // Inside the open card: map-card / back / carousel arrows.
+    if (projview && projview.classList.contains('open')) {
+      if (e.target.closest('[data-mapcard]')) { e.preventDefault(); if (_projP) { projbody.scrollTop = 0; projbody.innerHTML = renderMapCardView(_projP); } return; }
+      if (e.target.closest('[data-pvback]'))  { e.preventDefault(); if (_projP) _paintProjCard(); return; }
+      var arrow = e.target.closest('[data-pvprev],[data-pvnext]');
+      if (arrow) {
+        e.preventDefault();
+        var track = projbody.querySelector('.tmw-pv-track');
+        if (track) track.scrollBy({ left: (arrow.hasAttribute('data-pvnext') ? 1 : -1) * track.clientWidth, behavior: 'smooth' });
+        return;
+      }
+    }
+    // Project card/row → open the native project card in THIS answer bubble.
+    var projLink = e.target.closest && e.target.closest('[data-projslug]');
     if (projLink) {
       e.preventDefault();
-      var bubble = projLink.closest('[data-state="results"]');
-      openProj(projLink.getAttribute('data-projurl'), bubble);
+      var p = _projBySlug(projLink.getAttribute('data-projslug'));
+      if (p) openProjCard(p, projLink.closest('[data-state="results"]'));
       return;
     }
     var sug = e.target.closest && e.target.closest('[data-q]');
