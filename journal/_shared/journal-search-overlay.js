@@ -811,6 +811,10 @@
     + '.tmw-ov-projview.open{display:block}'
     + '.tmw-ov-projview-frame{width:100%;height:100%;border:0;display:block;background:#0a0c0a}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
+    /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
+       bar (the dock) instead of scrolling behind it — leave room for the dock
+       + the query bubble above. */
+    + '@media(max-width:700px){[data-state="results"].tmw-ov-proj-open{height:min(660px,calc(100dvh - 210px))!important}}'
     + '.tmw-ov-projview-x{position:absolute;top:16px;right:18px;z-index:2;width:42px;height:42px;border-radius:50%;'
     + 'background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;'
     + 'cursor:pointer;padding:0;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:background .15s,transform .15s}'
@@ -4183,6 +4187,12 @@
 
     projview.classList.add('open');
     projview.setAttribute('aria-hidden', 'false');
+    // Scroll the turn (query bubble + embed) to the top so the fixed-height
+    // embed sits fully in view above the search dock, not half-behind it.
+    try {
+      var turnEl = host.closest('.tmw-ov-turn') || host;
+      requestAnimationFrame(function(){ turnEl.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+    } catch (_) {}
   }
   function closeProj(){
     if (!projview || !projview.classList.contains('open')) return false;

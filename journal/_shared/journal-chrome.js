@@ -203,10 +203,10 @@
         document.documentElement.classList.add('tmw-embed');
         var es = document.createElement('style');
         es.setAttribute('data-tmw-embed', '');
-        es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.banner-ad,'
-          // map's own header skeleton + wordmark/logo variants (keep the sidebar
-          // and the search dock; the "MARKETS OF TMW" lockup + skeleton bar are
-          // chrome — hide them):
+        es.textContent = '.tmw-chrome-head,.tmw-chrome-foot,.banner-ad,.tmw-dock,'
+          // map's own header skeleton + wordmark/logo variants. The floating
+          // search dock is also removed in embed — the Onyx search bar (outside
+          // the iframe) is the input; an inner dock just duplicates it:
           + '#tmw-head-skel,.tmw-hs-wrap,.tmw-hs-wm,.tmw-wordmark,.v2-tmw-logo,#header-logo-link{display:none!important}'
           + 'body{padding-top:0!important}#app-container{padding-top:0!important}';
         document.head.appendChild(es);
