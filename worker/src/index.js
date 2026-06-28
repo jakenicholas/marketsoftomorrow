@@ -6629,8 +6629,26 @@ async function handleSmartAnswer(request, env, origin) {
       + 'Answer ONLY the new turn from its verified facts; don\'t repeat the previous answer.\n\n' + system;
   }
 
+  // DB-FIRST web access: only hand Onyx the web_search tool when our own data is
+  // THIN for this query (few/no top results) — the "nothing in our system" cases.
+  // When the database answers richly, we never offer the tool, so the model can't
+  // search and the answer stays DB-driven, fast, and free. Even when offered, the
+  // model is told to prefer the verified facts and use the web only for context.
+  const useWeb = !compact.topic && (compact.top || []).length < 3;
+  const WEB_CLAUSE = '\n\nWEB ACCESS — our verified facts are thin for this query, so you MAY call web_search to add real-world context: what a term means, why a market/sector/trend is moving, notable facts about the place or brand. STRICT RULES: (1) lean on the verified facts FIRST and use them for every project name, figure, status, and date; (2) use the web ONLY for context the facts do not contain; (3) NEVER let a web result override, contradict, or invent a TMW project fact; (4) do not search if the facts already answer. If you still find no real substance, say "Nothing in our system yet" and give the closest useful context. Keep the single-paragraph format and the trailing HERO: line.';
+
   let answer = null;
   try {
+    const reqBody = {
+      model: SMART_ANSWER_MODEL,
+      max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
+      system: useWeb ? (system + WEB_CLAUSE) : system,
+      messages: history.flatMap(t => ([
+        { role: 'user', content: t.q },
+        { role: 'assistant', content: t.answer },
+      ])).concat([{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }]),
+    };
+    if (useWeb) reqBody.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -6638,20 +6656,14 @@ async function handleSmartAnswer(request, env, origin) {
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        model: SMART_ANSWER_MODEL,
-        max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
-        system,
-        messages: history.flatMap(t => ([
-          { role: 'user', content: t.q },
-          { role: 'assistant', content: t.answer },
-        ])).concat([{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }]),
-      }),
+      body: JSON.stringify(reqBody),
     });
     if (!resp.ok) return fail('api_' + resp.status);
     const data = await resp.json();
-    const block = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
-    answer = block && typeof block.text === 'string' ? block.text.trim() : null;
+    // Join all text blocks — with web_search the final prose can arrive in a
+    // later text block (after the server-run search), not the first.
+    const texts = Array.isArray(data.content) ? data.content.filter(b => b && b.type === 'text' && typeof b.text === 'string').map(b => b.text) : [];
+    answer = texts.length ? texts.join('\n').trim() : null;
   } catch {
     return fail('fetch_error');
   }
