@@ -1315,15 +1315,14 @@
         if (_fl > 0 && _fl < s.floorsMin) return false;
         if (_fl > 0 && s.floorsMax != null && _fl > s.floorsMax) return false;
         // Unknown height on a high-rise query (12+): a high-rise is a tower —
-        // residential / office / hotel / mixed-use. A museum, university, library,
-        // park or civic building with no floors data must NOT leniently pass.
-        // Only drop when the type is non-tower AND carries no tower tag (so a
-        // mixed-use tower tagged "...,Cultural" still survives).
+        // residential / office / hotel / condo / mixed-use. With no floors data,
+        // keep ONLY tower-eligible types (allow-list) so museums, universities,
+        // parks, sports/padel, civic, retail-only, etc. don't leniently pass.
+        // Known floors >= min always passed above regardless of type.
         if (_fl === 0 && s.floorsMin >= 12) {
           var _ty = norm((p.ProjectType || '') + ' ' + (p.PreferredType || ''));
-          var _nonTower = /museum|cultural|education|universit|college|school|library|civic|government|recreation|hospital|medical|worship|church|stadium|arena|\bpark\b/.test(_ty);
           var _tower = /residen|office|hotel|condo|apartment|multifamily|mixed|tower|living|hospitality/.test(_ty);
-          if (_nonTower && !_tower) return false;
+          if (!_tower) return false;
         }
       }
       if (s.rollMin) {
