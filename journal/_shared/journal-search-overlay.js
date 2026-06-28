@@ -344,7 +344,7 @@
        collapses the whole flex chain to ~0 and the answer wraps to a 8000px
        sliver (the bug in the first attempt). */
     + '.tmw-ov-wrap{width:100%}'
-    + '[data-state="results"][data-filter="overview"]{background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px;box-sizing:border-box}'
+    + '[data-state="results"][data-filter="overview"]{position:relative;background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px;box-sizing:border-box}'
     /* answer panel → plain text block (no inner box / glow / footer) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
@@ -368,6 +368,31 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head h3,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
+    /* Removed: the fact-chip stats grid (the LLM answer already states them) and
+       the inline Onyx 4.1 header badge (moved to the "i" info button). */
+    + '.tmw-ov-intel-stats{display:none}'
+    + '.tmw-ov-model{display:none}'
+    /* "i" info button — top-right of the reply card; hover/focus reveals the model. */
+    + '.tmw-ov-info{display:none;position:absolute;top:14px;right:16px;z-index:4;width:20px;height:20px;'
+    + 'border-radius:50%;border:1px solid rgba(167,139,250,.55);background:rgba(167,139,250,.12);color:#C9BCF5;'
+    + 'font-family:Georgia,serif;font-style:italic;font-size:12px;line-height:1;align-items:center;justify-content:center;'
+    + 'cursor:pointer;padding:0;transition:all .15s}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-info{display:inline-flex}'
+    + '.tmw-ov-info:hover,.tmw-ov-info:focus{background:rgba(167,139,250,.24);border-color:#A78BFA;color:#fff;outline:none}'
+    + '.tmw-ov-info-pop{position:absolute;top:26px;right:0;white-space:nowrap;pointer-events:none;'
+    + 'background:#1a1d22;border:1px solid rgba(167,139,250,.4);box-shadow:0 0 14px rgba(167,139,250,.3);'
+    + 'border-radius:8px;padding:7px 11px;font-family:"Inter",system-ui,sans-serif;font-style:normal;'
+    + 'font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#D8CCFA;'
+    + 'opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s}'
+    + '.tmw-ov-info:hover .tmw-ov-info-pop,.tmw-ov-info:focus .tmw-ov-info-pop{opacity:1;transform:translateY(0)}'
+    /* Feedback row: live indicator left, [Noted + thumbs] grouped right. */
+    + '.tmw-ov-fb-actions{display:flex;align-items:center;gap:10px}'
+    + '.tmw-ov-feedback .tmw-ov-fb-thanks{position:static;transform:none;left:auto;right:auto;top:auto;'
+    + 'opacity:0;font-size:11px;color:#9AA39C;letter-spacing:.04em;white-space:nowrap;transition:opacity .2s}'
+    + '.tmw-ov-feedback.voted .tmw-ov-fb-thanks{opacity:1}'
+    /* Mobile: let the section header take the full row so its title never wraps
+       around the Full list / View all button (the button drops below it). */
+    + '@media(max-width:640px){.tmw-ov-smart-head{flex-wrap:wrap}.tmw-ov-smart-head h3{flex:1 1 100%}}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-fp-row{margin:0 0 14px}'
     /* Overview drops journal articles (they live under the Journal tab now) */
     + '[data-state="results"][data-filter="overview"] [data-slot="articles-grid"]{display:none}'
@@ -906,6 +931,7 @@
     +   '<span>Searching the database</span>'
     + '</div>'
     + '<div data-state="results" class="tmw-ov-hidden">'
+    +   '<button class="tmw-ov-info" type="button" aria-label="Powered by TMW Intelligence, Onyx 4.1"><span aria-hidden="true">i</span><span class="tmw-ov-info-pop">TMW Intelligence · Onyx 4.1</span></button>'
     +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="intel-cta"></div>'
     +   '<div data-slot="hero"></div>'
@@ -917,13 +943,15 @@
     // THIS turn only (feeds the backend intel improver). Inside the results box
     // so it reads as part of the message. setState finds it via turn.querySelector.
     +   '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
-    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
-    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
-    +     '</button>'
-    +     '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
-    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
-    +     '</button>'
-    +     '<span class="tmw-ov-fb-thanks">Noted</span>'
+    +     '<div class="tmw-ov-fb-actions">'
+    +       '<span class="tmw-ov-fb-thanks">Noted</span>'
+    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
+    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
+    +       '</button>'
+    +       '<button class="tmw-ov-fb-btn" type="button" data-rating="down" aria-label="Not helpful">'
+    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h4v9zM3 15c0 1.1.9 2 2 2h5l-1 3.5c-.1.4 0 .8.3 1.1l.7.7 7-7V6H6L3 13v2z"/></svg>'
+    +       '</button>'
+    +     '</div>'
     +   '</div>'
     + '</div>'
     + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
@@ -2766,7 +2794,7 @@
       // only in Overview, where the rows are capped to 3; the in-section
       // "Load more" is hidden there).
       var saMore = rowsArr.length - 3;   // Overview shows the top 3; this is the rest
-      var sa = (saMore > 0) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+saMore+' more projects</button>' : '';
+      var sa = (saMore > 0) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+saMore+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
       return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + sa + mb + ft + '</div>';
     }
 
@@ -2778,7 +2806,8 @@
     if (iconicHits.length){
       slotHero.innerHTML = '';   // iconic pick (inside renderIconicSection) is the hero
       var devHead = '<div class="tmw-ov-smart-head"><h3>In development</h3>'
-        + '<span class="sub">' + rows.length + ' tracked ' + (rows.length === 1 ? 'project' : 'projects') + '</span></div>';
+        + '<span class="sub">' + rows.length + ' tracked ' + (rows.length === 1 ? 'project' : 'projects') + '</span>'
+        + '<button class="map-link" type="button" data-goto="projects">' + ICON_STAR + ' View all</button></div>';
       var devSection = renderRowsSection(rows, devHead, 1, false);
       slotRows.innerHTML = renderIconicSection(iconicHits, s, q) + devSection;
     } else {
@@ -3974,7 +4003,7 @@
     }
     // "See all N →" inside a capped Overview section: jump to that category's
     // full view by activating its counts-bar pill (reuses the pill logic below).
-    var seeall = e.target.closest && e.target.closest('.tmw-ov-seeall');
+    var seeall = e.target.closest && e.target.closest('[data-goto]');
     if (seeall) {
       e.preventDefault();
       var goto = seeall.getAttribute('data-goto');
