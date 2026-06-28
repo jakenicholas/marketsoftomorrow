@@ -4069,6 +4069,18 @@ async function handleThreadsStatus(req, env, origin) {
   const { results } = await env.DB.prepare(`SELECT account_key, threads_user_id, expires_at FROM threads_tokens`).all();
   return json({ items: results || [] }, {}, env, origin);
 }
+// Required by Meta to save the Threads use case: deauthorize + data-deletion callbacks (public, Meta calls them).
+function handleThreadsDeauth() { return new Response('ok', { status: 200, headers: { 'content-type': 'text/plain' } }); }
+function handleThreadsDelete() {
+  const code = cryptoRandomId(12);
+  return new Response(JSON.stringify({ url: 'https://tmw.jake-ab7.workers.dev/threads/deletion-status?code=' + code, confirmation_code: code }),
+    { status: 200, headers: { 'content-type': 'application/json' } });
+}
+function handleThreadsDeletionStatus(url) {
+  const code = (url.searchParams.get('code') || '').replace(/[^a-zA-Z0-9]/g, '');
+  return new Response('<!doctype html><meta charset=utf-8><body style="font:15px system-ui;padding:40px">Data deletion request ' + (code || '') + ' received and processed.</body>',
+    { status: 200, headers: { 'content-type': 'text/html' } });
+}
 async function publishThreads(threadsUserId, text, token) {
   const base = 'https://graph.threads.net/v1.0/' + threadsUserId;
   const create = await fetch(base + '/threads', { method: 'POST', body: new URLSearchParams({ media_type: 'TEXT', text: String(text || '').slice(0, 500), access_token: token }) }).then(r => r.json());
@@ -8013,6 +8025,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/threads/connect-url') return await handleThreadsConnectUrl(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/threads/callback')    return await handleThreadsCallback(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/threads/status')       return await handleThreadsStatus(request, env, origin);
+      if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/deauth') return handleThreadsDeauth();
+      if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/delete') return handleThreadsDelete();
+      if (request.method === 'GET'  && url.pathname === '/threads/deletion-status') return handleThreadsDeletionStatus(url);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
