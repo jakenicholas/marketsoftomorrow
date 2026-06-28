@@ -2617,30 +2617,51 @@
   // overwrites real keyword/spine projects.
   function enrichSemanticProjects(q, token, artCount){
     var Core = window.TmwSearchCore;
-    if (!Core || !Core.semanticSearch || !slotProjGrid) return;
-    // Search the TOPIC, not the verbose question — "what mass timber projects are
-    // happening around the world" dilutes the embedding toward "around the world"
-    // and buries the actual mass-timber project. Strip question/scope filler so
-    // the topic (mass timber) drives recall.
-    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ').replace(/\s+/g, ' ').trim();
-    if (topicQ.length < 3) topicQ = q;
-    Core.semanticSearch(topicQ).then(function(sem){
-      if (token !== _renderToken) return;
+    if (!Core || !slotProjGrid) return;
+    var nrm = (Core && Core.norm) ? Core.norm : function(s){ return String(s == null ? '' : s).toLowerCase(); };
+    // Core topic: strip question/scope filler AND state/place words so a named
+    // term ("live local act", "mass timber") drives the match, not "florida"/"world".
+    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
+      .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
+      .replace(/\s+/g, ' ').trim();
+    var toks = (Core.filterMeaningfulTokens ? Core.filterMeaningfulTokens(tokenize(topicQ)) : tokenize(topicQ).filter(function(t){ return t.length >= 3; }));
+
+    function paint(rp){
+      if (token !== _renderToken || !rp || !rp.length) return;
       if (slotProjGrid.querySelector('.tmw-ov-grid, .tmw-ov-rows')) return;   // projects already shown — leave them
-      var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
-      // Keep SEMANTIC relevance order for concept questions — the most on-topic
-      // projects lead (do NOT spine-rank here; that's for place pipelines).
-      var rp = (sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean).slice(0, MAX_PROJECTS_GRID);
-      if (!rp.length) return;
       var sa = (rp.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+(rp.length - 3)+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
       slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects"><div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
-        + '<div class="tmw-ov-grid">' + rp.map(renderProjectCard).join('') + '</div>' + sa + '</div>';
+        + '<div class="tmw-ov-grid">' + rp.slice(0, MAX_PROJECTS_GRID).map(renderProjectCard).join('') + '</div>' + sa + '</div>';
       _lastFilterCounts.projects = rp.length;
       sResults.setAttribute('data-filter', _stickyDefault('overview', _lastFilterCounts));
       slotFilterPills.innerHTML = renderFilterPills({ intel: _lastFilterCounts.intel, projects: rp.length, firms: _lastFilterCounts.firms || 0, articles: (typeof artCount === 'number' ? artCount : 0) });
       var f = sResults.getAttribute('data-filter') || 'overview';
       var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="' + f + '"]');
       if (ap) { var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('active', ps[i] === ap); }
+    }
+
+    // 1) EXACT bio keyword match — a named term/program ("Live Local Act") is
+    //    written verbatim in project bios, but a dense embedding dilutes one
+    //    phrase across a 1,600-char bio (so "Live Nation" wins on "live"). A
+    //    direct substring scan of the bio is the reliable path. Require ALL topic
+    //    tokens present; these are the most precise matches, so show them first.
+    if (toks.length) {
+      var bioHits = PROJECTS.filter(function(p){
+        var bio = nrm((p.DescriptionLong || p.description_long || p.Description || p.description || '') + ' ' + (p.Title || p.Name || ''));
+        return toks.every(function(t){ return bio.indexOf(t) >= 0; });
+      });
+      if (bioHits.length) {
+        if (Core.rankByStatus) Core.rankByStatus(bioHits, {});   // featured > coming soon > … among exact matches
+        paint(bioHits);
+        return;
+      }
+    }
+    // 2) Semantic fallback — projects related by MEANING, relevance order.
+    if (!Core.semanticSearch) return;
+    Core.semanticSearch(topicQ || q).then(function(sem){
+      if (token !== _renderToken) return;
+      var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
+      paint((sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean));
     }).catch(function(){});
   }
 
