@@ -597,7 +597,7 @@
     + 'letter-spacing:.12em;text-transform:uppercase;color:#9AA39C}'
     + '.tmw-ov-intel-h .live i{width:6px;height:6px;border-radius:50%;background:#B9A6FF;box-shadow:0 0 8px #B9A6FF;font-style:normal}'
     + '.tmw-ov-intel-h .live.dim i{background:#6c706c;box-shadow:none}'
-    + '.tmw-ov-intel-ans{font-family:"Inter",-apple-system,system-ui,sans-serif;font-size:14.5px;line-height:1.65;color:#E9E7E1;font-weight:400;letter-spacing:.005em;max-width:none}'
+    + '.tmw-ov-intel-ans{font-family:"Inter",-apple-system,system-ui,sans-serif;font-size:15px;line-height:1.6;color:#E9E7E1;font-weight:400;letter-spacing:.005em;max-width:none}'
     + '.tmw-ov-intel-ans.loading{color:#9AA39C;font-style:italic}'
     + '.tmw-ov-intel-ans .hl{color:#B9A6FF;font-weight:600}'
     + '.tmw-ov-intel-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(167,139,250,.18);'
@@ -1916,23 +1916,19 @@
       + '</div>'
       + '</article>';
   }
-  function renderIconicSection(items, s){
+  function renderIconicSection(items, s, q){
     if (!items.length) return '';
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
     var placeLbl = iconicPlaceLabel(s.iconic, items);
-    var hero = items[0], rest = items.slice(1);
-    var heroSec = '<div class="tmw-ov-sec" data-cat="articles">' + renderIconicHero(hero, s) + '</div>';
-    if (!rest.length) return heroSec;
-    var CAP = 24, shown = rest.slice(0, CAP);
-    var singular = noun.replace(/ courses$/, ' course').replace(/^(hotels|restaurants)$/, function(m){ return m.slice(0, -1); });
-    var title = (shown.length === 1 ? '1 more iconic ' + singular : shown.length + ' more iconic ' + noun) + (placeLbl ? ' in ' + placeLbl : '');
-    // Ranks start at 2 — the hero above is #1.
-    var rowsHtml = shown.map(function(it, i){ return renderIconicRow(it, i + 2, s); }).join('');
-    var head = '<div class="tmw-ov-smart-head"><h3>'+esc(title)+'</h3>'
+    var CAP = 24, shown = items.slice(0, CAP);   // #1 lives IN the list now (no separate hero card)
+    // Header echoes the user's ACTUAL query so qualifiers they typed (e.g.
+    // "waterfront") show; falls back to a constructed label if q is absent.
+    var label = (q && q.trim()) ? q.trim() : ('iconic ' + noun + (placeLbl ? ' in ' + placeLbl : ''));
+    var rowsHtml = shown.map(function(it, i){ return renderIconicRow(it, i + 1, s); }).join('');   // ranks from 1
+    var head = '<div class="tmw-ov-smart-head"><h3>'+esc(label)+'</h3>'
       + '<a class="map-link" href="https://www.oftmw.com/'+s.iconic+'/">'+ICON_STAR+' Full list</a></div>';
-    var foot = '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · curated iconic '+esc(noun)
-      + (rest.length > CAP ? ' · showing top '+(CAP + 1)+' of '+items.length : '') + '</div>';
-    return heroSec + '<div class="tmw-ov-sec" data-cat="articles">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
+    var foot = (items.length > CAP) ? '<div class="tmw-ov-smart-foot">showing top '+CAP+' of '+items.length+'</div>' : '';
+    return '<div class="tmw-ov-sec" data-cat="articles">'+head+'<div class="tmw-ov-rows">'+rowsHtml+'</div>'+foot+'</div>';
   }
   function buildIconicAnswerHtml(s, items, projectRows){
     var noun = ICONIC_NOUN[s.iconic] || 'picks';
@@ -2784,7 +2780,7 @@
       var devHead = '<div class="tmw-ov-smart-head"><h3>In development</h3>'
         + '<span class="sub">' + rows.length + ' tracked ' + (rows.length === 1 ? 'project' : 'projects') + '</span></div>';
       var devSection = renderRowsSection(rows, devHead, 1, false);
-      slotRows.innerHTML = renderIconicSection(iconicHits, s) + devSection;
+      slotRows.innerHTML = renderIconicSection(iconicHits, s, q) + devSection;
     } else {
       // No separate hero card — the #1 project is just the first row in the
       // ranked list (Onyx Overview reads as one message). No top header either;
@@ -2823,7 +2819,12 @@
     // items. For iconic queries the iconic picks (with their descriptions) are
     // fed in too, so the answer can name what's newly coming AND spotlight the
     // top iconic items. (buildIconicAnswerHtml stays as the offline fallback.)
-    if ((rows.length || iconicHits.length) && !s._firmCityFallback) fireSmartIntelUpgrade(q, s, rows, iconicHits);
+    // Only fire the LLM when we DON'T already have a polished answer cached for
+    // this query. A cached answer is already the final paragraph — re-firing
+    // would render it, then swap it ~10s later for a near-identical one (the
+    // confusing "answer, then a better answer" flash). No cache → the panel
+    // shows the loader (never the deterministic draft) until the LLM lands once.
+    if ((rows.length || iconicHits.length) && !s._firmCityFallback && !cachedAnswer(q)) fireSmartIntelUpgrade(q, s, rows, iconicHits);
 
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
