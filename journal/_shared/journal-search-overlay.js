@@ -811,8 +811,10 @@
     + '.tmw-ov-projview.open{display:block}'
     + '.tmw-ov-projview-body{width:100%;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:#0b0d0b}'
     /* ── Native project card (replaces the iframe embed) ── */
-    + '.tmw-pv{display:flex;flex-direction:column;color:#fff}'
-    + '.tmw-pv-hero{position:relative;width:100%;height:264px;background:#151815;overflow:hidden;flex:0 0 auto}'
+    + '.tmw-pv{display:flex;flex-direction:column;color:#fff;min-height:100%}'
+    /* Hero grows to absorb slack so the body (CTAs) anchors near the frame
+       bottom; 300px floor, never shrinks (long descriptions just scroll). */
+    + '.tmw-pv-hero{position:relative;width:100%;flex:1 0 300px;background:#151815;overflow:hidden}'
     + '.tmw-pv-track{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}'
     + '.tmw-pv-track::-webkit-scrollbar{display:none}'
     + '.tmw-pv-track img{width:100%;height:100%;flex:0 0 100%;object-fit:cover;scroll-snap-align:center;display:block}'
@@ -855,7 +857,7 @@
     + '.tmw-pv-map-foot .ml{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
     + '.tmw-pv-back{position:absolute;top:16px;left:18px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}'
     + '.tmw-pv-back svg{width:14px;height:14px}'
-    + '@media(max-width:700px){.tmw-pv-hero{height:196px}.tmw-pv-title{font-size:25px}.tmw-pv-body{padding:4px 16px 22px;gap:13px}.tmw-pv-stats{grid-template-columns:repeat(2,1fr)}.tmw-pv-stat .v{font-size:16px}}'
+    + '@media(max-width:700px){.tmw-pv-hero{flex-basis:210px}.tmw-pv-title{font-size:25px}.tmw-pv-body{padding:4px 16px 22px;gap:13px}.tmw-pv-stats{grid-template-columns:repeat(2,1fr)}.tmw-pv-stat .v{font-size:16px}}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
        bar (the dock) instead of scrolling behind it — leave room for the dock
