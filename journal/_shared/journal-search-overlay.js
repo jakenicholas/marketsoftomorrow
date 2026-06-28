@@ -3931,6 +3931,19 @@
     var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })
                           .filter(function(x){ return x.s > 0 && x.a !== hero; })
                           .sort(function(a,b){ return b.s - a.s; });
+    // High-rise / tower queries carry no topical article tokens (the height words
+    // are stopwords), so the place alone matches every local story — dumping
+    // wellness/dining/etc. slop under "high rises in X". Keep only genuinely
+    // tower-relevant pieces. (If none qualify, leave the set as-is.)
+    if (/\b(high[\s-]?rises?|highrises?|skyscrapers?|supertall|towers?)\b/.test(full)) {
+      var _towerRe = /high[\s-]?rise|skyscraper|\btower|supertall|condo|penthouse|skyline|tallest|stor(?:y|ies)|\bfloors?\b|mixed[\s-]?use|residential tower|office tower|apartment tower/;
+      var _tw = aScored.filter(function(x){
+        var a = x.a;
+        var blob = norm((a.title || '') + ' ' + (a.excerpt || a.dek || a.summary || '') + ' ' + ((a.categories || []).join(' ')) + ' ' + ((a.tags || []).join(' ')));
+        return _towerRe.test(blob);
+      });
+      if (_tw.length) aScored = _tw;
+    }
     var count = aScored.length + (hero ? 1 : 0);
 
     _articlesAll = aScored.map(function(x){ return x.a; });
