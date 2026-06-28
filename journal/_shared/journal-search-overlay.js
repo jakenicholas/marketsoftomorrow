@@ -314,37 +314,6 @@
     + '.tmw-ov-model{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;'
     + 'color:#1a1408;background:#A78BFA;padding:2px 7px;border-radius:999px;margin-left:8px;align-self:center}'
 
-    /* ── Onyx Overview = ONE compact reply card ───────────────────────────
-       Wrap the whole turn in a single bubble and strip the inner panel/hero/
-       section chrome so the default answer reads like a chat message, not a
-       stack of cards. Scoped to [data-filter="overview"] — the category tabs
-       (Projects/Firms/Journal) keep the full rich layout. */
-    + '[data-state="results"][data-filter="overview"]{background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px}'
-    /* answer panel → plain text block (no inner box / glow / footer) */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot{display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{margin-bottom:9px}'
-    /* hero → a compact thumbnail row: title + location + status only */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero{display:flex;min-height:0;box-shadow:none;border-radius:12px;margin-bottom:8px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .media{min-height:0;width:84px;flex:0 0 84px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .media .scrim,[data-state="results"][data-filter="overview"] .tmw-ov-hero .besttag{display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .body{padding:11px 15px;gap:4px;justify-content:center}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .body h2{font-size:16px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .desc,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .excerpt,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-specs,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-byline,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-hero-cta{display:none}'
-    /* sections → tight, with small de-emphasized labels (no big serif headers) */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:14px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:last-child{margin-bottom:0}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head{margin-bottom:8px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head h3,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-fp-row{margin:0 0 14px}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-seeall{margin-top:8px}'
 
     /* Section heading */
     + '.tmw-ov-sec{margin-bottom:30px;animation:tmwOvFadeIn .35s ease both}'
