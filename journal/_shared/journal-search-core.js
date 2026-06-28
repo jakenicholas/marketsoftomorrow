@@ -1550,8 +1550,6 @@
     var _isGolf = s.iconic === 'golf' || (s.types && s.types.has && s.types.has('Golf'));
     var sumU = rows.reduce(function (a, p) { return a + unitsOf(p); }, 0);
     if (sumU > 0 && !_isGolf) stats.push({ v: '~' + sumU.toLocaleString(), k: _unitTotalLabel });
-    var nextYr = soonestFutureYear(rows);
-    if (nextYr) stats.push({ v: '' + nextYr, k: 'First delivery' });
     return { html: sentence, stats: stats.slice(0, 4) };
   }
 

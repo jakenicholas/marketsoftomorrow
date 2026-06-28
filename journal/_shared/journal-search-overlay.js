@@ -124,6 +124,16 @@
        baseline in most fonts (looks ~2px low and 1px right of the circle
        center). SVG geometry is symmetric so it sits dead-center. */
     + '.tmw-ov-close svg{width:14px;height:14px;display:block}'
+    /* "New chat" — anchored beside the close button, purple glow border. Clears
+       the conversation and returns to the TMW Intelligence homescreen. */
+    + '.tmw-ov-newchat{position:absolute;top:18px;right:70px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
+    + 'height:38px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;'
+    + 'letter-spacing:.02em;color:#D8CCFA;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.65);'
+    + 'box-shadow:0 0 12px rgba(167,139,250,.45);transition:all .18s;'
+    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
+    + '.tmw-ov-newchat:hover{background:rgba(167,139,250,.26);box-shadow:0 0 16px rgba(167,139,250,.6);color:#fff}'
+    + '.tmw-ov-newchat svg{width:15px;height:15px;display:block}'
+    + '@media(max-width:640px){.tmw-ov-newchat{right:56px;top:14px;height:34px;padding:0 12px;font-size:11px}}'
     /* Hex animations kept under .tmw-ov-hxs-* because the spotlight teach
        card still renders the small spinning hexagon next to the label. */
     + '.tmw-ov-hxs-spin{transform-origin:50% 50%;animation:tmwOvHxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}'
@@ -307,7 +317,8 @@
     /* "See all N →" — visible only in Overview (each category tab already
        shows its full set, so the link would be redundant there). */
     + '.tmw-ov-seeall{display:none;align-items:center;gap:6px;margin-top:14px;background:none;border:0;'
-    + 'padding:0;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;color:#B9A6FF;letter-spacing:.01em}'
+    + 'padding:0;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;color:#8a948a;'
+    + 'letter-spacing:.07em;text-transform:uppercase}'
     + '.tmw-ov-seeall:hover{color:#fff}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-seeall{display:inline-flex}'
     /* Onyx 4.1 model badge — transparent purple fill + glowing purple border */
@@ -578,7 +589,7 @@
     + 'letter-spacing:.12em;text-transform:uppercase;color:#9AA39C}'
     + '.tmw-ov-intel-h .live i{width:6px;height:6px;border-radius:50%;background:#B9A6FF;box-shadow:0 0 8px #B9A6FF;font-style:normal}'
     + '.tmw-ov-intel-h .live.dim i{background:#6c706c;box-shadow:none}'
-    + '.tmw-ov-intel-ans{font-family:"Fraunces",Georgia,serif;font-size:18px;line-height:1.55;color:#fff;font-weight:400;max-width:68ch}'
+    + '.tmw-ov-intel-ans{font-family:"Fraunces",Georgia,serif;font-size:15px;line-height:1.6;color:#fff;font-weight:400;max-width:none}'
     + '.tmw-ov-intel-ans.loading{color:#9AA39C;font-style:italic}'
     + '.tmw-ov-intel-ans .hl{color:#B9A6FF;font-weight:600}'
     + '.tmw-ov-intel-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(167,139,250,.18);'
@@ -921,6 +932,7 @@
     + '<div class="tmw-ov-scrim"></div>'
     + '<div class="tmw-ov-lb">'
     +   '<button class="tmw-ov-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+    +   '<button class="tmw-ov-newchat" type="button" aria-label="New chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New chat</button>'
     +   '<div class="tmw-ov-body">'
     +     '<div class="tmw-ov-wrap">'
 
@@ -2745,7 +2757,8 @@
       // Onyx Overview: a "see all N →" jumps to the full Projects tab (visible
       // only in Overview, where the rows are capped to 3; the in-section
       // "Load more" is hidden there).
-      var sa = (rowsArr.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">See all '+rowsArr.length+' projects <span aria-hidden="true">&rarr;</span></button>' : '';
+      var saMore = rowsArr.length - 3;   // Overview shows the top 3; this is the rest
+      var sa = (saMore > 0) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+saMore+' more projects</button>' : '';
       return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + sa + mb + ft + '</div>';
     }
 
@@ -2761,11 +2774,11 @@
       var devSection = renderRowsSection(rows, devHead, 1, false);
       slotRows.innerHTML = renderIconicSection(iconicHits, s) + devSection;
     } else {
-      var heroProject = pickHero(rows, s);
-      var restRows = rows.filter(function (r) { return r !== heroProject; });
-      slotHero.innerHTML = heroProject ? ('<div class="tmw-ov-sec" data-cat="projects">' + renderProjectHero(heroProject) + '</div>') : '';
-      // Rows start at rank 2 (hero is #1).
-      slotRows.innerHTML = renderRowsSection(restRows, renderSmartHeader(s, restRows.slice(0, SMART_CAP), !!heroProject), 2, true);
+      // No separate hero card — the #1 project is just the first row in the
+      // ranked list (Onyx Overview reads as one message). No top header either;
+      // the gray "N more projects" link at the bottom is the only count cue.
+      slotHero.innerHTML = '';
+      slotRows.innerHTML = renderRowsSection(rows, '', 1, true);
     }
 
     // Journal + filter pills via the shared renderer, so architect/city/status
@@ -3877,6 +3890,19 @@
 
   scrim.addEventListener('click', close);
   closeBtn.addEventListener('click', close);
+  // "New chat": clear the conversation + return to the TMW Intelligence
+  // homescreen (the teach/starter screen), keeping the overlay open.
+  function newChat(){
+    _thread = [];
+    if (_threadEl) _threadEl.innerHTML = '';
+    try { localStorage.removeItem(_THREAD_KEY); } catch (_) {}
+    if (input) { input.value = ''; try { onInput(); } catch (_) {} }
+    setState('starter');
+    if (bodyEl) bodyEl.scrollTop = 0;
+    if (input) { try { input.focus(); } catch (_) {} }
+  }
+  var newChatBtn = root.querySelector('.tmw-ov-newchat');
+  if (newChatBtn) newChatBtn.addEventListener('click', newChat);
   input.addEventListener('input', onInput);
   input.addEventListener('keydown', function(e){
     if (e.key === 'Enter') {
