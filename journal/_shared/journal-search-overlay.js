@@ -297,6 +297,13 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-grid > *:nth-child(n+4){display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-chiprow > *:nth-child(n+7){display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-alist > *:nth-child(n+3){display:none}'
+    /* Smart/pipeline ranked rows ("24 more projects") render into .tmw-ov-rows,
+       internally paginated to ROW_PAGE — cap to a 3-row taste in Overview and
+       hide the in-section "Load more" + "showing top N" foot (the see-all link
+       + the Projects pill are the drill-in). */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-rows > *:nth-child(n+4){display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-loadmore{display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-foot{display:none}'
     /* "See all N →" — visible only in Overview (each category tab already
        shows its full set, so the link would be redundant there). */
     + '.tmw-ov-seeall{display:none;align-items:center;gap:6px;margin-top:14px;background:none;border:0;'
@@ -2689,7 +2696,11 @@
       var mb = hc > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hc)+' more</button>' : '';
       var ft = (rowsArr.length > SMART_CAP) ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rowsArr.length+' — refine your question to narrow it.</div>' : '';
       if (withCredit) ft += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
-      return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + mb + ft + '</div>';
+      // Onyx Overview: a "see all N →" jumps to the full Projects tab (visible
+      // only in Overview, where the rows are capped to 3; the in-section
+      // "Load more" is hidden there).
+      var sa = (rowsArr.length > 3) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">See all '+rowsArr.length+' projects <span aria-hidden="true">&rarr;</span></button>' : '';
+      return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + sa + mb + ft + '</div>';
     }
 
     // ONE hero at a time. When the answer is iconic (the curated list), its top
