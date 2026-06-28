@@ -3420,6 +3420,9 @@ export async function ensureCarouselTable(env) {
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_slug    ON carousels(slug)`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_carousels_updated ON carousels(updated_at DESC)`),
   ]);
+  // Project name shipped from the Design editor (shown in the carousels list).
+  // Idempotent: no-op once the column exists.
+  try { await env.DB.prepare(`ALTER TABLE carousels ADD COLUMN title TEXT`).run(); } catch (_) {}
 }
 
 // ─── Contacts + post-extension bootstrap ───────────────────────────────────
@@ -3860,6 +3863,7 @@ function rowToCarousel(r) {
   return {
     id: r.id,
     slug: r.slug,
+    title: r.title || '',
     caption: r.caption || '',
     account_handle: r.account_handle || 'floridaoftomorrow',
     account_name:   r.account_name   || 'FLORIDAOFTOMORROW',
@@ -3932,11 +3936,12 @@ async function handleCarouselsCreate(req, env, origin) {
   const accountHandle = (body.account_handle || 'floridaoftomorrow').toString().replace(/^@/, '').slice(0, 64);
   const accountName   = (body.account_name   || 'FLORIDAOFTOMORROW').toString().slice(0, 80);
   const accountAvatar = body.account_avatar ? String(body.account_avatar) : null;
+  const title = (body.title || '').toString().slice(0, 200);   // project name shipped from Design
   try {
     await env.DB.prepare(
-      `INSERT INTO carousels (id, slug, caption, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'draft', ?8, ?8)`
-    ).bind(id, slug, caption, accountHandle, accountName, accountAvatar, slides, now).run();
+      `INSERT INTO carousels (id, slug, title, caption, account_handle, account_name, account_avatar, slides, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'draft', ?9, ?9)`
+    ).bind(id, slug, title, caption, accountHandle, accountName, accountAvatar, slides, now).run();
   } catch (e) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
@@ -3978,6 +3983,7 @@ async function handleCarouselsUpdate(req, env, origin, slug) {
   if (!existing) return json({ error: 'carousel not found', slug }, { status: 404 }, env, origin);
 
   const sets = [], params = []; let p = 1;
+  if ('title'          in body) { sets.push(`title = ?${p++}`);          params.push(String(body.title || '').slice(0, 200)); }
   if ('caption'        in body) { sets.push(`caption = ?${p++}`);        params.push(String(body.caption || '').slice(0, 4000)); }
   if ('account_handle' in body) { sets.push(`account_handle = ?${p++}`); params.push(String(body.account_handle || 'floridaoftomorrow').replace(/^@/, '').slice(0, 64)); }
   if ('account_name'   in body) { sets.push(`account_name   = ?${p++}`); params.push(String(body.account_name   || 'FLORIDAOFTOMORROW').slice(0, 80)); }
