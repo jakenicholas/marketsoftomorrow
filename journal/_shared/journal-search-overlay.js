@@ -3732,20 +3732,23 @@
     // Food queries lead with a Food & Drink article, never a project.
     // Place-driven: pScored[0] IS the spine hero (Nora, South Flagler…) — push it
     // unconditionally with a strong bias so the place's leader takes the hero slot.
-    if (!foodIntent && placeDriven && pScored.length) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
-    else if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) {
-      // When the query IS (essentially) the project's name — a direct lookup like
-      // "south flagler house" — the project takes the hero with a strong bias so a
-      // same-named journal article can't grab the slot.
+    // HERO POLICY: the big hero card shows ONLY for a perfect project-name match
+    // (a direct project search). City / area / topic browses lead with the
+    // answer + a few supporting project CARDS — never a hero. Food still leads
+    // with its article; an explicit firm search keeps its firm hero.
+    var _exactName = false;
+    if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) {
       var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       var _ta = norm(pScored[0].p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-      var _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0);
-      heroCandidates.push({ kind:'project', s: _exactName ? 1e5 : pScored[0].s * 1.05, item: pScored[0].p });
+      _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0);
+      if (_exactName) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
     }
     if (aScored.length) {
       var heroArt = aScored[0].a;
       if (foodIntent) { var fa = aScored.filter(function(x){ return isFoodArticle(x.a); })[0]; if (fa) heroArt = fa.a; }
-      if (foodIntent || heroArticleEligible(aScored[0].a, full, toks)) {
+      // Article hero only for food, or a non-place journal/topic answer — NOT for
+      // a city/area browse (those just list projects under the area answer).
+      if (foodIntent || (!placeDriven && heroArticleEligible(aScored[0].a, full, toks))) {
         heroCandidates.push({ kind:'article', s: foodIntent ? 1e6 : aScored[0].s, item: heroArt });
       }
     }
