@@ -3382,11 +3382,15 @@
       // house\") don't break the exact-name match and wrongly trigger the place
       // override. Match either direction (title contains query OR query contains
       // title) so a fully-typed project name resolves to that project.
+      // Literal = the query IS a project's name (exact, or the query is that full
+      // title plus extra words). NOT when the query is merely a FRAGMENT of a
+      // longer title — "the palm beaches" is a substring of "YMCA of the Palm
+      // Beaches" but names a PLACE, so it must keep the place fan-out.
       var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       var _literal = false;
       if (_fa.length >= 4) for (var _li = 0; _li < PROJECTS.length; _li++) {
         var _ta = norm(PROJECTS[_li].Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-        if (_ta.length >= 4 && (_ta.indexOf(_fa) >= 0 || _fa.indexOf(_ta) >= 0)) { _literal = true; break; }
+        if (_ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0)) { _literal = true; break; }
       }
       // Not when a real firm name dominates the query (e.g. "Allen Morris"): a
       // strong firm match outranks an incidental place token.
@@ -3721,7 +3725,7 @@
       // same-named journal article can't grab the slot.
       var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       var _ta = norm(pScored[0].p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-      var _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0 || _ta.indexOf(_fa) >= 0);
+      var _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0);
       heroCandidates.push({ kind:'project', s: _exactName ? 1e5 : pScored[0].s * 1.05, item: pScored[0].p });
     }
     if (aScored.length) {
