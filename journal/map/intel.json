@@ -10926,6 +10926,41 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
+    "casa-blake": {
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 3817.6,
+      "avg_distance_mi": 2372.2,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 3817.6,
+          "distance_mi": 2372.2
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": true
+    },
     "201-arkona-court": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -11869,14 +11904,14 @@
   "stats": {
     "high": 6,
     "medium": 15,
-    "low": 48,
+    "low": 49,
     "known_date": 414,
     "completed": 61,
-    "skipped": 60,
+    "skipped": 59,
     "no_type": 0,
     "firm_boosted": 37,
     "speculative_softened": 126,
     "district": 11,
-    "mixed_use_adjusted": 9
+    "mixed_use_adjusted": 10
   }
 }
