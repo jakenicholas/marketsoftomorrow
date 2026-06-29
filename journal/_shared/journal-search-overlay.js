@@ -2735,6 +2735,13 @@
       } else if (_ik === 'concept' || _ik === 'topic') {
         _conceptQ = true; smart = null;     // topic/policy → semantic concept path, no place dump
       }
+      // #4 (hybrid steering, down payment): let the classifier's structured
+      // extraction drive RETRIEVAL, not just routing — fill a filter the
+      // heuristic parse missed. Floors is a safe scalar; high-rise phrasings the
+      // regex doesn't catch ("skyline-defining towers") still filter correctly.
+      if (smart && _ik && smart.floorsMin == null && typeof intent.floorsMin === 'number' && intent.floorsMin >= 5) {
+        smart.floorsMin = intent.floorsMin;
+      }
       // Heuristic concept gate — only when the classifier didn't already decide.
       if (!_conceptQ && smart && (Core && Core.isQuestion ? Core.isQuestion(q) : isQuestion(q))
           && !(smart.types && smart.types.size) && !smart.firm && !smart.firmRank && !smart.iconic && !smart.sort && smart.floorsMin == null) {
