@@ -6671,7 +6671,15 @@ async function handleClassify(req, env, origin) {
   const sig = await sha256Hex(CLASSIFY_MODEL + '|' + q.toLowerCase());
   const cacheKey = new Request('https://classify.tmw.internal/' + sig, { method: 'GET' });
   const cache = caches.default;
-  try { const hit = await cache.match(cacheKey); if (hit) return hit; } catch (_) {}
+  // Build a fresh response with the requesting origin's CORS every time. The
+  // CACHE stores only the JSON body (origin-agnostic) — never the CORS headers,
+  // which are per-origin — so a cached entry is valid for ANY browser origin
+  // (and old poisoned entries auto-heal since we re-wrap the body).
+  const reply = (bodyStr) => new Response(bodyStr, {
+    status: 200,
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(env, origin) },
+  });
+  try { const hit = await cache.match(cacheKey); if (hit) return reply(await hit.text()); } catch (_) {}
 
   let out = NULLR;
   try {
@@ -6707,9 +6715,14 @@ async function handleClassify(req, env, origin) {
     }
   } catch (_) { out = NULLR; }
 
-  const res = json(out, { headers: { 'Cache-Control': 'public, max-age=86400' } }, env, origin);
-  try { if (out.kind) await cache.put(cacheKey, res.clone()); } catch (_) {}
-  return res;
+  const bodyStr = JSON.stringify(out);
+  // Cache the bare body with NO CORS headers (origin-agnostic, shared safely).
+  try {
+    if (out.kind) await cache.put(cacheKey, new Response(bodyStr, {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=86400' },
+    }));
+  } catch (_) {}
+  return reply(bodyStr);
 }
 
 async function sha256Hex(str) {
