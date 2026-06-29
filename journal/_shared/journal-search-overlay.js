@@ -344,7 +344,7 @@
        collapses the whole flex chain to ~0 and the answer wraps to a 8000px
        sliver (the bug in the first attempt). */
     + '.tmw-ov-wrap{width:100%}'
-    + '[data-state="results"][data-filter="overview"]{position:relative;background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:20px 22px;box-sizing:border-box}'
+    + '[data-state="results"][data-filter="overview"]{position:relative;background:#0f120f;border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:24px 26px;box-sizing:border-box}'
     /* Spotlight (curated partner) gets the SAME black bubble as overview, but
        none of the overview flatten/cap rules — it keeps its custom layout,
        just boxed for consistency. */
@@ -385,9 +385,13 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .tmw-ov-byline{display:block}'
     + '@media(max-width:700px){[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero{grid-template-columns:1fr}[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media{min-height:200px}}'
     /* sections → tight, with small de-emphasized labels (no big serif headers) */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:14px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:18px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:last-child{margin-bottom:0}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head{margin-bottom:8px}'
+    /* light divider + breathing room above each TITLED section (Related projects,
+       From the journal, …) so they stop cramming against the hero/section above.
+       The hero section has no .tmw-ov-sec-head, so it never gets a top rule. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:has(> .tmw-ov-sec-head){border-top:1px solid rgba(255,255,255,.08);padding-top:20px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head{margin-bottom:12px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head h3,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
@@ -2839,6 +2843,11 @@
   function enrichSemanticProjects(q, token, artCount){
     var Core = window.TmwSearchCore;
     if (!Core || !slotProjGrid || !Core.rankProjects) return;
+    // Food & wellness are JOURNAL coverage, not project types — so semantic
+    // "related projects" for them are off-topic noise (a "restaurants opening in
+    // colorado" query pulling a Shanghai opera house / a Gstaad hotel). The
+    // journal answer stands on its own; surface NO project cards rather than junk.
+    if (isFoodQuery(q) || isWellnessQuery(q)) return;
 
     function paint(rp){
       if (token !== _renderToken || !rp || !rp.length) return;
