@@ -6634,6 +6634,84 @@ async function handleJournalActive(env, origin) {
 // { answer: null } with 200, and the page keeps its deterministic answer.
 const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality balance on this public endpoint
 
+// ─── Intent router (#1) ──────────────────────────────────────────────────────
+// GET /classify?q=… — a fast Haiku classification of the query into structured
+// intent the client uses to pick the right render path, replacing the brittle
+// heuristic stack (parseSmartQuery + place/firm/concept gates) as the ROUTING
+// decision. Cached 24h per query. Graceful: any failure returns {kind:null} and
+// the client falls back to its heuristic parse, so this can never break search.
+const CLASSIFY_MODEL = 'claude-haiku-4-5-20251001';
+const CLASSIFY_SYS = [
+  'You classify search queries for Markets of Tomorrow, a real-estate development intelligence engine (US new-construction projects, firms, places, and journalism).',
+  'Output ONLY a compact JSON object — no prose, no markdown. Schema:',
+  '{"kind":<string>,"place":<string|null>,"projectName":<string|null>,"firm":<string|null>,"floorsMin":<number|null>,"types":<string[]>,"status":<string|null>,"sort":<string|null>,"isQuestion":<bool>,"confidence":<0-1>}',
+  'kind ∈ "project" | "city" | "area" | "concept" | "firm" | "food" | "wellness" | "list" | "topic" | "other".',
+  '- "project": the query IS essentially one development\'s name (e.g. "south flagler house", "olara", "pier sixty six"). Put the cleaned name in projectName.',
+  '- "city": a single city/town (e.g. "west palm beach", "naples"). Put it in place.',
+  '- "area": a county/metro/region/nickname (e.g. "the palm beaches"=Palm Beach County, "south florida", "swfl", "dfw"). Put the area phrase in place.',
+  '- "concept"/"topic": a policy, financing, or building term/theme (e.g. "live local act", "mass timber", "opportunity zones", "what is TOD").',
+  '- "firm": a developer / architect / brand / partner name (e.g. "related ross", "arquitectonica").',
+  '- "food": restaurants, dining, bars, chefs. "wellness": gyms, pilates, spa, biohacking, recovery, longevity.',
+  '- "list": an editorial best/top ask ("best hotels in miami", "top golf courses").',
+  '- "other": greetings, off-topic, or unclassifiable.',
+  'floorsMin: high-rise/high rises/skyscraper → 12; supertall → 70; mid-rise → 5; else null.',
+  'types: any project types named (residential, office, hotel, condo, retail, mixed-use, etc.), else [].',
+  'status: one of "announced","breaking ground","under construction","opening soon","now open" if named, else null. sort: "tallest","newest","biggest","most units" if implied, else null.',
+  'isQuestion: true if phrased as a question. confidence: your certainty 0-1.',
+  'A place name appearing inside a project title does NOT make it a project (e.g. "the palm beaches" is an area, not the project "YMCA of the Palm Beaches").',
+].join('\n');
+
+async function handleClassify(req, env, origin) {
+  const url = new URL(req.url);
+  const q = (url.searchParams.get('q') || '').trim().slice(0, 300);
+  if (!q) return json({ kind: null }, {}, env, origin);
+  const NULLR = { kind: null };
+  if (!env.ANTHROPIC_API_KEY) return json(NULLR, {}, env, origin);
+
+  const sig = await sha256Hex(CLASSIFY_MODEL + '|' + q.toLowerCase());
+  const cacheKey = new Request('https://classify.tmw.internal/' + sig, { method: 'GET' });
+  const cache = caches.default;
+  try { const hit = await cache.match(cacheKey); if (hit) return hit; } catch (_) {}
+
+  let out = NULLR;
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 4000);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 220, system: CLASSIFY_SYS, messages: [{ role: 'user', content: q }] }),
+    });
+    clearTimeout(to);
+    if (resp.ok) {
+      const data = await resp.json();
+      const text = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) {
+        const parsed = JSON.parse(m[0]);
+        const KINDS = ['project', 'city', 'area', 'concept', 'firm', 'food', 'wellness', 'list', 'topic', 'other'];
+        out = {
+          kind: KINDS.indexOf(parsed.kind) >= 0 ? parsed.kind : 'other',
+          place: typeof parsed.place === 'string' ? parsed.place : null,
+          projectName: typeof parsed.projectName === 'string' ? parsed.projectName : null,
+          firm: typeof parsed.firm === 'string' ? parsed.firm : null,
+          floorsMin: typeof parsed.floorsMin === 'number' ? parsed.floorsMin : null,
+          types: Array.isArray(parsed.types) ? parsed.types.slice(0, 6).map(String) : [],
+          status: typeof parsed.status === 'string' ? parsed.status : null,
+          sort: typeof parsed.sort === 'string' ? parsed.sort : null,
+          isQuestion: !!parsed.isQuestion,
+          confidence: typeof parsed.confidence === 'number' ? parsed.confidence : null,
+        };
+      }
+    }
+  } catch (_) { out = NULLR; }
+
+  const res = json(out, { headers: { 'Cache-Control': 'public, max-age=86400' } }, env, origin);
+  try { if (out.kind) await cache.put(cacheKey, res.clone()); } catch (_) {}
+  return res;
+}
+
 async function sha256Hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
@@ -8074,6 +8152,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/reindex')      return await handleReindex(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/knowledge')     return await handleKnowledgeIngest(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
