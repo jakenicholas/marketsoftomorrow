@@ -370,6 +370,20 @@
        (opens the full native card); align it left under the compact body */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-hero-cta{margin-top:6px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-btn{padding:8px 13px;font-size:12.5px}'
+    /* Perfect single-project match → restore the FULL hero card (the "old" big
+       hero) instead of the compact overview row: big media, full body, desc,
+       specs, byline. Higher specificity (extra .tmw-ov-exacthero class) beats
+       the compaction rules above. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero{display:grid;grid-template-columns:1.05fr 1fr;margin-bottom:0;border-radius:18px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media{width:auto;flex:initial;min-height:330px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media .scrim{display:block}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media .besttag{display:inline-flex}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .body{padding:26px 30px;gap:12px;justify-content:flex-start}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .body h2{font-size:28px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .desc{display:block}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .tmw-ov-specs{display:flex}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .tmw-ov-byline{display:block}'
+    + '@media(max-width:700px){[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero{grid-template-columns:1fr}[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media{min-height:200px}}'
     /* sections → tight, with small de-emphasized labels (no big serif headers) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:last-child{margin-bottom:0}'
@@ -3744,7 +3758,10 @@
       if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
       else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = '<div class="tmw-ov-grid">' + renderArticlePCard(heroArticle) + '</div>'; heroCat = 'articles'; }
       else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm);       heroCat = 'firms'; }
-      slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="'+heroCat+'">' + heroHtml + '</div>';
+      // Perfect database match (exact project name) → render the FULL hero card,
+      // not the compacted overview row.
+      var _fullHero = !!(hero.kind === 'project' && typeof _exactName !== 'undefined' && _exactName);
+      slotHero.innerHTML = '<div class="tmw-ov-sec'+(_fullHero ? ' tmw-ov-exacthero' : '')+'" data-cat="'+heroCat+'">' + heroHtml + '</div>';
     } else {
       slotHero.innerHTML = '';
     }
