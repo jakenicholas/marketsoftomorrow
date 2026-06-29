@@ -313,7 +313,7 @@
        (Projects / Firms / Journal) still render everything. */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-grid > *:nth-child(n+4){display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-chiprow > *:nth-child(n+7){display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-alist > *:nth-child(n+3){display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-alist > *:nth-child(n+4){display:none}'
     /* Smart/pipeline ranked rows ("24 more projects") render into .tmw-ov-rows,
        internally paginated to ROW_PAGE — cap to a 3-row taste in Overview and
        hide the in-section "Load more" + "showing top N" foot (the see-all link
@@ -867,13 +867,6 @@
     + '.tmw-pv-btn.ghost:hover{border-color:rgba(255,255,255,.4)}'
     + '.tmw-pv-btn svg{width:15px;height:15px}'
     /* ── Native map card ── */
-    + '.tmw-pv-map{display:flex;flex-direction:column;height:100%}'
-    + '.tmw-pv-map-img{flex:1 1 auto;width:100%;object-fit:cover;display:block;background:#10120f;min-height:0}'
-    + '.tmw-pv-map-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:#0b0d0b;border-top:1px solid rgba(255,255,255,.08)}'
-    + '.tmw-pv-map-foot .mt{font-family:"Fraunces",Georgia,serif;font-size:16px;color:#fff;font-weight:600}'
-    + '.tmw-pv-map-foot .ml{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
-    + '.tmw-pv-back{position:absolute;top:16px;left:18px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff;background:rgba(10,12,10,.72);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 14px;cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}'
-    + '.tmw-pv-back svg{width:14px;height:14px}'
     + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
@@ -1756,7 +1749,6 @@
   // ── Native project + map cards (open in-place inside the answer bubble,
   //    replacing the old SEO-page iframe embed). All data comes from the
   //    project object we already hold client-side. ──────────────────────────
-  var MAPBOX_TOKEN = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
   var SPINE_ORDER = ['Announced','Breaking Ground','Under Construction','Opening Soon','Now Open'];
   var SPINE_SHORT = { 'Announced':'Announced','Breaking Ground':'Breaking','Under Construction':'Construction','Opening Soon':'Opening soon','Now Open':'Now open' };
   function _spinePct(st){ var i = SPINE_ORDER.indexOf(st); return i < 0 ? 8 : [8,32,62,88,100][i]; }
@@ -1803,18 +1795,6 @@
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
       +   '</div>'
       + '</div></div>';
-  }
-  function renderMapCardView(p){
-    var lng = p.Longitude, lat = p.Latitude, slug = p.Slug || p.slug || '';
-    var url = 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9b5cff(' + lng + ',' + lat + ')/' + lng + ',' + lat + ',13.4,0/1000x560?access_token=' + MAPBOX_TOKEN;
-    return '<div class="tmw-pv-map">'
-      + '<button class="tmw-pv-back" data-pvback type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>'
-      + '<img class="tmw-pv-map-img" src="' + esc(url) + '" alt="Map of ' + esc(p.Title || '') + '" loading="lazy">'
-      + '<div class="tmw-pv-map-foot">'
-      +   '<div><div class="mt">' + esc(p.Title || '') + '</div><div class="ml">' + esc(_locOf(p) || '') + '</div></div>'
-      +   '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '">Open full map <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
-      + '</div>'
-      + '</div>';
   }
 
   // Partner-of-Tomorrow spotlight — curated answer for queries naming an
