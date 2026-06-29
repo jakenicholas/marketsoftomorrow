@@ -3441,22 +3441,14 @@
       // development") must NOT rebuild the generic place pipeline — let it fall
       // through to the topic-relevant semantic enrichment instead.
       if (!_literal && !_firmDom && !_firmRank && !opts.conceptQ) {
-        var _rows = PROJECTS.filter(placeHit.match);
-        // refine by type / status when the query named them
-        if (_sq && _sq.types && _sq.types.size) {
-          _rows = _rows.filter(function (p) {
-            var pt = norm((p.PreferredType || '') + ' ' + (p.ProjectType || '')), ok = false;
-            _sq.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) ok = true; });
-            return ok;
-          });
-        }
-        if (_sq && _sq.statuses && _sq.statuses.size) {
-          _rows = _rows.filter(function (p) { return _sq.statuses.has(String(p.Delivery || '').trim()); });
-        }
+        // #4 unified retriever — place kind. The project set (every project in the
+        // place, type/status-refined, spine-ranked) comes from the one shared
+        // retriever, identical to the structured/eval paths. The overlay-side
+        // place-aware article matching + re-scoring stays here.
+        var _pr = Core.rankProjects ? Core.rankProjects(q, PROJECTS, { kind: 'place', place: placeHit, smart: _sq }) : null;
+        var _rows = _pr ? _pr.rows.map(function (x) { return x.p; }) : [];
         if (_rows.length) {
-          Core.rankByStatus(_rows, {});
-          // descending synthetic scores preserve spine order through later sorts
-          pScored = _rows.map(function (p, i) { return { p: p, s: (_rows.length - i) }; });
+          pScored = _pr.rows;   // already {p,s} descending in spine order
           placeDriven = true;
           placeName = placeHit.name;
           // make article matching place-aware: an article in this place (by
