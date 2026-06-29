@@ -289,6 +289,29 @@
     return p;
   }
 
+  // Intent router (#1): classify a query into structured intent via the worker's
+  // fast Haiku /classify endpoint. Cached per query; resolves to {kind:null} on
+  // any failure OR after 1.2s so it can never stall results — the caller falls
+  // back to its heuristic routing. Returns
+  // {kind, place, projectName, firm, floorsMin, types, status, sort, isQuestion, confidence}.
+  var _clsCache = {};
+  function classifyIntent(q) {
+    q = String(q || '').trim();
+    if (!q) return Promise.resolve({ kind: null });
+    if (_clsCache[q]) return _clsCache[q];
+    var p = new Promise(function (resolve) {
+      var done = false;
+      function fin(v) { if (!done) { done = true; resolve(v && typeof v === 'object' ? v : { kind: null }); } }
+      var to = setTimeout(function () { fin({ kind: null }); }, 1200);
+      fetch(WORKER_URL + '/classify?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { clearTimeout(to); fin(j); })
+        .catch(function () { clearTimeout(to); fin({ kind: null }); });
+    });
+    _clsCache[q] = p;
+    return p;
+  }
+
   // ── Conversational follow-up resolution ─────────────────────────────
   // Merge a PARTIAL follow-up parse with the prior turn's so the RESULTS stay
   // on-topic. "best hotels" → "what about Miami?" inherits the hotel topic →
@@ -1798,6 +1821,7 @@
     resolvePlace: resolvePlace,
     askIntelligence: askIntelligence,
     semanticSearch: semanticSearch,
+    classifyIntent: classifyIntent,
     // partner spotlights
     PARTNER_SPOTLIGHTS: PARTNER_SPOTLIGHTS,
     matchSpotlight: matchSpotlight,

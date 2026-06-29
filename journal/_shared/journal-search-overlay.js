@@ -2699,8 +2699,14 @@
 
     // Returned so the thread-resume replay can await each turn in sequence
     // (the global _renderToken would otherwise invalidate all but the last).
-    return loadData().then(function(){
+    // Intent router (#1): classify in PARALLEL with loadData so there's no added
+    // latency; the classifier's `kind` steers routing below, with the heuristic
+    // gates as fallback when it's null / low-confidence / times out.
+    var _intentP = (Core && Core.classifyIntent) ? Core.classifyIntent(q) : Promise.resolve({ kind: null });
+    return Promise.all([loadData(), _intentP]).then(function (_arr) {
       if (token !== _renderToken) return;
+      var intent = _arr[1] || { kind: null };
+      var _ik = (intent && (intent.confidence == null || intent.confidence >= 0.6)) ? intent.kind : null;
       try {
       // ── PHASE 2B: structured smart query ─────────────────────────────
       // Try parseSmartQuery FIRST — if the query has enough structure
@@ -2739,7 +2745,18 @@
       // west palm beach growing so fast") has only growth/change DESCRIPTORS
       // beyond the place, not a real concept, so it KEEPS the place pipeline.
       var _conceptQ = false;
-      if (smart && (Core && Core.isQuestion ? Core.isQuestion(q) : isQuestion(q))
+      // INTENT OVERRIDES — the classifier resolves the routing decisions that
+      // the heuristics kept getting wrong, but only for the cases it's reliable
+      // on (project / concept / place); everything else keeps the heuristics.
+      // Iconic ("list"), firm, food, wellness stay on their existing gates so a
+      // "best hotels" iconic parse isn't lost.
+      if (_ik === 'project') {
+        smart = null;                       // exact project lookup → text path's full-hero
+      } else if (_ik === 'concept' || _ik === 'topic') {
+        _conceptQ = true; smart = null;     // topic/policy → semantic concept path, no place dump
+      }
+      // Heuristic concept gate — only when the classifier didn't already decide.
+      if (!_conceptQ && smart && (Core && Core.isQuestion ? Core.isQuestion(q) : isQuestion(q))
           && !(smart.types && smart.types.size) && !smart.firm && !smart.firmRank && !smart.iconic && !smart.sort && smart.floorsMin == null) {
         var _placeStr = ((smart.cities || []).join(' ') + ' ' + (smart.region || '') + ' ' + (smart.area || '')).toLowerCase();
         var _descr = /^(grow|grows|growing|growth|fast|faster|boom|booming|hot|happening|going|changing|change|changed|develop|developing|development|developments|market|markets|doing|driving|driven|popular|trend|trending|trends|active|activity|new|newest|rising|rise|coming|now|today|currently|recent|recently|big|bigger|biggest|expanding|expansion|attracting|drawing)$/;
@@ -2752,8 +2769,9 @@
         return;
       }
       // Otherwise fall through to text-match scoring + the question /
-      // LLM path. Token re-checked inside runTextMatch.
-      runTextMatch(q, token, { conceptQ: _conceptQ });
+      // LLM path. Token re-checked inside runTextMatch. Pass the intent so the
+      // text path can force exact-project vs place routing.
+      runTextMatch(q, token, { conceptQ: _conceptQ, intent: intent });
       } catch (err) {
         // A render bug must never strand the user on the loading spinner.
         try { console.error('[tmw-search] render failed:', err); } catch(_){}
@@ -3406,6 +3424,12 @@
         var _ta = norm(PROJECTS[_li].Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
         if (_ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0)) { _literal = true; break; }
       }
+      // Intent router override: a classified PROJECT forces the exact-project
+      // path (skip the place override); a classified CITY/AREA forces the place
+      // fan-out (so a title-substring can't hijack it). Heuristic stands otherwise.
+      var _intentKind = opts && opts.intent && opts.intent.kind;
+      if (_intentKind === 'project') _literal = true;
+      else if (_intentKind === 'area' || _intentKind === 'city') _literal = false;
       // Not when a real firm name dominates the query (e.g. "Allen Morris"): a
       // strong firm match outranks an incidental place token.
       var _firmDom = fScored.length && fScored[0].s >= 6 && pScored.length < 3;
@@ -3741,6 +3765,9 @@
       var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       var _ta = norm(pScored[0].p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0);
+      // Intent router: a classified PROJECT query gets the full hero even if the
+      // alphanumeric match is fuzzy (typos), as long as the top result is solid.
+      if (opts && opts.intent && opts.intent.kind === 'project' && pScored[0].s >= 2) _exactName = true;
       if (_exactName) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
     }
     if (aScored.length) {
