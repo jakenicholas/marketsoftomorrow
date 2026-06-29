@@ -3715,7 +3715,15 @@
     // Place-driven: pScored[0] IS the spine hero (Nora, South Flagler…) — push it
     // unconditionally with a strong bias so the place's leader takes the hero slot.
     if (!foodIntent && placeDriven && pScored.length) heroCandidates.push({ kind:'project', s: 1e5, item: pScored[0].p });
-    else if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) heroCandidates.push({ kind:'project', s: pScored[0].s * 1.05, item: pScored[0].p });
+    else if (!foodIntent && pScored.length && heroProjectEligible(pScored[0].p, full, toks)) {
+      // When the query IS (essentially) the project's name — a direct lookup like
+      // "south flagler house" — the project takes the hero with a strong bias so a
+      // same-named journal article can't grab the slot.
+      var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+      var _ta = norm(pScored[0].p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+      var _exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0 || _ta.indexOf(_fa) >= 0);
+      heroCandidates.push({ kind:'project', s: _exactName ? 1e5 : pScored[0].s * 1.05, item: pScored[0].p });
+    }
     if (aScored.length) {
       var heroArt = aScored[0].a;
       if (foodIntent) { var fa = aScored.filter(function(x){ return isFoodArticle(x.a); })[0]; if (fa) heroArt = fa.a; }
