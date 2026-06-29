@@ -417,8 +417,9 @@
        around the Full list / View all button (the button drops below it). */
     + '@media(max-width:640px){.tmw-ov-smart-head{flex-wrap:wrap}.tmw-ov-smart-head h3{flex:1 1 100%}}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-fp-row{margin:0 0 14px}'
-    /* Overview drops journal articles (they live under the Journal tab now) */
-    + '[data-state="results"][data-filter="overview"] [data-slot="articles-grid"]{display:none}'
+    /* Overview shows a 3-tile taste of the journal (capped via .tmw-ov-alist
+       nth-child below), matching the 3 project tiles — the full list lives under
+       the Journal tab. */
     /* Feedback row (live indicator left, thumbs right) gets breathing room above
        so it sits centered in the card's bottom padding, not crowding the last row */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-turn-fb{margin-top:22px}'
