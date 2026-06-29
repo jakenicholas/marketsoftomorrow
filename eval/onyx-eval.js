@@ -167,6 +167,57 @@ function main() {
     t.eq(Core.isQuestion('south flagler house'), false, 'a bare name = false');
   });
 
+  // ── UNIFIED RETRIEVER (#4) ─────────────────────────────────────────
+  // rankProjects is the single intent-weighted ranked path that replaces the
+  // four competing routes. These pin the canonical hard queries that the old
+  // path-vs-path arbitration kept breaking.
+  run('rankProjects: project kind → exact name wins #1 + flags full hero', (t) => {
+    const r = Core.rankProjects('south flagler house', PROJECTS, { kind: 'project' });
+    t.ok(!!r && r.rows.length > 0, 'returns ranked rows');
+    t.eq(r && r.rows[0] && String(r.rows[0].p.Title || '').trim().toLowerCase(),
+      'south flagler house', 'South Flagler House is #1');
+    t.eq(r && r.exactName, true, 'flags exactName → FULL hero');
+  });
+  run('rankProjects: place kind → whole-county fan-out, every row in place', (t) => {
+    const place = Core.resolvePlace('the palm beaches', PROJECTS);
+    const r = Core.rankProjects('the palm beaches', PROJECTS, { kind: 'place', place });
+    t.gte(r ? r.rows.length : 0, 80, 'returns the full Palm Beach County pipeline (not ~5)');
+    t.eq(r && r.placeDriven, true, 'placeDriven');
+    t.ok(r && r.rows.every((x) => place.match(x.p)), 'every row is actually in The Palm Beaches');
+    t.eq(r && r.exactName, false, 'NO exact hero for a place browse');
+  });
+  run('rankProjects: concept kind → bio-exact beats semantic dilution', (t) => {
+    const r = Core.rankProjects('what is the live local act and how is it changing florida',
+      PROJECTS, { kind: 'concept' });
+    t.ok(!!r && r.rows.length > 0, 'returns the Live Local Act projects');
+    t.eq(r && r.semantic, false, 'resolved via bio-exact, not the semantic fallback');
+    const names = r.rows.map((x) => String(x.p.Title || '').toLowerCase());
+    t.ok(!names.some((n) => /live nation/.test(n)), 'does NOT surface "Live Nation Gasworx" (the dilution FP)');
+    // contract = the topic tokens (live + local + act) all appear verbatim in the
+    // bio — that's what makes these precise program matches, not fuzzy neighbors.
+    t.ok(r.rows.every((x) => {
+      const bio = String((x.p.DescriptionLong || x.p.Description || '') + ' ' + (x.p.Title || '')).toLowerCase();
+      return ['live', 'local', 'act'].every((tok) => bio.indexOf(tok) >= 0);
+    }), 'every returned project literally contains live + local + act in its bio');
+    t.lte(r.rows.length, 12, 'a precise set (the 7 LLA projects), not a firehose');
+  });
+  run('rankProjects: structured kind → high-rise band, no non-tower leak', (t) => {
+    const s = Core.parseSmartQuery('new high rises in west palm beach', opt);
+    const r = Core.rankProjects('new high rises in west palm beach', PROJECTS, { kind: 'structured', smart: s });
+    t.gte(r ? r.rows.length : 0, 15, 'returns a real WPB high-rise set');
+    const leaked = (r ? r.rows : []).filter((x) => {
+      const p = x.p;
+      const ty = String((p.ProjectType || '') + ' ' + (p.PreferredType || '')).toLowerCase();
+      const tower = /residen|office|hotel|condo|apartment|multifamily|mixed|tower|living|hospitality/.test(ty);
+      return floorsOf(p) === 0 && !tower;
+    });
+    t.eq(leaked.length, 0, 'no unknown-floor non-tower (museum/padel) leaks in');
+  });
+  run('rankProjects: unknown kind → null (caller keeps heuristics)', (t) => {
+    t.eq(Core.rankProjects('anything', PROJECTS, { kind: null }), null, 'null kind → null');
+    t.eq(Core.rankProjects('anything', PROJECTS, {}), null, 'no kind → null');
+  });
+
   // ── SUMMARY ────────────────────────────────────────────────────────
   console.log('\n' + (FAIL ? '\x1b[31m' : '\x1b[32m') + PASS + ' passed, ' + FAIL + ' failed\x1b[0m');
   if (FAIL) { console.log('failed: ' + FAILS.join(', ')); }

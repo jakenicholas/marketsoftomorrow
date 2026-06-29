@@ -54,6 +54,23 @@
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
   }
+  // Substring match with a word-boundary guard for SHORT tokens — a long token
+  // (≥5 chars) is distinctive enough to match anywhere; a short one ("fl","park")
+  // must sit on a word boundary so it doesn't fire mid-word. Mirrors the overlay's
+  // fieldHit so keyword scoring is identical on both surfaces (the unified
+  // retriever below shares it). hay/t are assumed already norm()'d.
+  function fieldHit(hay, t) {
+    if (!t || !hay) return false;
+    if (t.length >= 5) return hay.indexOf(t) >= 0;
+    var i = hay.indexOf(t);
+    while (i >= 0) {
+      var before = i === 0 ? '' : hay.charAt(i - 1);
+      var after = hay.charAt(i + t.length);
+      if (!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) return true;
+      i = hay.indexOf(t, i + 1);
+    }
+    return false;
+  }
 
   // ── project-shape helpers (match /search/index.html exactly) ──────
   function firstField(o, keys) {
@@ -1464,6 +1481,160 @@
     return rows;
   }
 
+  // ════════════════════════════════════════════════════════════════════
+  // #4 — UNIFIED PROJECT RETRIEVER
+  // ════════════════════════════════════════════════════════════════════
+  // KEYWORD score for a project — title/city/neighborhood/type/firm/desc token
+  // hits, exact-title/city boosts. Ported verbatim from the overlay's
+  // scoreProject so the keyword signal is identical whether the overlay scores
+  // inline or delegates to rankProjects(). `toks` = meaningful tokens, `full` =
+  // norm(query).
+  function scoreProjectKw(p, toks, full) {
+    var title = norm(p.Title), city = norm(p.City), type = norm(firstField(p, ['ProjectType', 'PreferredType']));
+    var arch = norm(p.Architect), dev = norm(p.Developer), nbhd = norm(p.Neighborhood);
+    var desc = norm(firstField(p, ['DescriptionLong', 'Description']));
+    var s = 0;
+    if (title === full) s += 120;
+    else if (title.indexOf(full) === 0) s += 50;
+    else if (full && fieldHit(title, full)) s += 28;
+    if (full && city === full) s += 55;
+    else if (full === 'palm beach' && city === 'west palm beach') s += 18;
+    if (full && nbhd && nbhd === full) s += 24;
+    else if (full && nbhd && fieldHit(nbhd, full)) s += 16;
+    for (var i = 0; i < toks.length; i++) {
+      var t = toks[i];
+      if (fieldHit(title, t)) s += 12;
+      if (fieldHit(city, t)) s += 8;
+      if (nbhd && fieldHit(nbhd, t)) s += 9;
+      if (fieldHit(type, t)) s += 6;
+      if (fieldHit(arch, t)) s += 5;
+      if (fieldHit(dev, t)) s += 5;
+      if (fieldHit(desc, t)) s += 2;
+    }
+    if (s > 0 && p.Featured) s += 1;
+    return s;
+  }
+
+  // ONE ranked retriever that subsumes the four previously-competing project
+  // routes — keyword text-match, the place-override fan-out, the literal/exact
+  // name lookup, and the bio-exact→semantic "enrich" rescue. The classifier's
+  // `kind` selects which ranking governs; the SAME signals back every kind, so a
+  // query ranks the same way regardless of which heuristic flag used to win the
+  // fight (the source of the "palm beaches → 5 projects" / "south flagler →
+  // Edgeworth" bugs). Pure + DOM-free so the eval harness pins its output.
+  //
+  //   q         — raw query string
+  //   projects  — the PROJECTS array
+  //   opts:
+  //     kind          — 'project' | 'place' | 'structured' | 'concept' | 'topic'.
+  //                     Caller resolves it from intent (gated at confidence ≥0.6)
+  //                     + parseSmartQuery; passes nothing/unknown → returns null
+  //                     so the caller keeps its heuristic path (can't break search).
+  //     smart         — parseSmartQuery result (structured filters), for the
+  //                     'structured' kind and type/status refinement of 'place'.
+  //     place         — resolvePlace(q, projects) result, for the 'place' kind.
+  //     semanticSlugs — ordered project slugs from semanticSearch, the 'concept'
+  //                     fallback when no bio-exact hit (async; caller supplies).
+  //     toks / full   — pre-tokenized query (optional; derived if absent).
+  //     now           — clock override for tests.
+  //
+  // Returns { kind, rows:[{p,s}] (descending), placeDriven, exactName, semantic }
+  // or null when the kind is unhandled.
+  function rankProjects(q, projects, opts) {
+    opts = opts || {};
+    projects = projects || [];
+    var full = opts.full != null ? opts.full : norm(q);
+    var toks = opts.toks || full.split(/\s+/).filter(Boolean);
+    var kind = opts.kind || null;
+    var smart = opts.smart || null;
+    var place = opts.place || null;
+
+    // STRUCTURED — explicit floors / type / status filters (high-rise, "mixed-use
+    // in miami", "towers under construction"). smartFilter owns the tower-type
+    // allow-list + lenient-unknown-floors; smartRank owns the spine + sort.
+    if (kind === 'structured' && smart) {
+      var srows = smartFilter(smart, projects);
+      smartRank(srows, smart);
+      return { kind: 'structured', placeDriven: true, exactName: false, semantic: false,
+        rows: srows.map(function (p, i) { return { p: p, s: srows.length - i }; }) };
+    }
+
+    // PLACE — city / neighborhood / county / metro / state fan-out: every project
+    // in the place, spine-ranked, refined by type/status when the parse caught
+    // them. The "the palm beaches → whole county" path.
+    if (kind === 'place' && place && place.match) {
+      var prows = projects.filter(place.match);
+      if (smart && smart.types && smart.types.size) {
+        prows = prows.filter(function (p) {
+          var pt = norm((p.PreferredType || '') + ' ' + (p.ProjectType || '')), ok = false;
+          smart.types.forEach(function (t) { if (pt.indexOf(norm(t)) >= 0) ok = true; });
+          return ok;
+        });
+      }
+      if (smart && smart.statuses && smart.statuses.size) {
+        prows = prows.filter(function (p) { return smart.statuses.has(String(p.Delivery || '').trim()); });
+      }
+      rankByStatus(prows, { now: opts.now });
+      return { kind: 'place', placeDriven: true, exactName: false, semantic: false,
+        rows: prows.map(function (p, i) { return { p: p, s: prows.length - i }; }) };
+    }
+
+    // CONCEPT / TOPIC — a named program/term ("live local act", "mass timber").
+    // Bio-substring-exact FIRST: a dense embedding dilutes one phrase across a
+    // ~1,600-char bio (so "Live Nation" wins on the word "live"), so a project
+    // whose bio literally contains the program name MUST outrank fuzzy semantic
+    // neighbors. Semantic recall is the fallback for fuzzier concepts.
+    if (kind === 'concept' || kind === 'topic') {
+      var topicQ = String(q || '')
+        .replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
+        .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
+        .replace(/\s+/g, ' ').trim();
+      var _descr = /^(grow|grows|growing|growth|fast|faster|boom|booming|hot|happening|going|changing|change|changed|develop|developing|driving|driven|popular|trend|trending|trends|active|activity|newest|rising|rise|coming|currently|recent|recently|bigger|biggest|expanding|expansion|attracting|drawing|its|like|happen)$/;
+      var ctoks = filterMeaningfulTokens(topicQ.toLowerCase().split(/\s+/).filter(Boolean))
+        .filter(function (t) { return !_descr.test(t); });
+      if (ctoks.length) {
+        var bioHits = projects.filter(function (p) {
+          var bio = norm((firstField(p, ['DescriptionLong', 'Description']) || '') + ' ' + (p.Title || ''));
+          return ctoks.every(function (t) { return bio.indexOf(t) >= 0; });
+        });
+        if (bioHits.length) {
+          rankByStatus(bioHits, { now: opts.now });
+          return { kind: 'concept', placeDriven: false, exactName: false, semantic: false,
+            rows: bioHits.map(function (p, i) { return { p: p, s: bioHits.length - i }; }) };
+        }
+      }
+      if (opts.semanticSlugs && opts.semanticSlugs.length) {
+        var pBy = {}; projects.forEach(function (p) { var sl = p.Slug || p.slug; if (sl) pBy[sl] = p; });
+        var sem = opts.semanticSlugs.map(function (sl) { return pBy[sl]; }).filter(Boolean);
+        return { kind: 'concept', placeDriven: false, exactName: false, semantic: true,
+          rows: sem.map(function (p, i) { return { p: p, s: sem.length - i }; }) };
+      }
+      return { kind: 'concept', placeDriven: false, exactName: false, semantic: true, rows: [] };
+    }
+
+    // PROJECT — a direct name lookup. Keyword score ranks; exactName (query IS a
+    // project's name, alnum-normalized, either direction — or a solid top hit on
+    // a classified-project query, allowing typos) tells the caller to render the
+    // FULL hero rather than the compact overview row.
+    if (kind === 'project') {
+      var stoks = filterMeaningfulTokens(toks);
+      if (!stoks.length) stoks = toks.filter(function (t) { return t.length >= 2; });
+      var scored = projects.map(function (p) { return { p: p, s: scoreProjectKw(p, stoks, full) }; })
+        .filter(function (x) { return x.s > 0; })
+        .sort(function (a, b) { return b.s - a.s; });
+      var exactName = false;
+      if (scored.length) {
+        var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+        var _ta = norm(scored[0].p.Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+        exactName = _ta.length >= 4 && (_ta === _fa || _fa.indexOf(_ta) >= 0);
+        if (!exactName && scored[0].s >= 2) exactName = true;
+      }
+      return { kind: 'project', placeDriven: false, exactName: exactName, semantic: false, rows: scored };
+    }
+
+    return null;
+  }
+
   // Synthesize a one-sentence answer + stats array from the resolved
   // rows. Returns { html, stats:[{v,k}] }. The LLM upgrade replaces the
   // sentence after; stats stay DB-derived.
@@ -1842,6 +2013,10 @@
     resolveFollowup: resolveFollowup,
     smartFilter: smartFilter,
     smartRank: smartRank,
+    // #4 unified retriever
+    fieldHit: fieldHit,
+    scoreProjectKw: scoreProjectKw,
+    rankProjects: rankProjects,
     rankByStatus: rankByStatus,
     statusRankOf: statusRankOf,
     buildSmartAnswer: buildSmartAnswer,
