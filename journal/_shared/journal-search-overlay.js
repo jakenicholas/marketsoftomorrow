@@ -365,8 +365,11 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .desc,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .excerpt,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-specs,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-byline,'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-hero-cta{display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-byline{display:none}'
+    /* keep the CTA visible in overview so the hero has a "View project" button
+       (opens the full native card); align it left under the compact body */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-hero-cta{margin-top:6px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .tmw-ov-btn{padding:8px 13px;font-size:12.5px}'
     /* sections → tight, with small de-emphasized labels (no big serif headers) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:last-child{margin-bottom:0}'
@@ -1536,10 +1539,10 @@
       +   heroSpecHtml(p)
       +   byline
       +   '<div class="tmw-ov-hero-cta">'
-      +     '<a class="tmw-ov-btn gold" href="'+esc(mapLink(p.Title, true))+'">'
+      +     '<button class="tmw-ov-btn gold" type="button"'+_projAttr(p)+'>'
       +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
-      +       'Learn more'
-      +     '</a>'
+      +       'View project'
+      +     '</button>'
       +     (site
               ? '<a class="tmw-ov-btn ghost" href="'+esc(site)+'" target="_blank" rel="noopener">Visit site'
                 + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>'
@@ -3375,9 +3378,15 @@
     if (placeHit) {
       // Not when the whole query is literally a tracked project's name — the
       // anchor path below owns "Oracle Campus"-style lookups.
+      // Compare on alphanumerics only so stray punctuation/typos ("south flagler
+      // house\") don't break the exact-name match and wrongly trigger the place
+      // override. Match either direction (title contains query OR query contains
+      // title) so a fully-typed project name resolves to that project.
+      var _fa = full.replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
       var _literal = false;
-      if (full.length >= 4) for (var _li = 0; _li < PROJECTS.length; _li++) {
-        if (norm(PROJECTS[_li].Title || '').indexOf(full) >= 0) { _literal = true; break; }
+      if (_fa.length >= 4) for (var _li = 0; _li < PROJECTS.length; _li++) {
+        var _ta = norm(PROJECTS[_li].Title || '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (_ta.length >= 4 && (_ta.indexOf(_fa) >= 0 || _fa.indexOf(_ta) >= 0)) { _literal = true; break; }
       }
       // Not when a real firm name dominates the query (e.g. "Allen Morris"): a
       // strong firm match outranks an incidental place token.
