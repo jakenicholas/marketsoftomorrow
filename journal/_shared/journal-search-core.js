@@ -309,6 +309,9 @@
         .catch(function () { clearTimeout(to); fin({ kind: null }); });
     });
     _clsCache[q] = p;
+    // Don't let a transient failure (cold worker, timeout → {kind:null}) poison
+    // the cache — evict nulls so the next query retries; keep real results.
+    p.then(function (v) { if (!v || !v.kind) delete _clsCache[q]; });
     return p;
   }
 
