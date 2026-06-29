@@ -2838,18 +2838,7 @@
   // overwrites real keyword/spine projects.
   function enrichSemanticProjects(q, token, artCount){
     var Core = window.TmwSearchCore;
-    if (!Core || !slotProjGrid) return;
-    var nrm = (Core && Core.norm) ? Core.norm : function(s){ return String(s == null ? '' : s).toLowerCase(); };
-    // Core topic: strip question/scope filler AND state/place words so a named
-    // term ("live local act", "mass timber") drives the match, not "florida"/"world".
-    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
-      .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
-      .replace(/\s+/g, ' ').trim();
-    var toks = (Core.filterMeaningfulTokens ? Core.filterMeaningfulTokens(tokenize(topicQ)) : tokenize(topicQ).filter(function(t){ return t.length >= 3; }));
-    // Drop growth/change DESCRIPTORS so they don't pollute the bio match — e.g.
-    // "...how is it changing..." must not require the bio to contain "changing".
-    var _descr = /^(grow|grows|growing|growth|fast|faster|boom|booming|hot|happening|going|changing|change|changed|develop|developing|driving|driven|popular|trend|trending|trends|active|activity|newest|rising|rise|coming|currently|recent|recently|bigger|biggest|expanding|expansion|attracting|drawing|its|like|happen)$/;
-    toks = toks.filter(function(t){ return !_descr.test(t); });
+    if (!Core || !slotProjGrid || !Core.rankProjects) return;
 
     function paint(rp){
       if (token !== _renderToken || !rp || !rp.length) return;
@@ -2865,29 +2854,27 @@
       if (ap) { var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('active', ps[i] === ap); }
     }
 
-    // 1) EXACT bio keyword match — a named term/program ("Live Local Act") is
-    //    written verbatim in project bios, but a dense embedding dilutes one
-    //    phrase across a 1,600-char bio (so "Live Nation" wins on "live"). A
-    //    direct substring scan of the bio is the reliable path. Require ALL topic
-    //    tokens present; these are the most precise matches, so show them first.
-    if (toks.length) {
-      var bioHits = PROJECTS.filter(function(p){
-        var bio = nrm((p.DescriptionLong || p.description_long || p.Description || p.description || '') + ' ' + (p.Title || p.Name || ''));
-        return toks.every(function(t){ return bio.indexOf(t) >= 0; });
-      });
-      if (bioHits.length) {
-        if (Core.rankByStatus) Core.rankByStatus(bioHits, {});   // featured > coming soon > … among exact matches
-        paint(bioHits);
-        return;
-      }
-    }
-    // 2) Semantic fallback — projects related by MEANING, relevance order.
+    // #4 unified retriever — concept kind. Bio-substring-exact for a named
+    // program ("Live Local Act", "mass timber") runs FIRST inside rankProjects
+    // (a dense embedding dilutes the phrase across a ~1,600-char bio, so "Live
+    // Nation" would win on the word "live") — these verbatim matches are the most
+    // precise, so they paint immediately and synchronously.
+    var bio = Core.rankProjects(q, PROJECTS, { kind: 'concept' });
+    if (bio && !bio.semantic && bio.rows.length) { paint(bio.rows.map(function (x) { return x.p; })); return; }
+
+    // Semantic fallback — fetch related slugs, then rank them through the SAME
+    // retriever so the render is identical. Topic-clean the query first (strip
+    // question/scope/state filler) so the topic, not "around the world", drives
+    // recall. Kept in lockstep with rankProjects's internal strip.
     if (!Core.semanticSearch) return;
-    Core.semanticSearch(topicQ || q).then(function(sem){
+    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
+      .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
+      .replace(/\s+/g, ' ').trim();
+    Core.semanticSearch(topicQ || q).then(function (sem) {
       if (token !== _renderToken) return;
-      var pBy = {}; PROJECTS.forEach(function(p){ var s = p.Slug || p.slug; if (s) pBy[s] = p; });
-      paint((sem.projects || []).map(function(s){ return pBy[s]; }).filter(Boolean));
-    }).catch(function(){});
+      var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [] });
+      paint(r ? r.rows.map(function (x) { return x.p; }) : []);
+    }).catch(function () {});
   }
 
   function pickTitleScopedProject(q, rows){
@@ -2937,7 +2924,13 @@
       return;
     }
 
-    var rows = Core.smartRank(Core.smartFilter(s, PROJECTS), s);
+    // #4 unified retriever — structured kind. The place / type / status / floors
+    // browse (area fan-out, high-rise band, "mixed-use in miami") gets its project
+    // set from the one shared retriever (smartFilter + smartRank under the hood),
+    // so it ranks identically to the eval harness and the other kinds.
+    var rows = (Core.rankProjects
+      ? Core.rankProjects(q, PROJECTS, { kind: 'structured', smart: s }).rows.map(function (x) { return x.p; })
+      : Core.smartRank(Core.smartFilter(s, PROJECTS), s));
     // ICONIC blend. For a curation query ("best golf in california", "best
     // hotels in miami", "iconic restaurants"), pull the editorial iconic list
     // for the category, place-filtered. Restaurants aren't a project type, and
