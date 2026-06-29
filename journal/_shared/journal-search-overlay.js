@@ -3363,6 +3363,25 @@
       totalHits = pScored.length + fScored.length + aScored.length;
     }
 
+    // ── #4 UNIFIED RETRIEVER — project kind ──────────────────────────
+    // A classifier-confident PROJECT query (a direct name lookup) ranks through
+    // the one shared core retriever instead of this function's inline keyword +
+    // scattered _literal/_exactName logic. The keyword signal is identical
+    // (Core.scoreProjectKw === scoreProject), so the ranked set is unchanged; the
+    // win is a single source of truth in core that the place/concept kinds join
+    // next. The downstream _intentKind==='project' guards still force the
+    // exact-name path + full hero. Skipped during a semantic-rescue re-invoke.
+    var _ik = (opts.intent && (opts.intent.confidence == null || opts.intent.confidence >= 0.6)) ? opts.intent.kind : null;
+    if (_ik === 'project' && !opts.rescueProjects && Core && Core.rankProjects) {
+      var _rp = Core.rankProjects(q, PROJECTS, { kind: 'project', toks: toks, full: full });
+      if (_rp && _rp.rows.length) {
+        var _kept = _rp.rows.filter(function (x) { return x.s >= MIN_PROJECT_SCORE; });
+        // keep the named project even if it scores below the grid threshold
+        pScored = _kept.length ? _kept : _rp.rows.slice(0, 1);
+        totalHits = pScored.length + fScored.length + aScored.length;
+      }
+    }
+
     // STRONG LITERAL PROJECT-NAME MATCH? When the user typed the full
     // name (or a substantial substring) of a tracked project, treat
     // that project as the "anchor" and surface its connected siblings
