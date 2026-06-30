@@ -226,16 +226,29 @@ def group_events(events):
         # "Tracking N more projects" cards. Accumulate the total count + a few
         # example names + the first image; the single tile is built after the loop.
         psl = (e.get("project_slug") or proj.get("slug") or "").strip().lower()
-        if etype == "tracking" and not psl:
-            cnt_m  = re.search(r'(\d+)', title or "")
-            csub   = (city or "").strip()
-            tail_m = re.search(r'\s*\+\s*\d+\s+more\s*$', csub)
-            names_part = (csub[:tail_m.start()] if tail_m else csub).rstrip().rstrip(",")
-            names = [n.strip() for n in names_part.split(",") if n.strip()]
+        # ALL "newly tracking" events merge into ONE compiled tile — including an
+        # individual newly-tracked project (which carries its own project_slug,
+        # e.g. "OLIN Palm Beach"). Previously only the pre-grouped (slug-less)
+        # tracking events bundled, so a single tracked project straggled as its
+        # own card next to the "Tracking N more projects" tile. Now they all fold
+        # in: slug-less events contribute their count + name list, a slug-bearing
+        # event contributes itself (count 1, its title as a name).
+        if etype == "tracking":
             if track_acc is None:
                 track_acc = {"count": 0, "names": [], "image": "", "url": url, "ts": ts}
-            track_acc["count"] += int(cnt_m.group(1)) if cnt_m else 0
-            track_acc["names"].extend(names)
+            if not psl:
+                cnt_m  = re.search(r'(\d+)', title or "")
+                csub   = (city or "").strip()
+                tail_m = re.search(r'\s*\+\s*\d+\s+more\s*$', csub)
+                names_part = (csub[:tail_m.start()] if tail_m else csub).rstrip().rstrip(",")
+                names = [n.strip() for n in names_part.split(",") if n.strip()]
+                track_acc["count"] += int(cnt_m.group(1)) if cnt_m else 0
+                track_acc["names"].extend(names)
+            else:
+                track_acc["count"] += 1
+                nm = (e.get("project_title") or title or "").strip()
+                if nm:
+                    track_acc["names"].append(nm)
             if not track_acc["image"] and image:
                 track_acc["image"] = image
             if ts > track_acc["ts"]:
