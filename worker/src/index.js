@@ -4183,6 +4183,51 @@ async function publishFacebook(pageId, imageUrl, caption, token) {
   if (!postId) throw new Error('Facebook post failed — ' + metaErr(j));
   return { id: postId, url: 'https://www.facebook.com/' + postId };
 }
+// Live IG + FB follower counts for every brand account. ONE Graph call: the
+// system user's managed Pages, each with its FB follower count AND its linked-IG
+// username + IG follower count. Matched to our brand accounts by IG handle (falls
+// back to page_id). Read-only — the admin writes the numbers into the followers
+// snapshot itself (which also holds the manually-entered LinkedIn/X/TikTok/Threads).
+async function handleSocialFollowersPull(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
+  const token = env.META_SYSTEM_TOKEN;
+  let accts = [];
+  try {
+    if (env.DB) {
+      await ensureSocialAccountsTable(env);
+      const { results } = await env.DB.prepare(`SELECT key, ig_handle, page_id FROM social_accounts ORDER BY sort_order ASC`).all();
+      accts = results || [];
+    }
+  } catch (_) {}
+  const resp = await graphGet('me/accounts', {
+    fields: 'name,followers_count,fan_count,instagram_business_account{username,followers_count}',
+    limit: '200', access_token: token,
+  });
+  if (resp && resp.error) return json({ error: 'Graph error — ' + metaErr(resp) }, { status: 502 }, env, origin);
+  const pages = (resp && resp.data) || [];
+  const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
+  const byIg = {}, byPage = {};
+  for (const p of pages) {
+    if (p.id) byPage[String(p.id)] = p;
+    const ig = p.instagram_business_account;
+    if (ig && ig.username) byIg[norm(ig.username)] = p;
+  }
+  const accounts = {}; const misses = [];
+  for (const a of accts) {
+    const p = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
+    const e = {};
+    if (p) {
+      const fb = (p.followers_count != null) ? p.followers_count : p.fan_count;
+      if (fb != null) e.facebook = Number(fb) || 0;
+      const ig = p.instagram_business_account;
+      if (ig && ig.followers_count != null) e.instagram = Number(ig.followers_count) || 0;
+    }
+    if (e.instagram == null && e.facebook == null) misses.push(a.key);
+    accounts[a.key] = e;
+  }
+  return json({ ok: true, accounts, misses, pages_seen: pages.length, pulled_at: new Date().toISOString() }, {}, env, origin);
+}
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
@@ -8364,6 +8409,7 @@ export default {
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/deauth') return handleThreadsDeauth();
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/delete') return handleThreadsDelete();
       if (request.method === 'GET'  && url.pathname === '/threads/deletion-status') return handleThreadsDeletionStatus(url);
+      if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
