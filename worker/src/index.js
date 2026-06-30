@@ -703,13 +703,20 @@ async function stripeGet(env, path) {
   if (!r.ok) throw new Error('Stripe ' + r.status + ': ' + (await r.text()).slice(0, 200));
   return r.json();
 }
+// Writes (cancel) need a key with write scope. Prefer STRIPE_WRITE_KEY so the
+// analytics read key can stay read-only; fall back to STRIPE_SECRET_KEY.
+function stripeWriteKey(env) { return env.STRIPE_WRITE_KEY || env.STRIPE_SECRET_KEY; }
 async function stripePost(env, path, params) {
   const r = await fetch('https://api.stripe.com/v1' + path, {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { Authorization: 'Bearer ' + stripeWriteKey(env), 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(params || {}),
   });
-  if (!r.ok) throw new Error('Stripe ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  if (!r.ok) {
+    const body = (await r.text()).slice(0, 300);
+    if (r.status === 401 || r.status === 403) throw new Error('Stripe ' + r.status + ' — the Stripe key lacks write access to subscriptions. Grant the restricted key "Subscriptions: Write", or set a STRIPE_WRITE_KEY secret.');
+    throw new Error('Stripe ' + r.status + ': ' + body);
+  }
   return r.json();
 }
 // Find a member's current subscription (trialing/active preferred) by email.
@@ -753,7 +760,7 @@ async function handleAdminCancelSub(req, env, origin) {
     if (!sub) return json({ error: 'No subscription found for ' + email }, { status: 404 }, env, origin);
     if (sub.status === 'canceled') return json({ ok: true, status: 'canceled', already: true, email }, {}, env, origin);
     const res = b.immediate
-      ? await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'false' }).then(() => fetch('https://api.stripe.com/v1/subscriptions/' + sub.id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY } }).then(r => r.json()))
+      ? await fetch('https://api.stripe.com/v1/subscriptions/' + sub.id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + stripeWriteKey(env) } }).then(r => r.json())
       : await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'true' });
     return json({ ok: true, status: res.status, cancel_at_period_end: !!res.cancel_at_period_end, was_trialing: sub.status === 'trialing', email }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
@@ -4074,7 +4081,7 @@ async function handleSocialHandlesSave(req, env, origin) {
 // Unlike IG/FB (one system-user token), Threads needs a long-lived token per
 // account, obtained via OAuth. The connect URL is minted in an admin-gated step
 // (signed state); the public callback trusts that signature.
-const THREADS_SCOPES = 'threads_basic,threads_content_publish';
+const THREADS_SCOPES = 'threads_basic,threads_content_publish,threads_manage_insights';
 function threadsRedirect(env) { return env.THREADS_REDIRECT || 'https://tmw.jake-ab7.workers.dev/threads/callback'; }
 async function ensureThreadsTokensTable(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS threads_tokens (
