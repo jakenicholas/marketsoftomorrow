@@ -7219,6 +7219,31 @@ async function handleSmartAnswer(request, env, origin) {
 // GET /intel-answers — recent TMW Intelligence answers (query + synthesized
 // answer + the signals we had at the time), newest first. Feeds the nightly
 // intel-review routine that critiques sufficiency and learns. Admin-only.
+// /intel-stats — adoption rollup from the events table (search + intel_query),
+// excluding the system routines. Powers the Intelligence tab's Adoption cards.
+async function handleIntelStats(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const now = Math.floor(Date.now() / 1000), d7 = now - 7 * 86400, d30 = now - 30 * 86400;
+  const BASE = `event_name IN ('intel_query','search') AND member_id IS NOT NULL AND member_id != '' AND member_id NOT LIKE 'system:%'`;
+  const n = async (sql, ...b) => { try { const r = await env.DB.prepare(sql).bind(...b).first(); return (r && r.n) || 0; } catch { return 0; } };
+  const total_queries  = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE}`);
+  const intel_queries  = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND event_name='intel_query'`);
+  const search_queries = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND event_name='search'`);
+  const total_users    = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE}`);
+  const repeat_users   = await n(`SELECT COUNT(*) n FROM (SELECT member_id FROM events WHERE ${BASE} GROUP BY member_id HAVING COUNT(*) > 1)`);
+  const queries_7d     = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND ts >= ?`, d7);
+  const queries_30d    = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND ts >= ?`, d30);
+  const active_7d      = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE} AND ts >= ?`, d7);
+  const active_30d     = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE} AND ts >= ?`, d30);
+  return json({
+    total_queries, intel_queries, search_queries, total_users, repeat_users,
+    repeat_pct: total_users ? Math.round(repeat_users / total_users * 100) : 0,
+    avg_per_user: total_users ? Math.round(total_queries / total_users * 10) / 10 : 0,
+    queries_7d, queries_30d, active_users_7d: active_7d, active_users_30d: active_30d,
+  }, {}, env, origin);
+}
+
 async function handleIntelAnswers(env, origin, url) {
   if (!env.DB) return json({ items: [] }, {}, env, origin);
   const limit = clampInt(url.searchParams.get('limit'), 60, 1, 200);
@@ -8060,6 +8085,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/search-feedback/discoveries/mark') {
         return await handleDiscoveryMark(request, env, origin);
       }
+      if (request.method === 'GET' && url.pathname === '/intel-stats') return await handleIntelStats(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);
       }
