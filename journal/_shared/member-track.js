@@ -27,10 +27,11 @@
     var plans = (member && member.planConnections) || [];
     for (var i = 0; i < plans.length; i++) {
       var p = plans[i]; if (!p) continue;
-      // Any active plan connection = a member (Pro). Mirrors journal-auth's
-      // isPaid so the analytics `plan` column agrees with the site's Pro-gating
-      // — including comped / hand-assigned plans that carry no payment object.
-      if (p.active === true || p.status === 'ACTIVE') return 'paid';
+      // Any active/trial plan connection = a member (Pro). Mirrors journal-auth's
+      // isPaid (active | trialing | past_due) so the analytics `plan` column agrees
+      // with the site's Pro-gating — including 2-week-trial (TRIALING) and comped
+      // plans that carry no payment object.
+      if (p.active === true || /^(active|trialing|past_due)$/i.test(String(p.status || ''))) return 'paid';
     }
     return 'free';
   }

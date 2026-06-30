@@ -666,7 +666,15 @@
   // ── 4) Helpers ──────────────────────────────────────────────────────────
   function isPaid(member) {
     var plans = (member && member.planConnections) || [];
-    return plans.some(function (p) { return p.active === true || p.status === 'ACTIVE'; });
+    // A 2-week-trial subscriber's plan connection is status TRIALING (card on
+    // file, full access), NOT 'ACTIVE' — so the old check treated trial users as
+    // free and kept firing the Go-Pro / funnel popups at paying members. Mirror
+    // the worker's subscriber definition (active | trialing | past_due), case-
+    // insensitive. This is the single source of truth → _isPaidMember, which the
+    // funnel, map paywall, and tmwIntel.isPro all read.
+    return plans.some(function (p) {
+      return !!p && (p.active === true || /^(active|trialing|past_due)$/i.test(String(p.status || '')));
+    });
   }
 
   // ── Single source of truth for auth across every surface ────────────────

@@ -341,7 +341,11 @@
 
   function isPaidMember(d) {
     var plans = (d && d.planConnections) || [];
-    return plans.some(function (p) { return p.active === true || p.status === 'ACTIVE'; });
+    // Trial subscribers are status TRIALING (not ACTIVE) — count them as paid so
+    // they're never re-prompted. Mirrors the worker + journal-auth isPaid.
+    return plans.some(function (p) {
+      return !!p && (p.active === true || /^(active|trialing|past_due)$/i.test(String(p.status || '')));
+    });
   }
   function unslug(s) { return String(s || '').replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
 
