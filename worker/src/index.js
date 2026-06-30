@@ -7216,6 +7216,45 @@ async function handleSmartAnswer(request, env, origin) {
     .replace(/[ \t]{2,}/g, ' ')
     .trim();
   if (!answer) return fail('empty');
+
+  // ── SELF-CHECK GUARD (best-effort) ──────────────────────────────────────
+  // Only on WEB-grounded answers — the one path where the model pulls outside
+  // facts and could misattribute a figure/date/status to one of OUR projects.
+  // (Pure DB answers are already fact-locked; `related` items are name-only +
+  // place-locked.) A fast Haiku pass strips any project-specific number/date the
+  // answer invented beyond the verified facts; legitimate web CONTEXT (rates,
+  // market trends, definitions, a brand's history) is kept. Never blocks — any
+  // failure leaves the original answer untouched.
+  if (useWeb && env.ANTHROPIC_API_KEY) {
+    try {
+      const allowed = {
+        projects_with_verified_figures: (compact.top || []).map(t => ({ name: t.name, floors: t.floors, units: t.units, delivery: t.delivery, status: t.status })),
+        related_names_only: (compact.related || []).map(r => r.name),
+      };
+      const vr = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 600,
+          system: 'You verify a real-estate answer against its sources. Return the answer with any UNSUPPORTED claim about a Markets of Tomorrow PROJECT removed or softened — specifically a floor/unit/key count, height, delivery date, dollar figure, or construction status attached to a NAMED project that is NOT in projects_with_verified_figures. Names in related_names_only may be cited by name/location only — never with invented figures. KEEP all general real-world context (mortgage rates, market data, what a term means, a brand or firm history) — that is the point of the answer and is not a project claim. Do not add anything, do not change the voice or length. Output ONLY JSON: {"changed": boolean, "answer": "<verified answer>"}.',
+          messages: [{ role: 'user', content: 'VERIFIED FACTS:\n' + JSON.stringify(allowed) + '\n\nANSWER:\n' + answer }],
+        }),
+      });
+      if (vr.ok) {
+        const vd = await vr.json();
+        const vtxt = (Array.isArray(vd.content) ? vd.content.filter(b => b && b.type === 'text').map(b => b.text).join('') : '');
+        const jm = vtxt.match(/\{[\s\S]*\}/);
+        if (jm) {
+          const parsed = JSON.parse(jm[0]);
+          if (parsed && parsed.changed === true && typeof parsed.answer === 'string' && parsed.answer.trim().length > 20) {
+            answer = parsed.answer.trim();
+          }
+        }
+      }
+    } catch (_) { /* verifier is best-effort — keep the original answer */ }
+  }
+
   const heroDoc = (hero && heroDocs[hero]) ? heroDocs[hero] : null;
 
   // Cache the synthesized answer + hero pick for 24h, keyed by the fact signature.
