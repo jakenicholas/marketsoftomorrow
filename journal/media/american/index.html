@@ -1457,5 +1457,6 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
   if(v && 'IntersectionObserver' in window){ var vio=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting && en.intersectionRatio>=.5) unmuteVid(); }); },{threshold:[0,.5,1]}); vio.observe(v); }
 })();
 </script>
+<script src="/_shared/tmw-followers.js" defer></script>
 </body>
 </html>
