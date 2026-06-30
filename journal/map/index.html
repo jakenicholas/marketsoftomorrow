@@ -1092,7 +1092,12 @@
       height: calc(100vh - var(--header-height));
       height: calc(100dvh - var(--header-height));
       max-height: calc(100dvh - var(--header-height));
-      background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.80) 220px, rgba(11,11,11,0.80) 100%);
+      /* Content area is near-opaque (0.96) so the map barely shows through — this
+         LOCKS the drawer's apparent transparency: when the map pans behind it the
+         backdrop-blur recompute (and the is-animating blur toggle) is imperceptible
+         instead of visibly shifting the tile's background. Top stays a clear fade
+         for the peek/handle gap. */
+      background: linear-gradient(to bottom, rgba(11,11,11,0) 0px, rgba(11,11,11,0) 140px, rgba(11,11,11,0.96) 220px, rgba(11,11,11,0.96) 100%);
       backdrop-filter: blur(20px) brightness(0.65);
       -webkit-backdrop-filter: blur(20px) brightness(0.65);
       z-index: 10; display: none;
