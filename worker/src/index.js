@@ -747,6 +747,22 @@ async function handleSubStatus(req, env, origin, url) {
     }, {}, env, origin);
   } catch (e) { return json({ found: false, error: String(e.message || e) }, {}, env, origin); }
 }
+// GET /trial-eligible?email= — has this email EVER had a subscription (trial or
+// paid)? If so they've used their one free trial → not eligible for another.
+// Fails open (eligible) so a Stripe hiccup never blocks a genuine new signup.
+async function handleTrialEligible(req, env, origin, url) {
+  if (!env.STRIPE_SECRET_KEY) return json({ eligible: true, configured: false }, {}, env, origin);
+  const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+  if (!email) return json({ eligible: true }, {}, env, origin);
+  try {
+    const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
+    for (const c of (custs.data || [])) {
+      const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=5');
+      if ((subs.data || []).length) return json({ eligible: false, had_trial: true }, {}, env, origin);
+    }
+    return json({ eligible: true, had_trial: false }, {}, env, origin);
+  } catch (e) { return json({ eligible: true, error: String(e.message || e) }, {}, env, origin); }
+}
 // POST /admin/cancel-subscription { email, immediate? } — admin-gated. Sets the
 // member's sub to cancel at period end (trial → no charge; paid → keeps paid term).
 async function handleAdminCancelSub(req, env, origin) {
@@ -8340,6 +8356,7 @@ export default {
         return await handleSubscriptions(env, origin, url);
       }
       if (request.method === 'GET'  && url.pathname === '/sub-status')              return await handleSubStatus(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);

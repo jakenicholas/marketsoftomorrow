@@ -15,8 +15,29 @@
   var PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
   var PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+
+  var _trialUsed = false;   // set true once we learn this member already used their free trial
 
   function ms() { return window.$memberstackDom; }
+  // Resolve the signed-in member's email, then ask the worker if they've already
+  // had a trial. Best-effort: never blocks a genuine new signup.
+  function checkTrialEligibility() {
+    try {
+      var m = ms(); if (!m || !m.getCurrentMember) return;
+      m.getCurrentMember().then(function (r) {
+        var mem = r && r.data; if (!mem) return;
+        var email = (mem.auth && mem.auth.email) || mem.email; if (!email) return;
+        fetch(WORKER + '/trial-eligible?email=' + encodeURIComponent(email), { cache: 'no-store' })
+          .then(function (x) { return x.ok ? x.json() : null; })
+          .then(function (d) { if (d && d.eligible === false) { _trialUsed = true; showTrialUsedBanner(); } })
+          .catch(function () {});
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function showTrialUsedBanner() {
+    var b = document.getElementById('paywallTrialUsed'); if (b) b.hidden = false;
+  }
 
   // ── styles (ported from the map, prefixed-safe class names) ───────────
   var cssInjected = false;
@@ -104,6 +125,7 @@
         '<div class="paywall-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
         '<h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>' +
         '<p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>' +
+        '<div class="paywall-trialused" id="paywallTrialUsed" hidden style="display:flex;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — it’s one per account.</span></div>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
@@ -157,6 +179,9 @@
     // hide the "Already a subscriber?" line for signed-in members
     var wrap = document.getElementById('tmwPaywallSigninWrap');
     if (wrap) wrap.style.display = window._tmwSignedIn ? 'none' : '';
+    // "already used your free trial" banner — show if we already know, then re-check live
+    var tu = document.getElementById('paywallTrialUsed'); if (tu) tu.hidden = !_trialUsed;
+    checkTrialEligibility();
     // context-aware headline
     var titleEl = modal.querySelector('.paywall-title');
     var subEl = modal.querySelector('.paywall-subtitle');
@@ -185,6 +210,13 @@
   async function startCheckout(priceId) {
     var m = ms();
     if (!m) { alert('Payment system loading — please try again in a moment.'); return; }
+    // Already used their one free trial — block the trial checkout and explain.
+    if (_trialUsed) {
+      showTrialUsedBanner();
+      var b = document.getElementById('paywallTrialUsed'); if (b) b.scrollIntoView({ block: 'nearest' });
+      if (window.gtag) gtag('event', 'paywall_trial_reuse_blocked', { 'surface': 'journal' });
+      return;
+    }
     try {
       if (window.gtag) gtag('event', 'paywall_subscribe_clicked', { 'price_id': priceId, 'surface': 'journal' });
       var current = await m.getCurrentMember();
