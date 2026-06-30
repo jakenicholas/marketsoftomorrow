@@ -46,13 +46,16 @@
     // ("Total followers" / "Total social media followers" / "TOTAL FOLLOWERS"),
     // so also replace any leaf element still showing the old static placeholder.
     if (umb) {
-      var OLD = /^(192,900|192,200|192\.9K)$/;
+      var OLD = /^(192,900|192,200|192\.9K|205K|205,000)$/;
       document.querySelectorAll('div,span,b,strong,p,td').forEach(function (el) {
         if (el.children.length === 0) { var t = (el.textContent || '').trim(); if (OLD.test(t)) el.textContent = styled(t, umb); }
       });
     }
+    // Growth bar: prefers an explicit <... data-growth-bar> placeholder (bar appended
+    // into it), else falls back to after the outlet cards / proof grid.
     if (d.growth && d.growth.delta != null && d.growth.delta !== 0 && !document.querySelector('.tmw-growth-bar')) {
-      var anchor = document.querySelector('.ocards') || document.querySelector('.proof-grid');
+      var ph = document.querySelector('[data-growth-bar]');
+      var anchor = ph || document.querySelector('.ocards') || document.querySelector('.proof-grid');
       if (anchor) {
         injectCss();
         var g = d.growth, up = g.delta >= 0, dt = new Date(g.since + 'T00:00:00');
@@ -61,7 +64,7 @@
         var bar = document.createElement('div'); bar.className = 'tmw-growth-bar';
         bar.innerHTML = '<span class="gi">' + (up ? '▲' : '▼') + '</span><span><b>' + (up ? '+' : '') + g.delta.toLocaleString()
           + '</b> followers across the network this month<span class="gs">  (' + (up ? '+' : '') + g.pct + '% since ' + since + ')</span></span>';
-        anchor.parentNode.insertBefore(bar, anchor.nextSibling);
+        if (ph) ph.appendChild(bar); else anchor.parentNode.insertBefore(bar, anchor.nextSibling);
       }
     }
   }
