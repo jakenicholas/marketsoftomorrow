@@ -2293,6 +2293,18 @@
     if (!q) return;
     _userInteracted = true;   // the user took over → don't let a pending cloud-resume overwrite their turn
     _replaySeq++;             // cancel any in-flight resume replay
+    // If a replay was mid-render, the turn it was building is now orphaned — this
+    // query's render token invalidates that turn's pending async answer, so it
+    // would sit blank forever. Drop it (and its thread record) before appending
+    // the user's turn, so a cancelled replay never leaves a ghost response.
+    if (_replaying) {
+      try {
+        var _lt = _threadEl && _threadEl.lastElementChild;
+        var _lr = _lt && _lt.querySelector('[data-state="results"]');
+        var _blank = !_lr || _lr.classList.contains('tmw-ov-hidden') || !((_lr.innerHTML || '').trim());
+        if (_lt && _blank) { _lt.remove(); if (_thread.length) _thread.pop(); }
+      } catch (_) {}
+    }
     _replaying = false;       // a real user query → DO track it
     input.value = '';
     if (go) go.classList.remove('ready');
@@ -2440,11 +2452,18 @@
   // pending local save isn't clobbered (cloud ts only advances once it lands).
   function _reconcileCloud(){
     if (!root.classList.contains('open')) return;
+    // NEVER adopt-and-replay a cloud thread once the user is actively using THIS
+    // one. _resumeReplay clears the thread and re-runs every query, which races
+    // the user's in-flight turn and leaves it blank (the "my response vanished"
+    // bug — especially with the overlay open in several tabs, each polling). A
+    // background sync silently nuking a live conversation is never acceptable;
+    // cross-device adoption still happens on a fresh open, before any interaction.
+    if (_userInteracted) return;
     fetchServerThread().then(function(res){
       if (!res || !res.ts || res.ts <= _syncedTs) return;   // nothing newer than what we have
       _syncedTs = res.ts;
       if (res.qs && res.qs.join('') !== _threadQs().join('')) {
-        _userInteracted = false;
+        if (_userInteracted) return;   // user typed during the fetch → don't clobber their live thread
         _resumeReplay(res.qs);
       }
     });
@@ -4165,6 +4184,10 @@
   function fireIntelligence(q, topProjects, topArticles, place, topic, token, placeTerms){
     var Core = window.TmwSearchCore;
     if (!Core) return;
+    // Capture THIS turn's record now (before the async call) so a journal/question
+    // answer is stored for follow-up context + faithful resume — the structured
+    // path does this; this path didn't, so those turns never fed the LLM history.
+    var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
     // placeTerms lets the worker pull body-level matches from D1 for the place.
     var facts = (topic && Core.buildJournalFacts)
@@ -4195,6 +4218,7 @@
         if (res && res.ok && res.answer){
           slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
           _stopThinking(true);
+          if (_turnRec) _turnRec.answer = res.answer;   // feed the next follow-up's context
           cacheAnswer(q, res.answer);   // remember for instant resume / repeat
           // Count this against the user's free quota (window.tmwIntel.FREE)
           // (intelligence.js
