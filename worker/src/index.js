@@ -6836,7 +6836,14 @@ async function handleSmartAnswer(request, env, origin) {
   // the iconic list even when zero pipeline projects match.
   const hasIconic = !!(facts && facts.iconic && Array.isArray(facts.iconic.items) && facts.iconic.items.length);
   const hasProjects = !!(facts && Array.isArray(facts.top) && facts.top.length && count >= 1);
-  if (!q || !facts || (!hasProjects && !hasIconic)) return fail('no_facts');
+  // A genuine QUESTION must NEVER dead-end. Even with zero DB facts we still
+  // answer it — grounded in whatever the semantic recall below surfaces, and the
+  // web for anything our own data doesn't cover (DB-first, web-fallback, always
+  // provide). Only bail when there's truly nothing to work with AND it isn't a
+  // question (a bare no-match keyword → the client's own empty path handles it).
+  const isQ = !!q && (/\?/.test(q) || /^(what|whats|why|how|when|where|who|which|whose|is|are|am|do|does|did|can|could|will|would|should|has|have|had|tell|describe|explain|summar|compare|give|list|show)\b/i.test(q.trim()));
+  if (!q || !facts) return fail('bad_facts');
+  if (!hasProjects && !hasIconic && !isQ) return fail('no_facts');
 
   if (!env.ANTHROPIC_API_KEY) return fail('no_key');
 
@@ -6844,7 +6851,7 @@ async function handleSmartAnswer(request, env, origin) {
   const compact = {
     query: q,
     criteria: facts.criteria || {},
-    count: count,
+    count: hasProjects ? count : 0,   // honest: no DB projects → don't let the model claim "N tracked"
     sort: facts.sort || null,
     topic: facts.topic ? String(facts.topic).slice(0, 40) : null,
     place_terms: Array.isArray(facts.placeTerms) ? facts.placeTerms.slice(0, 10).map(t => String(t || '').slice(0, 40)) : null,
@@ -7135,7 +7142,7 @@ async function handleSmartAnswer(request, env, origin) {
   // search and the answer stays DB-driven, fast, and free. Even when offered, the
   // model is told to prefer the verified facts and use the web only for context.
   const useWeb = !compact.topic && (compact.top || []).length < 3;
-  const WEB_CLAUSE = '\n\nWEB ACCESS — our verified facts are thin for this query, so you MAY call web_search to add real-world context: what a term means, why a market/sector/trend is moving, notable facts about the place or brand. STRICT RULES: (1) lean on the verified facts FIRST and use them for every project name, figure, status, and date; (2) use the web ONLY for context the facts do not contain; (3) NEVER let a web result override, contradict, or invent a TMW project fact; (4) do not search if the facts already answer. If you still find no real substance, say "Nothing in our system yet" and give the closest useful context. Keep the single-paragraph format and the trailing HERO: line.';
+  const WEB_CLAUSE = '\n\nWEB ACCESS — our own verified facts are thin or empty for this query, so you SHOULD call web_search and ANSWER THE QUESTION rather than declining. This is the promise: if we have it, answer from our data; if we don\'t, find it and answer anyway. STRICT RULES: (1) lean on any verified facts FIRST and use them for every TMW project name, figure, status, and date; (2) use the web for everything our facts don\'t cover — definitions, market data, rates, people, history, how a mechanism works; (3) NEVER let a web result override, contradict, or invent a TMW project fact. TONE: answer DIRECTLY and helpfully as a knowledgeable real-estate intelligence — do NOT open with a disclaimer that the topic is "outside our coverage", that "we track X not Y", or that we have "nothing"; the reader asked a question, so just give them the substantive answer. Only if the web genuinely yields nothing usable, say so briefly and give the closest useful context. Keep the single-paragraph format and the trailing HERO: line (HERO: NONE when no project fits).';
 
   let answer = null;
   try {
