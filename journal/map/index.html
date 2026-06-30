@@ -4937,6 +4937,83 @@
 
   .fs-loading { padding: 60px 20px; text-align: center;
     color: rgba(255,255,255,0.5); font-size: 13px; }
+
+  /* ───── New firm-sheet design — mirrors the standalone /firm/<slug>/ page
+     (serif hero, purple eyebrow, status-coloured stat grid, editorial cards).
+     Everything is scoped under .fsx with fsx- prefixed classes so it can't
+     collide with the map's global .card/.stat/.section rules. ───────────── */
+  .fsx { --fx-purple:#A78BFA; --fx-purple-bright:#C4B5FD; --fx-purple-glow:#B9A6FF;
+    --fx-green:#1FDF67; --fx-gold:#FFD300; --fx-amber:#FFB45E;
+    --fx-white:#fff; --fx-cream:#ECEAE5; --fx-mute:#9AA39C; --fx-mute2:#C2C9C3;
+    --fx-hair:rgba(255,255,255,.08);
+    --fx-serif:'Fraunces',Georgia,serif;
+    --fx-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --fx-mono:'JetBrains Mono',ui-monospace,monospace;
+    color:var(--fx-cream); }
+  .fsx-eyebrow { font-family:var(--fx-mono); font-size:10.5px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--fx-purple-bright); margin-bottom:16px;
+    display:inline-flex; align-items:center; gap:9px; line-height:1.4; }
+  .fsx-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%;
+    background:var(--fx-purple); box-shadow:0 0 10px var(--fx-purple); flex:0 0 auto; }
+  .fsx-name { font-family:var(--fx-serif); font-size:clamp(30px,4.4vw,50px); line-height:1.05;
+    font-weight:500; letter-spacing:-.022em; color:var(--fx-white); max-width:20ch; margin:0; }
+  .fsx-pills { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .fsx-pill { font-family:var(--fx-sans); font-size:12.5px; color:var(--fx-mute2);
+    padding:6px 12px; background:rgba(255,255,255,.04); border:1px solid var(--fx-hair); border-radius:999px; }
+  .fsx-pill b { color:var(--fx-white); font-weight:600; margin-right:6px; }
+  .fsx-sub { font-family:var(--fx-serif); font-style:italic; font-weight:300; font-size:17px;
+    color:var(--fx-mute2); margin-top:16px; line-height:1.5; max-width:62ch; }
+  .fsx-sub b { font-style:normal; font-weight:500; color:var(--fx-white); }
+  .fsx-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; padding:24px 0;
+    border-top:1px solid var(--fx-hair); border-bottom:1px solid var(--fx-hair); margin-top:24px; }
+  .fsx-stat { background:rgba(255,255,255,.02); border:1px solid var(--fx-hair); border-radius:12px; padding:16px; }
+  .fsx-stat .n { font-family:var(--fx-serif); font-size:28px; font-weight:500; letter-spacing:-.018em;
+    color:var(--fx-white); line-height:1; }
+  .fsx-stat .l { font-family:var(--fx-mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--fx-mute); margin-top:9px; }
+  .fsx-stat.uc .n { color:var(--fx-amber); }
+  .fsx-stat.bg .n { color:var(--fx-gold); }
+  .fsx-stat.os .n { color:var(--fx-purple-bright); }
+  .fsx-stat.no .n { color:var(--fx-green); }
+  .fsx-sec { margin-top:30px; }
+  .fsx-sec-eyebrow { font-family:var(--fx-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--fx-purple-bright); margin-bottom:8px; font-weight:600; }
+  .fsx-sec-title { font-family:var(--fx-serif); font-size:24px; line-height:1.15; font-weight:500;
+    letter-spacing:-.018em; color:var(--fx-white); margin:0; }
+  .fsx-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
+  .fsx-tab { font-family:var(--fx-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--fx-mute); padding:8px 14px; background:rgba(255,255,255,.03); border:1px solid var(--fx-hair);
+    border-radius:999px; cursor:pointer; transition:border-color .15s,color .15s,background .15s; }
+  .fsx-tab:hover { color:var(--fx-white); border-color:rgba(167,139,250,.4); }
+  .fsx-tab.active { color:#0a0a0a; background:var(--fx-purple-glow); border-color:var(--fx-purple-glow); font-weight:600; }
+  .fsx-tab .count { opacity:.65; margin-left:5px; }
+  .fsx-tab.active .count { opacity:.85; }
+  .fsx-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); gap:12px; }
+  .fsx-card { display:flex; flex-direction:column; background:#111; border-radius:14px; overflow:hidden;
+    border:1px solid transparent; transition:transform .15s,border-color .15s; text-decoration:none; color:inherit; }
+  .fsx-card:hover { transform:translateY(-2px); border-color:rgba(167,139,250,.3); }
+  .fsx-card-img { height:150px; background-size:cover; background-position:center; position:relative; background-color:#1a1a1a; }
+  .fsx-card-img::after { content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.5) 100%); }
+  .fsx-badge { position:absolute; left:10px; bottom:10px; z-index:2; display:inline-flex; align-items:center; gap:6px;
+    padding:5px 10px; border-radius:999px; background:rgba(10,12,14,.7);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    font-family:var(--fx-mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#fff;
+    border:1px solid rgba(255,255,255,.12); }
+  .fsx-badge .dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
+  .fsx-card-body { padding:14px 16px 16px; }
+  .fsx-card-title { font-family:var(--fx-serif); font-size:18px; font-weight:500; letter-spacing:-.014em;
+    line-height:1.2; color:var(--fx-white); }
+  .fsx-card-loc { font-family:var(--fx-sans); font-size:12.5px; color:var(--fx-mute2); margin-top:5px; }
+  .fsx-card-foot { display:flex; justify-content:space-between; align-items:baseline; margin-top:12px;
+    padding-top:11px; border-top:1px solid var(--fx-hair); font-family:var(--fx-mono); font-size:9.5px;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--fx-mute); }
+  .fsx-card-foot .date { font-family:var(--fx-sans); font-size:12px; font-weight:600; letter-spacing:0;
+    text-transform:none; color:#fff; }
+  @media (max-width: 700px) {
+    .fsx-stats { grid-template-columns:repeat(2,1fr); }
+    .fsx-name { font-size:clamp(26px,8vw,38px); }
+  }
   #projectModal .pm-stat-val {
     font-size: 12px; color: #fff; font-weight: 500;
     line-height: 1.3;
@@ -24402,14 +24479,14 @@
         // data-project-slug lets the sheet click handler open the project modal
         // over the map instead of navigating to the static project page.
         return `
-            <a class="fs-proj" data-status="${esc(status)}" data-project-slug="${esc(slug)}" href="/projects/${esc(slug)}/">
-              <div class="fs-proj-hero" style="${img}">
-                <div class="fs-proj-status"><span class="dot" style="background:${sInfo.color}"></span>${esc(sInfo.label)}</div>
+            <a class="fsx-card" data-status="${esc(status)}" data-project-slug="${esc(slug)}" href="/projects/${esc(slug)}/">
+              <div class="fsx-card-img" style="${img}">
+                <div class="fsx-badge"><span class="dot" style="background:${sInfo.color}"></span>${esc(sInfo.label)}</div>
               </div>
-              <div class="fs-proj-body">
-                <div class="fs-proj-title">${esc(p.title || '')}</div>
-                <div class="fs-proj-meta">${metaParts.join(' &middot; ')}</div>
-                <div class="fs-proj-foot">
+              <div class="fsx-card-body">
+                <div class="fsx-card-title">${esc(p.title || '')}</div>
+                <div class="fsx-card-loc">${metaParts.join(' &middot; ')}</div>
+                <div class="fsx-card-foot">
                   <span>Delivery</span>
                   <span class="date">${esc(fmtMonthYear(p.deliveryDate))}</span>
                 </div>
@@ -24480,40 +24557,76 @@
           if (da !== db) return da < db ? 1 : -1;
           return (a.title || '').localeCompare(b.title || '');
         });
-        const metaParts = [];
-        if (firm.founded) metaParts.push(`<div class="item"><span class="item-lbl">Founded</span><span>${esc(firm.founded)}</span></div>`);
-        if (firm.hq)      metaParts.push(`<div class="item"><span class="item-lbl">HQ</span><span>${esc(firm.hq)}</span></div>`);
-        if (stats.markets.length) {
-          metaParts.push(`<div class="item"><span class="item-lbl">Active in</span><span>${stats.markets.length} market${stats.markets.length === 1 ? '' : 's'}</span></div>`);
-        }
+        // Status breakdown for the stat strip + the editorial sub-line.
+        const bk = { announced: 0, 'breaking-ground': 0, construction: 0, 'coming-soon': 0, open: 0 };
+        projects.forEach(p => { const ns = normalizeStatus(p.delivery); if (bk[ns] != null) bk[ns]++; });
+
+        // Hero pills (founded / HQ / active markets).
+        const pills = [];
+        if (firm.founded) pills.push(`<span class="fsx-pill"><b>Founded</b>${esc(firm.founded)}</span>`);
+        if (firm.hq)      pills.push(`<span class="fsx-pill"><b>HQ</b>${esc(firm.hq)}</span>`);
+        if (stats.markets.length) pills.push(`<span class="fsx-pill"><b>Active in</b>${stats.markets.length} market${stats.markets.length === 1 ? '' : 's'}</span>`);
+
+        // Editorial sub-line: "We track N <role> projects by <firm> — X under
+        // construction, and Y announced. Active in M markets."
+        const proseParts = [];
+        if (bk.construction)        proseParts.push(`<b>${bk.construction} under construction</b>`);
+        if (bk['breaking-ground'])  proseParts.push(`<b>${bk['breaking-ground']} breaking ground</b>`);
+        if (bk['coming-soon'])      proseParts.push(`<b>${bk['coming-soon']} opening soon</b>`);
+        if (bk.open)                proseParts.push(`<b>${bk.open} now open</b>`);
+        if (bk.announced)           proseParts.push(`<b>${bk.announced} announced</b>`);
+        const roleNoun = role === 'architects' ? 'architecture' : 'development';
+        let prose = `We track <b>${stats.total} ${roleNoun} project${stats.total === 1 ? '' : 's'}</b> by ${esc(firm.name)}`;
+        if (proseParts.length === 1) prose += ` — ${proseParts[0]}`;
+        else if (proseParts.length > 1) prose += ` — ${proseParts.slice(0, -1).join(', ')}, and ${proseParts[proseParts.length - 1]}`;
+        prose += '.';
+        if (stats.markets.length) prose += ` Active in <b>${stats.markets.length} market${stats.markets.length === 1 ? '' : 's'}</b>.`;
+
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
         return `
-        <div class="fs-role">${esc(ROLE_LABEL[role])}</div>
-        <h1 class="fs-name" id="firmSheetTitle">${esc(firm.name)}</h1>
-        <div class="fs-meta">${metaParts.join('')}</div>
+        <div class="fsx">
+          <div class="fsx-eyebrow">${esc(ROLE_LABEL[role])} · ${stats.total} project${stats.total === 1 ? '' : 's'} tracked · Updated ${today}</div>
+          <h1 class="fsx-name" id="firmSheetTitle">${esc(firm.name)}</h1>
+          ${pills.length ? `<div class="fsx-pills">${pills.join('')}</div>` : ''}
+          <p class="fsx-sub">${prose}</p>
 
-        ${renderStats(stats)}
+          <div class="fsx-stats" aria-label="Status breakdown">
+            <div class="fsx-stat"><div class="n">${stats.total}</div><div class="l">Tracked</div></div>
+            <div class="fsx-stat uc"><div class="n">${bk.construction}</div><div class="l">Under Construction</div></div>
+            <div class="fsx-stat bg"><div class="n">${bk['breaking-ground']}</div><div class="l">Breaking Ground</div></div>
+            <div class="fsx-stat os"><div class="n">${bk['coming-soon']}</div><div class="l">Opening Soon</div></div>
+            <div class="fsx-stat no"><div class="n">${bk.open}</div><div class="l">Now Open</div></div>
+          </div>
 
-        <div class="fs-tabs">
-          <button class="fs-tab active" data-fs-tab="all">All projects <span class="count">${stats.total}</span></button>
-          <button class="fs-tab" data-fs-tab="in-progress">In progress <span class="count">${stats.inProgress}</span></button>
-          <button class="fs-tab" data-fs-tab="completed">Completed <span class="count">${stats.completed}</span></button>
+          <div class="fsx-sec">
+            <div class="fsx-sec-eyebrow">Portfolio</div>
+            <h2 class="fsx-sec-title">Projects we're tracking</h2>
+            <div class="fsx-tabs">
+              <button class="fsx-tab active" data-fs-tab="all">All <span class="count">${stats.total}</span></button>
+              <button class="fsx-tab" data-fs-tab="in-progress">In progress <span class="count">${stats.inProgress}</span></button>
+              <button class="fsx-tab" data-fs-tab="completed">Completed <span class="count">${stats.completed}</span></button>
+            </div>
+            <div class="fsx-grid" id="fsGrid">${sorted.map(renderProjectCard).join('')}</div>
+          </div>
+
+          ${coverage && coverage.length ? `
+          <div class="fsx-sec">
+            <div class="fsx-sec-eyebrow">Coverage</div>
+            <h2 class="fsx-sec-title">Mentioning this firm</h2>
+            <div style="margin-top:16px">${renderCoverage(coverage)}</div>
+          </div>` : ''}
         </div>
-
-        <div class="fs-section-title">Portfolio</div>
-        <div class="fs-grid" id="fsGrid">${sorted.map(renderProjectCard).join('')}</div>
-
-        <div class="fs-section-title">Coverage mentioning this firm</div>
-        ${renderCoverage(coverage)}
         `;
       }
 
       // Tab click handling inside the sheet (filter project cards by status)
       function bindSheetTabs() {
-        document.querySelectorAll('#firmSheetContent .fs-tab').forEach(t => {
+        document.querySelectorAll('#firmSheetContent .fsx-tab').forEach(t => {
           t.addEventListener('click', () => {
             const active = t.dataset.fsTab;
-            document.querySelectorAll('#firmSheetContent .fs-tab').forEach(x => x.classList.toggle('active', x === t));
-            document.querySelectorAll('#firmSheetContent .fs-proj').forEach(c => {
+            document.querySelectorAll('#firmSheetContent .fsx-tab').forEach(x => x.classList.toggle('active', x === t));
+            document.querySelectorAll('#firmSheetContent .fsx-card').forEach(c => {
               const isOpen = c.dataset.status === 'open';
               const show = active === 'all' || (active === 'in-progress' && !isOpen) || (active === 'completed' && isOpen);
               c.style.display = show ? '' : 'none';
@@ -24659,7 +24772,7 @@
           return;
         }
 
-        const projLink = e.target.closest('#firmSheet a.fs-proj');
+        const projLink = e.target.closest('#firmSheet a.fsx-card');
         if (projLink) {
           const slug = projLink.dataset.projectSlug;
           if (slug) {
