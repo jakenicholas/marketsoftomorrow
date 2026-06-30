@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 10 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ybor-harbor/" aria-label="Open Ybor Harbor">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1585133743843e7853f3b67a1a56c12~mv2.jpg')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/darryl-shaw/"><div class="k">Developer</div><div class="v">Darryl Shaw</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-fallon-company/"><div class="k">Developer</div><div class="v">The Fallon Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hks/"><div class="k">Architect</div><div class="v">HKS</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-residences-charleston/" aria-label="Open Four Seasons Hotel &amp; Residences Charleston">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/strategic-property-partners/"><div class="k">Developer</div><div class="v">Strategic Property Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-apartments/" aria-label="Open Nora Apartments">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_51f0a9d6d72a4b7dbfc08f038768a40f~mv2.jpeg')"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ndt-development/"><div class="k">Developer</div><div class="v">NDT Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/cube-3/"><div class="k">Architect</div><div class="v">CUBE 3</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-avenue-naples/" aria-label="Open The Avenue Naples">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d6361f34ce404a81a2607981b664da3a~mv2.jpeg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/900-condo-developer/"><div class="k">Developer</div><div class="v">900 Condo Developer</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-marketplace-of-wellington/" aria-label="Open The Marketplace of Wellington">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ceed43316766457ea2ca9b37d83ccd0f~mv2.jpeg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="4">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-wellington/" aria-label="Open The Wellington">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a2b46f668ea043b592fee9ef58e8965d~mv2.jpeg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/wellington-lifestyle-partners-wlp/"><div class="k">Developer</div><div class="v">Wellington Lifestyle Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/workshopapd/"><div class="k">Architect</div><div class="v">Workshop/APD</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/310-greenwich-street/" aria-label="Open 310 Greenwich Street">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f23be788e016-57b32f5132236d3a1cfa0263cc43388f4ee7207b-777x432.jpeg')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/vornado-realty-trust/"><div class="k">Developer</div><div class="v">Vornado Realty Trust</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-nashville/" aria-label="Open The St. Regis Nashville">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e2245e20ca21-image-97.webp')"></div>
     <div class="card-body">
@@ -536,7 +563,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/turnberry/"><div class="k">Developer</div><div class="v">Turnberry</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><div class="k">Architect</div><div class="v">Morris Adjmi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-huron/" aria-label="Open The Huron">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/227e07fdf8d8-1_Huron_Street_20240719_DSC01287_crop_wide_2.png')"></div>
     <div class="card-body">

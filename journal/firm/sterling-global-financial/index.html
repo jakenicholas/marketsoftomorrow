@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">4</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=Sterling Global Financial">See all 6 on the map →</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hyatt-centric-grand-cayman/" aria-label="Open Hyatt Centric Grand Cayman">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/24121f3ead6d-Artists-rendering-Hyatt-Centric-1024x1024.jpg')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/269-west-bay-road-ltd/"><div class="k">Developer</div><div class="v">269 West Bay Road Ltd.</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/clodagh-design/"><div class="k">Architect</div><div class="v">Clodagh Design</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-global-financial/"><div class="k">Developer</div><div class="v">Sterling Global Financial</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-c-glazier/"><div class="k">Architect</div><div class="v">Robert C. Glazier</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-grand-cayman/" aria-label="Open Grand Hyatt Grand Cayman">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ca181ca16df-Exterior-rendering-sunset.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-global-financial/"><div class="k">Developer</div><div class="v">Sterling Global Financial</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/thirty-six/" aria-label="Open Thirty Six">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8f57782363be-058-36-Paradise-Island-DJI_0058-Edit.jpg')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-global-financial/"><div class="k">Developer</div><div class="v">Sterling Global Financial</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/" aria-label="Open Hurricane Hole Superyacht Marina">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/812fd2f9d214-DJI_0156-scaled.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-global-financial/"><div class="k">Developer</div><div class="v">Sterling Global Financial</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/indigo-bay/" aria-label="Open Indigo Bay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/87b7d85f5d33-Indigo-BayDerek-KellyK221129-1-03-scaled.jpg')"></div>
     <div class="card-body">

@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 8 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-william-residences-north-miami-beach/" aria-label="Open The William Residences North Miami Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_35ac753b1d78416b99183cae53ca88c4~mv2.jpeg')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/blue-road/"><div class="k">Developer</div><div class="v">Blue Road</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/carlos-ott/"><div class="k">Architect</div><div class="v">Carlos Ott</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cassia-residences/" aria-label="Open Cassia Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56332653fa76426aa679af81da8e9d3d~mv2.jpeg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/alta-developers/"><div class="k">Developer</div><div class="v">Alta Developers</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/behar-font-partners/"><div class="k">Architect</div><div class="v">Behar Font &amp; Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-fort-myers/" aria-label="Open ONE Fort Myers">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2805340ac69d-6893aad173f09.image.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/jaxi-builders/"><div class="k">Developer</div><div class="v">JAXI Builders</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/behar-font-partners/"><div class="k">Architect</div><div class="v">Behar Font &amp; Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/okan-tower/" aria-label="Open Okan Tower">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/okan-group/"><div class="k">Developer</div><div class="v">Okan Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/behar-font-partners/"><div class="k">Architect</div><div class="v">Behar Font &amp; Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-dynasty/" aria-label="Open The Dynasty">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bbf5c789de064bb3be1367ae6073fc71~mv2.webp')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/montierre-development/"><div class="k">Developer</div><div class="v">Montierre Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/behar-font-partners/"><div class="k">Architect</div><div class="v">Behar Font &amp; Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-estates-at-nomar/" aria-label="Open The Estates at NoMar">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4eb5c990851479e9e695aa4b3303cc1~mv2.webp')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="2">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hilton-miami-airport-blue-lagoon-expansion/" aria-label="Open Hilton Miami Airport Blue Lagoon Expansion">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0c6af632f5f2-Screenshot-2026-06-07-at-10.29.04-PM.png')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mcr/"><div class="k">Developer</div><div class="v">MCR</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/behar-font-partners/"><div class="k">Architect</div><div class="v">Behar Font &amp; Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/arbor-coconut-grove/" aria-label="Open Arbor Coconut Grove">
     <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/67aed68cd3194851e6e344b5/15822352-5aef-4cea-984f-8bf24777f1e4/Arbor+Hero+Day+Rendering.jpg')"></div>
     <div class="card-body">

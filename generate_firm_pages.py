@@ -731,6 +731,39 @@ def render_page(firm, firm_projects, stats, coverage_items):
     grid_html, paywall_note, gopro_pill, locked_n = paywall_grid(firm_all_cards, len(all_sorted), MARKET_ROOT_URL)
     paywall_head = PAYWALL_HEAD + (PAYWALL_JSONLD if locked_n else '')
 
+    # Portfolio tabs (All / In progress / Completed) — mirrors the map firm sheet.
+    # Only shown when the firm has BOTH active and completed projects (so each tab
+    # has something). Filters the grid cards by their data-status (completed =
+    # Now Open). Self-contained: scoped style + toggle script live in the markup.
+    show_tabs = stats['in_progress'] > 0 and stats['completed'] > 0
+    tabs_html = ("""
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>""") if show_tabs else ''
+
     # Stats strip — 5 cards (tracked / UC / BG / OS / NO), gold/amber tint as in market pages
     stats_cells = [
         ('', stats['total'], 'Tracked'),
@@ -951,7 +984,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
 {stats_html}
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -959,6 +992,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
         </div>
         <div class="section-meta">{gopro_pill if locked_n else f'<a class="see-all-pill" href="{MARKET_ROOT_URL}/map/?q={e(title)}">See all {stats["total"]} on the map →</a>'}</div>
       </div>
+      {tabs_html}
       {grid_html}
     </section>
 

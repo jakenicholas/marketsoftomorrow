@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill" href="https://www.oftmw.com/map/?q=Marriott International">See all 2 on the map →</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bvlgari-resort-ranfushi/" aria-label="Open Bvlgari Resort Ranfushi">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/92c0df5f5ae0-Bvlgari-Resort-Ranfushi.webp')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/bvlgari-hotels-resorts/"><div class="k">Developer</div><div class="v">Bvlgari Hotels &amp; Resorts</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/acpv-architects/"><div class="k">Architect</div><div class="v">ACPV Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-costa-mujeres-resort-cancun/" aria-label="Open The St. Regis Costa Mujeres Resort, Cancún">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da040537ebdf-beachfront.jpeg')"></div>
     <div class="card-body">

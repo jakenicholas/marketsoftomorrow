@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 8 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/water-street-tampa-entertainment-district/" aria-label="Open Water Street Tampa Entertainment District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4bcdea1811f74330b5673feea32e6145~mv2.jpg')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/strategic-property-partners/"><div class="k">Developer</div><div class="v">Strategic Property Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gensler/"><div class="k">Architect</div><div class="v">Gensler</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/70-hudson-yards/" aria-label="Open 70 Hudson Yards">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1556ea077f9b416d929f30517df0c738~mv2.jpg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-companies/"><div class="k">Developer</div><div class="v">Related Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gensler/"><div class="k">Architect</div><div class="v">Gensler</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/west-palm-point/" aria-label="Open West Palm Point">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8238fd9fe2fc4c72b0cdfe0383e29bc7~mv2.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/cohen-brothers-realty/"><div class="k">Developer</div><div class="v">Cohen Brothers Realty</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gensler/"><div class="k">Architect</div><div class="v">Gensler</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/atelier-residences-miami/" aria-label="Open Atelier Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c566323ac694-Atelier-Residences-Miami.webp')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/bldg-ventures/"><div class="k">Developer</div><div class="v">BLDG Ventures</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gensler/"><div class="k">Architect</div><div class="v">Gensler</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/water-street-phase-two/" aria-label="Open Water Street Phase Two">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/strategic-property-partners/"><div class="k">Developer</div><div class="v">Strategic Property Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gensler/"><div class="k">Architect</div><div class="v">Gensler</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rolex-tower/" aria-label="Open Weston Jewelers Las Olas Flagship">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a40bd061d72046cf8cf3e8ed1d65e818~mv2.webp')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="2">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-global-financial/"><div class="k">Developer</div><div class="v">Sterling Global Financial</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-c-glazier/"><div class="k">Architect</div><div class="v">Robert C. Glazier</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/pittsburgh-international-airport/" aria-label="Open Pittsburgh International Airport">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2026/01/vidal-hdr-gensler-pittsburgh-airport_dezeen_2364_hero.jpg')"></div>
     <div class="card-body">

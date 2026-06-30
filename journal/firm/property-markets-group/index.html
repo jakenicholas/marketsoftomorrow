@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 12 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/delano-residences-miami/" aria-label="Open Delano Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6963674d06e24e22bda26aed8387ab7c~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/carlos-ott/"><div class="k">Architect</div><div class="v">Carlos Ott</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/frida-kahlo-wynwood-residences/" aria-label="Open Frida Kahlo Wynwood Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bf878d5c43544aa2a7a4bee39ac8c3c7~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/carlos-ott/"><div class="k">Architect</div><div class="v">Carlos Ott</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-st-petersburg/" aria-label="Open Waldorf Astoria Residences St. Petersburg">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dc6d133f0bfe-waldorf-astoria-residences-st-petersburg-florida-of-tomorrow-crop.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/cube-3/"><div class="k">Architect</div><div class="v">CUBE 3</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-miami/" aria-label="Open Waldorf Astoria Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_db465c56627b46c9a24bc787827a74b6~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/carlos-ott/"><div class="k">Architect</div><div class="v">Carlos Ott</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-tree-residences-miami/" aria-label="Open Palm Tree Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><div class="k">Architect</div><div class="v">Kobi Karp</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-twenty-brickell-residences/" aria-label="Open One Twenty Brickell Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c25890182ac6482b9ad0876c2a340d8b~mv2.jpg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="6">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-twenty-brickell-signature-residences/" aria-label="Open One Twenty Brickell Signature Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e1fcb37c4b4f49f5a74282c127da585d~mv2.jpg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/sieger-suarez-architects/"><div class="k">Architect</div><div class="v">Sieger Suarez Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-twelve-residences/" aria-label="Open One West Twelve Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3284a1eb3f3422e9fd2d5c0dc151716~mv2.png')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/cube-3/"><div class="k">Architect</div><div class="v">CUBE 3</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/twenty-sixth-2nd-wynwood-residences/" aria-label="Open Twenty Sixth &amp; 2nd Wynwood Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e0db6ee90db46b1a4d170504c4b6550~mv2.jpg')"></div>
     <div class="card-body">
@@ -536,7 +563,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/cube-3/"><div class="k">Architect</div><div class="v">CUBE 3</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-park-sarasota/" aria-label="Open One Park Sarasota">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/402a6a2a5081-1703103852-OnePark_Quay_CamA_05-Credit-Imerza-scaled.jpg')"></div>
     <div class="card-body">
@@ -558,7 +585,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hoyt-architects/"><div class="k">Architect</div><div class="v">Hoyt Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sage-intracoastal-residences/" aria-label="Open Sage Intracoastal Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp')"></div>
     <div class="card-body">
@@ -580,7 +607,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/fsmy-architects-planners/"><div class="k">Architect</div><div class="v">FSMY Architects + Planners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/e11even-club-hotel-residences/" aria-label="Open E11EVEN® Club Hotel &amp; Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg')"></div>
     <div class="card-body">

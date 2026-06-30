@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">2</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 14 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/10-cityplace/" aria-label="Open 10 CityPlace">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/south-flagler-house/" aria-label="Open South Flagler House">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b87f778bff8b4b90a5675b2b2f769a49~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><div class="k">Architect</div><div class="v">Robert A.M. Stern Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/village-landing/" aria-label="Open Village Landing">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3a0dd1d9549a4004940c5d8b26973fd2~mv2.jpeg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edgeworth/" aria-label="Open Edgeworth">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/pine-crest-school-west-palm-beach/" aria-label="Open Pine Crest School West Palm Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db1488239c81-Upper-school-building.webp')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pine-crest-school/"><div class="k">Developer</div><div class="v">Pine Crest School</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wingrove-academy/" aria-label="Open Wingrove Academy">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64e7de987cd74a1893d941ca413b1947~mv2.jpeg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="8">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/15-cityplace/" aria-label="Open 15 CityPlace">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df03272bddf84e4ea5a7c52c4d2e7e7c~mv2.jpeg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shorecrest-flagler-drive/" aria-label="Open Shorecrest Flagler Drive">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0571ca7200743de980d42d760494d6f~mv2.jpeg')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/roger-ferris-partners/"><div class="k">Architect</div><div class="v">Roger Ferris + Partners</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/515-fern/" aria-label="Open 515 Fern">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_02cf86315d264456939f6fcde8df63b2~mv2.jpg')"></div>
     <div class="card-body">
@@ -536,7 +563,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/elkus-manfredi-architects/"><div class="k">Architect</div><div class="v">Elkus Manfredi Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/central-waterfront-park/" aria-label="Open Central Waterfront Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_31ae79dd95054797a87523c62be6d1af~mv2.jpeg')"></div>
     <div class="card-body">
@@ -558,7 +585,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><div class="k">Developer</div><div class="v">City of West Palm Beach</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/ojb-landscape-architecture/"><div class="k">Architect</div><div class="v">OJB Landscape Architecture</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/curio-by-hilton/" aria-label="Open Curio by Hilton">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ff185af2691b4e59a9b830047219e209~mv2.webp')"></div>
     <div class="card-body">
@@ -580,7 +607,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Ross Private Club">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg')"></div>
     <div class="card-body">
@@ -602,7 +629,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><div class="k">Architect</div><div class="v">Robert A.M. Stern Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/eataly-food-hall/" aria-label="Open Eataly Food Hall">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_843170fb5303403faf820a402a970de3~mv2.jpg')"></div>
     <div class="card-body">
@@ -624,7 +651,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/eataly-design-studio-in-historic-harriet-himmel-hall/"><div class="k">Architect</div><div class="v">Eataly Design Studio</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/apogee-golf-club/" aria-label="Open Apogee Golf Club">
     <div class="card-img" style="background-image:url('https://golfdigest.sports.sndimg.com/content/dam/images/golfdigest/fullset/2023/1/GD0923_FEAT_HOBIE_04.jpg.rend.hgtvcom.966.725.suffix/1692215573614.jpeg')"></div>
     <div class="card-body">

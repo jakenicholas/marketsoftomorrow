@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">2</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 17 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/10-cityplace/" aria-label="Open 10 CityPlace">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/singapore-changi-airport-terminal-5/" aria-label="Open Singapore Changi Airport Terminal 5">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2022/09/singapore-changi-airport-terminal-5-heatherwick-studio-kpf_dezeen_2364_hero.jpg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/changi-airport-group/"><div class="k">Developer</div><div class="v">Changi Airport Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/725-randolph/" aria-label="Open 725 Randolph">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1b451d4e9a17-725-Randolph_East-Aerial_Related-Midwest_KPF.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-midwest/"><div class="k">Developer</div><div class="v">Related Midwest</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6768db8848214fdfa59d88fbb0d40fbe~mv2.jpg')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/one-thousand-group/"><div class="k">Developer</div><div class="v">One Thousand Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/seven-broadway/" aria-label="Open Seven Broadway">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_db9553c66fec42838cb24f0ef7bdea70~mv2.jpeg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ytech/"><div class="k">Developer</div><div class="v">Ytech</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-mandarin-oriental-miami/" aria-label="Open The Residences at Mandarin Oriental, Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d90a5b424734738b12484bba93c8b75~mv2.jpg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="11">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edgeworth/" aria-label="Open Edgeworth">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/fulton-bond/" aria-label="Open Fulton Bond">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f1333372f3a480eb301774eaf6e22c5~mv2.png')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sulo-development/"><div class="k">Developer</div><div class="v">Sulo Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-deer-valley-resort-and-residences/" aria-label="Open Waldorf Astoria Deer Valley Resort and Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_46f9a0944f154020b6f337a77010f62e~mv2.jpeg')"></div>
     <div class="card-body">
@@ -536,7 +563,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/extell-development-company-with-hilton/"><div class="k">Developer</div><div class="v">Extell Development Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-seoul/" aria-label="Open Rosewood Seoul">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0869c538abd430c8f6108c74f35c110~mv2.avif')"></div>
     <div class="card-body">
@@ -558,7 +585,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/eleven-dc-co/"><div class="k">Developer</div><div class="v">Eleven D&amp;C Co.</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/" aria-label="Open The Birdsall, Auberge Resorts Collection">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg')"></div>
     <div class="card-body">
@@ -580,7 +607,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/transwestern-development-company/"><div class="k">Developer</div><div class="v">Transwestern Development Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg')"></div>
     <div class="card-body">
@@ -602,7 +629,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lincoln-property-company-kairoi-residential/"><div class="k">Developer</div><div class="v">Lincoln Property Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg')"></div>
     <div class="card-body">
@@ -624,7 +651,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lincoln-property-company/"><div class="k">Developer</div><div class="v">Lincoln Property Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-city-hall/" aria-label="Open Boca Raton City Hall">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg')"></div>
     <div class="card-body">
@@ -646,7 +673,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra/"><div class="k">Developer</div><div class="v">Terra</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/capella-residences-bangkok/" aria-label="Open Capella Residences Bangkok">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48323bc7fc2f-IMG_9456.jpeg')"><span class="card-parent-chip">Part of WellEra</span></div>
     <div class="card-body">
@@ -668,7 +695,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/bdms/"><div class="k">Developer</div><div class="v">BDMS</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/520-fifth-avenue/" aria-label="Open 520 Fifth Avenue">
     <div class="card-img" style="background-image:url('https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg')"></div>
     <div class="card-body">
@@ -690,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rabina/"><div class="k">Developer</div><div class="v">Rabina</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/atlantis-the-royal/" aria-label="Open Atlantis The Royal">
     <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6549/546b/f96c/7679/a590/f474/large_jpg/atlantis-the-royal-kpf_3.jpg')"></div>
     <div class="card-body">

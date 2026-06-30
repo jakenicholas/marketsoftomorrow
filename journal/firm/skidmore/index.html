@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 9 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
     <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/08/A.png')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-companies/"><div class="k">Developer</div><div class="v">Related Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/175-park-ave/" aria-label="Open 175 Park Ave">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4c622766aac74eabae52528299fd93db~mv2.jpg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rxr-realty/"><div class="k">Developer</div><div class="v">RXR Realty</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/lincoln-yards/" aria-label="Open Lincoln Yards">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/sterling-bay/"><div class="k">Developer</div><div class="v">Sterling Bay</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/penn-station-redevelopment/" aria-label="Open Penn Station Redevelopment">
     <div class="card-img" style="background-image:url('https://www.mas.org/wp-content/uploads/2017/12/penn-station-rendering-lobby-with-sunshine-pano.jpg')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/empire-state-development/"><div class="k">Developer</div><div class="v">Empire State Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shenzhen-bay-super-headquarters-base/" aria-label="Open Shenzhen Bay Super Headquarters Base">
     <div class="card-img" style="background-image:url('https://arqa.com/wp-content/uploads/2021/08/01_zha_-shenzhen-tower-c_render-by-brick-visual.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/shenzhen-municipal-government/"><div class="k">Developer</div><div class="v">Shenzhen Municipal Government</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-78/" aria-label="Open The 78">
     <div class="card-img" style="background-image:url('https://www.costar.com/_next/image?url=https%3A%2F%2Fcostar.brightspotcdn.com%2Fdims4%2Fdefault%2Fd7d30b4%2F2147483647%2Fstrip%2Ftrue%2Fcrop%2F2100x1400%2B0%2B0%2Fresize%2F2100x1400!%2Fquality%2F100%2F%3Furl%3Dhttp%253A%252F%252Fcostar-brightspot.s3.us-east-1.amazonaws.com%252F40%252F1c%252F2b5adc414056a1eee36fc82a8b1d%252Fdpi.jpg&amp;w=3840&amp;q=75')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="3">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/skywaters-residences/" aria-label="Open Skywaters Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4050e4e3ff341949a36b24362ba09c8~mv2.webp')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/perennial-holdings/"><div class="k">Developer</div><div class="v">Perennial Holdings</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-jumeira/" aria-label="Open Burj Jumeira">
     <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/dubai-holding/"><div class="k">Developer</div><div class="v">Dubai Holding</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/skidmore/"><div class="k">Architect</div><div class="v">Skidmore</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/one-bangkok/" aria-label="Open One Bangkok">
     <div class="card-img" style="background-image:url('https://www.som.com/wp-content/uploads/2021/09/OneBangkok_SOM_DaveBurk_002_large-1774035770-scaled.jpg')"></div>
     <div class="card-body">

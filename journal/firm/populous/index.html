@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">1</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 7 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-bay-sands-expansion/" aria-label="Open Marina Bay Sands Expansion">
     <div class="card-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/marina-bay-sands-las-vegas-sands-corp/"><div class="k">Developer</div><div class="v">Marina Bay Sands</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/safdie-architects/"><div class="k">Architect</div><div class="v">Safdie Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-nashville-predators/"><div class="k">Developer</div><div class="v">The Nashville Predators</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/as-roma-friedkin-group/"><div class="k">Developer</div><div class="v">AS Roma (Friedkin Group)</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/" aria-label="Open New Kansas City Royals Stadium">
     <div class="card-img" style="background-image:url('https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/kansas-city-royals/"><div class="k">Developer</div><div class="v">Kansas City Royals</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/aloha-halawa-district-partners-development-ventures-group/"><div class="k">Developer</div><div class="v">Aloha Halawa District Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-bay-rays-stadium/" aria-label="Open Tampa Bay Rays Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="1">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/new-highmark-stadium/" aria-label="Open New Highmark Stadium">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg')"></div>
     <div class="card-body">

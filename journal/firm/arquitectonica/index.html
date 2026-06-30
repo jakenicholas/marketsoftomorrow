@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">9</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 63 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/olara/" aria-label="Open Olara">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/savanna/"><div class="k">Developer</div><div class="v">Savanna</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-berkeley/" aria-label="Open The Berkeley">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f984daff5f54b249d669a5112ca45f9~mv2.webp')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/adelson-group/"><div class="k">Developer</div><div class="v">Adelson Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-residences-fort-lauderdale/" aria-label="Open Viceroy Residences Fort Lauderdale">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7a910ddcdb574a909344aafcaca1f9ff~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/naftali-group/"><div class="k">Developer</div><div class="v">Naftali Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jem-private-residences/" aria-label="Open JEM Private Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/naftali-group/"><div class="k">Developer</div><div class="v">Naftali Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mr-c-residences-west-palm-beach/" aria-label="Open Mr. C Residences West Palm Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c00a21a76b794f25b63e7d178185946d~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra/"><div class="k">Developer</div><div class="v">Terra</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/good-samaritan-medical-district/" aria-label="Open Good Samaritan Medical District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b3aca0110642f1aef69b1965dc45f9~mv2.jpg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="57">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jean-georges-miami-tropic-residences/" aria-label="Open Jean-Georges Miami Tropic Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ca2288b16822401b8295bd0f1ddc9da5~mv2.jpg')"></div>
     <div class="card-body">
@@ -492,7 +519,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra/"><div class="k">Developer</div><div class="v">Terra</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-bahia-mar/" aria-label="Open St. Regis Bahia Mar">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg')"></div>
     <div class="card-body">
@@ -514,7 +541,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cleveland-clinic-hospital/" aria-label="Open Cleveland Clinic Hospital">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bc9a3bec0e2840e693b85964bd7263c8~mv2.jpeg')"></div>
     <div class="card-body">
@@ -536,7 +563,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/cleveland-clinic/"><div class="k">Developer</div><div class="v">Cleveland Clinic</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edition-residences-miami-edgewater/" aria-label="Open EDITION Residences Miami Edgewater">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_946fd79216804afe95f8d69e5c8c6529~mv2.png')"></div>
     <div class="card-body">
@@ -558,7 +585,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/two-roads-development/"><div class="k">Developer</div><div class="v">Two Roads Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kempinksi-residences/" aria-label="Open Kempinski Residences Miami Design District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef26494bd731474d8dbbdfc73bcd01f8~mv2.jpeg')"></div>
     <div class="card-body">
@@ -580,7 +607,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/dagrosa-capital-partners/"><div class="k">Developer</div><div class="v">DaGrosa Capital Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mr-c-residences-boca-raton/" aria-label="Open Mr. C Residences Boca Raton">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e7e8a462647144508badd07ff6105d6b~mv2.jpeg')"></div>
     <div class="card-body">
@@ -602,7 +629,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/key-international/"><div class="k">Developer</div><div class="v">Key International</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ora-by-casa-tua/" aria-label="Open Ora by Casa Tua">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8e37ac2332b423f9d3b648bdb24bb01~mv2.webp')"></div>
     <div class="card-body">
@@ -624,7 +651,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/fortune-international-group/"><div class="k">Developer</div><div class="v">Fortune International Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/123-ocean/" aria-label="Open 123 Ocean">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_445dcb51bfab4b5f97729a55a31eca71~mv2.jpg')"></div>
     <div class="card-body">
@@ -646,7 +673,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lionbright-development/"><div class="k">Developer</div><div class="v">Lionbright Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1428-brickell/" aria-label="Open 1428 Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a8f10c9a6c3649b3b1abb94e65c2089e~mv2.webp')"></div>
     <div class="card-body">
@@ -668,7 +695,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ytech/"><div class="k">Developer</div><div class="v">Ytech</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/acpv-architects/"><div class="k">Architect</div><div class="v">ACPV Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg')"></div>
     <div class="card-body">
@@ -690,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cora-merrick-park/" aria-label="Open CORA Merrick Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c690770559c245a5ba2185ca04c337cc~mv2.jpeg')"></div>
     <div class="card-body">
@@ -712,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/constellation-group/"><div class="k">Developer</div><div class="v">Constellation Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cipriani-residences-brickell/" aria-label="Open Cipriani Residences Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4fdfff154ce144589c2accb9f37043e4~mv2.webp')"></div>
     <div class="card-body">
@@ -734,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mast-capital/"><div class="k">Developer</div><div class="v">Mast Capital</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg')"></div>
     <div class="card-body">
@@ -756,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/continuum-company/"><div class="k">Developer</div><div class="v">Continuum Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hq-residences-miami/" aria-label="Open HQ Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_64160581bc9a4d7d9260e046994899c3~mv2.jpg')"></div>
     <div class="card-body">
@@ -778,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/hq-hotels-residences-in-partnership-with-marc-anthony/"><div class="k">Developer</div><div class="v">HQ Hotels &amp; Residences</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/metro-parc-south/" aria-label="Open Metro Parc South">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_edafe3d949b746f4be9ffc6d56419de0~mv2.jpeg')"></div>
     <div class="card-body">
@@ -800,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mg-developer/"><div class="k">Developer</div><div class="v">MG Developer</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/midtown-park/" aria-label="Open Midtown Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0dc8e50ab8d344e18c9cdfdc95b9e451~mv2.jpeg')"></div>
     <div class="card-body">
@@ -822,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rosso-development/"><div class="k">Developer</div><div class="v">Rosso Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nobe-parc-miami-beach/" aria-label="Open NoBe PARC Miami Beach">
     <div class="card-img" style="background-image:url('https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg')"></div>
     <div class="card-body">
@@ -844,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/robert-finvarb-companies/"><div class="k">Developer</div><div class="v">Robert Finvarb Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-residences-sunny-isles-beach/" aria-label="Open St. Regis Residences, Sunny Isles Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d1f619411848430c92f0dc67149a95b6~mv2.jpg')"></div>
     <div class="card-body">
@@ -866,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/fortune-international-group/"><div class="k">Developer</div><div class="v">Fortune International Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-huehub/" aria-label="Open The HueHub">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_074beb3887014e9e9ec0d13020e46ba7~mv2.webp')"></div>
     <div class="card-body">
@@ -888,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pablo-castro-urban-network-capital/"><div class="k">Developer</div><div class="v">Pablo Castro (Urban Network Capital)</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-launiu-ward-village/" aria-label="Open The Launiu Ward Village">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7fdfe595eb8d-arquitectonica-launiu-ward-village-hawaii-designboom-600.jpg')"></div>
     <div class="card-body">
@@ -910,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/howard-hughes/"><div class="k">Developer</div><div class="v">Howard Hughes</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-west-palm-beach/" aria-label="Open The Ritz Carlton Residences, West Palm Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b4fc5cf3814bb0ac4d6c35ea321557~mv2.jpg')"></div>
     <div class="card-body">
@@ -932,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-well-coconut-grove/" aria-label="Open The WELL Coconut Grove">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fcbbe9b8699b43a5b05485be0240f503~mv2.jpeg')"></div>
     <div class="card-body">
@@ -954,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra-group/"><div class="k">Developer</div><div class="v">Terra Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-aventura/" aria-label="Open Viceroy Aventura">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3d41389792404c38a79670655db48d25~mv2.jpg')"></div>
     <div class="card-body">
@@ -976,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/pbkc-redevelopment/" aria-label="Open Westgate Village (Palm Beach Kennel Club Redevelopment)">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56780272183c4480b570953cdd68ec09~mv2.jpg')"></div>
     <div class="card-body">
@@ -998,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra-group/"><div class="k">Developer</div><div class="v">Terra Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/15-cityplace/" aria-label="Open 15 CityPlace">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df03272bddf84e4ea5a7c52c4d2e7e7c~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1020,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ella-miami-beach/" aria-label="Open Ella Miami Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9450c5fc921e427f81eda7438eb045ef~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1042,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/constellation-group/"><div class="k">Developer</div><div class="v">Constellation Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-convention-center-hotel/" aria-label="Open Grand Hyatt Convention Center Hotel">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60232d8a569e4d899564f69001e8b5a9~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1064,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra-group/"><div class="k">Developer</div><div class="v">Terra Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/lofty-brickell/" aria-label="Open Lofty Brickell">
     <div class="card-img" style="background-image:url('https://i0.wp.com/loftybrickell.com/wp-content/uploads/Lofty_VPExterior02_rev06-standard-scale-2_00x-gigapixel-1-scaled.jpg?fit=2560%2C1600&amp;quality=89&amp;ssl=1')"></div>
     <div class="card-body">
@@ -1086,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/newgard-development-group/"><div class="k">Developer</div><div class="v">Newgard Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/natiivo-fort-lauderdale/" aria-label="Open Natiivo Fort Lauderdale">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_23943fe581ce4b12bf3f6f3a58940839~mv2.webp')"></div>
     <div class="card-body">
@@ -1108,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/newgard-development-group/"><div class="k">Developer</div><div class="v">Newgard Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-palm/" aria-label="Open ONE West Palm">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_49be1e0e818341a1820b65fc9db2d553~mv2.webp')"></div>
     <div class="card-body">
@@ -1130,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/jeff-greene/"><div class="k">Developer</div><div class="v">Jeff Greene</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/oasis-hallandale/" aria-label="Open Oasis Hallandale">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ee231384a2904d75a72f793315aa691b~mv2.jpg')"></div>
     <div class="card-body">
@@ -1152,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/giuseppe-iadisernia/"><div class="k">Developer</div><div class="v">Giuseppe Iadisernia</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ocean-house/" aria-label="Open Ocean House">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d66187ba9411404da70f9c8fc5823986~mv2.webp')"></div>
     <div class="card-body">
@@ -1174,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/multiplan-ream/"><div class="k">Developer</div><div class="v">Multiplan REAM</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-hillsboro-beach/" aria-label="Open Rosewood Hillsboro Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c3e97bf27274407b92f576b1fbef5dd6~mv2.webp')"></div>
     <div class="card-body">
@@ -1196,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/safe-harbor-rybovich-district/" aria-label="Open Safe Harbor Rybovich District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b1078c0e871c44f7a27cab3ea75f18b7~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1218,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/safe-harbor-marinas/"><div class="k">Developer</div><div class="v">Safe Harbor Marinas</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/summit-brickell/" aria-label="Open Summit Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f9f8a4f9a3594d728f5729c27d6cffb9~mv2.png')"></div>
     <div class="card-body">
@@ -1240,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lore-development-group/"><div class="k">Developer</div><div class="v">Lore Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-pendry-tampa-and-residences/" aria-label="Open The Pendry Tampa and Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bcfbc7ae06d643f1a59e408b6464e6cd~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1262,7 +1289,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/two-roads-development/"><div class="k">Developer</div><div class="v">Two Roads Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-standard-residences-brickell/" aria-label="Open The Standard Residences Brickell">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_86c2ab554740437b9d3984d9560f62db~mv2.jpg')"></div>
     <div class="card-body">
@@ -1284,7 +1311,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/newgard-development-group/"><div class="k">Developer</div><div class="v">Newgard Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/aria-reserve/" aria-label="Open Aria Reserve">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg')"></div>
     <div class="card-body">
@@ -1306,7 +1333,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-melo-group/"><div class="k">Developer</div><div class="v">The Melo Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/casa-bella-residences-miami/" aria-label="Open Casa Bella Residences Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d69aa899f553416a8388e8e42f7f25cc~mv2.jpg')"></div>
     <div class="card-body">
@@ -1328,7 +1355,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ocean-one/" aria-label="Open Ocean One">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c7a6588521ec-IMG_9454.webp')"></div>
     <div class="card-body">
@@ -1350,7 +1377,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/hyperion-group/"><div class="k">Developer</div><div class="v">Hyperion Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rivani-miami-beach/" aria-label="Open Rivani Miami Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4342e429058545d7bf02bd9764f51710~mv2.webp')"></div>
     <div class="card-body">
@@ -1372,7 +1399,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rivani-formerly-black-lion/"><div class="k">Developer</div><div class="v">RIVANI</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_03da05365f014e6b94e590aca30a0fd2~mv2.webp')"></div>
     <div class="card-body">
@@ -1394,7 +1421,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/continuum-company/"><div class="k">Developer</div><div class="v">Continuum Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/curio-by-hilton/" aria-label="Open Curio by Hilton">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ff185af2691b4e59a9b830047219e209~mv2.webp')"></div>
     <div class="card-body">
@@ -1416,7 +1443,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/highland-park-miami/" aria-label="Open Highland Park Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b7663f0d97c6-Highland_Park_mAster-Plan.jpg')"></div>
     <div class="card-body">
@@ -1438,7 +1465,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/black-salmon/"><div class="k">Developer</div><div class="v">Black Salmon</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/magic-city-innovation-district/" aria-label="Open Magic City Innovation District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cb1319d71147-69df69f06000690c4d99a3cc_CityFull.avif')"></div>
     <div class="card-body">
@@ -1460,7 +1487,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/dragon-global/"><div class="k">Developer</div><div class="v">Dragon Global</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/manor-riverwalk-district/" aria-label="Open Manor Riverwalk District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/81969aa98250-2024.05.08-Manor-Riverwalk-Night-Rendering.jpeg')"></div>
     <div class="card-body">
@@ -1482,7 +1509,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-west-palm-beach/" aria-label="Open Rosewood Residences West Palm Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c31060b077d40609c4c999b3a2de90f~mv2.jpg')"></div>
     <div class="card-body">
@@ -1504,7 +1531,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/singer-island-gateway/" aria-label="Open Singer Island Gateway">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_17b207ad3c1740328bc801963fda7c82~mv2.webp')"></div>
     <div class="card-body">
@@ -1526,7 +1553,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/continuum-company/"><div class="k">Developer</div><div class="v">Continuum Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-brickell-residences/" aria-label="Open Viceroy Brickell Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fd34127b34804ba3857582358cf2ff51~mv2.jpg')"></div>
     <div class="card-body">
@@ -1548,7 +1575,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/related-group/"><div class="k">Developer</div><div class="v">Related Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cad443df22ba4b8ab83ddb512aef35ad~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1570,7 +1597,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/miami-freedom-park-llc-david-beckham/"><div class="k">Developer</div><div class="v">Miami Freedom Park</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/manica/"><div class="k">Architect</div><div class="v">MANICA</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-estero-bay/" aria-label="Open The Ritz-Carlton Residences, Estero Bay">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4411ac5958cc41f5a5c2d7f5f3594576~mv2.jpg')"></div>
     <div class="card-body">
@@ -1592,7 +1619,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/london-bay-homes/"><div class="k">Developer</div><div class="v">London Bay Homes</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-standard-residences-midtown-miami/" aria-label="Open The Standard Residences, Midtown Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2d859d14912f40e7917bb3e5de91dcbc~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1614,7 +1641,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/standard-international/"><div class="k">Developer</div><div class="v">Standard International</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/fort-on-flagler/" aria-label="Open Forté on Flagler">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2a29bdc443f4baca16e4fedd722052c~mv2.jpg')"></div>
     <div class="card-body">
@@ -1636,7 +1663,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/two-roads-development/"><div class="k">Developer</div><div class="v">Two Roads Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/pier-sixty-six/" aria-label="Open Pier Sixty-Six">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"></div>
     <div class="card-body">
@@ -1658,7 +1685,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/tavistock-development/"><div class="k">Developer</div><div class="v">Tavistock Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75fec2a79d1b49eca4dd15a680da5365~mv2.jpeg')"></div>
     <div class="card-body">
@@ -1680,7 +1707,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ndt-development/"><div class="k">Developer</div><div class="v">NDT Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-residence-at-400-central/" aria-label="Open The Residence at 400 Central">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16c9ba83c9684c269df38a596b0931c4~mv2.webp')"></div>
     <div class="card-body">
@@ -1702,7 +1729,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/red-apple-real-estate/"><div class="k">Developer</div><div class="v">Red Apple Real Estate</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/riva-residences/" aria-label="Open Riva Residences">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5177bae1dfdd4c2b9730e684f86d6192~mv2.jpeg')"></div>
     <div class="card-body">

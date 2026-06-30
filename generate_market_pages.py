@@ -458,6 +458,10 @@ def card_html(p: dict) -> str:
     cap   = esc(f"{p.get('Title','')} · {p.get('City','')}")
     featured = is_featured(p)
     featured_attrs = ' data-featured="1"' if featured else ''
+    # Filterable status for portfolio tabs (firm pages): completed = Now Open /
+    # delivered, everything else = active/in-progress. Inert elsewhere.
+    _dlc = (p.get('Delivery') or '').strip().lower()
+    status_attr = ' data-status="completed"' if ('now open' in _dlc or _dlc in ('open', 'completed', 'delivered')) else ' data-status="active"'
     feat_badge = f'<span class="card-feat-badge" aria-label="Featured project">{FEAT_STAR_SVG}</span>' if featured else ''
 
     # Construction timeline + mini stats — shape mirrors the project page hero
@@ -512,7 +516,7 @@ def card_html(p: dict) -> str:
     )
 
     return (
-        f'<div class="card{" featured" if featured else ""}"{featured_attrs}>\n'
+        f'<div class="card{" featured" if featured else ""}"{featured_attrs}{status_attr}>\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
         f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}{parent_chip_html}</div>\n'
         f'    <div class="card-body">\n'

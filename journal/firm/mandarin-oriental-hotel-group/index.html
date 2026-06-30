@@ -326,7 +326,7 @@
 <div class="stat no"><div class="n">2</div><div class="l">Now Open</div></div>
     </div>
 
-    <section class="section">
+    <section class="section" id="firmPortfolio">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -334,8 +334,35 @@
         </div>
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 7 &rarr;</a></div>
       </div>
+      
+      <style>
+      #firmPortfolio .firm-tabs{display:flex;gap:8px;margin:2px 0 18px;flex-wrap:wrap}
+      #firmPortfolio .firm-tab{font:inherit;font-size:13px;font-weight:600;color:#9aa39c;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 16px;cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+      #firmPortfolio .firm-tab:hover{color:#fff;border-color:rgba(255,255,255,.26)}
+      #firmPortfolio .firm-tab.active{color:#0a0c0a;background:#e6c574;border-color:#e6c574}
+      </style>
+      <div class="firm-tabs" role="tablist">
+        <button class="firm-tab active" data-filter="all" type="button">All</button>
+        <button class="firm-tab" data-filter="in-progress" type="button">In progress</button>
+        <button class="firm-tab" data-filter="completed" type="button">Completed</button>
+      </div>
+      <script>
+      (function(){
+        var sec=document.getElementById('firmPortfolio'); if(!sec) return;
+        sec.querySelectorAll('.firm-tab').forEach(function(t){
+          t.addEventListener('click',function(){
+            var f=t.getAttribute('data-filter');
+            sec.querySelectorAll('.firm-tab').forEach(function(x){x.classList.toggle('active',x===t);});
+            sec.querySelectorAll('.card[data-status]').forEach(function(c){
+              var done=c.getAttribute('data-status')==='completed';
+              c.style.display=(f==='all'||(f==='in-progress'&&!done)||(f==='completed'&&done))?'':'none';
+            });
+          });
+        });
+      })();
+      </script>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1">
+<div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-residences-west-palm-beach/" aria-label="Open Mandarin Oriental Residences, West Palm Beach">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8c82130e3ed4ee890c293295bab0104~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -357,7 +384,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/great-gulf/"><div class="k">Developer</div><div class="v">Great Gulf</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/safdie-architects/"><div class="k">Architect</div><div class="v">Safdie Architects</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-mandarin-oriental-miami/" aria-label="Open The Residences at Mandarin Oriental, Miami">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d90a5b424734738b12484bba93c8b75~mv2.jpg')"></div>
     <div class="card-body">
@@ -379,7 +406,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/swire-properties/"><div class="k">Developer</div><div class="v">Swire Properties</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/" aria-label="Open Mandarin Oriental Esencia, Puerto Rico">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3f5d12b136040e2b57c201577c4c282~mv2.jpeg')"></div>
     <div class="card-body">
@@ -401,7 +428,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/reuben-brothers/"><div class="k">Developer</div><div class="v">Reuben Brothers</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/studio-mk27/"><div class="k">Architect</div><div class="v">Studio MK27</div><span class="go">View firm profile →</span></a></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-setouchi/" aria-label="Open Mandarin Oriental, Setouchi">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1683738b5904-MO_Setouchi.jpeg')"></div>
     <div class="card-body">
@@ -423,7 +450,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mandarin-oriental-hotel-group/"><div class="k">Developer</div><div class="v">Mandarin Oriental Hotel Group</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-cristallo-cortina-d-ampezzo/" aria-label="Open Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/44b4c1e913d9-cristallo-inverno.jpg')"></div>
     <div class="card-body">
@@ -445,7 +472,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mandarin-oriental-hotel-group/"><div class="k">Developer</div><div class="v">Mandarin Oriental Hotel Group</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
 </div>
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-punta-negra/" aria-label="Open Mandarin Oriental Punta Negra">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/90863cfc4d8f-aerial-view-MO-resort.jpeg')"></div>
     <div class="card-body">
@@ -470,7 +497,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="1">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card">
+<div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-desaru-coast/" aria-label="Open Mandarin Oriental, Desaru Coast">
     <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/31e3543685e4-modes-homepage.jpg')"></div>
     <div class="card-body">
