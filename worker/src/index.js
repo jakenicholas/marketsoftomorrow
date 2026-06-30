@@ -4171,6 +4171,105 @@ function handleThreadsDeletionStatus(url) {
   return new Response('<!doctype html><meta charset=utf-8><body style="font:15px system-ui;padding:40px">Data deletion request ' + (code || '') + ' received and processed.</body>',
     { status: 200, headers: { 'content-type': 'text/html' } });
 }
+
+// ── LinkedIn: ONE member OAuth (Jake, an admin of every brand Company Page) + a
+// per-brand Organization URN. Posts use author=urn:li:organization:{id}; follower
+// counts come from the same orgs. Needs the Community Management API product on the
+// app (scopes w_organization_social, r_organization_social, rw_organization_admin).
+const LINKEDIN_SCOPES = 'openid profile email w_organization_social r_organization_social rw_organization_admin';
+function linkedinRedirect(env) { return env.LINKEDIN_REDIRECT || 'https://tmw.jake-ab7.workers.dev/linkedin/callback'; }
+async function ensureLinkedinTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS linkedin_tokens (
+    id TEXT PRIMARY KEY, member_urn TEXT, member_name TEXT, access_token TEXT, refresh_token TEXT,
+    expires_at INTEGER, refresh_expires_at INTEGER, updated_at INTEGER)`).run();
+}
+async function handleLinkedinConnectUrl(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.LINKEDIN_CLIENT_ID || !env.SESSION_SECRET) return json({ error: 'LinkedIn not configured (need LINKEDIN_CLIENT_ID + SESSION_SECRET).' }, { status: 500 }, env, origin);
+  const state = await signPayload({ li: 1, exp: Math.floor(Date.now() / 1000) + 600 }, env.SESSION_SECRET);
+  const auth = 'https://www.linkedin.com/oauth/v2/authorization?' + new URLSearchParams({
+    response_type: 'code', client_id: env.LINKEDIN_CLIENT_ID, redirect_uri: linkedinRedirect(env), scope: LINKEDIN_SCOPES, state
+  });
+  return json({ url: auth }, {}, env, origin);
+}
+async function handleLinkedinCallback(req, env, origin, url) {
+  const html = (msg, ok) => new Response(
+    '<!doctype html><meta charset=utf-8><body style="font:15px system-ui;background:#0b0e0c;color:#fff;padding:48px;text-align:center">'
+    + (ok ? '✅ ' : '⚠️ ') + msg + '<br><br><a style="color:#A78BFA" href="https://admin.oftmw.com/social-accounts.html">Back to Accounts →</a>',
+    { status: ok ? 200 : 400, headers: { 'content-type': 'text/html' } });
+  const code = url.searchParams.get('code') || '', state = url.searchParams.get('state') || '';
+  if (url.searchParams.get('error')) return html('LinkedIn denied the connection: ' + (url.searchParams.get('error_description') || url.searchParams.get('error')), false);
+  if (!code || !state) return html('Missing code/state.', false);
+  if (!env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET || !env.SESSION_SECRET) return html('LinkedIn not configured on the worker.', false);
+  const s = await verifyPayload(state, env.SESSION_SECRET);
+  if (!s || !s.li) return html('Invalid or expired connect link — start again from the Accounts page.', false);
+  try {
+    const tk = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: linkedinRedirect(env), client_id: env.LINKEDIN_CLIENT_ID, client_secret: env.LINKEDIN_CLIENT_SECRET })
+    }).then(r => r.json());
+    if (!tk.access_token) return html('Token exchange failed: ' + (tk.error_description || tk.error || JSON.stringify(tk).slice(0, 200)), false);
+    let urn = '', name = '';
+    try {
+      const ui = await fetch('https://api.linkedin.com/v2/userinfo', { headers: { Authorization: 'Bearer ' + tk.access_token } }).then(r => r.json());
+      if (ui && ui.sub) urn = 'urn:li:person:' + ui.sub;
+      name = (ui && (ui.name || ui.given_name)) || '';
+    } catch (_) {}
+    await ensureLinkedinTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(`INSERT INTO linkedin_tokens (id, member_urn, member_name, access_token, refresh_token, expires_at, refresh_expires_at, updated_at)
+      VALUES ('default',?1,?2,?3,?4,?5,?6,?7)
+      ON CONFLICT(id) DO UPDATE SET member_urn=?1, member_name=?2, access_token=?3, refresh_token=COALESCE(?4, refresh_token), expires_at=?5, refresh_expires_at=?6, updated_at=?7`)
+      .bind(urn, name, tk.access_token, tk.refresh_token || null, now + (tk.expires_in || 5184000), now + (tk.refresh_token_expires_in || 31536000), now).run();
+    return html('LinkedIn connected' + (name ? ' as <b>' + name + '</b>' : '') + '. You can close this tab.', true);
+  } catch (e) { return html('Connect error: ' + String(e && e.message || e), false); }
+}
+async function handleLinkedinStatus(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureLinkedinTable(env);
+  const row = await env.DB.prepare(`SELECT member_urn, member_name, expires_at FROM linkedin_tokens WHERE id='default'`).first();
+  return json({ connected: !!(row && row.member_urn), member_name: row ? row.member_name : null, expires_at: row ? row.expires_at : null }, {}, env, origin);
+}
+async function handleLinkedinDisconnect(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureLinkedinTable(env);
+  await env.DB.prepare(`DELETE FROM linkedin_tokens WHERE id='default'`).run();
+  return json({ ok: true }, {}, env, origin);
+}
+// Organizations the connected member administers → for mapping each brand to its Company Page.
+async function handleLinkedinOrgs(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  await ensureLinkedinTable(env);
+  const row = await env.DB.prepare(`SELECT access_token FROM linkedin_tokens WHERE id='default'`).first();
+  if (!row || !row.access_token) return json({ error: 'LinkedIn not connected' }, { status: 400 }, env, origin);
+  try {
+    const r = await fetch('https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED&projection=(elements*(organizationalTarget~(localizedName)))',
+      { headers: { Authorization: 'Bearer ' + row.access_token, 'X-Restli-Protocol-Version': '2.0.0' } }).then(r => r.json());
+    const orgs = ((r && r.elements) || []).map(e => {
+      const urn = e.organizationalTarget || '';
+      const nm = (e['organizationalTarget~'] && e['organizationalTarget~'].localizedName) || '';
+      return { urn, name: nm, id: String(urn).replace('urn:li:organization:', '') };
+    }).filter(o => o.urn);
+    return json({ orgs, error: (r && r.message) || null }, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
+}
+async function refreshLinkedinToken(env) {
+  try {
+    if (!env.DB || !env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET) return;
+    await ensureLinkedinTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    const row = await env.DB.prepare(`SELECT refresh_token, expires_at FROM linkedin_tokens WHERE id='default'`).first();
+    if (!row || !row.refresh_token || row.expires_at > now + 7 * 86400) return;
+    const rr = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: row.refresh_token, client_id: env.LINKEDIN_CLIENT_ID, client_secret: env.LINKEDIN_CLIENT_SECRET })
+    }).then(x => x.json()).catch(() => ({}));
+    if (rr.access_token) {
+      await env.DB.prepare(`UPDATE linkedin_tokens SET access_token=?1, refresh_token=COALESCE(?2, refresh_token), expires_at=?3, updated_at=?4 WHERE id='default'`)
+        .bind(rr.access_token, rr.refresh_token || null, now + (rr.expires_in || 5184000), now).run();
+    }
+  } catch (_) {}
+}
 async function publishThreads(threadsUserId, text, token) {
   // The OAuth user_id can mismatch the Graph object id — resolve it from the token.
   let uid = threadsUserId;
@@ -8515,6 +8614,11 @@ export default {
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/deauth') return handleThreadsDeauth();
       if ((request.method === 'POST' || request.method === 'GET') && url.pathname === '/threads/delete') return handleThreadsDelete();
       if (request.method === 'GET'  && url.pathname === '/threads/deletion-status') return handleThreadsDeletionStatus(url);
+      if (request.method === 'GET'  && url.pathname === '/linkedin/connect-url') return await handleLinkedinConnectUrl(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/linkedin/callback')    return await handleLinkedinCallback(request, env, origin, url);
+      if (request.method === 'GET'  && url.pathname === '/linkedin/status')       return await handleLinkedinStatus(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/linkedin/orgs')         return await handleLinkedinOrgs(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/linkedin/disconnect')   return await handleLinkedinDisconnect(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
@@ -8728,5 +8832,6 @@ export default {
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
+    ctx.waitUntil(refreshLinkedinToken(env));    // keep the LinkedIn token alive (60-day expiry)
   },
 };
