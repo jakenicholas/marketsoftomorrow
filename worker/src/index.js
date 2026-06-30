@@ -4301,6 +4301,60 @@ async function refreshThreadsTokens(env) {
   } catch (_) {}
 }
 
+// ── Public follower counts ──────────────────────────────────────────────────
+// The admin's Followers tab is the source of truth (followers.json in tmw-data).
+// On every save it also POSTs {counts, history} here so the worker holds a public,
+// cached copy the website (media page + market cards) reads — no GitHub token needed.
+async function ensureFollowersCacheTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS followers_cache (id TEXT PRIMARY KEY, data TEXT, updated_at INTEGER)`).run();
+}
+// Per-market sums + umbrella total + trailing-month growth from the snapshot history.
+function computeFollowers(stored) {
+  const counts = (stored && stored.counts) || {};
+  const history = Array.isArray(stored && stored.history) ? stored.history : [];
+  const markets = {}; let umbrella = 0;
+  for (const key of Object.keys(counts)) {
+    let sum = 0; const row = counts[key] || {};
+    for (const pk of Object.keys(row)) sum += Number(row[pk]) || 0;
+    markets[key] = sum; umbrella += sum;
+  }
+  // Growth: current umbrella vs the earliest snapshot in the trailing ~40 days
+  // (falls back to the earliest snapshot overall). As weekly snapshots accrue this
+  // naturally reads as ~last-month growth. Dates are 'YYYY-MM-DD'.
+  let growth = null;
+  const sorted = history.filter(h => h && h.date && h.total != null).sort((a, b) => a.date < b.date ? -1 : 1);
+  if (sorted.length) {
+    const cutoff = new Date(Date.now() - 40 * 86400 * 1000).toISOString().slice(0, 10);
+    const base = sorted.find(h => h.date >= cutoff) || sorted[0];
+    const delta = umbrella - (Number(base.total) || 0);
+    const pct = base.total ? (delta / base.total) * 100 : 0;
+    growth = { delta, pct: Math.round(pct * 10) / 10, since: base.date, from: Number(base.total) || 0, current: umbrella };
+  }
+  return { markets, umbrella, growth };
+}
+async function handleFollowersGet(req, env, origin) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureFollowersCacheTable(env);
+  const row = await env.DB.prepare(`SELECT data, updated_at FROM followers_cache WHERE id='live'`).first();
+  let stored = {};
+  if (row && row.data) { try { stored = JSON.parse(row.data); } catch (_) {} }
+  const out = computeFollowers(stored);
+  return json({ ...out, updated_at: row ? row.updated_at : null },
+    { headers: { 'Cache-Control': 'public, max-age=120, s-maxage=300' } }, env, origin);
+}
+async function handleFollowersPost(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body; try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  if (!body || typeof body !== 'object' || typeof body.counts !== 'object') return json({ error: 'body must be {counts, history}' }, { status: 400 }, env, origin);
+  await ensureFollowersCacheTable(env);
+  const payload = JSON.stringify({ counts: body.counts || {}, history: Array.isArray(body.history) ? body.history : [] });
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT INTO followers_cache (id, data, updated_at) VALUES ('live',?1,?2)
+    ON CONFLICT(id) DO UPDATE SET data=?1, updated_at=?2`).bind(payload, now).run();
+  return json({ ok: true, ...computeFollowers(JSON.parse(payload)) }, {}, env, origin);
+}
+
 // ── Live publish: Instagram + Facebook via the Meta system-user token ───────
 const META_GRAPH = 'https://graph.facebook.com/v21.0';
 function metaErr(j) {
@@ -8620,6 +8674,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/linkedin/orgs')         return await handleLinkedinOrgs(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/linkedin/disconnect')   return await handleLinkedinDisconnect(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/followers') return await handleFollowersGet(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/followers') return await handleFollowersPost(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/carousel-preview-token') {
         const denied = await requireAdminToken(request, env, origin);
