@@ -6856,6 +6856,11 @@ async function handleSmartAnswer(request, env, origin) {
     topic: facts.topic ? String(facts.topic).slice(0, 40) : null,
     place_terms: Array.isArray(facts.placeTerms) ? facts.placeTerms.slice(0, 10).map(t => String(t || '').slice(0, 40)) : null,
     place: facts.place || null,
+    // Place SCOPE (from the client's resolvePlace): the place name + the set of
+    // in-place city names. Used to keep semantic `related` recall + the prose
+    // inside the queried place (a Colorado query can't surface Charleston).
+    place_name: facts.placeName ? String(facts.placeName).slice(0, 60) : null,
+    place_cities: Array.isArray(facts.placeCities) ? facts.placeCities.slice(0, 80).map(c => String(c || '').slice(0, 40)) : null,
     tallest: facts.tallest || null,
     largest: facts.largest || null,
     residences_total: facts.residencesTotal || null,
@@ -6930,9 +6935,21 @@ async function handleSmartAnswer(request, env, origin) {
         const rq = await env.VECTORIZE.query(vec, { topK: 18, returnMetadata: 'all' });
         const have = new Set((compact.top || []).map(t => String(t.id)));
         const ms = rq.matches || [];
+        // PLACE LOCK: when the query resolved to a place, drop any recalled match
+        // whose city isn't in that place — so a semantic neighbor in the wrong
+        // place (e.g. "Limelight Charleston" for a Colorado query) never reaches
+        // the prose. City normalization mirrors the client's norm() (lowercase,
+        // strip accents, first comma part). Articles (no city) are place-agnostic.
+        const _pc = compact.place_cities;
+        const _ncity = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(',')[0].trim();
+        const inPlace = (m) => {
+          if (!_pc || !_pc.length) return true;
+          if (m.metadata && m.metadata.kind === 'article') return true;   // articles aren't geo-scoped here
+          return _pc.indexOf(_ncity(m.metadata && m.metadata.city)) >= 0;
+        };
         // Real project/article matches the keyword pass missed — citeable.
         const rel = ms
-          .filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.62 && m.metadata.title && !have.has(String(m.metadata.slug)))
+          .filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.62 && m.metadata.title && !have.has(String(m.metadata.slug)) && inPlace(m))
           .slice(0, 6)
           .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         if (rel.length) compact.related = rel;
@@ -7126,6 +7143,9 @@ async function handleSmartAnswer(request, env, origin) {
       + 'never needs to hear about projects that don\'t exist; lead straight into the iconic venues as the natural answer. '
       + 'Treat `iconic` descriptions as verified facts; never invent. These iconic venues already EXIST and are celebrated — never call them "planned", '
       + '"proposed", "in the pipeline", or "tracked in our database"; reserve that language for the `top` development projects only.';
+  }
+  if (compact.place_name) {
+    system += '\n\nPLACE LOCK — this query is specifically about ' + compact.place_name + '. EVERY project or development you name MUST be located in ' + compact.place_name + '. Never cite a project outside it, even one that seems related by brand, architect, or theme.';
   }
   system += '\n\n' + HERO_DIRECTIVE;
   // Conversation mode: the current query may be a follow-up to the prior turns

@@ -3266,7 +3266,7 @@
   function fireSmartIntelUpgrade(q, s, rows, iconicHits){
     var Core = window.TmwSearchCore;
     if (!Core) return;
-    var facts = Core.buildSmartFacts(s, rows, iconicHits);
+    var facts = attachPlaceScope(Core.buildSmartFacts(s, rows, iconicHits), q);
     var hist = _isFollowupQ(q) ? threadHistory() : [];       // context only for real follow-ups
     var _intelSlot = slotIntel;                              // capture THIS turn's slot (it moves per turn)
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
@@ -4223,6 +4223,33 @@
     try { renderArticleSection(q, token, { fromBodyMerge: true }); } catch(_){}
   }
 
+  // Place scope for the ANSWER: when the query resolves to a real place, the
+  // worker must keep its semantic `related` recall (and therefore the prose)
+  // INSIDE that place — otherwise "across colorado" can let the answer cite a
+  // Charleston project (Limelight is an Aspen brand → semantic neighbor). The
+  // worker only has each match's city, so we hand it the set of in-place city
+  // names. Returns null for non-resolvable "places" (e.g. "asia") → no scope.
+  function placeScopeFor(q){
+    var Core = window.TmwSearchCore;
+    if (!Core || !Core.resolvePlace) return null;
+    var ph = Core.resolvePlace(q, PROJECTS);
+    if (!ph || typeof ph.match !== 'function') return null;
+    var seen = {}, cities = [];
+    for (var i = 0; i < PROJECTS.length; i++) {
+      if (!ph.match(PROJECTS[i])) continue;
+      var c = norm(String(PROJECTS[i].City || '').split(',')[0].trim());
+      if (c && !seen[c]) { seen[c] = 1; cities.push(c); if (cities.length >= 80) break; }
+    }
+    return cities.length ? { name: ph.name, cities: cities } : null;
+  }
+  // Attach the resolved place scope to a facts object (no-op when none).
+  function attachPlaceScope(facts, q){
+    if (!facts) return facts;
+    var ps = placeScopeFor(q);
+    if (ps) { facts.placeName = ps.name; facts.placeCities = ps.cities; }
+    return facts;
+  }
+
   function fireIntelligence(q, topProjects, topArticles, place, topic, token, placeTerms){
     var Core = window.TmwSearchCore;
     if (!Core) return;
@@ -4232,9 +4259,9 @@
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
     // placeTerms lets the worker pull body-level matches from D1 for the place.
-    var facts = (topic && Core.buildJournalFacts)
+    var facts = attachPlaceScope((topic && Core.buildJournalFacts)
       ? Core.buildJournalFacts(topArticles, place, topic, placeTerms)
-      : Core.buildIntelFacts(topProjects, topArticles, place);
+      : Core.buildIntelFacts(topProjects, topArticles, place), q);
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
