@@ -245,6 +245,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .umb-stats .us{display:flex; flex-direction:column; gap:3px}
 .umb-stats .uv{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--gold-soft); letter-spacing:-.02em; line-height:1; text-shadow:0 0 22px rgba(230,197,116,.45)}
 .umb-stats .uk{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+/* live follower-growth disclaimer bar (gold glow) */
+.growth-bar{display:flex; align-items:center; justify-content:center; gap:11px; margin:22px auto 0; max-width:780px; padding:13px 22px; border-radius:14px; font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; color:#f0d68a; border:1px solid rgba(230,197,116,.42); background:linear-gradient(180deg,rgba(230,197,116,.10),rgba(230,197,116,.03)); box-shadow:0 0 0 1px rgba(230,197,116,.10) inset, 0 14px 50px -22px rgba(230,197,116,.55); text-align:center}
+.growth-bar .gb-ico{font-size:12px}
+.growth-bar b{color:#fbe9b0; font-weight:700}
+.growth-bar .gb-sub{color:rgba(236,234,229,.6)}
+.growth-bar.down{color:#ff9a9a; border-color:rgba(255,140,140,.4); box-shadow:0 0 0 1px rgba(255,140,140,.1) inset, 0 14px 50px -22px rgba(255,140,140,.5)}
 /* per-outlet cards */
 .ocards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
 .ocard{padding:0; overflow:hidden; display:flex; flex-direction:column}
@@ -686,7 +692,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     </div>
     <div class="headstats">
       <div class="statcard glass reveal d1"><div class="num">8.1M</div><div class="lab">Monthly social views</div></div>
-      <div class="statcard glass reveal d2"><div class="num">205K</div><div class="lab">Total followers</div></div>
+      <div class="statcard glass reveal d2"><div class="num" data-fc="umbrella">205K</div><div class="lab">Total followers</div></div>
       <div class="statcard glass reveal d3"><div class="num">593,180</div><div class="lab">Monthly web impressions</div></div>
       <div class="statcard glass reveal d4"><div class="num">15,700</div><div class="lab">Newsletter subscribers</div></div>
     </div>
@@ -737,7 +743,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="grid3">
       <div class="metric glass reveal d1"><div class="num">8,145,000</div><div class="lab">Monthly social media views</div>
         <div class="split"><div class="split-track"></div><div class="split-row"><div class="split-side"><span class="sv">76%</span><span class="sk">instagram</span></div><div class="split-side r"><span class="sv">10%</span><span class="sk">linkedin</span></div></div></div></div>
-      <div class="metric glass reveal d2"><div class="num">205K</div><div class="lab">Total social media followers</div>
+      <div class="metric glass reveal d2"><div class="num" data-fc="umbrella">205K</div><div class="lab">Total social media followers</div>
         <div class="split"><div class="split-track"></div><div class="split-row"><div class="split-side"><span class="sv">80%</span><span class="sk">instagram</span></div><div class="split-side r"><span class="sv">10%</span><span class="sk">linkedin</span></div></div></div></div>
       <div class="metric glass reveal d3"><div class="num">593,180</div><div class="lab">Monthly website impressions</div>
         <div class="split"><div class="split-track"></div><div class="split-row"><div class="split-side"><span class="sv">31%</span><span class="sk">ai + google</span></div><div class="split-side r"><span class="sv">60%</span><span class="sk">direct + social</span></div></div></div></div>
@@ -756,7 +762,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <p class="lede">The ratios behind the reach &mdash; engagement, velocity, and the multiplier effect of a network that shares as one.</p>
     </div>
     <div class="nerd">
-      <div class="nd glass reveal d1"><div class="ndv">40&times;</div><div class="ndl">Views-to-follower ratio</div><div class="ndx">8.1M views &divide; 205K followers, monthly</div></div>
+      <div class="nd glass reveal d1"><div class="ndv">40&times;</div><div class="ndl">Views-to-follower ratio</div><div class="ndx">8.1M views &divide; <span data-fc="umbrella">205K</span> followers, monthly</div></div>
       <div class="nd glass reveal d2"><div class="ndv">2.6%</div><div class="ndl">Avg. share rate</div><div class="ndx">1,700 shares &divide; 65,850 post views</div></div>
       <div class="nd glass reveal d3"><div class="ndv">271K</div><div class="ndl">Daily social views</div><div class="ndx">8.1M &divide; 30 days, network-wide</div></div>
       <div class="nd glass reveal d4"><div class="ndv">2.5&times;</div><div class="ndl">Annual reach growth</div><div class="ndx">10M &rarr; 20M projected, 2025&rarr;2026</div></div>
@@ -809,7 +815,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="umbrella glass reveal">
       <div class="umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>
       <div class="umb-stats">
-        <div class="us"><span class="uv">205K</span><span class="uk">Followers</span></div>
+        <div class="us"><span class="uv" data-fc="umbrella">205K</span><span class="uk">Followers</span></div>
         <div class="us"><span class="uv">8.1M</span><span class="uk">Mo. Views</span></div>
         <div class="us"><span class="uv">593K</span><span class="uk">Mo. Web</span></div>
         <div class="us"><span class="uv">260K</span><span class="uk">Interactions</span></div>
@@ -959,7 +965,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         </div>
         <div class="lens-tag">The pulse lens</div>
         <h3>The Socials<span class="dot">.</span></h3>
-        <div class="lens-proof"><span><b>192.9K</b> followers</span><span><b>8.1M</b> mo. views</span></div>
+        <div class="lens-proof"><span><b data-fc="umbrella">192.9K</b> followers</span><span><b>8.1M</b> mo. views</span></div>
         <a class="lens-cta" href="https://instagram.com/marketsoftomorrow" target="_blank" rel="noopener">Follow the network <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </article>
 
@@ -1302,6 +1308,36 @@ let last=0; const nav=document.getElementById('nav');
     .then(r=>r.ok?r.json():null)
     .then(w=>{ if(w&&w.exists&&w.data&&Array.isArray(w.data.items)&&w.data.items.length) rebuildFrom(w.data.items); })
     .catch(()=>{});
+})();
+// ── Live follower counts + monthly growth (admin Followers tab → worker /followers) ──
+(function(){
+  var KEY={'florida of tomorrow':'florida','hotels of tomorrow':'hotels','tennessee of tomorrow':'tennessee','new york of tomorrow':'newyork','caribbean of tomorrow':'caribbean','rockies of tomorrow':'rockies','markets of tomorrow':'markets'};
+  function fmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1e4) return Math.round(n/1e3)+'K'; if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
+  fetch('https://tmw.jake-ab7.workers.dev/followers',{cache:'no-store'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(!d) return;
+      var m=d.markets||{}, umb=d.umbrella||0;
+      if(umb) document.querySelectorAll('[data-fc="umbrella"]').forEach(function(el){ el.textContent=fmt(umb); });
+      document.querySelectorAll('.ocard').forEach(function(card){
+        var nm=card.querySelector('.oname'); if(!nm) return;
+        var k=KEY[nm.textContent.trim().toLowerCase()]; if(!k||m[k]==null) return;
+        var fv=card.querySelector('.ost .ov'); if(fv) fv.textContent=fmt(m[k]);   // first stat per card = Followers
+      });
+      var g=d.growth;
+      if(g && g.delta!=null && g.delta!==0){
+        var oc=document.querySelector('.ocards'); if(!oc) return;
+        var up=g.delta>=0, dt=new Date(g.since+'T00:00:00');
+        var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var since=MON[dt.getMonth()]+' '+dt.getDate();
+        var bar=document.createElement('div');
+        bar.className='growth-bar'+(up?'':' down');
+        bar.innerHTML='<span class="gb-ico">'+(up?'▲':'▼')+'</span><span><b>'+(up?'+':'')+g.delta.toLocaleString()
+          +'</b> followers across the network this month<span class="gb-sub">  ('+(up?'+':'')+g.pct+'% since '+since+')</span></span>';
+        oc.parentNode.insertBefore(bar, oc.nextSibling);
+      }
+    })
+    .catch(function(){});
 })();
 // markets-visited region filter
 (function(){

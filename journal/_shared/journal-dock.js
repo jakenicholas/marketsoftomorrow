@@ -1252,7 +1252,7 @@
 
   function focusMarketsPanel() {
     var cards = FOCUS_MARKETS.map(function (m) {
-      var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v">' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
+      var stats = m.s.slice(0, 2).map(function (v, i) { return '<div class="tmw-oc-st"><span class="v"' + (i === 0 ? ' data-fc="' + m.key + '"' : '') + '>' + v + '</span><span class="k">' + SK[i] + '</span></div>'; }).join('');
       // Handles are {market}oftomorrow everywhere EXCEPT X, which is {market}oftmw.
       var xh = m.h.replace(/tomorrow$/, 'tmw');
       return '<a class="tmw-oc" role="menuitem" href="' + JOURNAL_HOME + '?market=' + m.key + '">' +
@@ -1966,4 +1966,27 @@
     }).catch(function(){});
   }
   (function wait(t){ t=t||0; var m=window.$memberstackDom; if(m&&m.getCurrentMember){ m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(mem&&mem.id) check(mem.id); }).catch(function(){}); return; } if(++t>40) return; setTimeout(function(){wait(t);},250); })();
+})();
+
+// ── Live follower counts on the Focus Markets cards (admin Followers tab → worker
+// /followers). Updates the [data-fc] Followers value on each card; cards may mount
+// after the fetch resolves, so retry briefly. Umbrella spots (media page) carry
+// data-fc="umbrella" and are filled by that page's own script, not here. ──
+(function () {
+  function fmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1e4) return Math.round(n/1e3)+'K'; if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
+  function apply(m){
+    var els = document.querySelectorAll('[data-fc]');
+    if (!els.length) return false;            // cards not mounted yet → keep retrying
+    var hit = 0;
+    els.forEach(function(el){ var k=(el.getAttribute('data-fc')||'').replace(/-/g,''); if(m[k]!=null){ el.textContent=fmt(m[k]); hit++; } });
+    return hit > 0;
+  }
+  fetch('https://tmw.jake-ab7.workers.dev/followers',{cache:'no-store'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(!d || !d.markets) return;
+      var n = 0;
+      (function tryApply(){ if(apply(d.markets)) return; if(++n<8) setTimeout(tryApply, 500); })();
+    })
+    .catch(function(){});
 })();
