@@ -305,6 +305,9 @@
        filter, so the tab is never a dead end. */
     + '.tmw-ov-jfallback{display:none}'
     + '[data-state="results"][data-filter="articles"] .tmw-ov-jfallback{display:block}'
+    + '.tmw-ov-jempty{font-size:13px;color:#9AA39C;padding:6px 0 2px}'
+    + '.tmw-ov-jempty a{color:#e6c574;text-decoration:none}'
+    + '.tmw-ov-jempty a:hover{text-decoration:underline}'
 
     /* Onyx 4.1 — answer-first OVERVIEW lens (the default). Shows the
        Intelligence answer + hero + a capped taste of each section; the
@@ -890,16 +893,26 @@
     + '.tmw-ov-projview-x svg{width:17px;height:17px;display:block}'
 
     /* Firms & places chiprow */
-    + '.tmw-ov-chiprow{display:flex;flex-wrap:wrap;gap:10px}'
-    + '.tmw-ov-entity{display:inline-flex;align-items:center;gap:10px;background:#141714;'
-    + 'border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 15px;'
-    + 'text-decoration:none;color:inherit;transition:border-color .2s}'
-    + '.tmw-ov-entity:hover{border-color:rgba(255,255,255,.22)}'
-    + '.tmw-ov-entity .icn{width:30px;height:30px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;'
-    + 'border-radius:8px;background:#222622;color:#C2C9C3}'
-    + '.tmw-ov-entity .icn svg{width:15px;height:15px}'
-    + '.tmw-ov-entity .nm{font-size:14px;color:#fff;font-weight:500}'
-    + '.tmw-ov-entity .sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9AA39C;margin-top:2px}'
+    /* Firm / place cards — proper cards in the firm-SEO style (monogram + gold
+       role + serif name + count + arrow), 2-up grid. Replaces the old cramped
+       icon-row .tmw-ov-entity. */
+    + '.tmw-ov-chiprow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'
+    + '@media(max-width:560px){.tmw-ov-chiprow{grid-template-columns:1fr}}'
+    + '.tmw-ov-firmcard{display:flex;align-items:center;gap:14px;background:#141714;'
+    + 'border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 16px;'
+    + 'text-decoration:none;color:inherit;transition:border-color .2s,background .2s,transform .15s}'
+    + '.tmw-ov-firmcard:hover{border-color:rgba(230,197,116,.42);background:#181b18;transform:translateY(-1px)}'
+    + '.tmw-ov-firmcard .fc-mark{width:50px;height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;'
+    + 'border-radius:11px;background:linear-gradient(140deg,#23281f,#15181a);border:1px solid rgba(230,197,116,.22);'
+    + 'font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:25px;color:#e6c574;line-height:1}'
+    + '.tmw-ov-firmcard .fc-mark svg{width:21px;height:21px;color:#e6c574}'
+    + '.tmw-ov-firmcard .fc-body{flex:1 1 auto;min-width:0}'
+    + '.tmw-ov-firmcard .fc-role{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#e6c574;font-weight:600}'
+    + '.tmw-ov-firmcard .fc-name{font-family:"Fraunces",Georgia,serif;font-size:17px;color:#fff;font-weight:600;line-height:1.2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '.tmw-ov-firmcard .fc-meta{font-size:11px;color:#9AA39C;margin-top:3px}'
+    + '.tmw-ov-firmcard .fc-arrow{flex:0 0 auto;color:#6c706c;display:flex;align-items:center;transition:color .2s,transform .2s}'
+    + '.tmw-ov-firmcard .fc-arrow svg{width:16px;height:16px}'
+    + '.tmw-ov-firmcard:hover .fc-arrow{color:#e6c574;transform:translateX(3px)}'
 
     /* From the journal — article cards in a 3-col grid with load-more */
     + '.tmw-ov-alist{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}'
@@ -1934,20 +1947,31 @@
   }
 
   function renderFirmEntity(f){
-    var sub = (f.role === 'architect' ? 'Architect' : (f.role === 'developer' ? 'Developer' : 'Firm'))
-            + (f.project_count ? (' · ' + f.project_count + ' project' + (f.project_count === 1 ? '' : 's')) : '');
+    var roleLbl = f.role === 'architect' ? 'Architect' : (f.role === 'developer' ? 'Developer' : 'Firm');
+    var pc = +f.project_count || 0;
+    var initial = (f.name || '?').trim().charAt(0).toUpperCase();
     var href = f.slug
       ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
       : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
-    return '<a class="tmw-ov-entity" href="'+esc(href)+'">'
-      + '<div class="icn">'+ICON_FIRM+'</div>'
-      + '<div><div class="nm">'+esc(f.name)+'</div><div class="sub">'+esc(sub)+'</div></div>'
+    return '<a class="tmw-ov-firmcard" href="'+esc(href)+'">'
+      + '<div class="fc-mark">'+esc(initial)+'</div>'
+      + '<div class="fc-body">'
+      +   '<span class="fc-role">'+esc(roleLbl)+'</span>'
+      +   '<div class="fc-name">'+esc(f.name)+'</div>'
+      +   (pc > 0 ? '<div class="fc-meta">'+pc+' project'+(pc===1?'':'s')+'</div>' : '')
+      + '</div>'
+      + '<span class="fc-arrow">'+ICON_ARROW+'</span>'
       + '</a>';
   }
   function renderCityEntity(c){
-    return '<a class="tmw-ov-entity" href="'+MAP_URL+'/?city='+encodeURIComponent(c.name)+'">'
-      + '<div class="icn">'+ICON_PIN+'</div>'
-      + '<div><div class="nm">'+esc(c.name)+'</div><div class="sub">'+c.count+' project'+(c.count === 1 ? '' : 's')+'</div></div>'
+    return '<a class="tmw-ov-firmcard" href="'+MAP_URL+'/?city='+encodeURIComponent(c.name)+'">'
+      + '<div class="fc-mark">'+ICON_PIN+'</div>'
+      + '<div class="fc-body">'
+      +   '<span class="fc-role">Place</span>'
+      +   '<div class="fc-name">'+esc(c.name)+'</div>'
+      +   '<div class="fc-meta">'+c.count+' project'+(c.count === 1 ? '' : 's')+'</div>'
+      + '</div>'
+      + '<span class="fc-arrow">'+ICON_ARROW+'</span>'
       + '</a>';
   }
 
@@ -4069,17 +4093,30 @@
         + '</div>';
       appendArticles();
     } else {
-      // No matches — the always-on Journal tab still gets the latest stories as
-      // a browse fallback (hidden in All, shown under the Journal filter).
-      // Skipped when an iconic editorial list is already the Journal answer, so
-      // "best hotels" doesn't trail unrelated latest posts under its curated list.
-      var recent = ARTICLES.slice(0, 9);
-      slotArticles.innerHTML = (recent.length && !opts.suppressFallback)
-        ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
-            + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
-            + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
-            + '</div>')
-        : '';
+      // No article matched this query. Show the "latest stories" browse fallback
+      // ONLY for a broad/empty browse (no meaningful query tokens, e.g. "what's
+      // new"). For a SPECIFIC query — a place or topic that simply has no matching
+      // coverage (e.g. "across asia") — dumping recent GLOBAL stories (a Mexico
+      // resort, a Spain hotel, a WPB condo) reads as junk and unrelated, so show a
+      // graceful empty note instead. (Suppressed entirely when an iconic list is
+      // already the Journal answer.)
+      var broadBrowse = !stoks.length;
+      if (opts.suppressFallback) {
+        slotArticles.innerHTML = '';
+      } else if (broadBrowse) {
+        var recent = ARTICLES.slice(0, 9);
+        slotArticles.innerHTML = recent.length
+          ? ('<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
+              + '<div class="tmw-ov-sec-head"><h3>Latest from the journal</h3><span class="count">browse all</span></div>'
+              + '<div class="tmw-ov-alist">' + recent.map(renderArticleCard).join('') + '</div>'
+              + '</div>')
+          : '';
+      } else {
+        slotArticles.innerHTML = '<div class="tmw-ov-sec tmw-ov-jfallback" data-cat="articles">'
+          + '<div class="tmw-ov-sec-head"><h3>From the journal</h3></div>'
+          + '<div class="tmw-ov-jempty">No journal stories on this yet — <a href="'+SEARCH_URL+'">browse all stories &rarr;</a></div>'
+          + '</div>';
+      }
     }
 
     // (Re)build the filter pills with the live article count, preserving the
