@@ -4419,7 +4419,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "2031",
     "StartDate": "2027-02",
-    "ProjectType": "Entertainment, Hotel, Retail",
+    "ProjectType": "Entertainment, Hotel, Retail, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "Gensler",
     "ArchitectSlugs": "gensler",
@@ -4434,7 +4434,7 @@
     "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0bd4704be4f8436e8e73353603e51285~mv2.jpeg",
     "Keys": "250",
     "Units": "",
-    "Floors": "",
+    "Floors": "2",
     "ConfigSummary": "3,500-capacity live music venue · 250-key hotel · 80,000 sq ft retail/dining · ~1,000 parking spaces",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -4443,7 +4443,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T17:23:15.945Z",
+    "UpdatedAt": "2026-06-30T23:14:46.394Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:11:46.200Z",
@@ -4482,6 +4482,33 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-12-18"
+      },
+      {
+        "at": "2026-06-30T23:14:46.394Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/may/21/entertainment-district-tampa-water-street/",
+        "note": "District blends 3,500-cap music venue, 250-key hotel and ~80,000 sf retail/dining = Mixed-Use; two-story structure per Business Observer, 2026-05-21",
+        "type": "field",
+        "field": "floors",
+        "from": null,
+        "to": 2
+      },
+      {
+        "at": "2026-06-30T23:14:46.394Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/may/21/entertainment-district-tampa-water-street/",
+        "note": "District blends 3,500-cap music venue, 250-key hotel and ~80,000 sf retail/dining = Mixed-Use; two-story structure per Business Observer, 2026-05-21",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Entertainment",
+          "Hotel",
+          "Retail"
+        ],
+        "to": [
+          "Entertainment",
+          "Hotel",
+          "Retail",
+          "Mixed-Use"
+        ]
       }
     ],
     "County": "Hillsborough County",
@@ -10976,7 +11003,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:45.453Z",
+    "UpdatedAt": "2026-06-30T23:14:02.483Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T22:53:49.509Z",
@@ -11022,6 +11049,24 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2025-12-17"
+      },
+      {
+        "at": "2026-06-30T23:13:59.041Z",
+        "source_url": "https://therealdeal.com/miami/2025/09/08/servicenow-leases-at-steve-ross-10-cityplace-in-west-palm/",
+        "source_published": "2025-09-08",
+        "note": "ServiceNow signed anchor lease (up to ~200K sf, AI Institute) at 10 CityPlace, Sept 2025, per The Real Deal; corroborated by Commercial Observer and Bisnow",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2025-09-08"
+      },
+      {
+        "at": "2026-06-30T23:14:02.483Z",
+        "source_url": "https://www.relatedross.com/press-releases/2025-12-17/related-ross-secures-landmark-772-million-construction-financing-loan-led",
+        "source_published": "2025-12-17",
+        "note": "$772M construction loan led by Ares closed Dec 2025 for 10 &amp; 15 CityPlace (largest construction loan in FL history) per Related Ross; corroborated by Commercial Observer and The Real Deal",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-12"
       }
     ],
     "County": "Palm Beach County",
@@ -11844,7 +11889,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:41.882Z",
+    "UpdatedAt": "2026-06-30T23:13:45.011Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:42:54.157Z",
@@ -11914,6 +11959,15 @@
         "source_url": "https://floridayimby.com/2025/09/61-2-million-predevelopment-loan-secured-for-the-ritz-carlton-residences-south-beach.html",
         "source_published": "2025-09-26",
         "note": "Sobe Sky Development secured a $61.2M predevelopment loan from BHI per Florida YIMBY. Still pre-construction (predevelopment).",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-09"
+      },
+      {
+        "at": "2026-06-30T23:13:45.011Z",
+        "source_url": "https://floridayimby.com/2025/09/61-2-million-predevelopment-loan-secured-for-the-ritz-carlton-residences-south-beach.html",
+        "source_published": "2025-09-01",
+        "note": "$61.2M predevelopment loan secured from BHI in Sept 2025 (Sobe Sky Development) per Florida YIMBY",
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2025-09"
@@ -17385,7 +17439,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:52.172Z",
+    "UpdatedAt": "2026-06-30T23:13:20.055Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:59:37.884Z",
@@ -17470,6 +17524,24 @@
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2026-04"
+      },
+      {
+        "at": "2026-06-30T23:13:08.568Z",
+        "source_url": "https://floridayimby.com/2026/04/la-baia-north-tops-off-at-9481-east-bay-harbor-drive-in-bay-harbor-islands.html",
+        "source_published": "2026-04-25",
+        "note": "Topped off at 8 stories, 9481 E Bay Harbor Drive, per Florida YIMBY, 2026-04-25",
+        "type": "milestone",
+        "phase": "topping-out",
+        "effective_date": "2026-04-25"
+      },
+      {
+        "at": "2026-06-30T23:13:20.055Z",
+        "source_url": "https://therealdeal.com/miami/2025/08/26/eichners-continuum-gets-construction-loan-for-la-baia-north/",
+        "source_published": "2025-08-26",
+        "note": "$67M construction loan from S3 Capital per The Real Deal, 2025-08-26",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-08-26"
       }
     ],
     "County": "Miami-Dade County",
@@ -17985,7 +18057,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:19:31.341Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:27:21.531Z",
@@ -18545,7 +18617,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:35.136Z",
+    "UpdatedAt": "2026-06-30T23:13:11.674Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T05:28:02.376Z",
@@ -18609,6 +18681,15 @@
         "source_url": "https://southfloridaagentmagazine.com/2026/03/03/ritz-carlton-fort-lauderdale/",
         "source_published": "2026-03-03",
         "note": "Sales launched via Douglas Elliman, from $2.5M, per South Florida Agent Magazine.",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-02"
+      },
+      {
+        "at": "2026-06-30T23:13:11.674Z",
+        "source_url": "https://therealdeal.com/miami/2026/02/10/diana-ulis-micl-launch-ritz-carlton-condos-in-fort-lauderdale/",
+        "source_published": "2026-02-10",
+        "note": "Sales launched Feb 2026 from $2.5M (Douglas Elliman) for Ritz-Carlton Residences Fort Lauderdale Beach, 551 Bayshore Dr, per The Real Deal; corroborated by Multi-Housing News and South Florida Agent",
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-02"
@@ -18824,7 +18905,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:17.378Z",
+    "UpdatedAt": "2026-06-30T23:12:15.874Z",
     "StatusHistory": [
       {
         "at": "2026-06-06T02:42:04.218Z",
@@ -18857,6 +18938,15 @@
         "source_url": "https://www.theartnewspaper.com/2026/01/29/frida-kahlo-wynwood-residences-luxury-real-estate-development-miami",
         "source_published": "2026-01-29",
         "note": "Sales launched for the first-ever Frida Kahlo-branded residences (PMG + LNDMRK, designed by Carlos Ott) per The Art Newspaper, Axios Miami, Miami Today.",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-01"
+      },
+      {
+        "at": "2026-06-30T23:12:15.874Z",
+        "source_url": "https://therealdeal.com/miami/2026/01/27/pmg-lndmrk-plan-frida-kahlo-branded-miami-condos/",
+        "source_published": "2026-01-27",
+        "note": "Sales launched Jan 2026 for Frida Kahlo Wynwood Residences (244 units, two towers) per The Real Deal; corroborated by Axios Miami and Multi-Housing News",
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-01"
@@ -18992,7 +19082,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:09:29.948Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:05:10.352Z",
@@ -20405,7 +20495,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:48.764Z",
+    "UpdatedAt": "2026-06-30T23:12:59.478Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:04:02.292Z",
@@ -20488,6 +20578,33 @@
         "source_url": "https://floridayimby.com/2026/01/vertical-construction-underway-on-one-kane-at-9551-e-bay-harbor-drive-in-bay-harbor-islands.html",
         "source_published": "2026-01-05",
         "note": "Vertical construction underway on the 6-story waterfront office building per Florida YIMBY, World Red Eye, PROFILEmiami.",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2026-01"
+      },
+      {
+        "at": "2026-06-30T23:12:40.112Z",
+        "source_url": "https://therealdeal.com/miami/2024/12/20/landau-taubco-nab-bay-harbor-offices-loan-form-3650-capital/",
+        "source_published": "2024-12-20",
+        "note": "$74M construction loan closed from 3650 Capital per The Real Deal, 2024-12-20",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2024-12-20"
+      },
+      {
+        "at": "2026-06-30T23:12:48.151Z",
+        "source_url": "https://floridayimby.com/2025/02/one-kane-breaks-ground-in-bay-harbor-islands-secures-first-tenant-bondst.html",
+        "source_published": "2025-02-19",
+        "note": "Anchor restaurant BondST signed 17,000 sf for dining room, sushi bar and rooftop lounge per Florida YIMBY, 2025-02-19",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2025-02-19"
+      },
+      {
+        "at": "2026-06-30T23:12:59.478Z",
+        "source_url": "https://floridayimby.com/2026/01/vertical-construction-underway-on-one-kane-at-9551-e-bay-harbor-drive-in-bay-harbor-islands.html",
+        "source_published": "2026-01-05",
+        "note": "Superstructure rising above two levels of concealed parking; vertical construction underway per Florida YIMBY, Jan 2026",
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "2026-01"
@@ -20626,7 +20743,7 @@
     "Slug": "cora-merrick-park",
     "City": "Miami",
     "Borough": "",
-    "Neighborhood": "Coral Gables",
+    "Neighborhood": "Merrick Park",
     "Latitude": "25.7326731",
     "Longitude": "-80.259114",
     "Description": "A 13-story, 74-residence wellness-focused luxury condominium in Coral Gables by Constellation Group and The Boschetti Group, designed by Arquitectonica, pursuing WELL certification.",
@@ -20658,7 +20775,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:20.727Z",
+    "UpdatedAt": "2026-06-30T23:12:31.818Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:00:22.616Z",
@@ -20735,6 +20852,25 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2026-06"
+      },
+      {
+        "at": "2026-06-30T23:12:31.818Z",
+        "source_url": "https://southfloridaagentmagazine.com/2025/10/15/cora-merrick-park/",
+        "source_published": "2025-10-15",
+        "note": "Sales gallery opened / sales launched Oct 2025 per South Florida Agent; corroborated by PROFILEmiami",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Coral Gables",
+        "to": "Merrick Park"
+      },
+      {
+        "at": "2026-06-30T23:12:31.818Z",
+        "source_url": "https://southfloridaagentmagazine.com/2025/10/15/cora-merrick-park/",
+        "source_published": "2025-10-15",
+        "note": "Sales gallery opened / sales launched Oct 2025 per South Florida Agent; corroborated by PROFILEmiami",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2025-10"
       }
     ],
     "County": "Miami-Dade County",
@@ -21300,7 +21436,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:09:29.948Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:05:08.601Z",
@@ -22458,7 +22594,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:19:49.813Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:48:23.934Z",
@@ -28447,7 +28583,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:19:53.000Z",
+    "UpdatedAt": "2026-06-30T23:12:08.273Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:43:45.017Z",
@@ -28493,6 +28629,24 @@
         "source_url": "https://therealdeal.com/miami/2026/04/24/pmg-launches-sales-for-40-story-brickell-condo-tower/",
         "source_published": "2026-04-24",
         "note": "PMG launched sales for the 40-story, 467-unit Signature tower (each residence with a deeded private office) per The Real Deal + PROFILEmiami.",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-04"
+      },
+      {
+        "at": "2026-06-30T23:11:58.935Z",
+        "source_url": "https://www.prweb.com/releases/juneau-construction-company-and-pmg-celebrate-breaking-ground-on-one-twenty-brickell-residences-in-miami-302444760.html",
+        "source_published": "2025-05-01",
+        "note": "PMG secured $413M construction loan for the two-tower One Twenty Brickell project, per PRWeb/Juneau, 2025-04",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-04"
+      },
+      {
+        "at": "2026-06-30T23:12:08.273Z",
+        "source_url": "https://therealdeal.com/miami/2026/04/24/pmg-launches-sales-for-40-story-brickell-condo-tower/",
+        "source_published": "2026-04-24",
+        "note": "Sales launched for the 40-story Signature (second) tower following sellout of first tower, per The Real Deal, 2026-04",
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-04"
@@ -32237,7 +32391,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:19:56.168Z",
+    "UpdatedAt": "2026-06-30T23:12:12.460Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:51:22.170Z",
@@ -32289,6 +32443,15 @@
         "source_url": "https://therealdeal.com/miami/2026/04/17/wave-group-partners-launch-duos-wynwood-condos/",
         "source_published": "2026-04-17",
         "note": "Wave Group + partners launched sales for the 49-unit Duos Wynwood condo-hotel (short-term-rental concept) per The Real Deal.",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-04"
+      },
+      {
+        "at": "2026-06-30T23:12:12.460Z",
+        "source_url": "https://therealdeal.com/miami/2026/04/17/wave-group-partners-launch-duos-wynwood-condos/",
+        "source_published": "2026-04-17",
+        "note": "Sales launched for the 49-suite short-term-rental condo-hotel; groundbreaking slated late 2026, per The Real Deal, 2026-04",
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-04"
@@ -34228,7 +34391,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:19:59.975Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T21:33:25.041Z",
@@ -37360,7 +37523,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:38.489Z",
+    "UpdatedAt": "2026-06-30T23:13:25.793Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T21:31:27.631Z",
@@ -37408,6 +37571,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-05"
+      },
+      {
+        "at": "2026-06-30T23:13:25.793Z",
+        "source_url": "https://therealdeal.com/miami/2026/05/13/vlad-doronins-oko-group-plans-53-story-edgewater-tower/",
+        "source_published": "2026-05-13",
+        "note": "OKO Group launched sales for LILLI on May 12, 2026 from $1.65M (Fortune Development Sales) per The Real Deal; corroborated by Robb Report and Florida YIMBY",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-05-12"
       }
     ],
     "County": "Miami-Dade County",
@@ -37664,7 +37836,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:06.885Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-10T11:27:05.681Z",
@@ -46259,8 +46431,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2028",
     "StartDate": "",
-    "ProjectType": "Hotel, Residences",
-    "PreferredType": "Hotel",
+    "ProjectType": "Hotel, Residences, Mixed-Use",
+    "PreferredType": "Mixed-Use",
     "Architect": "BOKA Powell, Bonetti/Kozerski Architecture",
     "ArchitectSlugs": "boka-powell, bonetti-kozerski-architecture",
     "Developer": "Kaizen Development Partners",
@@ -46283,7 +46455,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:20:29.904Z",
+    "UpdatedAt": "2026-06-30T23:14:30.862Z",
     "StatusHistory": [
       {
         "at": "2026-06-19T18:20:05.091Z",
@@ -46302,6 +46474,53 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2026-02-26"
+      },
+      {
+        "at": "2026-06-30T23:14:20.671Z",
+        "source_url": "https://dallasinnovates.com/edition-hotel-residences-to-be-centerpiece-of-uptown-dallas-chalk-hill-development/",
+        "source_published": "2025",
+        "note": "214-key EDITION hotel + 60 residences, 29 stories, Chalk Hill at 3031 N. Harwood; opening 2028",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Harwood District",
+        "to": "Uptown"
+      },
+      {
+        "at": "2026-06-30T23:14:30.862Z",
+        "source_url": "https://dallasinnovates.com/edition-hotel-residences-to-be-centerpiece-of-uptown-dallas-chalk-hill-development/",
+        "source_published": "2025",
+        "note": "Restore Harwood District neighborhood; promote to Mixed-Use (hotel + branded residences, 2 primary uses)",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Uptown",
+        "to": "Harwood District"
+      },
+      {
+        "at": "2026-06-30T23:14:30.862Z",
+        "source_url": "https://dallasinnovates.com/edition-hotel-residences-to-be-centerpiece-of-uptown-dallas-chalk-hill-development/",
+        "source_published": "2025",
+        "note": "Restore Harwood District neighborhood; promote to Mixed-Use (hotel + branded residences, 2 primary uses)",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel",
+          "Residences"
+        ],
+        "to": [
+          "Hotel",
+          "Residences",
+          "Mixed-Use"
+        ]
+      },
+      {
+        "at": "2026-06-30T23:14:30.862Z",
+        "source_url": "https://dallasinnovates.com/edition-hotel-residences-to-be-centerpiece-of-uptown-dallas-chalk-hill-development/",
+        "source_published": "2025",
+        "note": "Restore Harwood District neighborhood; promote to Mixed-Use (hotel + branded residences, 2 primary uses)",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Hotel",
+        "to": "Mixed-Use"
       }
     ],
     "County": "Dallas County",
@@ -46344,7 +46563,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:09:29.948Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-19T18:22:01.930Z",
@@ -46406,7 +46625,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T15:20:10.242Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-19T18:18:27.204Z",
@@ -46618,7 +46837,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:09:29.948Z",
+    "UpdatedAt": "2026-06-30T23:15:58.873Z",
     "StatusHistory": [
       {
         "at": "2026-06-19T18:23:19.747Z",
@@ -46646,6 +46865,15 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2025-07"
+      },
+      {
+        "at": "2026-06-30T23:15:58.873Z",
+        "source_url": "https://www.utahbusiness.com/press-releases/2025/07/03/extell-development-company-secures-construction-four-seasons-resort-deer-valley/",
+        "source_published": "2025-07-03",
+        "note": "Extell secured ~$600M construction loan, believed largest hotel/condo construction loan in Utah, per Utah Business, 2025-07-03",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-07-03"
       }
     ],
     "County": "Wasatch County",
@@ -53161,7 +53389,7 @@
     "Longitude": "-105.3260386",
     "Description": "An all-suite Rosewood resort on Mexico's Riviera Nayarit where jungle meets the Pacific, with four restaurants, the Asaya Spa, a Greg Norman golf course, and a polo and equestrian club.",
     "DescriptionLong": "Rosewood Mandarina is an ultra-luxury, all-suite jungle-and-beach resort on the shores of Mexico's Riviera Nayarit, set within the Mandarina master-planned development north of Punta de Mita. Owned and developed by Mexico City-based RLH Properties and operated by Rosewood Hotels & Resorts, the property spans three distinct ecosystems — lush coastal mountains, pristine beachfront, and agrarian flatlands — with architecture and interiors led by Caroline Meersseman of Bandó x Seidel Meersseman. Its 134 accommodations include three specialty suites and two expansive standalone villas: the multi-floor Canalan Beachfront Villa and the cliffside Cora Mountaintop Villa with its own infinity lap pool. Dining venues such as La Cocina and Buena Onda, a signature Sense spa, and immersive nature experiences position Mandarina among Rosewood's most ambitious destination resorts.",
-    "Delivery": "Completed",
+    "Delivery": "Now Open",
     "DeliveryDate": "2025",
     "StartDate": "",
     "ProjectType": "Hotel",
@@ -53188,7 +53416,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:22:09.348Z",
+    "UpdatedAt": "2026-06-30T23:13:49.955Z",
     "StatusHistory": [
       {
         "at": "2026-06-27T19:17:53.203Z",
@@ -53224,6 +53452,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-04-01"
+      },
+      {
+        "at": "2026-06-30T23:13:49.955Z",
+        "source_url": "https://www.rosewoodhotels.com/en/media/press/2025/rosewood-mandarina-opens-on-the-shores-of-mexicos-riviera-nayarit1",
+        "source_published": "2025-05-15",
+        "note": "Rosewood Mandarina opened May 15, 2025 per official Rosewood press release; canonicalizes terminal status to open. 134 all-suite keys.",
+        "from": "completed",
+        "to": "open",
+        "effective_date": "2025-05-15"
       }
     ],
     "County": "",
@@ -53266,7 +53503,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:17:49.801Z",
+    "UpdatedAt": "2026-06-30T23:09:17.182Z",
     "StatusHistory": [
       {
         "at": "2026-06-27T19:17:49.801Z",
@@ -53407,13 +53644,22 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:17:46.220Z",
+    "UpdatedAt": "2026-06-30T23:12:25.107Z",
     "StatusHistory": [
       {
         "at": "2026-06-27T19:17:46.220Z",
         "source_url": "https://www.prnewswire.com/news-releases/kohler-wisconsin-resort-announces-additions-of-purebred-farm-golf-course-the-serve-racquet-facility-and-carriage-house-renovation-302595499.html",
         "source_published": "2025-10-27",
         "note": "Destination Kohler announces Purebred Farm, a 14-hole walking course by King Collins Dormer west of Blackwolf Run",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-10-27"
+      },
+      {
+        "at": "2026-06-30T23:12:25.107Z",
+        "source_url": "https://www.prnewswire.com/news-releases/kohler-wisconsin-resort-announces-additions-of-purebred-farm-golf-course-the-serve-racquet-facility-and-carriage-house-renovation-302595499.html",
+        "source_published": "2025-10-27",
+        "note": "Kohler announced Purebred Farm 14-hole course Oct 27, 2025; construction fall 2025, open fall 2027",
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-10-27"
@@ -53497,13 +53743,13 @@
     "Slug": "paragon",
     "City": "Long Island City",
     "Borough": "Queens",
-    "Neighborhood": "Long Island City",
+    "Neighborhood": "Hunters Point",
     "Latitude": "40.7546104",
     "Longitude": "-73.9490235",
     "Description": "A 23-story waterfront condominium on Vernon Boulevard in Long Island City — the neighborhood's first new waterfront condo in over a decade — built around the preserved historic Paragon Paint Factory.",
     "DescriptionLong": "Paragon is a 23-story waterfront condominium at 45-40 Vernon Boulevard in the Anable Basin area of Long Island City, Queens. Developed by ZD Jasper Realty and designed by Archimaera Architecture, the project incorporates the historic Paragon Paint Factory into its base beneath a brick-and-glass residential tower of 186 studio-to-four-bedroom homes. Interiors by March and White Design feature lofty ceiling heights and floor-to-ceiling windows framing the Manhattan skyline and East River. Amenities include a sky lounge, landscaped rooftop terrace, fitness center, an outdoor fitness terrace with pickleball court, golf simulator, and karaoke room, alongside a public waterfront park and esplanade. SERHANT. leads sales and marketing for one of the first new-construction condominiums on the Long Island City waterfront in over a decade.",
     "Delivery": "Under Construction",
-    "DeliveryDate": "",
+    "DeliveryDate": "2026",
     "StartDate": "",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -53529,7 +53775,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-27T19:22:12.951Z",
+    "UpdatedAt": "2026-06-30T23:14:16.834Z",
     "StatusHistory": [
       {
         "at": "2026-06-27T19:17:56.532Z",
@@ -53547,6 +53793,52 @@
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2025-11"
+      },
+      {
+        "at": "2026-06-30T23:13:54.222Z",
+        "source_url": "https://newyorkyimby.com/2025/11/45-40-vernon-boulevard-tops-out-in-long-island-city-queens.html",
+        "source_published": "2025-11",
+        "note": "Paragon (45-40 Vernon Blvd) topped out Nov 2025 per NY YIMBY; completion fall 2026",
+        "type": "date",
+        "field": "delivery_date",
+        "from": null,
+        "to": "2026"
+      },
+      {
+        "at": "2026-06-30T23:13:54.222Z",
+        "source_url": "https://newyorkyimby.com/2025/11/45-40-vernon-boulevard-tops-out-in-long-island-city-queens.html",
+        "source_published": "2025-11",
+        "note": "Paragon (45-40 Vernon Blvd) topped out Nov 2025 per NY YIMBY; completion fall 2026",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Long Island City",
+        "to": "Hunters Point"
+      },
+      {
+        "at": "2026-06-30T23:13:54.222Z",
+        "source_url": "https://newyorkyimby.com/2025/11/45-40-vernon-boulevard-tops-out-in-long-island-city-queens.html",
+        "source_published": "2025-11",
+        "note": "Paragon (45-40 Vernon Blvd) topped out Nov 2025 per NY YIMBY; completion fall 2026",
+        "type": "milestone",
+        "phase": "topping-out",
+        "effective_date": "2025-11"
+      },
+      {
+        "at": "2026-06-30T23:14:06.670Z",
+        "source_url": "https://newyorkyimby.com/2025/11/45-40-vernon-boulevard-tops-out-in-long-island-city-queens.html",
+        "source_published": "2025-11",
+        "note": "Normalize non-canonical \"Under Construction\" label to canonical construction status; tower topped out Nov 2025, genuinely under construction",
+        "from": "under construction",
+        "to": "construction"
+      },
+      {
+        "at": "2026-06-30T23:14:16.834Z",
+        "source_url": "https://www.businesswire.com/news/home/20260527703128/en/Paragon-Long-Island-City-Debuts-Premier-Waterfront-Residences",
+        "source_published": "2026-05-27",
+        "note": "Paragon LIC debuted waterfront residences / launched condo sales May 27, 2026 per BusinessWire (SERHANT.)",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-05-27"
       }
     ],
     "County": "Queens County",
@@ -55134,14 +55426,14 @@
     "Slug": "the-halcyon-residences-marina",
     "City": "Naples",
     "Borough": "",
-    "Neighborhood": "Downtown",
+    "Neighborhood": "East Naples",
     "Latitude": "26.1386183",
     "Longitude": "-81.7806246",
     "Description": "A waterfront community of 66 estate-scale residences with a private marina and more than 55,000 square feet of amenities, less than a mile from Naples' Fifth Avenue South.",
     "DescriptionLong": "The Halcyon is a waterfront residential community of 66 estate-scale condominiums set around a private marina in the heart of downtown Naples, less than a mile from the shops and restaurants of Fifth Avenue South. Designed by MHK Architecture's Matthew Kragh in a coastal-modern style, with interiors by Megan Sherwood Designs, the residences are paired with more than 55,000 square feet of amenity space — among the broadest collections in the area. Residents have access to a private marina with resident-only slips, marina amenities, and concierge boat services offering direct passage to Naples Bay and the Gulf, alongside a pool and spa, social terraces with fire pits, a wellness and fitness center with yoga and pilates studios, and recreation including bocce, pickleball, padel, and mini golf. Positioned a four-minute drive from Fifth Avenue South, a five-minute boat ride to Naples Bay, and eight minutes from the beach, the community pairs downtown proximity with a hidden, marina-front setting.",
     "Delivery": "Announced",
-    "DeliveryDate": "",
-    "StartDate": "",
+    "DeliveryDate": "2029",
+    "StartDate": "2027",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "MHK Architecture, Megan Sherwood Designs",
@@ -55162,12 +55454,61 @@
     "DeliveryPhases": "",
     "IsDistrict": "",
     "ParentSlug": "",
-    "StartSpeculative": "",
-    "DeliverySpeculative": "",
-    "DatesSpeculative": "",
+    "StartSpeculative": "1",
+    "DeliverySpeculative": "1",
+    "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-30T21:09:28.100Z",
-    "StatusHistory": [],
+    "UpdatedAt": "2026-06-30T23:13:41.165Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-30T23:13:29.277Z",
+        "source_url": "https://floridayimby.com/2025/11/joint-venture-announces-the-halcyon-residences-and-marina-in-naples.html",
+        "source_published": "2025-11-14",
+        "note": "Henley US and Gillette Development unveil The Halcyon Residences & Marina — 66 estate homes, a 120-slip private marina and Naples' largest amenity collection on a ~9-acre East Naples site",
+        "type": "date",
+        "field": "start_date",
+        "from": null,
+        "to": "2027"
+      },
+      {
+        "at": "2026-06-30T23:13:29.277Z",
+        "source_url": "https://floridayimby.com/2025/11/joint-venture-announces-the-halcyon-residences-and-marina-in-naples.html",
+        "source_published": "2025-11-14",
+        "note": "Henley US and Gillette Development unveil The Halcyon Residences & Marina — 66 estate homes, a 120-slip private marina and Naples' largest amenity collection on a ~9-acre East Naples site",
+        "type": "date",
+        "field": "delivery_date",
+        "from": null,
+        "to": "2029"
+      },
+      {
+        "at": "2026-06-30T23:13:29.277Z",
+        "source_url": "https://floridayimby.com/2025/11/joint-venture-announces-the-halcyon-residences-and-marina-in-naples.html",
+        "source_published": "2025-11-14",
+        "note": "Henley US and Gillette Development unveil The Halcyon Residences & Marina — 66 estate homes, a 120-slip private marina and Naples' largest amenity collection on a ~9-acre East Naples site",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown",
+        "to": "East Naples"
+      },
+      {
+        "at": "2026-06-30T23:13:29.277Z",
+        "source_url": "https://floridayimby.com/2025/11/joint-venture-announces-the-halcyon-residences-and-marina-in-naples.html",
+        "source_published": "2025-11-14",
+        "note": "Henley US and Gillette Development unveil The Halcyon Residences & Marina — 66 estate homes, a 120-slip private marina and Naples' largest amenity collection on a ~9-acre East Naples site",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2025-11-14"
+      },
+      {
+        "at": "2026-06-30T23:13:41.165Z",
+        "source_url": "https://southfloridaagentmagazine.com/2025/12/17/halcyon-residences-marina/",
+        "source_published": "2025-12-17",
+        "note": "Sales launched January 2026 via the on-site immersive sales gallery (South Florida Agent Magazine; Henley US)",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-01"
+      }
+    ],
     "County": "Collier County",
     "CountyState": "FL"
   },
@@ -55208,8 +55549,27 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-30T21:09:28.100Z",
-    "StatusHistory": [],
+    "UpdatedAt": "2026-06-30T23:12:35.326Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-30T23:12:21.964Z",
+        "source_url": "https://www.gracebayresortsdevelopment.com/residences/the-point",
+        "source_published": "2023-12-12",
+        "note": "Grace Bay Resorts unveils The Point at Point Grace — 38 oceanfront condos + 16 casitas on 9.5 beachfront acres, Providenciales",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2023-12-12"
+      },
+      {
+        "at": "2026-06-30T23:12:35.326Z",
+        "source_url": "https://turksandcaicossir.blog/2026/05/15/may-2026-construction-update-the-point-by-grace-bay-resorts-continues-to-rise/",
+        "source_published": "2026-05-15",
+        "note": "Superstructure rising — preparing to pour 4th level where the two towers connect; window installation begun at West Building; 14 of 16 casitas out of the ground (May 2026)",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2026-05"
+      }
+    ],
     "County": "",
     "CountyState": ""
   },
@@ -55250,8 +55610,18 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-30T21:09:28.100Z",
-    "StatusHistory": [],
+    "UpdatedAt": "2026-06-30T23:14:10.146Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-30T23:14:10.146Z",
+        "source_url": "https://www.postandcourier.com/business/real_estate/50m-charleston-condominium-project-to-feature-21-units-starting-at-1-7m/article_24d4b7d4-f0b9-11ec-8a57-27c0946e7c04.html",
+        "source_published": "2022-06-22",
+        "note": "Landmark Partners' $50M City House Charleston revealed — 21 luxury residences with ground-floor commercial on the Cumberland Street corridor in the French Quarter (Post & Courier)",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2022-06"
+      }
+    ],
     "County": "Charleston County",
     "CountyState": "SC"
   },
@@ -55292,8 +55662,18 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-30T21:09:28.100Z",
-    "StatusHistory": [],
+    "UpdatedAt": "2026-06-30T23:12:54.475Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-30T23:12:54.475Z",
+        "source_url": "https://therealdeal.com/texas/houston/2025/07/31/satya-lands-construction-loan-for-houston-st-regis-tower/",
+        "source_published": "2025-07-31",
+        "note": "Satya secured a $255M construction loan from International Bank of Commerce; construction planned to start Q4 2025 (The Real Deal; corroborated by Bisnow)",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-07-31"
+      }
+    ],
     "County": "Harris County",
     "CountyState": "TX"
   },
@@ -55309,7 +55689,7 @@
     "DescriptionLong": "The Island at West Bay Club is a single 24-story tower holding just 86 expansive residences inside the established, gated West Bay Club community in Estero. Floor plans run from roughly 3,300 to more than 6,200 square feet with three- and four-bedroom-plus-den layouts, wraparound terraces, and sweeping water and golf-course views across the Estero Bay estuary. Residents draw on West Bay Club's full amenity roster — a private Gulf-front beach club, an 18-hole championship golf course, a riverfront park and boat ramp, har-tru tennis, and a resort pool — complemented by the tower's own arrival lobby, fitness and social spaces. Developed by Kolter Urban, it is the first new high-rise within West Bay Club in more than a decade.",
     "Delivery": "Under Construction",
     "DeliveryDate": "2028",
-    "StartDate": "2026",
+    "StartDate": "2025-02-19",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "",
@@ -55334,8 +55714,28 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-30T21:09:28.100Z",
-    "StatusHistory": [],
+    "UpdatedAt": "2026-06-30T23:13:16.420Z",
+    "StatusHistory": [
+      {
+        "at": "2026-06-30T23:13:16.420Z",
+        "source_url": "https://www.kolter.com/kolter-urban-celebrates-groundbreaking-of-the-island-at-west-bay-club/",
+        "source_published": "2025-02-19",
+        "note": "Kolter Urban celebrates groundbreaking of The Island at West Bay Club (Kolter; Naples Florida Weekly)",
+        "type": "date",
+        "field": "start_date",
+        "from": "2026",
+        "to": "2025-02-19"
+      },
+      {
+        "at": "2026-06-30T23:13:16.420Z",
+        "source_url": "https://www.kolter.com/kolter-urban-celebrates-groundbreaking-of-the-island-at-west-bay-club/",
+        "source_published": "2025-02-19",
+        "note": "Kolter Urban celebrates groundbreaking of The Island at West Bay Club (Kolter; Naples Florida Weekly)",
+        "type": "backfill",
+        "to": "breaking-ground",
+        "effective_date": "2025-02-19"
+      }
+    ],
     "County": "Lee County",
     "CountyState": "FL"
   }
