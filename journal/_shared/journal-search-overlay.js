@@ -881,7 +881,7 @@
     + '.tmw-pv-btn svg{width:15px;height:15px}'
     /* ── Native map card ── */
     + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
-    + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden}'
+    + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden;border-radius:18px!important}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
        bar (the dock) instead of scrolling behind it — leave room for the dock
        + the query bubble above. */
@@ -1793,12 +1793,12 @@
             + '<span class="tmw-pv-count"><b data-pvidx>1</b> / ' + imgs.length + '</span>'
           : '')
       : '<div class="tmw-pv-track" style="background:#15181a"></div>';
-    var keys = parseInt(p.Keys || p.keys || 0, 10) || 0;
-    var units = (Core && Core.unitsOf) ? Core.unitsOf(p) : (parseInt(p.Units || 0, 10) || 0);
-    var floors = (Core && Core.floorsOf) ? Core.floorsOf(p) : (parseInt(p.Floors || 0, 10) || 0);
-    var uTile = keys ? { v: keys, k: 'Keys' } : { v: units, k: 'Units' };
     function tile(v, k){ return '<div class="tmw-pv-stat"><div class="v">' + esc(v != null && v !== '' && v !== 0 ? (v.toLocaleString ? v.toLocaleString() : String(v)) : '—') + '</div><div class="k">' + k + '</div></div>'; }
-    var stats = tile(uTile.v, uTile.k) + tile(floors, 'Floors');
+    // Show the firms behind the project (developer + architect) — more useful than
+    // raw unit/floor counts. First credited name each; '—' when none.
+    var devName = String(p.Developer || '').split(',')[0].trim();
+    var archName = String(p.Architect || '').split(',')[0].trim();
+    var stats = tile(devName, 'Developer') + tile(archName, 'Architect');
     var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
     var type = firstField(p, ['ProjectType','PreferredType']);
     var slug = p.Slug || p.slug || '';
