@@ -107,10 +107,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 @keyframes tmw-sweep{0%,60%{transform:translateX(-40%);opacity:0}68%{opacity:1}100%{transform:translateX(140%);opacity:0}}
 @media (prefers-reduced-motion: reduce){.tmw-hex-spinner{animation:tmw-fadespin 6s ease-in-out infinite}@keyframes tmw-fadespin{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}.tmw-sweep,.tmw-hex-ring{animation:none;opacity:0}}
 
-/* project image band */
-.proj-band{position:relative; width:100%; height:56vh; max-height:620px; overflow:hidden; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06)}
-.proj-band img{width:100%; height:100%; object-fit:cover; object-position:center 52%; display:block}
-.proj-band::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,10,8,.4),rgba(8,10,8,0) 28%,rgba(8,10,8,0) 72%,rgba(8,10,8,.6)); pointer-events:none}
+/* project image band (square render — centered + contained, no crop) */
+.proj-band{position:relative; width:100%; padding:54px 20px; display:flex; justify-content:center; background:radial-gradient(120% 90% at 50% 0%, rgba(31,223,103,.05), transparent 62%), #080a08; border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06)}
+.proj-band img{width:auto; height:auto; max-width:min(440px,84vw); max-height:440px; object-fit:contain; display:block; border-radius:16px; box-shadow:0 30px 80px -30px rgba(0,0,0,.7)}
 /* hero */
 .hero{min-height:100vh; display:flex; align-items:center; padding-top:80px; overflow:hidden; position:relative}
 .hero-bg{position:absolute; inset:0; z-index:0}
@@ -644,7 +643,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   <div class="scroll-hint">Scroll</div>
 </header>
 
-<div class="proj-band"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/41fed01a8706-b7549c_91063b52bb474758b374f5b2437d05d3-mv2.avif" alt="The Halcyon Residences &amp; Marina" loading="lazy"></div>
+<div class="proj-band"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/41fed01a8706-b7549c_91063b52bb474758b374f5b2437d05d3-mv2.avif" alt="The Halcyon Residences &amp; Marina" loading="eager"></div>
 
 <section id="reach">
   <div class="wrap">
