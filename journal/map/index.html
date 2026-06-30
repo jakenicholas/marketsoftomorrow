@@ -16177,7 +16177,7 @@
           const inner = `<div class="k">${label}</div><div class="v">${nameEsc}</div>` +
                         (slug ? `<span class="go">View firm profile &#8594;</span>` : '');
           if (slug) {
-            return `<a class="pm-firm-card firm-link" href="/${role}/${encodeURIComponent(slug)}/" data-firm-role="${role}" data-firm-slug="${escAttr(slug)}" title="View ${nameEsc} on TMW">${inner}</a>`;
+            return `<a class="pm-firm-card firm-link" href="/firm/${encodeURIComponent(slug)}/" data-firm-role="${role}" data-firm-slug="${escAttr(slug)}" title="View ${nameEsc} on TMW">${inner}</a>`;
           }
           return `<div class="pm-firm-card">${inner}</div>`;
         }
@@ -23252,7 +23252,7 @@
         const nameInner = `<div class="atlas-lb-name">${escapeHtml(row.name)}</div>
               <div class="atlas-lb-sub">${escapeHtml(row.sub || '')}</div>`;
         const rowInner = linkable
-          ? `<a class="atlas-lb-link" href="/${role}/${encodeURIComponent(row.slug)}/" data-firm-role="${role}" data-firm-slug="${escapeHtml(row.slug)}">${nameInner}</a>`
+          ? `<a class="atlas-lb-link" href="/firm/${encodeURIComponent(row.slug)}/" data-firm-role="${role}" data-firm-slug="${escapeHtml(row.slug)}">${nameInner}</a>`
           : `<div>${nameInner}</div>`;
         return `
           <div class="atlas-lb-row${linkable ? ' is-linkable' : ''}">
@@ -24555,7 +24555,7 @@
 
         // URL state
         if (!fromHistory) {
-          history.pushState({ firmSheet: { role, slug } }, '', `/${role}/${encodeURIComponent(slug)}/`);
+          history.pushState({ firmSheet: { role, slug } }, '', `/firm/${encodeURIComponent(slug)}/`);
         }
         _firmOpen = { role, slug };
       }
