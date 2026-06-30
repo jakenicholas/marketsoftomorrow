@@ -391,6 +391,11 @@
        From the journal, …) so they stop cramming against the hero/section above.
        The hero section has no .tmw-ov-sec-head, so it never gets a top rule. */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:has(> .tmw-ov-sec-head){border-top:1px solid rgba(255,255,255,.08);padding-top:20px}'
+    /* PROJECTS-FIRST: when 3+ projects matched (data-projfirst), the overview
+       leads with the answer + project cards only — journal tiles are hidden here
+       (the Journal pill still opens them). Projects are the database core; when we
+       have a real set, they outrank journal coverage on the default view. */
+    + '[data-state="results"][data-filter="overview"][data-projfirst="1"] [data-cat="articles"]{display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head{margin-bottom:12px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head h3,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
@@ -2344,6 +2349,18 @@
     if (_stickyFilter === 'firms'    && counts.firms > 0)    return 'firms';
     return counts.intel ? 'intel' : 'overview';   // sticky lens empty for this query → Intelligence, else Overview
   }
+  // Set the active filter AND the projects-first flag in one place. When a query
+  // matches 3+ projects, the OVERVIEW leads with the answer + project cards only —
+  // journal tiles are hidden on overview (CSS), though the Journal pill still
+  // opens them. Projects are the database core; when we have a real set of them,
+  // they outrank journal coverage on the default view. Returns the filter string.
+  function _setFilter(computed, counts){
+    var f = _stickyDefault(computed, counts);
+    sResults.setAttribute('data-filter', f);
+    if (counts && counts.projects >= 3) sResults.setAttribute('data-projfirst', '1');
+    else sResults.removeAttribute('data-projfirst');
+    return f;
+  }
   // Logged-in Memberstack id (mem_*) → enables device-to-device thread sync.
   // The map page (and others) don't all load member-track.js / set __tmwMember,
   // so resolve the member directly from Memberstack and cache it. Falls back to
@@ -2856,7 +2873,7 @@
       slotProjGrid.innerHTML = '<div class="tmw-ov-sec" data-cat="projects"><div class="tmw-ov-sec-head"><h3>Related projects</h3></div>'
         + '<div class="tmw-ov-grid">' + rp.slice(0, MAX_PROJECTS_GRID).map(renderProjectCard).join('') + '</div>' + sa + '</div>';
       _lastFilterCounts.projects = rp.length;
-      sResults.setAttribute('data-filter', _stickyDefault('overview', _lastFilterCounts));
+      _setFilter('overview', _lastFilterCounts);
       slotFilterPills.innerHTML = renderFilterPills({ intel: _lastFilterCounts.intel, projects: rp.length, firms: _lastFilterCounts.firms || 0, articles: (typeof artCount === 'number' ? artCount : 0) });
       var f = sResults.getAttribute('data-filter') || 'overview';
       var ap = slotFilterPills.querySelector('.tmw-ov-fp[data-filter="' + f + '"]');
@@ -2978,7 +2995,11 @@
     // pipeline ranked by the spine — never let its phrasing ("growing", "fast")
     // act as a project-name or neighborhood filter that narrows the set.
     var _isQ = (Core && Core.isQuestion ? Core.isQuestion : isQuestion)(q);
-    var titleHit = (!_isQ && (s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size) && s.floorsMin == null) ? pickTitleScopedProject(q, rows) : null;
+    // A FIRM browse ("related ross west palm beach") must NOT collapse to one
+    // project either — the firm's name tokens ("ross") coincidentally match a
+    // single project's TITLE ("Ross Private Club") and would scope away the other
+    // 10 the firm is building. Same class of bug as the type/floors guards.
+    var titleHit = (!_isQ && (s.cities.length || s.region) && !s.iconic && !(s.types && s.types.size) && s.floorsMin == null && !s.firm) ? pickTitleScopedProject(q, rows) : null;
     if (titleHit) rows = [titleHit];
     // Narrow to a residual neighborhood/qualifier ("design district") the
     // structured parse ignored, and surface it as an "Area" chip. Skip
@@ -3158,8 +3179,7 @@
     // asks ("tallest towers") isolated the Projects tab and HID the answer,
     // which is exactly the firehose-vs-lead problem this redesign fixes. A
     // user who explicitly picked a lens last query still gets it via sticky.
-    var defFilter = _stickyDefault('overview', { intel: true, projects: rows.length, firms: 0 });
-    sResults.setAttribute('data-filter', defFilter);
+    var defFilter = _setFilter('overview', { intel: true, projects: rows.length, firms: 0 });
     // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
     // CA query). Only for an actual US state (stateCode set, or Florida).
     _qStateName = (s.stateCode || s.region === 'Florida') ? norm(s.region) : '';
@@ -3737,7 +3757,7 @@
       _lastFilterCounts = { intel: question, projects: 0, firms: 0 };
       // No DB hits — the Intelligence answer is the response, so lead with it
       // (unless the user has a sticky lens that's available here).
-      sResults.setAttribute('data-filter', _stickyDefault(question ? 'intel' : 'articles', _lastFilterCounts));
+      _setFilter(question ? 'intel' : 'articles', _lastFilterCounts);
       var _ac = renderArticleSection(q, token);
       _lastResultsTotal = 0;
       _lastResultKind = 'question';
@@ -3943,8 +3963,7 @@
     // section. The counts-bar pills drill into any one category for the full
     // set. A user who explicitly picked a lens last query gets it back via
     // stickiness; otherwise Overview leads.
-    var defF = _stickyDefault('overview', _lastFilterCounts);
-    sResults.setAttribute('data-filter', defF);
+    var defF = _setFilter('overview', _lastFilterCounts);
     var _artC = renderArticleSection(q, token);
 
     _lastResultsTotal = totalHits;
@@ -4157,8 +4176,25 @@
       if (myToken !== _intelToken) return;
       Core.askIntelligence(q, facts).then(function(res){
         if (myToken !== _intelToken) return;
+        // The 'Thinking' live-pip was relocated into the feedback row by setState
+        // BEFORE this async answer arrived; rebuilding the panel below makes a new
+        // pip in the (overview-hidden) header but leaves the relocated one stuck on
+        // 'Thinking'. Flip every live pip in this turn so the footer stops saying
+        // THINKING once the answer (or a miss) lands. (The structured path has its
+        // own setLive(); this is the question/concept/journal path's equivalent.)
+        function _stopThinking(ok){
+          try {
+            var _t = slotIntel.closest && slotIntel.closest('.tmw-ov-turn');
+            if (!_t) return;
+            _t.querySelectorAll('.live').forEach(function(l){
+              if (ok) { l.classList.remove('dim'); l.innerHTML = '<i></i>Live answer'; }
+              else { l.classList.add('dim'); l.innerHTML = '<i></i>Answer'; }
+            });
+          } catch(_){}
+        }
         if (res && res.ok && res.answer){
           slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
+          _stopThinking(true);
           cacheAnswer(q, res.answer);   // remember for instant resume / repeat
           // Count this against the user's free quota (window.tmwIntel.FREE)
           // (intelligence.js
@@ -4172,8 +4208,10 @@
           if (res.hero) applyIntelHero(res.hero, res.heroDoc, q, token);
         } else if (res && res.error){
           slotIntel.innerHTML = intelPanelHtml('error', q);
+          _stopThinking(false);
         } else {
           slotIntel.innerHTML = intelPanelHtml('no-answer', q);
+          _stopThinking(false);
         }
       });
     }, 700);

@@ -213,6 +213,17 @@ function main() {
     });
     t.eq(leaked.length, 0, 'no unknown-floor non-tower (museum/padel) leaks in');
   });
+  run('firm: a firm-in-place query retrieves the whole portfolio, not 1', (t) => {
+    // "related ross west palm beach" must return Related Ross's WPB pipeline
+    // (South Flagler House, 10/15 CityPlace, Shorecrest, Edgeworth…), not collapse
+    // to the single project whose TITLE contains "ross" (Ross Private Club). The
+    // collapse was a render-layer bug (pickTitleScopedProject); this pins the
+    // retrieval side so the data/filter stays healthy.
+    const s = Core.parseSmartQuery('related ross west palm beach', opt);
+    t.ok(s && s.firm && /related ross/i.test(s.firm.name || ''), 'detects the Related Ross firm');
+    const rows = s ? Core.smartFilter(s, PROJECTS) : [];
+    t.gte(rows.length, 5, 'returns the firm’s WPB portfolio (multiple projects)');
+  });
   run('rankProjects: unknown kind → null (caller keeps heuristics)', (t) => {
     t.eq(Core.rankProjects('anything', PROJECTS, { kind: null }), null, 'null kind → null');
     t.eq(Core.rankProjects('anything', PROJECTS, {}), null, 'no kind → null');
