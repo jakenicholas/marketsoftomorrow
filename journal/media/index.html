@@ -251,6 +251,12 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .growth-bar b{color:#fbe9b0; font-weight:700}
 .growth-bar .gb-sub{color:rgba(236,234,229,.6)}
 .growth-bar.down{color:#ff9a9a; border-color:rgba(255,140,140,.4); box-shadow:0 0 0 1px rgba(255,140,140,.1) inset, 0 14px 50px -22px rgba(255,140,140,.5)}
+/* gold "i" info tooltip (replaces the Mo. Views / Mo. Web disclaimer paragraph) */
+.info-tip{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%; border:1px solid rgba(230,197,116,.6); color:#f0d68a; font-family:var(--serif); font-style:italic; font-size:10px; line-height:1; text-transform:none; cursor:pointer; position:relative; vertical-align:middle; margin-left:6px; user-select:none}
+.info-tip:hover, .info-tip:focus{background:rgba(230,197,116,.16); outline:none}
+.info-pop{position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%); width:min(320px,80vw); padding:13px 15px; background:#11140f; border:1px solid rgba(230,197,116,.35); border-radius:11px; box-shadow:0 20px 56px -22px rgba(0,0,0,.85); font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-style:normal; font-size:11.5px; font-weight:400; line-height:1.62; letter-spacing:.005em; color:rgba(236,234,229,.84); text-transform:none; text-align:left; opacity:0; visibility:hidden; transition:opacity .18s; z-index:60; pointer-events:none}
+.info-pop b{color:#f0d68a; font-weight:600}
+.info-tip:hover .info-pop, .info-tip:focus .info-pop, .info-tip.open .info-pop{opacity:1; visibility:visible}
 /* per-outlet cards */
 .ocards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
 .ocard{padding:0; overflow:hidden; display:flex; flex-direction:column}
@@ -816,14 +822,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>
       <div class="umb-stats">
         <div class="us"><span class="uv" data-fc="umbrella">205K</span><span class="uk">Followers</span></div>
-        <div class="us"><span class="uv">8.1M</span><span class="uk">Mo. Views</span></div>
+        <div class="us"><span class="uv">8.1M</span><span class="uk">Mo. Views<span class="info-tip" tabindex="0" role="button" aria-label="What Mo. Views and Mo. Web mean">i<span class="info-pop"><b>Mo. Views</b> &mdash; each market's total monthly views, combining its social accounts, web articles, and data impressions. <b>Mo. Web</b> &mdash; the website + data-impressions portion of that total. Both are views/impressions, not unique users.</span></span></span></div>
         <div class="us"><span class="uv">593K</span><span class="uk">Mo. Web</span></div>
         <div class="us"><span class="uv">260K</span><span class="uk">Interactions</span></div>
       </div>
     </div>
-    <p class="reveal" style="text-align:center;max-width:820px;margin:16px auto 0;font-size:12.5px;line-height:1.65;color:rgba(236,234,229,.62)">
-      <b style="color:#f0d68a">Mo. Views</b> &mdash; each market's total monthly views, combining its social accounts, web articles, and data impressions. <b style="color:#f0d68a">Mo. Web</b> &mdash; the website + data-impressions portion of that total. Both are views/impressions, not unique users.
-    </p>
     <div class="ocards">
       <div class="ocard glass flag reveal">
       <div class="obanner"><img src="/media/img/9998de3ca8af.jpg" alt="Florida of Tomorrow" loading="lazy"><span class="oflag">Flagship</span></div>
@@ -1338,6 +1341,14 @@ let last=0; const nav=document.getElementById('nav');
       }
     })
     .catch(function(){});
+})();
+// info "i" tooltip — hover/focus is CSS; this adds click-to-pin (mobile) + outside-close
+(function(){
+  document.addEventListener('click', function(e){
+    var tip = e.target.closest && e.target.closest('.info-tip');
+    document.querySelectorAll('.info-tip.open').forEach(function(t){ if(t!==tip) t.classList.remove('open'); });
+    if(tip){ e.preventDefault(); tip.classList.toggle('open'); }
+  });
 })();
 // markets-visited region filter
 (function(){
