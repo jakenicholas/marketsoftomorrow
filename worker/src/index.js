@@ -4288,7 +4288,32 @@ async function handleSocialFollowersPull(req, env, origin) {
     if (e.instagram == null && e.facebook == null) misses.push(a.key);
     accounts[a.key] = e;
   }
-  return json({ ok: true, accounts, misses, pages_seen: pages.length, pulled_at: new Date().toISOString() }, {}, env, origin);
+  // Threads follower counts — per-account OAuth tokens (needs threads_manage_insights,
+  // granted on reconnect). One insights call per connected brand; brands that haven't
+  // reconnected with the new scope return an error and are silently skipped.
+  let threadsPulled = 0;
+  try {
+    await ensureThreadsTokensTable(env);
+    const { results: tks } = await env.DB.prepare(`SELECT account_key, threads_user_id, access_token FROM threads_tokens`).all();
+    for (const t of (tks || [])) {
+      if (!t.threads_user_id || !t.access_token) continue;
+      try {
+        const ins = await fetch('https://graph.threads.net/v1.0/' + t.threads_user_id + '/threads_insights?' +
+          new URLSearchParams({ metric: 'followers_count', access_token: t.access_token })).then(r => r.json()).catch(() => ({}));
+        const rows = (ins && ins.data) || [];
+        const row = rows.find(m => m && m.name === 'followers_count') || rows[0];
+        let n = null;
+        if (row) n = (row.total_value && row.total_value.value != null) ? row.total_value.value : (row.values && row.values[0] && row.values[0].value);
+        if (n != null) {
+          accounts[t.account_key] = accounts[t.account_key] || {};
+          accounts[t.account_key].threads = Number(n) || 0;
+          threadsPulled++;
+          const mi = misses.indexOf(t.account_key); if (mi >= 0) misses.splice(mi, 1);
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+  return json({ ok: true, accounts, misses, pages_seen: pages.length, threads_pulled: threadsPulled, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
