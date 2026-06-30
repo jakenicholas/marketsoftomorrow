@@ -42,6 +42,15 @@
       var key = KEY[nm.textContent.trim().toLowerCase()]; if (!key || m[key] == null) return;
       set(card.querySelector('.ost .ov'), m[key]);   // first stat per card = Followers
     });
+    // Catch-all: proposal/media surfaces label the umbrella inconsistently
+    // ("Total followers" / "Total social media followers" / "TOTAL FOLLOWERS"),
+    // so also replace any leaf element still showing the old static placeholder.
+    if (umb) {
+      var OLD = /^(192,900|192,200|192\.9K)$/;
+      document.querySelectorAll('div,span,b,strong,p,td').forEach(function (el) {
+        if (el.children.length === 0) { var t = (el.textContent || '').trim(); if (OLD.test(t)) el.textContent = styled(t, umb); }
+      });
+    }
     if (d.growth && d.growth.delta != null && d.growth.delta !== 0 && !document.querySelector('.tmw-growth-bar')) {
       var anchor = document.querySelector('.ocards') || document.querySelector('.proof-grid');
       if (anchor) {
