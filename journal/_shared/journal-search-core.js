@@ -1585,6 +1585,13 @@
     // whose bio literally contains the program name MUST outrank fuzzy semantic
     // neighbors. Semantic recall is the fallback for fuzzier concepts.
     if (kind === 'concept' || kind === 'topic') {
+      // PLACE SCOPE — when the query names a place (state/region/city), keep only
+      // projects IN it. Semantic recall matches by MEANING and happily returns a
+      // brand neighbor in the wrong place — e.g. "Limelight Charleston" (SC) for a
+      // COLORADO query, because Limelight is an Aspen ski brand. A geographic query
+      // must never surface an out-of-place project; the answer is place-aware, the
+      // cards must be too. No place named → no filter (global concepts unaffected).
+      var _pf = (place && place.match) ? place.match : null;
       var topicQ = String(q || '')
         .replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
         .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
@@ -1596,7 +1603,7 @@
         var bioHits = projects.filter(function (p) {
           var bio = norm((firstField(p, ['DescriptionLong', 'Description']) || '') + ' ' + (p.Title || ''));
           return ctoks.every(function (t) { return bio.indexOf(t) >= 0; });
-        });
+        }).filter(function (p) { return !_pf || _pf(p); });
         if (bioHits.length) {
           rankByStatus(bioHits, { now: opts.now });
           return { kind: 'concept', placeDriven: false, exactName: false, semantic: false,
@@ -1605,7 +1612,8 @@
       }
       if (opts.semanticSlugs && opts.semanticSlugs.length) {
         var pBy = {}; projects.forEach(function (p) { var sl = p.Slug || p.slug; if (sl) pBy[sl] = p; });
-        var sem = opts.semanticSlugs.map(function (sl) { return pBy[sl]; }).filter(Boolean);
+        var sem = opts.semanticSlugs.map(function (sl) { return pBy[sl]; }).filter(Boolean)
+          .filter(function (p) { return !_pf || _pf(p); });
         return { kind: 'concept', placeDriven: false, exactName: false, semantic: true,
           rows: sem.map(function (p, i) { return { p: p, s: sem.length - i }; }) };
       }

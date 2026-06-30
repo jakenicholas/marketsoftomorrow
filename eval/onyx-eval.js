@@ -224,6 +224,21 @@ function main() {
     const rows = s ? Core.smartFilter(s, PROJECTS) : [];
     t.gte(rows.length, 5, 'returns the firm’s WPB portfolio (multiple projects)');
   });
+  run('rankProjects: concept kind place-scopes cards (no cross-state leak)', (t) => {
+    // A Colorado query must NOT surface an out-of-state semantic neighbor like
+    // "Limelight Charleston" (SC) — Limelight is an Aspen brand, so it scores close
+    // by meaning. Place-scope the related/semantic cards to the named place.
+    const co = PROJECTS.find((p) => String(p.CountyState || '').trim() === 'CO');
+    const sc = PROJECTS.find((p) => String(p.CountyState || '').trim() === 'SC' || /charleston/i.test(String(p.City || '')));
+    if (!co || !sc) { t.ok(true, '(no CO/SC sample in data — skipped)'); return; }
+    const place = Core.resolvePlace('tell me about whats happening across colorado', PROJECTS);
+    t.ok(!!place, 'resolves a place for the colorado query');
+    const slugs = [sc.Slug || sc.slug, co.Slug || co.slug].filter(Boolean);
+    const r = Core.rankProjects('tell me about whats happening across colorado', PROJECTS, { kind: 'concept', semanticSlugs: slugs, place });
+    const titles = (r ? r.rows : []).map((x) => String(x.p.Title || ''));
+    t.ok(!titles.includes(String(sc.Title || '')), 'drops the out-of-place card (' + sc.Title + ', ' + sc.CountyState + ')');
+    t.ok(titles.includes(String(co.Title || '')), 'keeps the in-place Colorado card (' + co.Title + ')');
+  });
   run('rankProjects: unknown kind → null (caller keeps heuristics)', (t) => {
     t.eq(Core.rankProjects('anything', PROJECTS, { kind: null }), null, 'null kind → null');
     t.eq(Core.rankProjects('anything', PROJECTS, {}), null, 'no kind → null');

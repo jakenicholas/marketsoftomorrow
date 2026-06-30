@@ -2899,25 +2899,30 @@
       if (ap) { var ps = slotFilterPills.querySelectorAll('.tmw-ov-fp'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('active', ps[i] === ap); }
     }
 
+    // Resolve any place the query names so the retriever can scope BOTH the
+    // bio-exact and the semantic cards to it — a "across colorado" query must not
+    // surface "Limelight Charleston" (SC) just because Limelight is an Aspen brand.
+    var _place = Core.resolvePlace ? Core.resolvePlace(q, PROJECTS) : null;
+
     // #4 unified retriever — concept kind. Bio-substring-exact for a named
     // program ("Live Local Act", "mass timber") runs FIRST inside rankProjects
     // (a dense embedding dilutes the phrase across a ~1,600-char bio, so "Live
     // Nation" would win on the word "live") — these verbatim matches are the most
     // precise, so they paint immediately and synchronously.
-    var bio = Core.rankProjects(q, PROJECTS, { kind: 'concept' });
+    var bio = Core.rankProjects(q, PROJECTS, { kind: 'concept', place: _place });
     if (bio && !bio.semantic && bio.rows.length) { paint(bio.rows.map(function (x) { return x.p; })); return; }
 
     // Semantic fallback — fetch related slugs, then rank them through the SAME
-    // retriever so the render is identical. Topic-clean the query first (strip
-    // question/scope/state filler) so the topic, not "around the world", drives
-    // recall. Kept in lockstep with rankProjects's internal strip.
+    // retriever (place-scoped) so the render is identical. Topic-clean the query
+    // first (strip question/scope/state filler) so the topic, not "around the
+    // world", drives recall. Kept in lockstep with rankProjects's internal strip.
     if (!Core.semanticSearch) return;
     var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
       .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
       .replace(/\s+/g, ' ').trim();
     Core.semanticSearch(topicQ || q).then(function (sem) {
       if (token !== _renderToken) return;
-      var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [] });
+      var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [], place: _place });
       paint(r ? r.rows.map(function (x) { return x.p; }) : []);
     }).catch(function () {});
   }
