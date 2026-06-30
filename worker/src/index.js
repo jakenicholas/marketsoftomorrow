@@ -7225,22 +7225,59 @@ async function handleIntelStats(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   const now = Math.floor(Date.now() / 1000), d7 = now - 7 * 86400, d30 = now - 30 * 86400;
-  const BASE = `event_name IN ('intel_query','search') AND member_id IS NOT NULL AND member_id != '' AND member_id NOT LIKE 'system:%'`;
-  const n = async (sql, ...b) => { try { const r = await env.DB.prepare(sql).bind(...b).first(); return (r && r.n) || 0; } catch { return 0; } };
-  const total_queries  = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE}`);
-  const intel_queries  = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND event_name='intel_query'`);
-  const search_queries = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND event_name='search'`);
-  const total_users    = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE}`);
-  const repeat_users   = await n(`SELECT COUNT(*) n FROM (SELECT member_id FROM events WHERE ${BASE} GROUP BY member_id HAVING COUNT(*) > 1)`);
-  const queries_7d     = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND ts >= ?`, d7);
-  const queries_30d    = await n(`SELECT COUNT(*) n FROM events WHERE ${BASE} AND ts >= ?`, d30);
-  const active_7d      = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE} AND ts >= ?`, d7);
-  const active_30d     = await n(`SELECT COUNT(DISTINCT member_id) n FROM events WHERE ${BASE} AND ts >= ?`, d30);
+  // Operator-supplied exact member_ids to exclude (your own + teammates + test accounts).
+  const exMembers = String(env.INTEL_EXCLUDE_MEMBERS || '').split(',').map(s => s.trim()).filter(Boolean);
+  const exIn = exMembers.length ? ` AND e.member_id NOT IN (${exMembers.map(() => '?').join(',')})` : '';
+  // Canonical "real human query" filter — excludes the system routines + funnel
+  // beacons + obvious test prefixes, and collapses the redundant 'search' half of
+  // a smart Onyx ask (one ask logged both 'search' and 'intel_query' within 2 min).
+  const CLEAN =
+    `e.event_name IN ('intel_query','search')
+     AND e.member_id IS NOT NULL AND e.member_id != ''
+     AND e.member_id NOT LIKE 'system:%' AND e.member_id NOT LIKE 'funnel:%'
+     AND e.member_id NOT LIKE 'test%' AND e.member_id NOT LIKE 'claude%'
+     AND e.member_id NOT LIKE 'preview%' AND e.member_id NOT LIKE 'debug%' AND e.member_id NOT LIKE 'bot%'
+     AND NOT (e.event_name = 'search' AND EXISTS (
+       SELECT 1 FROM events iq WHERE iq.event_name='intel_query' AND iq.member_id = e.member_id
+       AND json_extract(iq.props_json,'$.q') = json_extract(e.props_json,'$.q') AND ABS(iq.ts - e.ts) <= 120))`
+    + exIn;
+  const n = async (extra, ...extraBinds) => {
+    try { const r = await env.DB.prepare(`SELECT COUNT(*) n FROM events e WHERE ${CLEAN}${extra || ''}`).bind(...exMembers, ...extraBinds).first(); return (r && r.n) || 0; }
+    catch { return 0; }
+  };
+  const distinct = async (extra, ...extraBinds) => {
+    try { const r = await env.DB.prepare(`SELECT COUNT(DISTINCT e.member_id) n FROM events e WHERE ${CLEAN}${extra || ''}`).bind(...exMembers, ...extraBinds).first(); return (r && r.n) || 0; }
+    catch { return 0; }
+  };
+  const total_queries  = await n('');
+  const intel_queries  = await n(` AND e.event_name='intel_query'`);
+  const search_queries = await n(` AND e.event_name='search'`);
+  const total_users    = await distinct('');
+  let repeat_users = 0;
+  try { const r = await env.DB.prepare(`SELECT COUNT(*) n FROM (SELECT e.member_id FROM events e WHERE ${CLEAN} GROUP BY e.member_id HAVING COUNT(*) > 1)`).bind(...exMembers).first(); repeat_users = (r && r.n) || 0; } catch {}
+  const queries_7d  = await n(` AND e.ts >= ?`, d7);
+  const queries_30d = await n(` AND e.ts >= ?`, d30);
+  const active_7d   = await distinct(` AND e.ts >= ?`, d7);
+  const active_30d  = await distinct(` AND e.ts >= ?`, d30);
+  // Audit: who's actually in the data (so you can spot test/routine accounts to exclude).
+  let top_members = [];
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT e.member_id, MAX(e.email) email, MAX(e.member_name) name, COUNT(*) n, MAX(e.ts) last_ts
+       FROM events e WHERE e.event_name IN ('intel_query','search') AND e.member_id IS NOT NULL AND e.member_id != ''
+       GROUP BY e.member_id ORDER BY n DESC LIMIT 40`
+    ).all();
+    top_members = (rs.results || []).map(r => ({
+      member_id: r.member_id, email: r.email || '', name: r.name || '', queries: r.n, last_ts: r.last_ts,
+      excluded: /^(system:|funnel:|test|claude|preview|debug|bot)/.test(String(r.member_id)) || exMembers.includes(r.member_id),
+    }));
+  } catch {}
   return json({
     total_queries, intel_queries, search_queries, total_users, repeat_users,
     repeat_pct: total_users ? Math.round(repeat_users / total_users * 100) : 0,
     avg_per_user: total_users ? Math.round(total_queries / total_users * 10) / 10 : 0,
     queries_7d, queries_30d, active_users_7d: active_7d, active_users_30d: active_30d,
+    excluded_members: exMembers, top_members,
   }, {}, env, origin);
 }
 
