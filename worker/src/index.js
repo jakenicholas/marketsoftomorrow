@@ -7184,6 +7184,17 @@ async function handleSmartAnswer(request, env, origin) {
     hero = /^none$/i.test(hm[1].trim()) ? null : hm[1].trim();
     answer = answer.slice(0, hm.index).trim();
   }
+  // Strip stray markdown the model sometimes emits despite the "no markdown" rule
+  // (especially after a web_search returns formatted snippets), so the reader
+  // never sees literal **bold**, backticks, or # headers, and collapse the
+  // multi-line web prose into the single clean paragraph the UI expects.
+  answer = answer
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/`+/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
   if (!answer) return fail('empty');
   const heroDoc = (hero && heroDocs[hero]) ? heroDocs[hero] : null;
 
