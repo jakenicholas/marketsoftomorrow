@@ -7029,11 +7029,14 @@ async function handleSmartAnswer(request, env, origin) {
     'The `top` list is keyword-ranked and can be NOISE when the query names a place/region or topic our keyword ' +
     'index could not resolve (e.g. "asia", "the southeast", "mass timber"). If the query names a PLACE/REGION ' +
     'or TOPIC and the `top` items are NOT in that place / on that topic, IGNORE `top` entirely and answer from ' +
-    '`related` (which matched by MEANING and IS on-topic). In that case you MUST NOT mention or contrast the ' +
-    'off-topic `top` items — NEVER write things like "the projects surfacing here are Florida and New York" or ' +
-    '"nothing on X" — just lead straight into the relevant `related` projects by name, location, and status, as ' +
-    'if they were the answer (they are). Saying we have "nothing" while `related` holds a real match for the ' +
-    'asked place/topic is FALSE and forbidden.\n' +
+    '`related` (which matched by MEANING and IS on-topic). Saying we have "nothing" while `related` holds a real ' +
+    'match for the asked place/topic is FALSE and forbidden.\n' +
+    'OPERATE SILENTLY — this is the most important rule of the gate: the reader must NEVER know any selection ' +
+    'happened. Do NOT use the words "top", "related", "results", "list", "data", "off-topic", "surfacing", or ' +
+    '"matches". Do NOT explain which set you drew from or that you are "leading instead from" anything. Do NOT ' +
+    'contrast what you kept vs. dropped (NEVER write "the projects here are Florida and New York" or "nothing on ' +
+    'X"). Just write the answer as a confident analyst — open directly on the relevant projects by name, ' +
+    'location, and status as if they were self-evidently the answer (they are). No meta-commentary, ever.\n' +
     'PRE-RANKED LIST — when `top` IS on-topic: it is ALREADY ordered by our editorial priority — Featured ' +
     '(our pick) → Coming Soon → Recently Opened (last ~6 months) → Under Construction → Breaking Ground → ' +
     'Announced. `top[0]` is the intended LEAD and is the hero card the reader sees beside your answer — OPEN ' +
