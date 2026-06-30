@@ -703,6 +703,61 @@ async function stripeGet(env, path) {
   if (!r.ok) throw new Error('Stripe ' + r.status + ': ' + (await r.text()).slice(0, 200));
   return r.json();
 }
+async function stripePost(env, path, params) {
+  const r = await fetch('https://api.stripe.com/v1' + path, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params || {}),
+  });
+  if (!r.ok) throw new Error('Stripe ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  return r.json();
+}
+// Find a member's current subscription (trialing/active preferred) by email.
+async function findSubByEmail(env, email) {
+  if (!env.STRIPE_SECRET_KEY || !email) return null;
+  const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
+  for (const c of (custs.data || [])) {
+    const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=20');
+    const list = subs.data || [];
+    const best = list.find(s => s.status === 'trialing' || s.status === 'active') || list[0];
+    if (best) return best;
+  }
+  return null;
+}
+// GET /sub-status?email= — read-only subscription state, used by the account
+// page to show the "trial cancelled" banner. Returns a member's OWN status.
+async function handleSubStatus(req, env, origin, url) {
+  if (!env.STRIPE_SECRET_KEY) return json({ found: false, configured: false }, {}, env, origin);
+  const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+  if (!email) return json({ found: false }, {}, env, origin);
+  try {
+    const sub = await findSubByEmail(env, email);
+    if (!sub) return json({ found: false }, {}, env, origin);
+    return json({
+      found: true, status: sub.status, trialing: sub.status === 'trialing',
+      cancel_at_period_end: !!sub.cancel_at_period_end, canceled: sub.status === 'canceled',
+      trial_end: sub.trial_end || null, current_period_end: sub.current_period_end || null,
+    }, {}, env, origin);
+  } catch (e) { return json({ found: false, error: String(e.message || e) }, {}, env, origin); }
+}
+// POST /admin/cancel-subscription { email, immediate? } — admin-gated. Sets the
+// member's sub to cancel at period end (trial → no charge; paid → keeps paid term).
+async function handleAdminCancelSub(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const email = String(b.email || '').trim().toLowerCase();
+  if (!email) return json({ error: 'email required' }, { status: 400 }, env, origin);
+  try {
+    const sub = await findSubByEmail(env, email);
+    if (!sub) return json({ error: 'No subscription found for ' + email }, { status: 404 }, env, origin);
+    if (sub.status === 'canceled') return json({ ok: true, status: 'canceled', already: true, email }, {}, env, origin);
+    const res = b.immediate
+      ? await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'false' }).then(() => fetch('https://api.stripe.com/v1/subscriptions/' + sub.id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY } }).then(r => r.json()))
+      : await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'true' });
+    return json({ ok: true, status: res.status, cancel_at_period_end: !!res.cancel_at_period_end, was_trialing: sub.status === 'trialing', email }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
 function stripePerMonth(amount, interval, count) {
   const c = count || 1;
   if (interval === 'year')  return amount / (12 * c);
@@ -8252,6 +8307,8 @@ export default {
       if (request.method === 'GET' && url.pathname === '/subscriptions') {
         return await handleSubscriptions(env, origin, url);
       }
+      if (request.method === 'GET'  && url.pathname === '/sub-status')              return await handleSubStatus(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
       }
