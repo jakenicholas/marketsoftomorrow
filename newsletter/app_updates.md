@@ -1,9 +1,9 @@
 # TMW Pro is Here
 image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9c8843b069db-tmw-pro-june-23.gif
 
-• Founding Member Status — Secure your member number by July 1st by making an account
+• Founding Member Status — Secure your founding member number by July 1st (tomorrow) by making an account
 
-• TMW Intelligence (Beta 4.0) — AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page
+• TMW Intelligence (Onyx 4.1) — AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page
 
 • A Brand-New Map — faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more
 
