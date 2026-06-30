@@ -14,6 +14,11 @@
 
   var PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
   var PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
+  // No-trial equivalents — used for returning members who already used their trial.
+  var NOTRIAL = {
+    'prc_pro-annual-14-day-trial-g82f0quh': 'prc_annual-9i2e0eab',
+    'prc_pro-monthly-14-trial-np2506az':   'prc_monthly-86u0uyc'
+  };
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
 
@@ -37,6 +42,16 @@
   }
   function showTrialUsedBanner() {
     var b = document.getElementById('paywallTrialUsed'); if (b) b.hidden = false;
+    // No free trial for returning members — drop the "14 days free" wording so the
+    // plans + headline reflect they're billed immediately.
+    var modal = document.getElementById('paywallModal'); if (!modal) return;
+    var sub = modal.querySelector('.paywall-subtitle');
+    if (sub) sub.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Your plan:';
+    modal.querySelectorAll('.paywall-plan-note').forEach(function (n) {
+      var t = n.textContent.replace(/\s*·\s*14 days free/i, '').trim();   // annual: drop "· 14 days free"
+      if (/^14 days free$/i.test(t)) t = 'billed monthly';                      // monthly: replace outright
+      n.textContent = t;
+    });
   }
 
   // ── styles (ported from the map, prefixed-safe class names) ───────────
@@ -125,7 +140,7 @@
         '<div class="paywall-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
         '<h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>' +
         '<p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>' +
-        '<div class="paywall-trialused" id="paywallTrialUsed" hidden style="display:flex;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — it’s one per account.</span></div>' +
+        '<div class="paywall-trialused" id="paywallTrialUsed" hidden style="display:flex;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — choose a plan to subscribe now.</span></div>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
@@ -210,12 +225,12 @@
   async function startCheckout(priceId) {
     var m = ms();
     if (!m) { alert('Payment system loading — please try again in a moment.'); return; }
-    // Already used their one free trial — block the trial checkout and explain.
-    if (_trialUsed) {
+    // Already used their one free trial — subscribe immediately on the no-trial
+    // plan (no second free trial), and make sure they see why.
+    if (_trialUsed && NOTRIAL[priceId]) {
+      priceId = NOTRIAL[priceId];
       showTrialUsedBanner();
-      var b = document.getElementById('paywallTrialUsed'); if (b) b.scrollIntoView({ block: 'nearest' });
-      if (window.gtag) gtag('event', 'paywall_trial_reuse_blocked', { 'surface': 'journal' });
-      return;
+      if (window.gtag) gtag('event', 'paywall_notrial_checkout', { 'price_id': priceId, 'surface': 'journal' });
     }
     try {
       if (window.gtag) gtag('event', 'paywall_subscribe_clicked', { 'price_id': priceId, 'surface': 'journal' });
