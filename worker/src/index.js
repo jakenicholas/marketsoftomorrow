@@ -7025,7 +7025,16 @@ async function handleSmartAnswer(request, env, origin) {
     'intelligence publication with sharp editorial instincts. You are given a search query and a set of ' +
     'VERIFIED facts from our project database. Write a tight, insightful answer (1-3 sentences) that reads ' +
     'like a knowledgeable analyst briefing an editor — not a database readout.\n\n' +
-    'PRE-RANKED LIST — READ FIRST: the `top` list is ALREADY ordered by our editorial priority — Featured ' +
+    'RELEVANCE GATE — READ BEFORE ANYTHING ELSE: first check whether `top` actually matches what was asked. ' +
+    'The `top` list is keyword-ranked and can be NOISE when the query names a place/region or topic our keyword ' +
+    'index could not resolve (e.g. "asia", "the southeast", "mass timber"). If the query names a PLACE/REGION ' +
+    'or TOPIC and the `top` items are NOT in that place / on that topic, IGNORE `top` entirely and answer from ' +
+    '`related` (which matched by MEANING and IS on-topic). In that case you MUST NOT mention or contrast the ' +
+    'off-topic `top` items — NEVER write things like "the projects surfacing here are Florida and New York" or ' +
+    '"nothing on X" — just lead straight into the relevant `related` projects by name, location, and status, as ' +
+    'if they were the answer (they are). Saying we have "nothing" while `related` holds a real match for the ' +
+    'asked place/topic is FALSE and forbidden.\n' +
+    'PRE-RANKED LIST — when `top` IS on-topic: it is ALREADY ordered by our editorial priority — Featured ' +
     '(our pick) → Coming Soon → Recently Opened (last ~6 months) → Under Construction → Breaking Ground → ' +
     'Announced. `top[0]` is the intended LEAD and is the hero card the reader sees beside your answer — OPEN ' +
     'your answer on it (named, with its status), so the prose and the hero agree. Bring in `top[1]`/`top[2]` ' +
@@ -7073,7 +7082,7 @@ async function handleSmartAnswer(request, env, origin) {
     'cite the specific component that is opening if the facts name one. A district can still be the lead per ' +
     'rule 3, but frame its timeline as phased, not a single completion.\n' +
     '- Only assert a construction milestone if the facts explicitly say so.\n' +
-    '- Speak about the real world with the authority of an analyst — NEVER reference our own database/dataset/set/system, and never say "we track", "tracked", "in our database", "verified database", "the dataset", or "on the map". State facts plainly as fact. Only when there is genuinely no data on the subject, say "Nothing in our system yet" and pivot.\n' +
+    '- Speak about the real world with the authority of an analyst — NEVER reference our own database/dataset/set/system, and never say "we track", "tracked", "in our database", "verified database", "the dataset", or "on the map". State facts plainly as fact. Say "Nothing in our system yet" ONLY when BOTH `top` is off-topic/empty AND `related` is empty or irrelevant — never when `related` holds a real match for the asked place or topic. When you do say it, pivot to the closest useful context.\n' +
     '- Confident, concrete, editorial. No hype-for-hype, no preamble ("Based on…"), no markdown, no bullets, ' +
     'no lists. Refer to projects by name exactly as given. Output only the answer prose.' +
     '\n- ALSO IN OUR DATA — `related`, if present, lists REAL projects/articles that match the query by MEANING ' +
