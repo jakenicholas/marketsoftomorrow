@@ -1971,9 +1971,35 @@
     return hit;
   }
 
+  // ── one-shot reproduction: query → answer ─────────────────────────
+  // A self-contained run of the primary Intelligence path (place → rank →
+  // facts → /smart-answer), used by the admin "Training" re-ask so the backend
+  // can reproduce the live answer for a query. Covers the dominant project /
+  // keyword / question case; the overlay's place/topic/article branches add
+  // nuance the live UI applies on top. Resolves { answer, count, place }.
+  function answerQuery(q, projects, firms, history) {
+    q = String(q || '').trim();
+    if (!q) return Promise.resolve({ answer: null, reason: 'empty' });
+    projects = projects || [];
+    var place = null;
+    try { place = resolvePlace(q, projects); } catch (_) {}
+    var topProjects = [];
+    try {
+      var rr = rankProjects(q, projects, { place: place });
+      var rows = rr && rr.rows ? rr.rows : (Array.isArray(rr) ? rr : []);
+      topProjects = rows.map(function (x) { return x && x.p ? x.p : x; }).filter(Boolean).slice(0, 12);
+    } catch (_) {}
+    var facts;
+    try { facts = buildIntelFacts(topProjects, [], place); } catch (_) { facts = { top: [], count: 0 }; }
+    return askIntelligence(q, facts, history).then(function (res) {
+      return { answer: (res && res.answer) || null, count: topProjects.length, place: place };
+    }).catch(function (e) { return { answer: null, error: String(e && e.message || e) }; });
+  }
+
   // ── exports ───────────────────────────────────────────────────────
   window.TmwSearchCore = {
     WORKER_URL: WORKER_URL,
+    answerQuery: answerQuery,
     iconicItems: iconicItems,
     // string helpers
     norm: norm,

@@ -7281,6 +7281,78 @@ async function handleIntelStats(req, env, origin) {
   }, {}, env, origin);
 }
 
+// ── Training: per-bad-answer improvement threads ───────────────────────────
+function qnorm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 200); }
+async function ensureTrainingTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS intel_training (
+    query_norm TEXT PRIMARY KEY, query TEXT, original_answer TEXT, status TEXT, thread_json TEXT, created_at INTEGER, updated_at INTEGER)`).run();
+}
+async function handleTrainingList(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureTrainingTable(env);
+  const saved = {};
+  try {
+    const rs = await env.DB.prepare(`SELECT query_norm, query, status, thread_json, updated_at FROM intel_training ORDER BY updated_at DESC`).all();
+    for (const r of (rs.results || [])) {
+      let thread = []; try { thread = JSON.parse(r.thread_json || '[]'); } catch {}
+      saved[r.query_norm] = { query: r.query, status: r.status || 'open', iterations: thread.length, updated_at: r.updated_at };
+    }
+  } catch {}
+  const downs = {};
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name='search_feedback' AND ts >= ? ORDER BY ts DESC LIMIT 200`
+    ).bind(Math.floor(Date.now() / 1000) - 120 * 86400).all();
+    for (const r of (rs.results || [])) {
+      let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch {}
+      if ((p.rating || p.vote) !== 'down') continue;
+      const query = p.q || p.query || ''; if (!query) continue;
+      const k = qnorm(query);
+      if (!downs[k]) downs[k] = { query, ts: r.ts, note: p.editor_note || p.note || '' };
+    }
+  } catch {}
+  const out = [];
+  for (const k in saved) out.push({ query: saved[k].query, status: saved[k].status, iterations: saved[k].iterations, updated_at: saved[k].updated_at, source: 'training' });
+  for (const k in downs) { if (saved[k]) continue; out.push({ query: downs[k].query, status: 'open', iterations: 0, ts: downs[k].ts, note: downs[k].note, source: 'thumbs_down' }); }
+  return json({ items: out }, {}, env, origin);
+}
+async function handleTrainingCase(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureTrainingTable(env);
+  const query = String(url.searchParams.get('q') || '').slice(0, 200);
+  const k = qnorm(query);
+  const row = await env.DB.prepare(`SELECT * FROM intel_training WHERE query_norm = ?`).bind(k).first();
+  if (row) {
+    let thread = []; try { thread = JSON.parse(row.thread_json || '[]'); } catch {}
+    return json({ query: row.query, original_answer: row.original_answer || '', status: row.status || 'open', thread }, {}, env, origin);
+  }
+  let original = '';
+  try {
+    const r = await env.DB.prepare(
+      `SELECT props_json FROM events WHERE event_name='intel_answer' AND json_extract(props_json,'$.q') = ? ORDER BY ts DESC LIMIT 1`
+    ).bind(query).first();
+    if (r && r.props_json) { const p = JSON.parse(r.props_json); original = p.answer || p.a || ''; }
+  } catch {}
+  return json({ query, original_answer: original, status: 'open', thread: [] }, {}, env, origin);
+}
+async function handleTrainingSave(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureTrainingTable(env);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const query = String(b.query || '').slice(0, 200); if (!query) return json({ error: 'query required' }, { status: 400 }, env, origin);
+  const thread = Array.isArray(b.thread) ? b.thread.slice(0, 50) : [];
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(
+    `INSERT INTO intel_training (query_norm, query, original_answer, status, thread_json, created_at, updated_at)
+     VALUES (?1,?2,?3,?4,?5,?6,?6)
+     ON CONFLICT(query_norm) DO UPDATE SET query=?2, original_answer=?3, status=?4, thread_json=?5, updated_at=?6`
+  ).bind(qnorm(query), query, String(b.original_answer || '').slice(0, 4000), String(b.status || 'open').slice(0, 20), JSON.stringify(thread).slice(0, 40000), now).run();
+  return json({ ok: true }, {}, env, origin);
+}
+
 async function handleIntelAnswers(env, origin, url) {
   if (!env.DB) return json({ items: [] }, {}, env, origin);
   const limit = clampInt(url.searchParams.get('limit'), 60, 1, 200);
@@ -8123,6 +8195,9 @@ export default {
         return await handleDiscoveryMark(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/intel-stats') return await handleIntelStats(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/training')       return await handleTrainingList(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/training/case')  return await handleTrainingCase(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/training/save')  return await handleTrainingSave(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/intel-queries') {
         return await handleIntelQueries(env, origin, url);
       }
