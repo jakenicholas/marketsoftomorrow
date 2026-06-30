@@ -536,14 +536,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         .then(function(r){return r.ok?r.json():null;})
         .then(function(s){
           if(!s||!s.found) return;
-          if(!s.cancel_at_period_end && !s.canceled) return;
+          // Show ONLY while a cancellation is pending — cancelled, but the trial
+          // or paid term hasn't run out yet. Once it actually ends (status
+          // 'canceled' → they're a free user again), the banner disappears.
+          if(!s.cancel_at_period_end || s.canceled || s.status==='canceled') return;
           var b=$('trialBanner'), t=$('trialBannerText'); if(!b||!t) return;
-          if(s.trialing || (s.cancel_at_period_end && s.status==='trialing')){
+          if(s.status==='trialing'){
             t.innerHTML='Your <b>trial has been cancelled</b> and you will not be billed.';
-          } else if(s.canceled){
-            t.innerHTML='Your plan has been <b>cancelled</b> &mdash; you won’t be billed again.';
           } else {
-            t.innerHTML='Your plan is set to <b>cancel</b> at the end of the current period &mdash; you won’t be billed again.';
+            t.innerHTML='Your plan is set to <b>cancel</b> at the end of your current period &mdash; you won’t be billed again.';
           }
           b.hidden=false;
         }).catch(function(){});
