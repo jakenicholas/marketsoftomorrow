@@ -193,6 +193,22 @@ PAYWALL_CSS = """
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
+
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
 """
 
 # Early inline (blocking, in <head>) — adds tmw-paid from the cached auth state
@@ -248,6 +264,42 @@ PAYWALL_BODY_JS = """  <script>
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>"""
 
@@ -408,27 +460,31 @@ FEAT_STAR_SVG = (
 )
 
 # ─── Per-firm bubble (mirrors the project page's .pp-firm) ───────────
-def _firm_bubble(label: str, names_str: str, slugs_str: str) -> str:
-    """Render one firm card (DEVELOPER or ARCHITECT). Takes the comma-separated
-    names + slugs from the sheet, links to the first firm's /firm/<slug>/
-    page when a slug exists. Matches the project page's .pp-firm class so
-    the same CSS rules apply."""
-    name = (names_str or '').split(',')[0].strip()
-    if not name:
-        return (
-            f'<div class="pp-firm pp-firm-empty"><div class="k">{esc(label)}</div>'
-            f'<div class="v" style="opacity:.45">—</div></div>'
-        )
-    slug = (slugs_str or '').split(',')[0].strip()
-    inner = (
-        f'<div class="k">{esc(label)}</div>'
-        f'<div class="v">{esc(name)}</div>'
-        f'<span class="go">View firm profile →</span>'
-    )
-    if slug:
-        return f'<a class="pp-firm" href="{ROOT_URL}/firm/{esc(slug)}/">{inner}</a>'
-    # No slug — render as a non-link card to keep the visual grid intact.
-    return f'<div class="pp-firm">{inner}</div>'
+def _firm_bubble(label: str, names_str: str, slugs_str: str, more_url: str = '') -> str:
+    """Render one role bubble (DEVELOPER or ARCHITECT) listing EVERY firm as a
+    clickable pill (was: only the first firm). Pills wrap; the small fitter in
+    PAYWALL_BODY_JS caps the box at two rows and folds any overflow into a
+    "+N more" pill that links to more_url (the project page, where all firms are
+    always listed in full). Firms with no /firm/ page render as a plain,
+    non-clickable pill so every card's firm row stays the same height."""
+    names = [n.strip() for n in (names_str or '').split(',') if n.strip()]
+    slugs = [s.strip() for s in (slugs_str or '').split(',') if s.strip()]
+    lbl = label + ('s' if len(names) > 1 else '')
+    if not names:
+        chips = '<span class="pp-firm-chip is-empty"><span class="nm">—</span></span>'
+    else:
+        parts = []
+        for i, nm in enumerate(names):
+            slug = slugs[i] if i < len(slugs) else ''
+            nm_html = f'<span class="nm">{esc(nm)}</span>'
+            if slug:
+                parts.append(f'<a class="pp-firm-chip" href="{ROOT_URL}/firm/{esc(slug)}/">{nm_html}</a>')
+            else:
+                parts.append(f'<span class="pp-firm-chip is-plain">{nm_html}</span>')
+        chips = ''.join(parts)
+    more_attr = f' data-more="{esc(more_url)}"' if more_url else ''
+    return (f'<div class="pp-firm-group"><div class="k">{esc(lbl)}</div>'
+            f'<div class="pp-firm-chips"{more_attr}>{chips}</div></div>')
 
 def _mini_stat(label: str, value: str) -> str:
     if not value:
@@ -493,8 +549,8 @@ def card_html(p: dict) -> str:
     # Developer + Architect bubbles
     firms_html = (
         '<div class="pp-firms">'
-        + _firm_bubble('Developer', p.get('Developer', ''), p.get('DeveloperSlugs', ''))
-        + _firm_bubble('Architect', p.get('Architect', ''), p.get('ArchitectSlugs', ''))
+        + _firm_bubble('Developer', p.get('Developer', ''), p.get('DeveloperSlugs', ''), f'{ROOT_URL}/projects/{slug}/')
+        + _firm_bubble('Architect', p.get('Architect', ''), p.get('ArchitectSlugs', ''), f'{ROOT_URL}/projects/{slug}/')
         + '</div>'
     )
 

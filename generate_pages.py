@@ -1315,29 +1315,34 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         updated_html = (f'<div class="pp-updated">{TMW_UPD_ICON}'
                         f'<span class="pp-updated-t">Last verified {_updated_fmt}</span></div>')
 
-    # Developer & design firm cards (link to /firm/<slug>/ when a slug exists).
-    def _firm_card(name, fslug, role):
-        if not name:
-            return ''
+    # Developer & design firms — every firm as a clickable pill (was: one big
+    # bordered card per firm). This is the project's own detail page, so no cap:
+    # all firms show. Links to /firm/<slug>/ when a slug exists; firms not yet in
+    # our database render as a plain, non-clickable pill.
+    def _firm_pill(name, fslug):
+        nm = f'<span class="nm">{_escape_text(name)}</span>'
         if fslug:
-            return (f'<a class="pp-firm" href="/firm/{fslug}/"><div class="k">{role}</div>'
-                    f'<div class="v">{name}</div><span class="go">View firm profile →</span></a>')
-        return (f'<div class="pp-firm"><div class="k">{role}</div><div class="v">{name}</div></div>')
+            return f'<a class="pp-firm-chip" href="/firm/{_escape_attr(fslug)}/">{nm}</a>'
+        return f'<span class="pp-firm-chip is-plain">{nm}</span>'
+
+    def _firm_group(label, names, slugs):
+        if not names:
+            return ''
+        lbl = label + ('s' if len(names) > 1 else '')
+        pills = ''.join(_firm_pill(n, (slugs[i] if i < len(slugs) else '')) for i, n in enumerate(names))
+        return (f'<div class="pp-firm-group"><div class="k">{lbl}</div>'
+                f'<div class="pp-firm-chips">{pills}</div></div>')
 
     _dev_names = [n.strip() for n in (row.get('Developer', '') or '').split(',') if n.strip()]
     _dev_slugs = [s.strip() for s in (row.get('DeveloperSlugs', '') or '').split(',') if s.strip()]
     _arch_names = [n.strip() for n in (row.get('Architect', '') or '').split(',') if n.strip()]
     _arch_slugs = [s.strip() for s in (row.get('ArchitectSlugs', '') or '').split(',') if s.strip()]
-    # Show EVERY developer + architect (a project can have multiple of each), each
-    # as its own card — all developers, then all architects.
-    dev_cards  = ''.join(_firm_card(n, (_dev_slugs[i]  if i < len(_dev_slugs)  else ''), 'Developer')
-                         for i, n in enumerate(_dev_names))
-    arch_cards = ''.join(_firm_card(n, (_arch_slugs[i] if i < len(_arch_slugs) else ''), 'Architect')
-                         for i, n in enumerate(_arch_names))
+    dev_group  = _firm_group('Developer', _dev_names, _dev_slugs)
+    arch_group = _firm_group('Architect', _arch_names, _arch_slugs)
     firms_section = ''
-    if dev_cards or arch_cards:
+    if dev_group or arch_group:
         firms_section = (f'<div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div>'
-                         f'<div class="pp-firms">{dev_cards}{arch_cards}</div></div>')
+                         f'<div class="pp-firms">{dev_group}{arch_group}</div></div>')
 
     # Watch button (moved out of the template so it can live inside the hero).
     watch_btn = (
@@ -2410,11 +2415,14 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     .pp-sec-h {{ font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }}
     .pp-about {{ font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }}
     .pp-firms {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }}
-    .pp-firm {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }}
-    .pp-firm:hover {{ border-color: rgba(31,223,103,.35); }}
-    .pp-firm .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
-    .pp-firm .v {{ font-size: 15px; font-weight: 600; margin-top: 5px; color: #fff; }}
-    .pp-firm .go {{ font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }}
+    .pp-firm-group {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }}
+    .pp-firm-group > .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
+    .pp-firm-chips {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }}
+    .pp-firm-chip {{ display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }}
+    .pp-firm-chip .nm {{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+    a.pp-firm-chip::after {{ content: "\\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }}
+    a.pp-firm-chip:hover {{ border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }}
+    .pp-firm-chip.is-plain {{ color: #C2C9C3; cursor: default; }}
     @media (max-width: 540px) {{ .pp-firms {{ grid-template-columns: 1fr; }} }}
 
     /* Nearby Projects — 3 same-market cards (like the article "read more" rail) */

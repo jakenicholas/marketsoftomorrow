@@ -4575,6 +4575,16 @@
   }
   #projectModal .pm-firm-card .go { font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }
   @media (max-width: 540px) { #projectModal .pm-firms-grid { grid-template-columns: 1fr; } }
+  /* Firm PILLS — every developer/architect listed as a clickable pill (detail
+     view, so no cap). Mirrors the SEO pages' .pp-firm-* so all surfaces match. */
+  #projectModal .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+  #projectModal .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+  #projectModal .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  #projectModal .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+  #projectModal .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #projectModal a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+  #projectModal a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+  #projectModal .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
   #projectModal .pm-stat {
     background: rgba(255,255,255,0.04);
     border-radius: 8px; padding: 9px 11px;
@@ -16151,26 +16161,31 @@
           factsEl.style.display = factItems.length ? 'grid' : 'none';
         }
 
-        // ── DEVELOPER & DESIGN — bordered firm cards (project-page style). Shows
-        //    the lead firm per role + a "View firm profile →" link; the whole
-        //    card is a firm-link so a click opens the firm sheet (cmd-click the
-        //    static /developers|architects/<slug>/ page). ─────────────────────
+        // ── DEVELOPER & DESIGN — every firm listed as a clickable pill (was: the
+        //    lead firm only). This is a single-project detail view, so no cap:
+        //    all pills show. Each pill stays a .firm-link so the existing handler
+        //    sets the return marker + navigates to the real /firm/<slug>/ page. ──
         const escAttr = (s) => (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        function firmCard(label, role, firmsArr, fallbackName) {
-          let name = '', slug = '';
-          if (firmsArr && firmsArr.length) { name = firmsArr[0].name || ''; slug = firmsArr[0].slug || ''; }
-          else if (fallbackName) { name = fallbackName; }
-          if (!name) return '';
-          const nameEsc = escAttr(name);
-          const inner = `<div class="k">${label}</div><div class="v">${nameEsc}</div>` +
-                        (slug ? `<span class="go">View firm profile &#8594;</span>` : '');
-          if (slug) {
-            return `<a class="pm-firm-card firm-link" href="/firm/${encodeURIComponent(slug)}/" data-firm-role="${role}" data-firm-slug="${escAttr(slug)}" title="View ${nameEsc} on TMW">${inner}</a>`;
+        function firmCard(label, role, firmsArr, fallbackNames) {
+          let firms = [];
+          if (firmsArr && firmsArr.length) {
+            firms = firmsArr.filter(f => f && f.name).map(f => ({ name: f.name, slug: f.slug || '' }));
+          } else if (fallbackNames) {
+            firms = String(fallbackNames).split(',').map(s => s.trim()).filter(Boolean).map(n => ({ name: n, slug: '' }));
           }
-          return `<div class="pm-firm-card">${inner}</div>`;
+          if (!firms.length) return '';
+          const lbl = label + (firms.length > 1 ? 's' : '');
+          const pills = firms.map(f => {
+            const nm = `<span class="nm">${escAttr(f.name)}</span>`;
+            if (f.slug) {
+              return `<a class="pp-firm-chip firm-link" href="/firm/${encodeURIComponent(f.slug)}/" data-firm-role="${role}" data-firm-slug="${escAttr(f.slug)}" title="View ${escAttr(f.name)} on TMW">${nm}</a>`;
+            }
+            return `<span class="pp-firm-chip is-plain">${nm}</span>`;
+          }).join('');
+          return `<div class="pp-firm-group"><div class="k">${escAttr(lbl)}</div><div class="pp-firm-chips">${pills}</div></div>`;
         }
-        const devCard  = firmCard('Developer', 'developers', p.developers, p.developer ? truncateDeveloper(p.developer) : '');
-        const archCard = firmCard('Architect', 'architects', p.architects, p.architect ? p.architect.split(',')[0].trim() : '');
+        const devCard  = firmCard('Developer', 'developers', p.developers, p.developer || '');
+        const archCard = firmCard('Architect', 'architects', p.architects, p.architect || '');
 
         const firmsEl = document.getElementById('pmFirms');
         const firmsSection = document.getElementById('pmFirmsSection');
