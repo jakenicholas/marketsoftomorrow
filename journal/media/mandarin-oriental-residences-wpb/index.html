@@ -686,6 +686,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
   .seg-divider{margin:2px 2px}
   .mot-cc-frame{height:560px} .tmw-wordmark{width:80px}
 }
+
+/* info tooltip: always overlay above the tiles (fix stacking-context clipping) */
+.info-pop{z-index:200}
+.reveal:has(.info-tip:hover),.reveal:has(.info-tip.open){position:relative;z-index:200}
+.umbrella{position:relative;z-index:200}
 </style>
 </head>
 <body>
