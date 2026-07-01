@@ -951,6 +951,7 @@
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
     .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
     .pp-firm-group > .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
     .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
@@ -1484,6 +1485,26 @@ The community features approximately 218 custom and signature estate homes, many
        "story so far" dossier). Kept as a no-op so project-shuffle.js can still call
        window.ppInitUpdates() after a swap without erroring. */
     window.ppInitUpdates = function updatesHydrate() {};
+
+    /* Firm boxes: stack the two full-width when a single firm name is too long
+       for its 50% column (would truncate). Multiple names that just wrap to
+       extra rows stay compact 50/50. Re-checks after fonts load + on resize. */
+    (function () {
+      function fitFirms() {
+        var grids = document.querySelectorAll('.pp-firms');
+        for (var g = 0; g < grids.length; g++) {
+          var grid = grids[g];
+          grid.classList.remove('pp-firms-stack');
+          var nms = grid.querySelectorAll('.pp-firm-chip .nm');
+          var clipped = false;
+          for (var i = 0; i < nms.length; i++) { if (nms[i].scrollWidth > nms[i].clientWidth + 1) { clipped = true; break; } }
+          if (clipped) grid.classList.add('pp-firms-stack');
+        }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fitFirms); else fitFirms();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitFirms);
+      var _fft; window.addEventListener('resize', function () { clearTimeout(_fft); _fft = setTimeout(fitFirms, 150); });
+    })();
   </script>
 
   <!-- Cinematic gallery + same-market shuffle engine (gallery photos, edge
