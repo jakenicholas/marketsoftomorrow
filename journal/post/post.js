@@ -1232,8 +1232,16 @@ function initComments(slug, post) {
 // ============================================================================
 (function () {
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  // The per-article pre-rendered pages don't carry the #article-intel slot, so
+  // create + insert it at the top of the article body when it's absent.
   var host = document.getElementById('article-intel');
-  if (!host) return;
+  if (!host) {
+    var bc = document.getElementById('article-body-content');
+    if (!bc || !bc.parentNode) return;
+    host = document.createElement('div');
+    host.id = 'article-intel'; host.className = 'article-intel'; host.hidden = true;
+    bc.parentNode.insertBefore(host, bc);
+  }
   function slugOf() {
     var m = location.pathname.match(/^\/post\/([^\/]+)\/?$/);
     if (m && m[1]) return decodeURIComponent(m[1]);
