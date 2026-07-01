@@ -16197,17 +16197,29 @@
           const cards = devCard + archCard;
           if (cards) {
             firmsEl.innerHTML = cards; firmsSection.hidden = false;
-            // Stack the two boxes vertically ONLY if a single firm name is too
-            // long to fit its 50% column (would truncate). Multiple names that
-            // just wrap to extra rows keep the compact 2-up layout.
-            requestAnimationFrame(() => {
+            // Stack the two boxes full-width when a box holds a SINGLE firm whose
+            // name is long enough to fill (or overflow) its 50% column. Boxes
+            // with 2+ firms that merely wrap to extra rows keep the compact 2-up
+            // layout. Runs on layout + fonts + a short delay so the measurement
+            // is taken after the panel and web fonts settle.
+            const applyFirmStack = () => {
+              if (firmsSection.hidden) return;
               firmsEl.classList.remove('pm-firms-stack');
-              const clipped = Array.prototype.some.call(
-                firmsEl.querySelectorAll('.pp-firm-chip .nm'),
-                (nm) => nm.scrollWidth > nm.clientWidth + 1
-              );
-              if (clipped) firmsEl.classList.add('pm-firms-stack');
-            });
+              let stack = false;
+              firmsEl.querySelectorAll('.pp-firm-group').forEach((g) => {
+                const pills = g.querySelectorAll('.pp-firm-chip');
+                if (pills.length !== 1) return;           // 2+ firms wrap; keep 50/50
+                const p = pills[0];
+                const nm = p.querySelector('.nm');
+                const truncated = nm && nm.scrollWidth > nm.clientWidth + 1;
+                const fillsBox = g.clientWidth && p.offsetWidth > g.clientWidth * 0.82;
+                if (truncated || fillsBox) stack = true;
+              });
+              if (stack) firmsEl.classList.add('pm-firms-stack');
+            };
+            requestAnimationFrame(() => requestAnimationFrame(applyFirmStack));
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(applyFirmStack);
+            setTimeout(applyFirmStack, 160);
           } else { firmsEl.innerHTML = ''; firmsSection.hidden = true; }
         }
 
