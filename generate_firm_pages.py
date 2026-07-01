@@ -974,10 +974,10 @@ def render_page(firm, firm_projects, stats, coverage_items):
     </nav>
 
     <section class="hero">
-      <div class="hero-eyebrow">{e(role_eyebrow)} · {stats['total']} project{'s' if stats['total'] != 1 else ''} tracked · <time datetime="{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')}">Updated {datetime.datetime.now(datetime.timezone.utc).strftime('%B %-d, %Y')}</time></div>
+      <div class="hero-eyebrow">{e(role_eyebrow)} · <time datetime="{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')}">Updated {datetime.datetime.now(datetime.timezone.utc).strftime('%B %-d, %Y')}</time></div>
       <h1>{e(title)}</h1>
       {meta_pills_html}
-      <p class="sub">{intro} Active in <b>{len(stats["markets"])} market{"s" if len(stats["markets"]) != 1 else ""}</b>. Every project below links to a live status page with milestones, renderings, and our <a href="{MARKET_ROOT_URL}/journal/">journal coverage</a>.</p>
+      <p class="sub">{intro} Active in <b>{len(stats["markets"])} market{"s" if len(stats["markets"]) != 1 else ""}</b>. Every project below links to a live status page with milestones, renderings, and our <a href="{MARKET_ROOT_URL}/">journal coverage</a>.</p>
     </section>
 
     <div class="stats" aria-label="Status breakdown">
