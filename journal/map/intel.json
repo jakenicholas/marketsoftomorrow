@@ -11417,57 +11417,21 @@
       "delivery_speculative": false
     },
     "the-gulfstream-hotel": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 3,
-      "good_count": 1,
-      "exact_count": 1,
-      "used_relaxed": true,
-      "avg_match_score": 0.65,
-      "avg_distance_km": 953.8,
-      "avg_distance_mi": 592.7,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.5,
+      "estimate_label": "~6 months",
+      "days_out": 183,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
       "project_type": "Hotel",
       "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.85,
-          "distance_km": 13.9,
-          "distance_mi": 8.7
-        },
-        {
-          "name": "Siari, a Ritz-Carlton Reserve",
-          "slug": "siari-a-ritz-carlton-reserve",
-          "location": "Riviera Nayarit",
-          "years": 1.6,
-          "score": 0.64,
-          "distance_km": 2664.6,
-          "distance_mi": 1655.7
-        },
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.46,
-          "distance_km": 183.0,
-          "distance_mi": 113.7
-        }
-      ],
-      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~6 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "paragon": {
       "estimate_years": 0.5,
@@ -12136,8 +12100,8 @@
   "stats": {
     "high": 6,
     "medium": 14,
-    "low": 52,
-    "known_date": 422,
+    "low": 51,
+    "known_date": 423,
     "completed": 62,
     "skipped": 60,
     "no_type": 0,
