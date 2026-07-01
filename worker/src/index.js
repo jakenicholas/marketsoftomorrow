@@ -5029,6 +5029,101 @@ async function handleDesignsCreate(req, env, origin) {
   return json({ ok: true, design: rowToDesign(row) }, {}, env, origin);
 }
 
+// POST /admin/design-from-post { post_id } — powers the article editor's "Make
+// post" button. Builds a carousel DESIGN draft from an article: the article's
+// photos become slides, and brand-voice per-slide headlines + an IG caption are
+// written from the brand brain. Slides are lightweight { template, _seed } that
+// the design editor materializes with its locked templates. Returns { slug }.
+async function handleDesignFromPost(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureDesignsTable(env);
+
+  let body;
+  try { body = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const postId = String(body.post_id || body.id || '').trim();
+  if (!postId) return json({ error: 'post_id required' }, { status: 400 }, env, origin);
+
+  const post = await env.DB.prepare(`SELECT id, title, excerpt, body_html, cover_image FROM posts WHERE id = ?1 LIMIT 1`).bind(postId).first();
+  if (!post) return json({ error: 'post not found', post_id: postId }, { status: 404 }, env, origin);
+
+  // Photos: cover + inline <img> in body_html (rewritten to R2), deduped, cap 8.
+  const photos = [];
+  const pushPhoto = (u) => { u = wixImagesToR2((u || '').trim()); if (u && /^https?:\/\//.test(u) && !photos.includes(u)) photos.push(u); };
+  pushPhoto(post.cover_image);
+  const bodyR2 = wixImagesToR2(post.body_html || '');
+  const imgRe = /<img[^>]+src=["']([^"']+)["']/gi;
+  let mm; while ((mm = imgRe.exec(bodyR2)) && photos.length < 8) pushPhoto(mm[1]);
+
+  // Brand brain → voice guidance.
+  let brandGuide = '';
+  try {
+    const notes = await env.DB.prepare(`SELECT kind, category, note FROM brand_notes WHERE active = 1 ORDER BY created_at ASC`).all();
+    brandGuide = (notes.results || []).map(n => `- (${n.kind}${n.category ? '/' + n.category : ''}) ${n.note}`).join('\n').slice(0, 6000);
+  } catch (_) {}
+
+  const nSlides = Math.max(1, photos.length);
+  const articleText = String(bodyR2).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000);
+
+  // Generate brand-voice caption + per-slide headlines. Falls back to the
+  // article's own title/excerpt if the model isn't configured/available.
+  let gen = null;
+  if (env.ANTHROPIC_API_KEY) {
+    const sys = 'You are the social copywriter for Markets of Tomorrow (TMW), a real-estate development media brand. Write an Instagram CAROUSEL from the article below in TMW\'s voice.\n'
+      + 'Brand brain (follow it):\n' + (brandGuide || '(none provided)') + '\n\n'
+      + 'Respond with ONLY JSON: {"caption":"<full IG caption in TMW voice; hooky first line; line breaks ok>","slides":[{"headline":"<punchy on-image line, <=10 words>","tagline":"<optional supporting line <=12 words, or empty>"}, ...]}. '
+      + 'Give EXACTLY ' + nSlides + ' slide objects (one per photo). Slide 1 is the scroll-stopping hook. Never invent facts, prices, or names not in the article. Avoid em dashes.';
+    const usr = 'Headline: ' + String(post.title || '') + '\n\nArticle:\n' + articleText;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 1400, system: sys, messages: [{ role: 'user', content: usr }] }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const txt = (d.content && d.content[0] && d.content[0].text) || '';
+        const m = txt.match(/\{[\s\S]*\}/);
+        if (m) gen = JSON.parse(m[0]);
+      }
+    } catch (_) { /* fall back below */ }
+  }
+
+  const caption = (gen && typeof gen.caption === 'string' && gen.caption.trim())
+    ? gen.caption.trim().slice(0, 3000)
+    : String(post.excerpt || post.title || '').trim();
+  const genSlides = (gen && Array.isArray(gen.slides)) ? gen.slides : [];
+
+  const slides = [];
+  for (let i = 0; i < nSlides; i++) {
+    const gs = genSlides[i] || {};
+    const headline = String(gs.headline || (i === 0 ? (post.title || '') : '')).slice(0, 120);
+    const tagline  = String(gs.tagline || '').slice(0, 140);
+    const _seed = { headline };
+    if (tagline) _seed.tagline = tagline;
+    if (photos[i]) _seed.image = photos[i];
+    slides.push({ template: 'centered_bottom', _seed });
+  }
+
+  // Omit `account` so the design editor keeps its default account (+ avatar).
+  const doc = { caption, slides, carousel_slug: null };
+
+  const id    = 'dsgn-' + cryptoRandomId(12);
+  const now   = Math.floor(Date.now() / 1000);
+  const title = ('Post: ' + String(post.title || 'Untitled')).slice(0, 200);
+  const slug  = await ensureUniqueDesignSlug(env, slugify(String(post.title || 'post')), null);
+  try {
+    await env.DB.prepare(
+      `INSERT INTO designs (id, slug, title, doc_json, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, 'draft', ?5, ?5)`
+    ).bind(id, slug, title, JSON.stringify(doc).slice(0, 2_000_000), now).run();
+  } catch (e) {
+    return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  return json({ ok: true, slug, id, photos: photos.length, ai: !!gen }, {}, env, origin);
+}
+
 async function handleDesignsBySlug(req, env, origin, slug) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
@@ -9013,6 +9108,7 @@ export default {
       // Design docs (Studio "Design" editor — admin only)
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/design-from-post') return await handleDesignFromPost(request, env, origin);
       {
         const m = url.pathname.match(/^\/designs\/by-slug\/([^/]+)\/?$/);
         if (m) {
