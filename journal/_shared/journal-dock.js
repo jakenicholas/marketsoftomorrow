@@ -934,7 +934,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260701-watch2';
+  var SEARCH_V = '20260701-watch3';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');
@@ -1705,8 +1705,8 @@
     if (scope === 'me'){ var wr = mineReason(e); if (wr) why = '<div class="pi-why"><svg class="pi-why-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span>' + esc(wr) + '</span></div>'; }
     return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
-      '<div class="pi-title">' + esc(title(e)) + '</div>' + why +
-      '<div class="pi-meta">' + meta + '</div>' + partOf + '</div>' +
+      '<div class="pi-title">' + esc(title(e)) + '</div>' +
+      '<div class="pi-meta">' + meta + '</div>' + partOf + why + '</div>' +
       '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
   }
   // Fallback when the 2-week window is empty: the most recent few (by event date),
@@ -1783,8 +1783,9 @@
       // Purple to match the parent-chip vocabulary used across the rest of
       // the site (drawer/modal/search chips, TMW Intelligence anchor).
       '.tmw-pulse-item .pi-partof{font-size:10.5px;font-weight:600;color:#C9BBFF;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      // "Because you watch …" reason line (Me scope) — sparkle + purple caption
-      '.tmw-pulse-item .pi-why{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#C3B0FF;margin-top:3px;overflow:hidden}',
+      // "Because you watch …" reason PILL (Me scope) — sparkle + purple caption,
+      // sits below the date line as a self-contained chip.
+      '.tmw-pulse-item .pi-why{display:inline-flex;align-items:center;gap:5px;max-width:100%;margin-top:6px;padding:3px 10px 3px 8px;border-radius:999px;background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.3);font-size:10px;font-weight:600;color:#C9BBFF;overflow:hidden}',
       '.tmw-pulse-item .pi-why span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.tmw-pulse-item .pi-why-ic{width:11px;height:11px;flex:0 0 auto;fill:#B9A6FF;filter:drop-shadow(0 0 4px rgba(167,139,250,.6))}',
       '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',

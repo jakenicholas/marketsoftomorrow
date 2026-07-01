@@ -587,7 +587,8 @@
     + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;transition:background .2s,border-color .2s,transform .15s}'
     + '.tmw-ov-watch-btn:hover{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.55);transform:translateY(-1px)}'
     + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
-    + '.tmw-ov-watch-btn.on{background:rgba(31,223,103,.12);border-color:rgba(31,223,103,.42);color:#42EB81;pointer-events:none}'
+    + '.tmw-ov-watch-btn.on{background:rgba(230,197,116,.14);border-color:rgba(230,197,116,.62);color:#f0d68a;box-shadow:0 0 16px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.4)}'
+    + '.tmw-ov-watch-btn.on:hover{background:rgba(230,197,116,.2);border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.7)}'
     /* Absolutely positioned below the buttons, centered on the feedback
        row's center axis. Out of the flex flow so the two thumb buttons
        stay perfectly centered both before AND after voting. */
@@ -2728,15 +2729,28 @@
       if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall({ source: 'onyx_watch' });
       return;
     }
-    if (wb.classList.contains('on') || !q) return;
+    if (!q) return;
     var mid = (window.__tmwMember && window.__tmwMember.id) || '';
     var txt = wb.querySelector('.tmw-ov-watch-txt');
+    var qk = String(q).trim().toLowerCase();
+    // Already watching → clicking again REVERTS the watch (delete).
+    if (wb.classList.contains('on')) {
+      if (txt) txt.textContent = 'Removing…';
+      fetch('https://tmw.jake-ab7.workers.dev/watch/delete', {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ member: mid, query: q })
+      }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+        if (d && d.ok) { wb.classList.remove('on'); if (txt) txt.textContent = 'Watch this'; if (_watchedQ) _watchedQ.delete(qk); }
+        else if (txt) txt.textContent = 'Watching';
+      }).catch(function(){ if (txt) txt.textContent = 'Watching'; });
+      return;
+    }
     if (txt) txt.textContent = 'Watching…';
     fetch('https://tmw.jake-ab7.workers.dev/watch/create', {
       method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ member: mid, query: q })
     }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
-      if (d && d.ok) { wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; if (_watchedQ) _watchedQ.add(String(q).trim().toLowerCase()); }
+      if (d && d.ok) { wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; if (_watchedQ) _watchedQ.add(qk); }
       else if (txt) txt.textContent = 'Watch this';
     }).catch(function(){ if (txt) txt.textContent = 'Watch this'; });
   });
