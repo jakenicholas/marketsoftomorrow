@@ -2507,6 +2507,64 @@ async function handlePostsBySlug(req, env, origin, slug) {
   );
 }
 
+// GET /post-intel?slug= — Onyx AI summary + follow entities for an article.
+// Summarizes the article (TL;DR + key takeaways) and extracts the primary
+// developer / architect / city / project named in it, so the article page can
+// render a "TMW Intelligence" block + follow suggestions. Cached per-slug in D1
+// (generate once, reuse) — pass &fresh=1 to regenerate.
+async function handlePostIntel(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const slug = fullyDecodeSlug(String(url.searchParams.get('slug') || '').trim());
+  if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  try { await env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_intel (slug TEXT PRIMARY KEY, tldr TEXT, takeaways_json TEXT, entities_json TEXT, created_at INTEGER)`).run(); } catch (_) {}
+  const fresh = url.searchParams.get('fresh') === '1';
+  if (!fresh) {
+    const c = await env.DB.prepare(`SELECT tldr, takeaways_json, entities_json FROM post_intel WHERE slug = ?1`).bind(slug).first();
+    if (c && c.tldr) {
+      return json({ ok: true, cached: true, tldr: c.tldr, takeaways: safeJson(c.takeaways_json, []), entities: safeJson(c.entities_json, {}) },
+        { headers: { 'Cache-Control': 'public, max-age=3600' } }, env, origin);
+    }
+  }
+  const row = await env.DB.prepare(`SELECT title, body_html, excerpt FROM posts WHERE slug = ?1 AND status = 'published' LIMIT 1`).bind(slug).first();
+  if (!row) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+  const text = String(row.body_html || row.excerpt || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 6000);
+  if (!text) return json({ error: 'no article text' }, { status: 422 }, env, origin);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 503 }, env, origin);
+  const sys = 'You are Onyx, Markets of Tomorrow\'s real-estate development intelligence. Given a news article, respond with ONLY JSON: '
+    + '{"tldr":"<1-2 sentence plain summary, <=42 words>","takeaways":["<key point <=14 words>", ... 2 to 3 items],'
+    + '"entities":{"developer":<primary developer/owner firm name or null>,"architect":<primary architect/design firm name or null>,"city":<primary city name or null>,"project":<primary named development/project or null>}}. '
+    + 'Extract an entity ONLY if it is explicitly named in the article; otherwise null. Never invent names, numbers, or facts. Do not include an interior designer as the architect.';
+  const usr = 'Headline: ' + String(row.title || '') + '\n\nArticle:\n' + text;
+  let out = null;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 500, system: sys, messages: [{ role: 'user', content: usr }] }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const txt = (d.content && d.content[0] && d.content[0].text) || '';
+      const m = txt.match(/\{[\s\S]*\}/);
+      if (m) out = JSON.parse(m[0]);
+    }
+  } catch (e) { /* fall through */ }
+  if (!out || !out.tldr) return json({ error: 'summary unavailable' }, { status: 502 }, env, origin);
+  const tldr = String(out.tldr).slice(0, 400);
+  const takeaways = Array.isArray(out.takeaways) ? out.takeaways.map(t => String(t).slice(0, 140)).slice(0, 3) : [];
+  const ent = out.entities || {};
+  const entities = {
+    developer: ent.developer ? String(ent.developer).slice(0, 120) : null,
+    architect: ent.architect ? String(ent.architect).slice(0, 120) : null,
+    city:      ent.city ? String(ent.city).slice(0, 80) : null,
+    project:   ent.project ? String(ent.project).slice(0, 160) : null,
+  };
+  try { await env.DB.prepare(`INSERT INTO post_intel (slug, tldr, takeaways_json, entities_json, created_at) VALUES (?1,?2,?3,?4,?5) ON CONFLICT(slug) DO UPDATE SET tldr=?2, takeaways_json=?3, entities_json=?4, created_at=?5`)
+    .bind(slug, tldr, JSON.stringify(takeaways), JSON.stringify(entities), Math.floor(Date.now() / 1000)).run(); } catch (_) {}
+  return json({ ok: true, cached: false, tldr, takeaways, entities }, { headers: { 'Cache-Control': 'public, max-age=3600' } }, env, origin);
+}
+function safeJson(s, fallback) { try { const v = JSON.parse(s); return v == null ? fallback : v; } catch (_) { return fallback; } }
+
 // Resolve a single post by its primary id (e.g. "wix-7656dd47-..."). The admin
 // post editor needs this: there are 1400+ posts, so listing-and-matching by id
 // can't reliably reach old ones. Same auth model as by-slug — published is
@@ -8664,6 +8722,9 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/watch/delete') {
         return await handleWatchDelete(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/post-intel') {
+        return await handlePostIntel(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
