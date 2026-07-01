@@ -1267,6 +1267,32 @@ async function handleWatchCreate(req, env, origin) {
     return json({ ok: true, id, query }, {}, env, origin);
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
 }
+// GET /watch/smart?member= — a member's smart watches (for the account "Your watches"
+// surface). Lean: just the saved queries, no pulse matching.
+async function handleWatchSmart(env, origin, url) {
+  const member = String(url.searchParams.get('member') || url.searchParams.get('id') || '').trim();
+  if (!member) return json({ error: 'member required' }, { status: 400 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS smart_watches (id TEXT PRIMARY KEY, member_id TEXT, query TEXT, created_at INTEGER)`).run();
+    const sw = await env.DB.prepare(`SELECT query, created_at FROM smart_watches WHERE member_id = ? ORDER BY created_at DESC`).bind(member).all();
+    return json({ ok: true, smart_watches: (sw.results || []).map(r => ({ query: r.query, created_at: r.created_at })) },
+      { headers: { 'Cache-Control': 'private, max-age=30' } }, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
+}
+// POST /watch/delete { member, query } — remove a smart watch.
+async function handleWatchDelete(req, env, origin) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const member = String((b && b.member) || '').trim();
+  const query = String((b && b.query) || '').trim();
+  if (!member || !query) return json({ error: 'member + query required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS smart_watches (id TEXT PRIMARY KEY, member_id TEXT, query TEXT, created_at INTEGER)`).run();
+    await env.DB.prepare(`DELETE FROM smart_watches WHERE member_id = ? AND query = ?`).bind(member, query).run();
+    return json({ ok: true }, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
+}
 async function handleMember(env, origin, url) {
   const memberId = url.searchParams.get('id');
   if (!memberId) return json({ error: 'id required' }, { status: 400 }, env, origin);
@@ -8632,6 +8658,12 @@ export default {
       }
       if (request.method === 'POST' && url.pathname === '/watch/create') {
         return await handleWatchCreate(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/watch/smart') {
+        return await handleWatchSmart(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/watch/delete') {
+        return await handleWatchDelete(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
