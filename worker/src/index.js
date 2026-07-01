@@ -2383,8 +2383,20 @@ async function handlePostCategories(env, origin) {
   return json({ categories }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
 }
 
+// The posts.source column is added lazily (ensureContactsTable runs it on
+// create/update). But the list SELECT references source, so on a fresh deploy —
+// before any write has run the ALTER — a public read would 500. Guard it here
+// with a cheap, once-per-isolate idempotent ALTER.
+let _postsSourceEnsured = false;
+async function ensurePostsSourceColumn(env) {
+  if (_postsSourceEnsured || !env.DB) return;
+  try { await env.DB.prepare(`ALTER TABLE posts ADD COLUMN source TEXT DEFAULT NULL`).run(); } catch (_) { /* already exists */ }
+  _postsSourceEnsured = true;
+}
+
 async function handlePostsList(req, env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensurePostsSourceColumn(env);
   // Cap at 1500 — enough to feed the journal home grid the full archive in one
   // shot (~1,377 total posts; the home shows the most-recent slice with
   // client-side pagination + filter pills computed from what's loaded).
