@@ -1990,3 +1990,119 @@
     })
     .catch(function(){});
 })();
+
+// ── Onyx Watch — Pro header bell (Phase 1) ──────────────────────────────────
+// A live brief of pulse "moves" (new / status / milestone) on the projects a Pro
+// member watches (the eye-icon watchlist), read from the worker /watch/feed. Mounts
+// into every header (nav.main .wrap), Pro-gated, with an unseen badge + dropdown.
+(function () {
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  var SEEN_KEY = 'tmw-watch-seen';
+  var DATA = null;
+  function isPro() {
+    try { return window._isPaidMember === true || (window.__tmwMember && window.__tmwMember.plan === 'paid') || (window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro()); } catch (e) { return false; }
+  }
+  function memberId() { return (window.__tmwMember && window.__tmwMember.id) || null; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function lastSeen() { try { return parseInt(localStorage.getItem(SEEN_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+  function markSeen() { try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) {} }
+  function rel(iso) { var t = Date.parse(iso || 0); if (!t) return ''; var s = (Date.now() - t) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago'; if (s < 86400) return Math.round(s / 3600) + 'h ago'; return Math.round(s / 86400) + 'd ago'; }
+  function typeColor(t) { return t === 'new' ? '#57e08c' : t === 'milestone' ? '#f2b45a' : '#f0d68a'; }
+  function unseenCount() { if (!DATA || !DATA.moves) return 0; var ls = lastSeen(); return DATA.moves.filter(function (m) { return Date.parse(m.timestamp || 0) > ls; }).length; }
+
+  function injectCss() {
+    if (document.getElementById('tmw-wbell-css')) return;
+    var s = document.createElement('style'); s.id = 'tmw-wbell-css';
+    s.textContent = [
+      '.tmw-wbell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#ECEAE5;cursor:pointer;margin-right:8px;flex:0 0 auto}',
+      '.tmw-wbell:hover{border-color:rgba(240,214,138,.5);color:#f0d68a}',
+      '.tmw-wbell svg{width:18px;height:18px}',
+      '.tmw-wbadge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#57e08c;color:#07120b;font:600 10px/17px ui-monospace,monospace;text-align:center}',
+      '.tmw-wbadge[hidden]{display:none}',
+      '.tmw-wpanel{position:absolute;top:calc(100% + 10px);right:0;width:min(360px,92vw);background:#0b0e0c;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:6px;z-index:9600;box-shadow:0 24px 70px -20px rgba(0,0,0,.8);display:none}',
+      '.tmw-wpanel.open{display:block}',
+      '.tmw-wph{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px}',
+      '.tmw-wph .t{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#c9a558}',
+      '.tmw-wph .p{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#57e08c}',
+      '.tmw-wpulse{width:7px;height:7px;border-radius:50%;background:#57e08c;display:inline-block}',
+      '.tmw-wmove{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:10px;text-decoration:none;color:inherit}',
+      '.tmw-wmove:hover{background:rgba(255,255,255,.04)}',
+      '.tmw-wmove .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 auto}',
+      '.tmw-wmove .nm{font-family:Georgia,serif;font-size:14.5px;color:#fff;line-height:1.25}',
+      '.tmw-wmove .mt{font-size:11.5px;color:#8b918a;margin-top:3px}',
+      '.tmw-wtag{color:#dfe2db}',
+      '.tmw-wempty{padding:22px 14px;text-align:center;color:#8b918a;font-size:13px;line-height:1.5}',
+      '.tmw-wfoot{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:1px solid rgba(255,255,255,.08);margin-top:2px}',
+      '.tmw-wfoot span{font-size:11px;color:#787e76}',
+      '.tmw-wfoot a{font-size:11.5px;color:#f0d68a;text-decoration:none}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  var BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+
+  function panelHTML() {
+    var moves = (DATA && DATA.moves) || [];
+    var wc = (DATA && DATA.watch_count) || 0;
+    var rows = moves.length ? moves.slice(0, 8).map(function (m) {
+      return '<a class="tmw-wmove" href="' + esc(m.link || '#') + '">'
+        + '<span class="dot" style="background:' + typeColor(m.type) + '"></span>'
+        + '<div style="flex:1;min-width:0"><div class="nm">' + esc(m.project_title || '') + '</div>'
+        + '<div class="mt"><span class="tmw-wtag" style="color:' + typeColor(m.type) + '">' + esc(m.tag || m.type || '') + '</span>'
+        + (m.city ? ' &middot; ' + esc(m.city) : '') + (m.timestamp ? ' &middot; ' + rel(m.timestamp) : '') + '</div></div></a>';
+    }).join('')
+      : '<div class="tmw-wempty">Nothing new on your watched projects yet.<br>Watch more from the map and Onyx will keep an eye out.</div>';
+    return '<div class="tmw-wph"><span class="t">On your beat</span><span class="p"><span class="tmw-wpulse"></span>' + (moves.length ? moves.length + ' moved' : 'watching') + '</span></div>'
+      + rows
+      + '<div class="tmw-wfoot"><span>' + wc + ' project' + (wc === 1 ? '' : 's') + ' watched</span><a href="https://www.oftmw.com/map/">Open watchlist &rarr;</a></div>';
+  }
+
+  function renderAll() {
+    injectCss();
+    var wraps = document.querySelectorAll('nav.main .wrap');
+    for (var i = 0; i < wraps.length; i++) {
+      var wrap = wraps[i];
+      var bell = wrap.__tmwBell;
+      if (!bell) {
+        bell = document.createElement('button');
+        bell.type = 'button'; bell.className = 'tmw-wbell'; bell.setAttribute('aria-label', 'Onyx Watch — your live brief');
+        bell.innerHTML = BELL_SVG + '<span class="tmw-wbadge" hidden></span><div class="tmw-wpanel"></div>';
+        var cta = wrap.querySelector('.nav-cta');
+        if (cta) wrap.insertBefore(bell, cta); else wrap.appendChild(bell);
+        wrap.__tmwBell = bell;
+        (function (b) {
+          var panel = b.querySelector('.tmw-wpanel');
+          b.addEventListener('click', function (e) {
+            if (e.target.closest && e.target.closest('.tmw-wmove')) return;
+            e.preventDefault(); e.stopPropagation();
+            var opening = !panel.classList.contains('open');
+            document.querySelectorAll('.tmw-wpanel.open').forEach(function (p) { p.classList.remove('open'); });
+            if (opening) { panel.classList.add('open'); markSeen(); b.querySelector('.tmw-wbadge').setAttribute('hidden', ''); }
+          });
+        })(bell);
+        document.addEventListener('click', function (e) {
+          if (!e.target.closest || !e.target.closest('.tmw-wbell')) document.querySelectorAll('.tmw-wpanel.open').forEach(function (p) { p.classList.remove('open'); });
+        });
+      }
+      bell.querySelector('.tmw-wpanel').innerHTML = panelHTML();
+      var badge = bell.querySelector('.tmw-wbadge');
+      var n = unseenCount();
+      if (n > 0) { badge.textContent = n > 9 ? '9+' : n; badge.removeAttribute('hidden'); } else { badge.setAttribute('hidden', ''); }
+    }
+  }
+
+  function load() {
+    var id = memberId(); if (!id) return;
+    fetch(WORKER + '/watch/feed?member=' + encodeURIComponent(id), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.ok) { DATA = d; renderAll(); } })
+      .catch(function () {});
+  }
+
+  (function wait(t) {
+    t = t || 0;
+    if (isPro() && memberId()) { renderAll(); load(); return; }
+    if (++t > 80) return;
+    setTimeout(function () { wait(t); }, 250);
+  })();
+})();
