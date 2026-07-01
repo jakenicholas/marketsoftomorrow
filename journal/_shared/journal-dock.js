@@ -1632,7 +1632,25 @@
     if (_mineP) return _mineP;
     var WORKER = 'https://tmw.jake-ab7.workers.dev';
     var id = (window.__tmwMember && window.__tmwMember.id) || null;
-    var pJson = new Promise(function(res){ var m = ms(); if (m && m.getMemberJSON){ m.getMemberJSON().then(function(r){ res((r && r.data) || {}); }).catch(function(){ res({}); }); } else res({}); });
+    // Wait for a hydrated member before reading member JSON — otherwise a fast
+    // open of "Me" reads {} (Memberstack not ready) and that empty result gets
+    // cached in _mineP forever. Poll getCurrentMember, then read the JSON.
+    var pJson = new Promise(function(res){
+      var n = 0;
+      (function go(){
+        var m = ms();
+        if (m && m.getCurrentMember && m.getMemberJSON){
+          m.getCurrentMember().then(function(cm){
+            if (cm && cm.data){ m.getMemberJSON().then(function(r){ res((r && r.data) || {}); }).catch(function(){ res({}); }); }
+            else if (++n < 12){ setTimeout(go, 300); }
+            else res({});
+          }).catch(function(){ if (++n < 12){ setTimeout(go, 300); } else res({}); });
+          return;
+        }
+        if (++n > 24){ res({}); return; }
+        setTimeout(go, 250);
+      })();
+    });
     var pFlat = fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
     var pCity = fetch('https://www.oftmw.com/map/cityStateMap.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var pSmart = id ? fetch(WORKER + '/watch/smart?member=' + encodeURIComponent(id),{cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }) : Promise.resolve(null);
