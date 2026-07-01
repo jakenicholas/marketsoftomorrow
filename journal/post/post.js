@@ -3,8 +3,7 @@
 // any URL depth, and survive the eventual migration to www.oftmw.com)
 // ===================================================================
 const WORKER_URL    = 'https://tmw.jake-ab7.workers.dev';
-const WIX_RSS_URL   = 'https://www.oftmw.com/blog-feed.xml';
-const CORS_PROXY    = 'https://api.codetabs.com/v1/proxy/?quest=';
+// (Wix RSS/proxy constants removed — TMW is off Wix; posts come from D1 only.)
 const ADS_URL       = '/ads.json';
 const PULSE_URL     = 'https://www.oftmw.com/map/pulse.json';
 const PULSE_NEW_DAYS = 7;
@@ -87,12 +86,12 @@ async function loadArticle(slug) {
     try { initComments(slug, post); } catch (e) {}
   } catch (err) {
     console.error('[article] load failed:', err);
+    var notFound = err && /not found/i.test(err.message || '');
     renderArticleEmpty(
-      'Couldn\'t load this article',
-      err && err.legacy
-        ? 'This post is older than our current RSS window (Wix only exposes the 20 most-recent). Open the original on Wix Studio:'
-        : 'The journal feed didn\'t respond. Try refreshing, or open the original:',
-      err && err.legacyUrl ? err.legacyUrl : ('https://studio.oftmw.com/post/' + slug),
+      notFound ? 'Article not found' : 'Couldn\'t load this article',
+      notFound ? 'This story isn\'t in our journal. Browse the latest instead.'
+               : 'We couldn\'t reach the journal just now — please refresh.',
+      null,
       err && err.message
     );
   }
@@ -296,7 +295,7 @@ function renderArticle(post) {
   }
   const bodyEl = document.getElementById('article-body-content');
   if (!bodyHtml) {
-    bodyEl.innerHTML = `<p>${escapeHtml(post.summary || '(no preview available — open original on Wix Studio)')}</p>`;
+    bodyEl.innerHTML = `<p>${escapeHtml(post.summary || 'No preview available for this story yet.')}</p>`;
   } else {
     bodyEl.innerHTML = sanitizeHtml(bodyHtml);
     upgradeBodyImages(bodyEl);
@@ -313,9 +312,9 @@ function renderArticleEmpty(title, msg, legacyUrl, technicalErr) {
   article.innerHTML = `<div class="art-empty">
     <h2>${escapeHtml(title)}</h2>
     <p>${msg || ''}</p>
-    ${legacyUrl ? `<a class="legacy-link" href="${escapeAttr(legacyUrl)}" target="_blank" rel="noopener">Open on Wix Studio
+    <a class="legacy-link" href="/">Browse the latest
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-    </a>` : ''}
+    </a>
     ${technicalErr ? `<div class="err">${escapeHtml(technicalErr)}</div>` : ''}
   </div>`;
 }
