@@ -153,7 +153,7 @@ function adaptD1PostShape(p) {
   return {
     title:        p.title,
     slug:         p.slug,
-    link:         p.wix_url || ('/post/?slug=' + p.slug),
+    link:         '/post/' + encodeURIComponent(p.slug) + '/',   // in-repo canonical (never the old Wix URL)
     summary:      p.excerpt || '',
     image:        p.cover_image || '',
     pubDate:      p.published_iso || (p.published_at ? new Date(p.published_at * 1000).toUTCString() : ''),
@@ -164,7 +164,7 @@ function adaptD1PostShape(p) {
     author_name:  p.author_name || '',
     categories:   p.categories || [],
     content_html: p.body_html || '',
-    source_url:   p.wix_url || '',
+    source_url:   '',   // was p.wix_url — never surface the old Wix URL
     body_source:  p.body_source || 'd1',
     status:       p.status || '',
   };
