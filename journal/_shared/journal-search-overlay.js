@@ -4048,13 +4048,20 @@
     }
     // Perfect project-name match (a direct search like "ponce park") → the user
     // wants THAT project, not a grid of everything else that shares a common word
-    // ("park" pulling projects from all over the state). Suppress the generic
-    // Projects grid; keep ONLY genuine connected siblings (parent-child hierarchy,
-    // e.g. a district's towers), which arrive via the strongAnchor injection above.
-    if (_fullHero) {
-      var _sibSet = {};
-      if (strongAnchor && connectedProjects.length) connectedProjects.forEach(function (p) { _sibSet[p.Title] = true; });
-      restProjects = restProjects.filter(function (x) { return _sibSet[x.p.Title]; });
+    // ("park" pulling projects from all over the state, or a fuzzy same-developer
+    // connection). Suppress the generic Projects grid; keep ONLY projects in the
+    // SAME FORMAL parent-child hierarchy as the hero (a district's towers via
+    // ParentSlug), never the loose description/developer-anchored connections.
+    if (_fullHero && heroProject) {
+      var _hSlug   = (heroProject.Slug || '').trim();
+      var _hParent = (heroProject.ParentSlug || '').trim();
+      restProjects = restProjects.filter(function (x) {
+        var pSlug = (x.p.Slug || '').trim(), pParent = (x.p.ParentSlug || '').trim();
+        if (_hSlug && pParent === _hSlug) return true;                 // hero is this project's parent (its child tower)
+        if (_hParent && pSlug === _hParent) return true;               // this project IS the hero's parent
+        if (_hParent && pParent && pParent === _hParent) return true;  // shared parent (true sibling)
+        return false;
+      });
     }
     var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
     if (gridProjects.length){
