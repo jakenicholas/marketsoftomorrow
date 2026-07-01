@@ -1646,7 +1646,8 @@
   var COUNTRIES={AE:'United Arab Emirates',AG:'Antigua & Barbuda',AU:'Australia',BS:'Bahamas',BZ:'Belize',CA:'Canada',CH:'Switzerland',CO:'Colombia',CR:'Costa Rica',ES:'Spain',FR:'France',GB:'United Kingdom',GR:'Greece',IT:'Italy',JP:'Japan',KY:'Cayman Islands',MV:'Maldives',MX:'Mexico',PR:'Puerto Rico',PT:'Portugal',QA:'Qatar',SA:'Saudi Arabia',SG:'Singapore',TC:'Turks & Caicos',TH:'Thailand'};
   var WATCH_STOP={condo:1,condos:1,tower:1,towers:1,luxury:1,hotel:1,hotels:1,project:1,projects:1,building:1,buildings:1,residence:1,residences:1,development:1,developments:1,coming:1,soon:1,near:1,downtown:1,apartment:1,apartments:1,mixed:1,resort:1,resorts:1,district:1,announced:1,update:1,updates:1,newest:1,latest:1};
   var mine = { proj:new Set(), firm:new Set(), mkt:new Set(), smart:[] };
-  var projFirms = {}, projMeta = {}, cityReg = {}, projList = [];
+  var projFirms = {}, projMeta = {}, cityReg = {}, projList = [], firmNames = {};
+  function firmLabel(slug){ return firmNames[slug] || humanizeSlug(slug); }
   var _mineP = null;
   function loadMine(){
     if (_mineP) return _mineP;
@@ -1682,7 +1683,7 @@
       arr.forEach(function(p){
         var k = slugify(p.Title); if(!k) return;
         var firms = [];
-        ['Developer','Developers','Architect','Architects','Firm','Builder','Landscape'].forEach(function(f){ if(p[f]) String(p[f]).split(/[,;\/]|&amp;|\band\b/).forEach(function(x){ var fs = slugify(x); if(fs) firms.push(fs); }); });
+        ['Developer','Developers','Architect','Architects','Firm','Builder','Landscape'].forEach(function(f){ if(p[f]) String(p[f]).split(/[,;\/]|&amp;|\band\b/).forEach(function(x){ var nm = String(x).replace(/&amp;/g,'&').trim(); var fs = slugify(nm); if(fs){ firms.push(fs); if(!firmNames[fs]) firmNames[fs] = nm; } }); });
         if(firms.length) projFirms[k] = firms;
         projMeta[k] = { city: slugify(p.City), ptype: slugify((p.PreferredType||'').split(',')[0] || (p.ProjectType||'').split(',')[0] || '') };
         projList.push({ slug:k, title:p.Title||humanizeSlug(k), city:projMeta[k].city, cityName:p.City||'', ptype:projMeta[k].ptype, firms:firms, featured:!!(p.Featured), img:p.ImageURL||p.Image2||'' });
@@ -1698,7 +1699,7 @@
     var k = slugify(e.project_slug || e.project_title || e.title);
     if (k && mine.proj.has(k)) return "You're watching this project";
     var firms = projFirms[k];
-    if (firms){ for (var i=0;i<firms.length;i++) if (mine.firm.has(firms[i])) return 'Because you watch ' + humanizeSlug(firms[i]); }
+    if (firms){ for (var i=0;i<firms.length;i++) if (mine.firm.has(firms[i])) return 'Because you watch ' + firmLabel(firms[i]); }
     var meta = projMeta[k] || {};
     var cs = meta.city || slugify(e.city);
     if (cs && mine.mkt.has(cs)) return 'Because you watch ' + (e.city || humanizeSlug(cs));
@@ -1723,7 +1724,7 @@
     mine.proj.forEach(function(ps){ (projFirms[ps]||[]).forEach(function(f){ if(!mine.firm.has(f)) fc[f] = (fc[f]||0) + 1; }); });
     Object.keys(fc).sort(function(a,b){ return fc[b]-fc[a]; }).forEach(function(f){
       var id = 'firm:' + f; if (recx.has(id)) return;
-      out.push({ id:id, type:'firm', slug:f, title:humanizeSlug(f), sub:'Builds ' + fc[f] + ' project' + (fc[f]>1?'s':'') + ' you watch', act:'Follow' });
+      out.push({ id:id, type:'firm', slug:f, title:firmLabel(f), sub:'Builds ' + fc[f] + ' project' + (fc[f]>1?'s':'') + ' you watch', act:'Follow' });
     });
     if (out.length < 3){
       for (var i=0;i<projList.length && out.length<4;i++){
@@ -1839,8 +1840,9 @@
     if (!circleEl) return;
     var n = countNew();
     var dot = '<span class="lbd" aria-hidden="true"></span>';
+    var bell = '<svg class="lb-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
     if (n > 0){ circleEl.innerHTML = dot + '<span class="lbn">' + n + '</span>'; circleEl.classList.remove('is-zero'); }
-    else      { circleEl.innerHTML = dot;                                         circleEl.classList.add('is-zero'); }
+    else      { circleEl.innerHTML = bell;                                        circleEl.classList.add('is-zero'); }
   }
   function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
   // Freeze the current scope's last-seen for NEW dots, then mark it seen NOW so
@@ -1858,6 +1860,7 @@
       /* intelligence "live" dot — pulsing ring, sits left of the count */
       '.tmw-pulse-bell .lbd{width:6px;height:6px;border-radius:50%;background:#B9A6FF;flex:0 0 auto;box-shadow:0 0 0 0 rgba(167,139,250,.6);animation:tmwBellLive 1.9s ease-out infinite}',
       '.tmw-pulse-bell .lbn{line-height:1}',
+      '.tmw-pulse-bell .lb-bell{width:15px;height:15px;display:block}',
       '@keyframes tmwBellLive{0%{box-shadow:0 0 0 0 rgba(167,139,250,.55)}70%{box-shadow:0 0 0 5px rgba(167,139,250,0)}100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}}',
       '@media (prefers-reduced-motion:reduce){.tmw-pulse-bell .lbd{animation:none}}',
       '.tmw-pulse-pop{position:absolute;top:calc(100% + 14px);right:0;width:372px;max-width:92vw;max-height:72vh;display:flex;flex-direction:column;background:rgba(16,16,18,.97);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 22px 60px rgba(0,0,0,.6);z-index:200;overflow:hidden}',
