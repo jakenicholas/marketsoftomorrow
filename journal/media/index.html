@@ -1292,7 +1292,7 @@ let last=0; const nav=document.getElementById('nav');
   function isActive(c){return c&&c.logo&&!(c.active===false||c.active===''||c.active==='0'||c.active==='false'||c.active==='no');}
   function rebuildOptions(items){
     const inds=new Set(), locs=new Set();
-    items.forEach(c=>{ indStr(c).split('|').forEach(x=>{x=x.trim(); if(x)inds.add(x);}); const l=(c.location||'').trim(); if(l)locs.add(l); });
+    items.forEach(c=>{ indStr(c).split('|').forEach(x=>{x=x.trim(); if(x)inds.add(x);}); (c.location||'').split('|').forEach(x=>{x=x.trim(); if(x)locs.add(x);}); });
     const optList=(set,all)=>'<option value="">'+all+'</option>'+[...set].sort((a,z)=>a.localeCompare(z)).map(v=>'<option value="'+escA(v)+'">'+escA(v)+'</option>').join('');
     const iv=fInd.value, lv=fLoc.value;
     fInd.innerHTML=optList(inds,'All Industries'); fLoc.innerHTML=optList(locs,'All Markets');
