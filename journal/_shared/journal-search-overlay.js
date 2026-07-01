@@ -584,6 +584,10 @@
     + '.tmw-ov-fb-btn.voted[data-rating="up"]{background:rgba(31,223,103,.16);border-color:#1FDF67;color:#42EB81}'
     + '.tmw-ov-fb-btn.voted[data-rating="down"]{background:rgba(255,93,93,.16);border-color:#ff5d5d;color:#ff7676}'
     + '.tmw-ov-fb-btn.dimmed{opacity:.35}'
+    + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;margin-right:10px;transition:background .2s,border-color .2s,transform .15s}'
+    + '.tmw-ov-watch-btn:hover{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.55);transform:translateY(-1px)}'
+    + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
+    + '.tmw-ov-watch-btn.on{background:rgba(31,223,103,.12);border-color:rgba(31,223,103,.42);color:#42EB81;pointer-events:none}'
     /* Absolutely positioned below the buttons, centered on the feedback
        row's center axis. Out of the flex flow so the two thumb buttons
        stay perfectly centered both before AND after voting. */
@@ -1066,6 +1070,10 @@
     // so it reads as part of the message. setState finds it via turn.querySelector.
     +   '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
     +     '<div class="tmw-ov-fb-actions">'
+    +       '<button class="tmw-ov-watch-btn" type="button" aria-label="Watch this — get proactive alerts on this">'
+    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+    +         '<span class="tmw-ov-watch-txt">Watch this</span>'
+    +       '</button>'
     +       '<span class="tmw-ov-fb-thanks">Noted</span>'
     +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
@@ -2681,6 +2689,31 @@
       else fetch(url, { method:'POST', body:payload, keepalive:true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
     } catch(_){}
   }
+  // "Watch this" — Phase 2 Onyx Watch entry point. Non-Pro → the Go Pro paywall;
+  // Pro → creates a smart watch on this query (matched against pulse moves).
+  root.addEventListener('click', function(e){
+    var wb = e.target.closest && e.target.closest('.tmw-ov-watch-btn');
+    if (!wb) return;
+    e.preventDefault(); e.stopPropagation();
+    var fb = wb.closest('[data-feedback]');
+    var q = (fb && fb.getAttribute('data-fbq')) || _lastQuery || '';
+    var pro = window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro();
+    if (!pro) {
+      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall({ source: 'onyx_watch' });
+      return;
+    }
+    if (wb.classList.contains('on') || !q) return;
+    var mid = (window.__tmwMember && window.__tmwMember.id) || '';
+    var txt = wb.querySelector('.tmw-ov-watch-txt');
+    if (txt) txt.textContent = 'Watching…';
+    fetch('https://tmw.jake-ab7.workers.dev/watch/create', {
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ member: mid, query: q })
+    }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if (d && d.ok) { wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; }
+      else if (txt) txt.textContent = 'Watch this';
+    }).catch(function(){ if (txt) txt.textContent = 'Watch this'; });
+  });
   // Single delegated click handler for the two thumbs buttons. Voting
   // locks both buttons (pointer-events:none) so the user can\'t double-
   // vote on the same query; the chosen rating gets the colored fill,

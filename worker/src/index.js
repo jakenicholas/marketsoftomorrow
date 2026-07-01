@@ -1229,6 +1229,22 @@ async function handleWatchFeed(env, origin, url) {
     { headers: { 'Cache-Control': 'private, max-age=60' } }, env, origin
   );
 }
+// Onyx Watch Phase 2 — create a "smart watch" (a query/firm/area a member watches).
+// Stored per member; matched against pulse moves via the retriever in a later pass.
+async function handleWatchCreate(req, env, origin) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const member = String((b && b.member) || '').trim();
+  const query = String((b && b.query) || '').trim().slice(0, 200);
+  if (!member || !query) return json({ error: 'member + query required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS smart_watches (id TEXT PRIMARY KEY, member_id TEXT, query TEXT, created_at INTEGER)`).run();
+    const id = member + ':' + query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 64);
+    await env.DB.prepare(`INSERT INTO smart_watches (id, member_id, query, created_at) VALUES (?1,?2,?3,?4)
+      ON CONFLICT(id) DO UPDATE SET created_at=?4`).bind(id, member, query, Math.floor(Date.now() / 1000)).run();
+    return json({ ok: true, id, query }, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
+}
 async function handleMember(env, origin, url) {
   const memberId = url.searchParams.get('id');
   if (!memberId) return json({ error: 'id required' }, { status: 400 }, env, origin);
@@ -8591,6 +8607,9 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/watch/create') {
+        return await handleWatchCreate(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
