@@ -884,6 +884,21 @@
     + '.tmw-pv-btn.ghost{background:rgba(255,255,255,.04);color:#fff;border:1px solid rgba(255,255,255,.2)}'
     + '.tmw-pv-btn.ghost:hover{border-color:rgba(255,255,255,.4)}'
     + '.tmw-pv-btn svg{width:15px;height:15px}'
+    /* Watch button on the project card — purple, flips gold when watching */
+    + '.tmw-pv-btn.watch{background:rgba(167,139,250,.12);color:#B9A6FF;border:1px solid rgba(167,139,250,.4)}'
+    + '.tmw-pv-btn.watch:hover{border-color:rgba(167,139,250,.7);transform:translateY(-1px)}'
+    + '.tmw-pv-btn.watch.on{background:rgba(230,197,116,.14);color:#f0d68a;border:1px solid rgba(230,197,116,.6);box-shadow:0 0 16px rgba(230,197,116,.45)}'
+    + '.tmw-pv-btn.watch.on:hover{border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.65)}'
+    /* Developer / architect firm chips — clickable pill + arrow (matches SEO pages) */
+    + '.tmw-pv-firms{display:flex;flex-wrap:wrap;gap:16px}'
+    + '.tmw-pv-fgroup{min-width:0}'
+    + '.tmw-pv-fk{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#8b938b;margin-bottom:6px}'
+    + '.tmw-pv-fchips{display:flex;flex-wrap:wrap;gap:6px}'
+    + '.tmw-pv-firm{display:inline-flex;align-items:center;max-width:100%;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);font-size:13px;font-weight:600;color:#fff;text-decoration:none;line-height:1;box-sizing:border-box;transition:border-color .15s,background .15s}'
+    + '.tmw-pv-firm .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+    + 'a.tmw-pv-firm::after{content:"\\2197";font-size:12px;margin-left:6px;color:#1FDF67;opacity:.75}'
+    + 'a.tmw-pv-firm:hover{border-color:rgba(31,223,103,.5);background:rgba(31,223,103,.10)}'
+    + '.tmw-pv-firm.is-plain{color:#C2C9C3;cursor:default}'
     /* ── Native map card ── */
     + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden;border-radius:18px!important}'
@@ -1802,12 +1817,23 @@
             + '<span class="tmw-pv-count"><b data-pvidx>1</b> / ' + imgs.length + '</span>'
           : '')
       : '<div class="tmw-pv-track" style="background:#15181a"></div>';
-    function tile(v, k){ return '<div class="tmw-pv-stat"><div class="v">' + esc(v != null && v !== '' && v !== 0 ? (v.toLocaleString ? v.toLocaleString() : String(v)) : '—') + '</div><div class="k">' + k + '</div></div>'; }
-    // Show the firms behind the project (developer + architect) — more useful than
-    // raw unit/floor counts. First credited name each; '—' when none.
-    var devName = String(p.Developer || '').split(',')[0].trim();
-    var archName = String(p.Architect || '').split(',')[0].trim();
-    var stats = tile(devName, 'Developer') + tile(archName, 'Architect');
+    // Firms behind the project as clickable pills → /firm/<slug>/ (canonical
+    // slugs from projects-flat's DeveloperSlugs/ArchitectSlugs, paired by index),
+    // matching the SEO project-page firm-chip design. Non-DB firms are plain.
+    function firmChip(name, fslug){
+      var nm = '<span class="nm">' + esc(name) + '</span>';
+      return fslug
+        ? '<a class="tmw-pv-firm" href="https://www.oftmw.com/firm/' + esc(fslug) + '/">' + nm + '</a>'
+        : '<span class="tmw-pv-firm is-plain">' + nm + '</span>';
+    }
+    function firmGroup(label, raw, rawSlugs){
+      var names = String(raw||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      var slugs = String(rawSlugs||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      if (!names.length) return '';
+      var chips = names.map(function(n,i){ return firmChip(n, slugs[i]||''); }).join('');
+      return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + label + (names.length>1?'s':'') + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
+    }
+    var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Architect', p.Architect, p.ArchitectSlugs);
     var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
     var type = firstField(p, ['ProjectType','PreferredType']);
     var slug = p.Slug || p.slug || '';
@@ -1820,11 +1846,12 @@
       +   '<h2 class="tmw-pv-title">' + esc(p.Title || '') + '</h2>'
       +   '<div class="tmw-pv-loc">' + esc(_locOf(p) || '') + (type ? ' &middot; ' + esc(type) : '') + '</div>'
       +   spine
-      +   '<div class="tmw-pv-stats">' + stats + '</div>'
+      +   (firms ? '<div class="tmw-pv-firms">' + firms + '</div>' : '')
       +   (desc ? '<p class="tmw-pv-desc">' + esc(desc) + '</p>' : '')
       +   '<div class="tmw-pv-cta">'
       +     (hasGeo ? '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</a>' : '')
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
+      +     (slug ? '<button class="tmw-pv-btn watch" type="button" data-pvwatch data-slug="' + esc(slug) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="tmw-pv-watch-txt">Watch</span></button>' : '')
       +   '</div>'
       + '</div></div>';
   }
@@ -4581,11 +4608,50 @@
     for (var i = 0; i < PROJECTS.length; i++){ if ((PROJECTS[i].Slug || PROJECTS[i].slug) === slug) return PROJECTS[i]; }
     return null;
   }
+  // Project watchlist (Memberstack favorites) — for the card's Watch button.
+  var _favSet = null;
+  function loadFavs(){
+    if (_favSet) return Promise.resolve(_favSet);
+    var m = window.$memberstackDom;
+    if (!m || !m.getMemberJSON) return Promise.resolve(new Set());
+    return m.getMemberJSON().then(function(r){ var j=(r&&r.data)||{}; _favSet = new Set((j.favorites||[]).map(function(s){ return String(s).toLowerCase(); })); return _favSet; }).catch(function(){ return new Set(); });
+  }
+  function beaconEventOv(name, projectSlug){
+    try {
+      var m = window.$memberstackDom; if (!m || !m.getCurrentMember) return;
+      m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem)return; var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null;
+        var payload = JSON.stringify({ member_id:mem.id, member_name:nm, event_name:name, props:{ project_slug:projectSlug } });
+        if (navigator.sendBeacon) navigator.sendBeacon('https://tmw.jake-ab7.workers.dev/event', new Blob([payload],{type:'text/plain'}));
+        else fetch('https://tmw.jake-ab7.workers.dev/event', { method:'POST', body:payload, headers:{'Content-Type':'text/plain'}, keepalive:true }).catch(function(){});
+      });
+    } catch(e){}
+  }
+  function handlePvWatch(wbtn){
+    var pro = window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro();
+    if (!pro){ try { if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall({ source:'onyx_watch' }); } catch(e){} return; }
+    var slug = wbtn.getAttribute('data-slug'); if (!slug) return;
+    var key = slug.toLowerCase(), txt = wbtn.querySelector('.tmw-pv-watch-txt'), on = wbtn.classList.contains('on');
+    var m = window.$memberstackDom; if (!m || !m.getMemberJSON || !m.updateMemberJSON) return;
+    if (txt) txt.textContent = on ? 'Removing…' : 'Watching…';
+    m.getMemberJSON().then(function(r){
+      var j = (r && r.data) || {};
+      var fv = Array.isArray(j.favorites) ? j.favorites.slice() : [];
+      var i = fv.indexOf(slug);
+      if (on){ if (i>=0) fv.splice(i,1); } else { if (i<0) fv.push(slug); }
+      j.favorites = fv;
+      m.updateMemberJSON({ json:j }).then(function(){
+        if (on){ wbtn.classList.remove('on'); if(txt) txt.textContent='Watch'; if(_favSet) _favSet.delete(key); beaconEventOv('favorite_removed', slug); }
+        else   { wbtn.classList.add('on');    if(txt) txt.textContent='Watching'; if(_favSet) _favSet.add(key); beaconEventOv('favorite_added', slug); }
+      }).catch(function(){ if (txt) txt.textContent = on ? 'Watching' : 'Watch'; });
+    });
+  }
   function _paintProjCard(){
     projbody.scrollTop = 0;
     projbody.innerHTML = renderProjView(_projP);
     var tk = projbody.querySelector('.tmw-pv-track'), idxEl = projbody.querySelector('[data-pvidx]');
     if (tk && idxEl) tk.addEventListener('scroll', function(){ idxEl.textContent = String(Math.round(tk.scrollLeft / Math.max(1, tk.clientWidth)) + 1); }, { passive: true });
+    var wb = projbody.querySelector('[data-pvwatch]');
+    if (wb) loadFavs().then(function(set){ var s = wb.getAttribute('data-slug'); if (s && set.has(s.toLowerCase())){ wb.classList.add('on'); var t = wb.querySelector('.tmw-pv-watch-txt'); if (t) t.textContent = 'Watching'; } });
   }
   function openProjCard(p, bubble){
     if (!projview || !projbody || !p) return;
@@ -4621,8 +4687,10 @@
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
-    // Inside the open card: carousel arrows.
+    // Inside the open card: Watch button, then carousel arrows.
     if (projview && projview.classList.contains('open')) {
+      var pvw = e.target.closest('[data-pvwatch]');
+      if (pvw) { e.preventDefault(); e.stopPropagation(); handlePvWatch(pvw); return; }
       var arrow = e.target.closest('[data-pvprev],[data-pvnext]');
       if (arrow) {
         e.preventDefault();
