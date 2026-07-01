@@ -1356,15 +1356,31 @@ function initComments(slug, post) {
               + '<span class="ai-f-role">' + esc(f.role) + '</span><span class="ai-f-nm">' + esc(f.name) + '</span></button>';
           }).join('') + '</div>';
     }
-    // Ask Onyx — a search bar that opens the Intelligence overlay with the reader's question.
+    // Ask Onyx — a search bar that opens the Intelligence overlay with the reader's
+    // question, ANCHORED to this article's subject so Onyx answers in-context.
     html += '<div class="ai-ask">'
-      + '<svg class="ai-ask-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg>'
+      + '<span class="ai-ask-hex" aria-hidden="true"><svg viewBox="0 0 100 100">'
+      +   '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
+      +   '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>'
+      + '</svg></span>'
       + '<input class="ai-ask-in" type="text" placeholder="Ask Onyx about this story…" aria-label="Ask Onyx">'
       + '<button class="ai-ask-go" type="button" aria-label="Ask Onyx"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'
       + '</div>';
     host.innerHTML = html;
     var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go');
-    function ask() { openOnyx(ain ? ain.value : ''); }
+    function articleSubject() {
+      var e = intel.entities || {}, parts = [];
+      if (e.project) parts.push(e.project); else if (e.developer) parts.push(e.developer);
+      if (e.city && parts.length) parts.push(e.city);
+      var subj = parts.join(' ');
+      if (!subj) { var h1 = document.getElementById('article-title'); subj = h1 ? String(h1.textContent).replace(/\s+/g, ' ').trim() : ''; }
+      return subj;
+    }
+    function ask() {
+      var q = (ain ? ain.value : '').trim();
+      var subj = articleSubject();
+      openOnyx((q && subj) ? (subj + ' — ' + q) : (q || subj));
+    }
     if (ago) ago.addEventListener('click', ask);
     if (ain) ain.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ask(); } });
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
