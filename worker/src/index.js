@@ -457,7 +457,10 @@ async function handlePeople(env, origin, url) {
       member_id: m.member_id,
       email: m.email,
       member_name: m.member_name,
-      plan: m.plan,
+      // An anon: id has no account, so it can't be paid — a stale "paid" here is a
+      // pre-identification event (a paid member's page-views fired under an anon id
+      // before Memberstack resolved them). Always classify anon ids as anon.
+      plan: (String(m.member_id || '').indexOf('anon:') === 0) ? 'anon' : m.plan,
       event_count: ts.length,
       last_seen_ts: ts[0],
       first_seen_ts: ts[ts.length - 1],
