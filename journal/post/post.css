@@ -331,3 +331,30 @@ footer .tmw-wordmark{width:118px}
    (journal/_shared/journal-signup-funnel.js), which injects them on every page
    so the popup is byte-identical site-wide. Kept out of post.css on purpose to
    avoid the two copies drifting again. */
+
+/* ── TMW Intelligence: AI summary + follow suggestions atop the article ── */
+.article-intel{margin:0 0 34px; border:1px solid rgba(167,139,250,.26); border-radius:16px;
+  background:linear-gradient(180deg, rgba(167,139,250,.075), rgba(167,139,250,.02)); padding:17px 20px 16px; position:relative}
+.article-intel[hidden]{display:none}
+.ai-head{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; font-weight:700; color:var(--purple-glow); margin-bottom:12px}
+.ai-head .spark{width:15px; height:15px; flex:0 0 auto; fill:var(--purple-glow); filter:drop-shadow(0 0 6px rgba(167,139,250,.75))}
+.ai-head .live{margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:9px; letter-spacing:.14em; color:var(--mute)}
+.ai-head .live i{width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green)}
+.ai-tldr{font-family:var(--sans); font-size:15.5px; line-height:1.55; color:var(--cream); margin:0 0 13px}
+.ai-takes{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px}
+.ai-takes li{position:relative; padding-left:20px; font-size:13.5px; line-height:1.5; color:var(--mute-2)}
+.ai-takes li::before{content:""; position:absolute; left:4px; top:8px; width:6px; height:6px; border-radius:50%;
+  background:var(--purple); box-shadow:0 0 8px rgba(167,139,250,.65)}
+.ai-follows{display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; padding-top:14px; border-top:1px solid rgba(167,139,250,.15)}
+.ai-follows-k{width:100%; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin:0 0 3px}
+.ai-follow{display:inline-flex; align-items:center; gap:8px; cursor:pointer; appearance:none;
+  font-family:var(--sans); font-size:13px; font-weight:600; color:var(--cream);
+  background:rgba(255,255,255,.04); border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px 8px 11px;
+  transition:border-color .15s, background .15s, transform .12s}
+.ai-follow:hover{border-color:var(--purple); background:rgba(167,139,250,.1); transform:translateY(-1px)}
+.ai-follow .ai-f-ic{width:15px; height:15px; flex:0 0 auto; stroke:var(--purple-glow); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.ai-follow .ai-f-role{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+.ai-follow.on{border-color:rgba(31,223,103,.5); background:rgba(31,223,103,.1); color:var(--green-soft)}
+.ai-follow.on .ai-f-ic{stroke:var(--green-soft)}
+.ai-follow.on .ai-f-role{color:var(--green-soft)}

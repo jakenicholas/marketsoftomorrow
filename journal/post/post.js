@@ -1223,3 +1223,130 @@ function initComments(slug, post) {
     });
   }
 }
+
+// ============================================================================
+// TMW INTELLIGENCE — Onyx AI summary + follow suggestions atop each article.
+// Fetches /post-intel (cached server-side), renders a TL;DR + key takeaways,
+// and turns the article's named developer/architect/city/project into one-tap
+// follow chips (resolved to real slugs, persisted to Memberstack, pre-marked).
+// ============================================================================
+(function () {
+  var WORKER = 'https://tmw.jake-ab7.workers.dev';
+  var host = document.getElementById('article-intel');
+  if (!host) return;
+  function slugOf() {
+    var m = location.pathname.match(/^\/post\/([^\/]+)\/?$/);
+    if (m && m[1]) return decodeURIComponent(m[1]);
+    return (new URLSearchParams(location.search).get('slug') || '').trim();
+  }
+  var slug = slugOf();
+  if (!slug) return;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function slugify(t) { return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function mapSlug(t) { return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  function ms() { return window.$memberstackDom; }
+
+  // Entity → followable-slug resolution (firms + projects DB, cached).
+  var _firmMap = null, _projArr = null;
+  function firmMap() {
+    if (_firmMap) return Promise.resolve(_firmMap);
+    return fetch('https://www.oftmw.com/map/firms-flat.json').then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
+      .then(function (d) { var m = {}; ['architects', 'developers'].forEach(function (k) { ((d && d[k]) || []).forEach(function (f) { if (f && f.name && f.slug) m[String(f.name).toLowerCase().trim()] = f.slug; }); }); _firmMap = m; return m; });
+  }
+  function projArr() {
+    if (_projArr) return Promise.resolve(_projArr);
+    return fetch('https://www.oftmw.com/map/projects-flat.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }).then(function (a) { _projArr = a; return a; });
+  }
+  function resolveFollows(ent) {
+    return Promise.all([firmMap(), projArr()]).then(function (o) {
+      var fm = o[0], pa = o[1], out = [];
+      function firmSlug(name) {
+        if (!name) return null; var k = String(name).toLowerCase().trim();
+        if (fm[k]) return fm[k];
+        var hit = Object.keys(fm).find(function (n) { return n === k || (n.length > 4 && (n.indexOf(k) === 0 || k.indexOf(n) === 0)); });
+        return hit ? fm[hit] : null;
+      }
+      if (ent.developer) { var ds = firmSlug(ent.developer); if (ds) out.push({ kind: 'firm', role: 'Developer', name: ent.developer, slug: ds, store: 'firms_followed', href: 'https://www.oftmw.com/firm/' + ds + '/' }); }
+      if (ent.architect) { var as = firmSlug(ent.architect); if (as && as !== (out[0] && out[0].slug)) out.push({ kind: 'firm', role: 'Architect', name: ent.architect, slug: as, store: 'firms_followed', href: 'https://www.oftmw.com/firm/' + as + '/' }); }
+      if (ent.city) { var cs = slugify(ent.city); if (cs) out.push({ kind: 'market', role: 'City', name: ent.city, slug: cs, store: 'markets_followed', href: 'https://www.oftmw.com/?market=' + encodeURIComponent(cs) }); }
+      if (ent.project) {
+        var pk = String(ent.project).toLowerCase().trim();
+        var p = pa.find(function (x) { return String(x.Title || '').toLowerCase().trim() === pk; })
+             || pa.find(function (x) { var t = String(x.Title || '').toLowerCase().trim(); return t && (t.indexOf(pk) >= 0 || pk.indexOf(t) >= 0); });
+        if (p) out.push({ kind: 'project', role: 'Project', name: p.Title, slug: slugify(p.Title), store: 'favorites', href: 'https://www.oftmw.com/map/?project=' + mapSlug(p.Title) });
+      }
+      return out;
+    });
+  }
+
+  // Member JSON (follow state) — read once, cached.
+  var _mjP = null;
+  function getMJ() { if (_mjP) return _mjP; _mjP = new Promise(function (res) { var m = ms(); if (m && m.getMemberJSON) m.getMemberJSON().then(function (r) { res((r && r.data) || {}); }).catch(function () { res({}); }); else res({}); }); return _mjP; }
+  function beacon(name, props) {
+    try { var m = ms(); if (!m || !m.getCurrentMember) return; m.getCurrentMember().then(function (r) { var mem = r && r.data; if (!mem) return; var cf = mem.customFields || {}; var nm = ((cf['first-name'] || '') + ' ' + (cf['last-name'] || '')).trim() || null; var payload = JSON.stringify({ member_id: mem.id, member_name: nm, event_name: name, props: props || {} }); if (navigator.sendBeacon) navigator.sendBeacon(WORKER + '/event', new Blob([payload], { type: 'text/plain' })); else fetch(WORKER + '/event', { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain' }, keepalive: true }).catch(function () {}); }); } catch (e) {}
+  }
+  function eventFor(f, added) {
+    if (f.kind === 'firm') return [added ? 'firm_followed' : 'firm_unfollowed', { firm: f.slug }];
+    if (f.kind === 'market') return [added ? 'market_followed' : 'market_unfollowed', { market: f.slug }];
+    return [added ? 'favorite_added' : 'favorite_removed', { project_slug: f.slug }];
+  }
+  function toggleFollow(f, btn) {
+    var m = ms();
+    if (!m || !m.getCurrentMember) { if (typeof window.tmwArticleSignup === 'function') window.tmwArticleSignup(); return; }
+    m.getCurrentMember().then(function (r) {
+      var mem = r && r.data;
+      if (!mem) { if (typeof window.tmwArticleSignup === 'function') window.tmwArticleSignup(); else if (m.openModal) m.openModal('SIGNUP'); return; }
+      m.getMemberJSON().then(function (g) {
+        var j = (g && g.data && typeof g.data === 'object') ? g.data : {};
+        var list = Array.isArray(j[f.store]) ? j[f.store].slice() : [];
+        var i = list.indexOf(f.slug), added;
+        if (i >= 0) { list.splice(i, 1); added = false; } else { list.push(f.slug); added = true; }
+        j[f.store] = list;
+        btn.classList.toggle('on', added);
+        _mjP = Promise.resolve(j);
+        m.updateMemberJSON({ json: j }).then(function () { var ev = eventFor(f, added); beacon(ev[0], ev[1]); }).catch(function () { btn.classList.toggle('on', !added); });
+      });
+    });
+  }
+
+  function render(intel, follows, mj) {
+    var takes = (intel.takeaways || []).filter(Boolean);
+    var spark = '<svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
+    var html = '<div class="ai-head">' + spark + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx</span></div>'
+      + '<p class="ai-tldr">' + esc(intel.tldr) + '</p>'
+      + (takes.length ? '<ul class="ai-takes">' + takes.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '');
+    if (follows.length) {
+      var plus = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+      var check = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
+      html += '<div class="ai-follows"><div class="ai-follows-k">Follow the story</div>'
+        + follows.map(function (f, idx) {
+            var on = (mj[f.store] || []).indexOf(f.slug) >= 0;
+            return '<button class="ai-follow' + (on ? ' on' : '') + '" type="button" data-fi="' + idx + '">'
+              + (on ? check : plus)
+              + '<span class="ai-f-role">' + esc(f.role) + '</span><span class="ai-f-nm">' + esc(f.name) + '</span></button>';
+          }).join('') + '</div>';
+    }
+    host.innerHTML = html;
+    host.hidden = false;
+    host.querySelectorAll('.ai-follow').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var f = follows[+btn.getAttribute('data-fi')]; if (!f) return;
+        var on = btn.classList.contains('on');
+        // swap icon optimistically
+        toggleFollow(f, btn);
+        var ic = btn.querySelector('.ai-f-ic');
+        if (ic) ic.outerHTML = (on
+          ? '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
+          : '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>');
+      });
+    });
+  }
+
+  fetch(WORKER + '/post-intel?slug=' + encodeURIComponent(slug))
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (intel) {
+      if (!intel || !intel.ok || !intel.tldr) return;
+      return Promise.all([resolveFollows(intel.entities || {}), getMJ()]).then(function (o) { render(intel, o[0], o[1]); });
+    })
+    .catch(function () {});
+})();
