@@ -1332,11 +1332,36 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
             return f'<a class="pp-firm-chip" href="/firm/{_escape_attr(fslug)}/">{nm}</a>'
         return f'<span class="pp-firm-chip is-plain">{nm}</span>'
 
+    def _pair_firms(names, slugs):
+        # Pair firm NAMES to SLUGS using the slugs (one per firm, unambiguous) as
+        # the source of truth — a name can contain commas WITHIN one firm
+        # ("Skidmore, Owings & Merrill"), so a naive comma-split over-splits.
+        # Greedily join name parts until they slugify to the next slug.
+        if not slugs:
+            return [(n, '') for n in names]
+        pairs, i = [], 0
+        for sl in slugs:
+            acc, matched, j = '', False, i
+            while j < len(names):
+                acc = (acc + ', ' + names[j]) if acc else names[j]
+                if slugify(acc) == sl:
+                    pairs.append((acc, sl)); i = j + 1; matched = True; break
+                j += 1
+            if not matched:
+                nm = names[i] if i < len(names) else sl.replace('-', ' ').title()
+                pairs.append((nm, sl))
+                if i < len(names):
+                    i += 1
+        while i < len(names):
+            pairs.append((names[i], '')); i += 1
+        return pairs
+
     def _firm_group(label, names, slugs):
-        if not names:
+        pairs = _pair_firms(names, slugs)
+        if not pairs:
             return ''
-        lbl = label + ('s' if len(names) > 1 else '')
-        pills = ''.join(_firm_pill(n, (slugs[i] if i < len(slugs) else '')) for i, n in enumerate(names))
+        lbl = label + ('s' if len(pairs) > 1 else '')
+        pills = ''.join(_firm_pill(n, s) for n, s in pairs)
         return (f'<div class="pp-firm-group"><div class="k">{lbl}</div>'
                 f'<div class="pp-firm-chips">{pills}</div></div>')
 

@@ -1826,12 +1826,33 @@
         ? '<a class="tmw-pv-firm" href="https://www.oftmw.com/firm/' + esc(fslug) + '/">' + nm + '</a>'
         : '<span class="tmw-pv-firm is-plain">' + nm + '</span>';
     }
-    function firmGroup(label, raw, rawSlugs){
+    // Pair firm NAMES to SLUGS using the slugs (one per firm, unambiguous) as the
+    // source of truth — the names field can contain commas WITHIN a single firm
+    // ("Skidmore, Owings & Merrill"), so a naive comma-split over-splits. Greedily
+    // join name parts until they slugify to the next slug.
+    function fSlug(t){ return String(t==null?'':t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+    function fHuman(s){ return String(s||'').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
+    function pairFirms(raw, rawSlugs){
       var names = String(raw||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
       var slugs = String(rawSlugs||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-      if (!names.length) return '';
-      var chips = names.map(function(n,i){ return firmChip(n, slugs[i]||''); }).join('');
-      return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + label + (names.length>1?'s':'') + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
+      if (!slugs.length) return names.map(function(n){ return { name:n, slug:'' }; });
+      var out = [], i = 0;
+      slugs.forEach(function(sl){
+        var acc = '', matched = false;
+        for (var j=i; j<names.length; j++){
+          acc = acc ? (acc + ', ' + names[j]) : names[j];
+          if (fSlug(acc) === sl){ out.push({ name:acc, slug:sl }); i = j+1; matched = true; break; }
+        }
+        if (!matched){ out.push({ name: names[i] || fHuman(sl), slug: sl }); if (i < names.length) i++; }
+      });
+      for (; i<names.length; i++) out.push({ name:names[i], slug:'' });
+      return out;
+    }
+    function firmGroup(label, raw, rawSlugs){
+      var pairs = pairFirms(raw, rawSlugs);
+      if (!pairs.length) return '';
+      var chips = pairs.map(function(p){ return firmChip(p.name, p.slug); }).join('');
+      return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + label + (pairs.length>1?'s':'') + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
     }
     var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Architect', p.Architect, p.ArchitectSlugs);
     var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
