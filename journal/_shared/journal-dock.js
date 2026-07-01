@@ -1607,13 +1607,77 @@
   function eid(e){ return e.id != null ? String(e.id) : (e.type + '|' + e.timestamp + '|' + (e.project_slug || e.title || '')); }
   function getDismissed(){ try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch(e){ return new Set(); } }
   function saveDismissed(set){ try { localStorage.setItem(DISMISS_KEY, JSON.stringify(Array.from(set))); } catch(e){} }
+
+  // ── "Me" scope — the Pro watcher, folded into this dropdown ──────────────────
+  // "All" = the full network pulse (below). "Me" filters those same events down to
+  // moves on THIS member's watches: watched projects (Memberstack favorites — the
+  // live source, so the count is always accurate), followed firms (matched via
+  // project→firm from projects-flat.json), followed markets (city / region / type),
+  // and Intelligence "Watch this" searches (token match). Replaces the old header
+  // bell + worker /watch/feed with one client-side, always-current path.
+  var SCOPE_KEY = 'tmw_pulse_scope';
+  var scope = 'all';
+  try { var _sv = localStorage.getItem(SCOPE_KEY); if (_sv === 'me' || _sv === 'all') scope = _sv; } catch(e){}
+  function isPro(){ try { return window._isPaidMember === true || (window.__tmwMember && window.__tmwMember.plan === 'paid') || (window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro()); } catch(e){ return false; } }
+  function ms(){ return window.$memberstackDom; }
+  function slugify(t){ return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+  var US_STATES={FL:'Florida',NY:'New York',TX:'Texas',TN:'Tennessee',UT:'Utah',WY:'Wyoming',HI:'Hawaii',MI:'Michigan',MO:'Missouri',OH:'Ohio',PA:'Pennsylvania',SC:'South Carolina',NV:'Nevada',ME:'Maine',WI:'Wisconsin',CA:'California',IL:'Illinois',MA:'Massachusetts',WA:'Washington',GA:'Georgia',CO:'Colorado',AZ:'Arizona'};
+  var COUNTRIES={AE:'United Arab Emirates',AG:'Antigua & Barbuda',AU:'Australia',BS:'Bahamas',BZ:'Belize',CA:'Canada',CH:'Switzerland',CO:'Colombia',CR:'Costa Rica',ES:'Spain',FR:'France',GB:'United Kingdom',GR:'Greece',IT:'Italy',JP:'Japan',KY:'Cayman Islands',MV:'Maldives',MX:'Mexico',PR:'Puerto Rico',PT:'Portugal',QA:'Qatar',SA:'Saudi Arabia',SG:'Singapore',TC:'Turks & Caicos',TH:'Thailand'};
+  var WATCH_STOP={condo:1,condos:1,tower:1,towers:1,luxury:1,hotel:1,hotels:1,project:1,projects:1,building:1,buildings:1,residence:1,residences:1,development:1,developments:1,coming:1,soon:1,near:1,downtown:1,apartment:1,apartments:1,mixed:1,resort:1,resorts:1,district:1,announced:1,update:1,updates:1,newest:1,latest:1};
+  var mine = { proj:new Set(), firm:new Set(), mkt:new Set(), smart:[] };
+  var projFirms = {}, projMeta = {}, cityReg = {};
+  var _mineP = null;
+  function loadMine(){
+    if (_mineP) return _mineP;
+    var WORKER = 'https://tmw.jake-ab7.workers.dev';
+    var id = (window.__tmwMember && window.__tmwMember.id) || null;
+    var pJson = new Promise(function(res){ var m = ms(); if (m && m.getMemberJSON){ m.getMemberJSON().then(function(r){ res((r && r.data) || {}); }).catch(function(){ res({}); }); } else res({}); });
+    var pFlat = fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+    var pCity = fetch('https://www.oftmw.com/map/cityStateMap.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
+    var pSmart = id ? fetch(WORKER + '/watch/smart?member=' + encodeURIComponent(id),{cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }) : Promise.resolve(null);
+    _mineP = Promise.all([pJson, pFlat, pCity, pSmart]).then(function(o){
+      var j = o[0]||{}, arr = o[1]||[], cmap = o[2]||{}, sw = o[3];
+      (j.favorites||[]).forEach(function(s){ if(s) mine.proj.add(slugify(s)); });
+      (j.markets_followed||[]).forEach(function(s){ if(s) mine.mkt.add(String(s).toLowerCase()); });
+      (j.firms_followed||[]).forEach(function(s){ if(s) mine.firm.add(String(s).toLowerCase()); });
+      arr.forEach(function(p){
+        var k = slugify(p.Title); if(!k) return;
+        var firms = [];
+        ['Developer','Developers','Architect','Architects','Firm','Builder','Landscape'].forEach(function(f){ if(p[f]) String(p[f]).split(/[,;\/]|&amp;|\band\b/).forEach(function(x){ var fs = slugify(x); if(fs) firms.push(fs); }); });
+        if(firms.length) projFirms[k] = firms;
+        projMeta[k] = { city: slugify(p.City), ptype: slugify((p.PreferredType||'').split(',')[0] || (p.ProjectType||'').split(',')[0] || '') };
+      });
+      Object.keys(cmap||{}).forEach(function(city){ var cs = slugify(city); var head = String(cmap[city]||'').split('-')[0]; var nm = US_STATES[head] || COUNTRIES[head]; if(nm){ (cityReg[cs] = cityReg[cs] || []).push(slugify(nm)); } });
+      if (sw && sw.smart_watches) sw.smart_watches.forEach(function(w){ var toks = String(w.query||'').toLowerCase().split(/[^a-z0-9]+/).filter(function(t){ return t.length >= 4 && !WATCH_STOP[t]; }); if(toks.length) mine.smart.push(toks); });
+    });
+    return _mineP;
+  }
+  function mineMatch(e){
+    var k = slugify(e.project_slug || e.project_title || e.title);
+    if (k && mine.proj.has(k)) return true;
+    var firms = projFirms[k];
+    if (firms){ for (var i=0;i<firms.length;i++) if (mine.firm.has(firms[i])) return true; }
+    var meta = projMeta[k] || {};
+    var cs = meta.city || slugify(e.city);
+    if (cs && mine.mkt.has(cs)) return true;
+    var regs = cityReg[cs];
+    if (regs){ for (var r=0;r<regs.length;r++) if (mine.mkt.has(regs[r])) return true; }
+    if (meta.ptype && mine.mkt.has('type-' + meta.ptype)) return true;
+    if (mine.smart.length){
+      var hay = ((e.project_title||e.title||'') + ' ' + (e.city||'')).toLowerCase();
+      for (var s=0;s<mine.smart.length;s++){ var toks = mine.smart[s], ok = true; for (var t=0;t<toks.length;t++){ if (hay.indexOf(toks[t]) < 0){ ok = false; break; } } if (ok) return true; }
+    }
+    return false;
+  }
+
   function active(){
     var d = getDismissed();
     var now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
-    return events
+    var list = events
       .filter(function(e){ var t = evTime(e); return t >= cutoff && t <= upper; })   // last 90 days by event date (Atlas parity)
-      .filter(function(e){ return !d.has(eid(e)); })
-      .slice(0, FEED_MAX);
+      .filter(function(e){ return !d.has(eid(e)); });
+    if (scope === 'me') list = list.filter(mineMatch);
+    return list.slice(0, FEED_MAX);
   }
   function countNew(){ return active().length; }
   function itemHtml(e){
@@ -1646,6 +1710,9 @@
   function feedHtml(){
     var list = active();
     if (!list.length){
+      if (scope === 'me'){
+        return '<div class="tmw-pulse-empty">No moves on your watches yet.<br>Onyx keeps watch — switch to <b>All</b> for the network.</div>';
+      }
       var fb = recentFallback();
       if (!fb.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
       return '<div class="tmw-pulse-note">Nothing new lately — here’s the latest</div>' + fb.map(itemHtml).join('');
@@ -1685,6 +1752,14 @@
       '.tmw-pulse-refresh:hover{background:rgba(255,211,0,.14);color:#FFD300;border-color:rgba(255,211,0,.4)}',
       '.tmw-pulse-refresh.spin{transform:rotate(360deg)}',
       '.tmw-pulse-refresh svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+      // Me / All scope toggle — the Pro watcher folded into the Pulse head
+      '.tmw-pulse-scope{display:inline-flex;gap:2px;padding:2px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)}',
+      '.tps-btn{appearance:none;border:0;background:transparent;cursor:pointer;color:rgba(255,255,255,.55);font:700 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;padding:6px 13px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;transition:background .15s,color .15s}',
+      '.tps-btn:hover{color:#fff}',
+      '.tps-btn.on{background:#A78BFA;color:#160b2e}',
+      '.tps-btn .tps-pro{font-size:8px;font-weight:800;letter-spacing:.06em;color:#B9A6FF;border:1px solid rgba(167,139,250,.5);border-radius:4px;padding:1px 3px}',
+      '.tmw-pulse-scope.is-pro .tps-pro{display:none}',
+      '.tps-btn.on .tps-pro{color:#160b2e;border-color:rgba(22,11,46,.35)}',
       '.tmw-pulse-feed{overflow-y:auto;padding:6px}',
       '.tmw-pulse-item{position:relative;display:flex;gap:11px;padding:9px 32px 9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
       '.tmw-pulse-item:hover{background:rgba(255,255,255,.05)}',
@@ -1722,8 +1797,12 @@
     popEl = document.createElement('div');
     popEl.id = 'tmw-pulse-pop'; popEl.className = 'tmw-pulse-pop'; popEl.hidden = true;
     popEl.innerHTML =
-      '<div class="tmw-pulse-head"><b><span class="tmw-pulse-livedot" aria-hidden="true"></span>Pulse</b><span class="tmw-pulse-sub">Latest across the network</span>' +
-        '<button class="tmw-pulse-refresh" type="button" aria-label="Refresh" title="Refresh">' +
+      '<div class="tmw-pulse-head"><b><span class="tmw-pulse-livedot" aria-hidden="true"></span>Pulse</b>' +
+        '<div class="tmw-pulse-scope" role="tablist" aria-label="Pulse scope" style="margin-left:auto">' +
+          '<button class="tps-btn" data-scope="all" type="button" role="tab">All</button>' +
+          '<button class="tps-btn" data-scope="me" type="button" role="tab">Me<span class="tps-pro">PRO</span></button>' +
+        '</div>' +
+        '<button class="tmw-pulse-refresh" type="button" aria-label="Refresh" title="Refresh" style="margin-left:8px">' +
           '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
         '</button></div>' +
       '<div class="tmw-pulse-feed"></div>';
@@ -1751,6 +1830,29 @@
       fetch(PULSE_URL, { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){ if (d && d.events) events = d.events.filter(notTracking).sort(byEvent); repaint(); })
         .catch(function(){ repaint(); });
+    });
+    // Me / All scope toggle — the Pro watcher lives here now (no separate bell).
+    var scopeEl = popEl.querySelector('.tmw-pulse-scope');
+    function updateScopeUI(){
+      if (!scopeEl) return;
+      scopeEl.classList.toggle('is-pro', isPro());
+      var btns = scopeEl.querySelectorAll('.tps-btn');
+      for (var i=0;i<btns.length;i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-scope') === scope);
+    }
+    function setScope(sc){
+      scope = sc; try { localStorage.setItem(SCOPE_KEY, sc); } catch(e){}
+      updateScopeUI();
+      if (sc === 'me') loadMine().then(repaint); else repaint();
+    }
+    updateScopeUI();
+    if (scope === 'me') loadMine().then(repaint);
+    setTimeout(updateScopeUI, 1200); setTimeout(updateScopeUI, 3000);
+    if (scopeEl) scopeEl.addEventListener('click', function(ev){
+      var b = ev.target.closest ? ev.target.closest('.tps-btn') : null; if (!b) return;
+      ev.stopPropagation();
+      var sc = b.getAttribute('data-scope'); if (sc === scope) return;
+      if (sc === 'me' && !isPro()){ try { if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall({ source:'onyx_watch' }); } catch(e){} return; }
+      setScope(sc);
     });
     document.addEventListener('click', function(ev){
       if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)) popEl.hidden = true;
@@ -1991,127 +2093,3 @@
     .catch(function(){});
 })();
 
-// ── Onyx Watch — Pro header bell (Phase 1) ──────────────────────────────────
-// A live brief of pulse "moves" (new / status / milestone) on the projects a Pro
-// member watches (the eye-icon watchlist), read from the worker /watch/feed. Mounts
-// into every header (nav.main .wrap), Pro-gated, with an unseen badge + dropdown.
-(function () {
-  var WORKER = 'https://tmw.jake-ab7.workers.dev';
-  var SEEN_KEY = 'tmw-watch-seen';
-  var DATA = null;
-  function isPro() {
-    try { return window._isPaidMember === true || (window.__tmwMember && window.__tmwMember.plan === 'paid') || (window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro()); } catch (e) { return false; }
-  }
-  function memberId() { return (window.__tmwMember && window.__tmwMember.id) || null; }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
-  function lastSeen() { try { return parseInt(localStorage.getItem(SEEN_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
-  function markSeen() { try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch (e) {} }
-  function rel(iso) { var t = Date.parse(iso || 0); if (!t) return ''; var s = (Date.now() - t) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago'; if (s < 86400) return Math.round(s / 3600) + 'h ago'; return Math.round(s / 86400) + 'd ago'; }
-  function typeColor(t) { return t === 'new' ? '#57e08c' : t === 'milestone' ? '#f2b45a' : '#f0d68a'; }
-  function unseenCount() { if (!DATA || !DATA.moves) return 0; var ls = lastSeen(); return DATA.moves.filter(function (m) { return Date.parse(m.timestamp || 0) > ls; }).length; }
-
-  function injectCss() {
-    if (document.getElementById('tmw-wbell-css')) return;
-    var s = document.createElement('style'); s.id = 'tmw-wbell-css';
-    s.textContent = [
-      '.tmw-wbell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#ECEAE5;cursor:pointer;margin-right:8px;flex:0 0 auto;transition:border-color .2s,color .2s}',
-      '.tmw-wbell:hover{border-color:rgba(167,139,250,.55);color:#B9A6FF}',
-      '.tmw-wbell svg{width:18px;height:18px}',
-      '.tmw-wbadge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#A78BFA;color:#1a0f3d;font:600 10px/17px ui-monospace,monospace;text-align:center;box-shadow:0 0 0 3px #0b0e0c,0 0 12px rgba(167,139,250,.65)}',
-      '.tmw-wbadge[hidden]{display:none}',
-      '.tmw-wpanel{position:absolute;top:calc(100% + 12px);right:0;width:min(380px,92vw);background:#0c0a12;border:1px solid rgba(167,139,250,.24);border-radius:18px;padding:7px;z-index:9600;box-shadow:0 30px 80px -20px rgba(0,0,0,.85),inset 0 0 0 1px rgba(167,139,250,.06),0 12px 55px -14px rgba(124,92,255,.45);display:none}',
-      '.tmw-wpanel.open{display:block}',
-      '.tmw-wph{display:flex;align-items:center;gap:10px;padding:13px 13px 11px}',
-      '.tmw-wph .glow{width:8px;height:8px;border-radius:50%;background:#57e08c;box-shadow:0 0 10px #57e08c;flex:0 0 auto}',
-      '.tmw-wph .t{font-size:16px;font-weight:600;color:#fff;letter-spacing:-.01em}',
-      '.tmw-wph .cnt{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B9A6FF;border:1px solid rgba(167,139,250,.32);border-radius:6px;padding:2px 8px}',
-      '.tmw-wmove{display:flex;gap:13px;align-items:center;padding:10px 11px;border-radius:13px;text-decoration:none;color:inherit}',
-      '.tmw-wmove:hover{background:rgba(167,139,250,.09)}',
-      '.tmw-wthumb{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:#171226;border:1px solid rgba(255,255,255,.06)}',
-      '.tmw-wtag{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#B9A6FF;font-weight:500}',
-      '.tmw-wname{font-family:Georgia,serif;font-size:15.5px;color:#fff;line-height:1.2;margin:3px 0}',
-      '.tmw-wsub{font-size:12px;color:#7c8088}',
-      '.tmw-wempty{padding:26px 16px;text-align:center;color:#8b8f97;font-size:13px;line-height:1.55}',
-      '.tmw-wfoot{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-top:1px solid rgba(167,139,250,.12);margin-top:3px}',
-      '.tmw-wfoot span{font-size:11.5px;color:#7c8088}',
-      '.tmw-wfoot a{font-size:12px;color:#B9A6FF;text-decoration:none;font-weight:500}'
-    ].join('');
-    document.head.appendChild(s);
-  }
-
-  var BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
-
-  var MON = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  function fmtDate(m) {
-    var mm = String(m.event_date || '').match(/^(\d{4})-(\d{2})/);
-    if (mm) return MON[+mm[2]] + ' ' + mm[1];
-    return rel(m.timestamp);
-  }
-  function panelHTML() {
-    var moves = (DATA && DATA.moves) || [];
-    var wc = (DATA && DATA.watch_count) || 0;
-    var rows = moves.length ? moves.slice(0, 8).map(function (m) {
-      return '<a class="tmw-wmove" href="' + esc(m.link || '#') + '">'
-        + (m.image ? '<img class="tmw-wthumb" src="' + esc(m.image) + '" alt="" loading="lazy">' : '<div class="tmw-wthumb"></div>')
-        + '<div style="flex:1;min-width:0">'
-        + '<div class="tmw-wtag">' + esc(m.tag || m.type || '') + '</div>'
-        + '<div class="tmw-wname">' + esc(m.project_title || '') + '</div>'
-        + '<div class="tmw-wsub">' + (m.city ? esc(m.city) + ' &middot; ' : '') + esc(fmtDate(m)) + '</div>'
-        + '</div></a>';
-    }).join('')
-      : '<div class="tmw-wempty">Nothing new on your watched projects yet.<br>Watch more from the map &mdash; Onyx keeps an eye out.</div>';
-    return '<div class="tmw-wph"><span class="glow"></span><span class="t">On your beat</span>'
-      + '<span class="cnt">' + (moves.length ? moves.length + ' moved' : 'watching') + '</span></div>'
-      + rows
-      + '<div class="tmw-wfoot"><span>' + wc + ' project' + (wc === 1 ? '' : 's') + ' watched</span><a href="https://www.oftmw.com/map/">Open watchlist &rarr;</a></div>';
-  }
-
-  function renderAll() {
-    injectCss();
-    var wraps = document.querySelectorAll('nav.main .wrap');
-    for (var i = 0; i < wraps.length; i++) {
-      var wrap = wraps[i];
-      var bell = wrap.__tmwBell;
-      if (!bell) {
-        bell = document.createElement('button');
-        bell.type = 'button'; bell.className = 'tmw-wbell'; bell.setAttribute('aria-label', 'Onyx Watch — your live brief');
-        bell.innerHTML = BELL_SVG + '<span class="tmw-wbadge" hidden></span><div class="tmw-wpanel"></div>';
-        var cta = wrap.querySelector('.nav-cta');
-        if (cta && cta.parentNode) cta.parentNode.insertBefore(bell, cta); else wrap.appendChild(bell);
-        wrap.__tmwBell = bell;
-        (function (b) {
-          var panel = b.querySelector('.tmw-wpanel');
-          b.addEventListener('click', function (e) {
-            if (e.target.closest && e.target.closest('.tmw-wmove')) return;
-            e.preventDefault(); e.stopPropagation();
-            var opening = !panel.classList.contains('open');
-            document.querySelectorAll('.tmw-wpanel.open').forEach(function (p) { p.classList.remove('open'); });
-            if (opening) { panel.classList.add('open'); markSeen(); b.querySelector('.tmw-wbadge').setAttribute('hidden', ''); }
-          });
-        })(bell);
-        document.addEventListener('click', function (e) {
-          if (!e.target.closest || !e.target.closest('.tmw-wbell')) document.querySelectorAll('.tmw-wpanel.open').forEach(function (p) { p.classList.remove('open'); });
-        });
-      }
-      bell.querySelector('.tmw-wpanel').innerHTML = panelHTML();
-      var badge = bell.querySelector('.tmw-wbadge');
-      var n = unseenCount();
-      if (n > 0) { badge.textContent = n > 9 ? '9+' : n; badge.removeAttribute('hidden'); } else { badge.setAttribute('hidden', ''); }
-    }
-  }
-
-  function load() {
-    var id = memberId(); if (!id) return;
-    fetch(WORKER + '/watch/feed?member=' + encodeURIComponent(id), { cache: 'no-store' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { if (d && d.ok) { DATA = d; renderAll(); } })
-      .catch(function () {});
-  }
-
-  (function wait(t) {
-    t = t || 0;
-    if (isPro() && memberId()) { renderAll(); load(); return; }
-    if (++t > 80) return;
-    setTimeout(function () { wait(t); }, 250);
-  })();
-})();
