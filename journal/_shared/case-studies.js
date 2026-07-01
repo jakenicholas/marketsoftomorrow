@@ -52,8 +52,8 @@
   --cs-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--cs-serif:'Fraunces',Georgia,serif;--cs-mono:'Inter',sans-serif;
   position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:64px 32px;color:var(--cream);font-family:var(--cs-sans)}
 .tmw-cases *{box-sizing:border-box}
-.tmw-cases .cs-eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--cs-mono);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:14px}
-.tmw-cases .cs-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.tmw-cases .cs-eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--cs-mono);font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--green-soft);margin-bottom:14px}
+.tmw-cases .cs-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
 .tmw-cases h2.cs-h{font-family:var(--cs-serif);font-weight:500;font-size:clamp(26px,3.2vw,38px);letter-spacing:-.02em;line-height:1.07;color:#fff;margin:0 0 10px}
 .tmw-cases h2.cs-h em{font-style:italic;color:var(--gold-soft);font-weight:500}
 .tmw-cases .cs-sub{font-family:var(--cs-serif);font-style:italic;font-weight:300;font-size:17px;color:var(--mute2);margin:0 0 28px;max-width:62ch}
