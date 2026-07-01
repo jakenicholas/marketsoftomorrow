@@ -2396,6 +2396,9 @@ async function handlePostsList(req, env, origin, url) {
   const postType   = url.searchParams.get('post_type');
   const contactId  = url.searchParams.get('contact_id');
   const projectSlug = url.searchParams.get('project_slug');
+  // source=ai → AI-written drafts (the studio "AI" tab); source=human → everything
+  // that isn't AI (so AI drafts don't double-show under Drafts).
+  const source = url.searchParams.get('source');
 
   // status=published is public; anything else requires admin auth
   if (status !== 'published') {
@@ -2416,6 +2419,8 @@ async function handlePostsList(req, env, origin, url) {
   if (postType)   { where.push(`post_type    = ?${p}`); params.push(postType);    p++; }
   if (contactId)  { where.push(`contact_id   = ?${p}`); params.push(contactId);   p++; }
   if (projectSlug){ where.push(`project_slug = ?${p}`); params.push(projectSlug); p++; }
+  if (source === 'ai')         { where.push(`source = ?${p}`); params.push('ai'); p++; }
+  else if (source === 'human') { where.push(`(source IS NULL OR source <> 'ai')`); }
   if (q) {
     // Tokenized search: each meaningful word (>=3 chars, max 8) must appear in
     // the title, excerpt, OR body. Searching body_html lets the spotlight
@@ -2438,7 +2443,7 @@ async function handlePostsList(req, env, origin, url) {
   const rows  = await env.DB.prepare(`
     SELECT id, slug, title, excerpt, cover_image, cover_image_alt, categories, tags,
            author_name, status, published_at, updated_at, reading_time_min, wix_url, featured, main_category,
-           post_type, income, contact_id, project_slug
+           post_type, income, contact_id, project_slug, source
     FROM posts WHERE ${whereSql}
     ORDER BY COALESCE(published_at, updated_at) DESC
     LIMIT ${limit} OFFSET ${offset}
@@ -2708,6 +2713,7 @@ function rowToPostSummary(r) {
     // a second fetch.
     post_type:    r.post_type    || 'Editorial',
     income:       r.income == null ? null : Number(r.income),
+    source:       r.source       || null,
     contact_id:   r.contact_id   || null,
     project_slug: r.project_slug || null,
     campaign_id:  r.campaign_id  || null,
@@ -3599,6 +3605,7 @@ async function handlePostsCreate(req, env, origin) {
   const income      = body.income == null || body.income === '' ? null : Number(body.income);
   const contactId   = body.contact_id || null;
   const projectSlug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
+  const sourceVal   = body.source === 'ai' ? 'ai' : null;   // 'ai' = written by the daily AI routine
 
   try {
     await env.DB.prepare(`
@@ -3606,14 +3613,14 @@ async function handlePostsCreate(req, env, origin) {
         id, slug, title, excerpt, body_html, cover_image, cover_image_alt,
         categories, tags, author_name, author_id, status, published_at,
         reading_time_min, seo_title, seo_description, wix_id, wix_url,
-        body_source, post_type, income, contact_id, project_slug,
+        body_source, post_type, income, contact_id, project_slug, source,
         created_at, updated_at
-      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)
+      ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26)
     `).bind(
       row.id, row.slug, row.title, row.excerpt, row.body_html, row.cover_image, row.cover_image_alt,
       row.categories, row.tags, row.author_name, row.author_id, row.status, row.published_at,
       row.reading_time_min, row.seo_title, row.seo_description, row.wix_id, row.wix_url,
-      row.body_source, postType, income, contactId, projectSlug,
+      row.body_source, postType, income, contactId, projectSlug, sourceVal,
       row.created_at, row.updated_at,
     ).run();
   } catch (e) {
@@ -3661,6 +3668,7 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('income'       in body) patch.income       = body.income === '' || body.income == null ? null : Number(body.income);
   if ('contact_id'   in body) patch.contact_id   = body.contact_id || null;
   if ('project_slug' in body) patch.project_slug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
+  if ('source'       in body) patch.source       = body.source === 'ai' ? 'ai' : null;   // only sent to (re)flag; normal edits omit it so AI drafts keep their tag
   if ('campaign_id'  in body) {
     await ensureCampaignsTable(env);
     patch.campaign_id = body.campaign_id || null;
@@ -3795,6 +3803,7 @@ export async function ensureContactsTable(env) {
     `ALTER TABLE posts ADD COLUMN income       REAL`,
     `ALTER TABLE posts ADD COLUMN contact_id   TEXT`,
     `ALTER TABLE posts ADD COLUMN project_slug TEXT`,
+    `ALTER TABLE posts ADD COLUMN source       TEXT DEFAULT NULL`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) { /* already exists */ }
   }
@@ -3802,6 +3811,7 @@ export async function ensureContactsTable(env) {
     `CREATE INDEX IF NOT EXISTS idx_posts_contact   ON posts(contact_id)   WHERE contact_id   IS NOT NULL`,
     `CREATE INDEX IF NOT EXISTS idx_posts_project   ON posts(project_slug) WHERE project_slug IS NOT NULL`,
     `CREATE INDEX IF NOT EXISTS idx_posts_type_date ON posts(post_type, published_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS idx_posts_source    ON posts(source)       WHERE source       IS NOT NULL`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) {}
   }

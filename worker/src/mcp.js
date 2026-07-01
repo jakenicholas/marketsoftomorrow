@@ -216,6 +216,7 @@ const TOOLS = [
         contact_id:  { type: 'string', description: 'Studio contact id (from list_contacts) — the PR/brand contact tied to this post.' },
         project_slug:{ type: 'string', description: 'Map of Tomorrow project slug this post should be linked to in the dashboard (separate from the in-body embed — `linked_project` controls the embed; `project_slug` is the structured link the dashboard groups posts by).' },
         campaign_id: { type: 'string', description: 'Campaign id (from list_campaigns) — links this post to a multi-month commitment. When set, income is auto-derived from the campaign\'s total_income / planned_posts unless an explicit `income` is also passed.' },
+        source:      { type: 'string', enum: ['ai'], description: 'Set to "ai" when this draft is written by the daily automated article routine — it files the draft under the Studio "AI" tab (separate from human Drafts) for review. Omit for human-authored drafts.' },
       },
       required: ['title'],
     },
@@ -2198,6 +2199,7 @@ const IMPL = {
     const contactId   = args.contact_id || null;
     const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
     const campaignId  = args.campaign_id || null;
+    const sourceMcp   = args.source === 'ai' ? 'ai' : null;   // 'ai' → lands in the studio "AI" tab (daily article routine)
     // If linking to a campaign and no explicit income given, auto-derive split.
     if (campaignId && income == null) {
       const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(campaignId).first();
@@ -2207,9 +2209,9 @@ const IMPL = {
     await env.DB.prepare(
       `INSERT INTO posts (id, slug, title, excerpt, seo_description, body_html, cover_image, categories, tags,
                           author_name, status, published_at, reading_time_min, body_source,
-                          post_type, income, contact_id, project_slug, campaign_id, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?15)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, now).run();   // seo_description mirrors excerpt (?4)
+                          post_type, income, contact_id, project_slug, campaign_id, source, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)`
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, sourceMcp, now).run();   // seo_description mirrors excerpt (?4)
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
