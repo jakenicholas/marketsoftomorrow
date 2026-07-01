@@ -1352,7 +1352,7 @@ function initComments(slug, post) {
     if (follows.length) {
       var plus = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
       var check = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
-      html += '<div class="ai-follows"><div class="ai-follows-k">Follow the story</div>'
+      html += '<div class="ai-follows"><div class="ai-follows-k">Add to your watchlist</div>'
         + follows.map(function (f, idx) {
             var on = (mj[f.store] || []).indexOf(f.slug) >= 0;
             return '<button class="ai-follow' + (on ? ' on' : '') + '" type="button" data-fi="' + idx + '">'
