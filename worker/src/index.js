@@ -5056,30 +5056,42 @@ async function handleDesignFromPost(req, env, origin) {
   const imgRe = /<img[^>]+src=["']([^"']+)["']/gi;
   let mm; while ((mm = imgRe.exec(bodyR2)) && photos.length < 8) pushPhoto(mm[1]);
 
-  // Brand brain → voice guidance.
-  let brandGuide = '';
+  // Brand brain → carousel + voice guidance. Filter to the CAROUSEL-relevant notes
+  // (they get buried if we dump all ~200) plus the voice notes, so the model
+  // actually follows TMW's carousel copy rules.
+  let carouselGuide = '', voiceGuide = '';
   try {
     const notes = await env.DB.prepare(`SELECT kind, category, note FROM brand_notes WHERE active = 1 ORDER BY created_at ASC`).all();
-    brandGuide = (notes.results || []).map(n => `- (${n.kind}${n.category ? '/' + n.category : ''}) ${n.note}`).join('\n').slice(0, 6000);
+    const all = (notes.results || []);
+    const isCar = (n) => /carousel|caption|\bslide/i.test((n.category || '') + ' ' + (n.note || ''));
+    carouselGuide = all.filter(isCar).map(n => '- ' + n.note).join('\n').slice(0, 5000);
+    voiceGuide = all.filter(n => !isCar(n) && /voice|tone|headline|identity|audience/i.test((n.category || '') + ' ' + n.kind + ' ' + (n.note || ''))).map(n => '- ' + n.note).join('\n').slice(0, 2500);
   } catch (_) {}
 
   const nSlides = Math.max(1, photos.length);
   const articleText = String(bodyR2).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000);
 
-  // Generate brand-voice carousel copy. The brand brain is the source of truth —
-  // lead with it hard. Falls back to the article's title/excerpt if the model
-  // isn't configured/available.
+  // Generate carousel copy that OBEYS TMW's carousel rules. Falls back to the
+  // article's title/excerpt if the model isn't configured/available.
   const MARKETS = ['Florida', 'New York', 'Tennessee', 'Caribbean', 'Rockies', 'Hotels', 'Markets'];
   let gen = null;
   if (env.ANTHROPIC_API_KEY) {
-    const sys = 'You are the social copywriter for Markets of Tomorrow (TMW). The BRAND BRAIN below is your SOURCE OF TRUTH for voice, tone, structure, and rules — follow it closely so the copy reads like TMW wrote it, never generic real-estate marketing.\n\n'
-      + 'BRAND BRAIN:\n' + (brandGuide || '(none on file — write in a confident, insider, hype-but-credible TMW voice)') + '\n\n'
-      + 'Write the Instagram CAROUSEL for the article below. Respond with ONLY JSON:\n'
+    const sys = 'You are the social copywriter for Markets of Tomorrow (TMW). Write the Instagram CAROUSEL copy for the article below, obeying TMW\'s carousel rules EXACTLY.\n\n'
+      + 'TMW CAROUSEL RULES (from the brand brain — non-negotiable):\n' + (carouselGuide || '(none on file)') + '\n\n'
+      + 'HARD FORMAT for every slide line you write:\n'
+      + '- Each slide is a COMPLETE SENTENCE (subject + verb) that tells a story with specific vivid detail (named materials, scale figures, sensory hooks), NOT a sparse fragment or a stat dump like "860 feet. 52 stories.".\n'
+      + '- Slides 2 onward run ~90 to 115 characters (max ~120 across 3 lines) — the meaty, information-carrying lines.\n'
+      + '- Slide 1 is the SHORTEST of all slides (~45 to 70 characters): one punchy, hype, complete-sentence hook, the scroll-stopper.\n'
+      + '- ABSOLUTELY NO periods and NO other terminal punctuation on slides. Use COMMAS for rhythm only.\n'
+      + '- Each slide is a standalone thought with a single spine (one idea, details as evidence); never repeat the same fact across slides.\n'
+      + '- NO exact dates or addresses (soften to a season or "coming soon"). American units and spelling. Positive framing (say what it IS, never what it isn\'t). No em dashes. Never invent facts, prices, counts, or names not in the article.\n\n'
+      + 'VOICE (accessible luxury, aspirational, hype-but-credible; consumer voice wins over trade):\n' + (voiceGuide || '(write in a confident, insider TMW voice)') + '\n\n'
+      + 'Respond with ONLY JSON:\n'
       + '{"market":"<exactly one of: ' + MARKETS.join(' | ') + '>",'
-      + '"location":"<the project CITY for the cover pin, e.g. New York or Naples>",'
-      + '"caption":"<the full IG caption in TMW voice per the brand brain; strong hooky first line; line breaks ok>",'
-      + '"slides":["<slide 1 = the cover hook headline: punchy, up to ~3 short lines>","<slide 2 headline: ONE tight line>", ...]}\n'
-      + 'Give EXACTLY ' + nSlides + ' slide headline strings (one per photo). Slide 1 is the scroll-stopping cover hook; every later slide is ONE tight line (<=9 words). Do NOT write a tagline or byline — the "MARKETS OF TOMORROW" byline is fixed on the template. Never invent facts, prices, unit counts, dates, or names not in the article. Avoid em dashes.';
+      + '"location":"<the project CITY for the cover pin, e.g. New York>",'
+      + '"caption":"<the IG caption: three short paragraphs of hype prose (what is opening, what makes it distinct, the timing/access), each a complete sentence ending with a period, then close with exactly: Read more with the link in our bio — Explore on our Map of Tomorrow>",'
+      + '"slides":["<slide 1: the shortest hook sentence>","<slide 2 sentence>", ...]}\n'
+      + 'Give EXACTLY ' + nSlides + ' slide sentences (one per photo). Do NOT write a tagline or byline — the "MARKETS OF TOMORROW" byline is fixed on the template.';
     const usr = 'Headline: ' + String(post.title || '') + '\n\nArticle:\n' + articleText;
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
