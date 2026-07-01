@@ -1269,6 +1269,13 @@ function initComments(slug, post) {
     try { if (typeof window.tmwArticleSignup === 'function') { window.tmwArticleSignup(); return; } } catch (e) {}
     try { var m = ms(); if (m && m.openModal) m.openModal('SIGNUP'); } catch (e) {}
   }
+  // Open the Onyx / TMW Intelligence overlay with the reader's question (falls
+  // back to the homepage ?q= deep-link, which auto-opens the overlay).
+  function openOnyx(q) {
+    q = (q || '').trim();
+    try { if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') { window.tmwOverlay.open(q); return; } } catch (e) {}
+    location.href = 'https://www.oftmw.com/?q=' + encodeURIComponent(q);
+  }
 
   // Entity → followable-slug resolution (firms + projects DB, cached).
   var _firmMap = null, _projArr = null;
@@ -1349,7 +1356,17 @@ function initComments(slug, post) {
               + '<span class="ai-f-role">' + esc(f.role) + '</span><span class="ai-f-nm">' + esc(f.name) + '</span></button>';
           }).join('') + '</div>';
     }
+    // Ask Onyx — a search bar that opens the Intelligence overlay with the reader's question.
+    html += '<div class="ai-ask">'
+      + '<svg class="ai-ask-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg>'
+      + '<input class="ai-ask-in" type="text" placeholder="Ask Onyx about this story…" aria-label="Ask Onyx">'
+      + '<button class="ai-ask-go" type="button" aria-label="Ask Onyx"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'
+      + '</div>';
     host.innerHTML = html;
+    var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go');
+    function ask() { openOnyx(ain ? ain.value : ''); }
+    if (ago) ago.addEventListener('click', ask);
+    if (ain) ain.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ask(); } });
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var f = follows[+btn.getAttribute('data-fi')]; if (!f) return;

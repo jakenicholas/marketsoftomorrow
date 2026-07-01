@@ -2068,11 +2068,16 @@
   paint();
   function getJSON(m){ return m.getMemberJSON().then(function(r){return (r&&r.data)||{};}); }
   function signIn(){ var x=ms(); if(x&&x.openModal)return x.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  // Following is a Pro capability (builds the Onyx beat) — non-Pro → Go Pro.
+  function isPro(){ try{ return window._isPaidMember===true || (window.__tmwMember&&window.__tmwMember.plan==='paid') || (window.tmwIntel&&window.tmwIntel.isPro&&window.tmwIntel.isPro()); }catch(e){ return false; } }
+  function canFollow(){ if(isPro())return true; try{ if(typeof window.tmwShowPaywall==='function'){ window.tmwShowPaywall({source:'market_follow'}); return false; } }catch(e){} signIn(); return false; }
   function postEvent(mem){ try{ var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:'market_followed',props:{market:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }catch(e){} }
   // initial state once Memberstack + member resolve
   (function wait(t){ t=t||0; var x=ms(); if(x&&x.getCurrentMember){ x.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem) return; getJSON(x).then(function(j){ var list=Array.isArray(j.markets_followed)?j.markets_followed:[]; wc(list); var nowF=list.indexOf(slug)>=0; if(nowF!==following){ following=nowF; paint(); } }); }).catch(function(){}); return; } if(++t>40)return; setTimeout(function(){wait(t);},250); })();
   btn.addEventListener('click',function(){
-    if(busy) return; var x=ms();
+    if(busy) return;
+    if(!canFollow()) return;                    // Pro-gate: non-Pro → Go Pro
+    var x=ms();
     if(!x||!x.getCurrentMember) return signIn();
     x.getCurrentMember().then(function(r){
       var mem=r&&r.data; if(!mem) return signIn();
@@ -2125,10 +2130,14 @@
   paint();
   function getJSON(x){ return x.getMemberJSON().then(function(r){return (r&&r.data)||{};}); }
   function signIn(){ var x=ms(); if(x&&x.openModal)return x.openModal('LOGIN'); if(window.tmwAuthModal)return window.tmwAuthModal('signup'); }
+  function isPro(){ try{ return window._isPaidMember===true || (window.__tmwMember&&window.__tmwMember.plan==='paid') || (window.tmwIntel&&window.tmwIntel.isPro&&window.tmwIntel.isPro()); }catch(e){ return false; } }
+  function canFollow(){ if(isPro())return true; try{ if(typeof window.tmwShowPaywall==='function'){ window.tmwShowPaywall({source:'firm_follow'}); return false; } }catch(e){} signIn(); return false; }
   function postEvent(mem){ try{ var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:'firm_followed',props:{firm:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }catch(e){} }
   (function wait(t){ t=t||0; var x=ms(); if(x&&x.getCurrentMember){ x.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem) return; getJSON(x).then(function(j){ var list=Array.isArray(j.firms_followed)?j.firms_followed:[]; wc(list); var nowF=list.indexOf(slug)>=0; if(nowF!==following){ following=nowF; paint(); } }); }).catch(function(){}); return; } if(++t>40)return; setTimeout(function(){wait(t);},250); })();
   btn.addEventListener('click',function(){
-    if(busy) return; var x=ms();
+    if(busy) return;
+    if(!canFollow()) return;                    // Pro-gate: non-Pro → Go Pro
+    var x=ms();
     if(!x||!x.getCurrentMember) return signIn();
     x.getCurrentMember().then(function(r){
       var mem=r&&r.data; if(!mem) return signIn();

@@ -364,3 +364,14 @@ footer .tmw-wordmark{width:118px}
 .ai-follow.on{border-color:rgba(31,223,103,.5); background:rgba(31,223,103,.1); color:var(--green-soft)}
 .ai-follow.on .ai-f-ic{stroke:var(--green-soft)}
 .ai-follow.on .ai-f-role{color:var(--green-soft)}
+/* Ask Onyx bar inside the intel block */
+.article-intel .ai-ask{display:flex; align-items:center; gap:10px; margin-top:15px; padding:9px 10px 9px 13px; border-radius:12px;
+  background:rgba(0,0,0,.28); border:1px solid rgba(167,139,250,.3); transition:border-color .15s, box-shadow .15s}
+.article-intel .ai-ask:focus-within{border-color:var(--purple); box-shadow:0 0 0 3px rgba(167,139,250,.14)}
+.article-intel .ai-ask-ico{width:16px; height:16px; flex:0 0 auto; stroke:var(--purple-glow); fill:var(--purple-glow); filter:drop-shadow(0 0 5px rgba(167,139,250,.6))}
+.article-intel .ai-ask-in{flex:1; min-width:0; background:transparent; border:0; outline:none; color:var(--cream); font-family:var(--sans); font-size:14px}
+.article-intel .ai-ask-in::placeholder{color:var(--mute)}
+.article-intel .ai-ask-go{flex:0 0 auto; appearance:none; cursor:pointer; width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(167,139,250,.16); border:1px solid rgba(167,139,250,.4); color:var(--purple-glow); transition:background .15s, border-color .15s, transform .12s}
+.article-intel .ai-ask-go:hover{background:rgba(167,139,250,.28); border-color:var(--purple); transform:translateY(-1px)}
+.article-intel .ai-ask-go svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
