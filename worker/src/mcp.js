@@ -2301,9 +2301,11 @@ const IMPL = {
     const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
     const campaignId  = args.campaign_id || null;
     const sourceMcp   = args.source === 'ai' ? 'ai' : null;   // 'ai' → lands in the studio "AI" tab (daily article routine)
-    // Snapshot the AI's original body so publish-time can diff it against the
-    // human-edited final and propose what the edits teach (the connector learning loop).
-    const aiOriginal  = sourceMcp === 'ai' ? bodyHtml : null;
+    // Snapshot the ORIGINAL body so publish-time can diff it against the
+    // human-edited final and learn from every edit (the connector learning loop).
+    // Every real article is connector-written then edited by hand, so we snapshot
+    // any substantial body regardless of the source tag — not just source='ai'.
+    const aiOriginal  = (bodyHtml && stripHtml(bodyHtml).length > 300) ? bodyHtml : null;
     // If linking to a campaign and no explicit income given, auto-derive split.
     if (campaignId && income == null) {
       const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(campaignId).first();

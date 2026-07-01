@@ -3738,11 +3738,15 @@ async function handlePostsPublish(req, env, origin, id) {
   await env.DB.prepare(`UPDATE posts SET status='published', published_at=COALESCE(published_at, ?1), updated_at=?1 WHERE id=?2`).bind(now, id).run();
   const updated = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
   if (!updated) return json({ error: 'post not found' }, { status: 404 }, env, origin);
-  // Connector learning loop — if a human edited this AI-written draft before
-  // publishing, propose what the edits teach the shared brain (review-gated).
+  // Connector learning loop — EVERY article is connector-written then edited by
+  // hand, so treat every publish as the moment the edits become "perfect": diff
+  // the original snapshot against the just-published body, propose what the edits
+  // teach the shared brain (review-gated), then advance the baseline to the
+  // published version so the next edit→publish cycle only learns NEW edits.
   // Best-effort: never blocks or fails the publish.
-  if (updated.source === 'ai' && updated.ai_original_html) {
+  if (updated.ai_original_html) {
     try { await captureEditLesson(env, updated); } catch (_) { /* learning is best-effort */ }
+    try { await env.DB.prepare(`UPDATE posts SET ai_original_html = ?1 WHERE id = ?2`).bind(updated.body_html || '', id).run(); } catch (_) {}
   }
   return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
 }
