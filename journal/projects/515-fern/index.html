@@ -951,11 +951,14 @@
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .pp-firm { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
-    .pp-firm:hover { border-color: rgba(31,223,103,.35); }
-    .pp-firm .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
-    .pp-firm .v { font-size: 15px; font-weight: 600; margin-top: 5px; color: #fff; }
-    .pp-firm .go { font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
     @media (max-width: 540px) { .pp-firms { grid-template-columns: 1fr; } }
 
     /* Nearby Projects — 3 same-market cards (like the article "read more" rail) */
@@ -1080,7 +1083,7 @@
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
       
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">515 Fern is a 25-story, 471,000-square-foot Class A office tower planned for the northwest corner of Fern Street and the Florida East Coast Railway tracks in downtown West Palm Beach. Once delivered, it will become the largest office building in the city's downtown core, with 456,000 square feet of office space and 15,000 square feet of ground-floor retail. The 386-foot tower's facade pairs terracotta, metal, and glass in an industrial-style grid that echoes the language of 360 Rosemary, the adjacent 20-story Related office building completed in 2021 and anchored by Goldman Sachs, BlackRock, Elliott Management, and Point72. As part of its site plan, the project introduces a new connector road parallel to the Brightline tracks from Evernia Street to Fern Street, alongside a partially covered pedestrian pathway running along the building's east facade that links Brightline's downtown West Palm Beach station to The Square — the former CityPlace district.</p></div>
-      <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><a class="pp-firm" href="/firm/related-ross/"><div class="k">Developer</div><div class="v">Related Ross</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="/firm/elkus-manfredi-architects/"><div class="k">Architect</div><div class="v">Elkus Manfredi Architects</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="/firm/leo-a-daly/"><div class="k">Architect</div><div class="v">Leo A Daly</div><span class="go">View firm profile →</span></a></div></div>
+      <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/elkus-manfredi-architects/"><span class="nm">Elkus Manfredi Architects</span></a><a class="pp-firm-chip" href="/firm/leo-a-daly/"><span class="nm">Leo A Daly</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
     <a class="map-preview" href="https://www.oftmw.com/map/?project=515fern" aria-label="View on map">
       <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1FDF67(-80.056187,26.710715)/-80.056187,26.710715,14,0/720x320@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA" alt="Map location" loading="lazy" />

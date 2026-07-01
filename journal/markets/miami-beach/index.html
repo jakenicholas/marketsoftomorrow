@@ -367,6 +367,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
 
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
+
   </style>
 </head>
 <body>
@@ -418,7 +434,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">22</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">18</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/oko-group/"><div class="k">Developer</div><div class="v">OKO Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kengo-kuma/"><div class="k">Architect</div><div class="v">Kengo Kuma</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oko-group/"><span class="nm">OKO Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/access-industries/"><span class="nm">Access Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kengo-kuma/"><span class="nm">Kengo Kuma</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ella-miami-beach/" aria-label="Open Ella Miami Beach">
@@ -440,7 +456,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">103</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">10</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/constellation-group/"><div class="k">Developer</div><div class="v">Constellation Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ella-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/constellation-group/"><span class="nm">Constellation Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-boschetti-group/"><span class="nm">The Boschetti Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ella-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-convention-center-hotel/" aria-label="Open Grand Hyatt Convention Center Hotel">
@@ -462,7 +478,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">17</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra-group/"><div class="k">Developer</div><div class="v">Terra Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-hyatt-convention-center-hotel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra-group/"><span class="nm">Terra Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/turnberry-associates/"><span class="nm">Turnberry Associates</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-hyatt-convention-center-hotel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/noli/" aria-label="Open NoLi">
@@ -484,7 +500,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-comras-company-michael-comras/"><div class="k">Developer</div><div class="v">The Comras Company</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/touzet-studio/"><div class="k">Architect</div><div class="v">Touzet Studio</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/noli/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-comras-company-michael-comras/"><span class="nm">The Comras Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/noli/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/touzet-studio/"><span class="nm">Touzet Studio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/beilinson-gomez-architects/"><span class="nm">Beilinson Gomez Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-perigon-miami-beach/" aria-label="Open The Perigon Miami Beach">
@@ -506,7 +522,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">73</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">17</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mast-capital/"><div class="k">Developer</div><div class="v">Mast Capital</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/rem-koolhaas/"><div class="k">Architect</div><div class="v">Rem Koolhaas</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-perigon-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mast-capital/"><span class="nm">Mast Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/starwood-capital/"><span class="nm">Starwood Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-perigon-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rem-koolhaas/"><span class="nm">Rem Koolhaas</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oma/"><span class="nm">OMA</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-raleigh-rosewood-residences/" aria-label="Open The Raleigh Rosewood Residences">
@@ -528,7 +544,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">40</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">17</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/shvo/"><div class="k">Developer</div><div class="v">SHVO</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/peter-marino/"><div class="k">Architect</div><div class="v">Peter Marino</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-raleigh-rosewood-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shvo/"><span class="nm">SHVO</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/deutsche-finance-america/"><span class="nm">Deutsche Finance America</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-raleigh-rosewood-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/peter-marino/"><span class="nm">Peter Marino</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
       </div>
       <div class="tmw-locked" data-locked-count="12">
@@ -553,7 +569,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">49</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">20</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/witkoff/"><div class="k">Developer</div><div class="v">Witkoff</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><div class="k">Architect</div><div class="v">Robert A.M. Stern Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-shore-club-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/witkoff/"><span class="nm">Witkoff</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/monroe-capital/"><span class="nm">Monroe Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-shore-club-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><span class="nm">Robert A.M. Stern Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-delmore/" aria-label="Open The Delmore">
@@ -575,7 +591,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">37</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">12</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/damac-international/"><div class="k">Developer</div><div class="v">DAMAC International</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/zaha-hadid-architects/"><div class="k">Architect</div><div class="v">Zaha Hadid Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-delmore/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/damac-international/"><span class="nm">DAMAC International</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-delmore/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zaha-hadid-architects/"><span class="nm">Zaha Hadid Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/villa-17/" aria-label="Open Villa 17">
@@ -597,7 +613,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">10</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">4</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/regency-development-group/"><div class="k">Developer</div><div class="v">Regency Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><div class="k">Architect</div><div class="v">Kobi Karp</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/villa-17/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/regency-development-group/"><span class="nm">Regency Development Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/villa-17/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rivani-miami-beach/" aria-label="Open Rivani Miami Beach">
@@ -619,7 +635,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/rivani-formerly-black-lion/"><div class="k">Developer</div><div class="v">RIVANI</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rivani-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rivani-formerly-black-lion/"><span class="nm">RIVANI</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rivani-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1250-west-avenue/" aria-label="Open 1250 West Avenue">
@@ -641,7 +657,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">106</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">28</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra/"><div class="k">Developer</div><div class="v">Terra</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/odp-architecture-and-design/"><div class="k">Architect</div><div class="v">Odp Architecture and Design</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1250-west-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra/"><span class="nm">Terra</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rg-development-group/"><span class="nm">RG Development Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gv-development/"><span class="nm">GV Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1250-west-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architecture-and-design/"><span class="nm">Odp Architecture and Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/72-carlyle-miami-beach/" aria-label="Open 72 Carlyle Miami Beach">
@@ -663,7 +679,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">134</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">20</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lefferts/"><div class="k">Developer</div><div class="v">Lefferts</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/piero-lissoni/"><div class="k">Architect</div><div class="v">Piero Lissoni</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/72-carlyle-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lefferts/"><span class="nm">Lefferts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/72-carlyle-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/piero-lissoni/"><span class="nm">Piero Lissoni</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bvlgari-hotel-miami-beach/" aria-label="Open Bvlgari Hotel Miami Beach">
@@ -685,7 +701,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm pp-firm-empty"><div class="k">Developer</div><div class="v" style="opacity:.45">—</div></div><a class="pp-firm" href="https://www.oftmw.com/firm/acpv-architects/"><div class="k">Architect</div><div class="v">ACPV Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bvlgari-hotel-miami-beach/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bvlgari-hotel-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/acpv-architects/"><span class="nm">ACPV Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/casa-cipriani-miami-beach/" aria-label="Open Casa Cipriani Miami Beach">
@@ -707,7 +723,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">Announced</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">23</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">17</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/13th-floor-investments/"><div class="k">Developer</div><div class="v">13th Floor Investments</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/brandon-haw-architecture/"><div class="k">Architect</div><div class="v">Brandon Haw Architecture</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/casa-cipriani-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/13th-floor-investments/"><span class="nm">13th Floor Investments</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/midtown-equities/"><span class="nm">Midtown Equities</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cipriani/"><span class="nm">Cipriani</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/casa-cipriani-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/brandon-haw-architecture/"><span class="nm">Brandon Haw Architecture</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nobe-parc-miami-beach/" aria-label="Open NoBe PARC Miami Beach">
@@ -729,7 +745,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">232</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">15</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/robert-finvarb-companies/"><div class="k">Developer</div><div class="v">Robert Finvarb Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/arquitectonica/"><div class="k">Architect</div><div class="v">Arquitectonica</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nobe-parc-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-finvarb-companies/"><span class="nm">Robert Finvarb Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nobe-parc-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-architects-group/"><span class="nm">The Architects Group</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-residences-south-beach/" aria-label="Open Ritz-Carlton Residences, South Beach">
@@ -751,7 +767,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">30</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">15</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/lionstone-development/"><div class="k">Developer</div><div class="v">Lionstone Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/piero-lissoni/"><div class="k">Architect</div><div class="v">Piero Lissoni</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-residences-south-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lionstone-development/"><span class="nm">Lionstone Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/flag-luxury-group/"><span class="nm">Flag Luxury Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ben-josef-group/"><span class="nm">Ben-Josef Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-residences-south-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/piero-lissoni/"><span class="nm">Piero Lissoni</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-alton-miami-beach/" aria-label="Open The Alton Miami Beach">
@@ -773,7 +789,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">184</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">14</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/shvo/"><div class="k">Developer</div><div class="v">SHVO</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-alton-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shvo/"><span class="nm">SHVO</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-alton-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/delano-miami-beach/" aria-label="Open Delano Miami Beach">
@@ -795,7 +811,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/ennismore/"><div class="k">Developer</div><div class="v">Ennismore</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/elastic-architects/"><div class="k">Architect</div><div class="v">Elastic Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/delano-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ennismore/"><span class="nm">Ennismore</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cain-international/"><span class="nm">Cain International</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/delano-miami-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elastic-architects/"><span class="nm">Elastic Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-swartburg/"><span class="nm">Robert Swartburg</span></a></div></div></div></div>
 </div>
         </div>
         <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock all 18 projects</h3><p class="tmw-gate-sub">Free shows the first 6. Go Pro to see all 18 — live status, delivery dates, units and the developer &amp; architect on every one.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
@@ -1047,6 +1063,42 @@
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>
 </body>

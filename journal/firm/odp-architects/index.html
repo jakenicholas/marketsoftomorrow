@@ -299,6 +299,22 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
+
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
 </style>
 </head>
 <body>
@@ -356,7 +372,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">106</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">28</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra/"><div class="k">Developer</div><div class="v">Terra</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/odp-architecture-and-design/"><div class="k">Architect</div><div class="v">Odp Architecture and Design</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1250-west-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra/"><span class="nm">Terra</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rg-development-group/"><span class="nm">RG Development Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gv-development/"><span class="nm">GV Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1250-west-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architecture-and-design/"><span class="nm">Odp Architecture and Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
@@ -378,7 +394,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">200</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">50</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/one-thousand-group/"><div class="k">Developer</div><div class="v">One Thousand Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><div class="k">Architect</div><div class="v">Kohn Pedersen Fox</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/one-thousand-group/"><span class="nm">One Thousand Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/" aria-label="Open 888 Brickell Miami by Dolce &amp; Gabana">
@@ -400,7 +416,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">259</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">90</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/jds-development-group/"><div class="k">Developer</div><div class="v">JDS Development Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/studio-sofield/"><div class="k">Architect</div><div class="v">Studio Sofield</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jds-development-group/"><span class="nm">JDS Development Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/888-brickell-miami-by-dolce-gabana/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-sofield/"><span class="nm">Studio Sofield</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/house-by-shigeru-ban/" aria-label="Open House by Shigeru Ban">
@@ -422,7 +438,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">320</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">12</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/yakol-capital-partners/"><div class="k">Developer</div><div class="v">Yakol Capital Partners</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/shigeru-ban-architects/"><div class="k">Architect</div><div class="v">Shigeru Ban Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/house-by-shigeru-ban/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/yakol-capital-partners/"><span class="nm">Yakol Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/house-by-shigeru-ban/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shigeru-ban-architects/"><span class="nm">Shigeru Ban Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-sarasota/" aria-label="Open Waldorf Astoria Residences Sarasota">
@@ -444,7 +460,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">86</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">18</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/jebcore-companies/"><div class="k">Developer</div><div class="v">Jebcore Companies</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/odp-architects/"><div class="k">Architect</div><div class="v">ODP Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-sarasota/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jebcore-companies/"><span class="nm">Jebcore Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wmg-development/"><span class="nm">WMG Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-sarasota/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/villa-miami/" aria-label="Open Villa Miami">
@@ -466,7 +482,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2024</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">70</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">56</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/terra-group/"><div class="k">Developer</div><div class="v">Terra Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/odp-architects/"><div class="k">Architect</div><div class="v">ODP Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/villa-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra-group/"><span class="nm">Terra Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/one-thousand-group/"><span class="nm">One Thousand Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/major-food-group/"><span class="nm">Major Food Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/villa-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
       </div>
       <div class="tmw-locked" data-locked-count="1">
@@ -491,7 +507,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">TBD</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">250</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">80</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/prosper-group/"><div class="k">Developer</div><div class="v">Prosper Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/odp-architects/"><div class="k">Architect</div><div class="v">ODP Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1040-s-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/prosper-group/"><span class="nm">Prosper Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/forte-development/"><span class="nm">Forte Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1040-s-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
         </div>
         <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock all 7 projects</h3><p class="tmw-gate-sub">Free shows the first 6. Go Pro to see all 7 — live status, delivery dates, units and the developer &amp; architect on every one.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
@@ -703,6 +719,42 @@
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>
 </body>

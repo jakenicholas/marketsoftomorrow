@@ -367,6 +367,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
 
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
+
   </style>
 </head>
 <body>
@@ -418,7 +434,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/knighthead-capital-management-tom-wagner/"><div class="k">Developer</div><div class="v">Knighthead Capital Management</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/heatherwick-studio-manica-architecture/"><div class="k">Architect</div><div class="v">Heatherwick Studio; Manica Architecture</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birmingham-city-powerhouse/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/knighthead-capital-management-tom-wagner/"><span class="nm">Knighthead Capital Management</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tom-brady/"><span class="nm">Tom Brady</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birmingham-city-powerhouse/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/heatherwick-studio-manica-architecture/"><span class="nm">Heatherwick Studio; Manica Architecture</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/" aria-label="Open Athletics Las Vegas Ballpark">
@@ -440,7 +456,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/athletics/"><div class="k">Developer</div><div class="v">Athletics</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/athletics/"><span class="nm">Athletics</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hntb/"><span class="nm">HNTB</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/huntington-bank-field/" aria-label="Open Huntington Bank Field">
@@ -462,7 +478,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/haslam-sports-group/"><div class="k">Developer</div><div class="v">Haslam Sports Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hks/"><div class="k">Architect</div><div class="v">HKS</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/huntington-bank-field/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/haslam-sports-group/"><span class="nm">Haslam Sports Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/huntington-bank-field/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/" aria-label="Open Palm Beach Gardens IcePlex">
@@ -484,7 +500,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">2</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/palm-beach-north-athletic-foundation/"><div class="k">Developer</div><div class="v">Palm Beach North Athletic Foundation</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/palm-beach-north-athletic-foundation/"><span class="nm">Palm Beach North Athletic Foundation</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
@@ -506,7 +522,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/as-roma-friedkin-group/"><div class="k">Developer</div><div class="v">AS Roma (Friedkin Group)</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-as-roma-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/as-roma-friedkin-group/"><span class="nm">AS Roma (Friedkin Group)</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-as-roma-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-trafford/" aria-label="Open New Trafford">
@@ -528,7 +544,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/manchester-united-football-club/"><div class="k">Developer</div><div class="v">Manchester United Football Club</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-trafford/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manchester-united-football-club/"><span class="nm">Manchester United Football Club</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-trafford/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
       </div>
       <div class="tmw-locked" data-locked-count="3">
@@ -553,7 +569,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pegula-sports-entertainment/"><div class="k">Developer</div><div class="v">Pegula Sports &amp; Entertainment</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/populous/"><div class="k">Architect</div><div class="v">Populous</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pegula-sports-entertainment/"><span class="nm">Pegula Sports &amp; Entertainment</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/erie-county/"><span class="nm">Erie County</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/new-york-state/"><span class="nm">New York State</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
@@ -575,7 +591,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/miami-freedom-park-llc-david-beckham/"><div class="k">Developer</div><div class="v">Miami Freedom Park</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/manica/"><div class="k">Architect</div><div class="v">MANICA</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/miami-freedom-park-llc-david-beckham/"><span class="nm">Miami Freedom Park</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jorge-jose-mas/"><span class="nm">Jorge &amp; Jose Mas)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manica/"><span class="nm">MANICA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/spotify-camp-nou-renovation/" aria-label="Open Spotify Camp Nou (Renovation)">
@@ -597,7 +613,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2022</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/fc-barcelona/"><div class="k">Developer</div><div class="v">FC Barcelona</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/nikken-sekkei-pascual-i-ausi-arquitectes/"><div class="k">Architect</div><div class="v">Nikken Sekkei; Pascual i Ausió Arquitectes</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/spotify-camp-nou-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fc-barcelona/"><span class="nm">FC Barcelona</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/spotify-camp-nou-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei-pascual-i-ausi-arquitectes/"><span class="nm">Nikken Sekkei; Pascual i Ausió Arquitectes</span></a></div></div></div></div>
 </div>
         </div>
         <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock all 9 projects</h3><p class="tmw-gate-sub">Free shows the first 6. Go Pro to see all 9 — live status, delivery dates, units and the developer &amp; architect on every one.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
@@ -834,6 +850,42 @@
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>
 </body>

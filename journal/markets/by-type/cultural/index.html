@@ -367,6 +367,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
 
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
+
   </style>
 </head>
 <body>
@@ -418,7 +434,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/memphis-brooks-museum-of-art/"><div class="k">Developer</div><div class="v">Memphis Brooks Museum of Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/herzog-de-meuron/"><div class="k">Architect</div><div class="v">Herzog &amp; de Meuron</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/memphis-art-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/memphis-brooks-museum-of-art/"><span class="nm">Memphis Brooks Museum of Art</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/memphis-art-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/herzog-de-meuron/"><span class="nm">Herzog &amp; de Meuron</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/archimania/"><span class="nm">archimania</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olin/"><span class="nm">OLIN</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/phoenix-arts-innovation-district-phxjax/" aria-label="Open Phoenix Arts &amp; Innovation District">
@@ -440,7 +456,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">830</div><div class="k">Units</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/future-of-cities/"><div class="k">Developer</div><div class="v">Future of Cities</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/jaa-architecture/"><div class="k">Architect</div><div class="v">JAA Architecture</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/phoenix-arts-innovation-district-phxjax/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/future-of-cities/"><span class="nm">Future of Cities</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/live-oak-estates-group/"><span class="nm">Live Oak Estates Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/phoenix-arts-innovation-district-phxjax/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jaa-architecture/"><span class="nm">JAA Architecture</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shibuya-upper-west-project/" aria-label="Open Shibuya Upper West Project">
@@ -462,7 +478,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">34</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/tokyu-corporation/"><div class="k">Developer</div><div class="v">Tokyu Corporation</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/nikken-sekkei/"><div class="k">Architect</div><div class="v">Nikken Sekkei</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shibuya-upper-west-project/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tokyu-corporation/"><span class="nm">Tokyu Corporation</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shibuya-upper-west-project/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei/"><span class="nm">Nikken Sekkei</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/" aria-label="Open The Society of the Four Arts">
@@ -484,7 +500,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/society-of-four-arts/"><div class="k">Developer</div><div class="v">Society of Four Arts</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/spina-orourke-partners/"><div class="k">Architect</div><div class="v">Spina O&#x27;Rourke + Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/society-of-four-arts/"><span class="nm">Society of Four Arts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-whale/" aria-label="Open The Whale">
@@ -506,7 +522,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-whale-as/"><div class="k">Developer</div><div class="v">The Whale AS</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/dorte-mandrup/"><div class="k">Architect</div><div class="v">Dorte Mandrup</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-whale/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-whale-as/"><span class="nm">The Whale AS</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-whale/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dorte-mandrup/"><span class="nm">Dorte Mandrup</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/torch-tower/" aria-label="Open Torch Tower">
@@ -528,7 +544,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2023</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">62</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mitsubishi-estate/"><div class="k">Developer</div><div class="v">Mitsubishi Estate</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/mitsubishi-jisho-sekkei-sou-fujimoto-architects-crown-yuko-nagayama-associates-lower-section/"><div class="k">Architect</div><div class="v">Mitsubishi Jisho Sekkei</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/torch-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mitsubishi-estate/"><span class="nm">Mitsubishi Estate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/torch-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mitsubishi-jisho-sekkei-sou-fujimoto-architects-crown-yuko-nagayama-associates-lower-section/"><span class="nm">Mitsubishi Jisho Sekkei</span></a></div></div></div></div>
 </div>
       </div>
       <div class="tmw-locked" data-locked-count="13">
@@ -553,7 +569,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2011</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/gehry-partners/"><div class="k">Architect</div><div class="v">Gehry Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/guggenheim-abu-dhabi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><span class="nm">Department of Culture and Tourism – Abu Dhabi</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/guggenheim-abu-dhabi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gehry-partners/"><span class="nm">Gehry Partners</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shanghai-grand-opera-house/" aria-label="Open Shanghai Grand Opera House">
@@ -575,7 +591,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2019</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/shanghai-grand-theatre-arts-center/"><div class="k">Developer</div><div class="v">Shanghai Grand Theatre Arts Center</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/snhetta/"><div class="k">Architect</div><div class="v">Snøhetta</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-grand-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shanghai-grand-theatre-arts-center/"><span class="nm">Shanghai Grand Theatre Arts Center</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-grand-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/snhetta/"><span class="nm">Snøhetta</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/" aria-label="Open Suzhou Museum of Contemporary Art">
@@ -597,7 +613,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm pp-firm-empty"><div class="k">Developer</div><div class="v" style="opacity:.45">—</div></div><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/affirmation-tower/" aria-label="Open Affirmation Tower">
@@ -619,7 +635,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">TBD</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-peebles-corporation/"><div class="k">Developer</div><div class="v">The Peebles Corporation</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oma/"><div class="k">Architect</div><div class="v">OMA</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/affirmation-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-peebles-corporation/"><span class="nm">The Peebles Corporation</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/witkoff/"><span class="nm">Witkoff</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mckissack-mckissack/"><span class="nm">McKissack &amp; McKissack</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/exact-capital-group/"><span class="nm">Exact Capital Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/affirmation-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oma/"><span class="nm">OMA</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/african-american-museum-and-research-library/" aria-label="Open African American Museum and Research Library">
@@ -641,7 +657,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><div class="k">Developer</div><div class="v">City of West Palm Beach</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/hood-design-studio/"><div class="k">Architect</div><div class="v">Hood Design Studio</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/african-american-museum-and-research-library/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><span class="nm">City of West Palm Beach</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/african-american-museum-and-research-library/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hood-design-studio/"><span class="nm">Hood Design Studio</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/coleman-park-revitalization/" aria-label="Open Coleman Park">
@@ -663,7 +679,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2028</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2031</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/palm-beach-venture-philanthropy/"><div class="k">Developer</div><div class="v">Palm Beach Venture Philanthropy</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/spina-orourke-partners/"><div class="k">Architect</div><div class="v">Spina O&#x27;Rourke + Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coleman-park-revitalization/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/palm-beach-venture-philanthropy/"><span class="nm">Palm Beach Venture Philanthropy</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/quantum-foundation/"><span class="nm">Quantum Foundation</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/neighborhood-renaissance/"><span class="nm">Neighborhood Renaissance</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coleman-park-revitalization/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-performing-arts-center/" aria-label="Open Tennessee Performing Arts Center">
@@ -685,7 +701,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/state-of-tennessee/"><div class="k">Developer</div><div class="v">State of Tennessee</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><div class="k">Architect</div><div class="v">Bjarke Ingels Group</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tennessee-performing-arts-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/state-of-tennessee/"><span class="nm">State of Tennessee</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nashville/"><span class="nm">Nashville</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tennessee-performing-arts-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
@@ -707,7 +723,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">Announced</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm pp-firm-empty"><div class="k">Developer</div><div class="v" style="opacity:.45">—</div></div><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-east-bend/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-east-bend/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/virginia-museum-of-fine-arts-expansion/" aria-label="Open Virginia Museum of Fine Arts Expansion">
@@ -729,7 +745,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">5</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/virginia-museum-of-fine-arts/"><div class="k">Developer</div><div class="v">Virginia Museum of Fine Arts</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/smithgroup/"><div class="k">Architect</div><div class="v">SmithGroup</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/virginia-museum-of-fine-arts-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/virginia-museum-of-fine-arts/"><span class="nm">Virginia Museum of Fine Arts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/virginia-museum-of-fine-arts-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/smithgroup/"><span class="nm">SmithGroup</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/" aria-label="Open David Geffen Galleries at LACMA">
@@ -751,7 +767,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2020</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/los-angeles-county-museum-of-art-lacma/"><div class="k">Developer</div><div class="v">Los Angeles County Museum of Art</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/peter-zumthor-with-skidmore/"><div class="k">Architect</div><div class="v">Peter Zumthor with Skidmore</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/los-angeles-county-museum-of-art-lacma/"><span class="nm">Los Angeles County Museum of Art</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/peter-zumthor-with-skidmore/"><span class="nm">Peter Zumthor with Skidmore</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/owings-merrill/"><span class="nm">Owings &amp; Merrill</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/national-geographic-museum-of-exploration/" aria-label="Open National Geographic Museum of Exploration">
@@ -773,7 +789,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/national-geographic-society/"><div class="k">Developer</div><div class="v">National Geographic Society</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/national-geographic-museum-of-exploration/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/national-geographic-society/"><span class="nm">National Geographic Society</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/national-geographic-museum-of-exploration/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/studio-museum-in-harlem/" aria-label="Open Studio Museum">
@@ -795,7 +811,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2018</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><div class="k">Developer</div><div class="v">The Studio Museum in Harlem</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><div class="k">Architect</div><div class="v">Adjaye Associates</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><span class="nm">The Studio Museum in Harlem</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><span class="nm">Adjaye Associates</span></a><span class="pp-firm-chip is-plain"><span class="nm">Cooper Robertson</span></span></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/zayed-national-museum/" aria-label="Open Zayed National Museum">
@@ -817,7 +833,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2019</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2025</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><div class="k">Developer</div><div class="v">Department of Culture and Tourism – Abu Dhabi</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/foster-partners/"><div class="k">Architect</div><div class="v">Foster + Partners</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/zayed-national-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><span class="nm">Department of Culture and Tourism – Abu Dhabi</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/zayed-national-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
         </div>
         <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock all 19 projects</h3><p class="tmw-gate-sub">Free shows the first 6. Go Pro to see all 19 — live status, delivery dates, units and the developer &amp; architect on every one.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
@@ -1057,6 +1073,42 @@
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>
 </body>

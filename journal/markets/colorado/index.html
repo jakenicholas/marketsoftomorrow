@@ -367,6 +367,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     }
 
+    /* ── Developer / architect firm PILLS ─ every firm listed as a clickable
+       pill; the fitter in PAYWALL_BODY_JS caps each box at two rows and folds
+       overflow into a purple "+N more" pill (→ the project page). Shared by the
+       market cards AND the firm-page portfolio cards. ── */
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; overflow: hidden; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
+    .pp-firm-chip.is-empty { color: #9AA39C; border-style: dashed; cursor: default; }
+    .pp-firm-chip.pp-firm-more { color: #B9A6FF; border-color: rgba(167,139,250,.42); background: rgba(167,139,250,.10); }
+    a.pp-firm-chip.pp-firm-more::after { color: #B9A6FF; opacity: .9; }
+
   </style>
 </head>
 <body>
@@ -418,7 +434,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">32</div><div class="k">Units</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/irongate-group/"><div class="k">Developer</div><div class="v">Irongate Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/guerin-glass-architects/"><div class="k">Architect</div><div class="v">Guerin Glass Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chalet-alpina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/irongate-group/"><span class="nm">Irongate Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/haymax-capital/"><span class="nm">HayMax Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chalet-alpina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/guerin-glass-architects/"><span class="nm">Guerin Glass Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/martin-brudnizki-design-studio/"><span class="nm">Martin Brudnizki Design Studio</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/finale/" aria-label="Open Finale">
@@ -440,7 +456,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2029</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/mike-dudick/"><div class="k">Developer</div><div class="v">Mike Dudick</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/dtj-design/"><div class="k">Architect</div><div class="v">DTJ Design</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/finale/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mike-dudick/"><span class="nm">Mike Dudick</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/graham-frank/"><span class="nm">Graham Frank</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/finale/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dtj-design/"><span class="nm">DTJ Design</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-denver-cherry-creek/" aria-label="Open Waldorf Astoria Residences Denver Cherry Creek">
@@ -462,7 +478,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2025</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">37</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">5</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pmg/"><div class="k">Developer</div><div class="v">PMG</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/shears-adkins-rockmore/"><div class="k">Architect</div><div class="v">Shears Adkins Rockmore</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-denver-cherry-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pmg/"><span class="nm">PMG</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-denver-cherry-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shears-adkins-rockmore/"><span class="nm">Shears Adkins Rockmore</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/carlos-ott/"><span class="nm">Carlos Ott</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bamo/"><span class="nm">BAMO</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/virgin-hotels-denver/" aria-label="Open Virgin Hotels Denver">
@@ -484,7 +500,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/pure-development/"><div class="k">Developer</div><div class="v">Pure Development</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/tryba-architects/"><div class="k">Architect</div><div class="v">Tryba Architects</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/virgin-hotels-denver/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pure-development/"><span class="nm">Pure Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/virgin-hotels-denver/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tryba-architects/"><span class="nm">Tryba Architects</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-cherry-creek/" aria-label="Open Four Seasons Private Residences Cherry Creek">
@@ -506,7 +522,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">Announced</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">41</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">8</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/stillwater-capital/"><div class="k">Developer</div><div class="v">Stillwater Capital</div><span class="go">View firm profile →</span></a><div class="pp-firm pp-firm-empty"><div class="k">Architect</div><div class="v" style="opacity:.45">—</div></div></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-cherry-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stillwater-capital/"><span class="nm">Stillwater Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wexford-real-estate-investors/"><span class="nm">Wexford Real Estate Investors</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/brue-baukol-capital-partners/"><span class="nm">Brue Baukol Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zabel-investment-company/"><span class="nm">Zabel Investment Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-cherry-creek/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-stockman-auberge-collection/" aria-label="Open The Stockman, Auberge Collection">
@@ -528,7 +544,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">95</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">9</div><div class="k">Floors</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/auberge-resorts-collection/"><div class="k">Developer</div><div class="v">Auberge Resorts Collection</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/oz-architecture/"><div class="k">Architect</div><div class="v">OZ Architecture</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-stockman-auberge-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/auberge-resorts-collection/"><span class="nm">Auberge Resorts Collection</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-stockman-auberge-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oz-architecture/"><span class="nm">OZ Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nunzio-marc-desantis-architects/"><span class="nm">Nunzio Marc DeSantis Architects</span></a></div></div></div></div>
 </div>
       </div>
       <div class="tmw-locked" data-locked-count="2">
@@ -553,7 +569,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/stonebridge/"><div class="k">Developer</div><div class="v">Stonebridge</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/the-beck-group/"><div class="k">Architect</div><div class="v">The Beck Group</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/apiary-hotel-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stonebridge/"><span class="nm">Stonebridge</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/copford-capital-management/"><span class="nm">Copford Capital Management</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/apiary-hotel-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-beck-group/"><span class="nm">The Beck Group</span></a></div></div></div></div>
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/white-elephant-aspen/" aria-label="Open White Elephant Aspen">
@@ -575,7 +591,7 @@
       <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div></div>
     </div>
   </a>
-  <div class="card-firms-wrap"><div class="pp-firms"><a class="pp-firm" href="https://www.oftmw.com/firm/white-elephant-resorts/"><div class="k">Developer</div><div class="v">White Elephant Resorts</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="https://www.oftmw.com/firm/embarc/"><div class="k">Architect</div><div class="v">EMBARC</div><span class="go">View firm profile →</span></a></div></div>
+  <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/white-elephant-aspen/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/white-elephant-resorts/"><span class="nm">White Elephant Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/white-elephant-aspen/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/embarc/"><span class="nm">EMBARC</span></a></div></div></div></div>
 </div>
         </div>
         <div class="tmw-gate"><div class="tmw-gate-inner"><span class="tmw-gate-badge">★ TMW Pro</span><h3 class="tmw-gate-title">Unlock all 8 projects</h3><p class="tmw-gate-sub">Free shows the first 6. Go Pro to see all 8 — live status, delivery dates, units and the developer &amp; architect on every one.</p><button type="button" class="tmw-gate-cta" data-gopro>Go Pro to unlock &rarr;</button></div></div>
@@ -815,6 +831,42 @@
         if (document.documentElement.classList.contains('tmw-paid')) { setupLoadMore(); clearInterval(_iv); }
         if (++_t > 20) clearInterval(_iv);
       }, 400);
+    })();
+
+    // ── Firm pills: cap each .pp-firm-chips[data-more] box at two rows and fold
+    //    the overflow into a "+N more" pill that links to the project page.
+    //    Keeps every card's firm row the same height no matter how many firms
+    //    or how long the names are. Detail views omit data-more → show all. ──
+    (function () {
+      function fitOne(box) {
+        var url = box.getAttribute('data-more') || '';
+        var old = box.querySelector('.pp-firm-more'); if (old) old.parentNode.removeChild(old);
+        var chips = Array.prototype.slice.call(box.children);
+        for (var k = 0; k < chips.length; k++) chips[k].style.display = '';
+        if (chips.length < 2) return;
+        var maxH = (chips[0].offsetHeight * 2) + 8;
+        if (box.scrollHeight <= maxH) return;
+        var more = document.createElement(url ? 'a' : 'span');
+        more.className = 'pp-firm-chip pp-firm-more';
+        if (url) more.href = url;
+        box.appendChild(more);
+        var hidden = 0;
+        for (var i = chips.length - 1; i >= 0; i--) {
+          chips[i].style.display = 'none';
+          hidden++;
+          more.textContent = '+' + hidden + ' more';
+          if (box.scrollHeight <= maxH) break;
+        }
+      }
+      function fitAll(root) {
+        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+      }
+      window.tmwFitFirmPills = fitAll;
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
+      else fitAll();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      var _ft; window.addEventListener('resize', function () { clearTimeout(_ft); _ft = setTimeout(function () { fitAll(); }, 150); });
     })();
   </script>
 </body>

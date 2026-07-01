@@ -951,11 +951,14 @@
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .pp-firm { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: inherit; display: block; transition: border-color .15s; }
-    .pp-firm:hover { border-color: rgba(31,223,103,.35); }
-    .pp-firm .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
-    .pp-firm .v { font-size: 15px; font-weight: 600; margin-top: 5px; color: #fff; }
-    .pp-firm .go { font-size: 11px; color: #1FDF67; margin-top: 7px; display: inline-block; }
+    .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
+    .pp-firm-group > .k { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .pp-firm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+    .pp-firm-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }
+    .pp-firm-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    a.pp-firm-chip::after { content: "\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }
+    a.pp-firm-chip:hover { border-color: rgba(31,223,103,.5); background: rgba(31,223,103,.10); }
+    .pp-firm-chip.is-plain { color: #C2C9C3; cursor: default; }
     @media (max-width: 540px) { .pp-firms { grid-template-columns: 1fr; } }
 
     /* Nearby Projects — 3 same-market cards (like the article "read more" rail) */
@@ -1082,7 +1085,7 @@
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">A landmark 90-story supertall and the first-ever residential tower from the legendary Delano brand, marking PMG's second supertall to rise over Downtown Miami. The 421-residence project redefines urban luxury through a "vertical resort" model that integrates hotel-grade hospitality across two products: the Delano Collection for flexible short-term stays and Delano Residences for long-term living. 
 
 The tower is anchored by South Florida's first public observation deck — featuring a cantilevered glass floor at 850 feet — alongside a sky pool perched at 800 feet and the legendary Rose Bar reimagined for a new skyline era. Residents tap into 24-hour concierge and valet, The Source by Delano wellness sanctuary, and private access to beach services at the original Delano Miami Beach.</p></div>
-      <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><a class="pp-firm" href="/firm/property-markets-group/"><div class="k">Developer</div><div class="v">Property Markets Group</div><span class="go">View firm profile →</span></a><a class="pp-firm" href="/firm/carlos-ott/"><div class="k">Architect</div><div class="v">Carlos Ott</div><span class="go">View firm profile →</span></a></div></div>
+      <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/property-markets-group/"><span class="nm">Property Markets Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/carlos-ott/"><span class="nm">Carlos Ott</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
     <a class="map-preview" href="https://www.oftmw.com/map/?project=delanoresidencesmiami" aria-label="View on map">
       <img src="https://api.mapbox.com/styles/v1/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7/static/pin-l+1FDF67(-80.188896,25.7783459)/-80.188896,25.7783459,14,0/720x320@2x?access_token=pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA" alt="Map location" loading="lazy" />
