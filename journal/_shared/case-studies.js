@@ -21,7 +21,7 @@
       pills:['Luxury Condo','South Florida'],
       status:'active', months:7,
       impressions:'3.3M', mediaValue:'$98.6K', ctr:'1.49%', spend:'$33.75K',
-      quote:'Halfway through a 14-month program, Ponce Park has reached <b>3.3M affluent buyers</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.'
+      quote:'Halfway through a 14-month program, Ponce Park has amassed <b>3.3M impressions</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.'
     },
     {
       badge:'WA', name:'Waldorf Astoria Residences', sub:'St. Petersburg, FL · Tampa Bay · Branded Residences',
@@ -29,7 +29,7 @@
       pills:['Branded Residences','St. Petersburg'],
       status:'active', months:4,
       impressions:'1.87M', mediaValue:'$57.6K', ctr:'1.43%', spend:'$19.8K',
-      quote:'Four months into its campaign, Waldorf Astoria Residences has reached <b>1.87M affluent buyers</b> and earned <b>~$58K in media value</b> &mdash; a 1.43% newsletter CTR, with the program still running.'
+      quote:'Four months into its campaign, Waldorf Astoria Residences has amassed <b>1.87M impressions</b> and earned <b>~$58K in media value</b> &mdash; a 1.43% newsletter CTR, with the program still running.'
     },
     {
       badge:'TB', name:'The Berkeley', sub:'West Palm Beach, FL · Luxury Condo',
@@ -37,7 +37,7 @@
       pills:['Luxury Condo','West Palm Beach'],
       status:'complete', months:10,
       impressions:'4.58M', mediaValue:'$132.4K', ctr:'1.54%', spend:'$46.5K',
-      quote:'Across a completed 10-month program, The Berkeley reached <b>4.58M affluent buyers</b> and earned <b>~$132K in media value</b> &mdash; a 1.54% newsletter CTR that kept the tower top-of-mind through sell-out.'
+      quote:'Across a completed 10-month program, The Berkeley amassed <b>4.58M impressions</b> and earned <b>~$132K in media value</b> &mdash; a 1.54% newsletter CTR that kept the tower top-of-mind through sell-out.'
     },
     {
       badge:'MO', name:'Mandarin Oriental Residences', sub:'West Palm Beach, FL · Branded Residences',
@@ -45,7 +45,7 @@
       pills:['Branded Residences','West Palm Beach'],
       status:'active', months:1,
       impressions:'381K', mediaValue:'$11.4K', ctr:'1.11%', spend:'$6K',
-      quote:'Just one month in, Mandarin Oriental Residences has reached <b>381K affluent buyers</b> at a <b>$15.74 CPM</b> &mdash; a 1.11% newsletter CTR, with the campaign only getting started.'
+      quote:'Just one month in, Mandarin Oriental Residences has amassed <b>381K impressions</b> at a <b>$15.74 CPM</b> &mdash; a 1.11% newsletter CTR, with the campaign only getting started.'
     }
   ];
 
