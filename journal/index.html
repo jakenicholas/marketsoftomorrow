@@ -1318,53 +1318,27 @@ function relativeAge(iso) {
 }
 
 // ---------------------------------------------------------------
-// Shared blog-feed fetcher with three-stage fallback:
-//   1. D1 /posts (preferred — canonical, all 1,377 imported posts).
-//   2. Worker /blog (RSS-backed, capped at 20 — legacy fallback).
-//   3. Direct Wix RSS via CORS proxy + browser DOMParser
-//      (final fallback for preview without the worker).
+// Blog-feed fetcher — D1 canonical posts ONLY. TMW is fully off Wix (domain-only
+// until the 2026-07-31 cutover), so there is NO Wix RSS fallback. A transient D1
+// 500 is retried a couple times so it never surfaces the error card.
 // ---------------------------------------------------------------
 async function fetchBlogItems(limit) {
   const errors = [];
-
-  // Source 1 — D1 canonical posts
-  try {
-    const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items) && data.items.length) {
+          return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
+        }
+        errors.push('d1:empty');
+        break;   // a valid-but-empty response isn't transient — don't retry
       }
-      errors.push('d1:empty');
-    } else {
       errors.push('d1:' + res.status);
-    }
-  } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
-
-  // Source 2 — RSS-backed worker /blog (legacy, 20-post cap)
-  try {
-    const res = await fetch(WORKER_URL + '/blog?limit=' + Math.min(limit, 60), { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items, via: 'rss-worker', error: errors.join(', ') };
-      }
-      errors.push('rss-worker:empty');
-    } else {
-      errors.push('rss-worker:' + res.status);
-    }
-  } catch (e) { errors.push('rss-worker:' + (e.message || 'fetch failed')); }
-
-  // Source 3 — direct Wix RSS through CORS proxy
-  try {
-    const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
-    if (!res.ok) throw new Error('proxy ' + res.status);
-    const xml = await res.text();
-    const items = parseRssXml(xml).slice(0, limit);
-    if (items.length) return { items, via: 'direct-rss-via-proxy', error: errors.join(', ') };
-    errors.push('rss:empty');
-  } catch (e) { errors.push('rss:' + (e.message || 'fetch failed')); }
-
+    } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
+    if (attempt < 2) await new Promise(function (r) { setTimeout(r, 500 * (attempt + 1)); });   // 0.5s, 1s backoff
+  }
   return { items: [], via: 'none', error: errors.join(', ') };
 }
 
@@ -1715,7 +1689,7 @@ function showError(msg) {
   document.getElementById('cards').innerHTML =
     `<div class="empty-state" style="grid-column:1 / -1">
        <h3>Couldn't load the journal feed</h3>
-       <p style="margin-bottom:14px">The Wix RSS proxy didn't respond.</p>
+       <p style="margin-bottom:14px">We couldn't reach the story feed just now — please refresh.</p>
        <div class="error-state" style="display:inline-block; text-align:left">${escapeHtml(msg)}</div>
      </div>`;
 }

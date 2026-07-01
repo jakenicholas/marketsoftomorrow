@@ -121,59 +121,30 @@ function markDraftPreview() {
 }
 
 async function fetchPost(slug) {
-  // 1. Primary source: D1-backed /posts/by-slug/:slug (1,377 posts migrated
-  //    from Wix). Returns a clean canonical record.
-  try {
-    const res = await fetch(WORKER_URL + '/posts/by-slug/' + encodeURIComponent(slug) + (PREVIEW_TOKEN ? '?preview=' + encodeURIComponent(PREVIEW_TOKEN) : ''), { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.post) {
-        console.log('[article] source: D1 /posts/by-slug ·', data.post.body_source);
-        // Normalize to the shape renderArticle expects (it was written for
-        // the older RSS shape — adapt field names).
-        return adaptD1PostShape(data.post);
+  // D1-backed /posts/by-slug/:slug is the ONLY source — TMW is fully off Wix.
+  // Retry a transient failure a couple times; a real 404 means the post isn't
+  // in the DB (no Wix scrape / RSS fallback anymore).
+  let status = 0;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(WORKER_URL + '/posts/by-slug/' + encodeURIComponent(slug) + (PREVIEW_TOKEN ? '?preview=' + encodeURIComponent(PREVIEW_TOKEN) : ''), { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.post) {
+          console.log('[article] source: D1 /posts/by-slug ·', data.post.body_source);
+          return adaptD1PostShape(data.post);
+        }
+        break;   // ok but no post → treat as not found
       }
+      status = res.status;
+      if (res.status === 404) break;   // genuinely not found — don't retry
+      console.warn('[article] /posts/by-slug non-ok status:', res.status);
+    } catch (e) {
+      console.warn('[article] /posts/by-slug failed (attempt ' + (attempt + 1) + ')', e);
     }
-    console.warn('[article] /posts/by-slug returned non-ok status:', res.status);
-  } catch (e) {
-    console.warn('[article] /posts/by-slug failed, trying scrape fallback', e);
+    if (attempt < 2) await new Promise(function (r) { setTimeout(r, 500 * (attempt + 1)); });
   }
-
-  // 2. Fallback (only for posts not yet migrated): the older /post/:slug
-  //    endpoint that scrapes Wix on demand.
-  try {
-    const res = await fetch(WORKER_URL + '/post/' + encodeURIComponent(slug), { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.post) return data.post;
-    } else if (res.status === 404) {
-      const err = new Error('Post not found in DB or Wix');
-      err.legacy = true;
-      err.legacyUrl = 'https://www.oftmw.com/post/' + slug;
-      throw err;
-    }
-  } catch (e) {
-    if (e.legacy) throw e;
-    console.warn('[article] scrape fallback failed', e);
-  }
-
-  // 3. Last-ditch: direct Wix RSS via CORS proxy (metadata only, no body)
-  const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
-  if (!res.ok) throw new Error('All sources failed (last: RSS proxy ' + res.status + ')');
-  const xml = await res.text();
-  const items = parseRssXmlFull(xml);
-  const slugLc = slug.toLowerCase();
-  const post = items.find(it =>
-    (it.slug && it.slug.toLowerCase() === slugLc) ||
-    (it.link && it.link.toLowerCase().endsWith('/' + slugLc))
-  );
-  if (!post) {
-    const err = new Error('Post not found in any source');
-    err.legacy = true;
-    err.legacyUrl = 'https://www.oftmw.com/post/' + slug;
-    throw err;
-  }
-  return post;
+  throw new Error(status === 404 ? 'Post not found' : 'Couldn\'t load the article');
 }
 
 // Normalize D1 post shape (snake_case fields) to the RSS-style shape the
@@ -628,19 +599,7 @@ async function loadReadNext(currentPost, currentSlug) {
         }));
       }
     } catch {}
-    // 2. Fall back to RSS-backed /blog if D1 empty (pre-migration)
-    if (!items.length) {
-      const r = await fetch(WORKER_URL + '/blog?limit=30', { cache: 'no-store' });
-      if (r.ok) {
-        const d = await r.json();
-        items = d.items || [];
-      }
-    }
-    // 3. Fall back to direct RSS
-    if (!items.length) {
-      const px = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
-      if (px.ok) items = parseRssXmlFull(await px.text());
-    }
+    // D1 is the only source — no Wix /blog or RSS fallback (TMW is off Wix).
     // Pull everything that isn't the current article first, NEWEST FIRST.
     const pool = items.filter(it => it.slug && it.slug !== currentSlug);
 

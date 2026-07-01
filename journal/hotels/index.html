@@ -1796,43 +1796,24 @@ async function loadNewsAndTicker() {
 // Same shape as /index.html.
 // ---------------------------------------------------------------
 async function fetchBlogItems(limit) {
+  // D1 canonical posts ONLY — TMW is fully off Wix (no RSS fallback). A transient
+  // 500 is retried a couple times so it never surfaces the error card.
   const errors = [];
-
-  try {
-    const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(WORKER_URL + '/posts?limit=' + limit + '&status=published', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items) && data.items.length) {
+          return { items: data.items.map(d1PostToFeedShape), via: 'd1', total: data.total };
+        }
+        errors.push('d1:empty');
+        break;
       }
-      errors.push('d1:empty');
-    } else {
       errors.push('d1:' + res.status);
-    }
-  } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
-
-  try {
-    const res = await fetch(WORKER_URL + '/blog?limit=' + Math.min(limit, 60), { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.items) && data.items.length) {
-        return { items: data.items, via: 'rss-worker', error: errors.join(', ') };
-      }
-      errors.push('rss-worker:empty');
-    } else {
-      errors.push('rss-worker:' + res.status);
-    }
-  } catch (e) { errors.push('rss-worker:' + (e.message || 'fetch failed')); }
-
-  try {
-    const res = await fetch(CORS_PROXY + encodeURIComponent(WIX_RSS_URL), { cache: 'no-store' });
-    if (!res.ok) throw new Error('proxy ' + res.status);
-    const xml = await res.text();
-    const items = parseRssXml(xml).slice(0, limit);
-    if (items.length) return { items, via: 'direct-rss-via-proxy', error: errors.join(', ') };
-    errors.push('rss:empty');
-  } catch (e) { errors.push('rss:' + (e.message || 'fetch failed')); }
-
+    } catch (e) { errors.push('d1:' + (e.message || 'fetch failed')); }
+    if (attempt < 2) await new Promise(function (r) { setTimeout(r, 500 * (attempt + 1)); });
+  }
   return { items: [], via: 'none', error: errors.join(', ') };
 }
 
