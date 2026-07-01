@@ -2525,7 +2525,7 @@ async function handlePostIntel(env, origin, url) {
         { headers: { 'Cache-Control': 'public, max-age=3600' } }, env, origin);
     }
   }
-  const row = await env.DB.prepare(`SELECT title, body_html, excerpt FROM posts WHERE slug = ?1 AND status = 'published' LIMIT 1`).bind(slug).first();
+  const row = await env.DB.prepare(`SELECT title, body_html, excerpt, main_category FROM posts WHERE slug = ?1 AND status = 'published' LIMIT 1`).bind(slug).first();
   if (!row) return json({ error: 'post not found' }, { status: 404 }, env, origin);
   const text = String(row.body_html || row.excerpt || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 6000);
   if (!text) return json({ error: 'no article text' }, { status: 422 }, env, origin);
@@ -2561,9 +2561,32 @@ async function handlePostIntel(env, origin, url) {
   };
   try { await env.DB.prepare(`INSERT INTO post_intel (slug, tldr, takeaways_json, entities_json, created_at) VALUES (?1,?2,?3,?4,?5) ON CONFLICT(slug) DO UPDATE SET tldr=?2, takeaways_json=?3, entities_json=?4, created_at=?5`)
     .bind(slug, tldr, JSON.stringify(takeaways), JSON.stringify(entities), Math.floor(Date.now() / 1000)).run(); } catch (_) {}
+  // Enrich this article's search vector with the summary + named entities so Onyx
+  // retrieves (and cites) it on entity/topic queries — not just title matches.
+  try { await upsertArticleVector(env, slug, row.title, row.main_category, row.excerpt, tldr, takeaways, entities); } catch (_) {}
   return json({ ok: true, cached: false, tldr, takeaways, entities }, { headers: { 'Cache-Control': 'public, max-age=3600' } }, env, origin);
 }
 function safeJson(s, fallback) { try { const v = JSON.parse(s); return v == null ? fallback : v; } catch (_) { return fallback; } }
+// Build the enriched embedding text for an article (title + summary + entities +
+// takeaways + excerpt), and upsert its Vectorize record (kind:'article' → cited).
+function articleIntelText(title, category, excerpt, tldr, takeaways, entities) {
+  const e = entities || {};
+  const ent = [
+    e.developer && ('Developer ' + e.developer), e.architect && ('Architect ' + e.architect),
+    e.city && ('City ' + e.city), e.project && ('Project ' + e.project),
+  ].filter(Boolean).join('. ');
+  return [title, category, tldr, ent, (takeaways || []).join('. '), excerpt]
+    .filter(Boolean).join('. ').slice(0, 1800);
+}
+async function upsertArticleVector(env, slug, title, category, excerpt, tldr, takeaways, entities) {
+  if (!retrievalReady(env)) return;
+  const txt = articleIntelText(title, category, excerpt, tldr, takeaways, entities);
+  const [vec] = await embedTexts(env, [txt]);
+  if (!Array.isArray(vec)) return;
+  await env.VECTORIZE.upsert([{ id: vecId('article', slug), values: vec, metadata: {
+    kind: 'article', slug: String(slug).slice(0, 200), title: String(title || '').slice(0, 200), tldr: String(tldr || '').slice(0, 400),
+  } }]);
+}
 
 // GET /post-ask?slug=&q= — "Ask Onyx about this story": answers the reader's
 // question using ONLY the article body (reliable for untracked projects the map
@@ -5215,15 +5238,20 @@ async function reindexAll(env) {
       if (items.length) { await env.VECTORIZE.upsert(items); stats.projects += items.length; }
     }
   } catch (e) { stats.projectsError = String(e && e.message || e); }
-  // 2) Journal articles — from the published posts in D1.
+  // 2) Journal articles — from the published posts in D1, enriched with the
+  // Onyx summary + entities (post_intel) when available so entity/topic queries
+  // retrieve them (falls back to title+category+excerpt for un-summarized posts).
   try {
-    const r = await env.DB.prepare(`SELECT slug, title, excerpt, main_category FROM posts WHERE status = 'published' LIMIT 2000`).all();
+    const r = await env.DB.prepare(`SELECT p.slug, p.title, p.excerpt, p.main_category, pi.tldr, pi.takeaways_json, pi.entities_json
+      FROM posts p LEFT JOIN post_intel pi ON pi.slug = p.slug WHERE p.status = 'published' LIMIT 2000`).all();
     const rows = (r.results || []).filter((x) => x.slug);
     for (let i = 0; i < rows.length; i += 90) {
       const chunk = rows.slice(i, i + 90);
-      const vecs = await embedTexts(env, chunk.map((x) => [x.title, x.main_category, x.excerpt].filter(Boolean).join('. ').slice(0, 1600)));
+      const vecs = await embedTexts(env, chunk.map((x) => articleIntelText(
+        x.title, x.main_category, x.excerpt, x.tldr, safeJson(x.takeaways_json, []), safeJson(x.entities_json, {})
+      )));
       const items = chunk.map((x, k) => ({ id: vecId('article', x.slug), values: vecs[k], metadata: {
-        kind: 'article', slug: String(x.slug).slice(0, 200), title: String(x.title || '').slice(0, 200),
+        kind: 'article', slug: String(x.slug).slice(0, 200), title: String(x.title || '').slice(0, 200), tldr: String(x.tldr || '').slice(0, 400),
       } })).filter((it) => Array.isArray(it.values));
       if (items.length) { await env.VECTORIZE.upsert(items); stats.articles += items.length; }
     }
