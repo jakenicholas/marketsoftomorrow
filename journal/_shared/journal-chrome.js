@@ -591,7 +591,11 @@
 
     var st = document.createElement('style');
     st.textContent =
-      '#firmMapClose{position:fixed;top:74px;right:22px;z-index:9500;width:42px;height:42px;' +
+      // Align the button to the firm content column's right edge (max-width
+      // 1200px, centred) rather than the far viewport corner, so on wide
+      // screens it sits at the top-right of the content next to the hero/stats.
+      // Floors at 22px so it never leaves the viewport on narrower screens.
+      '#firmMapClose{position:fixed;top:74px;right:max(22px, calc((100vw - 1200px) / 2));z-index:9500;width:42px;height:42px;' +
       'display:inline-flex;align-items:center;justify-content:center;border-radius:999px;cursor:pointer;' +
       'color:#fff;background:rgba(13,13,13,.72);border:1px solid rgba(255,255,255,.16);' +
       'backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(0,0,0,.42);' +
