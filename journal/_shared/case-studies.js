@@ -4,47 +4,52 @@
    Injects scoped styles once + a "Proven Results" section into every mount:
    one featured case study (best match to data-match tags) + up to data-limit
    compact cards, ranked by tag overlap. Edit the STUDIES array below to add a
-   client — it flows to every proposal that embeds this, and (later) to the
-   public /media/case-studies/ hub. Optional attrs:
-     data-match   comma tags describing the prospect (city, asset type, state)
-     data-limit   max compact cards after the featured one (default 2)
+   client — it flows to every proposal that embeds this. Optional attrs:
+     data-match     comma tags describing the prospect (city, asset type, state)
+     data-limit     max compact cards after the featured one (default 2)
      data-headline  overrides the <em> phrase, e.g. "a comparable Brickell tower"
-   NOTE: client spend is deliberately omitted — these cards appear in other
-   clients' proposals, so we show reach + media value + engagement, never cost. */
+   Full results reports are PRIVATE — this module never links to them. Each card
+   shows reach + media value + engagement + a media-spend tile + months active. */
 (function(){
   'use strict';
 
-  /* ── the library — one entry per closed client ─────────────────────────── */
+  /* ── the library — one entry per client. Canonical fields below. ───────── */
   var STUDIES = [
     {
       badge:'PP', name:'Ponce Park Residences', sub:'The Allen Morris Company · Coral Gables, FL',
-      tags:['florida','south-florida','luxury-condo','condo','coral-gables','miami','active'],
-      pills:['Luxury Condo','South Florida',{t:'Campaign Active',live:true}],
-      metrics:[
-        {n:'3.3M', l:'Total impressions'},
-        {n:'$98.6K', l:'Est. media value', gold:true},
-        {n:'1.49%', l:'Newsletter CTR'}
-      ],
-      quote:'Halfway through a 14-month program, Ponce Park has reached <b>3.3M affluent buyers</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.',
-      compact:[{n:'3.3M',l:'Impressions'},{n:'$98.6K',l:'Media value',gold:true},{n:'7,229',l:'Site clicks'}],
-      url:'https://www.oftmw.com/media/ponce-park/'
+      tags:['florida','south-florida','luxury-condo','condo','coral-gables','miami'],
+      pills:['Luxury Condo','South Florida'],
+      status:'active', months:7,
+      impressions:'3.3M', mediaValue:'$98.6K', ctr:'1.49%', spend:'$33.75K',
+      quote:'Halfway through a 14-month program, Ponce Park has reached <b>3.3M affluent buyers</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.'
+    },
+    {
+      badge:'WA', name:'Waldorf Astoria Residences', sub:'St. Petersburg, FL · Tampa Bay · Branded Residences',
+      tags:['florida','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','branded-residences','hotel'],
+      pills:['Branded Residences','St. Petersburg'],
+      status:'active', months:4,
+      impressions:'1.87M', mediaValue:'$57.6K', ctr:'1.43%', spend:'$19.8K',
+      quote:'Four months into its campaign, Waldorf Astoria Residences has reached <b>1.87M affluent buyers</b> and earned <b>~$58K in media value</b> &mdash; a 1.43% newsletter CTR, with the program still running.'
+    },
+    {
+      badge:'TB', name:'The Berkeley', sub:'West Palm Beach, FL · Luxury Condo',
+      tags:['florida','south-florida','palm-beaches','west-palm-beach','wpb','luxury-condo','condo'],
+      pills:['Luxury Condo','West Palm Beach'],
+      status:'complete', months:10,
+      impressions:'4.58M', mediaValue:'$132.4K', ctr:'1.54%', spend:'$46.5K',
+      quote:'Across a completed 10-month program, The Berkeley reached <b>4.58M affluent buyers</b> and earned <b>~$132K in media value</b> &mdash; a 1.54% newsletter CTR that kept the tower top-of-mind through sell-out.'
     },
     {
       badge:'MO', name:'Mandarin Oriental Residences', sub:'West Palm Beach, FL · Branded Residences',
-      tags:['florida','south-florida','luxury-condo','condo','branded-residences','hotel','west-palm-beach','wpb','palm-beaches','active'],
-      pills:['Branded Residences','West Palm Beach',{t:'Campaign Active',live:true}],
-      metrics:[
-        {n:'381K', l:'Total impressions'},
-        {n:'$11.4K', l:'Est. media value', gold:true},
-        {n:'1.11%', l:'Newsletter CTR'}
-      ],
-      quote:'In its first month, Mandarin Oriental Residences reached <b>381K affluent buyers</b> at a <b>$15.74 CPM</b> and drove <b>1,627 clicks</b> &mdash; a 1.11% newsletter CTR, with two of three months still to run.',
-      compact:[{n:'381K',l:'Impressions'},{n:'$11.4K',l:'Media value',gold:true},{n:'1.11%',l:'News. CTR'}],
-      url:'https://www.oftmw.com/media/mandarin-oriental-residences-wpb/'
+      tags:['florida','south-florida','luxury-condo','condo','branded-residences','hotel','west-palm-beach','wpb','palm-beaches'],
+      pills:['Branded Residences','West Palm Beach'],
+      status:'active', months:1,
+      impressions:'381K', mediaValue:'$11.4K', ctr:'1.11%', spend:'$6K',
+      quote:'Just one month in, Mandarin Oriental Residences has reached <b>381K affluent buyers</b> at a <b>$15.74 CPM</b> &mdash; a 1.11% newsletter CTR, with the campaign only getting started.'
     }
   ];
 
-  var HUB = 'https://www.oftmw.com/media/';   // "browse all" target (swap to /media/case-studies/ when live)
+  var HUB = 'https://www.oftmw.com/media/';   // "dive into our live data" target
 
   var CSS = `
 .tmw-cases{--white:#fff;--cream:#ECEAE5;--mute:#8b958d;--mute2:#C2C9C3;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);
@@ -65,6 +70,7 @@
 .tmw-cases .cs-pills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .tmw-cases .cs-pill{font-family:var(--cs-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--purple-glow);border:1px solid rgba(167,139,250,.32);border-radius:999px;padding:5px 11px;white-space:nowrap}
 .tmw-cases .cs-pill.live{color:var(--green-soft);border-color:rgba(31,223,103,.35)}
+.tmw-cases .cs-pill.done{color:var(--gold-soft);border-color:rgba(230,197,116,.4)}
 .tmw-cases .cs-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border-bottom:1px solid var(--hair)}
 .tmw-cases .cs-metric{background:#0d0f0d;padding:20px 26px}
 .tmw-cases .cs-mn{font-family:var(--cs-serif);font-weight:600;font-size:clamp(24px,2.8vw,34px);letter-spacing:-.02em;color:var(--green-soft);line-height:1}
@@ -73,20 +79,27 @@
 .tmw-cases .cs-body{display:flex;align-items:center;gap:24px;padding:20px 26px}
 .tmw-cases .cs-quote{font-family:var(--cs-serif);font-style:italic;font-weight:300;font-size:16.5px;line-height:1.5;color:var(--cream);margin:0}
 .tmw-cases .cs-quote b{font-style:normal;font-weight:500;color:#fff}
-.tmw-cases .cs-cta{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;font-family:var(--cs-mono);font-size:12px;font-weight:700;letter-spacing:.03em;color:#1a1505;background:linear-gradient(135deg,var(--gold-soft),var(--gold));border-radius:10px;padding:13px 18px;text-decoration:none;white-space:nowrap}
+.tmw-cases .cs-spend{flex:0 0 auto;text-align:center;border:1px solid rgba(230,197,116,.35);border-radius:14px;background:rgba(230,197,116,.06);padding:15px 24px;min-width:158px}
+.tmw-cases .cs-spend-l{font-family:var(--cs-mono);font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:7px}
+.tmw-cases .cs-spend-n{font-family:var(--cs-serif);font-weight:600;font-size:27px;color:#fff;line-height:1}
+.tmw-cases .cs-spend-sub{font-family:var(--cs-mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute2);margin-top:8px}
 .tmw-cases .cs-also{font-family:var(--cs-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:26px 0 12px}
 .tmw-cases .cs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.tmw-cases .cs-cc{border:1px solid var(--hair);border-radius:14px;background:rgba(255,255,255,.02);padding:16px 17px;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:border-color .2s}
-.tmw-cases .cs-cc:hover{border-color:rgba(230,197,116,.4)}
+.tmw-cases .cs-cc{border:1px solid var(--hair);border-radius:14px;background:rgba(255,255,255,.02);padding:16px 17px;color:inherit;display:flex;flex-direction:column;text-decoration:none}
+.tmw-cases a.cs-cc{transition:border-color .2s}
+.tmw-cases a.cs-cc:hover{border-color:rgba(230,197,116,.4)}
 .tmw-cases .cs-cctop{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .tmw-cases .cs-badge.sm{width:34px;height:34px;font-size:13px;border-radius:9px}
 .tmw-cases .cs-ccname{font-family:var(--cs-serif);font-weight:600;font-size:14.5px;color:#fff;line-height:1.15}
 .tmw-cases .cs-ccsub{font-family:var(--cs-mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-top:2px}
-.tmw-cases .cs-ccm{display:flex;gap:16px;margin-top:auto}
+.tmw-cases .cs-ccm{display:flex;gap:16px}
 .tmw-cases .cs-ccm div{display:flex;flex-direction:column}
 .tmw-cases .cs-ccm b{font-family:var(--cs-serif);font-weight:600;font-size:19px;color:var(--green-soft);line-height:1}
 .tmw-cases .cs-ccm b.gold{color:var(--gold-soft)}
+.tmw-cases .cs-ccm b.cream{color:var(--cream)}
 .tmw-cases .cs-ccm span{font-family:var(--cs-mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+.tmw-cases .cs-ccfoot{font-family:var(--cs-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:12px;padding-top:11px;border-top:1px solid var(--hair)}
+.tmw-cases .cs-ccfoot .on{color:var(--green-soft)}
 .tmw-cases .cs-cc.ghost{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--mute)}
 .tmw-cases .cs-cc.ghost .g-n{font-family:var(--cs-serif);font-style:italic;font-size:16px;color:var(--mute2)}
 .tmw-cases .cs-cc.ghost .g-l{font-family:var(--cs-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
@@ -98,63 +111,63 @@
 `;
 
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-
-  function score(study, matchTags){
-    var s = 0;
-    for (var i=0;i<matchTags.length;i++){ if (study.tags.indexOf(matchTags[i]) !== -1) s++; }
-    return s;
+  function score(st, m){ var s=0; for (var i=0;i<m.length;i++){ if (st.tags.indexOf(m[i])!==-1) s++; } return s; }
+  function statusPill(st){
+    return st.status==='active'
+      ? '<span class="cs-pill live">Campaign Active</span>'
+      : '<span class="cs-pill done">Campaign Complete</span>';
   }
-
-  function pill(p){
-    if (typeof p === 'string') return '<span class="cs-pill">'+esc(p)+'</span>';
-    return '<span class="cs-pill'+(p.live?' live':'')+'">'+esc(p.t)+'</span>';
+  function durLabel(st){
+    return st.months+' month'+(st.months===1?'':'s')+(st.status==='active'?' active':' · complete');
   }
 
   function featuredHTML(st){
-    var metrics = st.metrics.map(function(m){
-      return '<div class="cs-metric"><div class="cs-mn'+(m.gold?' gold':'')+'">'+m.n+'</div><div class="cs-ml">'+esc(m.l)+'</div></div>';
-    }).join('');
+    var pills = st.pills.map(function(p){ return '<span class="cs-pill">'+esc(p)+'</span>'; }).join('') + statusPill(st);
+    var metrics =
+      '<div class="cs-metric"><div class="cs-mn">'+st.impressions+'</div><div class="cs-ml">Total impressions</div></div>'+
+      '<div class="cs-metric"><div class="cs-mn gold">'+st.mediaValue+'</div><div class="cs-ml">Est. media value</div></div>'+
+      '<div class="cs-metric"><div class="cs-mn">'+st.ctr+'</div><div class="cs-ml">Newsletter CTR</div></div>';
     return ''+
     '<div class="cs-card">'+
       '<div class="cs-top">'+
         '<div class="cs-badge">'+esc(st.badge)+'</div>'+
         '<div><div class="cs-name">'+esc(st.name)+'</div><div class="cs-namesub">'+esc(st.sub)+'</div></div>'+
-        '<div class="cs-pills">'+st.pills.map(pill).join('')+'</div>'+
+        '<div class="cs-pills">'+pills+'</div>'+
       '</div>'+
       '<div class="cs-metrics">'+metrics+'</div>'+
       '<div class="cs-body">'+
         '<p class="cs-quote">'+st.quote+'</p>'+
-        '<a class="cs-cta" href="'+esc(st.url)+'">Full results report &rarr;</a>'+
+        '<div class="cs-spend"><div class="cs-spend-l">Media Spend</div><div class="cs-spend-n">'+st.spend+'</div><div class="cs-spend-sub">'+durLabel(st)+'</div></div>'+
       '</div>'+
     '</div>';
   }
 
   function compactHTML(st){
-    var m = (st.compact||st.metrics).slice(0,3).map(function(x){
-      return '<div><b'+(x.gold?' class="gold"':'')+'>'+x.n+'</b><span>'+esc(x.l)+'</span></div>';
-    }).join('');
-    return '<a class="cs-cc" href="'+esc(st.url)+'">'+
+    return '<div class="cs-cc">'+
       '<div class="cs-cctop"><span class="cs-badge sm">'+esc(st.badge)+'</span>'+
       '<div><div class="cs-ccname">'+esc(st.name)+'</div><div class="cs-ccsub">'+esc(st.sub)+'</div></div></div>'+
-      '<div class="cs-ccm">'+m+'</div></a>';
+      '<div class="cs-ccm">'+
+        '<div><b>'+st.impressions+'</b><span>Impressions</span></div>'+
+        '<div><b class="gold">'+st.mediaValue+'</b><span>Media value</span></div>'+
+        '<div><b class="cream">'+st.spend+'</b><span>Spend</span></div>'+
+      '</div>'+
+      '<div class="cs-ccfoot"><span'+(st.status==='active'?' class="on"':'')+'>'+durLabel(st)+'</span></div>'+
+    '</div>';
   }
 
   function render(mount){
-    var matchAttr = (mount.getAttribute('data-match')||'').toLowerCase();
-    var matchTags = matchAttr.split(',').map(function(t){return t.trim();}).filter(Boolean);
+    var matchTags = (mount.getAttribute('data-match')||'').toLowerCase().split(',').map(function(t){return t.trim();}).filter(Boolean);
     var limit = parseInt(mount.getAttribute('data-limit')||'2', 10);
     var headline = mount.getAttribute('data-headline') || 'developers like you';
 
     var ranked = STUDIES.map(function(st){ return {st:st, s:score(st, matchTags)}; })
-      .sort(function(a,b){ return b.s - a.s; })
-      .map(function(x){ return x.st; });
-
+      .sort(function(a,b){ return b.s - a.s; }).map(function(x){ return x.st; });
     if (!ranked.length) return;
+
     var featured = ranked[0];
     var rest = ranked.slice(1, 1+Math.max(0,limit));
-
     var compact = rest.map(compactHTML).join('');
-    compact += '<a class="cs-cc ghost" href="'+esc(HUB)+'"><div class="g-n">Browse all case studies</div><div class="g-l">The full results library &rarr;</div></a>';
+    compact += '<a class="cs-cc ghost" href="'+esc(HUB)+'"><div class="g-n">Dive into our live data</div><div class="g-l">Explore the network &rarr;</div></a>';
 
     mount.className += ' tmw-cases';
     mount.innerHTML = ''+
@@ -169,14 +182,11 @@
 
   function init(){
     if (!document.getElementById('tmw-cases-css')){
-      var s = document.createElement('style');
-      s.id = 'tmw-cases-css'; s.textContent = CSS;
-      document.head.appendChild(s);
+      var s = document.createElement('style'); s.id='tmw-cases-css'; s.textContent=CSS; document.head.appendChild(s);
     }
     var mounts = document.querySelectorAll('[data-tmw-cases]');
-    for (var i=0;i<mounts.length;i++){ if (!mounts[i].__csDone){ mounts[i].__csDone = 1; render(mounts[i]); } }
+    for (var i=0;i<mounts.length;i++){ if (!mounts[i].__csDone){ mounts[i].__csDone=1; render(mounts[i]); } }
   }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
