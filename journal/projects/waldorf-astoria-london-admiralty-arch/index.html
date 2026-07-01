@@ -1493,10 +1493,18 @@
         for (var g = 0; g < grids.length; g++) {
           var grid = grids[g];
           grid.classList.remove('pp-firms-stack');
-          var nms = grid.querySelectorAll('.pp-firm-chip .nm');
-          var clipped = false;
-          for (var i = 0; i < nms.length; i++) { if (nms[i].scrollWidth > nms[i].clientWidth + 1) { clipped = true; break; } }
-          if (clipped) grid.classList.add('pp-firms-stack');
+          var groups = grid.querySelectorAll('.pp-firm-group');
+          var stack = false;
+          for (var j = 0; j < groups.length; j++) {
+            var pills = groups[j].querySelectorAll('.pp-firm-chip');
+            if (pills.length !== 1) continue;   /* 2+ firms wrap; keep 50/50 */
+            var p = pills[0];
+            var nm = p.querySelector('.nm');
+            var truncated = nm && nm.scrollWidth > nm.clientWidth + 1;
+            var fills = groups[j].clientWidth && p.offsetWidth > groups[j].clientWidth * 0.82;
+            if (truncated || fills) { stack = true; break; }
+          }
+          if (stack) grid.classList.add('pp-firms-stack');
         }
       }
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fitFirms); else fitFirms();
