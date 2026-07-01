@@ -1608,6 +1608,26 @@
   function getDismissed(){ try { return new Set(JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]')); } catch(e){ return new Set(); } }
   function saveDismissed(set){ try { localStorage.setItem(DISMISS_KEY, JSON.stringify(Array.from(set))); } catch(e){} }
 
+  // ── "New since you last looked" — per-scope seen timestamp ───────────────────
+  // The badge counts UNSEEN moves (newer than the last time you opened that
+  // scope), and unseen items get a NEW accent. Opening a scope marks it seen.
+  var SEEN_KEY = 'tmw_pulse_seen';
+  var _displaySeen = null;   // frozen last-seen while the panel is open (for NEW dots)
+  function getSeen(){ try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') || {}; } catch(e){ return {}; } }
+  function seenFor(sc){ var s = getSeen(); return s[sc] || 0; }
+  function setSeen(sc, ts){ var s = getSeen(); s[sc] = ts; try { localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch(e){} }
+  // First run: seed "caught up" so the badge starts at 0 and only counts moves
+  // logged from now on (no wall of NEW on the first ever open).
+  try { if (localStorage.getItem(SEEN_KEY) == null){ var _t0 = Date.now(); localStorage.setItem(SEEN_KEY, JSON.stringify({ all:_t0, me:_t0 })); } } catch(e){}
+  // Newness keys off when the event was LOGGED (timestamp), not its event_date —
+  // a milestone logged today but dated months ago is still "new to the feed".
+  function addedTime(e){ var t = (e && e.timestamp) ? Date.parse(e.timestamp) : 0; return t || evTime(e); }
+  function isNew(e){ var ref = (_displaySeen != null) ? _displaySeen : seenFor(scope); return addedTime(e) > ref; }
+  // Recommendations the member dismissed (so a declined suggestion stays gone).
+  var RECX_KEY = 'tmw_pulse_recx';
+  function getRecX(){ try { return new Set(JSON.parse(localStorage.getItem(RECX_KEY) || '[]')); } catch(e){ return new Set(); } }
+  function addRecX(id){ var s = getRecX(); s.add(id); try { localStorage.setItem(RECX_KEY, JSON.stringify(Array.from(s))); } catch(e){} }
+
   // ── "Me" scope — the Pro watcher, folded into this dropdown ──────────────────
   // "All" = the full network pulse (below). "Me" filters those same events down to
   // moves on THIS member's watches: watched projects (Memberstack favorites — the
@@ -1626,7 +1646,7 @@
   var COUNTRIES={AE:'United Arab Emirates',AG:'Antigua & Barbuda',AU:'Australia',BS:'Bahamas',BZ:'Belize',CA:'Canada',CH:'Switzerland',CO:'Colombia',CR:'Costa Rica',ES:'Spain',FR:'France',GB:'United Kingdom',GR:'Greece',IT:'Italy',JP:'Japan',KY:'Cayman Islands',MV:'Maldives',MX:'Mexico',PR:'Puerto Rico',PT:'Portugal',QA:'Qatar',SA:'Saudi Arabia',SG:'Singapore',TC:'Turks & Caicos',TH:'Thailand'};
   var WATCH_STOP={condo:1,condos:1,tower:1,towers:1,luxury:1,hotel:1,hotels:1,project:1,projects:1,building:1,buildings:1,residence:1,residences:1,development:1,developments:1,coming:1,soon:1,near:1,downtown:1,apartment:1,apartments:1,mixed:1,resort:1,resorts:1,district:1,announced:1,update:1,updates:1,newest:1,latest:1};
   var mine = { proj:new Set(), firm:new Set(), mkt:new Set(), smart:[] };
-  var projFirms = {}, projMeta = {}, cityReg = {};
+  var projFirms = {}, projMeta = {}, cityReg = {}, projList = [];
   var _mineP = null;
   function loadMine(){
     if (_mineP) return _mineP;
@@ -1665,6 +1685,7 @@
         ['Developer','Developers','Architect','Architects','Firm','Builder','Landscape'].forEach(function(f){ if(p[f]) String(p[f]).split(/[,;\/]|&amp;|\band\b/).forEach(function(x){ var fs = slugify(x); if(fs) firms.push(fs); }); });
         if(firms.length) projFirms[k] = firms;
         projMeta[k] = { city: slugify(p.City), ptype: slugify((p.PreferredType||'').split(',')[0] || (p.ProjectType||'').split(',')[0] || '') };
+        projList.push({ slug:k, title:p.Title||humanizeSlug(k), city:projMeta[k].city, cityName:p.City||'', ptype:projMeta[k].ptype, firms:firms, featured:!!(p.Featured), img:p.ImageURL||p.Image2||'' });
       });
       Object.keys(cmap||{}).forEach(function(city){ var cs = slugify(city); var head = String(cmap[city]||'').split('-')[0]; var nm = US_STATES[head] || COUNTRIES[head]; if(nm){ (cityReg[cs] = cityReg[cs] || []).push(slugify(nm)); } });
       if (sw && sw.smart_watches) sw.smart_watches.forEach(function(w){ var toks = String(w.query||'').toLowerCase().split(/[^a-z0-9]+/).filter(function(t){ return t.length >= 4 && !WATCH_STOP[t]; }); if(toks.length) mine.smart.push({ toks: toks, q: w.query }); });
@@ -1692,6 +1713,74 @@
   }
   function mineMatch(e){ return mineReason(e) != null; }
 
+  // ── Recommended watches ──────────────────────────────────────────────────────
+  // Suggestions built from what the member already watches: (1) firms that build
+  // projects they watch but they don't follow yet, (2) notable projects in the
+  // markets they follow that they don't watch yet. Shown atop the "Me" feed.
+  function buildRecs(){
+    var out = [], recx = getRecX();
+    var fc = {};
+    mine.proj.forEach(function(ps){ (projFirms[ps]||[]).forEach(function(f){ if(!mine.firm.has(f)) fc[f] = (fc[f]||0) + 1; }); });
+    Object.keys(fc).sort(function(a,b){ return fc[b]-fc[a]; }).forEach(function(f){
+      var id = 'firm:' + f; if (recx.has(id)) return;
+      out.push({ id:id, type:'firm', slug:f, title:humanizeSlug(f), sub:'Builds ' + fc[f] + ' project' + (fc[f]>1?'s':'') + ' you watch', act:'Follow' });
+    });
+    if (out.length < 3){
+      for (var i=0;i<projList.length && out.length<4;i++){
+        var p = projList[i];
+        if (!p.featured || mine.proj.has(p.slug)) continue;
+        var inMkt = mine.mkt.has(p.city) || (p.ptype && mine.mkt.has('type-'+p.ptype)) || (cityReg[p.city]||[]).some(function(r){ return mine.mkt.has(r); });
+        if (!inMkt) continue;
+        var id2 = 'proj:' + p.slug; if (recx.has(id2)) continue;
+        out.push({ id:id2, type:'project', slug:p.slug, title:p.title, sub:(p.cityName ? esc(p.cityName) + ' · ' : '') + 'In a market you watch', img:p.img, act:'Watch' });
+      }
+    }
+    return out.slice(0, 3);
+  }
+  function recsHtml(){
+    var recs = buildRecs(); if (!recs.length) return '';
+    return '<div class="tmw-pulse-recs"><div class="tmw-recs-h">Recommended for you</div>' + recs.map(function(r){
+      var thumb = r.img ? '<img class="tmw-rec-img" src="' + esc(r.img) + '" alt="" loading="lazy">'
+        : '<div class="tmw-rec-img tmw-rec-ico">' + (r.type === 'firm'
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>') + '</div>';
+      return '<div class="tmw-rec" data-recid="' + esc(r.id) + '" data-rectype="' + r.type + '" data-recslug="' + esc(r.slug) + '">' + thumb +
+        '<div class="tmw-rec-b"><div class="tmw-rec-t">' + esc(r.title) + '</div><div class="tmw-rec-s">' + r.sub + '</div></div>' +
+        '<button class="tmw-rec-add" type="button">+ ' + r.act + '</button>' +
+        '<button class="tmw-rec-x" type="button" aria-label="Dismiss"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+    }).join('') + '</div>';
+  }
+  var WORKER_URL = 'https://tmw.jake-ab7.workers.dev';
+  function beaconEvent(name, props){
+    try {
+      var m = ms(); if (!m || !m.getCurrentMember) return;
+      m.getCurrentMember().then(function(r){ var mem = r && r.data; if (!mem) return;
+        var cf = mem.customFields||{}; var nm = ((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null;
+        var payload = JSON.stringify({ member_id:mem.id, member_name:nm, event_name:name, props:props||{} });
+        if (navigator.sendBeacon) navigator.sendBeacon(WORKER_URL + '/event', new Blob([payload],{type:'text/plain'}));
+        else fetch(WORKER_URL + '/event', { method:'POST', body:payload, headers:{'Content-Type':'text/plain'}, keepalive:true }).catch(function(){});
+      });
+    } catch(e){}
+  }
+  function acceptRec(type, slug){
+    // Optimistic: grow the beat now so the repaint reflects it immediately.
+    if (type === 'firm') mine.firm.add(slug); else mine.proj.add(slug);
+    var m = ms(); if (!m || !m.getMemberJSON || !m.updateMemberJSON) return;
+    m.getMemberJSON().then(function(r){
+      var j = (r && r.data) || {};
+      if (type === 'firm'){
+        var fl = Array.isArray(j.firms_followed) ? j.firms_followed.slice() : [];
+        if (fl.indexOf(slug) < 0) fl.push(slug); j.firms_followed = fl;
+        m.updateMemberJSON({ json:j }).then(function(){ beaconEvent('firm_followed', { firm:slug }); });
+        try { var mc = JSON.parse(localStorage.getItem('tmw_firm_follows')||'[]'); if (mc.indexOf(slug)<0){ mc.push(slug); localStorage.setItem('tmw_firm_follows', JSON.stringify(mc)); } } catch(e){}
+      } else {
+        var fv = Array.isArray(j.favorites) ? j.favorites.slice() : [];
+        if (fv.indexOf(slug) < 0) fv.push(slug); j.favorites = fv;
+        m.updateMemberJSON({ json:j }).then(function(){ beaconEvent('favorite_added', { project_slug:slug }); });
+      }
+    });
+  }
+
   function active(){
     var d = getDismissed();
     var now = Date.now(), cutoff = now - PULSE_WINDOW_MS, upper = now + 2 * 24 * 60 * 60 * 1000;
@@ -1701,7 +1790,7 @@
     if (scope === 'me') list = list.filter(mineMatch);
     return list.slice(0, FEED_MAX);
   }
-  function countNew(){ return active().length; }
+  function countNew(){ var ts = seenFor(scope); return active().filter(function(e){ return addedTime(e) > ts; }).length; }
   function itemHtml(e){
     var lab = label(e);
     var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
@@ -1721,7 +1810,7 @@
     // beat ("Because you watch Miami", "You're watching this project", …).
     var why = '';
     if (scope === 'me'){ var wr = mineReason(e); if (wr) why = '<div class="pi-why"><svg class="pi-why-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span>' + esc(wr) + '</span></div>'; }
-    return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
+    return '<a class="tmw-pulse-item' + (isNew(e) ? ' is-new' : '') + '" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
       '<div class="pi-title">' + esc(title(e)) + '</div>' +
       '<div class="pi-meta">' + meta + '</div>' + partOf + why + '</div>' +
@@ -1734,16 +1823,17 @@
     return events.filter(function(e){ return !d.has(eid(e)); }).slice(0, 5);
   }
   function feedHtml(){
+    var recs = (scope === 'me') ? recsHtml() : '';
     var list = active();
     if (!list.length){
       if (scope === 'me'){
-        return '<div class="tmw-pulse-empty">No moves on your watches yet.<br>Onyx keeps watch — switch to <b>All</b> for the network.</div>';
+        return recs + '<div class="tmw-pulse-empty">No moves on your watches yet.<br>Onyx keeps watch — switch to <b>All</b> for the network.</div>';
       }
       var fb = recentFallback();
       if (!fb.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
       return '<div class="tmw-pulse-note">Nothing new lately — here’s the latest</div>' + fb.map(itemHtml).join('');
     }
-    return list.map(itemHtml).join('');
+    return recs + list.map(itemHtml).join('');
   }
   function paintCircle(){
     if (!circleEl) return;
@@ -1753,6 +1843,9 @@
     else      { circleEl.innerHTML = dot;                                         circleEl.classList.add('is-zero'); }
   }
   function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
+  // Freeze the current scope's last-seen for NEW dots, then mark it seen NOW so
+  // the badge clears — the feed still shows what was new via _displaySeen.
+  function markScopeSeen(){ _displaySeen = seenFor(scope); setSeen(scope, Date.now()); repaint(); }
 
   function injectCss(){
     if (document.getElementById('tmw-pulse-css')) return;
@@ -1806,6 +1899,24 @@
       '.tmw-pulse-item .pi-why{display:inline-flex;align-items:center;gap:5px;max-width:100%;margin-top:6px;padding:3px 10px 3px 8px;border-radius:999px;background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.3);font-size:10px;font-weight:600;color:#C9BBFF;overflow:hidden}',
       '.tmw-pulse-item .pi-why span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.tmw-pulse-item .pi-why-ic{width:11px;height:11px;flex:0 0 auto;fill:#B9A6FF;filter:drop-shadow(0 0 4px rgba(167,139,250,.6))}',
+      // NEW (unseen) accent — a purple left bar + a small dot by the thumbnail
+      '.tmw-pulse-item.is-new{background:rgba(167,139,250,.06)}',
+      '.tmw-pulse-item.is-new::before{content:"";position:absolute;left:2px;top:12px;bottom:12px;width:3px;border-radius:3px;background:linear-gradient(#B9A6FF,#A78BFA);box-shadow:0 0 8px rgba(167,139,250,.7)}',
+      // Recommended-watch cards atop the Me feed
+      '.tmw-pulse-recs{padding:8px 6px 4px}',
+      '.tmw-recs-h{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8f86b8;padding:2px 6px 8px}',
+      '.tmw-rec{position:relative;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:13px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);margin-bottom:7px}',
+      '.tmw-rec-img{width:40px;height:40px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,.06)}',
+      '.tmw-rec-ico{display:flex;align-items:center;justify-content:center;color:#B9A6FF}',
+      '.tmw-rec-ico svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}',
+      '.tmw-rec-b{min-width:0;flex:1}',
+      '.tmw-rec-t{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.tmw-rec-s{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.tmw-rec-add{flex:0 0 auto;appearance:none;cursor:pointer;font:700 11px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;color:#160b2e;background:#B9A6FF;border:0;border-radius:999px;padding:7px 12px;transition:background .15s,transform .12s}',
+      '.tmw-rec-add:hover{background:#cdbcff;transform:translateY(-1px)}',
+      '.tmw-rec-x{flex:0 0 auto;appearance:none;cursor:pointer;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.06);border:0;color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;transition:background .14s,color .14s}',
+      '.tmw-rec-x:hover{background:rgba(255,255,255,.12);color:#fff}',
+      '.tmw-rec-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',
       '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
@@ -1843,10 +1954,21 @@
     repaint();
     circleEl.addEventListener('click', function(ev){
       ev.stopPropagation();
-      popEl.hidden = !popEl.hidden;   // opening no longer clears — dismiss each tile to lower the count
+      var opening = popEl.hidden;
+      popEl.hidden = !popEl.hidden;
+      if (opening) markScopeSeen();                 // opening marks this scope seen → badge clears
+      else { _displaySeen = null; paintCircle(); }
     });
     feedEl.addEventListener('click', function(ev){
-      var x = ev.target.closest ? ev.target.closest('.pi-x') : null;
+      var t = ev.target;
+      // recommendation: accept (+ Follow / + Watch)
+      var add = t.closest ? t.closest('.tmw-rec-add') : null;
+      if (add){ ev.preventDefault(); ev.stopPropagation(); var c1 = add.closest('.tmw-rec'); if (c1){ acceptRec(c1.getAttribute('data-rectype'), c1.getAttribute('data-recslug')); addRecX(c1.getAttribute('data-recid')); repaint(); } return; }
+      // recommendation: dismiss
+      var rx = t.closest ? t.closest('.tmw-rec-x') : null;
+      if (rx){ ev.preventDefault(); ev.stopPropagation(); var c2 = rx.closest('.tmw-rec'); if (c2){ addRecX(c2.getAttribute('data-recid')); repaint(); } return; }
+      // clear a move notification
+      var x = t.closest ? t.closest('.pi-x') : null;
       if (!x) return;
       ev.preventDefault(); ev.stopPropagation();
       var item = x.closest('.tmw-pulse-item'); if (!item) return;
@@ -1873,7 +1995,8 @@
     function setScope(sc){
       scope = sc; try { localStorage.setItem(SCOPE_KEY, sc); } catch(e){}
       updateScopeUI();
-      if (sc === 'me') loadMine().then(repaint); else repaint();
+      var done = function(){ if (popEl && !popEl.hidden) markScopeSeen(); else repaint(); };
+      if (sc === 'me') loadMine().then(done); else done();
     }
     updateScopeUI();
     if (scope === 'me') loadMine().then(repaint);
@@ -1886,7 +2009,7 @@
       setScope(sc);
     });
     document.addEventListener('click', function(ev){
-      if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)) popEl.hidden = true;
+      if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)){ popEl.hidden = true; _displaySeen = null; paintCircle(); }
     });
     return true;
   }
