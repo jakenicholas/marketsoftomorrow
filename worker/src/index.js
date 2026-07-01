@@ -3738,7 +3738,47 @@ async function handlePostsPublish(req, env, origin, id) {
   await env.DB.prepare(`UPDATE posts SET status='published', published_at=COALESCE(published_at, ?1), updated_at=?1 WHERE id=?2`).bind(now, id).run();
   const updated = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
   if (!updated) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+  // Connector learning loop — if a human edited this AI-written draft before
+  // publishing, propose what the edits teach the shared brain (review-gated).
+  // Best-effort: never blocks or fails the publish.
+  if (updated.source === 'ai' && updated.ai_original_html) {
+    try { await captureEditLesson(env, updated); } catch (_) { /* learning is best-effort */ }
+  }
   return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
+}
+
+// Compare an AI draft's original body against the human-edited published body and
+// propose GENERALIZABLE lessons about our house voice/style to the shared brain
+// (review-gated via brainWrite). Cheap classifier; proposes nothing on trivial
+// diffs. This is the loop that makes Fable-authored drafts COMPOUND.
+async function captureEditLesson(env, post) {
+  if (!env.ANTHROPIC_API_KEY || !env.DB) return;
+  const orig = htmlToText(post.ai_original_html || '');
+  const final = htmlToText(post.body_html || '');
+  if (!orig || !final || orig === final) return;
+  // Skip trivial edits — only learn from a real revision.
+  if (orig.slice(0, 4000) === final.slice(0, 4000) && Math.abs(final.length - orig.length) < 40) return;
+  const sys = 'You improve an AI writing system for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written article before publishing. Compare the ORIGINAL (AI) and PUBLISHED (human-edited) versions and extract up to 3 GENERALIZABLE lessons about our house voice, style, structure, or accuracy that would make FUTURE AI drafts better. Ignore one-off article-specific facts (a specific price, a specific project name). Focus on patterns: tone, phrasing, length, structure, what to avoid. If the changes are trivial or purely cosmetic, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short imperative lesson>"}].';
+  const usr = 'ORIGINAL (AI):\n' + orig.slice(0, 6000) + '\n\n---\n\nPUBLISHED (human-edited):\n' + final.slice(0, 6000);
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 700, system: sys, messages: [{ role: 'user', content: usr }] }),
+  });
+  if (!r.ok) return;
+  const d = await r.json();
+  const txt = ((d.content || []).find(b => b && b.type === 'text') || {}).text || '';
+  const m = txt.match(/\[[\s\S]*\]/); if (!m) return;
+  let arr; try { arr = JSON.parse(m[0]); } catch { return; }
+  if (!Array.isArray(arr)) return;
+  for (const l of arr.slice(0, 3)) {
+    if (!l || !l.note) continue;
+    await brainWrite(env, {
+      type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note),
+      source: 'studio-edit:' + (post.slug || post.id),
+      evidence: 'Learned from a human edit of AI article "' + String(post.title || post.slug || '').slice(0, 80) + '"',
+    }, { review: true });
+  }
 }
 
 // ─── Social-media carousels ─────────────────────────────────────────────────
@@ -3816,6 +3856,7 @@ export async function ensureContactsTable(env) {
     `ALTER TABLE posts ADD COLUMN contact_id   TEXT`,
     `ALTER TABLE posts ADD COLUMN project_slug TEXT`,
     `ALTER TABLE posts ADD COLUMN source       TEXT DEFAULT NULL`,
+    `ALTER TABLE posts ADD COLUMN ai_original_html TEXT DEFAULT NULL`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) { /* already exists */ }
   }
@@ -7007,6 +7048,54 @@ async function ensureBrandNotes(env) {
     'CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1)'
   ).run();
 }
+// GET /brain/proposed — the review queue of learnings captured from human edits,
+// feedback, and routine critique (events 'brain_proposed'), minus any already
+// approved/dismissed. Surfaced in the Studio Teach tab for one-click approval.
+async function handleBrainProposed(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const rows = (await env.DB.prepare(
+    `SELECT ts, props_json FROM events WHERE event_name IN ('brain_proposed','brain_resolved') ORDER BY ts ASC`
+  ).all()).results || [];
+  const resolved = new Set();
+  const proposed = new Map();
+  for (const r of rows) {
+    let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+    if (p && p.ref_id) { resolved.add(String(p.ref_id)); continue; }      // a resolution record
+    if (p && p.id && p.note) proposed.set(String(p.id), { ...p, when: r.ts });
+  }
+  const list = [...proposed.values()].filter(p => !resolved.has(String(p.id)))
+    .sort((a, b) => (b.when || 0) - (a.when || 0))
+    .map(p => ({ id: p.id, type: p.type, kind: p.kind || null, note: p.note, source: p.source, evidence: p.evidence || null, when: p.when }));
+  return json({ proposed: list, count: list.length }, {}, env, origin);
+}
+
+// POST /brain/resolve { id, action:'approve'|'dismiss' } — approve APPLIES the
+// lesson to its live store (brand note / intel rule, shared by all systems);
+// dismiss just clears it from the queue. Either way a 'brain_resolved' record
+// removes it from /brain/proposed.
+async function handleBrainResolve(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const id = String(b.id || '').trim();
+  const action = String(b.action || '').trim();
+  if (!id || (action !== 'approve' && action !== 'dismiss')) return json({ error: 'id and action (approve|dismiss) required' }, { status: 400 }, env, origin);
+  const rows = (await env.DB.prepare(
+    `SELECT props_json FROM events WHERE event_name='brain_proposed' ORDER BY ts DESC LIMIT 500`
+  ).all()).results || [];
+  let rec = null;
+  for (const r of rows) { try { const p = JSON.parse(r.props_json); if (p && String(p.id) === id) { rec = p; break; } } catch {} }
+  if (!rec) return json({ error: 'no proposed lesson with id ' + id }, { status: 404 }, env, origin);
+  if (action === 'approve') { try { await applyLesson(env, rec); } catch (e) { return json({ error: 'apply failed: ' + ((e && e.message) || e) }, { status: 500 }, env, origin); } }
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+    .bind(now, 'brain-review', 'brain_resolved', JSON.stringify({ ref_id: id, action })).run();
+  return json({ ok: true, id, action, applied: action === 'approve' }, {}, env, origin);
+}
+
 async function handleBrainGet(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -7223,6 +7312,111 @@ async function handlePostViews(env, origin) {
 }
 
 // ---------------------------------------------------------------------------
+// Placement analytics — first-party view/click tracking for the banner ad
+// carousel (ads.json) and the Partners of Tomorrow cards (partners.json),
+// replacing Linkly. Every impression + click beacons POST /track; the Studio
+// reads aggregates from GET /placements. Daily rollup keyed by (id, day) so a
+// 30-day trend is a cheap GROUP BY and the table can never grow unbounded.
+// ---------------------------------------------------------------------------
+const PLACEMENT_ID_RE = /^[a-z0-9][a-z0-9_-]{0,120}$/i;
+
+async function ensurePlacementStatsTable(env) {
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS placement_stats (" +
+    "id TEXT NOT NULL, day TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'ad', " +
+    "label TEXT, views INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
+    "updated_at INTEGER, PRIMARY KEY (id, day))"
+  ).run();
+}
+
+async function handleTrack(req, env, origin) {
+  // Always 204 — a beacon ignores the body; failures stay silent so tracking
+  // never costs the visitor anything.
+  const ok = () => new Response(null, { status: 204, headers: corsHeaders(env, origin) });
+  if (!env.DB) return ok();
+
+  const ua = (req.headers.get('User-Agent') || '');
+  if (!ua || VIEW_BOT_RE.test(ua)) return ok();
+
+  let body = null;
+  try { const txt = await req.text(); if (txt) body = JSON.parse(txt); } catch (_) { return ok(); }
+  if (!body) return ok();
+
+  // Accept a single event or a batch ({events:[...]}). The banner carousel
+  // folds a page's many impressions into one beacon on pagehide.
+  const events = Array.isArray(body.events) ? body.events : (Array.isArray(body) ? body : [body]);
+  if (!events.length) return ok();
+
+  // Fold the batch into per-id view/click deltas so N impressions of one ad in
+  // a single beacon collapse to one UPDATE.
+  const now = Math.floor(Date.now() / 1000);
+  const day = new Date(now * 1000).toISOString().slice(0, 10);
+  const agg = new Map();  // id -> { type, label, views, clicks }
+  for (const e of events.slice(0, 200)) {
+    if (!e || typeof e !== 'object') continue;
+    const id = String(e.id || '').trim();
+    if (!PLACEMENT_ID_RE.test(id)) continue;
+    const ev = e.event === 'click' ? 'click' : (e.event === 'view' ? 'view' : '');
+    if (!ev) continue;
+    const type = e.type === 'partner' ? 'partner' : 'ad';
+    const label = (e.label != null && String(e.label).trim()) ? String(e.label).slice(0, 160) : null;
+    const cur = agg.get(id) || { type: type, label: null, views: 0, clicks: 0 };
+    cur.type = type;
+    if (label) cur.label = label;
+    if (ev === 'view') cur.views += 1; else cur.clicks += 1;
+    agg.set(id, cur);
+  }
+  if (!agg.size) return ok();
+
+  try {
+    await ensurePlacementStatsTable(env);
+    const stmt = env.DB.prepare(
+      'INSERT INTO placement_stats (id, day, type, label, views, clicks, updated_at) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ' +
+      'ON CONFLICT(id, day) DO UPDATE SET views = views + ?5, clicks = clicks + ?6, ' +
+      'label = COALESCE(?4, label), type = ?3, updated_at = ?7'
+    );
+    const batch = [];
+    for (const [id, v] of agg) batch.push(stmt.bind(id, day, v.type, v.label, v.views, v.clicks, now));
+    await env.DB.batch(batch);
+  } catch (_) {}
+  return ok();
+}
+
+async function handlePlacementStats(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ totals: [], series: {} }, {}, env, origin);
+  const url = new URL(req.url);
+  let days = parseInt(url.searchParams.get('days') || '30', 10);
+  if (!Number.isFinite(days) || days < 1) days = 30;
+  if (days > 365) days = 365;
+  const sinceDay = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10);
+  try {
+    await ensurePlacementStatsTable(env);
+    const totRows = await env.DB.prepare(
+      'SELECT id, type, label, SUM(views) AS views, SUM(clicks) AS clicks ' +
+      'FROM placement_stats WHERE day >= ?1 GROUP BY id ORDER BY views DESC'
+    ).bind(sinceDay).all();
+    const serRows = await env.DB.prepare(
+      'SELECT id, day, views, clicks FROM placement_stats WHERE day >= ?1 ORDER BY day ASC'
+    ).bind(sinceDay).all();
+    const totals = (totRows.results || []).map(r => ({
+      id: r.id, type: r.type, label: r.label,
+      views: r.views || 0, clicks: r.clicks || 0,
+      ctr: (r.views > 0) ? (r.clicks || 0) / r.views : 0,
+    }));
+    const series = {};
+    for (const r of (serRows.results || [])) {
+      (series[r.id] || (series[r.id] = [])).push({ day: r.day, views: r.views || 0, clicks: r.clicks || 0 });
+    }
+    return json({ days, since: sinceDay, totals, series },
+      { headers: { 'Cache-Control': 'private, max-age=20' } }, env, origin);
+  } catch (e) {
+    return json({ totals: [], series: {}, error: String(e && e.message || e) }, {}, env, origin);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Journal "active now" — first-party heartbeat. Every open journal page pings
 // POST /journal-ping {sid} every ~60s; GET /journal-active counts distinct
 // sessions seen in the last 5 minutes. (GA4 realtime can't be filtered to the
@@ -7364,6 +7558,134 @@ async function handleJournalActive(env, origin) {
 // Graceful degradation: any failure (no key, API error, bad input) returns
 // { answer: null } with 200, and the page keeps its deterministic answer.
 const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality balance on this public endpoint
+
+// ═══ Shared "TMW brain" layer ════════════════════════════════════════════════
+// One authoring model + one cross-system knowledge READ + one review-gated WRITE
+// bus, shared by Onyx, the Studio connector (article write/revise + Make-post),
+// and the routines — so a lesson learned anywhere is available everywhere.
+// WRITE_MODEL is the strong author; on a safety refusal / error / unusable reply
+// it falls back to the Opus model (Fable needs 30-day retention, the fallback
+// does NOT — so authoring never hard-fails, worst case it runs on Opus).
+const WRITE_MODEL = 'claude-fable-5';
+const WRITE_FALLBACK_MODEL = 'claude-opus-4-8';
+
+// One-shot generation with the strong author + graceful fallback. Reads the TEXT
+// block (Fable thinking is always on, so content[0] may be a thinking block).
+// Returns the text, or '' if every model declines/errors.
+export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}) {
+  if (!env || !env.ANTHROPIC_API_KEY || !user) return '';
+  for (const model of [WRITE_MODEL, WRITE_FALLBACK_MODEL]) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model, max_tokens: maxTokens, system: system || undefined, messages: [{ role: 'user', content: String(user) }] }),
+      });
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (d.stop_reason === 'refusal') continue;   // safety refusal → try the fallback model
+      const txt = ((d.content || []).find(b => b && b.type === 'text') || {}).text || '';
+      if (txt.trim()) return txt;
+    } catch (_) { /* try next model */ }
+  }
+  return '';
+}
+
+// Assemble the SHARED brain for an authoring/answering task: house voice
+// (brand_notes) + Onyx's learned answer rules & exemplars (events) + banked
+// evergreen knowledge & the closest real projects/articles (Vectorize). Every
+// piece is best-effort; a failure just omits that piece. Returns { text } ready
+// to drop into a system prompt, plus the structured parts.
+export async function assembleBrain(env, { topic = '', place = '', voice = true, maxKnowledge = 4, maxFacts = 6 } = {}) {
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '' };
+  if (!env || !env.DB) return out;
+  if (voice) {
+    try {
+      const rows = (await env.DB.prepare(
+        `SELECT kind, note, context FROM brand_notes WHERE active = 1 ORDER BY created_at ASC`
+      ).all()).results || [];
+      if (rows.length) out.voice = rows.map(r => `- [${r.kind}] ${r.note}${r.context ? ` (${r.context})` : ''}`).join('\n');
+    } catch (_) {}
+  }
+  try {
+    const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_rules' ORDER BY ts DESC LIMIT 1`).first();
+    if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.rules)) out.rules = pj.rules.filter(x => typeof x === 'string').slice(0, 15); }
+  } catch (_) {}
+  try {
+    const er = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_exemplars' ORDER BY ts DESC LIMIT 1`).first();
+    if (er && er.props_json) { const pj = JSON.parse(er.props_json); if (Array.isArray(pj.exemplars)) out.exemplars = pj.exemplars.filter(e => e && e.query && e.answer).slice(0, 3); }
+  } catch (_) {}
+  const q = [topic, place].filter(Boolean).join(' ').trim();
+  if (q && retrievalReady(env)) {
+    try {
+      const [vec] = await embedTexts(env, [q]);
+      if (Array.isArray(vec)) {
+        const ms = (await env.VECTORIZE.query(vec, { topK: 20, returnMetadata: 'all' })).matches || [];
+        out.knowledge = ms.filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
+          .slice(0, maxKnowledge).map(m => String(m.metadata.text).slice(0, 400));
+        out.facts = ms.filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.55 && m.metadata.title)
+          .slice(0, maxFacts).map(m => ({ title: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
+      }
+    } catch (_) {}
+  }
+  const parts = [];
+  if (out.voice) parts.push('HOUSE VOICE & RULES (Markets of Tomorrow brand brain — follow this):\n' + out.voice);
+  if (out.rules.length) parts.push('LEARNED EDITORIAL RULES (what the intelligence engine has learned works):\n' + out.rules.map(r => '- ' + r).join('\n'));
+  if (out.knowledge.length) parts.push('BACKGROUND KNOWLEDGE (evergreen context for accuracy — do not quote verbatim):\n' + out.knowledge.map(k => '- ' + k).join('\n'));
+  if (out.facts.length) parts.push('RELATED IN OUR DATABASE (real projects/articles we track — reference where relevant, never invent details):\n' + out.facts.map(f => `- ${f.title}${f.where ? ' — ' + f.where : ''}${f.status ? ' (' + f.status + ')' : ''} [${f.kind}]`).join('\n'));
+  if (out.exemplars.length) parts.push('EXEMPLARS (voice/structure to echo, not facts):\n' + out.exemplars.map(e => `Q: ${e.query}\nA: ${e.answer}`).join('\n\n'));
+  out.text = parts.join('\n\n');
+  return out;
+}
+
+// The shared WRITE bus. Every "we learned something" flows through here. By
+// default (review !== false) it STAGES the lesson as a proposed learning
+// (events 'brain_proposed') for human approval in the Teach tab — nothing
+// mutates the live brain until approved. Best-effort; never throws.
+export async function brainWrite(env, lesson, { review = true } = {}) {
+  try {
+    if (!env || !env.DB || !lesson) return { ok: false };
+    const rec = {
+      id: 'lsn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)),
+      type: String(lesson.type || 'voice'),                              // voice | rule | fact | exemplar | gap
+      note: String(lesson.note || '').slice(0, 2000),
+      kind: lesson.kind ? String(lesson.kind).slice(0, 40) : null,       // brand_notes kind when type=voice
+      source: String(lesson.source || 'system').slice(0, 60),
+      evidence: lesson.evidence ? String(lesson.evidence).slice(0, 1200) : null,
+      status: 'proposed',
+    };
+    if (!rec.note) return { ok: false };
+    const ts = Math.floor(Date.now() / 1000);
+    if (review) {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(ts, rec.source, 'brain_proposed', JSON.stringify(rec)).run();
+      return { ok: true, proposed: true, id: rec.id };
+    }
+    await applyLesson(env, rec);
+    return { ok: true, applied: true, id: rec.id };
+  } catch (_) { return { ok: false }; }
+}
+
+// Apply an APPROVED lesson to its live store (called from the Teach-tab approval
+// endpoint). rule → merged into the live intel_rules Onyx reads; everything else
+// → a brand note visible to every connected account and to assembleBrain.
+async function applyLesson(env, rec) {
+  const now = Math.floor(Date.now() / 1000);
+  if (rec.type === 'rule') {
+    let rules = [];
+    try { const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_rules' ORDER BY ts DESC LIMIT 1`).first(); if (rr) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.rules)) rules = pj.rules.filter(x => typeof x === 'string'); } } catch (_) {}
+    if (!rules.includes(rec.note)) rules.push(rec.note);
+    rules = rules.slice(-25);
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(now, 'brain-approve', 'intel_rules', JSON.stringify({ rules, note: 'approved from ' + rec.source })).run();
+    return;
+  }
+  await ensureBrandNotes(env);
+  const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+  const kind = rec.kind && ALLOWED.includes(rec.kind) ? rec.kind : 'rule';
+  await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)`)
+    .bind('bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)), kind, 'learned', rec.note.slice(0, 2000), 'via ' + rec.source, 'brain-approve', now).run();
+}
 
 // ─── Intent router (#1) ──────────────────────────────────────────────────────
 // GET /classify?q=… — a fast Haiku classification of the query into structured
@@ -8910,6 +9232,15 @@ export default {
       if (request.method === 'GET' && url.pathname === '/post-views') {
         return await handlePostViews(env, origin);
       }
+      // Placement analytics — first-party impression/click tracking (banner ads
+      // + Partners of Tomorrow), replacing Linkly. /track is a public beacon;
+      // /placements is admin-gated inside the handler.
+      if (request.method === 'POST' && url.pathname === '/track') {
+        return await handleTrack(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/placements') {
+        return await handlePlacementStats(request, env, origin);
+      }
       if (request.method === 'GET' && url.pathname === '/coverage-links') {
         return await handleCoverageLinks(env, origin);
       }
@@ -9310,6 +9641,8 @@ export default {
       }
       // /brain — shared brand-brain notes (admin read/write; same brand_notes
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
+      if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
+      if (url.pathname === '/brain/resolve'  && request.method === 'POST') return await handleBrainResolve(request, env, origin);
       if (url.pathname === '/brain' || url.pathname === '/brain/') {
         if (request.method === 'GET')  return await handleBrainGet(request, env, origin);
         if (request.method === 'POST') return await handleBrainPost(request, env, origin);

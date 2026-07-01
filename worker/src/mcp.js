@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -258,6 +258,38 @@ const TOOLS = [
         account_name:   { type: 'string', description: 'Carousel display name, default "FLORIDAOFTOMORROW".' },
       },
       required: ['title', 'slides'],
+    },
+  },
+  {
+    name: 'generate_article_draft',
+    description: 'WRITE a full journal article DRAFT with Fable 5, grounded in the SHARED TMW brain — the house voice (brand brain), the intelligence engine\'s learned editorial rules, banked evergreen knowledge, and the real projects/articles closest to the topic. Use this to author a new on-brand article from a topic/brief without hand-writing the body: it generates the title, body (Markdown), and excerpt in TMW\'s voice, pulls photos from a media folder if given, links a Map project if given, and saves a DRAFT (source=ai, in the studio AI tab). Never publishes. Returns the slug + Studio edit URL. Follow with revise_article_draft to refine, or create_design_draft / write_article_and_post to build the carousel.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        topic:          { type: 'string', description: 'What the article is about — a headline, a development, or a brief (e.g. "Aman\'s new Miami Beach residences break ground"). The more specific, the better.' },
+        angle:          { type: 'string', description: 'Optional editorial angle / what to emphasize (e.g. "why this signals the branded-residence boom in South Florida").' },
+        place:          { type: 'string', description: 'Optional city/region for grounding (e.g. "Miami Beach") — sharpens the shared-brain retrieval.' },
+        facts:          { type: 'string', description: 'Optional verified facts/quotes/source notes to ground the piece. The model must NOT invent numbers, dates, prices, or firm names beyond what you provide here + what it already knows to be true.' },
+        folder:         { type: 'string', description: 'Optional media-library folder — photos (newest-first) are sprinkled into the body and the first becomes the cover.' },
+        cover_image:    { type: 'string', description: 'Optional explicit cover URL.' },
+        category:       { type: 'string', description: 'Optional article category.' },
+        linked_project: { type: 'string', description: 'Optional Map of Tomorrow project slug to embed as a live card.' },
+        post_type:      { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Article classification (default Editorial).' },
+      },
+      required: ['topic'],
+    },
+  },
+  {
+    name: 'revise_article_draft',
+    description: 'EDIT/REWRITE an existing journal article DRAFT with Fable 5, grounded in the SHARED TMW brain (house voice + learned rules + knowledge). Give it a slug and a plain-English instruction ("tighten the intro", "make it more hype", "cut to 500 words", "lead with the architect") and it rewrites the body in TMW\'s voice and saves it back to the DRAFT. Drafts only; never publishes. NOTE: this does a full-body rewrite from the text — for surgical changes to a body with galleries/figures/embeds you want to preserve byte-for-byte, use edit_post_draft instead. Returns the Studio edit URL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug:        { type: 'string', description: 'Slug of the draft to revise.' },
+        instruction: { type: 'string', description: 'Plain-English editing instruction for how to rewrite the article.' },
+        place:       { type: 'string', description: 'Optional city/region to sharpen shared-brain grounding.' },
+      },
+      required: ['slug', 'instruction'],
     },
   },
   {
@@ -2007,6 +2039,75 @@ const IMPL = {
     };
   },
 
+  // Write a full article draft with Fable 5, grounded in the SHARED TMW brain.
+  async generate_article_draft(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const topic = String(args.topic || '').trim();
+    if (!topic) throw new Error('topic is required');
+    const brain = await assembleBrain(env, { topic, place: String(args.place || '') });
+    const sys = [
+      'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
+      brain.text || '',
+      'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>"}.',
+      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately).',
+    ].filter(Boolean).join('\n\n');
+    const usr = [
+      'TOPIC: ' + topic,
+      args.angle ? 'ANGLE: ' + String(args.angle) : '',
+      args.facts ? 'VERIFIED FACTS / SOURCE NOTES (ground the piece in these; do not contradict or exceed them):\n' + String(args.facts) : '',
+    ].filter(Boolean).join('\n\n');
+    const raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3200 });
+    let gen = null;
+    if (raw) { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { gen = JSON.parse(m[0]); } catch (_) {} } }
+    if (!gen || !gen.body_markdown) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
+    let images = [];
+    if (args.folder) {
+      const rows = await env.DB.prepare(`SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`).bind(String(args.folder)).all();
+      images = (rows.results || []).map((r) => r.url).filter(Boolean).slice(0, MAX_ARTICLE_IMAGES);
+    }
+    const cover = args.cover_image || images[0] || undefined;
+    const bodyImgs = args.cover_image ? images : images.slice(1);
+    const body = sprinkleImagesIntoMarkdown(String(gen.body_markdown), bodyImgs);
+    const title = String(gen.title || topic).slice(0, 200);
+    const article = await IMPL.create_post_draft({
+      title, body_markdown: body, excerpt: gen.excerpt ? String(gen.excerpt) : undefined,
+      category: args.category, cover_image: cover, linked_project: args.linked_project,
+      post_type: args.post_type, source: 'ai',
+    }, env);
+    return {
+      ok: true, slug: article.slug, edit_url: article.edit_url, title,
+      grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
+      photos_used: images.length,
+      note: 'Article draft written with Fable 5, grounded in the shared TMW brain. Review/finish in the Studio AI tab: ' + article.edit_url,
+    };
+  },
+
+  // Rewrite a draft with Fable 5 per a plain-English instruction, grounded in the shared brain.
+  async revise_article_draft(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const slug = String(args.slug || '').trim().toLowerCase();
+    const instruction = String(args.instruction || '').trim();
+    if (!slug) throw new Error('slug is required');
+    if (!instruction) throw new Error('instruction is required');
+    const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug = ?1').bind(slug).first();
+    if (!row) throw new Error('no post with slug "' + slug + '"');
+    if (row.status !== 'draft') throw new Error('refusing to revise a ' + row.status + ' post — only drafts are editable remotely');
+    const current = stripHtml(row.body_html || '');
+    if (!current.trim()) throw new Error('draft has no body text to revise');
+    const brain = await assembleBrain(env, { topic: String(row.title || ''), place: String(args.place || '') });
+    const sys = [
+      'You are the senior staff editor for Markets of Tomorrow (TMW). Revise the article below per the instruction, keeping it on-brand.',
+      brain.text || '',
+      'OUTPUT: return ONLY the revised, COMPLETE article as Markdown — no JSON, no fences, no commentary.',
+      'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). TMW voice per the brand brain. Avoid em dashes. Return the whole article, not a diff.',
+    ].filter(Boolean).join('\n\n');
+    const usr = 'INSTRUCTION: ' + instruction + '\n\nCURRENT ARTICLE:\n' + current;
+    const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
+    if (!revised || !revised.trim()) throw new Error('revision failed — the editor model returned nothing. Try again or edit manually.');
+    const res = await IMPL.update_post_draft({ slug, body_markdown: revised.trim() }, env);
+    return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length }, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '". Review in the Studio.' };
+  },
+
   async get_post_views(args, env) {
     if (args.slug) {
       const r = await env.DB.prepare('SELECT slug, views, wix_views FROM post_views WHERE slug = ?1').bind(String(args.slug).toLowerCase()).first();
@@ -2200,6 +2301,9 @@ const IMPL = {
     const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
     const campaignId  = args.campaign_id || null;
     const sourceMcp   = args.source === 'ai' ? 'ai' : null;   // 'ai' → lands in the studio "AI" tab (daily article routine)
+    // Snapshot the AI's original body so publish-time can diff it against the
+    // human-edited final and propose what the edits teach (the connector learning loop).
+    const aiOriginal  = sourceMcp === 'ai' ? bodyHtml : null;
     // If linking to a campaign and no explicit income given, auto-derive split.
     if (campaignId && income == null) {
       const c = await env.DB.prepare(`SELECT total_income, planned_posts FROM campaigns WHERE id = ?1`).bind(campaignId).first();
@@ -2209,9 +2313,9 @@ const IMPL = {
     await env.DB.prepare(
       `INSERT INTO posts (id, slug, title, excerpt, seo_description, body_html, cover_image, categories, tags,
                           author_name, status, published_at, reading_time_min, body_source,
-                          post_type, income, contact_id, project_slug, campaign_id, source, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)`
-    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, sourceMcp, now).run();   // seo_description mirrors excerpt (?4)
+                          post_type, income, contact_id, project_slug, campaign_id, source, ai_original_html, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?17)`
+    ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, sourceMcp, aiOriginal, now).run();   // seo_description mirrors excerpt (?4)
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
