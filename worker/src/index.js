@@ -7074,6 +7074,9 @@ async function ensureJournalActiveTable(env) {
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN city TEXT').run(); } catch (_) {}
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN region TEXT').run(); } catch (_) {}
   try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN country TEXT').run(); } catch (_) {}
+  // Real plan ('paid'/'free') so the live feed shows Pro vs free correctly
+  // instead of assuming every signed-in reader is Pro.
+  try { await env.DB.prepare('ALTER TABLE journal_active ADD COLUMN plan TEXT').run(); } catch (_) {}
 }
 
 async function handleJournalPing(req, env, origin) {
@@ -7081,10 +7084,10 @@ async function handleJournalPing(req, env, origin) {
   if (!env.DB) return ok();
   const ua = (req.headers.get('User-Agent') || '');
   if (!ua || VIEW_BOT_RE.test(ua)) return ok();
-  let sid = '', path = '', title = '', memberId = '', memberName = '';
+  let sid = '', path = '', title = '', memberId = '', memberName = '', plan = '';
   try {
     const t = await req.text();
-    if (t) { try { const o = JSON.parse(t); sid = (o.sid || '').toString(); path = (o.path || '').toString().slice(0, 300); title = (o.title || '').toString().slice(0, 300); memberId = (o.member_id || '').toString().slice(0, 80); memberName = (o.member_name || '').toString().slice(0, 120); } catch (_) {} }
+    if (t) { try { const o = JSON.parse(t); sid = (o.sid || '').toString(); path = (o.path || '').toString().slice(0, 300); title = (o.title || '').toString().slice(0, 300); memberId = (o.member_id || '').toString().slice(0, 80); memberName = (o.member_name || '').toString().slice(0, 120); plan = (o.plan || '').toString().slice(0, 12); } catch (_) {} }
   } catch (_) {}
   sid = sid.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
   if (!sid) return ok();
@@ -7102,15 +7105,16 @@ async function handleJournalPing(req, env, origin) {
     // if cf is somehow blank on this ping, don't clobber the previously-stored
     // geo for the session.
     await env.DB.prepare(
-      'INSERT INTO journal_active (sid, ts, path, title, member_id, member_name, city, region, country) ' +
-      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ' +
+      'INSERT INTO journal_active (sid, ts, path, title, member_id, member_name, city, region, country, plan) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10) ' +
       'ON CONFLICT(sid) DO UPDATE SET ts = ?2, path = ?3, title = ?4, ' +
       'member_id = COALESCE(NULLIF(?5, \'\'), member_id), ' +
       'member_name = COALESCE(NULLIF(?6, \'\'), member_name), ' +
       'city = COALESCE(NULLIF(?7, \'\'), city), ' +
       'region = COALESCE(NULLIF(?8, \'\'), region), ' +
-      'country = COALESCE(NULLIF(?9, \'\'), country)'
-    ).bind(sid, now, path, title, memberId || null, memberName || null, city || null, region || null, country || null).run();
+      'country = COALESCE(NULLIF(?9, \'\'), country), ' +
+      'plan = COALESCE(NULLIF(?10, \'\'), plan)'
+    ).bind(sid, now, path, title, memberId || null, memberName || null, city || null, region || null, country || null, plan || null).run();
   } catch (_) {}
   return ok();
 }
@@ -7122,11 +7126,12 @@ async function handleJournalActive(env, origin) {
     const now = Math.floor(Date.now() / 1000);
     const cut = now - 300;
     const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM journal_active WHERE ts > ?1').bind(cut).first();
-    const rows = await env.DB.prepare('SELECT ts, path, title, member_name, city, region, country FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
+    const rows = await env.DB.prepare('SELECT ts, path, title, member_name, city, region, country, plan FROM journal_active WHERE ts > ?1 ORDER BY ts DESC LIMIT 40').bind(cut).all();
     const reads = (rows.results || []).map(r => ({
       path: r.path || '',
       title: r.title || '',
       member_name: r.member_name || null,
+      plan: r.plan || null,
       city: r.city || null,
       region: r.region || null,
       country: r.country || null,

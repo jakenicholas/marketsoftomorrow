@@ -123,7 +123,7 @@
           // the 60s interval to reflect the state change.
           var p = JSON.stringify({
             sid: sid, path: location.pathname + location.hash, title: (document.title || '').slice(0, 200),
-            member_id: (mem && mem.id) || null, member_name: (mem && mem.name) || null,
+            member_id: (mem && mem.id) || null, member_name: (mem && mem.name) || null, plan: (mem && mem.plan) || null,
           });
           if (navigator.sendBeacon) navigator.sendBeacon(PING, p);
           else fetch(PING, { method: 'POST', body: p, keepalive: true, headers: { 'Content-Type': 'text/plain' } });
