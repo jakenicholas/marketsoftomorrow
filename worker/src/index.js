@@ -1202,6 +1202,16 @@ function reconstructWatchlist(eventsDesc) {
   return state;
 }
 const _slugKey = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+// Generic real-estate/filler words that must NOT drive a smart-watch match (too
+// broad) — leaving place names + distinctive terms (Brickell, Naples, Related…).
+const _WATCH_STOP = new Set(['new','coming','condos','condo','tower','towers','project','projects','building','buildings','residences','residence','development','developments','being','built','under','construction','luxury','hotel','hotels','resort','resorts','what','which','where','when','how','are','is','the','and','for','with','near','around','from','into','of','to','in','on','at','by','a','an','show','tell','list','give']);
+const _smartTokens = (q) => Array.from(new Set(String(q || '').toLowerCase().split(/[^a-z0-9]+/).filter(t => t.length >= 4 && !_WATCH_STOP.has(t))));
+const _evMove = (ev, extra) => Object.assign({
+  id: ev.id, type: ev.type, tag: ev.tag,
+  project_title: ev.project_title || ev.title, project_slug: ev.project_slug,
+  city: ev.city, image: ev.image, event_date: ev.event_date,
+  link: ev.link, timestamp: ev.timestamp,
+}, extra || {});
 async function handleWatchFeed(env, origin, url) {
   const memberId = url.searchParams.get('member') || url.searchParams.get('id');
   if (!memberId) return json({ error: 'member required' }, { status: 400 }, env, origin);
@@ -1212,20 +1222,32 @@ async function handleWatchFeed(env, origin, url) {
   const watchState = reconstructWatchlist(rs.results || []);
   const watchedKeys = new Set(Array.from(watchState.keys()).map(_slugKey));
   const pulse = await getPulseEvents();
-  const moves = pulse
-    .filter(ev => ev && ev.project_slug && watchedKeys.has(_slugKey(ev.project_slug)))
-    .map(ev => ({
-      id: ev.id, type: ev.type, tag: ev.tag,
-      project_title: ev.project_title || ev.title, project_slug: ev.project_slug,
-      city: ev.city, image: ev.image, event_date: ev.event_date,
-      link: ev.link, timestamp: ev.timestamp,
-    }))
-    .sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
-  const watches = Array.from(watchState.entries())
-    .map(([slug, added_ts]) => ({ slug, added_ts }))
-    .sort((a, b) => b.added_ts - a.added_ts);
+  const seen = new Set();
+  const moves = [];
+  for (const ev of pulse) {
+    if (!ev || !ev.project_slug || !watchedKeys.has(_slugKey(ev.project_slug))) continue;
+    seen.add(ev.id); moves.push(_evMove(ev));
+  }
+  // Smart watches (Phase 2) — saved queries/firms/areas. Match each remaining pulse
+  // event's project (title + city) against the query's distinctive place/name tokens.
+  let smartWatches = [];
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS smart_watches (id TEXT PRIMARY KEY, member_id TEXT, query TEXT, created_at INTEGER)`).run();
+    const sw = await env.DB.prepare(`SELECT query, created_at FROM smart_watches WHERE member_id = ? ORDER BY created_at DESC`).bind(memberId).all();
+    smartWatches = (sw.results || []).map(r => ({ query: r.query, created_at: r.created_at, tokens: _smartTokens(r.query) }));
+  } catch (_) {}
+  for (const ev of pulse) {
+    if (!ev || !ev.project_slug || seen.has(ev.id)) continue;
+    const hay = ((ev.project_title || ev.title || '') + ' ' + (ev.city || '')).toLowerCase();
+    const hit = smartWatches.find(w => w.tokens.length && w.tokens.some(t => hay.indexOf(t) !== -1));
+    if (hit) { seen.add(ev.id); moves.push(_evMove(ev, { via_watch: hit.query })); }
+  }
+  moves.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+  const watches = Array.from(watchState.entries()).map(([slug, added_ts]) => ({ slug, added_ts })).sort((a, b) => b.added_ts - a.added_ts);
+  const smarts = smartWatches.map(w => ({ query: w.query, created_at: w.created_at }));
   return json(
-    { ok: true, watches, watch_count: watches.length, moves, move_count: moves.length, pulse_count: pulse.length },
+    { ok: true, watches, smart_watches: smarts, watch_count: watches.length + smarts.length,
+      moves, move_count: moves.length, pulse_count: pulse.length },
     { headers: { 'Cache-Control': 'private, max-age=60' } }, env, origin
   );
 }
