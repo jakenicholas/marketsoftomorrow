@@ -5066,20 +5066,26 @@ async function handleDesignFromPost(req, env, origin) {
   const nSlides = Math.max(1, photos.length);
   const articleText = String(bodyR2).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000);
 
-  // Generate brand-voice caption + per-slide headlines. Falls back to the
-  // article's own title/excerpt if the model isn't configured/available.
+  // Generate brand-voice carousel copy. The brand brain is the source of truth —
+  // lead with it hard. Falls back to the article's title/excerpt if the model
+  // isn't configured/available.
+  const MARKETS = ['Florida', 'New York', 'Tennessee', 'Caribbean', 'Rockies', 'Hotels', 'Markets'];
   let gen = null;
   if (env.ANTHROPIC_API_KEY) {
-    const sys = 'You are the social copywriter for Markets of Tomorrow (TMW), a real-estate development media brand. Write an Instagram CAROUSEL from the article below in TMW\'s voice.\n'
-      + 'Brand brain (follow it):\n' + (brandGuide || '(none provided)') + '\n\n'
-      + 'Respond with ONLY JSON: {"caption":"<full IG caption in TMW voice; hooky first line; line breaks ok>","slides":[{"headline":"<punchy on-image line, <=10 words>","tagline":"<optional supporting line <=12 words, or empty>"}, ...]}. '
-      + 'Give EXACTLY ' + nSlides + ' slide objects (one per photo). Slide 1 is the scroll-stopping hook. Never invent facts, prices, or names not in the article. Avoid em dashes.';
+    const sys = 'You are the social copywriter for Markets of Tomorrow (TMW). The BRAND BRAIN below is your SOURCE OF TRUTH for voice, tone, structure, and rules — follow it closely so the copy reads like TMW wrote it, never generic real-estate marketing.\n\n'
+      + 'BRAND BRAIN:\n' + (brandGuide || '(none on file — write in a confident, insider, hype-but-credible TMW voice)') + '\n\n'
+      + 'Write the Instagram CAROUSEL for the article below. Respond with ONLY JSON:\n'
+      + '{"market":"<exactly one of: ' + MARKETS.join(' | ') + '>",'
+      + '"location":"<the project CITY for the cover pin, e.g. New York or Naples>",'
+      + '"caption":"<the full IG caption in TMW voice per the brand brain; strong hooky first line; line breaks ok>",'
+      + '"slides":["<slide 1 = the cover hook headline: punchy, up to ~3 short lines>","<slide 2 headline: ONE tight line>", ...]}\n'
+      + 'Give EXACTLY ' + nSlides + ' slide headline strings (one per photo). Slide 1 is the scroll-stopping cover hook; every later slide is ONE tight line (<=9 words). Do NOT write a tagline or byline — the "MARKETS OF TOMORROW" byline is fixed on the template. Never invent facts, prices, unit counts, dates, or names not in the article. Avoid em dashes.';
     const usr = 'Headline: ' + String(post.title || '') + '\n\nArticle:\n' + articleText;
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 1400, system: sys, messages: [{ role: 'user', content: usr }] }),
+        body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 1500, system: sys, messages: [{ role: 'user', content: usr }] }),
       });
       if (r.ok) {
         const d = await r.json();
@@ -5093,21 +5099,46 @@ async function handleDesignFromPost(req, env, origin) {
   const caption = (gen && typeof gen.caption === 'string' && gen.caption.trim())
     ? gen.caption.trim().slice(0, 3000)
     : String(post.excerpt || post.title || '').trim();
-  const genSlides = (gen && Array.isArray(gen.slides)) ? gen.slides : [];
+  const genLines = (gen && Array.isArray(gen.slides))
+    ? gen.slides.map(s => (typeof s === 'string' ? s : (s && s.headline) || ''))
+    : [];
+  const market   = (gen && MARKETS.includes(gen.market)) ? gen.market : 'Markets';
+  const location = String((gen && gen.location) || '').slice(0, 48);
 
+  // Slide 1 = the LOCKED cover template (3-line headline + location pin + market
+  // logo). Slides 2+ = a content template that KEEPS the fixed "MARKETS OF
+  // TOMORROW" byline — we pass headline ONLY, never tagline (the tagline box IS
+  // that byline, so setting it would overwrite the brand line).
   const slides = [];
   for (let i = 0; i < nSlides; i++) {
-    const gs = genSlides[i] || {};
-    const headline = String(gs.headline || (i === 0 ? (post.title || '') : '')).slice(0, 120);
-    const tagline  = String(gs.tagline || '').slice(0, 140);
-    const _seed = { headline };
-    if (tagline) _seed.tagline = tagline;
-    if (photos[i]) _seed.image = photos[i];
-    slides.push({ template: 'centered_bottom', _seed });
+    const headline = String(genLines[i] || (i === 0 ? (post.title || '') : '')).slice(0, 160);
+    if (i === 0) {
+      const _seed = { headline };
+      if (location) _seed.location = location;
+      if (photos[0]) _seed.image = photos[0];
+      slides.push({ template: 'first_bottom_center', _seed });
+    } else {
+      const _seed = { headline };
+      if (photos[i]) _seed.image = photos[i];
+      slides.push({ template: 'centered_bottom', _seed });
+    }
   }
 
-  // Omit `account` so the design editor keeps its default account (+ avatar).
-  const doc = { caption, slides, carousel_slug: null };
+  const ACCT_HANDLE = {
+    'Florida': 'floridaoftomorrow', 'New York': 'newyorkoftomorrow', 'Tennessee': 'tennesseeoftomorrow',
+    'Caribbean': 'caribbeanoftomorrow', 'Rockies': 'rockiesoftomorrow', 'Hotels': 'hotelsoftomorrow', 'Markets': 'marketsoftomorrow',
+  };
+  const handle = ACCT_HANDLE[market] || 'marketsoftomorrow';
+  const DESIGN_DEFAULT_AVATAR = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0aa909e8efc046dab5ce57c4481ca423~mv2.jpg';
+  // doc.market drives the per-market logo lockup on every slide (design editor
+  // applies MARKET_LOGOS[market] on load).
+  const doc = {
+    market,
+    caption,
+    account: { handle, name: handle.toUpperCase(), avatar: DESIGN_DEFAULT_AVATAR },
+    slides,
+    carousel_slug: null,
+  };
 
   const id    = 'dsgn-' + cryptoRandomId(12);
   const now   = Math.floor(Date.now() / 1000);
