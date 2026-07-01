@@ -2068,7 +2068,7 @@
         bell.type = 'button'; bell.className = 'tmw-wbell'; bell.setAttribute('aria-label', 'Onyx Watch — your live brief');
         bell.innerHTML = BELL_SVG + '<span class="tmw-wbadge" hidden></span><div class="tmw-wpanel"></div>';
         var cta = wrap.querySelector('.nav-cta');
-        if (cta) wrap.insertBefore(bell, cta); else wrap.appendChild(bell);
+        if (cta && cta.parentNode) cta.parentNode.insertBefore(bell, cta); else wrap.appendChild(bell);
         wrap.__tmwBell = bell;
         (function (b) {
           var panel = b.querySelector('.tmw-wpanel');
