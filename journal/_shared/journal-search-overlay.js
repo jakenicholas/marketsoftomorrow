@@ -52,6 +52,19 @@
   function mapLink(t, full){ return MAP_URL + '/?project=' + mapSlug(t) + (full ? '&fullscreen=true' : ''); }
   function firstField(o, keys){ for (var i=0;i<keys.length;i++){ var k=keys[i]; if (o[k]!=null && String(o[k]).trim()!=='') return o[k]; } return ''; }
   function commaFirst(s){ return String(s||'').split(',')[0].trim(); }
+  // Project bios are capped at 300 chars — a long DescriptionLong is trimmed to
+  // the last sentence-or-word boundary under the cap and gets an ellipsis, so a
+  // card never dumps a 600-char paragraph. Returns the (possibly clipped) text.
+  function clipBio(s, max){
+    s = String(s == null ? '' : s).trim();
+    max = max || 300;
+    if (s.length <= max) return s;
+    var cut = s.slice(0, max);
+    var lastStop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+    if (lastStop >= max * 0.6) return cut.slice(0, lastStop + 1);   // clean sentence end
+    var lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, '') + '…';
+  }
   function tokenize(q){ return norm(q).split(/[^a-z0-9]+/).filter(Boolean); }
   // Field matcher used by project scoring. SHORT needles (< 5 chars) must
   // match as a whole word so a 4-letter brand like "nora" doesn't substring-
@@ -1549,7 +1562,7 @@
   function renderProjectHero(p){
     var img = firstField(p, ['ImageURL','Image2','Image3']);
     var city = _locOf(p);
-    var desc = firstField(p, ['DescriptionLong','Description']);
+    var desc = clipBio(firstField(p, ['DescriptionLong','Description']), 300);
     // Show EVERY credited developer / architect, not just the first — a project
     // can be a JV (e.g. Highland Park Miami = Black Salmon + The Allen Morris
     // Company). Join the comma list with " & " so it reads as a byline.
@@ -1855,7 +1868,7 @@
       return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + label + (pairs.length>1?'s':'') + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
     }
     var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Architect', p.Architect, p.ArchitectSlugs);
-    var desc = firstField(p, ['DescriptionLong','description_long','Description','description']) || '';
+    var desc = clipBio(firstField(p, ['DescriptionLong','description_long','Description','description']) || '', 300);
     var type = firstField(p, ['ProjectType','PreferredType']);
     var slug = p.Slug || p.slug || '';
     var spine = '<div class="tmw-pv-spine"><div class="tmw-pv-spine-bar"><div class="tmw-pv-spine-fill" style="width:' + _spinePct(st) + '%"></div></div>'
@@ -4032,6 +4045,16 @@
           alreadyIn[p.Title] = true;
         }
       });
+    }
+    // Perfect project-name match (a direct search like "ponce park") → the user
+    // wants THAT project, not a grid of everything else that shares a common word
+    // ("park" pulling projects from all over the state). Suppress the generic
+    // Projects grid; keep ONLY genuine connected siblings (parent-child hierarchy,
+    // e.g. a district's towers), which arrive via the strongAnchor injection above.
+    if (_fullHero) {
+      var _sibSet = {};
+      if (strongAnchor && connectedProjects.length) connectedProjects.forEach(function (p) { _sibSet[p.Title] = true; });
+      restProjects = restProjects.filter(function (x) { return _sibSet[x.p.Title]; });
     }
     var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
     if (gridProjects.length){
