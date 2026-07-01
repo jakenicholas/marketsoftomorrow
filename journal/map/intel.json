@@ -2681,21 +2681,65 @@
       "delivery_speculative": false
     },
     "waldorf-astoria-residences-st-petersburg": {
-      "estimate_years": 3.5,
-      "estimate_label": "~3.5 years",
-      "days_out": 1279,
-      "delivery_date": "2029-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.6,
+      "estimate_label": "~3.6 years",
+      "range_low": 1.7,
+      "range_high": 4.8,
+      "confidence": "medium",
+      "comparable_count": 10,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 0.51,
+      "avg_distance_km": 431.9,
+      "avg_distance_mi": 268.4,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Property Markets Group",
+        "count": 1,
+        "median_years": 4.26,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3.5 years.",
+      "comparables": [
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.85,
+          "distance_km": 0.5,
+          "distance_mi": 0.3
+        },
+        {
+          "name": "AQUA at Westshore Yacht Club",
+          "slug": "aqua-at-westshore-yacht-club",
+          "location": "Tampa",
+          "years": 1.9,
+          "score": 0.7,
+          "distance_km": 16.6,
+          "distance_mi": 10.3
+        },
+        {
+          "name": "DELUX WeHo",
+          "slug": "delux-weho",
+          "location": "Nashville",
+          "years": 1.7,
+          "score": 0.64,
+          "distance_km": 1008.8,
+          "distance_mi": 626.9
+        }
+      ],
+      "pattern_summary": "Among 10 residences projects in TMW's data, the median build time is 3.2 years (range 1.7–4.8). Adjusted to ~3.6 years for Property Markets Group's own track record (~4.3-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "tampa-international-airport-expansion": {
       "estimate_years": 3.5,
@@ -12099,13 +12143,13 @@
   },
   "stats": {
     "high": 6,
-    "medium": 14,
+    "medium": 15,
     "low": 51,
-    "known_date": 423,
+    "known_date": 422,
     "completed": 62,
     "skipped": 60,
     "no_type": 0,
-    "firm_boosted": 38,
+    "firm_boosted": 39,
     "speculative_softened": 133,
     "district": 11,
     "mixed_use_adjusted": 11
