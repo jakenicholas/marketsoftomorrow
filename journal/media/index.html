@@ -1341,7 +1341,7 @@ let last=0; const nav=document.getElementById('nav');
         var bar=document.createElement('div');
         bar.className='growth-bar'+(up?'':' down');
         bar.innerHTML='<span class="gb-ico">'+(up?'▲':'▼')+'</span><span><b>'+(up?'+':'')+g.delta.toLocaleString()
-          +'</b> followers across the network this month<span class="gb-sub">  ('+(up?'+':'')+g.pct+'% since '+since+')</span></span>';
+          +'</b> followers across the network<span class="gb-sub">  ('+(up?'+':'')+g.pct+'%) since '+since+'</span></span>';
         oc.parentNode.insertBefore(bar, oc.nextSibling);
       }
     })
