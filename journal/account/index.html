@@ -135,6 +135,33 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .mchip .mck{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .mchip.on{border-color:rgba(230,197,116,.5);background:rgba(230,197,116,.08)}
 .mchip.on .mck{color:var(--gold)}
+/* ── unified "Your watches" surface ── */
+.watchwrap{display:flex;flex-direction:column;gap:18px}
+.wgrp-h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
+.mchip .mck{font-size:15px;line-height:1;letter-spacing:0;text-transform:none}
+.mchip.gold .mck{color:rgba(230,197,116,.7)}
+.mchip.gold:hover{border-color:rgba(230,197,116,.85);background:rgba(230,197,116,.13)}
+.mchip.gold:hover .mck{color:var(--gold)}
+/* project pill: status dot + tappable label + remove */
+.mchip.proj{cursor:default;padding:8px 10px 8px 14px;gap:10px;border-color:var(--hair2);background:rgba(255,255,255,.03)}
+.mchip.proj:hover{border-color:rgba(255,255,255,.24)}
+.mchip.proj .mchip-lbl{color:#ECEAE5;text-decoration:none;cursor:pointer}
+.mchip.proj:hover .mchip-lbl{color:#fff}
+.wdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:#6b7280;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
+.wdot.s-announced,.wdot.s-breaking{background:#4aa3ff;box-shadow:0 0 10px rgba(74,163,255,.55)}
+.wdot.s-construction{background:#f2b45a;box-shadow:0 0 10px rgba(242,180,90,.55)}
+.wdot.s-opening,.wdot.s-open{background:#57e08c;box-shadow:0 0 10px rgba(87,224,140,.55)}
+/* smart (Onyx) pill: purple pulse */
+.mchip.smart{cursor:default;padding:8px 10px 8px 13px;gap:9px;color:#EDE9FF;border-color:rgba(167,139,250,.42);background:rgba(167,139,250,.10)}
+.mchip.smart:hover{border-color:rgba(167,139,250,.7);background:rgba(167,139,250,.16)}
+.mchip.smart .wonyx{width:14px;height:14px;flex:0 0 auto;fill:var(--purple-glow);filter:drop-shadow(0 0 6px rgba(167,139,250,.7))}
+/* shared remove × for project + smart pills */
+.mck-x{appearance:none;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;color:var(--mute);padding:0 2px;margin-left:2px;transition:color .15s}
+.mck-x:hover{color:#fff}
+/* status legend under the project group */
+.wlegend{display:flex;flex-wrap:wrap;gap:16px;margin-top:2px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.wlegend span{display:inline-flex;align-items:center;gap:6px}
+.wlegend .wdot{width:7px;height:7px}
 .mktsearch{position:relative;max-width:520px;margin:0 0 14px}
 .mktsearch input{width:100%;background:var(--card);border:1px solid var(--hair);border-radius:12px;color:#ECEAE5;font-family:var(--sans);font-size:14px;padding:12px 15px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .mktsearch input::placeholder{color:var(--mute)}
@@ -176,7 +203,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-tab="overview">Overview</button>
-  <button class="tab" data-tab="watchlist">Watchlist</button>
   <button class="tab" data-tab="saved">Articles</button>
   <button class="tab" data-tab="account">Account</button>
 </div></nav>
@@ -204,9 +230,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       </div>
     </div>
     <div class="stats" id="stats"></div>
-    <div class="sechead"><h2 id="ownHead">Your markets</h2><span class="lbl">Follow to tailor your feed</span></div>
-    <div class="mktsearch"><input id="mktSearch" placeholder="Search markets &amp; firms &mdash; cities, states, countries, types, firms&hellip;" autocomplete="off"><div class="mktresults" id="mktResults" hidden></div></div>
-    <div class="mchips" id="mktChips"></div>
+    <div class="sechead"><h2 id="ownHead">Your watches</h2><span class="lbl" id="ownSub">Markets, firms, projects &amp; searches &mdash; one live feed</span></div>
+    <div class="mktsearch"><input id="mktSearch" placeholder="Watch anything &mdash; a city, a firm, a project type&hellip;" autocomplete="off"><div class="mktresults" id="mktResults" hidden></div></div>
+    <div class="watchwrap" id="mktChips"></div>
     <div class="sechead"><h2>Daily streak <span class="qhelp" tabindex="0" aria-label="What is a streak?">?<span class="qtip">Your streak counts every day you visit <b>oftmw.com</b>. Each day earns <b>10 XP</b>, plus a <b>+50 bonus</b> for every full week you keep it alive. Miss a day and it resets to zero.</span></span></h2><span class="streak-ttl" id="streakLbl">&nbsp;</span></div>
     <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
@@ -219,11 +245,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="ecard"><div class="ev">+400</div><div class="et">Add to the map</div><div class="es">Suggest a project or firm. Verified additions earn the most of any contribution.</div></div>
       <div class="ecard"><div class="ev">+10</div><div class="et">Comment</div><div class="es">Join the conversation on any article &mdash; your comments are public.</div></div>
     </div>
-  </section>
-
-  <section data-tab-panel="watchlist" hidden>
-    <div class="sechead"><h2>Your watchlist</h2><span class="lbl" id="wlCount">&nbsp;</span></div>
-    <div id="watchList"><div class="empty">Loading&hellip;</div></div>
   </section>
 
   <section data-tab-panel="saved" hidden>
@@ -417,52 +438,53 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function gcard(href,img,kicker,title){return '<a class="gc" href="'+esc(href)+'">'+(img?'<img class="gc-img" src="'+esc(img)+'" loading="lazy" alt="">':'<div class="gc-img gc-ph"></div>')+'<div class="gc-b">'+(kicker?'<div class="gc-cat">'+esc(kicker)+'</div>':'')+'<div class="gc-t">'+esc(title)+'</div></div></a>';}
 
-  var _wlDone=false,_svDone=false;
+  var _svDone=false;
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});
     var id=b.getAttribute('data-tab');
     document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
-    if(id==='watchlist') loadWatch();
     if(id==='saved') loadSaved();
   })});
-  // Deep-link a tab via the hash (e.g. /account#watchlist), on load + change.
-  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(['overview','watchlist','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
+  // Deep-link a tab via the hash (e.g. /account#saved), on load + change.
+  // 'watchlist' now resolves to Overview (the unified "Your watches" surface).
+  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(['overview','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
   tabFromHash(); window.addEventListener('hashchange',tabFromHash);
 
-  function loadWatch(){
-    if(_wlDone) return; _wlDone=true;
-    Promise.all([getMJ(), fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})]).then(function(out){
+  // ── project watches (Memberstack `favorites` × projects-flat.json) ──
+  // Rendered as status-dot pills inside the unified "Your watches" surface.
+  var _projWatch=[], _projDone=false, _projFlatP=null;
+  function projFlat(){ if(_projFlatP)return _projFlatP; _projFlatP=fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]}); return _projFlatP; }
+  function loadProjectWatches(){
+    if(_projDone) return; _projDone=true;
+    Promise.all([getMJ(), projFlat()]).then(function(out){
       var j=out[0]||{}, arr=out[1]||[];
       var favs=Array.isArray(j.favorites)?j.favorites.filter(function(s){return typeof s==='string'&&s}):[];
       var bySlug={}; arr.forEach(function(p){var s=projectSlugify(p.Title); if(s&&!bySlug[s])bySlug[s]=p;});
-      $('wlCount').textContent=favs.length+(favs.length===1?' project':' projects');
-      if(!favs.length){ $('watchList').innerHTML='<div class="empty">No tracked projects yet. Press the eye icon on projects to build your watchlist.</div>'; return; }
-      $('watchList').innerHTML='<div class="grid">'+favs.map(function(slug){ return projTile(bySlug[slug]||{}, slug); }).join('')+'</div>';
-    }).catch(function(){ _wlDone=false; $('watchList').innerHTML='<div class="empty">Couldn\'t load your watchlist &mdash; try a refresh.</div>'; });
+      _projWatch=favs.map(function(slug){ var p=bySlug[slug]||{}; return { slug:slug, title:p.Title||humanize(slug), city:p.City||'', delivery:p.Delivery||'', msl:p.Title?mapSlug(p.Title):String(slug).replace(/-/g,'') }; });
+      renderWatches();
+    }).catch(function(){ _projDone=false; });
   }
-  // exact map desktop-sidebar tile (renderProjectCard + deliveryBarHTML, ported)
-  function deliveryBarHTML(delivery){
-    if(!delivery) return '';
-    var d=String(delivery).toLowerCase(), cls,label,pct;
-    if(d.indexOf('announced')>=0){cls='announced';label='Announced';pct=10;}
-    else if(d.indexOf('breaking')>=0){cls='breaking';label='Breaking Ground';pct=30;}
-    else if(d.indexOf('construction')>=0){cls='construction';label='Under Construction';pct=60;}
-    else if(d.indexOf('opening')>=0){cls='opening';label='Opening Soon';pct=85;}
-    else if(d.indexOf('open')>=0){cls='open';label='Now Open';pct=100;}
-    else {cls='announced';label=delivery;pct=10;}
-    return '<div class="delivery-bar '+cls+'"><span class="delivery-bar-label">'+esc(label)+'</span><div class="delivery-bar-track"><div class="delivery-bar-fill" style="width:'+pct+'%;--fill-pct:'+pct+'"></div></div><div class="delivery-bar-stages"><span>Announced</span><span>Building</span><span>Open</span></div></div>';
+  // ── smart watches (Onyx "Watch this" queries, via worker /watch/smart) ──
+  var _smartWatch=[], _smartDone=false;
+  function loadSmartWatches(){
+    if(_smartDone) return; _smartDone=true;
+    getMember().then(function(mem){
+      if(!mem||!mem.id){ return; }
+      fetch(WORKER+'/watch/smart?member='+encodeURIComponent(mem.id),{cache:'no-store'})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(d){ _smartWatch=(d&&Array.isArray(d.smart_watches))?d.smart_watches.filter(function(s){return s&&s.query;}):[]; renderWatches(); })
+        .catch(function(){ _smartDone=false; });
+    });
   }
-  function projTile(p, slug){
-    var msl=p.Title?mapSlug(p.Title):String(slug).replace(/-/g,'');
-    var img=p.ImageURL||p.Image2||'';
-    var type=(p.PreferredType&&p.PreferredType.trim())||((p.ProjectType||'').split(',')[0]||'').trim();
-    var meta=esc(p.City||'—')+(type?' &middot; '+esc(type):'');
-    return '<a class="grid-item visible" href="https://www.oftmw.com/map/?project='+encodeURIComponent(msl)+'">'+
-      '<div class="image-wrapper">'+(img?'<img src="'+esc(img)+'" loading="lazy" alt="'+esc(p.Title||'')+'">':'')+'</div>'+
-      (p.Featured?'<div class="featured-badge"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Featured</div>':'')+
-      '<div class="grid-item-content"><h3>'+esc(p.Title||humanize(slug))+'</h3><p class="city">'+meta+'</p></div>'+
-      deliveryBarHTML(p.Delivery)+
-    '</a>';
+  // Map a delivery phase to a status-dot class + human label (dot = live status).
+  function deliveryStatus(delivery){
+    var d=String(delivery||'').toLowerCase();
+    if(d.indexOf('announced')>=0) return {cls:'s-announced',label:'Announced'};
+    if(d.indexOf('breaking')>=0)  return {cls:'s-breaking', label:'Breaking ground'};
+    if(d.indexOf('construction')>=0) return {cls:'s-construction',label:'Under construction'};
+    if(d.indexOf('opening')>=0)   return {cls:'s-opening',  label:'Opening soon'};
+    if(d.indexOf('open')>=0)      return {cls:'s-open',     label:'Now open'};
+    return {cls:'s-announced', label: delivery ? delivery : 'Tracking'};
   }
 
   function loadSaved(){
@@ -488,19 +510,55 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var _firmNames={};
   function firmNice(slug){ return _firmNames[slug] || humanize(slug); }
   function followCacheArr(k){ try{ var a=JSON.parse(localStorage.getItem(k)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
-  function updateOwnHead(nm,nf){ var h=$('ownHead'); if(!h)return; h.textContent=(nm&&nf)?'Your Markets & Firms':(nf?'Your Firms':'Your Markets'); }
-  function renderFollows(markets,firms){ if(markets==null)markets=followCacheArr('tmw_mkt_follows'); if(firms==null)firms=followCacheArr('tmw_firm_follows'); var el=$('mktChips'); if(!el)return; var html=markets.map(function(s){return '<button class="mchip on" data-kind="market" data-m="'+esc(s)+'" type="button">'+esc(niceName(s))+'<span class="mck">Following</span></button>';}).concat(firms.map(function(s){return '<button class="mchip on" data-kind="firm" data-m="'+esc(s)+'" type="button">'+esc(firmNice(s))+'<span class="mck">Following</span></button>';})).join(''); el.innerHTML = html || '<div class="mkt-empty">Nothing followed yet &mdash; search above to add markets or firms.</div>'; updateOwnHead(markets.length, firms.length); }
-  function renderMarkets(list){ renderFollows(list, null); }
-  function renderFirms(list){ renderFollows(null, list); }
+  // Unified "Your watches" surface — markets, firms, projects & Onyx searches
+  // rendered as one grouped set of pills. _mkt/_firm mirror Memberstack;
+  // _projWatch/_smartWatch are loaded async (loadProjectWatches/loadSmartWatches).
+  var _mkt=[], _firm=[];
+  function updateOwnHead(){ var sub=$('ownSub'); if(!sub)return; var n=_mkt.length+_firm.length+_projWatch.length+_smartWatch.length; sub.textContent = n ? (n+(n===1?' watch':' watches')+' · tracked live') : 'Markets, firms, projects & searches — one live feed'; }
+  function wgrp(title,pills){ if(!pills)return ''; return '<div class="wgrp"><div class="wgrp-h">'+esc(title)+'</div><div class="mchips">'+pills+'</div></div>'; }
+  function renderWatches(){
+    var el=$('mktChips'); if(!el)return;
+    var mHtml=_mkt.map(function(s){return '<button class="mchip on gold" data-kind="market" data-m="'+esc(s)+'" type="button"><span class="mchip-lbl">'+esc(niceName(s))+'</span><span class="mck" aria-hidden="true">×</span></button>';}).join('');
+    var fHtml=_firm.map(function(s){return '<button class="mchip on gold" data-kind="firm" data-m="'+esc(s)+'" type="button"><span class="mchip-lbl">'+esc(firmNice(s))+'</span><span class="mck" aria-hidden="true">×</span></button>';}).join('');
+    var pHtml=_projWatch.map(function(p){ var st=deliveryStatus(p.delivery); return '<span class="mchip proj" data-kind="project" data-slug="'+esc(p.slug)+'"><span class="wdot '+st.cls+'" title="'+esc(st.label)+'"></span><a class="mchip-lbl" href="https://www.oftmw.com/map/?project='+encodeURIComponent(p.msl)+'">'+esc(p.title)+'</a><button class="mck-x" type="button" data-kind="project" data-slug="'+esc(p.slug)+'" aria-label="Remove '+esc(p.title)+'">×</button></span>';}).join('');
+    var sHtml=_smartWatch.map(function(w){ return '<span class="mchip smart" data-kind="smart" data-q="'+esc(w.query)+'"><svg class="wonyx" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span class="mchip-lbl">'+esc(w.query)+'</span><button class="mck-x" type="button" data-kind="smart" data-q="'+esc(w.query)+'" aria-label="Remove watch">×</button></span>';}).join('');
+    var html = wgrp('Markets',mHtml)+wgrp('Firms',fHtml)+wgrp('Projects',pHtml)+wgrp('Onyx searches',sHtml);
+    if(pHtml) html += '<div class="wlegend"><span><i class="wdot s-announced"></i>Announced</span><span><i class="wdot s-construction"></i>Building</span><span><i class="wdot s-open"></i>Open</span></div>';
+    el.innerHTML = html || '<div class="mkt-empty">Nothing watched yet — search above to watch a market, firm or project type, press the eye on any project, or hit “Watch this” on an Onyx answer.</div>';
+    updateOwnHead();
+  }
+  function renderFollows(markets,firms){ _mkt = (markets!=null)?markets.slice():followCacheArr('tmw_mkt_follows'); _firm = (firms!=null)?firms.slice():followCacheArr('tmw_firm_follows'); renderWatches(); }
+  function renderMarkets(list){ renderFollows(list, _firm); }
+  function renderFirms(list){ renderFollows(_mkt, list); }
   function setMarketsStat(n){ var c=document.querySelector('.stat[data-k="markets"] .v'); if(c)c.textContent=fmt(n); }
   function cacheMarkets(list){ try{ localStorage.setItem('tmw_mkt_follows', JSON.stringify(list||[])); }catch(e){} }
   function postMarketEvent(name,slug){ try{ var m=ms(); if(!m||!m.getCurrentMember)return; m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem)return; var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:name,props:{market:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }); }catch(e){} }
   function toggleMarket(slug){ getMJ().then(function(j){ var list=Array.isArray(j.markets_followed)?j.markets_followed.slice():[]; var i=list.indexOf(slug),on; if(i>=0){list.splice(i,1);on=false;}else{list.push(slug);on=true;} renderMarkets(list); setMarketsStat(list.length); cacheMarkets(list); saveMJ({markets_followed:list}).then(function(){ postMarketEvent(on?'market_followed':'market_unfollowed',slug); }).catch(function(){ getMJ().then(function(j2){renderMarkets(j2.markets_followed||[]);setMarketsStat((j2.markets_followed||[]).length);}); }); }); }
   function cacheFirms(list){ try{ localStorage.setItem('tmw_firm_follows', JSON.stringify(list||[])); }catch(e){} }
   function postFirmEvent(name,slug){ try{ var m=ms(); if(!m||!m.getCurrentMember)return; m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem)return; var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:name,props:{firm:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }); }catch(e){} }
-  function toggleFirm(slug){ getMJ().then(function(j){ var list=Array.isArray(j.firms_followed)?j.firms_followed.slice():[]; var i=list.indexOf(slug),on; if(i>=0){list.splice(i,1);on=false;}else{list.push(slug);on=true;} cacheFirms(list); renderFollows(null,list); saveMJ({firms_followed:list}).then(function(){ postFirmEvent(on?'firm_followed':'firm_unfollowed',slug); }).catch(function(){ getMJ().then(function(j2){cacheFirms(j2.firms_followed||[]);renderFollows(null,j2.firms_followed||[]);}); }); }); }
-  function addFirm(slug){ getMJ().then(function(j){ var list=Array.isArray(j.firms_followed)?j.firms_followed.slice():[]; if(list.indexOf(slug)>=0)return; list.push(slug); cacheFirms(list); renderFollows(null,list); saveMJ({firms_followed:list}).then(function(){ postFirmEvent('firm_followed',slug); }).catch(function(){ getMJ().then(function(j2){cacheFirms(j2.firms_followed||[]);renderFollows(null,j2.firms_followed||[]);}); }); }); }
-  document.addEventListener('click',function(e){ var b=e.target&&e.target.closest&&e.target.closest('#mktChips .mchip'); if(!b)return; if(b.getAttribute('data-kind')==='firm') toggleFirm(b.getAttribute('data-m')); else toggleMarket(b.getAttribute('data-m')); });
+  function toggleFirm(slug){ getMJ().then(function(j){ var list=Array.isArray(j.firms_followed)?j.firms_followed.slice():[]; var i=list.indexOf(slug),on; if(i>=0){list.splice(i,1);on=false;}else{list.push(slug);on=true;} cacheFirms(list); renderFollows(_mkt,list); saveMJ({firms_followed:list}).then(function(){ postFirmEvent(on?'firm_followed':'firm_unfollowed',slug); }).catch(function(){ getMJ().then(function(j2){cacheFirms(j2.firms_followed||[]);renderFollows(_mkt,j2.firms_followed||[]);}); }); }); }
+  function addFirm(slug){ getMJ().then(function(j){ var list=Array.isArray(j.firms_followed)?j.firms_followed.slice():[]; if(list.indexOf(slug)>=0)return; list.push(slug); cacheFirms(list); renderFollows(_mkt,list); saveMJ({firms_followed:list}).then(function(){ postFirmEvent('firm_followed',slug); }).catch(function(){ getMJ().then(function(j2){cacheFirms(j2.firms_followed||[]);renderFollows(_mkt,j2.firms_followed||[]);}); }); }); }
+  // Mirror a favorite change into the event log so the watch feed stays in sync.
+  function postProjectEvent(name,slug){ try{ var m=ms(); if(!m||!m.getCurrentMember)return; m.getCurrentMember().then(function(r){ var mem=r&&r.data; if(!mem)return; var cf=mem.customFields||{}; var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim()||null; var payload=JSON.stringify({member_id:mem.id,member_name:nm,event_name:name,props:{project_slug:slug}}); if(navigator.sendBeacon){navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'}));}else{fetch(WORKER+'/event',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){});} }); }catch(e){} }
+  function removeProjectWatch(slug){
+    _projWatch=_projWatch.filter(function(p){return p.slug!==slug;}); renderWatches();
+    getMJ().then(function(j){ var list=Array.isArray(j.favorites)?j.favorites.slice():[]; var i=list.indexOf(slug); if(i<0)return; list.splice(i,1); saveMJ({favorites:list}).then(function(){ postProjectEvent('favorite_removed',slug); }).catch(function(){ _projDone=false; loadProjectWatches(); }); });
+  }
+  function removeSmartWatch(q){
+    _smartWatch=_smartWatch.filter(function(w){return w.query!==q;}); renderWatches();
+    getMember().then(function(mem){ if(!mem||!mem.id)return; var payload=JSON.stringify({member:mem.id,query:q}); fetch(WORKER+'/watch/delete',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){ _smartDone=false; loadSmartWatches(); }); });
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target;
+    // explicit × on a project / smart pill
+    var x=t&&t.closest&&t.closest('#mktChips .mck-x');
+    if(x){ e.preventDefault(); var k=x.getAttribute('data-kind'); if(k==='project') removeProjectWatch(x.getAttribute('data-slug')); else if(k==='smart') removeSmartWatch(x.getAttribute('data-q')); return; }
+    // project label is a real link to the dossier — let it navigate
+    if(t&&t.closest&&t.closest('#mktChips .mchip.proj .mchip-lbl')) return;
+    // whole-pill click on a market / firm chip removes it (existing behaviour)
+    var b=t&&t.closest&&t.closest('#mktChips .mchip[data-kind="market"], #mktChips .mchip[data-kind="firm"]');
+    if(!b)return; if(b.getAttribute('data-kind')==='firm') toggleFirm(b.getAttribute('data-m')); else toggleMarket(b.getAttribute('data-m'));
+  });
 
   // searchable catalog — cities/states/countries/types to follow beyond the quick chips
   var _cat=null;
@@ -626,6 +684,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       render(base); cacheView(base);
       renderFollows(j.markets_followed||[], fm);
       if(fm.length) firmCatalog().then(function(){ renderFollows(j.markets_followed||[], fm); });
+      loadProjectWatches(); loadSmartWatches();
     });
   });
 
