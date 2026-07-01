@@ -1243,8 +1243,10 @@ function initComments(slug, post) {
   if (!heroWrap && !(bc0 && bc0.parentNode)) return;
   var host = document.createElement('div');
   host.id = 'article-intel'; host.className = 'article-intel';
-  if (heroWrap) heroWrap.appendChild(host);
-  else bc0.parentNode.insertBefore(host, bc0);
+  if (heroWrap) {
+    var byline = heroWrap.querySelector('.byline');           // sit ABOVE the author/share/heart row
+    if (byline) heroWrap.insertBefore(host, byline); else heroWrap.appendChild(host);
+  } else bc0.parentNode.insertBefore(host, bc0);
   // Appear INSTANTLY with a skeleton loader; the fetch fills it in (or removes
   // the box if there's no summary for this post).
   host.innerHTML = HEAD + '<div class="ai-skel ai-skel-1"></div><div class="ai-skel ai-skel-2"></div><div class="ai-skel ai-skel-3"></div>';
