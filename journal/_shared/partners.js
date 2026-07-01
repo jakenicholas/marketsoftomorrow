@@ -283,10 +283,38 @@
     if (!realCards.length) return;
     const totalReal = realCards.length;
 
+    // ── First-party placement tracking (replaces Linkly) ──────────────────
+    // A partner counts a "view" each time its card becomes the spotlight (the
+    // "every time shown" rule), and a "click" when its CTA is followed. Guards
+    // on window.tmwTrack (loaded via the universal chrome) are lazy — checked at
+    // fire time, never at bind time — so a slow tracker load never drops events.
+    function partnerOf(card) {
+      if (!card) return null;
+      const id = card.getAttribute('data-partner-id');
+      if (!id) return null;
+      const nmEl = card.querySelector('.tmw-spot-logo');
+      return { id: id, name: nmEl ? nmEl.textContent : '' };
+    }
+    function fireView(card) {
+      const p = partnerOf(card);
+      if (p && window.tmwTrack) window.tmwTrack.view(p.id, 'partner', p.name);
+    }
+    function bindCta(card) {
+      const p = partnerOf(card);
+      if (!p) return;
+      const cta = card.querySelector('.tmw-spot-cta');
+      if (cta && !cta._tmwBound) {
+        cta._tmwBound = 1;
+        cta.addEventListener('click', function () { if (window.tmwTrack) window.tmwTrack.click(p.id, 'partner', p.name); }, true);
+      }
+    }
+
     // Single card -- skip the loop machinery, just show it.
     if (totalReal === 1) {
       realCards[0].classList.add('is-active');
       track.style.transform = 'translateX(0)';
+      bindCta(realCards[0]);
+      fireView(realCards[0]);
       return;
     }
 
@@ -299,6 +327,7 @@
     track.appendChild(firstClone);
 
     const allCards = [].slice.call(track.querySelectorAll('.tmw-spot-card'));
+    allCards.forEach(bindCta);  // clones are cloneNode(true) — no inherited listeners, so bind them too
     // [lastClone, real0, real1, ..., realN-1, firstClone] -- N+2 total.
     // Real cards live at positions 1..N; clones at 0 and N+1.
     let currentIndex = 1;
@@ -346,6 +375,7 @@
       if (isTeleporting) return;
       currentIndex = i;
       update(true);
+      fireView(allCards[currentIndex]);  // count the newly-spotlit partner (a clone carries its twin's id)
       // If we just landed on a clone, schedule a snap to the real twin.
       if (currentIndex === 0 || currentIndex === totalReal + 1) {
         isTeleporting = true;
@@ -393,7 +423,7 @@
     });
 
     // Initial position -- center the real first card, no animation.
-    requestAnimationFrame(function () { update(false); });
+    requestAnimationFrame(function () { update(false); fireView(allCards[currentIndex]); });
   }
 
   function toPartnersShape(data) {

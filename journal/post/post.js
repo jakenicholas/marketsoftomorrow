@@ -683,8 +683,15 @@ function slideHtml(s, i) {
   const media = s.video
     ? `<video src="${escapeAttr(s.video)}" ${s.poster ? `poster="${escapeAttr(s.poster)}"` : ''} muted playsinline preload="metadata" ${i === 0 ? 'autoplay' : ''}></video>`
     : `<img src="${escapeAttr(s.image)}" alt="${escapeAttr(s.advertiser || '')}">`;
-  return `<a class="fc-slide${onCls}" href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener sponsored">${media}</a>`;
+  return `<a class="fc-slide${onCls}" href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener sponsored" data-slide-id="${escapeAttr(s.id)}" onclick="logAdClick('${escapeAttr(s.id)}')">${media}</a>`;
 }
+// First-party click tracking (replaces Linkly) — mirrors the list-page carousels.
+window.logAdClick = function (id) {
+  try {
+    var s = (CAROUSEL.slides || []).find(function (x) { return x && x.id === id; });
+    if (window.tmwTrack) window.tmwTrack.click(id, 'ad', (s && s.advertiser) || '');
+  } catch (e) {}
+};
 function setSlide(idx) {
   const slides = document.querySelectorAll('.fc-slide');
   const dots = document.querySelectorAll('.fc-dot');
@@ -700,6 +707,7 @@ function setSlide(idx) {
   dots.forEach((d, i) => d.classList.toggle('on', i === CAROUSEL.idx));
   const cur = CAROUSEL.slides[CAROUSEL.idx];
   if (sp) sp.textContent = cur && cur.advertiser ? 'Sponsored · ' + cur.advertiser : 'Sponsored';
+  if (cur && cur.id && window.tmwTrack) window.tmwTrack.view(cur.id, 'ad', cur.advertiser || '');  // impression each time this slide is shown
 }
 function hookCarousel() {
   const root = document.getElementById('fc');

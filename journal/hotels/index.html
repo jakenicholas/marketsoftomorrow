@@ -1943,6 +1943,7 @@ function setSlide(idx) {
   dots.forEach((d, i) => d.classList.toggle('on', i === CAROUSEL.idx));
   const cur = CAROUSEL.slides[CAROUSEL.idx];
   if (sponsor) sponsor.textContent = cur && cur.advertiser ? 'Sponsored · ' + cur.advertiser : 'Sponsored';
+  if (cur && cur.id && window.tmwTrack) window.tmwTrack.view(cur.id, 'ad', cur.advertiser || '');  // impression each time this slide is shown
 }
 
 function hookCarousel() {
@@ -1996,7 +1997,12 @@ function stopCarouselTimer() { if (CAROUSEL.timer) { clearInterval(CAROUSEL.time
 function restartTimer()      { startCarouselTimer(); }
 
 window.logAdClick = function(id) {
-  try { console.log('[slide-click]', id); } catch {}
+  // First-party click tracking (replaces Linkly). Look up the advertiser label
+  // from the loaded slides so the Studio can show a name, not just an id.
+  try {
+    var s = (CAROUSEL.slides || []).find(function(x){ return x && x.id === id; });
+    if (window.tmwTrack) window.tmwTrack.click(id, 'ad', (s && s.advertiser) || '');
+  } catch (e) {}
 };
 
 function renderFeaturedCard(item) {

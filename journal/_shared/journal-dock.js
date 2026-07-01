@@ -23,6 +23,17 @@
     document.head.appendChild(_mt);
   }
 
+  // First-party placement tracker (window.tmwTrack) — impression/click beacons
+  // for the banner ad carousel + Partners of Tomorrow, replacing Linkly. Loaded
+  // eagerly here so it's ready before any ad/partner renders on any journal page.
+  if (!document.querySelector('script[data-tmw-track]')) {
+    var _tk = document.createElement('script');
+    _tk.src = '/_shared/track.js';
+    _tk.defer = true;
+    _tk.setAttribute('data-tmw-track', '1');
+    document.head.appendChild(_tk);
+  }
+
   // The current surface. "map" = the map.oftmw.com host OR the /map clone path on
   // www.oftmw.com; "atlas" = the /atlas path; everything else is the journal.
   // Single source of truth so the toggle, surface tag, and accents stay in sync.
