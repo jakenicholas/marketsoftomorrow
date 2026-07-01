@@ -654,8 +654,17 @@
         }
       }
       function fitAll(root) {
-        var boxes = (root || document).querySelectorAll('.pp-firm-chips[data-more]');
+        var boxes = Array.prototype.slice.call((root || document).querySelectorAll('.pp-firm-chips[data-more]'));
+        // Reset any prior equalisation so heights measure naturally.
+        for (var r = 0; r < boxes.length; r++) boxes[r].style.minHeight = '';
+        // Cap each box at two rows (folds overflow into "+N more").
         for (var i = 0; i < boxes.length; i++) fitOne(boxes[i]);
+        // Equalise EVERY firm box to the tallest one on the page so the
+        // developer/architect frames line up the same height tile-to-tile
+        // (a 1-firm card's box matches a 2-firm card's box).
+        var max = 0;
+        for (var m = 0; m < boxes.length; m++) { var h = boxes[m].offsetHeight; if (h > max) max = h; }
+        if (max) for (var n = 0; n < boxes.length; n++) boxes[n].style.minHeight = max + 'px';
       }
       window.tmwFitFirmPills = fitAll;
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { fitAll(); });
