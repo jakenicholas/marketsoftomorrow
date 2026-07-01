@@ -199,7 +199,18 @@ jobs:
           # is therefore both unnecessary and moot here.
           MSG="Auto-update: ${PAGE_COUNT} pages + pulse"
           git commit -m "$MSG"
-          git push
+          # Rebase-and-retry: a manual commit to main can land while we're
+          # generating (happens whenever someone is actively pushing), which made
+          # the bare `git push` fail the whole run. The regenerated files are
+          # deterministic from source and don't overlap hand-edited source files,
+          # so rebasing our single build commit onto the new tip is safe.
+          for attempt in 1 2 3 4 5; do
+            if git push; then echo "pushed on attempt $attempt"; break; fi
+            echo "push rejected (attempt $attempt) - rebasing onto origin/main..."
+            git pull --rebase --autostash origin main || { echo "rebase failed"; exit 1; }
+            sleep 3
+            if [ "$attempt" = "5" ]; then echo "still rejected after retries"; exit 1; fi
+          done
 
       # Package the freshly generated + committed site for GitHub Pages,
       # but only when something actually changed -- no point re-deploying an
