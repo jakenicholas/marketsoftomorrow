@@ -1168,6 +1168,67 @@ async function handleSubscriptions(env, origin, url) {
 
 // GET /member?id=... — full profile + timeline + computed analytics for a
 // single member. Powers the click-to-drill-in modal in the dashboard.
+// ── Onyx Watch — a Pro member's live brief: recent pulse "moves" (new project,
+// status change, milestone) on the projects they watch (the eye-icon watchlist).
+// The universal header bell + the feed read this. Client-side, member-scoped.
+let _pulseCache = { at: 0, events: [] };
+async function getPulseEvents() {
+  const now = Date.now();
+  if (now - _pulseCache.at < 120000 && _pulseCache.events.length) return _pulseCache.events;
+  try {
+    const r = await fetch('https://www.oftmw.com/map/pulse.json', { cf: { cacheTtl: 120 } });
+    const d = await r.json();
+    const evs = Array.isArray(d) ? d : (d && d.events) || [];
+    _pulseCache = { at: now, events: evs };
+    return evs;
+  } catch (_) { return _pulseCache.events || []; }
+}
+// Rebuild a member's watchlist (slug -> added_ts) from the event store: a
+// watchlist_snapshot resets the baseline, favorite_added/_removed mutate it.
+function reconstructWatchlist(eventsDesc) {
+  const state = new Map();
+  for (let i = eventsDesc.length - 1; i >= 0; i--) {
+    const e = eventsDesc[i];
+    let props = {}; try { if (e.props_json) props = JSON.parse(e.props_json); } catch {}
+    if (e.event_name === 'watchlist_snapshot') {
+      const slugs = String(props.watchlist_slugs || '').split(',').map(s => s.trim()).filter(Boolean);
+      state.clear(); for (const s of slugs) state.set(s, e.ts);
+    } else if (e.event_name === 'favorite_added') {
+      const p = props.project_slug || props.project_name || props.title; if (p) state.set(String(p), e.ts);
+    } else if (e.event_name === 'favorite_removed') {
+      const p = props.project_slug || props.project_name || props.title; if (p) state.delete(String(p));
+    }
+  }
+  return state;
+}
+const _slugKey = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+async function handleWatchFeed(env, origin, url) {
+  const memberId = url.searchParams.get('member') || url.searchParams.get('id');
+  if (!memberId) return json({ error: 'member required' }, { status: 400 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const rs = await env.DB.prepare(
+    `SELECT ts, event_name, props_json FROM events WHERE member_id = ? ORDER BY ts DESC`
+  ).bind(memberId).all();
+  const watchState = reconstructWatchlist(rs.results || []);
+  const watchedKeys = new Set(Array.from(watchState.keys()).map(_slugKey));
+  const pulse = await getPulseEvents();
+  const moves = pulse
+    .filter(ev => ev && ev.project_slug && watchedKeys.has(_slugKey(ev.project_slug)))
+    .map(ev => ({
+      id: ev.id, type: ev.type, tag: ev.tag,
+      project_title: ev.project_title || ev.title, project_slug: ev.project_slug,
+      city: ev.city, image: ev.image, event_date: ev.event_date,
+      link: ev.link, timestamp: ev.timestamp,
+    }))
+    .sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+  const watches = Array.from(watchState.entries())
+    .map(([slug, added_ts]) => ({ slug, added_ts }))
+    .sort((a, b) => b.added_ts - a.added_ts);
+  return json(
+    { ok: true, watches, watch_count: watches.length, moves, move_count: moves.length, pulse_count: pulse.length },
+    { headers: { 'Cache-Control': 'private, max-age=60' } }, env, origin
+  );
+}
 async function handleMember(env, origin, url) {
   const memberId = url.searchParams.get('id');
   if (!memberId) return json({ error: 'id required' }, { status: 400 }, env, origin);
@@ -8528,6 +8589,9 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/sub-status')              return await handleSubStatus(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
+      if (request.method === 'GET' && url.pathname === '/watch/feed') {
+        return await handleWatchFeed(env, origin, url);
+      }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);
       }
