@@ -5093,19 +5093,24 @@ async function handleDesignFromPost(req, env, origin) {
       + '"slides":["<slide 1: the shortest hook sentence>","<slide 2 sentence>", ...]}\n'
       + 'Give EXACTLY ' + nSlides + ' slide sentences (one per photo). Do NOT write a tagline or byline — the "MARKETS OF TOMORROW" byline is fixed on the template.';
     const usr = 'Headline: ' + String(post.title || '') + '\n\nArticle:\n' + articleText;
-    try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 1500, system: sys, messages: [{ role: 'user', content: usr }] }),
-      });
-      if (r.ok) {
+    // Fable 5 for the copy quality (low-volume, quality-critical); Opus 4.8 is the
+    // fallback for a safety refusal, an error, or an unusable response. Thinking is
+    // always on for Fable 5, so read the TEXT block, not content[0].
+    for (const model of ['claude-fable-5', 'claude-opus-4-8']) {
+      try {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+          body: JSON.stringify({ model, max_tokens: 2500, system: sys, messages: [{ role: 'user', content: usr }] }),
+        });
+        if (!r.ok) continue;
         const d = await r.json();
-        const txt = (d.content && d.content[0] && d.content[0].text) || '';
+        if (d.stop_reason === 'refusal') continue;   // safety refusal → try the fallback model
+        const txt = ((d.content || []).find(b => b && b.type === 'text') || {}).text || '';
         const m = txt.match(/\{[\s\S]*\}/);
-        if (m) gen = JSON.parse(m[0]);
-      }
-    } catch (_) { /* fall back below */ }
+        if (m) { gen = JSON.parse(m[0]); break; }
+      } catch (_) { /* try next model */ }
+    }
   }
 
   const caption = (gen && typeof gen.caption === 'string' && gen.caption.trim())
