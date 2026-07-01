@@ -1621,6 +1621,7 @@
   function isPro(){ try { return window._isPaidMember === true || (window.__tmwMember && window.__tmwMember.plan === 'paid') || (window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro()); } catch(e){ return false; } }
   function ms(){ return window.$memberstackDom; }
   function slugify(t){ return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+  function humanizeSlug(s){ return String(s || '').replace(/[-_]+/g,' ').replace(/\b\w/g,function(c){ return c.toUpperCase(); }); }
   var US_STATES={FL:'Florida',NY:'New York',TX:'Texas',TN:'Tennessee',UT:'Utah',WY:'Wyoming',HI:'Hawaii',MI:'Michigan',MO:'Missouri',OH:'Ohio',PA:'Pennsylvania',SC:'South Carolina',NV:'Nevada',ME:'Maine',WI:'Wisconsin',CA:'California',IL:'Illinois',MA:'Massachusetts',WA:'Washington',GA:'Georgia',CO:'Colorado',AZ:'Arizona'};
   var COUNTRIES={AE:'United Arab Emirates',AG:'Antigua & Barbuda',AU:'Australia',BS:'Bahamas',BZ:'Belize',CA:'Canada',CH:'Switzerland',CO:'Colombia',CR:'Costa Rica',ES:'Spain',FR:'France',GB:'United Kingdom',GR:'Greece',IT:'Italy',JP:'Japan',KY:'Cayman Islands',MV:'Maldives',MX:'Mexico',PR:'Puerto Rico',PT:'Portugal',QA:'Qatar',SA:'Saudi Arabia',SG:'Singapore',TC:'Turks & Caicos',TH:'Thailand'};
   var WATCH_STOP={condo:1,condos:1,tower:1,towers:1,luxury:1,hotel:1,hotels:1,project:1,projects:1,building:1,buildings:1,residence:1,residences:1,development:1,developments:1,coming:1,soon:1,near:1,downtown:1,apartment:1,apartments:1,mixed:1,resort:1,resorts:1,district:1,announced:1,update:1,updates:1,newest:1,latest:1};
@@ -1648,27 +1649,30 @@
         projMeta[k] = { city: slugify(p.City), ptype: slugify((p.PreferredType||'').split(',')[0] || (p.ProjectType||'').split(',')[0] || '') };
       });
       Object.keys(cmap||{}).forEach(function(city){ var cs = slugify(city); var head = String(cmap[city]||'').split('-')[0]; var nm = US_STATES[head] || COUNTRIES[head]; if(nm){ (cityReg[cs] = cityReg[cs] || []).push(slugify(nm)); } });
-      if (sw && sw.smart_watches) sw.smart_watches.forEach(function(w){ var toks = String(w.query||'').toLowerCase().split(/[^a-z0-9]+/).filter(function(t){ return t.length >= 4 && !WATCH_STOP[t]; }); if(toks.length) mine.smart.push(toks); });
+      if (sw && sw.smart_watches) sw.smart_watches.forEach(function(w){ var toks = String(w.query||'').toLowerCase().split(/[^a-z0-9]+/).filter(function(t){ return t.length >= 4 && !WATCH_STOP[t]; }); if(toks.length) mine.smart.push({ toks: toks, q: w.query }); });
     });
     return _mineP;
   }
-  function mineMatch(e){
+  // Why this event is on the member's beat — the first watch rule it satisfies,
+  // as a human sentence for the "because you watch …" line. null = not a match.
+  function mineReason(e){
     var k = slugify(e.project_slug || e.project_title || e.title);
-    if (k && mine.proj.has(k)) return true;
+    if (k && mine.proj.has(k)) return "You're watching this project";
     var firms = projFirms[k];
-    if (firms){ for (var i=0;i<firms.length;i++) if (mine.firm.has(firms[i])) return true; }
+    if (firms){ for (var i=0;i<firms.length;i++) if (mine.firm.has(firms[i])) return 'Because you watch ' + humanizeSlug(firms[i]); }
     var meta = projMeta[k] || {};
     var cs = meta.city || slugify(e.city);
-    if (cs && mine.mkt.has(cs)) return true;
+    if (cs && mine.mkt.has(cs)) return 'Because you watch ' + (e.city || humanizeSlug(cs));
     var regs = cityReg[cs];
-    if (regs){ for (var r=0;r<regs.length;r++) if (mine.mkt.has(regs[r])) return true; }
-    if (meta.ptype && mine.mkt.has('type-' + meta.ptype)) return true;
+    if (regs){ for (var r=0;r<regs.length;r++) if (mine.mkt.has(regs[r])) return 'Because you watch ' + humanizeSlug(regs[r]); }
+    if (meta.ptype && mine.mkt.has('type-' + meta.ptype)) return 'Because you watch ' + humanizeSlug(meta.ptype);
     if (mine.smart.length){
       var hay = ((e.project_title||e.title||'') + ' ' + (e.city||'')).toLowerCase();
-      for (var s=0;s<mine.smart.length;s++){ var toks = mine.smart[s], ok = true; for (var t=0;t<toks.length;t++){ if (hay.indexOf(toks[t]) < 0){ ok = false; break; } } if (ok) return true; }
+      for (var s=0;s<mine.smart.length;s++){ var w = mine.smart[s], toks = w.toks, ok = true; for (var t=0;t<toks.length;t++){ if (hay.indexOf(toks[t]) < 0){ ok = false; break; } } if (ok) return 'Matches your search “' + w.q + '”'; }
     }
-    return false;
+    return null;
   }
+  function mineMatch(e){ return mineReason(e) != null; }
 
   function active(){
     var d = getDismissed();
@@ -1695,9 +1699,13 @@
     var partOf = e.parent_title
       ? '<div class="pi-partof">Part of ' + esc(e.parent_title) + '</div>'
       : '';
+    // In "Me" scope, a sparkle line explains WHY this move is on the member's
+    // beat ("Because you watch Miami", "You're watching this project", …).
+    var why = '';
+    if (scope === 'me'){ var wr = mineReason(e); if (wr) why = '<div class="pi-why"><svg class="pi-why-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span>' + esc(wr) + '</span></div>'; }
     return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
-      '<div class="pi-title">' + esc(title(e)) + '</div>' +
+      '<div class="pi-title">' + esc(title(e)) + '</div>' + why +
       '<div class="pi-meta">' + meta + '</div>' + partOf + '</div>' +
       '<span class="pi-x" role="button" aria-label="Clear notification" tabindex="0"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></span></a>';
   }
@@ -1775,6 +1783,10 @@
       // Purple to match the parent-chip vocabulary used across the rest of
       // the site (drawer/modal/search chips, TMW Intelligence anchor).
       '.tmw-pulse-item .pi-partof{font-size:10.5px;font-weight:600;color:#C9BBFF;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      // "Because you watch …" reason line (Me scope) — sparkle + purple caption
+      '.tmw-pulse-item .pi-why{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#C3B0FF;margin-top:3px;overflow:hidden}',
+      '.tmw-pulse-item .pi-why span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.tmw-pulse-item .pi-why-ic{width:11px;height:11px;flex:0 0 auto;fill:#B9A6FF;filter:drop-shadow(0 0 4px rgba(167,139,250,.6))}',
       '.tmw-pulse-item .pi-x{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .14s,color .14s,transform .12s}',
       '.tmw-pulse-item .pi-x:hover{background:#E5484D;color:#fff;transform:translateY(-50%) scale(1.12)}',
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
