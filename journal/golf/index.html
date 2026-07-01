@@ -193,10 +193,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tabs-bar .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
 /* No box — the controls sit on the page; the sort is a purple pulse-glow pill (TMW Intelligence aesthetic). */
 .ctlbar{display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:0}
-.tabs-bar .sort{appearance:none; background-color:rgba(167,139,250,.10); border:1px solid rgba(167,139,250,.5); box-shadow:0 0 14px rgba(167,139,250,.16); color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 32px 9px 15px; border-radius:999px; cursor:pointer;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%23B9A6FF' stroke-width='1.3' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 13px center; transition:background-color .18s, border-color .18s, box-shadow .18s, color .18s}
-.tabs-bar .sort:hover{background-color:rgba(167,139,250,.16); border-color:rgba(167,139,250,.6); box-shadow:0 0 16px rgba(167,139,250,.4); color:var(--white)}
-.tabs-bar .sort:focus{outline:none; background-color:rgba(167,139,250,.2); border-color:var(--purple); box-shadow:0 0 20px rgba(167,139,250,.6), 0 0 3px rgba(167,139,250,.5); color:var(--white)}
+.tabs-bar .sort{appearance:none; background:none; border:0; box-shadow:none; color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 24px 9px 2px; border-radius:0; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%23B9A6FF' stroke-width='1.3' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; transition:color .18s, text-shadow .18s}
+.tabs-bar .sort:hover{color:var(--purple-glow); text-shadow:0 0 10px rgba(167,139,250,.55)}
+.tabs-bar .sort:focus{outline:none; color:var(--white)}
 @media(max-width:760px){
   .tabs-bar .wrap{flex-direction:column; align-items:stretch; gap:12px}
   .tabs{justify-content:space-between}
