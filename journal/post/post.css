@@ -333,9 +333,15 @@ footer .tmw-wordmark{width:118px}
    avoid the two copies drifting again. */
 
 /* ── TMW Intelligence: AI summary + follow suggestions atop the article ── */
-.article-intel{margin:0 0 34px; border:1px solid rgba(167,139,250,.26); border-radius:16px;
+.article-intel{margin:22px 0 4px; border:1px solid rgba(167,139,250,.26); border-radius:16px;
   background:linear-gradient(180deg, rgba(167,139,250,.075), rgba(167,139,250,.02)); padding:17px 20px 16px; position:relative}
 .article-intel[hidden]{display:none}
+/* instant skeleton loader (shown while /post-intel resolves) */
+.article-intel .ai-skel{height:13px; border-radius:6px; margin-bottom:11px;
+  background:linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.11) 50%, rgba(255,255,255,.05) 75%);
+  background-size:200% 100%; animation:aiShimmer 1.25s ease-in-out infinite}
+.article-intel .ai-skel-1{width:97%} .article-intel .ai-skel-2{width:90%} .article-intel .ai-skel-3{width:64%; margin-bottom:2px}
+@keyframes aiShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .ai-head{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
   text-transform:uppercase; font-weight:700; color:var(--purple-glow); margin-bottom:12px}
 .ai-head .spark{width:15px; height:15px; flex:0 0 auto; fill:var(--purple-glow); filter:drop-shadow(0 0 6px rgba(167,139,250,.75))}

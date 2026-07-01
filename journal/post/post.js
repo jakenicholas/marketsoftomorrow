@@ -1232,16 +1232,22 @@ function initComments(slug, post) {
 // ============================================================================
 (function () {
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
-  // The per-article pre-rendered pages don't carry the #article-intel slot, so
-  // create + insert it at the top of the article body when it's absent.
-  var host = document.getElementById('article-intel');
-  if (!host) {
-    var bc = document.getElementById('article-body-content');
-    if (!bc || !bc.parentNode) return;
-    host = document.createElement('div');
-    host.id = 'article-intel'; host.className = 'article-intel'; host.hidden = true;
-    bc.parentNode.insertBefore(host, bc);
-  }
+  var SPARK = '<svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
+  var HEAD = '<div class="ai-head">' + SPARK + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx 4.1</span></div>';
+  // Mount at the top of the hero (title width). The pre-rendered pages don't
+  // carry the #article-intel slot, so create + place it there ourselves.
+  var old = document.getElementById('article-intel');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  var heroWrap = document.querySelector('.article-hero .wrap');
+  var bc0 = document.getElementById('article-body-content');
+  if (!heroWrap && !(bc0 && bc0.parentNode)) return;
+  var host = document.createElement('div');
+  host.id = 'article-intel'; host.className = 'article-intel';
+  if (heroWrap) heroWrap.appendChild(host);
+  else bc0.parentNode.insertBefore(host, bc0);
+  // Appear INSTANTLY with a skeleton loader; the fetch fills it in (or removes
+  // the box if there's no summary for this post).
+  host.innerHTML = HEAD + '<div class="ai-skel ai-skel-1"></div><div class="ai-skel ai-skel-2"></div><div class="ai-skel ai-skel-3"></div>';
   function slugOf() {
     var m = location.pathname.match(/^\/post\/([^\/]+)\/?$/);
     if (m && m[1]) return decodeURIComponent(m[1]);
@@ -1319,8 +1325,7 @@ function initComments(slug, post) {
 
   function render(intel, follows, mj) {
     var takes = (intel.takeaways || []).filter(Boolean);
-    var spark = '<svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
-    var html = '<div class="ai-head">' + spark + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx</span></div>'
+    var html = HEAD
       + '<p class="ai-tldr">' + esc(intel.tldr) + '</p>'
       + (takes.length ? '<ul class="ai-takes">' + takes.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '');
     if (follows.length) {
@@ -1335,7 +1340,6 @@ function initComments(slug, post) {
           }).join('') + '</div>';
     }
     host.innerHTML = html;
-    host.hidden = false;
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var f = follows[+btn.getAttribute('data-fi')]; if (!f) return;
@@ -1350,11 +1354,12 @@ function initComments(slug, post) {
     });
   }
 
+  function drop() { if (host && host.parentNode) host.parentNode.removeChild(host); }
   fetch(WORKER + '/post-intel?slug=' + encodeURIComponent(slug))
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (intel) {
-      if (!intel || !intel.ok || !intel.tldr) return;
+      if (!intel || !intel.ok || !intel.tldr) { drop(); return; }
       return Promise.all([resolveFollows(intel.entities || {}), getMJ()]).then(function (o) { render(intel, o[0], o[1]); });
     })
-    .catch(function () {});
+    .catch(function () { drop(); });
 })();
