@@ -584,7 +584,7 @@
     + '.tmw-ov-fb-btn.voted[data-rating="up"]{background:rgba(31,223,103,.16);border-color:#1FDF67;color:#42EB81}'
     + '.tmw-ov-fb-btn.voted[data-rating="down"]{background:rgba(255,93,93,.16);border-color:#ff5d5d;color:#ff7676}'
     + '.tmw-ov-fb-btn.dimmed{opacity:.35}'
-    + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;margin-right:10px;transition:background .2s,border-color .2s,transform .15s}'
+    + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;transition:background .2s,border-color .2s,transform .15s}'
     + '.tmw-ov-watch-btn:hover{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.55);transform:translateY(-1px)}'
     + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
     + '.tmw-ov-watch-btn.on{background:rgba(31,223,103,.12);border-color:rgba(31,223,103,.42);color:#42EB81;pointer-events:none}'
@@ -1070,11 +1070,11 @@
     // so it reads as part of the message. setState finds it via turn.querySelector.
     +   '<div class="tmw-ov-feedback tmw-ov-turn-fb" data-feedback>'
     +     '<div class="tmw-ov-fb-actions">'
+    +       '<span class="tmw-ov-fb-thanks">Noted</span>'
     +       '<button class="tmw-ov-watch-btn" type="button" aria-label="Watch this — get proactive alerts on this">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
     +         '<span class="tmw-ov-watch-txt">Watch this</span>'
     +       '</button>'
-    +       '<span class="tmw-ov-fb-thanks">Noted</span>'
     +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
     +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H3v-9zM21 9c0-1.1-.9-2-2-2h-5l1-3.5c.1-.4 0-.8-.3-1.1l-.7-.7-7 7v9h11l3-7V9z"/></svg>'
     +       '</button>'
@@ -2284,6 +2284,7 @@
         fbEl.setAttribute('data-fbq', _lastQuery || '');
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
+        markWatchBtn(fbEl);   // reflect already-watched state on the button
         // Relocate the live/thinking indicator from the answer header into this
         // feedback row (left side) so it lands on the thumbs' horizontal line.
         var _liveEl = turn && turn.querySelector('.tmw-ov-intel-h .live');
@@ -2691,6 +2692,31 @@
   }
   // "Watch this" — Phase 2 Onyx Watch entry point. Non-Pro → the Go Pro paywall;
   // Pro → creates a smart watch on this query (matched against pulse moves).
+  // Already-watched detection — so the button shows "Watching" for a query the
+  // member already saved (instead of "Watch this", which made re-watching look
+  // like nothing happened). Loaded once per session for Pro members.
+  var _watchedQ = null;
+  function loadWatched(){
+    if (_watchedQ) return Promise.resolve(_watchedQ);
+    var mid = (window.__tmwMember && window.__tmwMember.id) || '';
+    var pro = window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro();
+    if (!mid || !pro){ _watchedQ = new Set(); return Promise.resolve(_watchedQ); }
+    return fetch('https://tmw.jake-ab7.workers.dev/watch/smart?member=' + encodeURIComponent(mid), { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ _watchedQ = new Set(((d && d.smart_watches) || []).map(function(w){ return String(w.query || '').trim().toLowerCase(); })); return _watchedQ; })
+      .catch(function(){ _watchedQ = new Set(); return _watchedQ; });
+  }
+  function markWatchBtn(fbEl){
+    if (!fbEl) return;
+    var wb = fbEl.querySelector('.tmw-ov-watch-btn'); if (!wb) return;
+    var q = (fbEl.getAttribute('data-fbq') || '').trim().toLowerCase();
+    loadWatched().then(function(set){
+      var txt = wb.querySelector('.tmw-ov-watch-txt');
+      if (q && set.has(q)){ wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; }
+      else { wb.classList.remove('on'); if (txt) txt.textContent = 'Watch this'; }
+    });
+  }
+
   root.addEventListener('click', function(e){
     var wb = e.target.closest && e.target.closest('.tmw-ov-watch-btn');
     if (!wb) return;
@@ -2710,7 +2736,7 @@
       method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ member: mid, query: q })
     }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
-      if (d && d.ok) { wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; }
+      if (d && d.ok) { wb.classList.add('on'); if (txt) txt.textContent = 'Watching'; if (_watchedQ) _watchedQ.add(String(q).trim().toLowerCase()); }
       else if (txt) txt.textContent = 'Watch this';
     }).catch(function(){ if (txt) txt.textContent = 'Watch this'; });
   });
