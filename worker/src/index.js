@@ -450,6 +450,19 @@ async function handlePeople(env, origin, url) {
     m.timestamps.push(row.ts);
   }
 
+  // Trialing members (Stripe, one list call) — lets the People view split active
+  // trials out of "paid" without touching per-event plan. Fails open (no trials).
+  const trialingEmails = new Set();
+  try {
+    if (env.STRIPE_SECRET_KEY) {
+      const subs = await stripeGet(env, '/subscriptions?status=trialing&limit=100&expand[]=data.customer');
+      for (const s of (subs.data || [])) {
+        const em = s.customer && s.customer.email;
+        if (em) trialingEmails.add(String(em).trim().toLowerCase());
+      }
+    }
+  } catch (_) {}
+
   const out = Array.from(members.values()).map(m => {
     const ts = m.timestamps; // already in DESC order
     const stats = computeMemberStats(ts);
@@ -461,6 +474,7 @@ async function handlePeople(env, origin, url) {
       // pre-identification event (a paid member's page-views fired under an anon id
       // before Memberstack resolved them). Always classify anon ids as anon.
       plan: (String(m.member_id || '').indexOf('anon:') === 0) ? 'anon' : m.plan,
+      trialing: !!(m.email && trialingEmails.has(String(m.email).trim().toLowerCase())),
       event_count: ts.length,
       last_seen_ts: ts[0],
       first_seen_ts: ts[ts.length - 1],
