@@ -4938,82 +4938,6 @@
   .fs-loading { padding: 60px 20px; text-align: center;
     color: rgba(255,255,255,0.5); font-size: 13px; }
 
-  /* ───── New firm-sheet design — mirrors the standalone /firm/<slug>/ page
-     (serif hero, purple eyebrow, status-coloured stat grid, editorial cards).
-     Everything is scoped under .fsx with fsx- prefixed classes so it can't
-     collide with the map's global .card/.stat/.section rules. ───────────── */
-  .fsx { --fx-purple:#A78BFA; --fx-purple-bright:#C4B5FD; --fx-purple-glow:#B9A6FF;
-    --fx-green:#1FDF67; --fx-gold:#FFD300; --fx-amber:#FFB45E;
-    --fx-white:#fff; --fx-cream:#ECEAE5; --fx-mute:#9AA39C; --fx-mute2:#C2C9C3;
-    --fx-hair:rgba(255,255,255,.08);
-    --fx-serif:'Fraunces',Georgia,serif;
-    --fx-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    --fx-mono:'JetBrains Mono',ui-monospace,monospace;
-    color:var(--fx-cream); }
-  .fsx-eyebrow { font-family:var(--fx-mono); font-size:10.5px; letter-spacing:.2em;
-    text-transform:uppercase; color:var(--fx-purple-bright); margin-bottom:16px;
-    display:inline-flex; align-items:center; gap:9px; line-height:1.4; }
-  .fsx-eyebrow::before { content:""; width:6px; height:6px; border-radius:50%;
-    background:var(--fx-purple); box-shadow:0 0 10px var(--fx-purple); flex:0 0 auto; }
-  .fsx-name { font-family:var(--fx-serif); font-size:clamp(30px,4.4vw,50px); line-height:1.05;
-    font-weight:500; letter-spacing:-.022em; color:var(--fx-white); max-width:20ch; margin:0; }
-  .fsx-pills { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
-  .fsx-pill { font-family:var(--fx-sans); font-size:12.5px; color:var(--fx-mute2);
-    padding:6px 12px; background:rgba(255,255,255,.04); border:1px solid var(--fx-hair); border-radius:999px; }
-  .fsx-pill b { color:var(--fx-white); font-weight:600; margin-right:6px; }
-  .fsx-sub { font-family:var(--fx-serif); font-style:italic; font-weight:300; font-size:17px;
-    color:var(--fx-mute2); margin-top:16px; line-height:1.5; max-width:62ch; }
-  .fsx-sub b { font-style:normal; font-weight:500; color:var(--fx-white); }
-  .fsx-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; padding:24px 0;
-    border-top:1px solid var(--fx-hair); border-bottom:1px solid var(--fx-hair); margin-top:24px; }
-  .fsx-stat { background:rgba(255,255,255,.02); border:1px solid var(--fx-hair); border-radius:12px; padding:16px; }
-  .fsx-stat .n { font-family:var(--fx-serif); font-size:28px; font-weight:500; letter-spacing:-.018em;
-    color:var(--fx-white); line-height:1; }
-  .fsx-stat .l { font-family:var(--fx-mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
-    color:var(--fx-mute); margin-top:9px; }
-  .fsx-stat.uc .n { color:var(--fx-amber); }
-  .fsx-stat.bg .n { color:var(--fx-gold); }
-  .fsx-stat.os .n { color:var(--fx-purple-bright); }
-  .fsx-stat.no .n { color:var(--fx-green); }
-  .fsx-sec { margin-top:30px; }
-  .fsx-sec-eyebrow { font-family:var(--fx-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
-    color:var(--fx-purple-bright); margin-bottom:8px; font-weight:600; }
-  .fsx-sec-title { font-family:var(--fx-serif); font-size:24px; line-height:1.15; font-weight:500;
-    letter-spacing:-.018em; color:var(--fx-white); margin:0; }
-  .fsx-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
-  .fsx-tab { font-family:var(--fx-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--fx-mute); padding:8px 14px; background:rgba(255,255,255,.03); border:1px solid var(--fx-hair);
-    border-radius:999px; cursor:pointer; transition:border-color .15s,color .15s,background .15s; }
-  .fsx-tab:hover { color:var(--fx-white); border-color:rgba(167,139,250,.4); }
-  .fsx-tab.active { color:#0a0a0a; background:var(--fx-purple-glow); border-color:var(--fx-purple-glow); font-weight:600; }
-  .fsx-tab .count { opacity:.65; margin-left:5px; }
-  .fsx-tab.active .count { opacity:.85; }
-  .fsx-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(248px,1fr)); gap:12px; }
-  .fsx-card { display:flex; flex-direction:column; background:#111; border-radius:14px; overflow:hidden;
-    border:1px solid transparent; transition:transform .15s,border-color .15s; text-decoration:none; color:inherit; }
-  .fsx-card:hover { transform:translateY(-2px); border-color:rgba(167,139,250,.3); }
-  .fsx-card-img { height:150px; background-size:cover; background-position:center; position:relative; background-color:#1a1a1a; }
-  .fsx-card-img::after { content:""; position:absolute; inset:0;
-    background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.5) 100%); }
-  .fsx-badge { position:absolute; left:10px; bottom:10px; z-index:2; display:inline-flex; align-items:center; gap:6px;
-    padding:5px 10px; border-radius:999px; background:rgba(10,12,14,.7);
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    font-family:var(--fx-mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#fff;
-    border:1px solid rgba(255,255,255,.12); }
-  .fsx-badge .dot { width:6px; height:6px; border-radius:50%; flex:0 0 auto; }
-  .fsx-card-body { padding:14px 16px 16px; }
-  .fsx-card-title { font-family:var(--fx-serif); font-size:18px; font-weight:500; letter-spacing:-.014em;
-    line-height:1.2; color:var(--fx-white); }
-  .fsx-card-loc { font-family:var(--fx-sans); font-size:12.5px; color:var(--fx-mute2); margin-top:5px; }
-  .fsx-card-foot { display:flex; justify-content:space-between; align-items:baseline; margin-top:12px;
-    padding-top:11px; border-top:1px solid var(--fx-hair); font-family:var(--fx-mono); font-size:9.5px;
-    letter-spacing:.1em; text-transform:uppercase; color:var(--fx-mute); }
-  .fsx-card-foot .date { font-family:var(--fx-sans); font-size:12px; font-weight:600; letter-spacing:0;
-    text-transform:none; color:#fff; }
-  @media (max-width: 700px) {
-    .fsx-stats { grid-template-columns:repeat(2,1fr); }
-    .fsx-name { font-size:clamp(26px,8vw,38px); }
-  }
   #projectModal .pm-stat-val {
     font-size: 12px; color: #fff; font-weight: 500;
     line-height: 1.3;
@@ -11877,21 +11801,8 @@
 
   <!-- Atlas overlay -- hidden until body.atlas-mode is set. Initial content
        is a loading state; populated by JS after fetch('atlas.json'). -->
-  <!-- Firm sheet (SPA modal): opens when user clicks a firm chip on a project
-       popup or an architect/developer row in the atlas leaderboard. URL gets
-       pushed to /architects/<slug>/ or /developers/<slug>/ so it's shareable.
-       Closes via X, backdrop click, Esc, or history.back() — none of which
-       reload the map, preserving whatever zoom/state/popup the user had. -->
-  <div class="firm-sheet-backdrop" id="firmSheetBackdrop" aria-hidden="true"></div>
-  <div class="firm-sheet" id="firmSheet" role="dialog" aria-hidden="true" aria-labelledby="firmSheetTitle">
-    <div class="firm-sheet-drag" id="firmSheetDrag" role="button" aria-label="Drag to dismiss">
-      <div class="firm-sheet-handle"></div>
-    </div>
-    <button class="firm-sheet-close" id="firmSheetClose" aria-label="Close firm profile" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    <div class="firm-sheet-content" id="firmSheetContent">
-      <div class="fs-loading">Loading‚Ä¶</div>
-    </div>
-  </div>
+  <!-- Firm sheet removed — developer/architect links navigate to the real
+       static /firm/<slug>/ page (which shows an X to return to the map). -->
 
   <div class="atlas-overlay" id="atlasOverlay" aria-hidden="true">
     <div class="atlas-body">
@@ -24436,75 +24347,14 @@
         return out.slice(0, 12);
       }
 
-      function renderStats(s) {
-        const avgStr = s.avg !== null ? s.avg.toFixed(1) + ' yr' : '\u2014';
-        const avgSub = s.durationSample > 0
-          ? `from ${s.durationSample} project${s.durationSample === 1 ? '' : 's'} with start + delivery dates`
-          : 'Need more start-date data';
-        return `
-        <div class="fs-stats">
-          <div class="fs-stat-card">
-            <div class="fs-stat-val accent">${s.total}</div>
-            <div class="fs-stat-lbl">Projects on TMW</div>
-            <div class="fs-stat-sub">${s.inProgress} in progress &middot; ${s.completed} completed</div>
-          </div>
-          <div class="fs-stat-card">
-            <div class="fs-stat-val">${fmtThousands(s.units)}</div>
-            <div class="fs-stat-lbl">Residential units</div>
-            <div class="fs-stat-sub">across all projects</div>
-          </div>
-          <div class="fs-stat-card">
-            <div class="fs-stat-val">${fmtThousands(s.keys)}</div>
-            <div class="fs-stat-lbl">Hotel keys</div>
-            <div class="fs-stat-sub">across all projects</div>
-          </div>
-          <div class="fs-stat-card">
-            <div class="fs-stat-val">${avgStr}</div>
-            <div class="fs-stat-lbl">Avg years to delivery</div>
-            <div class="fs-stat-sub">${avgSub}</div>
-          </div>
-        </div>`;
-      }
-
-      function renderProjectCard(p) {
-        const slug = (typeof window.pyStyleSlug === 'function'
-          ? window.pyStyleSlug(p.title || '')
-          : (p.title || '').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,''));
-        const status = normalizeStatus(p.delivery);
-        const sInfo = STATUS_INFO[status] || STATUS_INFO.announced;
-        const img = p.image ? `background-image:url('${esc(window.tmwImg(p.image, 500))}')` : '';
-        const type = p.preferredType || ((p.projectType || '').split(',')[0] || '').trim();
-        const metaParts = [esc(p.city || '—')];
-        if (type) metaParts.push(esc(type));
-        // data-project-slug lets the sheet click handler open the project modal
-        // over the map instead of navigating to the static project page.
-        return `
-            <a class="fsx-card" data-status="${esc(status)}" data-project-slug="${esc(slug)}" href="/projects/${esc(slug)}/">
-              <div class="fsx-card-img" style="${img}">
-                <div class="fsx-badge"><span class="dot" style="background:${sInfo.color}"></span>${esc(sInfo.label)}</div>
-              </div>
-              <div class="fsx-card-body">
-                <div class="fsx-card-title">${esc(p.title || '')}</div>
-                <div class="fsx-card-loc">${metaParts.join(' &middot; ')}</div>
-                <div class="fsx-card-foot">
-                  <span>Delivery</span>
-                  <span class="date">${esc(fmtMonthYear(p.deliveryDate))}</span>
-                </div>
-              </div>
-            </a>`;
-      }
-
       // Close the sheet UI without touching history. Used when transitioning
       // from firm sheet ‚Üí project modal: openProjectModal pushes its own state
       // so back from the project pops cleanly back to the firm sheet state,
       // which our popstate handler then re-opens.
       function hideFirmSheetUI() {
-        const sheet = document.getElementById('firmSheet');
-        const backdrop = document.getElementById('firmSheetBackdrop');
-        sheet.classList.remove('open');
-        sheet.setAttribute('aria-hidden', 'true');
-        backdrop.classList.remove('open');
-        backdrop.setAttribute('aria-hidden', 'true');
+        // Firm sheet was removed (firm links now open the real /firm/ page).
+        // Kept as a safe no-op because openProjectFromSheet — still used by the
+        // atlas timeline — calls it before flying to a project pin.
         document.body.classList.remove('firm-sheet-open');
       }
 
@@ -24532,226 +24382,26 @@
         }, 50);
       }
 
-      function renderCoverage(coverage) {
-        if (!coverage.length) {
-          return `<div class="fs-empty">No articles linked to this firm's projects yet.</div>`;
-        }
-        return `<div class="fs-coverage-list">${coverage.map(a => `
-            <a class="fs-cov-item" href="${esc(a.url)}" target="_blank" rel="noopener">
-              <div class="fs-cov-dot"></div>
-              <div class="fs-cov-info">
-                <div class="fs-cov-title">${esc(a.title)}</div>
-                <div class="fs-cov-meta">Mentions <b>${esc(a.project_name)}</b></div>
-              </div>
-              <div class="fs-cov-date">${esc((a.published_at || '').slice(0, 10))}</div>
-            </a>`).join('')}</div>`;
+      // Firm links now NAVIGATE to the real static /firm/<slug>/ page instead
+      // of opening an in-map sheet (Jake's call — he wants the popup identical
+      // to the firm page, so we just use the firm page). We stash a return
+      // marker so the firm page can show an X that brings the user back to
+      // this exact map view: history.back() restores the map from the browser
+      // back/forward cache with zoom + open panels intact. The name
+      // `openFirmSheet` + window export are kept so every existing caller
+      // (project firm chips, search overlay, atlas lightbox) routes here.
+      function openFirmSheet(role, slug) {
+        if (!slug) return;
+        try { sessionStorage.setItem('tmwFirmReturn', '1'); } catch (_) {}
+        window.location.assign('/firm/' + encodeURIComponent(slug) + '/');
       }
 
-      function renderSheet(firm, role, projects, stats, coverage) {
-        // Sort: featured first, then by delivery_date desc, then by name
-        const sorted = projects.slice().sort((a, b) => {
-          const fa = ((a.featured ? 1 : 0)) - ((b.featured ? 1 : 0));
-          if (fa !== 0) return -fa;
-          const da = (a.deliveryDate || '0000');
-          const db = (b.deliveryDate || '0000');
-          if (da !== db) return da < db ? 1 : -1;
-          return (a.title || '').localeCompare(b.title || '');
-        });
-        // Status breakdown for the stat strip + the editorial sub-line.
-        const bk = { announced: 0, 'breaking-ground': 0, construction: 0, 'coming-soon': 0, open: 0 };
-        projects.forEach(p => { const ns = normalizeStatus(p.delivery); if (bk[ns] != null) bk[ns]++; });
-
-        // Hero pills (founded / HQ / active markets).
-        const pills = [];
-        if (firm.founded) pills.push(`<span class="fsx-pill"><b>Founded</b>${esc(firm.founded)}</span>`);
-        if (firm.hq)      pills.push(`<span class="fsx-pill"><b>HQ</b>${esc(firm.hq)}</span>`);
-        if (stats.markets.length) pills.push(`<span class="fsx-pill"><b>Active in</b>${stats.markets.length} market${stats.markets.length === 1 ? '' : 's'}</span>`);
-
-        // Editorial sub-line: "We track N <role> projects by <firm> — X under
-        // construction, and Y announced. Active in M markets."
-        const proseParts = [];
-        if (bk.construction)        proseParts.push(`<b>${bk.construction} under construction</b>`);
-        if (bk['breaking-ground'])  proseParts.push(`<b>${bk['breaking-ground']} breaking ground</b>`);
-        if (bk['coming-soon'])      proseParts.push(`<b>${bk['coming-soon']} opening soon</b>`);
-        if (bk.open)                proseParts.push(`<b>${bk.open} now open</b>`);
-        if (bk.announced)           proseParts.push(`<b>${bk.announced} announced</b>`);
-        const roleNoun = role === 'architects' ? 'architecture' : 'development';
-        let prose = `We track <b>${stats.total} ${roleNoun} project${stats.total === 1 ? '' : 's'}</b> by ${esc(firm.name)}`;
-        if (proseParts.length === 1) prose += ` — ${proseParts[0]}`;
-        else if (proseParts.length > 1) prose += ` — ${proseParts.slice(0, -1).join(', ')}, and ${proseParts[proseParts.length - 1]}`;
-        prose += '.';
-        if (stats.markets.length) prose += ` Active in <b>${stats.markets.length} market${stats.markets.length === 1 ? '' : 's'}</b>.`;
-
-        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-        return `
-        <div class="fsx">
-          <div class="fsx-eyebrow">${esc(ROLE_LABEL[role])} · ${stats.total} project${stats.total === 1 ? '' : 's'} tracked · Updated ${today}</div>
-          <h1 class="fsx-name" id="firmSheetTitle">${esc(firm.name)}</h1>
-          ${pills.length ? `<div class="fsx-pills">${pills.join('')}</div>` : ''}
-          <p class="fsx-sub">${prose}</p>
-
-          <div class="fsx-stats" aria-label="Status breakdown">
-            <div class="fsx-stat"><div class="n">${stats.total}</div><div class="l">Tracked</div></div>
-            <div class="fsx-stat uc"><div class="n">${bk.construction}</div><div class="l">Under Construction</div></div>
-            <div class="fsx-stat bg"><div class="n">${bk['breaking-ground']}</div><div class="l">Breaking Ground</div></div>
-            <div class="fsx-stat os"><div class="n">${bk['coming-soon']}</div><div class="l">Opening Soon</div></div>
-            <div class="fsx-stat no"><div class="n">${bk.open}</div><div class="l">Now Open</div></div>
-          </div>
-
-          <div class="fsx-sec">
-            <div class="fsx-sec-eyebrow">Portfolio</div>
-            <h2 class="fsx-sec-title">Projects we're tracking</h2>
-            <div class="fsx-tabs">
-              <button class="fsx-tab active" data-fs-tab="all">All <span class="count">${stats.total}</span></button>
-              <button class="fsx-tab" data-fs-tab="in-progress">In progress <span class="count">${stats.inProgress}</span></button>
-              <button class="fsx-tab" data-fs-tab="completed">Completed <span class="count">${stats.completed}</span></button>
-            </div>
-            <div class="fsx-grid" id="fsGrid">${sorted.map(renderProjectCard).join('')}</div>
-          </div>
-
-          ${coverage && coverage.length ? `
-          <div class="fsx-sec">
-            <div class="fsx-sec-eyebrow">Coverage</div>
-            <h2 class="fsx-sec-title">Mentioning this firm</h2>
-            <div style="margin-top:16px">${renderCoverage(coverage)}</div>
-          </div>` : ''}
-        </div>
-        `;
-      }
-
-      // Tab click handling inside the sheet (filter project cards by status)
-      function bindSheetTabs() {
-        document.querySelectorAll('#firmSheetContent .fsx-tab').forEach(t => {
-          t.addEventListener('click', () => {
-            const active = t.dataset.fsTab;
-            document.querySelectorAll('#firmSheetContent .fsx-tab').forEach(x => x.classList.toggle('active', x === t));
-            document.querySelectorAll('#firmSheetContent .fsx-card').forEach(c => {
-              const isOpen = c.dataset.status === 'open';
-              const show = active === 'all' || (active === 'in-progress' && !isOpen) || (active === 'completed' && isOpen);
-              c.style.display = show ? '' : 'none';
-            });
-          });
-        });
-      }
-
-      async function openFirmSheet(role, slug, fromHistory) {
-        if (!role || !slug) return;
-        if (!ROLE_LABEL[role]) return;
-        // Defer until project data is loaded so the portfolio renders
-        if (!window.allProjectFeatures) {
-          document.addEventListener('projects:loaded', () => openFirmSheet(role, slug, fromHistory), { once: true });
-          return;
-        }
-        const content = document.getElementById('firmSheetContent');
-        content.innerHTML = '<div class="fs-loading">Loading firm profile‚Ä¶</div>';
-        const sheet = document.getElementById('firmSheet');
-        const backdrop = document.getElementById('firmSheetBackdrop');
-        sheet.classList.add('open');
-        sheet.setAttribute('aria-hidden', 'false');
-        backdrop.classList.add('open');
-        backdrop.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('firm-sheet-open');
-
-        const [firms, articles] = await Promise.all([ensureFirmsLoaded(), ensureArticlesLoaded()]);
-        const firm = (firms[role] || []).find(f => f.slug === slug);
-        if (!firm) {
-          content.innerHTML = `<div class="fs-empty">Firm not found.</div>`;
-          return;
-        }
-        const projects = firmProjectsFor(role, slug);
-        const stats = aggregateStats(projects);
-        const coverage = firmCoverage(projects, articles);
-        content.innerHTML = renderSheet(firm, role, projects, stats, coverage);
-        bindSheetTabs();
-        content.scrollTop = 0;
-
-        // URL state
-        if (!fromHistory) {
-          history.pushState({ firmSheet: { role, slug } }, '', `/firm/${encodeURIComponent(slug)}/`);
-        }
-        _firmOpen = { role, slug };
-      }
-
-      function closeFirmSheet(fromHistory) {
-        const sheet = document.getElementById('firmSheet');
-        const backdrop = document.getElementById('firmSheetBackdrop');
-        sheet.classList.remove('open');
-        sheet.setAttribute('aria-hidden', 'true');
-        backdrop.classList.remove('open');
-        backdrop.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('firm-sheet-open');
-        if (!fromHistory && _firmOpen) {
-          // If our pushState lives at the top of history, history.back() pops it
-          history.back();
-        }
-        _firmOpen = null;
-      }
-
-      // ‚îÄ‚îÄ Wiring ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      // Close handlers
-      document.getElementById('firmSheetClose').addEventListener('click', () => closeFirmSheet());
-      document.getElementById('firmSheetBackdrop').addEventListener('click', () => closeFirmSheet());
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && _firmOpen) closeFirmSheet();
-      });
 
       // ‚îÄ‚îÄ Touch drag-to-dismiss on the handle (mobile primary, works on
       //    desktop touch screens too). Tracks delta from touchstart, applies
       //    inline translateY for direct 1:1 follow, closes if released past
       //    the threshold or snaps back otherwise. ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      const DRAG_DISMISS_PX = 120;
-      const dragEl = document.getElementById('firmSheetDrag');
-      let dragState = null;
-      function dragStart(clientY) {
-        if (!_firmOpen) return;
-        const sheet = document.getElementById('firmSheet');
-        dragState = { startY: clientY, delta: 0, sheet };
-        sheet.classList.add('is-dragging');
-      }
-      function dragMove(clientY) {
-        if (!dragState) return;
-        let delta = clientY - dragState.startY;
-        if (delta < 0) delta = 0;  // drag down only
-        dragState.delta = delta;
-        dragState.sheet.style.transform = `translateY(${delta}px)`;
-      }
-      function dragEnd() {
-        if (!dragState) return;
-        const { sheet, delta } = dragState;
-        sheet.classList.remove('is-dragging');
-        sheet.style.transform = '';  // restore to CSS-controlled position
-        if (delta > DRAG_DISMISS_PX) {
-          closeFirmSheet();
-        }
-        dragState = null;
-      }
-      // Touch
-      dragEl.addEventListener('touchstart', e => {
-        if (e.touches.length !== 1) return;
-        dragStart(e.touches[0].clientY);
-      }, { passive: true });
-      dragEl.addEventListener('touchmove', e => {
-        if (!dragState || e.touches.length !== 1) return;
-        dragMove(e.touches[0].clientY);
-      }, { passive: true });
-      dragEl.addEventListener('touchend', dragEnd);
-      dragEl.addEventListener('touchcancel', () => {
-        if (dragState) { dragState.sheet.style.transform = ''; dragState.sheet.classList.remove('is-dragging'); dragState = null; }
-      });
-      // Mouse (desktop, for parity / testing)
-      dragEl.addEventListener('mousedown', e => {
-        if (e.button !== 0) return;
-        dragStart(e.clientY);
-        const onMove = ev => dragMove(ev.clientY);
-        const onUp = () => {
-          dragEnd();
-          window.removeEventListener('mousemove', onMove);
-          window.removeEventListener('mouseup', onUp);
-        };
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('mouseup', onUp);
-      });
+      // (Firm-sheet drag-to-dismiss removed — firm links navigate to /firm/.)
 
       // Click delegation:
       //  - .firm-link / .atlas-lb-link    ‚Üí open firm sheet
@@ -24772,16 +24422,6 @@
           return;
         }
 
-        const projLink = e.target.closest('#firmSheet a.fsx-card');
-        if (projLink) {
-          const slug = projLink.dataset.projectSlug;
-          if (slug) {
-            e.preventDefault();
-            openProjectFromSheet(slug);
-          }
-          return;
-        }
-
         const tlItem = e.target.closest('.atlas-tl-item');
         if (tlItem) {
           const slug = tlItem.dataset.projectSlug;
@@ -24795,31 +24435,6 @@
         }
       });
 
-      // popstate: handle back/forward across firm sheet state changes
-      window.addEventListener('popstate', (e) => {
-        const isFirmState = e.state && e.state.firmSheet;
-        if (isFirmState) {
-          openFirmSheet(e.state.firmSheet.role, e.state.firmSheet.slug, true);
-        } else if (_firmOpen) {
-          closeFirmSheet(true);
-        }
-      });
-
-      // Initial URL check: if the page loaded at /architects/<slug>/ or
-      // /developers/<slug>/, open the sheet automatically once projects are ready.
-      const m = window.location.pathname.match(FIRM_PATH_RE);
-      if (m) {
-        const role = m[1], slug = m[2];
-        // Replace the state so closing pops back to map root rather than the same URL
-        try { history.replaceState({ firmSheet: { role, slug } }, '', window.location.pathname); } catch {}
-        // Wait for projects to load
-        if (window.allProjectFeatures) {
-          openFirmSheet(role, slug, true);
-        } else {
-          document.addEventListener('projects:loaded', () => openFirmSheet(role, slug, true), { once: true });
-        }
-      }
-
       // Expose for debugging / external callers
       window.openFirmSheet = openFirmSheet;
       // Expose a sync getter for cached firm data so search results can
@@ -24832,7 +24447,6 @@
       // the canonical slug is ready by the time anyone searches.
       window._loadFirms = ensureFirmsLoaded;
       ensureFirmsLoaded();
-      window.closeFirmSheet = closeFirmSheet;
       window.openProjectFromSheet = openProjectFromSheet;
     })();
 

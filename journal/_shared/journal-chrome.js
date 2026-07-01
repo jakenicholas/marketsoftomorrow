@@ -551,3 +551,75 @@
     mount();
   }
 })();
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Firm page "✕" — return to the map exactly where the user left it.
+
+   When someone clicks a developer/architect on the map, the map stashes
+   sessionStorage 'tmwFirmReturn' and navigates here to the real /firm/<slug>/
+   page (no popup — Jake wants the firm page itself). This adds a floating ✕
+   at the top-right whose click does history.back(): the browser restores the
+   map from its back/forward cache with the user's exact zoom + open panels
+   intact. (The map holds view state in memory, not the URL, so back-nav /
+   bfcache is the only thing that can bring them back to the same view.)
+
+   Only shown when the visitor actually came from the map, so direct/SEO
+   visitors just use the normal header. Lives here (a script every firm page
+   already loads) so it works without regenerating the ~1,100 static pages.
+   ───────────────────────────────────────────────────────────────────────── */
+(function () {
+  if (!/^\/firm\//.test(location.pathname)) return;
+
+  var cameFromMap = false;
+  // One-shot: consume the marker on read so it can't linger and show the ✕ on
+  // an unrelated firm page later in the same tab session.
+  try {
+    cameFromMap = sessionStorage.getItem('tmwFirmReturn') === '1';
+    sessionStorage.removeItem('tmwFirmReturn');
+  } catch (e) {}
+  // Fallback: honor a same-origin map referrer if sessionStorage is unavailable.
+  if (!cameFromMap && document.referrer) {
+    try {
+      var ref = new URL(document.referrer);
+      if (ref.origin === location.origin && /^\/(map\/?)?$/.test(ref.pathname)) cameFromMap = true;
+    } catch (e2) {}
+  }
+  if (!cameFromMap) return;
+
+  function mountClose() {
+    if (document.getElementById('firmMapClose')) return;
+
+    var st = document.createElement('style');
+    st.textContent =
+      '#firmMapClose{position:fixed;top:74px;right:22px;z-index:9500;width:42px;height:42px;' +
+      'display:inline-flex;align-items:center;justify-content:center;border-radius:999px;cursor:pointer;' +
+      'color:#fff;background:rgba(13,13,13,.72);border:1px solid rgba(255,255,255,.16);' +
+      'backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(0,0,0,.42);' +
+      'transition:background .15s,border-color .15s,transform .12s;-webkit-tap-highlight-color:transparent;padding:0}' +
+      '#firmMapClose svg{width:20px;height:20px}' +
+      '#firmMapClose:hover{background:rgba(167,139,250,.28);border-color:rgba(167,139,250,.5);transform:translateY(-1px)}' +
+      '#firmMapClose:active{transform:translateY(0)}' +
+      '#firmMapClose::after{content:"Back to map";position:absolute;top:50%;right:calc(100% + 10px);transform:translateY(-50%);' +
+      'white-space:nowrap;font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:10px;letter-spacing:.12em;' +
+      'text-transform:uppercase;color:#C2C9C3;background:rgba(13,13,13,.82);border:1px solid rgba(255,255,255,.12);' +
+      'border-radius:8px;padding:6px 10px;opacity:0;pointer-events:none;transition:opacity .15s}' +
+      '#firmMapClose:hover::after{opacity:1}' +
+      '@media(max-width:760px){#firmMapClose{top:auto;bottom:88px;right:16px}#firmMapClose::after{display:none}}';
+    document.head.appendChild(st);
+
+    var btn = document.createElement('button');
+    btn.id = 'firmMapClose';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Close and return to the map');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    btn.addEventListener('click', function () {
+      try { sessionStorage.removeItem('tmwFirmReturn'); } catch (e3) {}
+      if (history.length > 1) history.back();
+      else location.href = '/map/';
+    });
+    document.body.appendChild(btn);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountClose);
+  else mountClose();
+})();
