@@ -1234,6 +1234,10 @@ function initComments(slug, post) {
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
   var SPARK = '<svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
   var HEAD = '<div class="ai-head">' + SPARK + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx 4.1</span></div>';
+  var HEXSPIN = '<span class="ai-ask-hex" aria-hidden="true"><svg viewBox="0 0 100 100">'
+    + '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
+    + '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>'
+    + '</svg></span>';
   // Mount at the top of the hero (title width). The pre-rendered pages don't
   // carry the #article-intel slot, so create + place it there ourselves.
   var old = document.getElementById('article-intel');
@@ -1356,18 +1360,15 @@ function initComments(slug, post) {
               + '<span class="ai-f-role">' + esc(f.role) + '</span><span class="ai-f-nm">' + esc(f.name) + '</span></button>';
           }).join('') + '</div>';
     }
-    // Ask Onyx — a search bar that opens the Intelligence overlay with the reader's
-    // question, ANCHORED to this article's subject so Onyx answers in-context.
-    html += '<div class="ai-ask">'
-      + '<span class="ai-ask-hex" aria-hidden="true"><svg viewBox="0 0 100 100">'
-      +   '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
-      +   '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>'
-      + '</svg></span>'
+    // Ask Onyx — answers the reader's question INLINE from THIS article's text
+    // (reliable even for projects the map doesn't track), with an escalation link
+    // to the full Onyx search for broader questions.
+    html += '<div class="ai-ask">' + HEXSPIN
       + '<input class="ai-ask-in" type="text" placeholder="Ask Onyx about this story…" aria-label="Ask Onyx">'
       + '<button class="ai-ask-go" type="button" aria-label="Ask Onyx"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'
-      + '</div>';
+      + '</div><div class="ai-ask-ans" hidden></div>';
     host.innerHTML = html;
-    var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go');
+    var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go'), ans = host.querySelector('.ai-ask-ans');
     function articleSubject() {
       var e = intel.entities || {}, parts = [];
       if (e.project) parts.push(e.project); else if (e.developer) parts.push(e.developer);
@@ -1376,10 +1377,26 @@ function initComments(slug, post) {
       if (!subj) { var h1 = document.getElementById('article-title'); subj = h1 ? String(h1.textContent).replace(/\s+/g, ' ').trim() : ''; }
       return subj;
     }
+    function moreLink() { return '<button class="ai-ask-more" type="button">Explore in Onyx <svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></button>'; }
+    var _asking = false;
     function ask() {
       var q = (ain ? ain.value : '').trim();
-      var subj = articleSubject();
-      openOnyx((q && subj) ? (subj + ' — ' + q) : (q || subj));
+      if (!q || _asking) return;
+      _asking = true; ans.hidden = false;
+      ans.innerHTML = '<div class="ai-ask-loading">' + HEXSPIN + '<span>Onyx is reading the article…</span></div>';
+      fetch(WORKER + '/post-ask?slug=' + encodeURIComponent(slug) + '&q=' + encodeURIComponent(q))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          _asking = false;
+          if (d && d.ok && d.answer) ans.innerHTML = '<div class="ai-ask-a">' + esc(d.answer) + '</div><div class="ai-ask-foot">' + moreLink() + '</div>';
+          else ans.innerHTML = '<div class="ai-ask-a">Couldn\'t answer that from the article.</div><div class="ai-ask-foot">' + moreLink() + '</div>';
+          wireMore(q);
+        })
+        .catch(function () { _asking = false; ans.innerHTML = '<div class="ai-ask-a">Something went wrong.</div><div class="ai-ask-foot">' + moreLink() + '</div>'; wireMore(q); });
+    }
+    function wireMore(q) {
+      var mb = ans.querySelector('.ai-ask-more');
+      if (mb) mb.addEventListener('click', function () { var subj = articleSubject(); openOnyx((q && subj) ? (subj + ' — ' + q) : (q || subj)); });
     }
     if (ago) ago.addEventListener('click', ask);
     if (ain) ain.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ask(); } });

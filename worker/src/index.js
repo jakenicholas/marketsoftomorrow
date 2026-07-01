@@ -2565,6 +2565,35 @@ async function handlePostIntel(env, origin, url) {
 }
 function safeJson(s, fallback) { try { const v = JSON.parse(s); return v == null ? fallback : v; } catch (_) { return fallback; } }
 
+// GET /post-ask?slug=&q= — "Ask Onyx about this story": answers the reader's
+// question using ONLY the article body (reliable for untracked projects the map
+// doesn't have). Concise, no invented facts. Not cached (questions vary).
+async function handlePostAsk(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const slug = fullyDecodeSlug(String(url.searchParams.get('slug') || '').trim());
+  const q = String(url.searchParams.get('q') || '').trim().slice(0, 300);
+  if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) return json({ error: 'invalid slug' }, { status: 400 }, env, origin);
+  if (!q) return json({ error: 'q required' }, { status: 400 }, env, origin);
+  const row = await env.DB.prepare(`SELECT title, body_html, excerpt FROM posts WHERE slug = ?1 AND status = 'published' LIMIT 1`).bind(slug).first();
+  if (!row) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+  const text = String(row.body_html || row.excerpt || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 7000);
+  if (!text) return json({ error: 'no article text' }, { status: 422 }, env, origin);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 503 }, env, origin);
+  const sys = 'You are Onyx, Markets of Tomorrow\'s real-estate development intelligence. Answer the reader\'s question about THIS specific article, using ONLY the article text provided. Be concise and direct — 1 to 3 sentences, plain text (no markdown, no lists). If the article does not contain the answer, say so briefly and note the most relevant thing it does say. Never invent facts, dates, numbers, or names.';
+  const usr = 'Article headline: ' + String(row.title || '') + '\n\nArticle:\n' + text + '\n\nReader question: ' + q;
+  let answer = '';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 320, system: sys, messages: [{ role: 'user', content: usr }] }),
+    });
+    if (r.ok) { const d = await r.json(); answer = ((d.content && d.content[0] && d.content[0].text) || '').trim(); }
+  } catch (e) { /* fall through */ }
+  if (!answer) return json({ error: 'answer unavailable' }, { status: 502 }, env, origin);
+  return json({ ok: true, answer }, { headers: { 'Cache-Control': 'no-store' } }, env, origin);
+}
+
 // Resolve a single post by its primary id (e.g. "wix-7656dd47-..."). The admin
 // post editor needs this: there are 1400+ posts, so listing-and-matching by id
 // can't reliably reach old ones. Same auth model as by-slug — published is
@@ -8728,6 +8757,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/post-intel') {
         return await handlePostIntel(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/post-ask') {
+        return await handlePostAsk(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/member') {
         return await handleMember(env, origin, url);

@@ -376,3 +376,13 @@ footer .tmw-wordmark{width:118px}
   background:rgba(167,139,250,.16); border:1px solid rgba(167,139,250,.4); color:var(--purple-glow); transition:background .15s, border-color .15s, transform .12s}
 .article-intel .ai-ask-go:hover{background:rgba(167,139,250,.28); border-color:var(--purple); transform:translateY(-1px)}
 .article-intel .ai-ask-go svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+/* inline Onyx answer (from the article) */
+.article-intel .ai-ask-ans{margin-top:11px}
+.article-intel .ai-ask-ans[hidden]{display:none}
+.article-intel .ai-ask-loading{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--mute-2); padding:4px 2px}
+.article-intel .ai-ask-a{font-family:var(--sans); font-size:14.5px; line-height:1.55; color:var(--cream); padding:4px 2px}
+.article-intel .ai-ask-foot{margin-top:8px}
+.article-intel .ai-ask-more{display:inline-flex; align-items:center; gap:6px; appearance:none; cursor:pointer; background:none; border:0; padding:2px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:var(--purple-glow)}
+.article-intel .ai-ask-more:hover{color:#fff}
+.article-intel .ai-ask-more svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
