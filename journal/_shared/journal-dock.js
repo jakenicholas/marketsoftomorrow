@@ -1791,7 +1791,9 @@
     if (scope === 'me') list = list.filter(mineMatch);
     return list.slice(0, FEED_MAX);
   }
-  function countNew(){ var ts = seenFor(scope); return active().filter(function(e){ return addedTime(e) > ts; }).length; }
+  // The badge shows the count of UNDISMISSED notifications — it persists across
+  // opens and only drops as the user clears each tile with its × (not on open).
+  function countNew(){ return active().length; }
   function itemHtml(e){
     var lab = label(e);
     var img = e.image ? '<img class="pi-img" src="' + esc(e.image) + '" alt="" loading="lazy">' : '<div class="pi-img"></div>';
@@ -1811,7 +1813,7 @@
     // beat ("Because you watch Miami", "You're watching this project", …).
     var why = '';
     if (scope === 'me'){ var wr = mineReason(e); if (wr) why = '<div class="pi-why"><svg class="pi-why-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span>' + esc(wr) + '</span></div>'; }
-    return '<a class="tmw-pulse-item' + (isNew(e) ? ' is-new' : '') + '" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
+    return '<a class="tmw-pulse-item" href="' + esc(e.link || '#') + '" data-eid="' + esc(eid(e)) + '">' + img +
       '<div class="pi-body">' + chip +
       '<div class="pi-title">' + esc(title(e)) + '</div>' +
       '<div class="pi-meta">' + meta + '</div>' + partOf + why + '</div>' +
@@ -1957,10 +1959,8 @@
     repaint();
     circleEl.addEventListener('click', function(ev){
       ev.stopPropagation();
-      var opening = popEl.hidden;
-      popEl.hidden = !popEl.hidden;
-      if (opening) markScopeSeen();                 // opening marks this scope seen → badge clears
-      else { _displaySeen = null; paintCircle(); }
+      popEl.hidden = !popEl.hidden;                 // opening does NOT clear the count — only the × on each tile does
+
     });
     feedEl.addEventListener('click', function(ev){
       var t = ev.target;
@@ -1998,8 +1998,7 @@
     function setScope(sc){
       scope = sc; try { localStorage.setItem(SCOPE_KEY, sc); } catch(e){}
       updateScopeUI();
-      var done = function(){ if (popEl && !popEl.hidden) markScopeSeen(); else repaint(); };
-      if (sc === 'me') loadMine().then(done); else done();
+      if (sc === 'me') loadMine().then(repaint); else repaint();
     }
     updateScopeUI();
     if (scope === 'me') loadMine().then(repaint);
@@ -2012,7 +2011,7 @@
       setScope(sc);
     });
     document.addEventListener('click', function(ev){
-      if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)){ popEl.hidden = true; _displaySeen = null; paintCircle(); }
+      if (popEl && !popEl.hidden && !circleEl.contains(ev.target) && !popEl.contains(ev.target)) popEl.hidden = true;
     });
     return true;
   }
