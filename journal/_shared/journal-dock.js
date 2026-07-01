@@ -2014,45 +2014,54 @@
     if (document.getElementById('tmw-wbell-css')) return;
     var s = document.createElement('style'); s.id = 'tmw-wbell-css';
     s.textContent = [
-      '.tmw-wbell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#ECEAE5;cursor:pointer;margin-right:8px;flex:0 0 auto}',
-      '.tmw-wbell:hover{border-color:rgba(240,214,138,.5);color:#f0d68a}',
+      '.tmw-wbell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#ECEAE5;cursor:pointer;margin-right:8px;flex:0 0 auto;transition:border-color .2s,color .2s}',
+      '.tmw-wbell:hover{border-color:rgba(167,139,250,.55);color:#B9A6FF}',
       '.tmw-wbell svg{width:18px;height:18px}',
-      '.tmw-wbadge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#57e08c;color:#07120b;font:600 10px/17px ui-monospace,monospace;text-align:center}',
+      '.tmw-wbadge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#A78BFA;color:#1a0f3d;font:600 10px/17px ui-monospace,monospace;text-align:center;box-shadow:0 0 0 3px #0b0e0c,0 0 12px rgba(167,139,250,.65)}',
       '.tmw-wbadge[hidden]{display:none}',
-      '.tmw-wpanel{position:absolute;top:calc(100% + 10px);right:0;width:min(360px,92vw);background:#0b0e0c;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:6px;z-index:9600;box-shadow:0 24px 70px -20px rgba(0,0,0,.8);display:none}',
+      '.tmw-wpanel{position:absolute;top:calc(100% + 12px);right:0;width:min(380px,92vw);background:#0c0a12;border:1px solid rgba(167,139,250,.24);border-radius:18px;padding:7px;z-index:9600;box-shadow:0 30px 80px -20px rgba(0,0,0,.85),inset 0 0 0 1px rgba(167,139,250,.06),0 12px 55px -14px rgba(124,92,255,.45);display:none}',
       '.tmw-wpanel.open{display:block}',
-      '.tmw-wph{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px}',
-      '.tmw-wph .t{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#c9a558}',
-      '.tmw-wph .p{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#57e08c}',
-      '.tmw-wpulse{width:7px;height:7px;border-radius:50%;background:#57e08c;display:inline-block}',
-      '.tmw-wmove{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:10px;text-decoration:none;color:inherit}',
-      '.tmw-wmove:hover{background:rgba(255,255,255,.04)}',
-      '.tmw-wmove .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 auto}',
-      '.tmw-wmove .nm{font-family:Georgia,serif;font-size:14.5px;color:#fff;line-height:1.25}',
-      '.tmw-wmove .mt{font-size:11.5px;color:#8b918a;margin-top:3px}',
-      '.tmw-wtag{color:#dfe2db}',
-      '.tmw-wempty{padding:22px 14px;text-align:center;color:#8b918a;font-size:13px;line-height:1.5}',
-      '.tmw-wfoot{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:1px solid rgba(255,255,255,.08);margin-top:2px}',
-      '.tmw-wfoot span{font-size:11px;color:#787e76}',
-      '.tmw-wfoot a{font-size:11.5px;color:#f0d68a;text-decoration:none}'
+      '.tmw-wph{display:flex;align-items:center;gap:10px;padding:13px 13px 11px}',
+      '.tmw-wph .glow{width:8px;height:8px;border-radius:50%;background:#57e08c;box-shadow:0 0 10px #57e08c;flex:0 0 auto}',
+      '.tmw-wph .t{font-size:16px;font-weight:600;color:#fff;letter-spacing:-.01em}',
+      '.tmw-wph .cnt{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#B9A6FF;border:1px solid rgba(167,139,250,.32);border-radius:6px;padding:2px 8px}',
+      '.tmw-wmove{display:flex;gap:13px;align-items:center;padding:10px 11px;border-radius:13px;text-decoration:none;color:inherit}',
+      '.tmw-wmove:hover{background:rgba(167,139,250,.09)}',
+      '.tmw-wthumb{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:#171226;border:1px solid rgba(255,255,255,.06)}',
+      '.tmw-wtag{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#B9A6FF;font-weight:500}',
+      '.tmw-wname{font-family:Georgia,serif;font-size:15.5px;color:#fff;line-height:1.2;margin:3px 0}',
+      '.tmw-wsub{font-size:12px;color:#7c8088}',
+      '.tmw-wempty{padding:26px 16px;text-align:center;color:#8b8f97;font-size:13px;line-height:1.55}',
+      '.tmw-wfoot{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-top:1px solid rgba(167,139,250,.12);margin-top:3px}',
+      '.tmw-wfoot span{font-size:11.5px;color:#7c8088}',
+      '.tmw-wfoot a{font-size:12px;color:#B9A6FF;text-decoration:none;font-weight:500}'
     ].join('');
     document.head.appendChild(s);
   }
 
   var BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
 
+  var MON = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDate(m) {
+    var mm = String(m.event_date || '').match(/^(\d{4})-(\d{2})/);
+    if (mm) return MON[+mm[2]] + ' ' + mm[1];
+    return rel(m.timestamp);
+  }
   function panelHTML() {
     var moves = (DATA && DATA.moves) || [];
     var wc = (DATA && DATA.watch_count) || 0;
     var rows = moves.length ? moves.slice(0, 8).map(function (m) {
       return '<a class="tmw-wmove" href="' + esc(m.link || '#') + '">'
-        + '<span class="dot" style="background:' + typeColor(m.type) + '"></span>'
-        + '<div style="flex:1;min-width:0"><div class="nm">' + esc(m.project_title || '') + '</div>'
-        + '<div class="mt"><span class="tmw-wtag" style="color:' + typeColor(m.type) + '">' + esc(m.tag || m.type || '') + '</span>'
-        + (m.city ? ' &middot; ' + esc(m.city) : '') + (m.timestamp ? ' &middot; ' + rel(m.timestamp) : '') + '</div></div></a>';
+        + (m.image ? '<img class="tmw-wthumb" src="' + esc(m.image) + '" alt="" loading="lazy">' : '<div class="tmw-wthumb"></div>')
+        + '<div style="flex:1;min-width:0">'
+        + '<div class="tmw-wtag">' + esc(m.tag || m.type || '') + '</div>'
+        + '<div class="tmw-wname">' + esc(m.project_title || '') + '</div>'
+        + '<div class="tmw-wsub">' + (m.city ? esc(m.city) + ' &middot; ' : '') + esc(fmtDate(m)) + '</div>'
+        + '</div></a>';
     }).join('')
-      : '<div class="tmw-wempty">Nothing new on your watched projects yet.<br>Watch more from the map and Onyx will keep an eye out.</div>';
-    return '<div class="tmw-wph"><span class="t">On your beat</span><span class="p"><span class="tmw-wpulse"></span>' + (moves.length ? moves.length + ' moved' : 'watching') + '</span></div>'
+      : '<div class="tmw-wempty">Nothing new on your watched projects yet.<br>Watch more from the map &mdash; Onyx keeps an eye out.</div>';
+    return '<div class="tmw-wph"><span class="glow"></span><span class="t">On your beat</span>'
+      + '<span class="cnt">' + (moves.length ? moves.length + ' moved' : 'watching') + '</span></div>'
       + rows
       + '<div class="tmw-wfoot"><span>' + wc + ' project' + (wc === 1 ? '' : 's') + ' watched</span><a href="https://www.oftmw.com/map/">Open watchlist &rarr;</a></div>';
   }
