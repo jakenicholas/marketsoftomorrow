@@ -7096,6 +7096,33 @@ async function handleBrainResolve(req, env, origin) {
   return json({ ok: true, id, action, applied: action === 'approve' }, {}, env, origin);
 }
 
+// GET /admin/model-check — one tiny call per model to confirm the Anthropic key
+// + retention config actually allow Fable 5 (vs silently falling back to Opus).
+// The definitive "is Fable live?" check.
+async function handleModelCheck(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no ANTHROPIC_API_KEY configured' }, { status: 500 }, env, origin);
+  const out = {};
+  for (const model of ['claude-fable-5', 'claude-opus-4-8']) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model, max_tokens: 16, messages: [{ role: 'user', content: 'Reply with the single word: ok' }] }),
+      });
+      const bodyText = await r.text();
+      let stop = null, err = null;
+      try { const d = JSON.parse(bodyText); stop = d.stop_reason || null; err = d.type === 'error' ? ((d.error && d.error.message) || (d.error && d.error.type)) : null; } catch {}
+      out[model] = { http: r.status, ok: r.ok, stop_reason: stop, error: err ? String(err).slice(0, 240) : null };
+    } catch (e) { out[model] = { error: String((e && e.message) || e).slice(0, 240) }; }
+  }
+  out.verdict = (out['claude-fable-5'] && out['claude-fable-5'].ok)
+    ? 'FABLE 5 LIVE — key + 30-day retention OK; authoring runs on Fable.'
+    : 'Fable 5 UNAVAILABLE — authoring falls back to Opus 4.8. Reason: ' + JSON.stringify(out['claude-fable-5']);
+  return json(out, {}, env, origin);
+}
+
 async function handleBrainGet(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
@@ -9641,6 +9668,7 @@ export default {
       }
       // /brain — shared brand-brain notes (admin read/write; same brand_notes
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
+      if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
       if (url.pathname === '/brain/resolve'  && request.method === 'POST') return await handleBrainResolve(request, env, origin);
       if (url.pathname === '/brain' || url.pathname === '/brain/') {
