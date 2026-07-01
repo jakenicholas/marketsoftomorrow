@@ -139,9 +139,12 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .watchwrap{display:flex;flex-direction:column;gap:18px}
 .wgrp-h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
 .mchip .mck{font-size:15px;line-height:1;letter-spacing:0;text-transform:none}
-.mchip.gold .mck{color:rgba(230,197,116,.7)}
-.mchip.gold:hover{border-color:rgba(230,197,116,.85);background:rgba(230,197,116,.13)}
-.mchip.gold:hover .mck{color:var(--gold)}
+.mchip.gold{cursor:default;padding:8px 10px 8px 15px;gap:8px}
+.mchip.gold:hover{border-color:rgba(230,197,116,.7);background:rgba(230,197,116,.12)}
+.mchip.gold .mchip-lbl{color:#f2e6c4;text-decoration:none;cursor:pointer}
+.mchip.gold:hover .mchip-lbl{color:#fff}
+.mchip.gold .mck-x{color:rgba(230,197,116,.6)}
+.mchip.gold .mck-x:hover{color:var(--gold)}
 /* project pill: status dot + tappable label + remove */
 .mchip.proj{cursor:default;padding:8px 10px 8px 14px;gap:10px;border-color:var(--hair2);background:rgba(255,255,255,.03)}
 .mchip.proj:hover{border-color:rgba(255,255,255,.24)}
@@ -155,6 +158,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .mchip.smart{cursor:default;padding:8px 10px 8px 13px;gap:9px;color:#EDE9FF;border-color:rgba(167,139,250,.42);background:rgba(167,139,250,.10)}
 .mchip.smart:hover{border-color:rgba(167,139,250,.7);background:rgba(167,139,250,.16)}
 .mchip.smart .wonyx{width:14px;height:14px;flex:0 0 auto;fill:var(--purple-glow);filter:drop-shadow(0 0 6px rgba(167,139,250,.7))}
+.mchip.smart .mchip-lbl{color:#EDE9FF;text-decoration:none;cursor:pointer}
+.mchip.smart:hover .mchip-lbl{color:#fff}
 /* shared remove × for project + smart pills */
 .mck-x{appearance:none;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;color:var(--mute);padding:0 2px;margin-left:2px;transition:color .15s}
 .mck-x:hover{color:#fff}
@@ -518,11 +523,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function wgrp(title,pills){ if(!pills)return ''; return '<div class="wgrp"><div class="wgrp-h">'+esc(title)+'</div><div class="mchips">'+pills+'</div></div>'; }
   function renderWatches(){
     var el=$('mktChips'); if(!el)return;
-    var mHtml=_mkt.map(function(s){return '<button class="mchip on gold" data-kind="market" data-m="'+esc(s)+'" type="button"><span class="mchip-lbl">'+esc(niceName(s))+'</span><span class="mck" aria-hidden="true">×</span></button>';}).join('');
-    var fHtml=_firm.map(function(s){return '<button class="mchip on gold" data-kind="firm" data-m="'+esc(s)+'" type="button"><span class="mchip-lbl">'+esc(firmNice(s))+'</span><span class="mck" aria-hidden="true">×</span></button>';}).join('');
+    var mHtml=_mkt.map(function(s){return '<span class="mchip on gold" data-kind="market" data-m="'+esc(s)+'"><a class="mchip-lbl" href="https://www.oftmw.com/?market='+encodeURIComponent(s)+'">'+esc(niceName(s))+'</a><button class="mck-x" type="button" data-kind="market" data-m="'+esc(s)+'" aria-label="Remove '+esc(niceName(s))+'">×</button></span>';}).join('');
+    var fHtml=_firm.map(function(s){return '<span class="mchip on gold" data-kind="firm" data-m="'+esc(s)+'"><a class="mchip-lbl" href="https://www.oftmw.com/firm/'+encodeURIComponent(s)+'/">'+esc(firmNice(s))+'</a><button class="mck-x" type="button" data-kind="firm" data-m="'+esc(s)+'" aria-label="Remove '+esc(firmNice(s))+'">×</button></span>';}).join('');
     var pHtml=_projWatch.map(function(p){ var st=deliveryStatus(p.delivery); return '<span class="mchip proj" data-kind="project" data-slug="'+esc(p.slug)+'"><span class="wdot '+st.cls+'" title="'+esc(st.label)+'"></span><a class="mchip-lbl" href="https://www.oftmw.com/map/?project='+encodeURIComponent(p.msl)+'">'+esc(p.title)+'</a><button class="mck-x" type="button" data-kind="project" data-slug="'+esc(p.slug)+'" aria-label="Remove '+esc(p.title)+'">×</button></span>';}).join('');
-    var sHtml=_smartWatch.map(function(w){ return '<span class="mchip smart" data-kind="smart" data-q="'+esc(w.query)+'"><svg class="wonyx" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><span class="mchip-lbl">'+esc(w.query)+'</span><button class="mck-x" type="button" data-kind="smart" data-q="'+esc(w.query)+'" aria-label="Remove watch">×</button></span>';}).join('');
-    var html = wgrp('Markets',mHtml)+wgrp('Firms',fHtml)+wgrp('Projects',pHtml)+wgrp('Onyx searches',sHtml);
+    var sHtml=_smartWatch.map(function(w){ return '<span class="mchip smart" data-kind="smart" data-q="'+esc(w.query)+'"><svg class="wonyx" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg><a class="mchip-lbl" href="https://www.oftmw.com/?q='+encodeURIComponent(w.query)+'">'+esc(w.query)+'</a><button class="mck-x" type="button" data-kind="smart" data-q="'+esc(w.query)+'" aria-label="Remove watch">×</button></span>';}).join('');
+    var html = wgrp('Markets',mHtml)+wgrp('Firms',fHtml)+wgrp('Projects',pHtml)+wgrp('Intelligence searches',sHtml);
     if(pHtml) html += '<div class="wlegend"><span><i class="wdot s-announced"></i>Announced</span><span><i class="wdot s-construction"></i>Building</span><span><i class="wdot s-open"></i>Open</span></div>';
     el.innerHTML = html || '<div class="mkt-empty">Nothing watched yet — search above to watch a market, firm or project type, press the eye on any project, or hit “Watch this” on an Onyx answer.</div>';
     updateOwnHead();
@@ -548,16 +553,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     _smartWatch=_smartWatch.filter(function(w){return w.query!==q;}); renderWatches();
     getMember().then(function(mem){ if(!mem||!mem.id)return; var payload=JSON.stringify({member:mem.id,query:q}); fetch(WORKER+'/watch/delete',{method:'POST',body:payload,headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){ _smartDone=false; loadSmartWatches(); }); });
   }
+  // Pill labels are real links (market → journal filter, firm → firm page,
+  // project → dossier, intelligence search → Onyx overlay) and navigate on
+  // their own. Only the × control removes/unwatches.
   document.addEventListener('click',function(e){
-    var t=e.target;
-    // explicit × on a project / smart pill
-    var x=t&&t.closest&&t.closest('#mktChips .mck-x');
-    if(x){ e.preventDefault(); var k=x.getAttribute('data-kind'); if(k==='project') removeProjectWatch(x.getAttribute('data-slug')); else if(k==='smart') removeSmartWatch(x.getAttribute('data-q')); return; }
-    // project label is a real link to the dossier — let it navigate
-    if(t&&t.closest&&t.closest('#mktChips .mchip.proj .mchip-lbl')) return;
-    // whole-pill click on a market / firm chip removes it (existing behaviour)
-    var b=t&&t.closest&&t.closest('#mktChips .mchip[data-kind="market"], #mktChips .mchip[data-kind="firm"]');
-    if(!b)return; if(b.getAttribute('data-kind')==='firm') toggleFirm(b.getAttribute('data-m')); else toggleMarket(b.getAttribute('data-m'));
+    var x=e.target&&e.target.closest&&e.target.closest('#mktChips .mck-x'); if(!x)return;
+    e.preventDefault(); var k=x.getAttribute('data-kind');
+    if(k==='project') removeProjectWatch(x.getAttribute('data-slug'));
+    else if(k==='smart') removeSmartWatch(x.getAttribute('data-q'));
+    else if(k==='firm') toggleFirm(x.getAttribute('data-m'));
+    else if(k==='market') toggleMarket(x.getAttribute('data-m'));
   });
 
   // searchable catalog — cities/states/countries/types to follow beyond the quick chips
