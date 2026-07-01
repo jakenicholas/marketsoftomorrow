@@ -5319,7 +5319,10 @@ function renderCarouselHtml(c) {
         return `<div class="slide vid" data-i="${i}"><video class="strm" data-uid="${escAttr(s.stream_uid)}"${poster} muted playsinline loop preload="none"></video>${ov}</div>`;
       }
       const poster = s.poster ? ` poster="${escHtml(s.poster)}"` : '';
-      return `<div class="slide" data-i="${i}"><video src="${escHtml(s.url)}"${poster} muted playsinline loop ${i===0?'autoplay':''}></video></div>`;
+      // Raw-URL video (no Stream): still composite the text/logo overlay so the
+      // design transfers even when Stream isn't used.
+      const ov = s.overlay ? `<img class="ov" src="${escHtml(s.overlay)}" alt="">` : '';
+      return `<div class="slide vid" data-i="${i}"><video src="${escHtml(s.url)}"${poster} muted playsinline loop ${i===0?'autoplay':''}></video>${ov}</div>`;
     }
     return `<div class="slide" data-i="${i}"><img src="${escHtml(s.url)}" alt="${escHtml(s.alt || '')}" loading="${i===0?'eager':'lazy'}"></div>`;
   }).join('');
@@ -5380,7 +5383,7 @@ function renderCarouselHtml(c) {
      carousel width and the carousel just showed slivers of the first image.) */
   .carousel { position:relative; aspect-ratio:4/5; background:#000; overflow:hidden; }
   .track { display:flex; height:100%; width:100%; transition:transform .35s cubic-bezier(.4,.2,.2,1); will-change:transform; }
-  .slide { flex:0 0 100%; min-width:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000 }
+  .slide { flex:0 0 100%; min-width:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000; position:relative }
   .slide img, .slide video { width:100%; height:100%; object-fit:cover; display:block; }
   .slide.vid { background:#0b0d0c; }
   .slide .ov { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
