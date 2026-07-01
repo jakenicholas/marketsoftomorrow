@@ -17018,10 +17018,10 @@
     "Description": "The $880 million project will bring 4,032 residential units across seven 35-story towers",
     "DescriptionLong": "The $880 million project will bring 4,032 residential units across seven 35-story towers",
     "Delivery": "Breaking Ground",
-    "DeliveryDate": "2028",
+    "DeliveryDate": "Q2 2028",
     "StartDate": "2026-02",
-    "ProjectType": "Residences",
-    "PreferredType": "Residences",
+    "ProjectType": "Residences, Retail, Mixed-Use",
+    "PreferredType": "Mixed-Use",
     "Architect": "Arquitectonica",
     "ArchitectSlugs": "arquitectonica",
     "Developer": "Pablo Castro (Urban Network Capital), Laura Tauber",
@@ -17044,7 +17044,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:24:49.029Z",
+    "UpdatedAt": "2026-07-01T19:22:53.769Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:55:41.605Z",
@@ -17105,6 +17105,42 @@
         "field": "neighborhood",
         "from": null,
         "to": "West Little River"
+      },
+      {
+        "at": "2026-07-01T19:22:53.769Z",
+        "source_url": "https://floridayimby.com/2026/03/demolition-underway-for-the-huehub-at-8395-nw-27th-avenue-in-miamis-west-little-river-neighborhood.html",
+        "source_published": "2026-03-01",
+        "note": "8395 NW 27th Ave, West Little River; Live Local Act mixed-use (retail, medical, learning center, 2-acre park, coworking) → Mixed-Use; Q2 2028 target per TRD",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2028",
+        "to": "Q2 2028"
+      },
+      {
+        "at": "2026-07-01T19:22:53.769Z",
+        "source_url": "https://floridayimby.com/2026/03/demolition-underway-for-the-huehub-at-8395-nw-27th-avenue-in-miamis-west-little-river-neighborhood.html",
+        "source_published": "2026-03-01",
+        "note": "8395 NW 27th Ave, West Little River; Live Local Act mixed-use (retail, medical, learning center, 2-acre park, coworking) → Mixed-Use; Q2 2028 target per TRD",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Residences"
+        ],
+        "to": [
+          "Residences",
+          "Retail",
+          "Mixed-Use"
+        ]
+      },
+      {
+        "at": "2026-07-01T19:22:53.769Z",
+        "source_url": "https://floridayimby.com/2026/03/demolition-underway-for-the-huehub-at-8395-nw-27th-avenue-in-miamis-west-little-river-neighborhood.html",
+        "source_published": "2026-03-01",
+        "note": "8395 NW 27th Ave, West Little River; Live Local Act mixed-use (retail, medical, learning center, 2-acre park, coworking) → Mixed-Use; Q2 2028 target per TRD",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Residences",
+        "to": "Mixed-Use"
       }
     ],
     "County": "Miami-Dade County",
@@ -17293,7 +17329,7 @@
     "Slug": "ponce-8",
     "City": "Coral Gables",
     "Borough": "",
-    "Neighborhood": "Coral Gables",
+    "Neighborhood": "North Gables",
     "Latitude": "25.7645223",
     "Longitude": "-80.257589",
     "Description": "Mediterranean‑inspired boutique condo near Miracle Mile with curated amenities and intimate scale.",
@@ -17325,7 +17361,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:24:19.434Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:03:13.290Z",
@@ -17407,6 +17443,25 @@
         "source_url": "https://therealdeal.com/miami/2026/05/14/shoma-group-pays-13-million-for-coral-gables-dev-site/",
         "source_published": "2026-05-14",
         "note": "Shoma Group closed the $13.3M dev-site purchase with $14M from Benworth Capital and submitted building plans for Coral Gables' first Live Local project",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-05"
+      },
+      {
+        "at": "2026-07-01T19:24:19.434Z",
+        "source_url": "https://therealdeal.com/miami/2026/05/14/shoma-group-pays-13-million-for-coral-gables-dev-site/",
+        "source_published": "2026-05-14",
+        "note": "Shoma Group closed $13.25M land assembly for the dev site near the Douglas Entrance / North Gables",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Coral Gables",
+        "to": "North Gables"
+      },
+      {
+        "at": "2026-07-01T19:24:19.434Z",
+        "source_url": "https://therealdeal.com/miami/2026/05/14/shoma-group-pays-13-million-for-coral-gables-dev-site/",
+        "source_published": "2026-05-14",
+        "note": "Shoma Group closed $13.25M land assembly for the dev site near the Douglas Entrance / North Gables",
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2026-05"
@@ -19587,7 +19642,7 @@
     "Slug": "delano-residences-miami",
     "City": "Miami",
     "Borough": "",
-    "Neighborhood": "Downtown",
+    "Neighborhood": "Downtown Miami",
     "Latitude": "25.7783459",
     "Longitude": "-80.188896",
     "Description": "The first-ever residential tower from the legendary Delano brand and marking PMG’s second supertall to rise over the city.",
@@ -19619,7 +19674,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:13.618Z",
+    "UpdatedAt": "2026-07-01T19:25:03.526Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:05:40.084Z",
@@ -19664,6 +19719,32 @@
         "source_url": "https://southfloridaagentmagazine.com/2026/03/09/delano-supertall-sales/",
         "source_published": "2026-03-09",
         "note": "Condo sales launched March 2026 (PMG Residential), from ~$800K, per TRD & South Florida Agent",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-03"
+      },
+      {
+        "at": "2026-07-01T19:24:32.565Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2026/2/19/pmg-and-ennismore-reveal-miamis-2nd-supertall-tower-the-first-ever-delano-branded-residences-in-downtown-miami",
+        "source_published": "2026-02-19",
+        "note": "PMG + Ennismore revealed Delano Residences, Miami's 2nd supertall / first Delano-branded residences (Downtown Miami)",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2026-02-19"
+      },
+      {
+        "at": "2026-07-01T19:25:03.526Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2026/2/19/pmg-and-ennismore-reveal-miamis-2nd-supertall-tower-the-first-ever-delano-branded-residences-in-downtown-miami",
+        "note": "Condo sales launched March 2026 (from $800K, PMG Residential); corrects location to Downtown Miami / Biscayne Blvd (not South Beach)",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown",
+        "to": "Downtown Miami"
+      },
+      {
+        "at": "2026-07-01T19:25:03.526Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2026/2/19/pmg-and-ennismore-reveal-miamis-2nd-supertall-tower-the-first-ever-delano-branded-residences-in-downtown-miami",
+        "note": "Condo sales launched March 2026 (from $800K, PMG Residential); corrects location to Downtown Miami / Biscayne Blvd (not South Beach)",
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-03"
@@ -21152,7 +21233,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:10.143Z",
+    "UpdatedAt": "2026-07-01T19:24:28.697Z",
     "StatusHistory": [
       {
         "at": "2026-06-06T16:57:01.495Z",
@@ -21208,6 +21289,15 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2025-07"
+      },
+      {
+        "at": "2026-07-01T19:24:28.697Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2025/10/27/mg-developer-breaks-ground-and-launches-sales-for-the-george-the-final-development-in-biltmore-square-in-coral-gables",
+        "source_published": "2025-10-27",
+        "note": "MG Developer launched sales for The George (13 townhomes from $6.275M), concurrent with groundbreaking",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2025-10-27"
       }
     ],
     "County": "Miami-Dade County",
@@ -23189,7 +23279,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:27.333Z",
+    "UpdatedAt": "2026-07-01T19:24:44.246Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:34:29.279Z",
@@ -23225,6 +23315,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025"
+      },
+      {
+        "at": "2026-07-01T19:24:44.246Z",
+        "source_url": "https://www.firstcallgolf.com/industry-news/release/2026-05-12/firefly-middle-tennessees-new-luxury-golf-community-set-to-launch-next-phase-of-homesite-sales-as-demand-grows-and-construction-begins-on-core-lifestyle-facilities",
+        "source_published": "2026-05-12",
+        "note": "Construction began on the first amenity village (Fieldhouse, Outpost, Golf Shop by Swaback); Phase 2 homesite sales launched",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2026-05"
       }
     ],
     "County": "Maury County",
@@ -23598,7 +23697,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:06.670Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:33:39.579Z",
@@ -25864,7 +25963,7 @@
     "Description": "A 1,200-acre resort bringing four 18-hole courses, a par-3, on-site lodging, hot and cold therapy wellness facilities, fitness spaces, and an integrated trail network.",
     "DescriptionLong": "Candyroot Lodge is a wellness-focused public golf retreat taking shape across roughly 1,210 acres in the Carolina Sandhills of South Carolina, an emerging destination set between Charlotte and Columbia. Developed by brothers Aaron and Ethan Oberman with master planning by Hart Howerton, Candyroot is anchored by an 18-hole championship course — the solo design debut of architect Mike Koprowski — with plans for as many as four walkable championship courses plus a lighted par-3, all conceived as a rare daily-fee, walking-only experience open to the public. The retreat blends the rolling, sandy terrain and native vegetation of the Sandhills with a restorative, wellness-driven approach to golf and hospitality, positioning Candyroot Lodge as one of the most anticipated new public golf destinations in the American Southeast.",
     "Delivery": "Under Construction",
-    "DeliveryDate": "2027",
+    "DeliveryDate": "Spring 2027",
     "StartDate": "2025",
     "ProjectType": "Golf, Hotel, Entertainment, Park",
     "PreferredType": "Golf",
@@ -25890,7 +25989,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:24:42.300Z",
+    "UpdatedAt": "2026-07-01T19:22:49.329Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:34:39.134Z",
@@ -25918,6 +26017,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "Chesterfield County"
+      },
+      {
+        "at": "2026-07-01T19:22:49.329Z",
+        "source_url": "https://www.forbes.com/sites/erikmatuszewski/2026/03/12/candyroot-a-rising-and-rare-public-golf-retreat-in-south-carolina/",
+        "source_published": "2026-03-12",
+        "note": "Course 1 grand opening targeted Spring 2027 per Forbes/Golf Digest",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2027",
+        "to": "Spring 2027"
       }
     ],
     "County": "Kershaw County",
@@ -28224,8 +28333,8 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "2028-08",
     "StartDate": "2025-02",
-    "ProjectType": "Entertainment, Park",
-    "PreferredType": "Entertainment",
+    "ProjectType": "Stadium, Entertainment",
+    "PreferredType": "Stadium",
     "Architect": "HOK",
     "ArchitectSlugs": "hok",
     "Developer": "City of Jacksonville, Jacksonville Jaguars",
@@ -28248,7 +28357,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:23:22.660Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T06:26:19.400Z",
@@ -28278,6 +28387,38 @@
         "field": "start_date",
         "from": "2025",
         "to": "2025-02"
+      },
+      {
+        "at": "2026-07-01T19:23:22.660Z",
+        "source_url": "https://www.hok.com/news/2026-03/construction-advances-on-hok-designed-jacksonville-jaguars-stadium-of-the-future/",
+        "note": "Stadium of the Future (EverBank reinvention) — initial construction began Feb 2025, structural steel + in-bowl demolition underway; reclassify preferred_type Stadium",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Entertainment",
+          "Park"
+        ],
+        "to": [
+          "Stadium",
+          "Entertainment"
+        ]
+      },
+      {
+        "at": "2026-07-01T19:23:22.660Z",
+        "source_url": "https://www.hok.com/news/2026-03/construction-advances-on-hok-designed-jacksonville-jaguars-stadium-of-the-future/",
+        "note": "Stadium of the Future (EverBank reinvention) — initial construction began Feb 2025, structural steel + in-bowl demolition underway; reclassify preferred_type Stadium",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Entertainment",
+        "to": "Stadium"
+      },
+      {
+        "at": "2026-07-01T19:23:22.660Z",
+        "source_url": "https://www.hok.com/news/2026-03/construction-advances-on-hok-designed-jacksonville-jaguars-stadium-of-the-future/",
+        "note": "Stadium of the Future (EverBank reinvention) — initial construction began Feb 2025, structural steel + in-bowl demolition underway; reclassify preferred_type Stadium",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2025-02"
       }
     ],
     "County": "Duval County",
@@ -29881,7 +30022,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:20.791Z",
+    "UpdatedAt": "2026-07-01T19:24:36.459Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:43:21.736Z",
@@ -29926,6 +30067,14 @@
         "type": "milestone",
         "phase": "halfway",
         "effective_date": "2026-01"
+      },
+      {
+        "at": "2026-07-01T19:24:36.459Z",
+        "source_url": "https://www.dezeen.com/2026/04/23/jeddah-tower-100th-floor-construction-photos-saudi-arabia/",
+        "note": "Construction officially resumed Jan 2025 (at 63 stories) after a long pause; reached the 100th of 157 floors by April 2026",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2025-01"
       }
     ],
     "County": "",
@@ -30761,7 +30910,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:23:26.940Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:44:19.638Z",
@@ -30771,6 +30920,14 @@
         "field": "delivery_date",
         "from": "2030",
         "to": "2035"
+      },
+      {
+        "at": "2026-07-01T19:23:26.940Z",
+        "source_url": "https://www.changiairport.com/en/corporate/our-media-hub/newsroom/press-releases.changi-airport-terminal-5-breaks-ground.2025.all.html",
+        "note": "Changi T5 groundbreaking officiated by PM Lawrence Wong, 14 May 2025",
+        "type": "backfill",
+        "to": "breaking-ground",
+        "effective_date": "2025-05-14"
       }
     ],
     "County": "",
@@ -30813,7 +30970,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:45:58.858Z",
@@ -31202,7 +31359,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:44:17.686Z",
@@ -48991,7 +49148,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:26:45.945Z",
@@ -49195,7 +49352,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:26:57.306Z",
@@ -49267,7 +49424,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:27:19.514Z",
@@ -49374,7 +49531,7 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "",
     "StartDate": "",
-    "ProjectType": "Mixed-Use, Residences, Retail",
+    "ProjectType": "Mixed-Use, Residences, Retail, Office, Park",
     "PreferredType": "Mixed-Use",
     "Architect": "Allies and Morrison",
     "ArchitectSlugs": "allies-and-morrison",
@@ -49398,7 +49555,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:19:24.129Z",
+    "UpdatedAt": "2026-07-01T19:24:40.277Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:27:08.132Z",
@@ -49433,6 +49590,33 @@
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2024-03-06"
+      },
+      {
+        "at": "2026-07-01T19:24:40.277Z",
+        "source_url": "https://www.propertyweek.com/news/british-land-completes-first-phase-of-canada-water-masterplan-with-three-deal-porters-launch",
+        "note": "Phase 1 delivered (Three Deal Porters offices, 186+79 homes, leisure centre); adds Office + Park to types. Next phase on site from 2027",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Mixed-Use",
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Mixed-Use",
+          "Residences",
+          "Retail",
+          "Office",
+          "Park"
+        ]
+      },
+      {
+        "at": "2026-07-01T19:24:40.277Z",
+        "source_url": "https://www.propertyweek.com/news/british-land-completes-first-phase-of-canada-water-masterplan-with-three-deal-porters-launch",
+        "note": "Phase 1 delivered (Three Deal Porters offices, 186+79 homes, leisure centre); adds Office + Park to types. Next phase on site from 2027",
+        "type": "milestone",
+        "phase": "tco",
+        "effective_date": "2025"
       }
     ],
     "County": "",
@@ -49475,7 +49659,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:23:32.409Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:27:12.017Z",
@@ -49495,6 +49679,14 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2022-02"
+      },
+      {
+        "at": "2026-07-01T19:23:32.409Z",
+        "source_url": "https://www.constructionenquirer.com/2026/03/05/near-1000-homes-approved-for-isle-of-dogs-site/",
+        "note": "Ensign House ~52% complete (South Quay, Isle of Dogs); Q4 2026 delivery on track",
+        "type": "milestone",
+        "phase": "halfway",
+        "effective_date": "Early 2026"
       }
     ],
     "County": "",
@@ -49594,13 +49786,13 @@
     "Slug": "the-shepherd-mayfair",
     "City": "London",
     "Borough": "Westminster",
-    "Neighborhood": "Shepherd Market",
+    "Neighborhood": "Mayfair",
     "Latitude": "51.5065708",
     "Longitude": "-0.1461878",
     "Description": "The Shepherd Mayfair is an 82-room boutique hotel set in Shepherd Market, one of Mayfair's most storied corners in London's West End. Arranged over six floors on the site of a former mews hotel, it offers rooms and suites ranging from intimate retreats to expansive signature suites. Guests can move between three dining and drinking concepts: an all-day British brasserie, a relaxed cafe-style lounge, and a hidden late-night cocktail bar reached by a discreet staircase. An adjacent pair of reimagined Georgian townhouses houses a small collection of one- and two-bedroom private residences, extending the hotel's craftsmanship into long-stay living.",
     "DescriptionLong": "The Shepherd Mayfair is an 82-room boutique hotel set within the storied lanes of Shepherd Market, one of Mayfair's most characterful and village-like corners. Designed by the architecture practice Buckley Gray Yeoman, the roughly 33,600-square-foot property spans six floors and is conceived as a love letter to the neighborhood's bohemian heritage — pairing richly layered, residential-feeling interiors with a tightly curated sense of place. The hotel anchors itself with a trio of distinct food-and-drink destinations, including the Fayre brasserie and the intimate Teddy's cocktail bar, alongside generously appointed guest rooms and suites that trade grand scale for warmth, texture and craft. Founded by hotelier Timothy Shepherd, the project aims to deliver the feel of a private Mayfair address rather than a conventional luxury hotel — a discreet retreat moments from Green Park, Berkeley Square and Piccadilly.",
     "Delivery": "Opening Soon",
-    "DeliveryDate": "2026-08-01",
+    "DeliveryDate": "Summer 2026",
     "StartDate": "",
     "ProjectType": "Hotel",
     "PreferredType": "Hotel",
@@ -49626,7 +49818,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:24:16.043Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:27:23.026Z",
@@ -49666,6 +49858,32 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-01-09"
+      },
+      {
+        "at": "2026-07-01T19:24:16.043Z",
+        "source_url": "https://www.thecaterer.com/news/first-look-the-shepherd-mayfair-hotel-prepares-to-launch-in-summer-2026",
+        "note": "Reservations open ahead of a summer 2026 launch; 82-key hotel (per Hotel News Resource), Shepherd Market, Mayfair. NB units=16 is the separate residences component",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2026-08-01",
+        "to": "Summer 2026"
+      },
+      {
+        "at": "2026-07-01T19:24:16.043Z",
+        "source_url": "https://www.thecaterer.com/news/first-look-the-shepherd-mayfair-hotel-prepares-to-launch-in-summer-2026",
+        "note": "Reservations open ahead of a summer 2026 launch; 82-key hotel (per Hotel News Resource), Shepherd Market, Mayfair. NB units=16 is the separate residences component",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Shepherd Market",
+        "to": "Mayfair"
+      },
+      {
+        "at": "2026-07-01T19:24:16.043Z",
+        "source_url": "https://www.thecaterer.com/news/first-look-the-shepherd-mayfair-hotel-prepares-to-launch-in-summer-2026",
+        "note": "Reservations open ahead of a summer 2026 launch; 82-key hotel (per Hotel News Resource), Shepherd Market, Mayfair. NB units=16 is the separate residences component",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "Early 2026"
       }
     ],
     "County": "",
@@ -49708,7 +49926,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:29:12.249Z",
@@ -49770,7 +49988,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:24:08.410Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:27:55.100Z",
@@ -49790,6 +50008,15 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2026-03-13"
+      },
+      {
+        "at": "2026-07-01T19:24:08.410Z",
+        "source_url": "https://www.prnewswire.com/news-releases/marriott-international-signs-agreement-to-bring-st-regis-hotels--resorts-to-kapalua-bay-hawaii-302713857.html",
+        "source_published": "2026-03-14",
+        "note": "Marriott assumed management of the existing Kapalua Bay resort; St. Regis flag to go live after renovation in 2027 (operator secured)",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2026-03-14"
       }
     ],
     "County": "Maui County",
@@ -50087,7 +50314,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:24:22.974Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:29:16.398Z",
@@ -50237,7 +50464,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:29:20.613Z",
@@ -50422,7 +50649,7 @@
     "Delivery": "Under Construction",
     "DeliveryDate": "2026-11",
     "StartDate": "",
-    "ProjectType": "Hotel",
+    "ProjectType": "Hotel, Residences",
     "PreferredType": "Hotel",
     "Architect": "",
     "ArchitectSlugs": "",
@@ -50446,7 +50673,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T17:09:54.811Z",
+    "UpdatedAt": "2026-07-01T19:24:12.300Z",
     "StatusHistory": [
       {
         "at": "2026-06-23T18:28:11.575Z",
@@ -50486,6 +50713,20 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2025-08-05"
+      },
+      {
+        "at": "2026-07-01T19:24:12.300Z",
+        "source_url": "https://soma.group/news/soho-house-arrives-at-cabo-del-sol/",
+        "note": "Cabo del Sol location; adds first-ever Soho Residences Los Cabos alongside the club → Hotel + Residences",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Hotel"
+        ],
+        "to": [
+          "Hotel",
+          "Residences"
+        ]
       }
     ],
     "County": "",
@@ -55112,7 +55353,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:26:29.767Z",
+    "UpdatedAt": "2026-07-01T19:23:15.045Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:23:41.964Z",
@@ -55139,6 +55380,15 @@
         "note": "PMG breaks ground on Waldorf Astoria Residences Cherry Creek with ~65% of condos pre-sold, 2025-11-19",
         "type": "backfill",
         "to": "breaking-ground",
+        "effective_date": "2025-11-19"
+      },
+      {
+        "at": "2026-07-01T19:23:15.045Z",
+        "source_url": "https://milehighcre.com/pmg-breaks-ground-on-waldorf-astoria-residences-denver-cherry-creek/",
+        "source_published": "2025-11-20",
+        "note": "PMG broke ground / began vertical construction at 185 N. Steele St, Cherry Creek North (65% pre-sold)",
+        "type": "milestone",
+        "phase": "going-vertical",
         "effective_date": "2025-11-19"
       }
     ],
@@ -55182,7 +55432,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:25:38.044Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:23:52.463Z",
@@ -55217,7 +55467,7 @@
     "Description": "A 400-foot luxury condominium tower in Honolulu's Our Kakaʻako district, distinguished by a sustainability-forward, trade-wind-oriented design and one of Hawaii's most ambitious all-electric residential programs.",
     "DescriptionLong": "Rising 39 residential stories atop a five-story podium at 888 Ala Moana Boulevard, Ālia is a roughly 400-foot luxury condominium tower anchoring Block I of Honolulu's Our Kakaʻako master plan, a partnership of the Kobayashi Group and The MacNaughton Group on Kamehameha Schools land. Designed by San Francisco's WRNS Studio with interiors by The Vanguard Theory, the building is oriented to the trade winds with an undulating south façade and alternating floor-to-floor lanais that provide passive shading, cooling, and sweeping ocean and Diamond Head views. Its roughly 457 residences range from reserved-housing and market-rate one-bedrooms to two-bedroom lofts and three-bedroom homes, served by amenities including two infinity pools, a bowling alley, a movie theater, a pickleball court, and human and pet spas. One of the most sustainability-driven residential towers in Hawaii, Ālia is an all-electric building with a centralized chilled-water system, an extensive rooftop photovoltaic array, and the first greywater treatment system in a Hawaiian residential high-rise.",
     "Delivery": "Under Construction",
-    "DeliveryDate": "2026",
+    "DeliveryDate": "Q1 2027",
     "StartDate": "2023",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -55243,7 +55493,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:25:41.449Z",
+    "UpdatedAt": "2026-07-01T19:23:05.504Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:23:55.846Z",
@@ -55262,6 +55512,23 @@
         "field": "neighborhood",
         "from": "Our Kakaʻako",
         "to": "Kakaako"
+      },
+      {
+        "at": "2026-07-01T19:23:05.504Z",
+        "source_url": "https://www.constructiondive.com/news/alia-condo-honolulu-kobayashi/718642/",
+        "note": "$400M Ālia tower under vertical construction (Kobayashi Group); full completion now Q1 2027",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2026",
+        "to": "Q1 2027"
+      },
+      {
+        "at": "2026-07-01T19:23:05.504Z",
+        "source_url": "https://www.constructiondive.com/news/alia-condo-honolulu-kobayashi/718642/",
+        "note": "$400M Ālia tower under vertical construction (Kobayashi Group); full completion now Q1 2027",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "2024-06"
       }
     ],
     "County": "Honolulu County",
@@ -55272,7 +55539,7 @@
     "Slug": "kali-u",
     "City": "Honolulu",
     "Borough": "",
-    "Neighborhood": "Kakaako",
+    "Neighborhood": "Kakaʻako",
     "Latitude": "21.2968473",
     "Longitude": "-157.8610188",
     "Description": "A roughly 400-foot luxury condominium tower in Honolulu's Our Kakaʻako district, set on a full block beside SALT at Our Kakaʻako, pairing nearly 300 residences with ground-floor retail.",
@@ -55304,7 +55571,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:25:44.709Z",
+    "UpdatedAt": "2026-07-01T19:23:09.515Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:23:59.199Z",
@@ -55323,6 +55590,23 @@
         "field": "neighborhood",
         "from": "Our Kakaʻako",
         "to": "Kakaako"
+      },
+      {
+        "at": "2026-07-01T19:23:09.515Z",
+        "source_url": "https://prospacholdings.com/prospacs-kaliu-advances-with-hcda-approval/",
+        "note": "Kaliʻu entitlement approved by HCDA (ProsPac Holdings), Our Kakaʻako / Block G",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Kakaako",
+        "to": "Kakaʻako"
+      },
+      {
+        "at": "2026-07-01T19:23:09.515Z",
+        "source_url": "https://prospacholdings.com/prospacs-kaliu-advances-with-hcda-approval/",
+        "note": "Kaliʻu entitlement approved by HCDA (ProsPac Holdings), Our Kakaʻako / Block G",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2023-11"
       }
     ],
     "County": "Honolulu County",
@@ -55365,7 +55649,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:25:48.385Z",
+    "UpdatedAt": "2026-07-01T19:09:16.914Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:24:02.700Z",
@@ -55562,8 +55846,8 @@
     "Longitude": "-81.8096375",
     "Description": "An ultra-low-density beachfront luxury condominium on Gulf Shore Boulevard in Naples' Coquina Sands, with 42 residences and residential services curated by Rosewood Hotels & Resorts.",
     "DescriptionLong": "Set on a roughly 5.25-acre Gulf-front parcel with nearly 500 feet of private beachfront, Rosewood Residences Naples comprises 42 expansive residences across two seven-story buildings on the former Mansion House site. Floor plans range from roughly 4,200 to more than 9,700 square feet as three- to six-bedroom layouts and penthouses, each served by private and service elevators. Designed by Naples-based MHK Architecture with interiors by New York's Lillian Wu Studio, the property features a porte cochère with a commissioned steel sculpture, a grand staircase beneath a custom chandelier, two pools with shaded cabanas, fire-pit lounges, bocce courts, gated entry with around-the-clock security and valet, and multiple points of beachfront access. Residential services are operated by Rosewood Hotels & Resorts, including a Rosewood Reserve membership granting VIP access at Rosewood properties worldwide.",
-    "Delivery": "Under Construction",
-    "DeliveryDate": "2026",
+    "Delivery": "Opening Soon",
+    "DeliveryDate": "Q3 2026",
     "StartDate": "",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -55589,7 +55873,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:26:55.821Z",
+    "UpdatedAt": "2026-07-01T19:24:59.728Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:24:09.547Z",
@@ -55626,6 +55910,31 @@
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2025-08-01"
+      },
+      {
+        "at": "2026-07-01T19:23:18.570Z",
+        "source_url": "https://www.constructionflnews.com/rosewood-residences-naples-topping-off-ceremony/",
+        "note": "Rosewood Residences Naples topped off (highest beam set on the seven-story structure); Coquina Sands",
+        "type": "milestone",
+        "phase": "topping-out",
+        "effective_date": "2026"
+      },
+      {
+        "at": "2026-07-01T19:24:59.728Z",
+        "source_url": "https://www.constructionflnews.com/rosewood-residences-naples-topping-off-ceremony/",
+        "note": "Topped off and nearing completion (Q3 2026 delivery) → coming-soon",
+        "from": "construction",
+        "to": "coming-soon",
+        "effective_date": "Q3 2026"
+      },
+      {
+        "at": "2026-07-01T19:24:59.728Z",
+        "source_url": "https://www.constructionflnews.com/rosewood-residences-naples-topping-off-ceremony/",
+        "note": "Topped off and nearing completion (Q3 2026 delivery) → coming-soon",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2026",
+        "to": "Q3 2026"
       }
     ],
     "County": "Collier County",
@@ -55754,8 +56063,8 @@
     "Longitude": "-9.14013",
     "Description": "A 114-room Six Senses wellness hotel set across two restored 17th- and 18th-century palaces near the Elevador do Lavra, with a 1,000-square-meter spa and rooftop bar.",
     "DescriptionLong": "Six Senses Lisbon is the wellness brand's first urban hotel in Portugal's capital, set across two restored heritage palaces in the city center beside the historic Elevador do Lavra funicular. The 17th-century Palácio Lavra and the Palácio de Pedrosas — the latter built in 1764 for an Italian merchant and later owned by the Portuguese postal service — are woven together into a single property of 114 guestrooms, blending exposed classic architecture and traditional Portuguese furniture with a contemporary, light-filled sensibility. Many suites feature fitted kitchens and outdoor terraces, while communal spaces include a rooftop terrace with city views and a private central garden of vine-covered glass atriums. In keeping with the brand's wellness-led ethos, the hotel centers on a roughly 1,000-square-meter Six Senses Spa with eight treatment rooms, indoor and outdoor wet areas, a fitness center, a dance studio, and a yoga pavilion, alongside a rooftop bar, library, boutique, Earth Lab, and several dining concepts. Steps from the Coliseu and Politeama theaters and a short walk from Avenida da Liberdade, it pairs urban energy with secluded calm.",
-    "Delivery": "Under Construction",
-    "DeliveryDate": "2026",
+    "Delivery": "Opening Soon",
+    "DeliveryDate": "Late 2026",
     "StartDate": "",
     "ProjectType": "Hotel",
     "PreferredType": "Hotel",
@@ -55781,7 +56090,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-06-28T15:25:27.359Z",
+    "UpdatedAt": "2026-07-01T19:22:57.602Z",
     "StatusHistory": [
       {
         "at": "2026-06-28T15:23:35.538Z",
@@ -55800,6 +56109,23 @@
         "field": "neighborhood",
         "from": "Lavra",
         "to": "Avenida da Liberdade"
+      },
+      {
+        "at": "2026-07-01T19:22:57.602Z",
+        "source_url": "https://www.sixsenses.com/en/corporate/news/loving-lisbon-life/",
+        "note": "Slated to welcome guests late 2026 (near-completion) → coming-soon; 114 keys across two restored palaces off Avenida da Liberdade (keys per Hospitality Net)",
+        "from": "construction",
+        "to": "coming-soon",
+        "effective_date": "Late 2026"
+      },
+      {
+        "at": "2026-07-01T19:22:57.602Z",
+        "source_url": "https://www.sixsenses.com/en/corporate/news/loving-lisbon-life/",
+        "note": "Slated to welcome guests late 2026 (near-completion) → coming-soon; 114 keys across two restored palaces off Avenida da Liberdade (keys per Hospitality Net)",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2026",
+        "to": "Late 2026"
       }
     ],
     "County": "",
