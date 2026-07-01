@@ -658,6 +658,24 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'How many projects to pull this sweep (default 25, max 60)' } } },
   },
   {
+    name: 'correct_project_history',
+    description: 'CORRECT or DELETE an entry in a project\'s dossier timeline (status_history) — the ONLY way to fix a milestone that was logged WRONG. update_project_status can add/advance/correct-status but can NEVER remove a milestone, so false, mis-dated, or duplicated milestones need this. Use it to: DELETE a milestone that never happened; EDIT a milestone that was dated to the article\'s publish date so it reflects the real event date (or a vague label like "Spring 2026" when the exact date is unknown); or remove a duplicate. Identify the project by slug and the entry by its phase (e.g. "going-vertical", "financing", or a coarse status like "construction"); when a project has more than one entry for that phase, ALSO pass match_effective_date and/or match_source_url to disambiguate. Writes to the live map (rebuilds ~1h; git history = audit trail). Always pass reason.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Project slug (from search_projects / list_projects_due).' },
+        action: { type: 'string', enum: ['delete', 'edit'], description: 'delete = remove the entry entirely; edit = rewrite its effective_date and/or note.' },
+        phase: { type: 'string', description: 'Which timeline entry to fix. For a fine milestone use the phase: financing, going-vertical, halfway, topping-out, tenant, tco, move-in, bookings. For a coarse status transition use the target status: announced, breaking-ground, construction, coming-soon, open.' },
+        match_effective_date: { type: 'string', description: 'The CURRENT effective_date of the entry — pass it to disambiguate when the project has multiple entries for the same phase (e.g. two "going-vertical" logs).' },
+        match_source_url: { type: 'string', description: 'The source_url of the entry — another disambiguator.' },
+        new_effective_date: { type: 'string', description: 'action:edit only — the CORRECTED event date. YYYY / YYYY-MM / YYYY-MM-DD, or a vague label ("Spring 2026", "Mid 2026", "Late 2026", "Q2 2026") when the exact date is unknown. NEVER the article publish date.' },
+        new_note: { type: 'string', description: 'action:edit only — an optional corrected one-line note.' },
+        reason: { type: 'string', description: 'Why this correction is being made (required) — cite what was wrong, e.g. "logged May 2026 from a progress-update article, but the tower went vertical earlier; source gives no exact date".' },
+      },
+      required: ['slug', 'action', 'phase', 'reason'],
+    },
+  },
+  {
     name: 'update_project_status',
     description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
@@ -674,7 +692,7 @@ const TOOLS = [
         delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
-        effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world (YYYY, YYYY-MM, or YYYY-MM-DD) — NOT today. e.g. a source saying "broke ground Sept 3, 2025" → effective_date "2025-09-03". Powers the project dossier timeline, which must show the event date, not our discovery date. If omitted on a status advance, it falls back to start_date (for breaking-ground/construction) or delivery_date (for coming-soon/open) when those are given. ALSO pass it with `milestone`.' },
+        effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world — NOT today, and NOT the article\'s publish date. e.g. "broke ground Sept 3, 2025" → "2025-09-03". CRITICAL: the publish date is NOT the event date — a June 2026 article reporting a tower "has gone vertical" usually means it happened MONTHS earlier; date it to when it actually occurred, never to when the article ran. If the source does NOT state the exact date/month, DO NOT guess a precise month and DO NOT fall back to the publish date — pass a VAGUE label instead: "Spring 2026", "Mid 2026", "Late 2026", "Early 2027", or "Q2 2026". Precise forms YYYY / YYYY-MM / YYYY-MM-DD are for when the source actually gives that precision. Powers the dossier timeline. If omitted on a status advance, it falls back to start_date/delivery_date. ALSO pass it with `milestone`.' },
         milestone: { type: 'string', enum: MILESTONE_PHASES, description: 'Log a FINER construction-phase event to the dossier timeline WITHOUT changing the lifecycle status. Use for phases between the coarse statuses: financing (loan/construction financing closed), going-vertical (superstructure rising above grade), halfway (≈50% complete), topping-out (final beam/roof structure complete), tenant (an anchor/retail/office tenant announced), tco (Temporary Certificate of Occupancy issued), move-in (residents begin moving in), bookings (the reservations/sales-launch slot — for a HOTEL taking reservations OR a RESIDENTIAL project launching condo sales; the dossier auto-labels it "Bookings open" for hotels and "Sales launched" for residences by building type, so pick the milestone by what actually happened, not by the label). Pair with effective_date (when it happened) + source_url. The coarse statuses themselves — announced, broke ground, grand opening — go via new_status, not here. A milestone-only call is valid (omit new_status).' },
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
@@ -2818,7 +2836,7 @@ const IMPL = {
       checked_at: nowIso, batch_size: batch.length, active_total: active.length,
       empty_history_in_batch: emptyCount,
       status_order: STATUS_ORDER,
-      instructions: 'BACKFILL FIRST. For any project in this batch with history_len:0 (the sweep has never logged a single sourced event for it), your FIRST job is to backfill at least one entry — the original announcement. Web-search "<name> <city> announced" / "<name> developer announces" / search_articles for our own coverage. Find the earliest credible source that announced the project (oftmw.com PREFERRED — call search_articles by slug first). Then call update_project_status with backfill:true, new_status:"announced", effective_date = the actual announcement date from the article body, source_url, note = a one-line headline-style summary. backfill:true logs the entry to status_history WITHOUT changing current status, so a 14 ROC currently at breaking-ground can still get its announcement entry filled in. After backfill, also look for any subsequent milestones (broke-ground, topped-out, etc.) that should be logged — same backfill:true pattern, one call per past milestone. THEN do the normal forward sweep: web-search for recent news (last 6 months) — if a CREDIBLE source shows it reached a LATER status, call update_project_status (no backfill flag) with mode "apply" for a clear single-step advance, "propose" if ambiguous/thin/multi-step. ALWAYS pass effective_date = the real-world date the milestone happened. Use the most precise grain (day > month > year). Sanity-check current status against reality: if a project is recorded at a later phase than credible sources support — e.g. marked "construction" yet nothing shows ground has broken — CORRECT it via update_project_status with the earlier new_status and correction:true (cite source + note why). PHASE MILESTONES: pass `milestone` = one of financing, going-vertical, halfway, topping-out, tenant, tco, move-in, bookings — ALWAYS with effective_date + source_url. The coarse anchors — announced, broke ground, grand opening — go via new_status (with backfill:true if past) instead. Never skip a project with history_len:0 even if you find no recent news — backfill its announcement first.',
+      instructions: 'BACKFILL FIRST. For any project in this batch with history_len:0 (the sweep has never logged a single sourced event for it), your FIRST job is to backfill at least one entry — the original announcement. Web-search "<name> <city> announced" / "<name> developer announces" / search_articles for our own coverage. Find the earliest credible source that announced the project (oftmw.com PREFERRED — call search_articles by slug first). Then call update_project_status with backfill:true, new_status:"announced", effective_date = the actual announcement date from the article body, source_url, note = a one-line headline-style summary. backfill:true logs the entry to status_history WITHOUT changing current status, so a 14 ROC currently at breaking-ground can still get its announcement entry filled in. After backfill, also look for any subsequent milestones (broke-ground, topped-out, etc.) that should be logged — same backfill:true pattern, one call per past milestone. THEN do the normal forward sweep: web-search for recent news (last 6 months) — if a CREDIBLE source shows it reached a LATER status, call update_project_status (no backfill flag) with mode "apply" for a clear single-step advance, "propose" if ambiguous/thin/multi-step. ALWAYS pass effective_date = the real-world date the milestone HAPPENED — never the article\'s publish date. An article published June 2026 saying a tower "has gone vertical" almost never means it went vertical IN June; the event usually predates the coverage. If the source does not state the actual date/month, DO NOT guess a month and DO NOT use the publish date — pass a VAGUE label instead ("Spring 2026", "Mid 2026", "Late 2026", "Q2 2026"). Use a precise YYYY-MM-DD / YYYY-MM only when the source actually gives it. If a milestone was already logged WRONG (false, mis-dated to a publish date, or duplicated), fix it with correct_project_history (delete or edit) — update_project_status can only add/advance, not remove. Sanity-check current status against reality: if a project is recorded at a later phase than credible sources support — e.g. marked "construction" yet nothing shows ground has broken — CORRECT it via update_project_status with the earlier new_status and correction:true (cite source + note why). PHASE MILESTONES: pass `milestone` = one of financing, going-vertical, halfway, topping-out, tenant, tco, move-in, bookings — ALWAYS with effective_date + source_url. The coarse anchors — announced, broke ground, grand opening — go via new_status (with backfill:true if past) instead. Never skip a project with history_len:0 even if you find no recent news — backfill its announcement first.',
       projects: batch.map((p) => ({
         slug: p.slug, name: p.name, city: p.city || '', status: p.status,
         units: p.units || null, floors: p.floors || null,
@@ -2844,8 +2862,9 @@ const IMPL = {
     // The real-world date a milestone occurred (event date), distinct from the
     // `at` record/discovery timestamp. Drives the dossier timeline.
     const effectiveDate = clean(args.effective_date);
-    if (effectiveDate && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(effectiveDate)) {
-      throw new Error('effective_date must be YYYY, YYYY-MM, or YYYY-MM-DD (the real-world date the milestone occurred)');
+    const VAGUE_EFFECTIVE = /^(early|mid|late|spring|summer|fall|autumn|winter|q[1-4]|h[12])[\s-]?\d{4}$/i;
+    if (effectiveDate && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(effectiveDate) && !VAGUE_EFFECTIVE.test(effectiveDate)) {
+      throw new Error('effective_date must be the real-world EVENT date — YYYY, YYYY-MM, YYYY-MM-DD, or (when the exact date is unknown) a vague label like "Spring 2026", "Mid 2026", "Late 2026", or "Q2 2026". NEVER pass the article\'s publish date: a June 2026 article about a March 2026 event is dated to March (or "Spring 2026" if the month is unclear), not June.');
     }
     // Finer construction-phase milestone (logged to the dossier timeline; does
     // NOT change the lifecycle status). Pass effective_date for its event date.
@@ -3034,6 +3053,67 @@ const IMPL = {
         await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `${p.name}: ${changes.join(', ')} (auto)`);
       } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
       return { ok: true, mode: 'applied', slug, name: p.name, status: p.status, changes, source_url: sourceUrl, note: 'Live map rebuilds within ~1h; projects.json git history is the audit trail.' };
+    }
+  },
+
+  // Correct or DELETE a status_history entry — the only way to fix a milestone
+  // logged wrong (false / mis-dated to a publish date / duplicated). Pairs with
+  // the sweep (update_project_status), which can add/advance but never remove.
+  async correct_project_history(args, env) {
+    const slug = String(args.slug || '').trim();
+    const action = String(args.action || '').toLowerCase().trim();
+    const phase = String(args.phase || '').toLowerCase().trim();
+    const reason = String(args.reason || '').trim();
+    if (!slug) throw new Error('slug is required');
+    if (action !== 'delete' && action !== 'edit') throw new Error('action must be "delete" or "edit"');
+    if (!phase) throw new Error('phase is required (the phase/status of the entry to fix)');
+    if (!reason) throw new Error('reason is required');
+    const matchEff = String(args.match_effective_date || '').trim();
+    const matchSrc = String(args.match_source_url || '').trim();
+    const newEff = String(args.new_effective_date || '').trim();
+    const VAGUE = /^(early|mid|late|spring|summer|fall|autumn|winter|q[1-4]|h[12])[\s-]?\d{4}$/i;
+    if (action === 'edit' && newEff && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(newEff) && !VAGUE.test(newEff)) {
+      throw new Error('new_effective_date must be YYYY, YYYY-MM, YYYY-MM-DD, or a vague label ("Spring 2026", "Mid 2026", "Q2 2026") — never an article publish date.');
+    }
+    const isEntry = (h) => {
+      if (!h || typeof h !== 'object') return false;
+      const t = h.type;
+      const phaseMatch = (t === 'milestone' && String(h.phase || '').toLowerCase() === phase)
+        || (t !== 'milestone' && t !== 'date' && t !== 'field' && String(h.to || '').toLowerCase() === phase);
+      if (!phaseMatch) return false;
+      if (matchEff && String(h.effective_date || '').trim() !== matchEff) return false;
+      if (matchSrc && String(h.source_url || '').trim() !== matchSrc) return false;
+      return true;
+    };
+    for (let attempt = 0; ; attempt++) {
+      const { sha, projects } = await readProjectsFile(env);
+      const p = projects.find((x) => x && x.slug === slug);
+      if (!p) throw new Error('No project with slug "' + slug + '" in projects.json');
+      const hist = Array.isArray(p.status_history) ? p.status_history : [];
+      const matches = hist.filter(isEntry);
+      if (!matches.length) {
+        const avail = hist.filter((h) => h && (h.type === 'milestone' || (h.type !== 'date' && h.type !== 'field')))
+          .map((h) => (h.type === 'milestone' ? h.phase : ('->' + (h.to || ''))) + (h.effective_date ? '@' + h.effective_date : ''));
+        return { ok: false, error: 'No status_history entry matched phase "' + phase + '"' + (matchEff ? ' @ ' + matchEff : '') + (matchSrc ? ' from ' + matchSrc : '') + '.', available_entries: avail };
+      }
+      let changed = 0;
+      if (action === 'delete') {
+        p.status_history = hist.filter((h) => !matches.includes(h));
+        changed = matches.length;
+      } else {
+        const nowIso = new Date().toISOString();
+        for (const h of matches) {
+          if (newEff) h.effective_date = newEff;
+          if (args.new_note != null) h.note = String(args.new_note);
+          h.corrected_at = nowIso; h.corrected_reason = reason;
+          changed++;
+        }
+      }
+      const msg = p.name + ': ' + action + ' ' + changed + ' history entr' + (changed === 1 ? 'y' : 'ies') + ' (' + phase + ') - ' + reason.slice(0, 90) + ' (auto)';
+      try {
+        await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, msg);
+      } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+      return { ok: true, action, slug, name: p.name, phase, entries_affected: changed, note: 'Live map rebuilds within ~1h; git history is the audit trail.' };
     }
   },
 

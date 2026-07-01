@@ -788,6 +788,13 @@ def _fmt_event_date(s):
     s = (s or '').strip()
     m = re.match(r'^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?', s)
     if not m:
+        # Vague season / half / quarter label (Spring 2026, Mid 2026, Q2 2026) — the
+        # sweep logs these when a source states a milestone but not its exact date.
+        vm = re.match(r'(?i)^(early|mid|late|spring|summer|fall|autumn|winter|q[1-4]|h[12])[\s-]?(\d{4})$', s)
+        if vm:
+            w = vm.group(1)
+            w = w.upper() if re.match(r'(?i)^[qh][1-4]$', w) else w.capitalize()
+            return f"{w} {vm.group(2)}"
         return ''
     MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     y, mo, d = m.group(1), m.group(2), m.group(3)
