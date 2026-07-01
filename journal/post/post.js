@@ -1261,6 +1261,14 @@ function initComments(slug, post) {
   function slugify(t) { return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
   function mapSlug(t) { return String(t == null ? '' : t).toLowerCase().replace(/[^a-z0-9]+/g, ''); }
   function ms() { return window.$memberstackDom; }
+  // Following from the article builds your Onyx beat — a Pro capability. Non-Pro
+  // (signed-out OR free) taps get the Go Pro paywall, not a follow.
+  function isPro() { try { return window._isPaidMember === true || (window.__tmwMember && window.__tmwMember.plan === 'paid') || (window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro()); } catch (e) { return false; } }
+  function goPro() {
+    try { if (typeof window.tmwShowPaywall === 'function') { window.tmwShowPaywall({ source: 'article_follow' }); return; } } catch (e) {}
+    try { if (typeof window.tmwArticleSignup === 'function') { window.tmwArticleSignup(); return; } } catch (e) {}
+    try { var m = ms(); if (m && m.openModal) m.openModal('SIGNUP'); } catch (e) {}
+  }
 
   // Entity → followable-slug resolution (firms + projects DB, cached).
   var _firmMap = null, _projArr = null;
@@ -1345,6 +1353,7 @@ function initComments(slug, post) {
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var f = follows[+btn.getAttribute('data-fi')]; if (!f) return;
+        if (!isPro()) { goPro(); return; }         // Pro-gate: no flip, no write for non-Pro
         var on = btn.classList.contains('on');
         // swap icon optimistically
         toggleFollow(f, btn);
