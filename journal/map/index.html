@@ -4559,6 +4559,10 @@
     font-weight: 800; color: #fff; margin-bottom: 14px;
   }
   #projectModal .pm-firms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* Stack the two boxes full-width when a single firm name is too long for its
+     50% column (set by JS when a pill name would truncate). Multiple names that
+     merely wrap to extra rows keep the compact 50/50. */
+  #projectModal .pm-firms-grid.pm-firms-stack { grid-template-columns: 1fr; }
   #projectModal .pm-firm-card {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
@@ -16191,8 +16195,20 @@
         const firmsSection = document.getElementById('pmFirmsSection');
         if (firmsEl && firmsSection) {
           const cards = devCard + archCard;
-          if (cards) { firmsEl.innerHTML = cards; firmsSection.hidden = false; }
-          else { firmsEl.innerHTML = ''; firmsSection.hidden = true; }
+          if (cards) {
+            firmsEl.innerHTML = cards; firmsSection.hidden = false;
+            // Stack the two boxes vertically ONLY if a single firm name is too
+            // long to fit its 50% column (would truncate). Multiple names that
+            // just wrap to extra rows keep the compact 2-up layout.
+            requestAnimationFrame(() => {
+              firmsEl.classList.remove('pm-firms-stack');
+              const clipped = Array.prototype.some.call(
+                firmsEl.querySelectorAll('.pp-firm-chip .nm'),
+                (nm) => nm.scrollWidth > nm.clientWidth + 1
+              );
+              if (clipped) firmsEl.classList.add('pm-firms-stack');
+            });
+          } else { firmsEl.innerHTML = ''; firmsSection.hidden = true; }
         }
 
         // Learn More button
