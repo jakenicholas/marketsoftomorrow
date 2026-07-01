@@ -188,12 +188,12 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tabs{display:flex; gap:4px; padding:4px; background:rgba(255,255,255,.03); border:1px solid var(--hair); border-radius:999px}
 .tab-btn{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; padding:9px 18px; border-radius:999px; color:var(--mute-2); transition:color .2s, background .2s, box-shadow .2s; font-weight:600}
 .tab-btn:hover{color:var(--white)}
-.tab-btn.on{color:var(--white); font-weight:700; background:linear-gradient(180deg, rgba(167,139,250,.22), rgba(167,139,250,.05)); box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 18px rgba(167,139,250,.22)}
+.tab-btn.on{color:var(--white); font-weight:700; background:rgba(167,139,250,.10); box-shadow:inset 0 0 0 1px rgba(167,139,250,.55), 0 0 15px rgba(167,139,250,.20)}
 .tab-btn .tb-count{margin-left:7px; font-size:10px; opacity:.6}
 .tabs-bar .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
 /* No box — the controls sit on the page; the sort is a purple pulse-glow pill (TMW Intelligence aesthetic). */
 .ctlbar{display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:0}
-.tabs-bar .sort{appearance:none; background-color:rgba(167,139,250,.08); border:1px solid rgba(167,139,250,.34); color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 32px 9px 15px; border-radius:999px; cursor:pointer;
+.tabs-bar .sort{appearance:none; background-color:rgba(167,139,250,.10); border:1px solid rgba(167,139,250,.5); box-shadow:0 0 14px rgba(167,139,250,.16); color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 32px 9px 15px; border-radius:999px; cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%23B9A6FF' stroke-width='1.3' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 13px center; transition:background-color .18s, border-color .18s, box-shadow .18s, color .18s}
 .tabs-bar .sort:hover{background-color:rgba(167,139,250,.16); border-color:rgba(167,139,250,.6); box-shadow:0 0 16px rgba(167,139,250,.4); color:var(--white)}
 .tabs-bar .sort:focus{outline:none; background-color:rgba(167,139,250,.2); border-color:var(--purple); box-shadow:0 0 20px rgba(167,139,250,.6), 0 0 3px rgba(167,139,250,.5); color:var(--white)}

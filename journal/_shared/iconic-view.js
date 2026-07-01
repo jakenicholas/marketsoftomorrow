@@ -30,10 +30,10 @@
 
   if (!document.getElementById('iconic-view-styles')) {
     var css =
-      '.iv-toggle{display:inline-flex; gap:3px; padding:3px 3px 3px 6px; background:transparent; border:0; border-left:1px solid var(--hair); border-radius:0; margin-left:3px}' +
-      '.iv-btn{width:34px; height:30px; display:inline-flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--mute-2); border-radius:9px; cursor:pointer; transition:background .18s, color .18s, box-shadow .18s; padding:0}' +
-      '.iv-btn:hover{color:var(--purple-glow)}' +
-      '.iv-btn.on{background:linear-gradient(180deg, rgba(167,139,250,.30), rgba(167,139,250,.08)); color:var(--white); box-shadow:0 0 16px rgba(167,139,250,.42)}' +
+      '.iv-toggle{display:inline-flex; gap:6px; padding:3px 3px 3px 9px; background:transparent; border:0; border-left:1px solid var(--hair); border-radius:0; margin-left:3px}' +
+      '.iv-btn{width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.08); background:transparent; color:var(--mute-2); border-radius:50%; cursor:pointer; transition:background .18s, color .18s, box-shadow .18s, border-color .18s; padding:0}' +
+      '.iv-btn:hover{color:var(--purple-glow); border-color:rgba(167,139,250,.3)}' +
+      '.iv-btn.on{background:rgba(167,139,250,.10); color:var(--white); border-color:rgba(167,139,250,.55); box-shadow:0 0 15px rgba(167,139,250,.24)}' +
       '.iv-btn.on:hover{color:var(--white)}' +
       '.iv-btn svg{width:16px; height:16px}' +
       '.iv-btn .iv-t{font-family:var(--serif); font-weight:700; font-size:16px; line-height:1}' +
