@@ -805,6 +805,70 @@ async function handleAdminCancelSub(req, env, origin) {
     return json({ ok: true, status: res.status, cancel_at_period_end: !!res.cancel_at_period_end, was_trialing: sub.status === 'trialing', email }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
 }
+// Deep-search allowance ledger for one member. Buckets: a rolling monthly free
+// tier (DEEP_MONTHLY_CAP), a permanent credit balance (admin grants + future
+// purchases), and an "unlimited" flag (owner/testers). Usage is `intel_deep`
+// events tagged in props (extra=credit-spend, unlimited=uncapped); grants are
+// `intel_deep_grant` events ({credits:N} and/or {unlimited:bool}).
+async function deepStatus(env, member) {
+  const cap = DEEP_MONTHLY_CAP;
+  let monthlyUsed = 0, granted = 0, extraUsed = 0, unlimited = false;
+  if (env.DB && member) {
+    const since = Math.floor(Date.now() / 1000) - 30 * 86400;
+    try {
+      const mu = await env.DB.prepare(
+        `SELECT COUNT(*) n FROM events WHERE event_name='intel_deep' AND member_id=? AND ts>=?
+           AND (props_json IS NULL OR (props_json NOT LIKE '%"extra":true%' AND props_json NOT LIKE '%"unlimited":true%'))`
+      ).bind(member, since).first();
+      monthlyUsed = Number(mu && mu.n) || 0;
+      const eu = await env.DB.prepare(
+        `SELECT COUNT(*) n FROM events WHERE event_name='intel_deep' AND member_id=? AND props_json LIKE '%"extra":true%'`
+      ).bind(member).first();
+      extraUsed = Number(eu && eu.n) || 0;
+      const gr = await env.DB.prepare(
+        `SELECT props_json FROM events WHERE event_name='intel_deep_grant' AND member_id=? ORDER BY ts ASC`
+      ).bind(member).all();
+      for (const row of (gr.results || [])) {
+        try {
+          const p = JSON.parse(row.props_json || '{}');
+          if (typeof p.credits === 'number') granted += p.credits;
+          if (typeof p.unlimited === 'boolean') unlimited = p.unlimited;   // latest wins (ASC)
+        } catch { /* skip bad row */ }
+      }
+    } catch { /* best-effort — treat as fresh free tier */ }
+  }
+  const creditBalance = Math.max(0, granted - extraUsed);
+  const freeRemaining = Math.max(0, cap - monthlyUsed);
+  const remaining = unlimited ? null : (freeRemaining + creditBalance);
+  return { cap, monthlyUsed, granted, extraUsed, creditBalance, unlimited, freeRemaining, remaining };
+}
+
+// GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
+// POST /admin/deep-credits { member_id, credits?, unlimited? } → grant extra deep
+// credits and/or flip the unlimited flag (owner + testers). Admin-gated. Mirrors
+// the cancel-subscription control on the member card.
+async function handleAdminDeepCredits(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  if (req.method === 'GET') {
+    const member = String(new URL(req.url).searchParams.get('member_id') || '').trim();
+    if (!member) return json({ error: 'member_id required' }, { status: 400 }, env, origin);
+    return json({ ok: true, member_id: member, ...(await deepStatus(env, member)) }, {}, env, origin);
+  }
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const member = String((b && b.member_id) || '').trim();
+  if (!member) return json({ error: 'member_id required' }, { status: 400 }, env, origin);
+  const props = { by: 'admin' };
+  if (typeof b.credits === 'number' && b.credits !== 0) props.credits = Math.round(b.credits);
+  if (typeof b.unlimited === 'boolean') props.unlimited = b.unlimited;
+  if (!('credits' in props) && !('unlimited' in props)) return json({ error: 'credits (number) or unlimited (bool) required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), member, 'intel_deep_grant', JSON.stringify(props)).run();
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 500 }, env, origin); }
+  return json({ ok: true, member_id: member, granted_now: props, ...(await deepStatus(env, member)) }, {}, env, origin);
+}
+
 function stripePerMonth(amount, interval, count) {
   const c = count || 1;
   if (interval === 'year')  return amount / (12 * c);
@@ -8342,36 +8406,36 @@ async function handleSmartAnswer(request, env, origin) {
   // so the wide-context spend stays bounded. Over the cap we still answer, just in
   // standard mode, and flag `capped` so the client can nudge toward next month.
   // Deep RUNS whenever the client asks (the toggle is already Pro-gated client-side);
-  // `member` only keys the rolling monthly cap. Requiring member to RUN was wrong —
-  // the member id resolves async, so a quick query slipped back to standard.
+  // `member` keys the allowance ledger. Requiring member to RUN was wrong — the
+  // member id resolves async, so a quick query slipped back to standard.
   const member = String(body.member || '').slice(0, 120).trim();
   let deepMode = body.deep === true;
-  let deepUsed = 0, deepCapped = false;
+  let deepCapped = false, deepBucket = null, ds = null;  // bucket: free | extra | unlimited
   if (deepMode && member) {
-    try {
-      const since = Math.floor(Date.now() / 1000) - 30 * 86400;
-      const r = await env.DB.prepare(
-        `SELECT COUNT(*) AS n FROM events WHERE event_name='intel_deep' AND member_id=? AND ts>=?`
-      ).bind(member, since).first();
-      deepUsed = Number(r && r.n) || 0;
-    } catch { /* cap counting is best-effort — never blocks a deep answer */ }
-    if (deepUsed >= DEEP_MONTHLY_CAP) { deepMode = false; deepCapped = true; }
+    ds = await deepStatus(env, member);
+    if (ds.unlimited) deepBucket = 'unlimited';
+    else if (ds.freeRemaining > 0) deepBucket = 'free';
+    else if (ds.creditBalance > 0) deepBucket = 'extra';   // spend a granted/purchased credit
+    else { deepMode = false; deepCapped = true; }
   }
-  // Meta returned to the client (drives the "N of 12 left" counter + glow state).
-  const deepResp = () => ({
-    mode: deepMode ? 'deep' : 'standard',
-    deep: deepMode,
-    capped: deepCapped,
-    cap: DEEP_MONTHLY_CAP,
-    remaining: Math.max(0, DEEP_MONTHLY_CAP - deepUsed - (deepMode && member ? 1 : 0)),
-  });
-  // Count a deep answer against the member's monthly allowance (fresh or cached).
-  // Only when we have a member to key it to; anonymous/unresolved still gets deep.
+  // Meta returned to the client (drives the "N left" counter + glow state).
+  const deepResp = () => {
+    if (deepCapped) return { mode: 'standard', deep: false, capped: true, cap: DEEP_MONTHLY_CAP, remaining: 0, unlimited: false };
+    if (!deepMode) return { mode: 'standard', deep: false, capped: false, cap: DEEP_MONTHLY_CAP, remaining: null, unlimited: false };
+    if (deepBucket === 'unlimited') return { mode: 'deep', deep: true, capped: false, cap: DEEP_MONTHLY_CAP, remaining: null, unlimited: true };
+    const rem = ds ? Math.max(0, (ds.freeRemaining - (deepBucket === 'free' ? 1 : 0)) + (ds.creditBalance - (deepBucket === 'extra' ? 1 : 0))) : null;
+    return { mode: 'deep', deep: true, capped: false, cap: DEEP_MONTHLY_CAP, remaining: rem, unlimited: false };
+  };
+  // Record a deep answer against the member's ledger (fresh or cached). The bucket
+  // is flagged in props so deepStatus can tell free vs credit-spend vs unlimited.
   const logDeep = async () => {
     if (!deepMode || !member) return;
+    const props = { q: q.slice(0, 200) };
+    if (deepBucket === 'extra') props.extra = true;
+    else if (deepBucket === 'unlimited') props.unlimited = true;
     try {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-        .bind(Math.floor(Date.now() / 1000), member, 'intel_deep', JSON.stringify({ q: q.slice(0, 200) })).run();
+        .bind(Math.floor(Date.now() / 1000), member, 'intel_deep', JSON.stringify(props)).run();
     } catch { /* best-effort */ }
   };
 
@@ -9784,6 +9848,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/sub-status')              return await handleSubStatus(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }

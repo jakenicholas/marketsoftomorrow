@@ -751,7 +751,9 @@
     + '@keyframes tmwOvTopPulse{0%,100%{opacity:.72}50%{opacity:1}}'
     /* Deep answers are multi-paragraph — render the \\n\\n breaks the worker keeps. */
     + '.tmw-ov-intel-ans.deep{white-space:pre-line}'
-    + '.tmw-ov-model.deep{background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(96,120,255,.32));color:#EBE4FF;border-color:rgba(167,139,250,.5)}'
+    /* The base model badge is globally hidden (moved to the "i" button), but the
+       DEEP badge must always show next to the title — override the hide for it. */
+    + '.tmw-ov-model.deep{display:inline-flex!important;align-items:center;background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(96,120,255,.32));color:#EBE4FF;border-color:rgba(167,139,250,.5)}'
 
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
     /* Purple-bordered card that renders the LLM /smart-answer response
