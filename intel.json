@@ -6207,10 +6207,10 @@
       "delivery_speculative": false
     },
     "madrid-nuevo-norte-bbva-tower-towers": {
-      "estimate_years": 3.5,
-      "estimate_label": "~3.5 years",
+      "estimate_years": 4.1,
+      "estimate_label": "~4.1 years",
       "range_low": 2.5,
-      "range_high": 4.3,
+      "range_high": 5.0,
       "confidence": "low",
       "comparable_count": 6,
       "good_count": 0,
@@ -6220,7 +6220,15 @@
       "avg_distance_km": 6856.4,
       "avg_distance_mi": 4260.4,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Herzog & de Meuron",
+        "count": 1,
+        "median_years": 5.04,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Other",
@@ -6253,7 +6261,7 @@
           "distance_mi": 4452.5
         }
       ],
-      "pattern_summary": "Among 6 residences projects in TMW's data, the median build time is 3.5 years (range 2.5–4.3).",
+      "pattern_summary": "Among 6 residences projects in TMW's data, the median build time is 3.5 years (range 2.5–5). Adjusted to ~4.1 years for Herzog & de Meuron's own track record (~5-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -6774,10 +6782,10 @@
       "delivery_speculative": false
     },
     "tour-triangle": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 547,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 0.5,
+      "estimate_label": "~6 months",
+      "days_out": 182,
+      "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -6785,7 +6793,7 @@
       "metro": "Paris",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "pattern_summary": "Targeted for opening in ~6 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7692,8 +7700,8 @@
     "the-whale": {
       "estimate_years": 0.9,
       "estimate_label": "~11 months",
-      "days_out": 336,
-      "delivery_date": "2027-06-03",
+      "days_out": 337,
+      "delivery_date": "2027-06-04",
       "source": "known_date",
       "precision": "day",
       "confidence": "high",
@@ -8746,21 +8754,57 @@
       "delivery_speculative": true
     },
     "nomad-singapore": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 547,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
+      "range_low": 1.6,
+      "range_high": 8.1,
+      "confidence": "low",
+      "comparable_count": 3,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.44,
+      "avg_distance_km": 16583.2,
+      "avg_distance_mi": 10304.3,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "comparables": [
+        {
+          "name": "Naples Beach Club, A Four Seasons Resort",
+          "slug": "naples-beach-club-a-four-seasons-resort",
+          "location": "Naples",
+          "years": 3.0,
+          "score": 0.64,
+          "distance_km": 16903.9,
+          "distance_mi": 10503.6
+        },
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 15976.7,
+          "distance_mi": 9927.5
+        },
+        {
+          "name": "The Belgrove Resort & Spa",
+          "slug": "the-belgrove-resort-spa",
+          "location": "West Palm Beach",
+          "years": 8.1,
+          "score": 0.34,
+          "distance_km": 16868.9,
+          "distance_mi": 10481.9
+        }
+      ],
+      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1).",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "kempinski-grace-bay": {
       "estimate_years": 2.5,
@@ -12281,30 +12325,30 @@
     "blackwells-corner": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 547,
-      "delivery_date": "2027-12-31",
+      "days_out": 517,
+      "delivery_date": "2027-12-01",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "other",
+      "confidence": "medium",
       "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     }
   },
   "stats": {
     "high": 6,
     "medium": 22,
-    "low": 50,
-    "known_date": 415,
+    "low": 51,
+    "known_date": 414,
     "completed": 64,
     "skipped": 66,
     "no_type": 0,
-    "firm_boosted": 37,
+    "firm_boosted": 38,
     "speculative_softened": 133,
     "district": 12,
     "mixed_use_adjusted": 14
