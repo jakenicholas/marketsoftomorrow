@@ -881,7 +881,17 @@ async function handleDeepCheckout(req, env, origin) {
   const priceId = env[pack.priceEnv];
   if (!priceId) return json({ error: 'pack not configured' }, { status: 503 }, env, origin);
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'stripe not configured' }, { status: 503 }, env, origin);
-  const base = 'https://www.oftmw.com';
+  // Return the buyer to the exact page they left (the overlay reopens on #search),
+  // not a hardcoded page. Only accept an oftmw.com URL; else fall back to the map.
+  let base = 'https://www.oftmw.com/map/';
+  try {
+    const ru = new URL(String((b && b.return_url) || '').slice(0, 600));
+    if (/(^|\.)oftmw\.com$/.test(ru.hostname)) {
+      ru.searchParams.delete('deep_claim'); ru.searchParams.delete('deep_cancel');
+      base = ru.origin + ru.pathname + ru.search;   // drop any prior hash; #search re-added below
+    }
+  } catch { /* keep the map fallback */ }
+  const sep = base.indexOf('?') >= 0 ? '&' : '?';
   try {
     const sess = await stripePost(env, '/checkout/sessions', {
       mode: 'payment',
@@ -891,8 +901,8 @@ async function handleDeepCheckout(req, env, origin) {
       'metadata[member_id]': member,
       'metadata[credits]': String(pack.credits),
       'metadata[kind]': 'deep_credits',
-      success_url: base + '/map/?deep_claim={CHECKOUT_SESSION_ID}',
-      cancel_url: base + '/map/?deep_cancel=1',
+      success_url: base + sep + 'deep_claim={CHECKOUT_SESSION_ID}#search',
+      cancel_url: base + '#search',
     });
     return json({ ok: true, url: sess.url }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }

@@ -1388,7 +1388,7 @@
     if (!_isPro()) { try { if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('feature:deep'); } catch(_){} return; }
     _resolveMid().then(function(mid){
       if (!mid) { deepToast('Please sign in first'); return; }
-      fetch(WORKER_URL + '/deep-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ member_id: mid, pack: pack }) })
+      fetch(WORKER_URL + '/deep-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ member_id: mid, pack: pack, return_url: location.href }) })
         .then(function(r){ return r.json(); })
         .then(function(d){ if (d && d.url) { window.location.href = d.url; } else { deepToast(d && d.error === 'pack not configured' ? 'Deep packs open soon' : 'Could not start checkout'); } })
         .catch(function(){ deepToast('Could not start checkout'); });
