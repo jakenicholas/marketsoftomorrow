@@ -403,7 +403,7 @@ footer .tmw-wordmark{width:118px}
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   transition:background .18s, border-color .18s, color .18s}
 .article-intel .ai-expand svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;
-  position:relative; top:2.5px;   /* a down-chevron reads top-heavy — drop it to sit centered in the circle */
+  position:relative; top:1.5px;   /* a down-chevron reads top-heavy — drop it to sit centered in the circle */
   transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 2.2s linear infinite}
 @media(hover:hover){ .article-intel .ai-expand:hover{background:rgba(167,139,250,.18); border-color:var(--purple); color:#fff} }
 .article-intel.ai-open .ai-expand svg{transform:rotate(180deg); animation:none}
