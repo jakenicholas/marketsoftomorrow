@@ -620,7 +620,8 @@
     + '.tmw-ov-fb-btn.voted[data-rating="up"]{background:rgba(31,223,103,.16);border-color:#1FDF67;color:#42EB81}'
     + '.tmw-ov-fb-btn.voted[data-rating="down"]{background:rgba(255,93,93,.16);border-color:#ff5d5d;color:#ff7676}'
     + '.tmw-ov-fb-btn.dimmed{opacity:.35}'
-    + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;transition:background .2s,border-color .2s,transform .15s}'
+    + '.tmw-ov-watch-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.34);color:#B9A6FF;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;flex:0 0 auto;transition:background .2s,border-color .2s,transform .15s}'
+    + '.tmw-ov-watch-btn svg{flex:0 0 auto}'
     + '.tmw-ov-watch-btn:hover{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.55);transform:translateY(-1px)}'
     + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
     + '.tmw-ov-watch-btn.on{background:rgba(230,197,116,.14);border-color:rgba(230,197,116,.62);color:#f0d68a;box-shadow:0 0 16px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.4)}'
@@ -1325,6 +1326,22 @@
     try { localStorage.setItem(DEEP_KEY, _deep ? '1' : '0'); } catch(_){}
   }
   function _deepActive(){ return _deep && _isPro(); }
+  // Model badge for the intel panel header. Defaults to the armed toggle state so
+  // "Onyx 4.1 Deep" shows the moment a deep query is submitted; pass an explicit
+  // bool (from the arrived answer) to force it after the fact.
+  function modelBadgeHtml(deep){
+    var on = (typeof deep === 'boolean') ? deep : _deepActive();
+    return '<span class="tmw-ov-model' + (on ? ' deep' : '') + '" title="The model powering TMW Intelligence">' + (on ? 'Onyx 4.1 Deep' : 'Onyx 4.1') + '</span>';
+  }
+  // Sync a rendered panel's model badge to the answer's actual mode (a capped
+  // deep request comes back standard, so downgrade the armed "Deep" badge).
+  function syncModelBadge(slot, deep){
+    if (!slot) return;
+    var m = slot.querySelector('.tmw-ov-model');
+    if (!m) return;
+    if (deep) { m.classList.add('deep'); m.textContent = 'Onyx 4.1 Deep'; }
+    else { m.classList.remove('deep'); m.textContent = 'Onyx 4.1'; }
+  }
   // Reflect the worker's cap meta after each deep answer ("N of 12 deep left").
   function updateDeepMeta(res){
     if (!deepMeta) return;
@@ -2077,7 +2094,7 @@
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="tmw-ov-model" title="The model powering TMW Intelligence">Onyx 4.1</span>'
+      +     modelBadgeHtml()
       +     '<span class="live"><i></i>Live answer</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans">'+prose+'</p>'
@@ -2292,7 +2309,7 @@
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="tmw-ov-model" title="The model powering TMW Intelligence">Onyx 4.1</span>'
+      +     modelBadgeHtml()
       +     '<span class="live"><i></i>'+(showNow ? 'Live answer' : 'Thinking')+'</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansCls+'" data-fallback="'+esc(ans.html)+'">'+ansHtml+'</p>'
@@ -3602,9 +3619,10 @@
         if (!ansEl) return;
         if (res && res.ok && res.answer){
           ansEl.textContent = res.answer; ansEl.classList.remove('loading'); setLive();
-          // Deep answers are multi-paragraph — render the preserved breaks + badge.
-          if (res.deep) { ansEl.classList.add('deep'); var _m = _intelSlot.querySelector('.tmw-ov-model'); if (_m) { _m.classList.add('deep'); _m.textContent = 'Onyx 4.1 Deep'; } }
-          else ansEl.classList.remove('deep');
+          // Deep answers are multi-paragraph — render the preserved breaks; sync the
+          // header badge to the answer's actual mode (downgrades if it was capped).
+          if (res.deep) ansEl.classList.add('deep'); else ansEl.classList.remove('deep');
+          syncModelBadge(_intelSlot, !!res.deep);
           updateDeepMeta(res);
           cacheAnswer(q, res.answer);                        // remember for instant resume
           if (_turnRec) _turnRec.answer = res.answer;        // feed the next follow-up's context

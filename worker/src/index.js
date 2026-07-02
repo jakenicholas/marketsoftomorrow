@@ -8341,10 +8341,13 @@ async function handleSmartAnswer(request, env, origin) {
   // answer. Gated to Pro client-side; here we key a rolling per-member monthly cap
   // so the wide-context spend stays bounded. Over the cap we still answer, just in
   // standard mode, and flag `capped` so the client can nudge toward next month.
+  // Deep RUNS whenever the client asks (the toggle is already Pro-gated client-side);
+  // `member` only keys the rolling monthly cap. Requiring member to RUN was wrong —
+  // the member id resolves async, so a quick query slipped back to standard.
   const member = String(body.member || '').slice(0, 120).trim();
-  let deepMode = body.deep === true && !!member;
+  let deepMode = body.deep === true;
   let deepUsed = 0, deepCapped = false;
-  if (deepMode) {
+  if (deepMode && member) {
     try {
       const since = Math.floor(Date.now() / 1000) - 30 * 86400;
       const r = await env.DB.prepare(
@@ -8360,11 +8363,12 @@ async function handleSmartAnswer(request, env, origin) {
     deep: deepMode,
     capped: deepCapped,
     cap: DEEP_MONTHLY_CAP,
-    remaining: Math.max(0, DEEP_MONTHLY_CAP - deepUsed - (deepMode ? 1 : 0)),
+    remaining: Math.max(0, DEEP_MONTHLY_CAP - deepUsed - (deepMode && member ? 1 : 0)),
   });
   // Count a deep answer against the member's monthly allowance (fresh or cached).
+  // Only when we have a member to key it to; anonymous/unresolved still gets deep.
   const logDeep = async () => {
-    if (!deepMode) return;
+    if (!deepMode || !member) return;
     try {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
         .bind(Math.floor(Date.now() / 1000), member, 'intel_deep', JSON.stringify({ q: q.slice(0, 200) })).run();
