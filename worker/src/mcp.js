@@ -497,7 +497,7 @@ const TOOLS = [
   // ── Media ──────────────────────────────────────────────────────────────────
   {
     name: 'upload_photo',
-    description: 'Upload a photo (or video) into the Studio media library by URL. Fetches source_url, stores it in R2, and indexes it in the chosen folder so it shows up in the Studio media picker. Returns the permanent public URL. Use list_media_folders to see folders, or just pass any folder name (created if new).',
+    description: 'Upload a photo (or video) into the Studio media library by URL. Fetches source_url, stores it in R2, and indexes it in the chosen folder so it shows up in the Studio media picker. Returns the permanent public URL. Use list_media_folders to see folders, or just pass any folder name (created if new). HI-RES ONLY: an IMAGE whose longer side is under 1200px is REJECTED — pass a full-resolution source, not a thumbnail (video is exempt).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -512,7 +512,7 @@ const TOOLS = [
   },
   {
     name: 'scrape_website_images',
-    description: 'Gather a property\'s imagery into the Studio media library under a PROJECT folder, so it can be pulled into a journal article AND the Carousel Design editor. Scrapes one or more page URLs (<img> largest srcset, <picture>/<source>, lazy data-src, OG/Twitter cards, CSS background-images; skips tiny icons/SVGs). TMW\'s publication runs on RESORT-SPACE imagery — building & amenity photos / RENDERINGS showing what the spaces look like (rooms, villas, suites, pools, lobby, spa, restaurants, exterior, aerial) — NOT lifestyle/people shots. So it SCORES every image and saves resort-space shots first, and when a site is thin on them it can WEB-SEARCH (search_web) for more source pages (official gallery, press kits, Condé Nast/Travel+Leisure/AD/dezeen) and scrape those too. Returns per-category counts so you know your coverage. USE THIS when the user drops a website link and says "save images" / "grab the photos", or asks to make sure there are enough resort/building/rendering images.',
+    description: 'Gather a property\'s imagery into the Studio media library under a PROJECT folder, so it can be pulled into a journal article AND the Carousel Design editor. Scrapes one or more page URLs (<img> largest srcset, <picture>/<source>, lazy data-src, OG/Twitter cards, CSS background-images; skips tiny icons/SVGs). TMW\'s publication runs on RESORT-SPACE imagery — building & amenity photos / RENDERINGS showing what the spaces look like (rooms, villas, suites, pools, lobby, spa, restaurants, exterior, aerial) — NOT lifestyle/people shots. So it SCORES every image and saves resort-space shots first, and when a site is thin on them it can WEB-SEARCH (search_web) for more source pages (official gallery, press kits, Condé Nast/Travel+Leisure/AD/dezeen) and scrape those too. Returns per-category counts so you know your coverage. HI-RES ONLY: images whose longer side is under 1200px are automatically SKIPPED (low-res thumbnails are never saved), so target official press kits / full-resolution galleries; if a page yields too few, web-search for hi-res sources. USE THIS when the user drops a website link and says "save images" / "grab the photos", or asks to make sure there are enough resort/building/rendering images.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1291,6 +1291,38 @@ async function webSearchSourcePages(env, query, max) {
   } catch (_) { return []; }
 }
 // Fetch one image URL, validate, store in R2 + index in media. Returns {url,...} or {skip}.
+// Read pixel dimensions from an image's header (no decode) for the common raster
+// formats. Returns {w,h} or null if the format can't be measured. Used to enforce
+// the hi-res floor on scraped imagery.
+function imageDims(buf) {
+  try {
+    const b = new Uint8Array(buf); const dv = new DataView(buf);
+    // PNG — IHDR width@16 / height@20 (big-endian).
+    if (b.length >= 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return { w: dv.getUint32(16), h: dv.getUint32(20) };
+    // GIF — width@6 / height@8 (little-endian, 16-bit).
+    if (b.length >= 10 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return { w: dv.getUint16(6, true), h: dv.getUint16(8, true) };
+    // WebP — RIFF….WEBP + VP8 / VP8L / VP8X.
+    if (b.length >= 30 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) {
+      const fmt = String.fromCharCode(b[12], b[13], b[14], b[15]);
+      if (fmt === 'VP8 ') return { w: dv.getUint16(26, true) & 0x3FFF, h: dv.getUint16(28, true) & 0x3FFF };
+      if (fmt === 'VP8L') { const w = 1 + (((b[22] & 0x3F) << 8) | b[21]); const h = 1 + (((b[24] & 0x0F) << 10) | (b[23] << 2) | ((b[22] & 0xC0) >> 6)); return { w, h }; }
+      if (fmt === 'VP8X') return { w: 1 + (b[24] | (b[25] << 8) | (b[26] << 16)), h: 1 + (b[27] | (b[28] << 8) | (b[29] << 16)) };
+    }
+    // JPEG — scan SOF markers for the frame dimensions.
+    if (b.length >= 4 && b[0] === 0xFF && b[1] === 0xD8) {
+      let off = 2;
+      while (off + 9 < b.length) {
+        if (b[off] !== 0xFF) { off++; continue; }
+        let marker = b[off + 1]; while (marker === 0xFF && off + 1 < b.length) { off++; marker = b[off + 1]; }
+        if (marker >= 0xC0 && marker <= 0xCF && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) { if (off + 9 <= b.length) return { h: dv.getUint16(off + 5), w: dv.getUint16(off + 7) }; break; }
+        const len = dv.getUint16(off + 2); if (len < 2) break; off += 2 + len;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+// Hi-res floor for scraped imagery: the longer side must be >= this many pixels.
+const MIN_IMG_PX = 1200;
 async function storeScrapedImage(env, src, folder, project, minBytes) {
   const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif' };
   try {
@@ -1301,6 +1333,10 @@ async function storeScrapedImage(env, src, folder, project, minBytes) {
     const buf = await r.arrayBuffer();
     if (buf.byteLength < minBytes) return { skip: 'too small' };
     if (buf.byteLength > 25 * 1024 * 1024) return { skip: 'too large' };
+    // HI-RES ONLY — the longer side must be >= 1200px (measured from the header).
+    // Unmeasurable formats fall back to the byte-size gate above.
+    const _dim = imageDims(buf);
+    if (_dim && Math.max(_dim.w || 0, _dim.h || 0) < MIN_IMG_PX) return { skip: 'low-res ' + (_dim.w || 0) + 'x' + (_dim.h || 0) };
     let fname = ''; try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {}
     fname = (fname || 'image').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
     if (EXT[ct] && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += EXT[ct];
@@ -2470,6 +2506,14 @@ const IMPL = {
     const buf = await res.arrayBuffer();
     const MAX = 25 * 1024 * 1024;
     if (buf.byteLength > MAX) throw new Error('file too large (' + buf.byteLength + ' bytes; 25MB max for URL import)');
+    // HI-RES ONLY for images — the longer side must be >= 1200px (keeps the routines'
+    // scraped/pulled imagery high-resolution; low-res thumbnails are rejected). Video exempt.
+    if (/^image\//.test(ct) && !/svg/.test(ct)) {
+      const _d = imageDims(buf);
+      if (_d && Math.max(_d.w || 0, _d.h || 0) < MIN_IMG_PX) {
+        throw new Error('image too low-res (' + (_d.w || 0) + 'x' + (_d.h || 0) + '); need at least ' + MIN_IMG_PX + 'px on the longer side — use a full-resolution source.');
+      }
+    }
 
     let fname = String(args.filename || '').trim();
     if (!fname) { try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {} }
