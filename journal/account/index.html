@@ -358,7 +358,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var DEMO={name:'Jacob Nicholas',memberNo:1,since:2026,founding:true,xp:1352,market:'Florida',
     stats:{articles:66,markets:0,visits:0,reach:'0',streak:26,saved:5,comments:0}};
   var BADGES=[
-    {on:true,ic:'★',n:'Founding Member',d:'One of the first 50'},
+    {on:true,ic:'★',n:'Founding Member',d:'One of the first 100'},
     {on:true,ic:'✎',n:'Reader',d:'Read 30+ articles'},
     {on:false,ic:'◈',n:'Globetrotter',d:'Follow 5 markets'},
     {on:false,ic:'◉',n:'Tastemaker',d:'50k reach'},
@@ -375,15 +375,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function render(m){
     var cur=lvlOf(m.xp),next=LEVELS[cur.lvl];
     $('av').textContent=ini(m.name); $('nm').textContent=m.name;
-    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding Member':'');
+    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding Member':' · Pro Member');
     $('tierbadge').innerHTML='&#9670; '+tierName(cur,m);
     $('lvNum').textContent=cur.lvl;
     $('lvName').innerHTML='<span>'+cur.tier+'</span>';
     $('cardName').textContent=tc(m.name||'');
-    $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(3,'0')+' · SINCE '+(m.since||2026);
+    $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(4,'0')+' · SINCE '+(m.since||2026);
     if(window.__tmwCardQR) window.__tmwCardQR(m.memberNo||1);
     var cm=$('cardMarket'); if(cm){ cm.textContent=m.market||''; cm.style.display=m.market?'':'none'; }
-    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(3,'0')+(m.founding?' · Founding':'');
+    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding':' · Pro');
     if(next){var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));$('xpFill').style.width=pct+'%';$('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;}
     else{$('xpFill').style.width='100%';$('xpNext').textContent='Max level';}
     $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';

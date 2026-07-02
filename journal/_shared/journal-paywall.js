@@ -12,12 +12,18 @@
 (function () {
   if (window.tmwShowPaywall) return;                 // singleton
 
-  var PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
-  var PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
+  // New Pro pricing (2026-07): $15/mo, $150/yr, 2-week free trial. Old $9/$90
+  // price objects stay live in Memberstack so existing subscribers keep billing
+  // the old rate (grandfathered) — we just point NEW signups at the new prices.
+  var PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-07--96gd0r24';
+  var PRICE_ID_ANNUAL  = 'prc_pro-annual-2026-07--lnjj078s';
   // No-trial equivalents — used for returning members who already used their trial.
+  // Still the OLD $9/$90 no-trial prices, which grandfathers a returning member
+  // who trialed before now. (If new no-trial $15/$150 prices are created later,
+  // swap these + add a signup-cohort check to charge post-now returners the new rate.)
   var NOTRIAL = {
-    'prc_pro-annual-14-day-trial-g82f0quh': 'prc_annual-9i2e0eab',
-    'prc_pro-monthly-14-trial-np2506az':   'prc_monthly-86u0uyc'
+    'prc_pro-annual-2026-07--lnjj078s':  'prc_annual-9i2e0eab',
+    'prc_pro-monthly-2026-07--96gd0r24': 'prc_monthly-86u0uyc'
   };
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
@@ -145,12 +151,12 @@
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
             '<div class="paywall-plan-name">Annual</div>' +
-            '<div class="paywall-plan-price">$90<span class="paywall-plan-per">/year</span></div>' +
-            '<div class="paywall-plan-note">$7.50/month &middot; save 17% &middot; 14 days free</div>' +
+            '<div class="paywall-plan-price">$150<span class="paywall-plan-per">/year</span></div>' +
+            '<div class="paywall-plan-note">$12.50/month &middot; save 17% &middot; 14 days free</div>' +
           '</button>' +
           '<button class="paywall-plan paywall-plan-monthly" data-price-id="' + PRICE_ID_MONTHLY + '">' +
             '<div class="paywall-plan-name">Monthly</div>' +
-            '<div class="paywall-plan-price">$9<span class="paywall-plan-per">/month</span></div>' +
+            '<div class="paywall-plan-price">$15<span class="paywall-plan-per">/month</span></div>' +
             '<div class="paywall-plan-note">14 days free</div>' +
           '</button>' +
         '</div>' +
@@ -162,8 +168,8 @@
           FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +
         '<div class="paywall-founding">' +
-          '<span class="paywall-founding-eyebrow">Become a Founding Member</span>' +
-          '<span class="paywall-founding-body">Rate locked for life, before July 2026.</span>' +
+          '<span class="paywall-founding-eyebrow">TMW Pro</span>' +
+          '<span class="paywall-founding-body">Full access to the Map, TMW Intelligence, and the Journal. Cancel anytime.</span>' +
         '</div>' +
         '<div class="paywall-signin" id="tmwPaywallSigninWrap">Already a subscriber? <a href="#" id="tmwPaywallSignin">Sign in</a></div>' +
       '</div>';

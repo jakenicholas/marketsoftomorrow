@@ -8859,12 +8859,14 @@ async function ensureMemberRecord(env, memberId, email, joinedTs) {
     if (row) return row;
     let no;
     if (email && email.toLowerCase() === FOUNDER_EMAIL) no = 1;
-    else { const mx = await env.DB.prepare('SELECT MAX(member_no) AS m FROM members').first(); no = Math.max(1, (mx && mx.m) || 1) + 1; }
+    // New members (2026-07 onward) start at #100 and never below — the 0041–0099
+    // gap is intentionally left empty; founding cohort is everyone under 100.
+    else { const mx = await env.DB.prepare('SELECT MAX(member_no) AS m FROM members').first(); no = Math.max(100, ((mx && mx.m) || 99) + 1); }
     const joined = joinedTs || Math.floor(Date.now() / 1000);
     await env.DB.prepare('INSERT OR IGNORE INTO members (member_id, email, member_no, joined_at, founding, market) VALUES (?,?,?,?,?,?)')
-      .bind(memberId, email || null, no, joined, no <= 50 ? 1 : 0, null).run();
+      .bind(memberId, email || null, no, joined, no < 100 ? 1 : 0, null).run();
     row = await env.DB.prepare('SELECT member_no, joined_at, founding, market FROM members WHERE member_id = ?').bind(memberId).first();
-    return row || { member_no: no, joined_at: joined, founding: no <= 50 ? 1 : 0, market: null };
+    return row || { member_no: no, joined_at: joined, founding: no < 100 ? 1 : 0, market: null };
   } catch { return null; }
 }
 
@@ -9160,8 +9162,11 @@ async function computeMemberGameStats(env, memberId) {
   xp += Math.floor(streak / 7) * 50;   // +50 bonus for every full week kept
   const rec = await ensureMemberRecord(env, memberId, email, earliest);
   // achievements — unlock + bonus XP
+  // Founding cohort = member number under 100 (everyone who joined before the
+  // 2026-07 renumbering). New members (#100+) are "Pro Member", not founding.
+  const _isFounding = !!(rec && rec.member_no != null && rec.member_no < 100);
   const ach = {
-    founding: !!(rec && rec.founding),
+    founding: _isFounding,
     reader: a >= 30,
     globetrotter: mk >= 5,
     tastemaker: reach >= 50000,
@@ -9173,7 +9178,7 @@ async function computeMemberGameStats(env, memberId) {
   return { name, xp, level: lvl.lvl, tier: lvl.tier,
     memberNo: rec ? rec.member_no : null,
     since: (rec && rec.joined_at) ? new Date(rec.joined_at * 1000).getUTCFullYear() : null,
-    founding: !!(rec && rec.founding), market: (rec && rec.market) || null, achievements: ach,
+    founding: _isFounding, market: (rec && rec.market) || null, achievements: ach,
     stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv, comments } };
 }
 
