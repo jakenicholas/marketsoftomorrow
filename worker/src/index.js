@@ -7199,6 +7199,42 @@ async function handleBrainProposed(req, env, origin) {
   return json({ proposed: list, count: list.length }, {}, env, origin);
 }
 
+// GET /brain/feed — the LIVE learning feed: every lesson the brain has captured
+// from a human edit / critique (event 'brain_proposed'), newest first, tagged
+// with whether it's been applied, is pending, or was dismissed. Same source as
+// /brain/proposed but chronological + inclusive of resolved ones — the Studio
+// renders it as "just learned from {article}: {lesson}".
+async function handleBrainFeed(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const url = new URL(req.url);
+  let limit = parseInt(url.searchParams.get('limit') || '60', 10);
+  if (!Number.isFinite(limit) || limit < 1) limit = 60;
+  if (limit > 200) limit = 200;
+  const rows = (await env.DB.prepare(
+    `SELECT ts, props_json FROM events WHERE event_name IN ('brain_proposed','brain_resolved') ORDER BY ts ASC`
+  ).all()).results || [];
+  const resolution = new Map();   // proposed id -> { action, when }
+  const proposed = [];
+  for (const r of rows) {
+    let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+    if (!p) continue;
+    if (p.ref_id) { resolution.set(String(p.ref_id), { action: p.action || 'resolved', when: r.ts }); continue; }
+    if (p.id && p.note) proposed.push({ ...p, when: r.ts });
+  }
+  const feed = proposed.map(p => {
+    const res = resolution.get(String(p.id));
+    const status = res ? (res.action === 'approve' ? 'applied' : 'dismissed') : 'pending';
+    return {
+      id: p.id, type: p.type, kind: p.kind || null, note: p.note,
+      source: p.source || null, evidence: p.evidence || null,
+      when: p.when, status, resolved_when: res ? res.when : null,
+    };
+  }).sort((a, b) => (b.when || 0) - (a.when || 0)).slice(0, limit);
+  return json({ feed, count: feed.length }, { headers: { 'Cache-Control': 'private, max-age=10' } }, env, origin);
+}
+
 // POST /brain/resolve { id, action:'approve'|'dismiss' } — approve APPLIES the
 // lesson to its live store (brand note / intel rule, shared by all systems);
 // dismiss just clears it from the queue. Either way a 'brain_resolved' record
@@ -10063,6 +10099,7 @@ export default {
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
       if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
+      if (url.pathname === '/brain/feed'     && request.method === 'GET')  return await handleBrainFeed(request, env, origin);
       if (url.pathname === '/brain/resolve'  && request.method === 'POST') return await handleBrainResolve(request, env, origin);
       if (url.pathname === '/brain' || url.pathname === '/brain/') {
         if (request.method === 'GET')  return await handleBrainGet(request, env, origin);
