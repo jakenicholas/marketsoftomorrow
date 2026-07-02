@@ -16,20 +16,36 @@
   /* ── the library — one entry per client. Canonical fields below. ───────── */
   var STUDIES = [
     {
+      badge:'4C', name:'The Residences at 400 Central', sub:'St. Petersburg, FL · Tampa Bay · Luxury Condo',
+      tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','waterfront'],
+      pills:['Luxury Condo','St. Petersburg'],
+      status:'complete', months:12,
+      impressions:'6.4M', mediaValue:'$196K', ctr:'1.57%', spend:'$65K',
+      quote:'Across a completed 12-month program, The Residences at 400 Central amassed <b>6.4M impressions</b> and earned <b>~$196K in media value</b> &mdash; the network&rsquo;s top-performing tower campaign, at a 1.57% newsletter CTR that carried it through sell-out.'
+    },
+    {
+      badge:'MP', name:'Marina Point', sub:'St. Petersburg, FL · Tampa Bay · Waterfront Condo',
+      tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','waterfront','marina'],
+      pills:['Waterfront Condo','St. Petersburg'],
+      status:'complete', months:12,
+      impressions:'4.1M', mediaValue:'$121K', ctr:'1.50%', spend:'$42K',
+      quote:'Across a completed 12-month program, Marina Point amassed <b>4.1M impressions</b> and earned <b>~$121K in media value</b> &mdash; a 1.50% newsletter CTR that kept the waterfront tower top-of-mind through sell-out.'
+    },
+    {
+      badge:'WA', name:'Waldorf Astoria Residences', sub:'St. Petersburg, FL · Tampa Bay · Branded Residences',
+      tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','branded-residences','hotel','waterfront'],
+      pills:['Branded Residences','St. Petersburg'],
+      status:'active', months:8,
+      impressions:'3.1M', mediaValue:'$73K', ctr:'1.45%', spend:'$25K',
+      quote:'Eight months into its campaign, Waldorf Astoria Residences has amassed <b>3.1M impressions</b> and earned <b>~$73K in media value</b> &mdash; a 1.45% newsletter CTR, with the program still running.'
+    },
+    {
       badge:'PP', name:'Ponce Park Residences', sub:'The Allen Morris Company · Coral Gables, FL',
       tags:['florida','south-florida','luxury-condo','condo','coral-gables','miami'],
       pills:['Luxury Condo','South Florida'],
       status:'active', months:7,
       impressions:'3.3M', mediaValue:'$98.6K', ctr:'1.49%', spend:'$33.75K',
       quote:'Halfway through a 14-month program, Ponce Park has amassed <b>3.3M impressions</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.'
-    },
-    {
-      badge:'WA', name:'Waldorf Astoria Residences', sub:'St. Petersburg, FL · Tampa Bay · Branded Residences',
-      tags:['florida','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','branded-residences','hotel'],
-      pills:['Branded Residences','St. Petersburg'],
-      status:'active', months:4,
-      impressions:'1.87M', mediaValue:'$57.6K', ctr:'1.43%', spend:'$19.8K',
-      quote:'Four months into its campaign, Waldorf Astoria Residences has amassed <b>1.87M impressions</b> and earned <b>~$58K in media value</b> &mdash; a 1.43% newsletter CTR, with the program still running.'
     },
     {
       badge:'TB', name:'The Berkeley', sub:'West Palm Beach, FL · Luxury Condo',
