@@ -7021,7 +7021,7 @@ async function handleMediaSaveUpscaled(req, env, origin, url) {
   const scale = Math.max(1, Math.min(8, parseInt(url.searchParams.get('scale') || '2', 10) || 2));
   const buf = await req.arrayBuffer();
   if (!buf || !buf.byteLength) return json({ error: 'empty body' }, { status: 400 }, env, origin);
-  if (buf.byteLength > 40 * 1024 * 1024) return json({ error: 'file too large' }, { status: 413 }, env, origin);
+  if (buf.byteLength > 60 * 1024 * 1024) return json({ error: 'file too large' }, { status: 413 }, env, origin);
 
   // Resolve the source photo's folder + a base name for the new file.
   let folder = '', srcName = 'photo';
