@@ -11,7 +11,12 @@
 //              window.tmwTrack.bindClick(anchorEl, id, type, label)  // convenience
 // ---------------------------------------------------------------------------
 (function () {
-  if (window.tmwTrack) return;
+  // journal-dock.js already defines window.tmwTrack as a generic event FUNCTION.
+  // We AUGMENT it with placement view/click (functions can hold properties) —
+  // never clobber it and never bail early, or the object form's .view/.click
+  // would be missing and callers (the ad carousel) would throw. Skip only if
+  // we've already augmented.
+  if (window.tmwTrack && window.tmwTrack._plc) return;   // real methods already installed
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
   var queue = [];
 
@@ -57,5 +62,11 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flush(); });
   setInterval(flush, 10000);  // safety net for long-lived sessions
 
-  window.tmwTrack = { view: view, click: click, bindClick: bindClick, flush: flush };
+  // Attach onto the existing tmwTrack (function or object), preserving whatever
+  // journal-dock defined, so both window.tmwTrack(name,params) and
+  // window.tmwTrack.view/.click work.
+  var api = window.tmwTrack || {};
+  api.view = view; api.click = click; api.bindClick = bindClick; api.flush = flush;
+  api._plc = true;   // marks the real placement methods as installed (vs dock's no-op stubs)
+  window.tmwTrack = api;
 })();

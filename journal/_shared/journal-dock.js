@@ -78,6 +78,13 @@
     try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
   }
   window.tmwTrack = tmwTrack;
+  // Placement view/click are augmented by /_shared/track.js once it loads. Stub
+  // them as no-ops NOW so early callers (the banner ad carousel's setSlide) never
+  // hit a missing method before track.js runs — a missing .view was throwing
+  // inside setSlide and freezing the carousel on its first slide.
+  if (!tmwTrack.view)      tmwTrack.view      = function () {};
+  if (!tmwTrack.click)     tmwTrack.click     = function () {};
+  if (!tmwTrack.bindClick) tmwTrack.bindClick = function () {};
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!t || !t.closest) return;
