@@ -3822,7 +3822,7 @@ async function captureDesignLesson(env, slug) {
   const final = designDocText(row.doc_json);
   if (!orig || !final || orig === final) return;
   if (Math.abs(final.length - orig.length) < 20 && orig.slice(0, 2000) === final.slice(0, 2000)) return;   // trivial
-  const sys = 'You improve an AI system that writes Instagram CAROUSEL copy for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written carousel (the caption + per-slide headlines) before publishing. Compare the ORIGINAL (AI) and FINAL (human-edited) copy and extract up to 3 GENERALIZABLE lessons about our carousel voice, phrasing, length, punctuation, or structure that would make FUTURE AI carousels better. Ignore one-off post-specific facts (a specific project name or number). If the changes are trivial or cosmetic, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short imperative lesson>"}].';
+  const sys = 'You improve an AI system that writes Instagram CAROUSEL copy for Markets of Tomorrow, a real-estate development media brand. A carousel (the caption + per-slide headlines) was drafted, then edited by the team before publishing. Compare the ORIGINAL draft and the FINAL published copy and extract up to 3 GENERALIZABLE lessons about our carousel voice, phrasing, length, punctuation, or structure that would make FUTURE AI carousels better. Ignore one-off post-specific facts (a specific project name or number). If the changes are trivial or cosmetic, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short imperative lesson>"}].';
   const usr = 'ORIGINAL (AI):\n' + orig.slice(0, 4000) + '\n\n---\n\nFINAL (human-edited):\n' + final.slice(0, 4000);
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -3840,7 +3840,7 @@ async function captureDesignLesson(env, slug) {
     await brainWrite(env, {
       type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note),
       source: 'design-edit:' + slug,
-      evidence: 'Learned from a human edit of an AI carousel (caption + slide copy) at export',
+      evidence: 'Learned from carousel edits (caption + slide copy) at export-to-carousels',
     }, { review: true });
   }
   // Advance the baseline so the next edit→export only learns NEW edits.
@@ -5319,7 +5319,17 @@ async function handleDesignsUpdate(req, env, origin, slug) {
   if (!existing) return json({ error: 'design not found', slug }, { status: 404 }, env, origin);
   const sets = [], params = []; let p = 1;
   if ('title'  in body) { sets.push(`title    = ?${p++}`); params.push(String(body.title || 'Untitled design').slice(0, 200)); }
-  if ('doc'    in body) { sets.push(`doc_json = ?${p++}`); params.push(JSON.stringify((body.doc && typeof body.doc === 'object') ? body.doc : {}).slice(0, 2_000_000)); }
+  if ('doc'    in body) {
+    const _docStr = JSON.stringify((body.doc && typeof body.doc === 'object') ? body.doc : {}).slice(0, 2_000_000);
+    sets.push(`doc_json = ?${p++}`); params.push(_docStr);
+    // Snapshot the "beginning draft" baseline on the FIRST meaningful save for
+    // EVERY design (not just AI-generated ones), so the carousel learning loop can
+    // diff it against the final at export. Only set once (AI designs already have
+    // it from design-from-post); captureDesignLesson advances it after each export.
+    if (!existing.ai_original_json && designDocText(_docStr).length > 20) {
+      sets.push(`ai_original_json = ?${p++}`); params.push(_docStr);
+    }
+  }
   if ('status' in body) { sets.push(`status   = ?${p++}`); params.push(body.status === 'archived' ? 'archived' : 'draft'); }
   if ('slug'   in body && body.slug && body.slug !== existing.slug) {
     const newSlug = await ensureUniqueDesignSlug(env, body.slug, existing.id);
