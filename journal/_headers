@@ -12,3 +12,8 @@
 # "inconsistent across pages."
 /_shared/*
   Cache-Control: public, max-age=0, must-revalidate
+
+# Bot-filtered Linkly click history — read cross-origin by the Studio's
+# Placements tab (admin.oftmw.com) as the baseline behind our first-party numbers.
+/_shared/placement-baseline.json
+  Access-Control-Allow-Origin: *

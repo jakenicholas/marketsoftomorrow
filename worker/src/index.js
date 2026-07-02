@@ -7522,54 +7522,52 @@ async function handlePlacementPixel(req, env, origin, url) {
 // first-party numbers against). `active` = "live" (shown on top in the Studio);
 // toggling it is dashboard-only — it does NOT change what serves on the site.
 const ADVERTISER_SEED = [
-  {id:'waldorf-astoria-st-pete', name:'Waldorf Astoria Residences St Petersburg', type:'ad', active:1, all:7978, d30:2359},
-  {id:'Humanaut', name:'Humanaut Health Palm Beach Gardens', type:'ad', active:1, all:4374, d30:2241},
-  {id:'ponce', name:'Ponce Park Coral Gables', type:'ad', active:1, all:4132, d30:2303},
-  {id:'eudemonia', name:'Eudemonia 2026', type:'ad', active:1, all:2900, d30:2241},
-  {id:'mandarin-oriental', name:'Mandarin Oriental Residences, West Palm Beach', type:'ad', active:1, all:2640, d30:2562},
-  {id:'pur-form', name:'PURFORM Health', type:'partner', active:1, all:2629, d30:32},
-  {id:'south-flagler-house', name:'South Flagler House', type:'partner', active:1, all:2510, d30:21},
-  {id:'spina-o-rourke-partners', name:'Spina O\'Rourke + Partners', type:'partner', active:1, all:1819, d30:39},
-  {id:'tremble', name:'TREMBLE', type:'partner', active:1, all:618, d30:13},
-  {id:'higher-order', name:'Higher Order Health', type:'partner', active:1, all:561, d30:41},
-  {id:'medhouse', name:'MedHouse', type:'partner', active:1, all:399, d30:30},
-  {id:'traphouse', name:'TRAPHOUSE Palm Beach', type:'partner', active:1, all:55, d30:10},
-  {id:'humanaut-health', name:'Humanaut Health', type:'partner', active:1, all:0, d30:0},
-  {id:'marina-pointe', name:'Marina Pointe', type:'ad', active:0, all:13450, d30:1443},
-  {id:'400-central', name:'400 Central', type:'ad', active:0, all:7016, d30:45},
-  {id:'ziggurat', name:'Ziggurat', type:'ad', active:0, all:2436, d30:7},
-  {id:'the-berkeley-palm-beach', name:'The Berkeley Palm Beach', type:'ad', active:0, all:2120, d30:12},
-  {id:'alba-banner', name:'Alba Banner', type:'ad', active:0, all:2046, d30:21},
-  {id:'haven', name:'Haven', type:'ad', active:0, all:1617, d30:8},
-  {id:'ora-hotel', name:'ORA Hotel', type:'ad', active:0, all:1272, d30:19},
-  {id:'nautilus-220', name:'Nautilus 220', type:'ad', active:0, all:1222, d30:14},
-  {id:'ara-jupiter', name:'Ara Jupiter | Globally-Inspired Menu', type:'ad', active:0, all:1151, d30:21},
-  {id:'related-group', name:'Related Group', type:'ad', active:0, all:1100, d30:11},
-  {id:'frida-kahlo-residences', name:'Frida Kahlo Residences', type:'ad', active:0, all:1008, d30:10},
-  {id:'sushi-by-bou', name:'Sushi by Bou', type:'ad', active:0, all:951, d30:9},
-  {id:'celis', name:'Celis', type:'ad', active:0, all:945, d30:10},
-  {id:'br-z', name:'BRĒZ', type:'ad', active:0, all:816, d30:15},
-  {id:'nora-banner', name:'Nora Banner', type:'ad', active:0, all:335, d30:4},
-  {id:'olara-west-palm-beach', name:'Olara West Palm Beach', type:'ad', active:0, all:310, d30:18},
-  {id:'havn-residences-yacht-club', name:'HAVN Residences & Yacht Club', type:'ad', active:0, all:295, d30:12},
-  {id:'novel', name:'NOVEL', type:'ad', active:0, all:243, d30:10},
-  {id:'quinn-pr', name:'Quinn PR', type:'partner', active:0, all:210, d30:11},
-  {id:'related-ross', name:'Related Ross', type:'partner', active:0, all:210, d30:17},
-  {id:'allen-morris-company', name:'Allen Morris Company', type:'partner', active:0, all:206, d30:14},
-  {id:'c-r-pr', name:'C&R PR', type:'partner', active:0, all:206, d30:11},
-  {id:'carli-pr', name:'Carli PR', type:'partner', active:0, all:188, d30:20},
-  {id:'serhant', name:'SERHANT.', type:'partner', active:0, all:173, d30:16},
-  {id:'one-aldwych', name:'One Aldwych', type:'ad', active:0, all:171, d30:20},
-  {id:'little-palm-island', name:'Little Palm Island', type:'ad', active:0, all:167, d30:16},
-  {id:'the-ritz-carlton-residences-sarasota-bay', name:'The Ritz-Carlton Residences Sarasota Bay', type:'ad', active:0, all:153, d30:0},
-  {id:'the-replay-club', name:'The Replay Club', type:'ad', active:0, all:133, d30:8},
-  {id:'palm-cove-golf-club', name:'Palm Cove Golf Club', type:'ad', active:0, all:117, d30:21},
-  {id:'duos-hotel-condominiums-in-the-heart-of-miami', name:'DUOS - Hotel Condominiums in the Heart of Miami', type:'ad', active:0, all:116, d30:14},
-  {id:'streamsong-resort', name:'Streamsong Resort', type:'ad', active:0, all:93, d30:10},
-  {id:'delano-residences-miami', name:'Delano Residences Miami', type:'ad', active:0, all:41, d30:0},
-  {id:'aqua', name:'AQUA', type:'ad', active:0, all:32, d30:0},
-  {id:'aster-links', name:'Aster & Links', type:'ad', active:0, all:0, d30:0},
-  {id:'mr-c-west-palm-beach', name:'Mr. C West Palm Beach', type:'ad', active:0, all:0, d30:0},
+  {id:'south-flagler-house', name:'South Flagler House', type:'partner', active:1, all:1104, d30:6},
+  {id:'Humanaut', name:'Humanaut Health Palm Beach Gardens', type:'ad', active:1, all:992, d30:41},
+  {id:'pur-form', name:'PURFORM Health', type:'partner', active:1, all:988, d30:9},
+  {id:'waldorf-astoria-st-pete', name:'Waldorf Astoria Residences St Petersburg', type:'ad', active:1, all:832, d30:58},
+  {id:'spina-o-rourke-partners', name:'Spina O\'Rourke + Partners', type:'partner', active:1, all:587, d30:8},
+  {id:'ponce', name:'Ponce Park Coral Gables', type:'ad', active:1, all:545, d30:53},
+  {id:'eudemonia', name:'Eudemonia 2026', type:'ad', active:1, all:429, d30:51},
+  {id:'higher-order', name:'Higher Order Health', type:'partner', active:1, all:382, d30:16},
+  {id:'medhouse', name:'MedHouse', type:'partner', active:1, all:238, d30:11},
+  {id:'mandarin-oriental', name:'Mandarin Oriental Residences, West Palm Beach', type:'ad', active:1, all:194, d30:174},
+  {id:'tremble', name:'TREMBLE', type:'partner', active:1, all:165, d30:2},
+  {id:'traphouse', name:'TRAPHOUSE Palm Beach', type:'partner', active:1, all:20, d30:6},
+  {id:'humanaut-health', name:'Humanaut Health', type:'ad', active:1, all:0, d30:0},
+  {id:'marina-pointe', name:'Marina Pointe', type:'ad', active:0, all:1943, d30:40},
+  {id:'400-central', name:'400 Central', type:'ad', active:0, all:1026, d30:23},
+  {id:'related-group', name:'Related Group', type:'ad', active:0, all:692, d30:3},
+  {id:'ora-hotel', name:'ORA Hotel', type:'ad', active:0, all:655, d30:2},
+  {id:'alba-banner', name:'Alba Banner', type:'ad', active:0, all:573, d30:8},
+  {id:'ara-jupiter', name:'Ara Jupiter | Globally-Inspired Menu', type:'ad', active:0, all:555, d30:4},
+  {id:'br-z', name:'BRĒZ', type:'ad', active:0, all:468, d30:4},
+  {id:'sushi-by-bou', name:'Sushi by Bou', type:'ad', active:0, all:442, d30:3},
+  {id:'frida-kahlo-residences', name:'Frida Kahlo Residences', type:'ad', active:0, all:429, d30:1},
+  {id:'celis', name:'Celis', type:'ad', active:0, all:423, d30:2},
+  {id:'nautilus-220', name:'Nautilus 220', type:'ad', active:0, all:343, d30:2},
+  {id:'the-berkeley-palm-beach', name:'The Berkeley Palm Beach', type:'ad', active:0, all:267, d30:2},
+  {id:'ziggurat', name:'Ziggurat', type:'ad', active:0, all:248, d30:1},
+  {id:'olara-west-palm-beach', name:'Olara West Palm Beach', type:'ad', active:0, all:162, d30:8},
+  {id:'havn-residences-yacht-club', name:'HAVN Residences & Yacht Club', type:'ad', active:0, all:156, d30:4},
+  {id:'haven', name:'Haven', type:'ad', active:0, all:134, d30:1},
+  {id:'allen-morris-company', name:'Allen Morris Company', type:'partner', active:0, all:119, d30:5},
+  {id:'quinn-pr', name:'Quinn PR', type:'partner', active:0, all:119, d30:5},
+  {id:'c-r-pr', name:'C&R PR', type:'partner', active:0, all:114, d30:6},
+  {id:'related-ross', name:'Related Ross', type:'partner', active:0, all:108, d30:6},
+  {id:'carli-pr', name:'Carli PR', type:'partner', active:0, all:91, d30:6},
+  {id:'serhant', name:'SERHANT.', type:'partner', active:0, all:88, d30:6},
+  {id:'little-palm-island', name:'Little Palm Island', type:'ad', active:0, all:85, d30:7},
+  {id:'nora-banner', name:'Nora Banner', type:'ad', active:0, all:80, d30:0},
+  {id:'one-aldwych', name:'One Aldwych', type:'ad', active:0, all:76, d30:4},
+  {id:'novel', name:'NOVEL', type:'ad', active:0, all:66, d30:0},
+  {id:'duos-hotel-condominiums-in-the-heart-of-miami', name:'DUOS - Hotel Condominiums in the Heart of Miami', type:'ad', active:0, all:60, d30:3},
+  {id:'the-replay-club', name:'The Replay Club', type:'ad', active:0, all:52, d30:3},
+  {id:'palm-cove-golf-club', name:'Palm Cove Golf Club', type:'ad', active:0, all:46, d30:5},
+  {id:'streamsong-resort', name:'Streamsong Resort', type:'ad', active:0, all:45, d30:3},
+  {id:'delano-residences-miami', name:'Delano Residences Miami', type:'ad', active:0, all:30, d30:0},
+  {id:'aqua', name:'AQUA', type:'ad', active:0, all:21, d30:0},
+  {id:'the-ritz-carlton-residences-sarasota-bay', name:'The Ritz-Carlton Residences Sarasota Bay', type:'ad', active:0, all:13, d30:0},
 ];
 let _advReady = false;
 async function ensureAdvertisersTable(env) {
@@ -7580,13 +7578,17 @@ async function ensureAdvertisersTable(env) {
     "sort_order INTEGER DEFAULT 0, updated_at INTEGER)"
   ).run();
   try {
-    const cnt = await env.DB.prepare('SELECT COUNT(*) AS n FROM advertisers').first();
-    if (!cnt || !cnt.n) {
-      const now = Math.floor(Date.now() / 1000);
-      const stmt = env.DB.prepare('INSERT OR IGNORE INTO advertisers (id, name, type, active, linkly_all, linkly_30d, updated_at) VALUES (?1,?2,?3,?4,?5,?6,?7)');
-      const batch = ADVERTISER_SEED.map(a => stmt.bind(a.id, a.name, a.type, a.active, a.all, a.d30, now));
-      if (batch.length) await env.DB.batch(batch);
-    }
+    // Upsert the seed: refresh name/type + the (bot-filtered) Linkly baseline on
+    // every deploy, but PRESERVE `active` on conflict so a dashboard live/off
+    // toggle is never clobbered (active is only set on first insert).
+    const now = Math.floor(Date.now() / 1000);
+    const stmt = env.DB.prepare(
+      'INSERT INTO advertisers (id, name, type, active, linkly_all, linkly_30d, updated_at) ' +
+      'VALUES (?1,?2,?3,?4,?5,?6,?7) ' +
+      'ON CONFLICT(id) DO UPDATE SET name=?2, type=?3, linkly_all=?5, linkly_30d=?6, updated_at=?7'
+    );
+    const batch = ADVERTISER_SEED.map(a => stmt.bind(a.id, a.name, a.type, a.active, a.all, a.d30, now));
+    if (batch.length) await env.DB.batch(batch);
   } catch (_) {}
   _advReady = true;
 }
