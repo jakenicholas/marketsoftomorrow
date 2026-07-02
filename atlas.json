@@ -11,11 +11,11 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 38
+      "count": 40
     },
     {
       "type": "Entertainment",
-      "count": 36
+      "count": 35
     },
     {
       "type": "Office",
@@ -1950,7 +1950,7 @@
     },
     {
       "st": "FL",
-      "ty": "Entertainment",
+      "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": 2028,
       "sm": "2026-11",
@@ -2415,7 +2415,7 @@
       "ty": "Entertainment",
       "sl": "Announced",
       "yr": 2027,
-      "sm": "2026-06",
+      "sm": "2026-12",
       "ci": "Orlando",
       "u": 0,
       "k": 0,
@@ -5462,7 +5462,7 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Construction",
-      "yr": 2028,
+      "yr": 2027,
       "sm": "2026-05",
       "ci": "Miami",
       "u": 70,
@@ -7087,7 +7087,7 @@
       "ci": "West Palm Beach",
       "u": 0,
       "k": 0,
-      "fl": 0,
+      "fl": 4,
       "dv": [
         [
           "The Greene School",
@@ -9519,7 +9519,7 @@
       "ci": "Belize",
       "u": 16,
       "k": 40,
-      "fl": 0,
+      "fl": 2,
       "dv": [
         [
           "CRDG LLC",
@@ -9753,7 +9753,7 @@
       "st": "Other",
       "ty": "Stadium",
       "sl": "Announced",
-      "yr": 2030,
+      "yr": 2031,
       "sm": "2027-12",
       "ci": "Rome",
       "u": 0,
@@ -10267,7 +10267,7 @@
       "ty": "Entertainment",
       "sl": "Announced",
       "yr": 2030,
-      "sm": null,
+      "sm": "2027-12",
       "ci": "Kansas City",
       "u": 0,
       "k": 0,
@@ -11814,7 +11814,7 @@
       "ci": "New York City",
       "u": 76,
       "k": 76,
-      "fl": 0,
+      "fl": 10,
       "dv": [
         [
           "BJGH",
@@ -15311,7 +15311,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
-      "sm": null,
+      "sm": "2024-12",
       "ci": "Henderson",
       "u": 171,
       "k": 0,
@@ -17251,7 +17251,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2026,
-      "sm": "2024-12",
+      "sm": "2024-03",
       "ci": "Naples",
       "u": 120,
       "k": 0,
@@ -17291,10 +17291,37 @@
           "bizi-arq"
         ]
       ]
+    },
+    {
+      "st": "FL",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "St. Petersburg",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Blake Investment Partners",
+          "blake-investment-partners"
+        ],
+        [
+          "Related Group",
+          "related-group"
+        ]
+      ],
+      "ar": [
+        [
+          "Wannemacher Jensen Architects",
+          "wannemacher-jensen-architects"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 679,
+    "total_projects": 680,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 264,
@@ -17303,10 +17330,20 @@
   "scale": {
     "units": 250847,
     "keys": 46498,
-    "floors": 10191
+    "floors": 10207
   },
   "leaderboards": {
     "developers": [
+      {
+        "name": "Related Group",
+        "slug": "related-group",
+        "sub": "Miami",
+        "count": 15,
+        "states": [
+          "FL",
+          "Other"
+        ]
+      },
       {
         "name": "Related Ross",
         "slug": "related-ross",
@@ -17314,16 +17351,6 @@
         "count": 14,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "Related Group",
-        "slug": "related-group",
-        "sub": "Miami",
-        "count": 14,
-        "states": [
-          "FL",
-          "Other"
         ]
       },
       {
@@ -18111,6 +18138,14 @@
         ]
       },
       {
+        "name": "St. Petersburg",
+        "sub": "5 developments \u00b7 10 developers",
+        "count": 5,
+        "states": [
+          "FL"
+        ]
+      },
+      {
         "name": "Houston",
         "sub": "5 developments \u00b7 6 developers",
         "count": 5,
@@ -18132,14 +18167,6 @@
         "count": 5,
         "states": [
           "Other"
-        ]
-      },
-      {
-        "name": "Brooklyn",
-        "sub": "5 developments \u00b7 6 developers",
-        "count": 5,
-        "states": [
-          "NY"
         ]
       }
     ],
@@ -18179,7 +18206,7 @@
       {
         "name": "Mixed-Use",
         "sub": "6% of pipeline",
-        "count": 38,
+        "count": 40,
         "states": [
           "FL",
           "Other",
@@ -18192,7 +18219,7 @@
       {
         "name": "Entertainment",
         "sub": "5% of pipeline",
-        "count": 36,
+        "count": 35,
         "states": [
           "FL",
           "Other",
@@ -18334,7 +18361,7 @@
           "name": "Related Group",
           "slug": "related-group",
           "sub": "Miami",
-          "count": 13,
+          "count": 14,
           "states": [
             "FL",
             "Other"
@@ -19000,16 +19027,16 @@
           ]
         },
         {
-          "name": "Jacksonville",
-          "sub": "4 developments \u00b7 6 developers",
-          "count": 4,
+          "name": "St. Petersburg",
+          "sub": "5 developments \u00b7 10 developers",
+          "count": 5,
           "states": [
             "FL"
           ]
         },
         {
-          "name": "St. Petersburg",
-          "sub": "4 developments \u00b7 8 developers",
+          "name": "Jacksonville",
+          "sub": "4 developments \u00b7 6 developers",
           "count": 4,
           "states": [
             "FL"
@@ -19156,7 +19183,7 @@
         {
           "name": "Entertainment",
           "sub": "8% of pipeline",
-          "count": 25,
+          "count": 24,
           "states": [
             "FL",
             "Other",
@@ -19183,8 +19210,8 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "5% of pipeline",
-          "count": 16,
+          "sub": "6% of pipeline",
+          "count": 18,
           "states": [
             "FL",
             "Other",
@@ -19210,7 +19237,7 @@
         },
         {
           "name": "Education",
-          "sub": "3% of pipeline",
+          "sub": "2% of pipeline",
           "count": 8,
           "states": [
             "FL"
@@ -22690,18 +22717,18 @@
   "by_state": {
     "FL": {
       "hero_stats": {
-        "total_projects": 319,
+        "total_projects": 320,
         "under_construction": 116
       },
       "scale": {
         "units": 77714,
         "keys": 10966,
-        "floors": 5815
+        "floors": 5819
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 123
+          "count": 124
         },
         {
           "label": "Breaking Ground",
@@ -22774,7 +22801,7 @@
         {
           "month": "Jun",
           "year": 2026,
-          "count": 13
+          "count": 12
         },
         {
           "month": "Jul",
@@ -22791,7 +22818,7 @@
       "scale": {
         "units": 8861,
         "keys": 666,
-        "floors": 1012
+        "floors": 1022
       },
       "status_distribution": [
         {
@@ -23733,7 +23760,7 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 194
+      "count": 195
     },
     {
       "label": "Breaking Ground",
@@ -23806,7 +23833,7 @@
     {
       "month": "Jun",
       "year": 2026,
-      "count": 18
+      "count": 17
     },
     {
       "month": "Jul",
@@ -23821,11 +23848,11 @@
     },
     {
       "year": 2027,
-      "count": 139
+      "count": 140
     },
     {
       "year": 2028,
-      "count": 130
+      "count": 129
     },
     {
       "year": 2029,
@@ -23833,14 +23860,14 @@
     },
     {
       "year": 2030,
-      "count": 43
+      "count": 42
     }
   ],
   "available_states": [
     {
       "code": "FL",
       "label": "Florida",
-      "count": 319
+      "count": 320
     },
     {
       "code": "NY",
@@ -23884,6 +23911,74 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-the-burg-bid",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Now tracking The Burg Bid",
+      "project_slug": "the-burg-bid",
+      "project_title": "The Burg Bid",
+      "city": "St. Petersburg",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/100d9d970224-BIP-roundabout-gigapixel-low-resolution-v2-4x.jpeg",
+      "link": "https://www.oftmw.com/map/?project=theburgbid",
+      "timestamp": "2026-07-02T13:24:58.031370+00:00"
+    },
+    {
+      "id": "ms-new-trafford-financing-2026-07-02",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "New Trafford  Financing secured",
+      "project_slug": "new-trafford",
+      "project_title": "New Trafford",
+      "city": "Manchester",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b154594ef4e540d386423623fbb0d339~mv2.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://www.architectsjournal.co.uk/news/man-utd-bags-site-for-new-100000-capacity-foster-partners-stadium",
+      "link": "https://www.oftmw.com/map/?project=newtrafford",
+      "timestamp": "2026-07-02T13:20:59.767Z"
+    },
+    {
+      "id": "ms-residences-at-palm-beach-west-financing-2026-07-02",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Residences at Palm Beach West  Financing secured",
+      "project_slug": "residences-at-palm-beach-west",
+      "project_title": "Residences at Palm Beach West",
+      "city": "West Palm Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg",
+      "event_date": "2026-05",
+      "source_url": "https://commercialobserver.com/2026/05/stephen-related-ross-west-palm-beach/",
+      "link": "https://www.oftmw.com/map/?project=residencesatpalmbeachwest",
+      "timestamp": "2026-07-02T13:20:55.608Z"
+    },
+    {
+      "id": "ms-hs2-euston-station-redevelopment-financing-2026-07-02",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "HS2 Euston Station Redevelopment  Financing secured",
+      "project_slug": "hs2-euston-station-redevelopment",
+      "project_title": "HS2 Euston Station Redevelopment",
+      "city": "London",
+      "image": "https://static.dezeen.com/uploads/2022/03/grimshaw-euston-station-hs2_dezeen_2364_col_1a.jpg",
+      "event_date": "2026-04",
+      "source_url": "https://www.constructionenquirer.com/2026/06/29/hs2-reset-hinges-on-contractor-deals-and-8bn-euston-plan/",
+      "link": "https://www.oftmw.com/map/?project=hs2eustonstationredevelopment",
+      "timestamp": "2026-07-02T13:20:40.174Z"
+    },
+    {
+      "id": "ms-six-senses-residences-belize-bookings-2026-07-02",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Six Senses Residences Belize  Bookings open",
+      "project_slug": "six-senses-residences-belize",
+      "project_title": "Six Senses Residences Belize",
+      "city": "Belize",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_166ddc052ce34353b79f0d583a90413e~mv2.jpeg",
+      "event_date": "2026-03-31",
+      "source_url": "https://www.forbes.com/sites/emmakershaw/2026/03/31/six-senses-residences-belize-launches-sales-for-overwater-villas-starting-at-375-million/",
+      "link": "https://www.oftmw.com/map/?project=sixsensesresidencesbelize",
+      "timestamp": "2026-07-02T13:15:22.720Z"
+    },
     {
       "id": "track-5800-blue-lagoon-drive",
       "type": "tracking",
@@ -24495,76 +24590,6 @@
       "source_url": "https://floridayimby.com/2026/06/the-residences-at-claude-pepper-set-for-2028-debut-at-702-nw-18th-terrace-miami-fl.html",
       "link": "https://www.oftmw.com/map/?project=theresidencesclaudepepper",
       "timestamp": "2026-06-30T02:11:33.136Z"
-    },
-    {
-      "id": "ms-175-third-street-financing-2026-06-30",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "175 Third Street  Financing secured",
-      "project_slug": "175-third-street",
-      "project_title": "175 Third Street",
-      "city": "New York City",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg",
-      "event_date": "2026-06",
-      "source_url": "https://newyorkyimby.com/2026/06/developers-secure-capitalization-for-1100-unit-building-at-175-third-street-in-gowanus-brooklyn.html",
-      "link": "https://www.oftmw.com/map/?project=175thirdstreet",
-      "timestamp": "2026-06-30T02:05:41.678Z"
-    },
-    {
-      "id": "ms-2-world-trade-center-construction-2026-06-30",
-      "type": "status_change",
-      "tag": "Under construction",
-      "title": "2 World Trade Center  Under construction",
-      "project_slug": "2-world-trade-center",
-      "project_title": "2 World Trade Center",
-      "city": "New York City",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a80c8c205bc4481397e040797f1e4a72~mv2.webp",
-      "event_date": "2026-05",
-      "source_url": "https://newyorkyimby.com/2026/05/2-world-trade-center-resumes-construction-in-financial-district-manhattan.html",
-      "link": "https://www.oftmw.com/map/?project=2worldtradecenter",
-      "timestamp": "2026-06-30T02:05:38.109Z"
-    },
-    {
-      "id": "ms-bentley-residences-miami-going-vertical-2026-06-30",
-      "type": "status_change",
-      "tag": "Going vertical",
-      "title": "Bentley Residences Miami  Going vertical",
-      "project_slug": "bentley-residences-miami",
-      "project_title": "Bentley Residences Miami",
-      "city": "Sunny Isles Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_84a633b15cd44cc4857db839ae4da0fb~mv2.webp",
-      "event_date": "2026-06",
-      "source_url": "https://floridayimby.com/2026/06/construction-goes-vertical-on-62-story-bentley-branded-residential-tower-in-sunny-isles-beach.html",
-      "link": "https://www.oftmw.com/map/?project=bentleyresidencesmiami",
-      "timestamp": "2026-06-30T02:04:20.961Z"
-    },
-    {
-      "id": "ms-1-hotel-austin-bookings-2026-06-30",
-      "type": "status_change",
-      "tag": "Bookings open",
-      "title": "1 Hotel Austin  Bookings open",
-      "project_slug": "1-hotel-austin",
-      "project_title": "1 Hotel Austin",
-      "city": "Austin",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg",
-      "event_date": "2026-04-29",
-      "source_url": "https://www.prnewswire.com/news-releases/1-hotel-austin-now-accepting-reservations-302756239.html",
-      "link": "https://www.oftmw.com/map/?project=1hotelaustin",
-      "timestamp": "2026-06-30T02:04:17.527Z"
-    },
-    {
-      "id": "ms-new-highmark-stadium-open-2026-06-30",
-      "type": "status_change",
-      "tag": "Now Open",
-      "title": "New Highmark Stadium  Now Open",
-      "project_slug": "new-highmark-stadium",
-      "project_title": "New Highmark Stadium",
-      "city": "Orchard Park",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg",
-      "event_date": "2026-06-23",
-      "source_url": "https://www.buffalobills.com/news/impressed-by-every-aspect-of-it-bills-officially-open-highmark-stadium-with-ribbon-cutting-ceremony",
-      "link": "https://www.oftmw.com/map/?project=newhighmarkstadium",
-      "timestamp": "2026-06-30T01:55:42.465Z"
     }
   ],
   "most_covered": [
