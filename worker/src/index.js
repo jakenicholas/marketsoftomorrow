@@ -430,23 +430,17 @@ async function handlePeople(env, origin, url) {
     if (row.member_id && String(row.member_id).indexOf('system:') === 0) continue;
     let m = members.get(row.member_id);
     if (!m) {
-      m = {
-        member_id: row.member_id,
-        email: row.email,
-        member_name: row.member_name,
-        plan: row.plan,
-        timestamps: [],
-      };
+      m = { member_id: row.member_id, email: null, member_name: null, plan: null, timestamps: [] };
       members.set(row.member_id, m);
     }
-    // Latest values for email/name/plan win (the newest event for the
-    // member, since the SELECT is member ASC + ts DESC, so the first
-    // row for each member is its most recent event).
-    if (m.timestamps.length === 0) {
-      m.email = row.email;
-      m.member_name = row.member_name;
-      m.plan = row.plan;
-    }
+    // Rows are member ASC + ts DESC, so the FIRST non-empty value we see for each
+    // field is its most recent one. Take email/name/plan from the latest event
+    // that actually carries them — server-side events (deep searches, credit
+    // grants, routines) insert with these columns NULL, and letting a NULL latest
+    // event blank out a paid member's plan is what dropped them from the roster.
+    if (m.email == null && row.email) m.email = row.email;
+    if (m.member_name == null && row.member_name) m.member_name = row.member_name;
+    if (m.plan == null && row.plan) m.plan = row.plan;
     m.timestamps.push(row.ts);
   }
 
@@ -518,9 +512,12 @@ async function handleStats(env, origin) {
 
   // First pass: pick most-recent plan per member. Rows aren't sorted, so
   // we need to track timestamps to know which plan value is "latest."
-  const planTs = new Map(); // member_id -> latest ts seen
+  const planTs = new Map(); // member_id -> latest ts with a NON-NULL plan
   for (const r of rows) {
-    if (!planTs.has(r.member_id) || planTs.get(r.member_id) < r.ts) {
+    // Only let events that actually carry a plan set it — server-side events
+    // (deep searches, credit grants, routines) have plan NULL and must not blank
+    // out a member's real plan (that dropped paid members from the counters).
+    if (r.plan && (!planTs.has(r.member_id) || planTs.get(r.member_id) < r.ts)) {
       planTs.set(r.member_id, r.ts);
       memberPlans.set(r.member_id, r.plan);
     }
@@ -1444,13 +1441,16 @@ async function handleMember(env, origin, url) {
     return json({ profile: null, stats: null, timeline: [] }, {}, env, origin);
   }
 
-  // Profile = most recent values (events are DESC, so events[0] is newest)
-  const profile = {
-    member_id: memberId,
-    email: events[0].email,
-    member_name: events[0].member_name,
-    plan: events[0].plan,
-  };
+  // Profile = most recent NON-EMPTY values. events are DESC, but server-side
+  // events (deep searches, credit grants, routines) carry email/name/plan NULL,
+  // so events[0] can blank a paid member out — scan for the latest that has each.
+  const profile = { member_id: memberId, email: null, member_name: null, plan: null };
+  for (const e of events) {
+    if (profile.email == null && e.email) profile.email = e.email;
+    if (profile.member_name == null && e.member_name) profile.member_name = e.member_name;
+    if (profile.plan == null && e.plan) profile.plan = e.plan;
+    if (profile.email != null && profile.member_name != null && profile.plan != null) break;
+  }
 
   const timestamps = events.map(e => e.ts);
   const stats = computeMemberStats(timestamps);
