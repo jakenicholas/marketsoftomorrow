@@ -3792,6 +3792,73 @@ async function captureEditLesson(env, post) {
   }
 }
 
+// The human-facing COPY of a carousel design doc — caption + each slide's headline —
+// as a plain string, for the carousel learning-loop diff.
+function designDocText(docStr) {
+  let d; try { d = JSON.parse(docStr || '{}'); } catch { return ''; }
+  if (!d || typeof d !== 'object') return '';
+  const parts = [];
+  if (d.caption) parts.push('CAPTION: ' + String(d.caption));
+  (Array.isArray(d.slides) ? d.slides : []).forEach((s, i) => {
+    if (!s) return;
+    let t = '';
+    if (s._seed && s._seed.headline) t = s._seed.headline;
+    else if (Array.isArray(s.texts)) t = s.texts.map(x => x && (x.text || x.value || '')).filter(Boolean).join(' | ');
+    else if (s.text) t = s.text;
+    if (t) parts.push('SLIDE ' + (i + 1) + ': ' + String(t));
+  });
+  return parts.join('\n');
+}
+
+// Carousel learning loop (mirror of captureEditLesson for articles). Diffs the
+// AI-generated carousel copy (ai_original_json, the "beginning draft") against the
+// human-edited final at export-to-carousels, proposes generalizable voice lessons
+// to the shared brain (review-gated), then advances the baseline. Best-effort.
+async function captureDesignLesson(env, slug) {
+  if (!env.ANTHROPIC_API_KEY || !env.DB) return;
+  const row = await env.DB.prepare('SELECT ai_original_json, doc_json FROM designs WHERE slug = ?1').bind(slug).first();
+  if (!row || !row.ai_original_json) return;   // only AI-generated carousels have a baseline
+  const orig = designDocText(row.ai_original_json);
+  const final = designDocText(row.doc_json);
+  if (!orig || !final || orig === final) return;
+  if (Math.abs(final.length - orig.length) < 20 && orig.slice(0, 2000) === final.slice(0, 2000)) return;   // trivial
+  const sys = 'You improve an AI system that writes Instagram CAROUSEL copy for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written carousel (the caption + per-slide headlines) before publishing. Compare the ORIGINAL (AI) and FINAL (human-edited) copy and extract up to 3 GENERALIZABLE lessons about our carousel voice, phrasing, length, punctuation, or structure that would make FUTURE AI carousels better. Ignore one-off post-specific facts (a specific project name or number). If the changes are trivial or cosmetic, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short imperative lesson>"}].';
+  const usr = 'ORIGINAL (AI):\n' + orig.slice(0, 4000) + '\n\n---\n\nFINAL (human-edited):\n' + final.slice(0, 4000);
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 700, system: sys, messages: [{ role: 'user', content: usr }] }),
+  });
+  if (!r.ok) return;
+  const d = await r.json();
+  const txt = ((d.content || []).find(b => b && b.type === 'text') || {}).text || '';
+  const m = txt.match(/\[[\s\S]*\]/); if (!m) return;
+  let arr; try { arr = JSON.parse(m[0]); } catch { return; }
+  if (!Array.isArray(arr)) return;
+  for (const l of arr.slice(0, 3)) {
+    if (!l || !l.note) continue;
+    await brainWrite(env, {
+      type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note),
+      source: 'design-edit:' + slug,
+      evidence: 'Learned from a human edit of an AI carousel (caption + slide copy) at export',
+    }, { review: true });
+  }
+  // Advance the baseline so the next edit→export only learns NEW edits.
+  try { await env.DB.prepare('UPDATE designs SET ai_original_json = ?1 WHERE slug = ?2').bind(row.doc_json || '', slug).run(); } catch (_) {}
+}
+
+// POST /admin/design-learn { slug } — called by the design editor on export-to-
+// carousels (the final snapshot). Best-effort; never blocks the export.
+async function handleDesignLearn(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  try { await captureDesignLesson(env, slug); } catch (_) {}
+  return json({ ok: true }, {}, env, origin);
+}
+
 // ─── Social-media carousels ─────────────────────────────────────────────────
 // Instagram-style post drafts you stage in the Studio, then share with a
 // client via a signed preview URL (https://tmw.<worker>/c/<slug>?preview=<jwt>).
@@ -5014,6 +5081,9 @@ export async function ensureDesignsTable(env) {
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_designs_slug    ON designs(slug)`),
     env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_designs_updated ON designs(updated_at DESC)`),
   ]);
+  // Snapshot of the ORIGINAL AI-generated carousel doc (set by design-from-post),
+  // diffed against the final at export-to-carousels for the learning loop. Idempotent.
+  try { await env.DB.prepare(`ALTER TABLE designs ADD COLUMN ai_original_json TEXT DEFAULT NULL`).run(); } catch (_) {}
 }
 
 function rowToDesign(r) {
@@ -5214,9 +5284,11 @@ async function handleDesignFromPost(req, env, origin) {
   const title = ('Post: ' + String(post.title || 'Untitled')).slice(0, 200);
   const slug  = await ensureUniqueDesignSlug(env, slugify(String(post.title || 'post')), null);
   try {
+    // ai_original_json = the AI-generated doc (?4) — the "beginning draft" snapshot
+    // for the carousel learning loop; diffed against the final at export.
     await env.DB.prepare(
-      `INSERT INTO designs (id, slug, title, doc_json, status, created_at, updated_at)
-       VALUES (?1, ?2, ?3, ?4, 'draft', ?5, ?5)`
+      `INSERT INTO designs (id, slug, title, doc_json, ai_original_json, status, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?4, 'draft', ?5, ?5)`
     ).bind(id, slug, title, JSON.stringify(doc).slice(0, 2_000_000), now).run();
   } catch (e) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
@@ -9818,6 +9890,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/designs') return await handleDesignsList(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/designs') return await handleDesignsCreate(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/design-from-post') return await handleDesignFromPost(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/design-learn') return await handleDesignLearn(request, env, origin);
       {
         const m = url.pathname.match(/^\/designs\/by-slug\/([^/]+)\/?$/);
         if (m) {
