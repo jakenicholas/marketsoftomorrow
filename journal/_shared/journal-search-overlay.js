@@ -737,9 +737,17 @@
     /* Dark gradient behind the top buttons (Deep / New chat / X) so chat scrolling
        behind them stays legible. */
     +   '.tmw-ov-lb::before{content:"";position:absolute;top:0;left:0;right:0;height:104px;pointer-events:none;z-index:2;background:linear-gradient(180deg,rgba(7,8,7,.96) 0%,rgba(7,8,7,.72) 46%,transparent 100%)}'
-    /* Stronger, taller bottom fade behind the search bar on mobile. */
-    +   '.tmw-ov-lb::after{height:220px;background:linear-gradient(180deg,transparent 0%,rgba(7,8,7,.62) 30%,rgba(7,8,7,.97) 72%)}'
+    /* When Deep is armed, the top band turns into a pulsing purple glow (not just
+       a dark scrim) so the mode reads at the top of the screen too. */
+    +   '.tmw-ov-root[data-deep="1"] .tmw-ov-lb::before{height:150px;background:linear-gradient(180deg,rgba(96,60,180,.9) 0%,rgba(76,54,150,.55) 42%,rgba(40,30,90,.18) 74%,transparent 100%);animation:tmwOvTopPulse 4s ease-in-out infinite}'
+    /* Bottom fade behind the search bar — kept short so it doesn\'t wash up the page. */
+    +   '.tmw-ov-lb::after{height:132px;background:linear-gradient(180deg,transparent 0%,rgba(7,8,7,.55) 48%,rgba(7,8,7,.96) 82%)}'
+    /* Bigger, brighter aurora on mobile so Deep lights the whole background. */
+    +   '.tmw-ov-glow b.a{width:135vw;height:135vw;left:-32vw;bottom:-42vw;background:radial-gradient(circle,rgba(139,92,246,.78),rgba(139,92,246,0) 68%)}'
+    +   '.tmw-ov-glow b.b{width:125vw;height:125vw;right:-38vw;bottom:-30vw;background:radial-gradient(circle,rgba(96,120,255,.6),rgba(96,120,255,0) 68%)}'
+    +   '.tmw-ov-glow b.c{width:110vw;height:110vw;left:-5vw;top:-30vw;background:radial-gradient(circle,rgba(185,166,255,.5),rgba(185,166,255,0) 70%)}'
     + '}'
+    + '@keyframes tmwOvTopPulse{0%,100%{opacity:.72}50%{opacity:1}}'
     /* Deep answers are multi-paragraph — render the \\n\\n breaks the worker keeps. */
     + '.tmw-ov-intel-ans.deep{white-space:pre-line}'
     + '.tmw-ov-model.deep{background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(96,120,255,.32));color:#EBE4FF;border-color:rgba(167,139,250,.5)}'
