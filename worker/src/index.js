@@ -5167,7 +5167,7 @@ async function handleDesignFromPost(req, env, origin) {
   const postId = String(body.post_id || body.id || '').trim();
   if (!postId) return json({ error: 'post_id required' }, { status: 400 }, env, origin);
 
-  const post = await env.DB.prepare(`SELECT id, title, excerpt, body_html, cover_image FROM posts WHERE id = ?1 LIMIT 1`).bind(postId).first();
+  const post = await env.DB.prepare(`SELECT id, slug, title, excerpt, body_html, cover_image FROM posts WHERE id = ?1 LIMIT 1`).bind(postId).first();
   if (!post) return json({ error: 'post not found', post_id: postId }, { status: 404 }, env, origin);
 
   // Photos: cover + inline <img> in body_html (rewritten to R2), deduped, cap 8.
@@ -5211,7 +5211,7 @@ async function handleDesignFromPost(req, env, origin) {
       + 'Respond with ONLY JSON:\n'
       + '{"market":"<exactly one of: ' + MARKETS.join(' | ') + '>",'
       + '"location":"<the project CITY for the cover pin, e.g. New York>",'
-      + '"caption":"<the IG caption: three short paragraphs of hype prose (what is opening, what makes it distinct, the timing/access), each a complete sentence ending with a period, then close with exactly: Read more with the link in our bio — Explore on our Map of Tomorrow>",'
+      + '"caption":"<the IG caption: three short paragraphs of hype prose (what is opening, what makes it distinct, the timing/access), each a complete sentence ending with a period, then close with exactly: Explore more with the link in our bio 👉>",'
       + '"slides":["<slide 1: the shortest hook sentence>","<slide 2 sentence>", ...]}\n'
       + 'Give EXACTLY ' + nSlides + ' slide sentences (one per photo). Do NOT write a tagline or byline — the "MARKETS OF TOMORROW" byline is fixed on the template.';
     const usr = 'Headline: ' + String(post.title || '') + '\n\nArticle:\n' + articleText;
@@ -5274,6 +5274,9 @@ async function handleDesignFromPost(req, env, origin) {
   const doc = {
     market,
     caption,
+    // Landing link for the carousel distribution (FB/LinkedIn/X/Threads) — the
+    // source article's public URL, auto-carried through to the carousel.
+    landing_url: post.slug ? ('https://www.oftmw.com/post/' + post.slug + '/') : '',
     account: { handle, name: handle.toUpperCase(), avatar: DESIGN_DEFAULT_AVATAR },
     slides,
     carousel_slug: null,
