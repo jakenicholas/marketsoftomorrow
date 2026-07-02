@@ -20616,6 +20616,18 @@
         });
       }
       function showSubscriptionPaywall(triggerCtx) {
+        // UNIFIED: use the ONE shared Pro paywall (journal-paywall.js) so pricing
+        // and design live in a single place. The 24h-trial paywall is soft
+        // (dismissible so the user keeps browsing); feature gates are hard-blocking;
+        // on the Atlas surface the trial paywall is a HARD lock. The inline build
+        // below is a fallback only if the shared script hasn't loaded.
+        if (window.tmwShowPaywall) {
+          try { window._tmwSignedIn = isSignedIn; } catch (_) {}
+          var _soft = (triggerCtx === 'trial_ended' && !document.body.classList.contains('atlas-mode'));
+          window.tmwShowPaywall(triggerCtx || 'map', { hard: !_soft });
+          if (window.gtag) gtag('event', 'paywall_shown', { 'trigger': triggerCtx || 'click_limit', 'surface': 'map' });
+          return;
+        }
         buildSubscriptionPaywall();
         const modal = document.getElementById('paywallModal');
         modal.classList.add('active');
@@ -20657,8 +20669,10 @@
         });
       }
       function hideAllPaywalls() {
+        if (window.tmwHidePaywall) { try { window.tmwHidePaywall(); } catch (_) {} }
         document.getElementById('paywallModal')?.classList.remove('active');
         document.getElementById('signupWall')?.classList.remove('active');
+        try { document.documentElement.style.overflow = ''; } catch (_) {}   // ensure scroll is restored (shared hard paywall skips this)
       }
 
       // Expose for compare.js + any other module that needs to gate a
@@ -27676,5 +27690,8 @@
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
+  <!-- Shared Pro paywall — the ONE pricing pop-up (same as journal + /pro). The
+       map's showSubscriptionPaywall() delegates to window.tmwShowPaywall(). -->
+  <script src="/_shared/journal-paywall.js" defer></script>
 </body>
 </html>

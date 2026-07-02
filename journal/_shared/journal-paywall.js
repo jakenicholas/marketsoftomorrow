@@ -220,7 +220,9 @@
       'feature:intelligence': ['TMW Intelligence is a Pro feature', 'Completion forecasts and the comparable-project engine. Start your free 2-week trial to unlock intelligence on every development.'],
       'feature:watchlist': ['Watchlists are a Pro feature', 'Track the firms and projects you follow and get pinged when they move. Start your free 2-week trial.'],
       'feature:compare': ['Comparisons are a Pro feature', 'Stack any projects side by side across cities. Start your free 2-week trial.'],
-      'feature:pulse': ['The live Pulse feed is a Pro feature', 'Follow every new project and milestone in real time. Start your free 2-week trial.']
+      'feature:pulse': ['The live Pulse feed is a Pro feature', 'Follow every new project and milestone in real time. Start your free 2-week trial.'],
+      'feature:watch': ['Watch this project', 'Watching is a Pro feature. Start your free 2-week trial to track updates and build your list.'],
+      'feature:share': ['Share with friends', 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.']
     };
     if (titleEl && subEl) {
       var c = map[ctx];
