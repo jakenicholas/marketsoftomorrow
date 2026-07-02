@@ -663,7 +663,9 @@
     /* !important so a host page's own .tmw-dock-search width rules (e.g. the map
        trims the bottom dock input to ~36-42vw) can NEVER leak in and squish the
        lightbox input — the spotlight must look identical on every page. */
-    + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:50px;font-size:14px}'
+    /* Desktop reserves room on the right for the in-bar Deep chip + go arrow. */
+    + '.tmw-ov-bar .tmw-dock-search input{width:100%!important;padding-right:156px;font-size:14px}'
+    + '@media(max-width:640px){.tmw-ov-bar .tmw-dock-search input{padding-right:48px}}'
     + '.tmw-ov-bar .tmw-dock-search input:focus{width:100%!important;'
     /* Override the dock\'s green focus state -- the overlay is the
        Intelligence surface, so it keeps the purple aesthetic everywhere. */
@@ -710,10 +712,8 @@
        gently breathes, so it\'s obvious the next question runs deep. */
     + '.tmw-ov-root[data-deep="1"] .tmw-ov-bar .tmw-dock-search input{border-color:rgba(167,139,250,.55)!important;animation:tmwOvDeepBar 3.4s ease-in-out infinite}'
     + '@keyframes tmwOvDeepBar{0%,100%{box-shadow:0 0 22px rgba(139,92,246,.32)}50%{box-shadow:0 0 40px rgba(139,92,246,.55)}}'
-    /* Tools row above the bar (holds the Deep toggle + the "N of 12 left" meter),
-       width-matched to the bar so it lines up on desktop and mobile. */
-    + '.tmw-ov-tools{width:min(820px,calc(100vw - 32px));margin:0 auto 10px;display:flex;align-items:center;gap:10px;position:relative;z-index:2}'
-    + '.tmw-ov-deep{display:inline-flex;align-items:center;gap:8px;padding:6px 11px 6px 12px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:#C9C4D6;font:600 12px/1 "Inter",-apple-system,system-ui,sans-serif;letter-spacing:.02em;transition:border-color .25s,color .25s,background .25s,box-shadow .25s}'
+    /* Deep toggle chip — shared look; positioned two ways (see below). */
+    + '.tmw-ov-deep{display:inline-flex;align-items:center;gap:7px;padding:5px 10px 5px 11px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.14);background:rgba(20,20,25,.6);color:#C9C4D6;font:600 12px/1 "Inter",-apple-system,system-ui,sans-serif;letter-spacing:.02em;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:border-color .25s,color .25s,background .25s,box-shadow .25s}'
     + '.tmw-ov-deep:hover{border-color:rgba(167,139,250,.5);color:#EFEAFB}'
     + '.tmw-ov-deep .dico{display:flex;width:14px;height:14px;color:#B9A6FF}'
     + '.tmw-ov-deep .dico svg{width:14px;height:14px}'
@@ -723,8 +723,23 @@
     + '.tmw-ov-deep[aria-pressed="true"] .dico{color:#DBCFFF}'
     + '.tmw-ov-deep[aria-pressed="true"] .dsw{background:linear-gradient(135deg,#8b5cf6,#6078ff)}'
     + '.tmw-ov-deep[aria-pressed="true"] .dsw i{transform:translateX(11px)}'
-    + '.tmw-ov-deep-meta{font:600 11px/1.3 "Inter",-apple-system,system-ui,sans-serif;color:#9C93B5;letter-spacing:.01em}'
+    /* DESKTOP: the in-bar copy sits inside the search bar, left of the go arrow. */
+    + '.tmw-ov-deep.in-bar{position:absolute;right:50px;top:50%;transform:translateY(-50%);z-index:3;font-size:11.5px}'
+    /* The top-left copy is mobile-only; hidden on desktop. */
+    + '.tmw-ov-deep.top{display:none;position:absolute;top:18px;left:22px;height:38px;z-index:3}'
+    /* Cap meter — a small caption pinned just above the bar, right-aligned. */
+    + '.tmw-ov-deep-meta{position:absolute;right:6px;bottom:100%;margin-bottom:9px;z-index:3;pointer-events:none;font:600 11px/1.3 "Inter",-apple-system,system-ui,sans-serif;color:#9C93B5;letter-spacing:.01em}'
     + '.tmw-ov-deep-meta.warn{color:#E6C574}'
+    /* MOBILE: swap the in-bar chip for the top-left one (aligned with New chat). */
+    + '@media(max-width:640px){'
+    +   '.tmw-ov-deep.in-bar{display:none}'
+    +   '.tmw-ov-deep.top{display:inline-flex;top:14px;left:16px;height:34px;padding:0 12px;font-size:11px}'
+    /* Dark gradient behind the top buttons (Deep / New chat / X) so chat scrolling
+       behind them stays legible. */
+    +   '.tmw-ov-lb::before{content:"";position:absolute;top:0;left:0;right:0;height:104px;pointer-events:none;z-index:2;background:linear-gradient(180deg,rgba(7,8,7,.96) 0%,rgba(7,8,7,.72) 46%,transparent 100%)}'
+    /* Stronger, taller bottom fade behind the search bar on mobile. */
+    +   '.tmw-ov-lb::after{height:220px;background:linear-gradient(180deg,transparent 0%,rgba(7,8,7,.62) 30%,rgba(7,8,7,.97) 72%)}'
+    + '}'
     /* Deep answers are multi-paragraph — render the \\n\\n breaks the worker keeps. */
     + '.tmw-ov-intel-ans.deep{white-space:pre-line}'
     + '.tmw-ov-model.deep{background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(96,120,255,.32));color:#EBE4FF;border-color:rgba(167,139,250,.5)}'
@@ -1199,6 +1214,12 @@
     +   '<div class="tmw-ov-glow" aria-hidden="true"><b class="a"></b><b class="b"></b><b class="c"></b></div>'
     +   '<button class="tmw-ov-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
     +   '<button class="tmw-ov-newchat" type="button" aria-label="New chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New chat</button>'
+    /* Deep toggle — MOBILE lives top-left, aligned with New chat (desktop uses the in-bar copy). */
+    +   '<button type="button" class="tmw-ov-deep top" data-deep-toggle aria-pressed="false" title="Deep search — wide-context analysis across the whole pipeline (Pro)">'
+    +     '<span class="dico">' + ICON_DEEP + '</span>'
+    +     '<span class="dlbl">Deep</span>'
+    +     '<span class="dsw"><i></i></span>'
+    +   '</button>'
     +   '<div class="tmw-ov-body">'
     +     '<div class="tmw-ov-wrap">'
 
@@ -1224,18 +1245,17 @@
     /* Bottom dock holds the search bar. (Thumbs feedback now lives per-answer,
        bottom-right of each turn, not in the dock.) */
     +   '<div class="tmw-ov-dock">'
-    +     '<div class="tmw-ov-tools">'
-    +       '<button type="button" class="tmw-ov-deep" data-deep-toggle aria-pressed="false" title="Deep search — wide-context analysis across the whole pipeline (Pro)">'
-    +         '<span class="dico">' + ICON_DEEP + '</span>'
-    +         '<span class="dlbl">Deep</span>'
-    +         '<span class="dsw"><i></i></span>'
-    +       '</button>'
-    +       '<span class="tmw-ov-deep-meta" data-deep-meta></span>'
-    +     '</div>'
     +     '<div class="tmw-ov-bar">'
+    +       '<span class="tmw-ov-deep-meta" data-deep-meta></span>'
     +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
-    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, places, brands, and more…" aria-label="Search projects, firms, places, brands, and more">'
+    +         '<input type="search" autocomplete="off" placeholder="Search projects, firms, places and more.." aria-label="Search projects, firms, places and more">'
+    /* Deep toggle — DESKTOP lives inside the bar, just left of the go button. */
+    +         '<button type="button" class="tmw-ov-deep in-bar" data-deep-toggle aria-pressed="false" title="Deep search — wide-context analysis across the whole pipeline (Pro)">'
+    +           '<span class="dico">' + ICON_DEEP + '</span>'
+    +           '<span class="dlbl">Deep</span>'
+    +           '<span class="dsw"><i></i></span>'
+    +         '</button>'
     +         '<button class="go" type="button" aria-label="Run search (press Enter)" title="Press Enter to search">'
     +           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
     +         '</button>'
@@ -1279,7 +1299,9 @@
   // device so it stays armed across visits.
   var DEEP_KEY = 'tmw_onyx_deep';
   var _deep = false;
-  var deepBtn  = root.querySelector('[data-deep-toggle]');
+  // Two copies of the toggle share one state: an in-bar chip (desktop) and a
+  // top-left chip (mobile). CSS shows the right one per breakpoint.
+  var deepBtns = root.querySelectorAll('[data-deep-toggle]');
   var deepMeta = root.querySelector('[data-deep-meta]');
   function _isPro(){
     try {
@@ -1290,7 +1312,7 @@
   function setDeep(on){
     _deep = !!on;
     root.setAttribute('data-deep', _deep ? '1' : '0');
-    if (deepBtn) deepBtn.setAttribute('aria-pressed', _deep ? 'true' : 'false');
+    for (var i = 0; i < deepBtns.length; i++) deepBtns[i].setAttribute('aria-pressed', _deep ? 'true' : 'false');
     if (deepMeta && !_deep) { deepMeta.textContent = ''; deepMeta.classList.remove('warn'); }
     try { localStorage.setItem(DEEP_KEY, _deep ? '1' : '0'); } catch(_){}
   }
@@ -1309,8 +1331,8 @@
   // Restore prior state — only honor "on" for a Pro member.
   try { if (localStorage.getItem(DEEP_KEY) === '1' && _isPro()) _deep = true; } catch(_){}
   setDeep(_deep);
-  if (deepBtn) {
-    deepBtn.addEventListener('click', function(){
+  for (var _di = 0; _di < deepBtns.length; _di++) {
+    deepBtns[_di].addEventListener('click', function(){
       if (!_isPro()) {
         try {
           if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('feature:deep');
