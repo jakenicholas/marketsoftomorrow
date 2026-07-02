@@ -386,3 +386,19 @@ footer .tmw-wordmark{width:118px}
   font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:var(--purple-glow)}
 .article-intel .ai-ask-more:hover{color:#fff}
 .article-intel .ai-ask-more svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+
+/* Expand caret — collapses the watchlist + Ask Onyx so the box stays compact.
+   The chevron bobs up/down to invite a click; on expand it flips to point up. */
+.article-intel .ai-expand{display:flex; align-items:center; justify-content:center; width:100%; margin-top:10px; padding:5px; appearance:none; background:none; border:0; cursor:pointer}
+.article-intel .ai-expand svg{width:22px; height:22px; stroke:var(--purple-glow); fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 0 6px rgba(167,139,250,.5)); transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 1.5s ease-in-out infinite}
+.article-intel .ai-expand:hover svg{stroke:#fff}
+.article-intel.ai-open .ai-expand svg{transform:rotate(180deg); animation:none}
+@keyframes ai-caret-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+/* Collapsible region — grid-rows 0fr→1fr animates height without a fixed max,
+   so a loaded Onyx answer grows naturally when open. */
+.article-intel .ai-more{display:grid; grid-template-rows:0fr; opacity:0;
+  transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1), opacity .3s ease}
+.article-intel .ai-more-inner{overflow:hidden; min-height:0}
+.article-intel.ai-open .ai-more{grid-template-rows:1fr; opacity:1}
+@media (prefers-reduced-motion:reduce){ .article-intel .ai-expand svg{animation:none} }

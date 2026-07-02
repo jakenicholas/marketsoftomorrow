@@ -1315,10 +1315,13 @@ function initComments(slug, post) {
     var html = HEAD
       + '<p class="ai-tldr">' + esc(intel.tldr) + '</p>'
       + (takes.length ? '<ul class="ai-takes">' + takes.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '');
+    // Everything below the summary/takeaways (watchlist + Ask Onyx) is tucked
+    // behind a pulsing expand caret so the box sits compact by default.
+    var moreInner = '';
     if (follows.length) {
       var plus = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
       var check = '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
-      html += '<div class="ai-follows"><div class="ai-follows-k">Add to your watchlist</div>'
+      moreInner += '<div class="ai-follows"><div class="ai-follows-k">Add to your watchlist</div>'
         + follows.map(function (f, idx) {
             var on = (mj[f.store] || []).indexOf(f.slug) >= 0;
             return '<button class="ai-follow' + (on ? ' on' : '') + '" type="button" data-fi="' + idx + '">'
@@ -1329,11 +1332,20 @@ function initComments(slug, post) {
     // Ask Onyx — answers the reader's question INLINE from THIS article's text
     // (reliable even for projects the map doesn't track), with an escalation link
     // to the full Onyx search for broader questions.
-    html += '<div class="ai-ask">' + HEXSPIN
+    moreInner += '<div class="ai-ask">' + HEXSPIN
       + '<input class="ai-ask-in" type="text" placeholder="Ask Onyx about this story…" aria-label="Ask Onyx">'
       + '<button class="ai-ask-go" type="button" aria-label="Ask Onyx"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'
       + '</div><div class="ai-ask-ans" hidden></div>';
+    html += '<button class="ai-expand" type="button" aria-label="Show watchlist &amp; Ask Onyx" aria-expanded="false">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
+      + '<div class="ai-more"><div class="ai-more-inner">' + moreInner + '</div></div>';
     host.innerHTML = html;
+    var expBtn = host.querySelector('.ai-expand');
+    if (expBtn) expBtn.addEventListener('click', function () {
+      var open = host.classList.toggle('ai-open');
+      expBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) { var f = host.querySelector('.ai-ask-in'); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} }
+    });
     var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go'), ans = host.querySelector('.ai-ask-ans');
     function articleSubject() {
       var e = intel.entities || {}, parts = [];
