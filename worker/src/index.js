@@ -6646,19 +6646,22 @@ async function handleMediaList(req, env, origin, url) {
   // folders (media_folders: favorites + empty folders). Favorites sort first.
   if (url.searchParams.get('folders') === '1') {
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
+    // `modified` = the newest photo added to the folder (auto-bumps on upload) or
+    // its creation time — powers newest-first ordering. `favorite` still leads.
     const derived = await env.DB.prepare(
-      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled')"
+      "SELECT COALESCE(NULLIF(folder,''),'Unfiled') AS folder, COUNT(*) AS count, MAX(uploaded_at) AS last_upload FROM media GROUP BY COALESCE(NULLIF(folder,''),'Unfiled')"
     ).all();
-    const registered = await env.DB.prepare("SELECT name, favorite FROM media_folders").all();
+    const registered = await env.DB.prepare("SELECT name, favorite, created_at FROM media_folders").all();
     const map = new Map();
-    for (const r of (derived.results || [])) map.set(r.folder, { folder: r.folder, count: r.count, favorite: 0 });
+    for (const r of (derived.results || [])) map.set(r.folder, { folder: r.folder, count: r.count, favorite: 0, modified: r.last_upload || 0 });
     for (const r of (registered.results || [])) {
-      const e = map.get(r.name) || { folder: r.name, count: 0, favorite: 0 };
+      const e = map.get(r.name) || { folder: r.name, count: 0, favorite: 0, modified: 0 };
       e.favorite = r.favorite ? 1 : 0;
+      e.modified = Math.max(e.modified || 0, r.created_at || 0);
       map.set(r.name, e);
     }
     const folders = [...map.values()].sort((a, b) =>
-      (b.favorite - a.favorite) || a.folder.localeCompare(b.folder, undefined, { sensitivity: 'base' })
+      (b.favorite - a.favorite) || ((b.modified || 0) - (a.modified || 0)) || a.folder.localeCompare(b.folder, undefined, { sensitivity: 'base' })
     );
     const totalRow = await env.DB.prepare('SELECT COUNT(*) c FROM media').first();
     return json({ folders, total: totalRow ? totalRow.c : 0 }, {}, env, origin);
@@ -6760,6 +6763,35 @@ async function handleMediaRenameFolder(req, env, origin) {
     await env.DB.prepare('DELETE FROM media_folders WHERE name = ?1').bind(from).run();
   } catch {}
   return json({ ok: true, from, to, items_moved: moved }, {}, env, origin);
+}
+
+// Delete a media FOLDER and everything under it — the folder's own media plus
+// every "name / …" descendant folder's media (R2 objects + index rows), and the
+// folder registrations. Destructive; the Studio confirms with the photo count.
+//   POST /admin/media/delete-folder { name }
+async function handleMediaDeleteFolder(req, env, origin) {
+  const authCheck = await requireAdminToken(req, env, origin);
+  if (authCheck) return authCheck;
+  if (!env.DB || !env.MEDIA) return json({ error: 'storage not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = String(b.name || '').trim();
+  if (!name || name.length > 200 || /[<>\\\x00-\x1f\x7f]/.test(name)) return json({ error: 'invalid folder name' }, { status: 400 }, env, origin);
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
+  const likeDesc = name.replace(/[\\%_]/g, '\\$&') + ' / %';
+  // Collect every object key in this folder + its descendants, then drop them
+  // from R2 (batched) and the index.
+  const rows = await env.DB.prepare("SELECT key FROM media WHERE folder = ?1 OR folder LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).all();
+  const keys = (rows.results || []).map(r => r.key).filter(Boolean);
+  for (let i = 0; i < keys.length; i += 900) {
+    try { await env.MEDIA.delete(keys.slice(i, i + 900)); } catch (e) { console.warn('R2 folder delete failed', e); }
+  }
+  try {
+    await env.DB.prepare("DELETE FROM media WHERE folder = ?1 OR folder LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).run();
+    await env.DB.prepare("DELETE FROM media_folders WHERE name = ?1 OR name LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).run();
+  } catch (e) {
+    return json({ error: 'DB delete failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
+  }
+  return json({ ok: true, name, deleted: keys.length }, {}, env, origin);
 }
 
 // Rename a media FILE's display name. The R2 key + public URL stay the same so
@@ -9836,6 +9868,10 @@ export default {
       // /admin/media/rename-folder — rename a folder + its descendants (admin-only)
       if (url.pathname === '/admin/media/rename-folder' && request.method === 'POST') {
         return await handleMediaRenameFolder(request, env, origin);
+      }
+      // /admin/media/delete-folder — delete a folder + its descendants' media (admin-only)
+      if (url.pathname === '/admin/media/delete-folder' && request.method === 'POST') {
+        return await handleMediaDeleteFolder(request, env, origin);
       }
       // /admin/media/rename-file — rename a file's display name (admin-only)
       if (url.pathname === '/admin/media/rename-file' && request.method === 'POST') {
