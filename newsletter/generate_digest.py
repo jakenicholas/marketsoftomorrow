@@ -13,7 +13,7 @@ Writes:
   - newsletter/digest-archive/YYYY-MM-DD.html
 """
 
-import json, os, re, sys, time, urllib.request
+import json, os, re, sys, time, urllib.request, urllib.parse
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -33,6 +33,7 @@ ARCHIVE_DIR   = "newsletter/digest-archive"
 # Journal posts now come from our own Worker API (the old Wix blog-feed.xml is
 # dead after the migration off Wix). Articles live at www.oftmw.com/post/<slug>/.
 POSTS_API     = "https://tmw.jake-ab7.workers.dev/posts?limit=50&status=published"
+WORKER_URL    = "https://tmw.jake-ab7.workers.dev"   # first-party ad tracking: /r click redirect + /px impression pixel
 SITE_URL      = "https://map.oftmw.com"
 TMW_URL       = "https://www.oftmw.com"
 LOGO_URL      = "https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png"
@@ -467,9 +468,24 @@ def load_ads():
     for slot_key in slots:
         ad = ads_data.get(slot_key)
         if ad and ad.get("image_url") and ad.get("click_url"):
+            ad_id = str(ad.get("id") or "").strip()
+            # First-party newsletter tracking (replaces Linkly): when the slot has
+            # an id, the GIF links through the worker /r redirect (logs a click on
+            # the 'newsletter' surface, then 302s to the real destination resolved
+            # server-side from ads.json), and a 1x1 /px pixel logs the impression.
+            # A slot with no id falls back to its raw click_url (untracked).
+            if ad_id:
+                q = urllib.parse.quote(ad_id, safe="")
+                click_url = f"{WORKER_URL}/r?id={q}&s=newsletter"
+                pixel_url = f"{WORKER_URL}/px?id={q}&s=newsletter"
+            else:
+                click_url = ad["click_url"]
+                pixel_url = ""
             slots[slot_key] = {
+                "id":        ad_id,
                 "image_url": ad["image_url"],
-                "click_url": ad["click_url"],
+                "click_url": click_url,
+                "pixel_url": pixel_url,
                 "alt_text":  ad.get("alt_text", "Sponsor"),
             }
             print(f"[info]   {slot_key}: {ad.get('alt_text', '?')}")

@@ -7,6 +7,8 @@
     <a href="{{ ad.click_url }}" target="_blank" rel="noopener">
       <img src="{{ ad.image_url }}" alt="{{ ad.alt_text }}" class="ad-banner" width="600" style="max-width:600px;width:100%;height:auto;border:0;border-radius:8px;display:block;margin:0 auto;">
     </a>
+    {#- First-party impression pixel (surface=newsletter). Only when the slot carries an id. -#}
+    {%- if ad.pixel_url %}<img src="{{ ad.pixel_url }}" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">{% endif -%}
   </div>
 </td></tr>
 {%- endmacro -%}

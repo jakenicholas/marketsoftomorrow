@@ -7350,14 +7350,71 @@ async function handlePostViews(env, origin) {
 // 30-day trend is a cheap GROUP BY and the table can never grow unbounded.
 // ---------------------------------------------------------------------------
 const PLACEMENT_ID_RE = /^[a-z0-9][a-z0-9_-]{0,120}$/i;
+const PLACEMENT_NEW_TABLE =
+  "CREATE TABLE IF NOT EXISTS placement_stats (" +
+  "id TEXT NOT NULL, day TEXT NOT NULL, surface TEXT NOT NULL DEFAULT 'journal', " +
+  "type TEXT NOT NULL DEFAULT 'ad', label TEXT, " +
+  "views INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
+  "updated_at INTEGER, PRIMARY KEY (id, day, surface))";
+let _plcTableReady = false;
 
+// Rollup keyed by (id, day, SURFACE) so the same advertiser is counted
+// separately on the journal header (video) and in the Resend newsletter (GIF),
+// with a combinable total. Migrates a pre-surface table (old PK (id,day)) by
+// rebuilding it once, preserving its rows as surface='journal'.
 async function ensurePlacementStatsTable(env) {
+  if (_plcTableReady) return;
+  await env.DB.prepare(PLACEMENT_NEW_TABLE).run();
+  try {
+    const info = await env.DB.prepare('PRAGMA table_info(placement_stats)').all();
+    const hasSurface = (info.results || []).some(c => c.name === 'surface');
+    if (!hasSurface) {
+      await env.DB.batch([
+        env.DB.prepare('ALTER TABLE placement_stats RENAME TO placement_stats_old'),
+        env.DB.prepare(PLACEMENT_NEW_TABLE),
+        env.DB.prepare("INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, updated_at) " +
+          "SELECT id, day, 'journal', type, label, views, clicks, updated_at FROM placement_stats_old"),
+        env.DB.prepare('DROP TABLE placement_stats_old'),
+      ]);
+    }
+  } catch (_) {}
+  _plcTableReady = true;
+}
+
+// id -> { url, label, type } resolved from the live ads.json + partners.json,
+// cached per-isolate for 5 min. Lets the newsletter redirect (/r) send a click
+// to the advertiser's real destination WITHOUT the URL being in the link (so
+// /r can never be abused as an open redirect), and gives /px a label/type.
+let _plcMap = null, _plcMapAt = 0;
+async function resolvePlacementMap(env) {
+  const now = Date.now();
+  if (_plcMap && (now - _plcMapAt) < 300000) return _plcMap;
+  const map = {};
+  try {
+    const [adsR, parR] = await Promise.all([
+      fetch('https://www.oftmw.com/ads.json', { cf: { cacheTtl: 300 } }),
+      fetch('https://www.oftmw.com/partners.json', { cf: { cacheTtl: 300 } }),
+    ]);
+    if (adsR && adsR.ok) { const d = await adsR.json(); (d.ads || []).forEach(a => { if (a && a.id) map[a.id] = { url: a.url || '', label: a.advertiser || a.id, type: 'ad' }; }); }
+    if (parR && parR.ok) { const d = await parR.json(); (d.partners || []).forEach(p => { if (p && p.id) map[p.id] = { url: p.ctaUrl || '', label: p.name || p.id, type: 'partner' }; }); }
+    if (Object.keys(map).length) { _plcMap = map; _plcMapAt = now; }
+  } catch (_) {}
+  return _plcMap || map;
+}
+
+// Increment one (id, day, surface) counter by a view or a click. Shared by the
+// beacon (/track), the newsletter redirect (/r) and the newsletter pixel (/px).
+async function bumpPlacement(env, id, surface, kind, type, label) {
+  const now = Math.floor(Date.now() / 1000);
+  const day = new Date(now * 1000).toISOString().slice(0, 10);
+  const dv = kind === 'view' ? 1 : 0, dc = kind === 'click' ? 1 : 0;
+  await ensurePlacementStatsTable(env);
   await env.DB.prepare(
-    "CREATE TABLE IF NOT EXISTS placement_stats (" +
-    "id TEXT NOT NULL, day TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'ad', " +
-    "label TEXT, views INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
-    "updated_at INTEGER, PRIMARY KEY (id, day))"
-  ).run();
+    'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, updated_at) ' +
+    'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ' +
+    'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, ' +
+    'label = COALESCE(?5, label), type = ?4, updated_at = ?8'
+  ).bind(id, day, surface, type || 'ad', label || null, dv, dc, now).run();
 }
 
 async function handleTrack(req, env, origin) {
@@ -7378,11 +7435,12 @@ async function handleTrack(req, env, origin) {
   const events = Array.isArray(body.events) ? body.events : (Array.isArray(body) ? body : [body]);
   if (!events.length) return ok();
 
-  // Fold the batch into per-id view/click deltas so N impressions of one ad in
-  // a single beacon collapse to one UPDATE.
+  // Fold the batch into per-(id,surface) view/click deltas so N impressions of
+  // one ad in a single beacon collapse to one UPDATE. The web beacon is always
+  // surface 'journal'; 'newsletter' arrives via /r and /px, not here.
   const now = Math.floor(Date.now() / 1000);
   const day = new Date(now * 1000).toISOString().slice(0, 10);
-  const agg = new Map();  // id -> { type, label, views, clicks }
+  const agg = new Map();  // "id surface" -> { id, surface, type, label, views, clicks }
   for (const e of events.slice(0, 200)) {
     if (!e || typeof e !== 'object') continue;
     const id = String(e.id || '').trim();
@@ -7390,28 +7448,73 @@ async function handleTrack(req, env, origin) {
     const ev = e.event === 'click' ? 'click' : (e.event === 'view' ? 'view' : '');
     if (!ev) continue;
     const type = e.type === 'partner' ? 'partner' : 'ad';
+    const surface = e.surface === 'newsletter' ? 'newsletter' : 'journal';
     const label = (e.label != null && String(e.label).trim()) ? String(e.label).slice(0, 160) : null;
-    const cur = agg.get(id) || { type: type, label: null, views: 0, clicks: 0 };
+    const k = id + ' ' + surface;
+    const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, clicks: 0 };
     cur.type = type;
     if (label) cur.label = label;
     if (ev === 'view') cur.views += 1; else cur.clicks += 1;
-    agg.set(id, cur);
+    agg.set(k, cur);
   }
   if (!agg.size) return ok();
 
   try {
     await ensurePlacementStatsTable(env);
     const stmt = env.DB.prepare(
-      'INSERT INTO placement_stats (id, day, type, label, views, clicks, updated_at) ' +
-      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ' +
-      'ON CONFLICT(id, day) DO UPDATE SET views = views + ?5, clicks = clicks + ?6, ' +
-      'label = COALESCE(?4, label), type = ?3, updated_at = ?7'
+      'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, updated_at) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ' +
+      'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, ' +
+      'label = COALESCE(?5, label), type = ?4, updated_at = ?8'
     );
     const batch = [];
-    for (const [id, v] of agg) batch.push(stmt.bind(id, day, v.type, v.label, v.views, v.clicks, now));
+    for (const v of agg.values()) batch.push(stmt.bind(v.id, day, v.surface, v.type, v.label, v.views, v.clicks, now));
     await env.DB.batch(batch);
   } catch (_) {}
   return ok();
+}
+
+// GET /r?id=<placement>&s=newsletter — newsletter click tracker. Email can't
+// run JS, so the GIF's link points here: we log a click on that surface, then
+// 302 to the advertiser's real destination (resolved server-side from ads.json/
+// partners.json, so the URL is never in the link and /r can't be an open
+// redirect). Unknown ids fall back to the homepage.
+async function handlePlacementRedirect(req, env, origin, url) {
+  const id = String(url.searchParams.get('id') || '').trim();
+  const surface = url.searchParams.get('s') === 'journal' ? 'journal' : 'newsletter';
+  let dest = 'https://www.oftmw.com/';
+  try {
+    const map = await resolvePlacementMap(env);
+    const info = (id && map[id]) || null;
+    if (info && info.url) dest = info.url;
+    const ua = (req.headers.get('User-Agent') || '');
+    if (env.DB && info && PLACEMENT_ID_RE.test(id) && ua && !VIEW_BOT_RE.test(ua)) {
+      try { await bumpPlacement(env, id, surface, 'click', info.type, info.label); } catch (_) {}
+    }
+  } catch (_) {}
+  return Response.redirect(dest, 302);
+}
+
+// GET /px?id=<placement>&s=newsletter — newsletter impression pixel. Returns a
+// 1x1 transparent GIF and logs a view on that surface. (Email opens are noisy —
+// image proxies / Apple MPP prefetch inflate them — so treat newsletter
+// impressions as directional, not exact.)
+const PLACEMENT_PIXEL = Uint8Array.from(atob('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'), c => c.charCodeAt(0));
+async function handlePlacementPixel(req, env, origin, url) {
+  const id = String(url.searchParams.get('id') || '').trim();
+  const surface = url.searchParams.get('s') === 'journal' ? 'journal' : 'newsletter';
+  const qLabel = (url.searchParams.get('l') || '').slice(0, 160) || null;
+  try {
+    const ua = (req.headers.get('User-Agent') || '');
+    if (env.DB && PLACEMENT_ID_RE.test(id) && ua && !VIEW_BOT_RE.test(ua)) {
+      const map = await resolvePlacementMap(env);
+      const info = map[id] || {};
+      await bumpPlacement(env, id, surface, 'view', info.type || 'ad', info.label || qLabel);
+    }
+  } catch (_) {}
+  return new Response(PLACEMENT_PIXEL, {
+    headers: { 'Content-Type': 'image/gif', 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0', 'Pragma': 'no-cache' },
+  });
 }
 
 async function handlePlacementStats(req, env, origin) {
@@ -7424,18 +7527,28 @@ async function handlePlacementStats(req, env, origin) {
   const sinceDay = new Date(Date.now() - days * 86400 * 1000).toISOString().slice(0, 10);
   try {
     await ensurePlacementStatsTable(env);
+    // Group by (id, surface) so each placement carries a per-surface split
+    // (journal vs newsletter) alongside its combined total.
     const totRows = await env.DB.prepare(
-      'SELECT id, type, label, SUM(views) AS views, SUM(clicks) AS clicks ' +
-      'FROM placement_stats WHERE day >= ?1 GROUP BY id ORDER BY views DESC'
+      'SELECT id, surface, type, label, SUM(views) AS views, SUM(clicks) AS clicks ' +
+      'FROM placement_stats WHERE day >= ?1 GROUP BY id, surface'
     ).bind(sinceDay).all();
     const serRows = await env.DB.prepare(
-      'SELECT id, day, views, clicks FROM placement_stats WHERE day >= ?1 ORDER BY day ASC'
+      'SELECT id, day, SUM(views) AS views, SUM(clicks) AS clicks ' +
+      'FROM placement_stats WHERE day >= ?1 GROUP BY id, day ORDER BY day ASC'
     ).bind(sinceDay).all();
-    const totals = (totRows.results || []).map(r => ({
-      id: r.id, type: r.type, label: r.label,
-      views: r.views || 0, clicks: r.clicks || 0,
-      ctr: (r.views > 0) ? (r.clicks || 0) / r.views : 0,
-    }));
+    const byId = {};
+    for (const r of (totRows.results || [])) {
+      const e = byId[r.id] || (byId[r.id] = { id: r.id, type: r.type, label: r.label, views: 0, clicks: 0, surfaces: {} });
+      const v = r.views || 0, c = r.clicks || 0;
+      e.views += v; e.clicks += c;
+      if (r.label) e.label = r.label;
+      if (r.type) e.type = r.type;
+      e.surfaces[r.surface || 'journal'] = { views: v, clicks: c, ctr: v > 0 ? c / v : 0 };
+    }
+    const totals = Object.values(byId)
+      .map(e => Object.assign(e, { ctr: e.views > 0 ? e.clicks / e.views : 0 }))
+      .sort((a, b) => b.views - a.views || b.clicks - a.clicks);
     const series = {};
     for (const r of (serRows.results || [])) {
       (series[r.id] || (series[r.id] = [])).push({ day: r.day, views: r.views || 0, clicks: r.clicks || 0 });
@@ -9268,6 +9381,15 @@ export default {
       // /placements is admin-gated inside the handler.
       if (request.method === 'POST' && url.pathname === '/track') {
         return await handleTrack(request, env, origin);
+      }
+      // Newsletter (Resend) tracking — email can't run JS, so the GIF's link
+      // hits /r (click → 302 to the real destination) and a 1x1 /px pixel
+      // logs the impression. Both tag surface='newsletter'.
+      if (request.method === 'GET' && url.pathname === '/r') {
+        return await handlePlacementRedirect(request, env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/px') {
+        return await handlePlacementPixel(request, env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/placements') {
         return await handlePlacementStats(request, env, origin);

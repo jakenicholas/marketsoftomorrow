@@ -30,13 +30,15 @@
 
   function push(ev) { queue.push(ev); if (queue.length >= 20) flush(); }
 
-  function view(id, type, label) {
+  // surface defaults to 'journal' (the on-site banner/partner). The Resend
+  // newsletter counts via the worker's /r + /px, not this beacon.
+  function view(id, type, label, surface) {
     if (!id) return;
-    push({ id: id, type: type || 'ad', event: 'view', label: label || '' });
+    push({ id: id, type: type || 'ad', event: 'view', label: label || '', surface: surface || 'journal' });
   }
-  function click(id, type, label) {
+  function click(id, type, label, surface) {
     if (!id) return;
-    push({ id: id, type: type || 'ad', event: 'click', label: label || '' });
+    push({ id: id, type: type || 'ad', event: 'click', label: label || '', surface: surface || 'journal' });
     flush();  // the click may navigate away — don't wait for the batch timer
   }
 
