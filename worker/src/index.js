@@ -7985,7 +7985,10 @@ async function handleClassify(req, env, origin) {
   const NULLR = { kind: null };
   if (!env.ANTHROPIC_API_KEY) return json(NULLR, {}, env, origin);
 
-  const sig = await sha256Hex(CLASSIFY_MODEL + '|' + q.toLowerCase());
+  // CLASSIFY_CACHE_VERSION is part of the cache key — BUMP it whenever the
+  // classifier's output schema changes (new field / new kind) so stale entries
+  // from the old schema are bypassed instead of served for 24h. v2: added `analytical`.
+  const sig = await sha256Hex('v2|' + CLASSIFY_MODEL + '|' + q.toLowerCase());
   const cacheKey = new Request('https://classify.tmw.internal/' + sig, { method: 'GET' });
   const cache = caches.default;
   // Build a fresh response with the requesting origin's CORS every time. The
