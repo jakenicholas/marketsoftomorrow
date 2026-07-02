@@ -372,9 +372,10 @@ footer .tmw-wordmark{width:118px}
 .article-intel .ai-ask-hex svg{width:100%; height:100%; display:block; overflow:visible}
 .article-intel .ai-ask-in{flex:1; min-width:0; background:transparent; border:0; outline:none; color:var(--cream); font-family:var(--sans); font-size:14px}
 .article-intel .ai-ask-in::placeholder{color:var(--mute)}
-.article-intel .ai-ask-go{flex:0 0 auto; appearance:none; cursor:pointer; width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center;
-  background:rgba(167,139,250,.16); border:1px solid rgba(167,139,250,.4); color:var(--purple-glow); transition:background .15s, border-color .15s, transform .12s}
-.article-intel .ai-ask-go:hover{background:rgba(167,139,250,.28); border-color:var(--purple); transform:translateY(-1px)}
+/* Gray circle submit — mirrors the /search bar's resting .go button. */
+.article-intel .ai-ask-go{flex:0 0 auto; appearance:none; cursor:pointer; width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); color:rgba(255,255,255,.5); transition:background .2s, border-color .2s, color .2s, transform .12s}
+.article-intel .ai-ask-go:hover{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.85); transform:translateY(-1px)}
 .article-intel .ai-ask-go svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 /* inline Onyx answer (from the article) */
 .article-intel .ai-ask-ans{margin-top:11px}
@@ -416,7 +417,9 @@ footer .tmw-wordmark{width:118px}
   .article-intel{padding:15px 17px 14px}
   .article-intel .ai-tldr{margin-bottom:0; padding-right:36px}
   .article-intel .ai-sum{display:flex; flex-direction:column}
-  .article-intel .ai-takes{padding-right:0}
+  /* gap above the bullets when expanded — lives inside the collapsed region so
+     it only appears once open (the caret rides the paragraph's last line). */
+  .article-intel .ai-takes{padding-right:0; padding-top:16px}
   .article-intel .ai-takes-c{display:grid; grid-template-rows:0fr; opacity:0; order:1;
     transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1), opacity .3s ease}
   .article-intel .ai-takes-c > .ai-takes{overflow:hidden}
