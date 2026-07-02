@@ -8796,23 +8796,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "faraway-sag-harbor": {
-      "estimate_years": 0.12,
-      "estimate_label": "44 days",
-      "days_out": 44,
-      "delivery_date": "2026-08-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "medium",
-      "project_type": "Hotel",
-      "metro": "Hamptons",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in 44 days based on project type and current stage.",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true
-    },
     "equinox-resort-anguilla-port-nimara": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -8929,10 +8912,10 @@
     "janu-residences-dubai": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
-      "days_out": 547,
-      "delivery_date": "2027-12-31",
+      "days_out": 531,
+      "delivery_date": "2027-12-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Mixed-Use",
       "metro": "Dubai",
@@ -8959,6 +8942,41 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
+    },
+    "janu-turks-caicos": {
+      "estimate_years": 1.6,
+      "estimate_label": "~1.6 years",
+      "range_low": 1.6,
+      "range_high": 1.6,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 3435.4,
+      "avg_distance_mi": 2134.7,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Hotel",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 3435.4,
+          "distance_mi": 2134.7
+        }
+      ],
+      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 1.6 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "limelight-charleston": {
       "estimate_years": 2.5,
@@ -10826,10 +10844,10 @@
       "delivery_speculative": false
     },
     "bvlgari-hotel-miami-beach": {
-      "estimate_years": 3.5,
-      "estimate_label": "~3.5 years",
-      "days_out": 1278,
-      "delivery_date": "2029-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 913,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -10837,7 +10855,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3.5 years.",
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -12281,13 +12299,13 @@
   "stats": {
     "high": 6,
     "medium": 22,
-    "low": 49,
-    "known_date": 416,
+    "low": 50,
+    "known_date": 415,
     "completed": 64,
-    "skipped": 67,
+    "skipped": 66,
     "no_type": 0,
     "firm_boosted": 37,
-    "speculative_softened": 134,
+    "speculative_softened": 133,
     "district": 12,
     "mixed_use_adjusted": 14
   }
