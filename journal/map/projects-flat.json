@@ -10800,8 +10800,8 @@
     "Delivery": "Announced",
     "DeliveryDate": "2027",
     "StartDate": "2026",
-    "ProjectType": "Entertainment",
-    "PreferredType": "Entertainment",
+    "ProjectType": "Park, Entertainment",
+    "PreferredType": "Park",
     "Architect": "CPH Inc.",
     "ArchitectSlugs": "cph-inc-mark-adams",
     "Developer": "City of Orlando",
@@ -10824,7 +10824,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:21:12.200Z",
+    "UpdatedAt": "2026-07-02T13:25:58.112Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:12:43.419Z",
@@ -10872,6 +10872,29 @@
         "field": "start_date",
         "from": "2026-06",
         "to": "2026"
+      },
+      {
+        "at": "2026-07-02T13:25:58.112Z",
+        "source_url": "https://www.theorlandoreal.com/orlando-moves-forward-with-first-phase-of-lake-eola-master-plan/",
+        "note": "Primary type is Park (lakefront park expansion); retains Entertainment for the amphitheater",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Entertainment"
+        ],
+        "to": [
+          "Park",
+          "Entertainment"
+        ]
+      },
+      {
+        "at": "2026-07-02T13:25:58.112Z",
+        "source_url": "https://www.theorlandoreal.com/orlando-moves-forward-with-first-phase-of-lake-eola-master-plan/",
+        "note": "Primary type is Park (lakefront park expansion); retains Entertainment for the amphitheater",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Entertainment",
+        "to": "Park"
       }
     ],
     "County": "Orange County",
@@ -58233,5 +58256,47 @@
     "StatusHistory": [],
     "County": "Pinellas County",
     "CountyState": "FL"
+  },
+  {
+    "Title": "Toro District",
+    "Slug": "toro-district",
+    "City": "Cypress",
+    "Borough": "",
+    "Neighborhood": "Bridgeland Central",
+    "Latitude": "29.9368738",
+    "Longitude": "-95.7407589",
+    "Description": "An 83-acre sports and entertainment district in the urban core of Bridgeland outside Houston, anchored by the Houston Texans' global headquarters and training complex and woven through with nearly two million square feet of walkable office, healthcare, hospitality and entertainment space.",
+    "DescriptionLong": "Toro District is an 83-acre sports and entertainment destination taking shape in Bridgeland Central, the emerging urban core of the Bridgeland community in northwest Harris County, just west of the Grand Parkway off Peek Road. At its heart is a 22-acre global headquarters and training complex for the Houston Texans, spanning more than 175,000 square feet and uniting the franchise's football and business operations under one roof, complete with an indoor fieldhouse, three outdoor NFL practice fields and a flexible event space designed to host nearly 16,000 attendees. Master-planned by Gensler and delivered through a public-private partnership between the Texans, Howard Hughes and Harris County, the district layers roughly two million square feet of walkable office, healthcare, hospitality, retail, restaurant and entertainment space around the training campus, creating a year-round destination that blends professional sport with a pedestrian-scaled mix of workplaces, dining and gathering places.",
+    "Delivery": "Announced",
+    "DeliveryDate": "2029",
+    "StartDate": "2026",
+    "ProjectType": "Mixed-Use, Entertainment, Stadium, Office",
+    "PreferredType": "Mixed-Use",
+    "Architect": "Gensler",
+    "ArchitectSlugs": "gensler",
+    "Developer": "Howard Hughes, Houston Texans",
+    "DeveloperSlugs": "howard-hughes, houston-texans",
+    "Featured": "",
+    "OfficialWebsite": "",
+    "ImageURL": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1857ab42b588-Toro-District-Rendering.jpg",
+    "Image2": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ee6ac49e77c4-Houston-Texans-New-HQ-and-Training-Facility-Rendering.png",
+    "Image3": "",
+    "Image4": "",
+    "Image5": "",
+    "Keys": "",
+    "Units": "",
+    "Floors": "",
+    "ConfigSummary": "",
+    "DeliveryPhases": "",
+    "IsDistrict": "",
+    "ParentSlug": "",
+    "StartSpeculative": "",
+    "DeliverySpeculative": "",
+    "DatesSpeculative": "",
+    "Price": "",
+    "UpdatedAt": "",
+    "StatusHistory": [],
+    "County": "Harris County",
+    "CountyState": "TX"
   }
 ]

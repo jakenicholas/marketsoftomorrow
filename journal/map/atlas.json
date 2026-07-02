@@ -11,11 +11,11 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 40
+      "count": 41
     },
     {
       "type": "Entertainment",
-      "count": 35
+      "count": 34
     },
     {
       "type": "Office",
@@ -42,11 +42,11 @@
       "count": 8
     },
     {
-      "type": "Retail",
-      "count": 6
+      "type": "Park",
+      "count": 7
     },
     {
-      "type": "Park",
+      "type": "Retail",
       "count": 6
     },
     {
@@ -2412,7 +2412,7 @@
     },
     {
       "st": "FL",
-      "ty": "Entertainment",
+      "ty": "Park",
       "sl": "Announced",
       "yr": 2027,
       "sm": "2026-12",
@@ -17318,10 +17318,37 @@
           "wannemacher-jensen-architects"
         ]
       ]
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": 2029,
+      "sm": "2026-12",
+      "ci": "Cypress",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Howard Hughes",
+          "howard-hughes"
+        ],
+        [
+          "Houston Texans",
+          "houston-texans"
+        ]
+      ],
+      "ar": [
+        [
+          "Gensler",
+          "gensler"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 680,
+    "total_projects": 681,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 264,
@@ -17712,7 +17739,7 @@
         "name": "Gensler",
         "slug": "gensler",
         "sub": "Tampa",
-        "count": 8,
+        "count": 9,
         "states": [
           "FL",
           "Other",
@@ -18206,7 +18233,7 @@
       {
         "name": "Mixed-Use",
         "sub": "6% of pipeline",
-        "count": 40,
+        "count": 41,
         "states": [
           "FL",
           "Other",
@@ -18219,7 +18246,7 @@
       {
         "name": "Entertainment",
         "sub": "5% of pipeline",
-        "count": 35,
+        "count": 34,
         "states": [
           "FL",
           "Other",
@@ -18298,22 +18325,22 @@
         ]
       },
       {
+        "name": "Park",
+        "sub": "1% of pipeline",
+        "count": 7,
+        "states": [
+          "FL",
+          "TN",
+          "Other"
+        ]
+      },
+      {
         "name": "Retail",
         "sub": "1% of pipeline",
         "count": 6,
         "states": [
           "FL",
           "FR"
-        ]
-      },
-      {
-        "name": "Park",
-        "sub": "1% of pipeline",
-        "count": 6,
-        "states": [
-          "FL",
-          "TN",
-          "Other"
         ]
       },
       {
@@ -19182,8 +19209,8 @@
         },
         {
           "name": "Entertainment",
-          "sub": "8% of pipeline",
-          "count": 24,
+          "sub": "7% of pipeline",
+          "count": 23,
           "states": [
             "FL",
             "Other",
@@ -19244,6 +19271,16 @@
           ]
         },
         {
+          "name": "Park",
+          "sub": "2% of pipeline",
+          "count": 5,
+          "states": [
+            "FL",
+            "TN",
+            "Other"
+          ]
+        },
+        {
           "name": "Retail",
           "sub": "2% of pipeline",
           "count": 5,
@@ -19262,16 +19299,6 @@
             "TN",
             "SC",
             "TX"
-          ]
-        },
-        {
-          "name": "Park",
-          "sub": "1% of pipeline",
-          "count": 4,
-          "states": [
-            "FL",
-            "TN",
-            "Other"
           ]
         },
         {
@@ -23755,12 +23782,13 @@
     "Paradise Valley": "Other",
     "East Quogue": "Other",
     "George Town": "Other",
-    "Estero": "FL"
+    "Estero": "FL",
+    "Cypress": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 195
+      "count": 196
     },
     {
       "label": "Breaking Ground",
@@ -23856,7 +23884,7 @@
     },
     {
       "year": 2029,
-      "count": 51
+      "count": 52
     },
     {
       "year": 2030,
@@ -23911,6 +23939,18 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-toro-district",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Now tracking Toro District",
+      "project_slug": "toro-district",
+      "project_title": "Toro District",
+      "city": "Cypress",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1857ab42b588-Toro-District-Rendering.jpg",
+      "link": "https://www.oftmw.com/map/?project=torodistrict",
+      "timestamp": "2026-07-02T13:31:24.853531+00:00"
+    },
     {
       "id": "track-the-burg-bid",
       "type": "tracking",
@@ -24576,20 +24616,6 @@
       "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg",
       "link": "https://www.oftmw.com/map/",
       "timestamp": "2026-06-30T03:00:23.923935+00:00"
-    },
-    {
-      "id": "ms-the-residences-claude-pepper-breaking-ground-2026-06-30",
-      "type": "status_change",
-      "tag": "Broke ground",
-      "title": "The Residences Claude Pepper  Broke ground",
-      "project_slug": "the-residences-claude-pepper",
-      "project_title": "The Residences Claude Pepper",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4420e8fccb3f-aerial-3-2.jpeg",
-      "event_date": "2026-06-23",
-      "source_url": "https://floridayimby.com/2026/06/the-residences-at-claude-pepper-set-for-2028-debut-at-702-nw-18th-terrace-miami-fl.html",
-      "link": "https://www.oftmw.com/map/?project=theresidencesclaudepepper",
-      "timestamp": "2026-06-30T02:11:33.136Z"
     }
   ],
   "most_covered": [
