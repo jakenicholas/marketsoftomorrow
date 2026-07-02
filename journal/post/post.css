@@ -397,7 +397,7 @@ footer .tmw-wordmark{width:118px}
    chevron bobs to invite a click and flips to point up on expand. touch-action
    + no tap-highlight + hover gated to hover-capable devices so a mobile tap
    opens on the FIRST touch instead of just applying a hover state. */
-.article-intel .ai-expand{position:absolute; right:0; bottom:0; display:inline-flex; align-items:center; justify-content:center;
+.article-intel .ai-expand{position:absolute; right:0; bottom:-3px; display:inline-flex; align-items:center; justify-content:center;
   width:24px; height:24px; padding:0; appearance:none; cursor:pointer; border-radius:50%;
   background:rgba(167,139,250,.07); border:1px solid rgba(167,139,250,.26); color:var(--purple-glow);
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
@@ -436,6 +436,6 @@ footer .tmw-wordmark{width:118px}
   .article-intel.ai-open .ai-takes-c{grid-template-rows:1fr; opacity:1}
   /* pull the caret up onto the paragraph's last line (into the gutter); z-index
      so the tap always lands over the paragraph text. */
-  .article-intel .ai-expand{position:relative; z-index:2; order:0; align-self:flex-end; width:30px; height:30px; margin:-27px 0 0}
+  .article-intel .ai-expand{position:relative; z-index:2; order:0; align-self:flex-end; width:30px; height:30px; margin:-24px 0 0}
   .article-intel .ai-expand svg{width:17px; height:17px}
 }
