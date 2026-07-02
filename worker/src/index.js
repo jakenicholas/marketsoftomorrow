@@ -8754,8 +8754,14 @@ async function handleSmartAnswer(request, env, origin) {
     '"new"/"opening"/"coming"/"latest" queries the most recently published or soonest-opening venue should win. ' +
     'Strongly prefer a brand-new or independent opening over an older, established, or chain venue even if the ' +
     'latter is splashier — e.g. a national steakhouse chain must NOT outrank a just-opened local debut, and a ' +
-    'venue that has been open a while must NOT outrank one that opened in the last few weeks. Use "HERO: NONE" ' +
-    'only if no single item is a strong standalone feature. Output nothing after that line.';
+    'venue that has been open a while must NOT outrank one that opened in the last few weeks. ' +
+    'CRITICAL — ON-BRAND ONLY: the hero MUST be a Markets of Tomorrow-caliber story: a notable/luxury development, ' +
+    'residential or mixed-use tower, hotel/resort, restaurant, district, golf, museum, or similar real-estate / ' +
+    'hospitality story. NEVER feature a generic retail, grocery, big-box, discount, drugstore, or convenience-chain ' +
+    'item (e.g. an Aldi / Walmart / Costco / Dollar General store opening) as the hero, even if it literally matches ' +
+    '"opening" or names one of our markets — those are off-brand and embarrassing as a headline. ' +
+    'Use "HERO: NONE" if the only candidates are off-brand or no single item is a strong standalone feature. ' +
+    'Output nothing after that line.';
   let system = compact.topic ?
     ('You are TMW Intelligence, the editorial voice of Markets of Tomorrow. The query is about ' +
      compact.topic.toUpperCase() + ', which we cover in our JOURNAL — these `top` items are ARTICLES we have ' +

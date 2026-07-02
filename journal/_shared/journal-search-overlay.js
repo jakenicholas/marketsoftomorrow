@@ -702,9 +702,9 @@
     + '.tmw-ov-glow{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity .7s ease}'
     + '.tmw-ov-root[data-deep="1"] .tmw-ov-glow{opacity:1}'
     + '.tmw-ov-glow b{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;display:block}'
-    + '.tmw-ov-glow b.a{width:72vw;height:72vw;left:-12vw;bottom:-22vw;background:radial-gradient(circle,rgba(139,92,246,.60),rgba(139,92,246,0) 66%);animation:tmwOvGlowA 7s ease-in-out infinite}'
-    + '.tmw-ov-glow b.b{width:62vw;height:62vw;right:-14vw;bottom:-16vw;background:radial-gradient(circle,rgba(96,120,255,.46),rgba(96,120,255,0) 66%);animation:tmwOvGlowB 9s ease-in-out infinite}'
-    + '.tmw-ov-glow b.c{width:46vw;height:46vw;left:26vw;top:-18vw;background:radial-gradient(circle,rgba(185,166,255,.34),rgba(185,166,255,0) 68%);animation:tmwOvGlowC 11s ease-in-out infinite}'
+    + '.tmw-ov-glow b.a{width:66vw;height:66vw;left:4vw;bottom:-20vw;background:radial-gradient(circle,rgba(139,92,246,.58),rgba(139,92,246,0) 66%);animation:tmwOvGlowA 7s ease-in-out infinite}'
+    + '.tmw-ov-glow b.b{width:66vw;height:66vw;right:4vw;bottom:-20vw;background:radial-gradient(circle,rgba(96,120,255,.5),rgba(96,120,255,0) 66%);animation:tmwOvGlowB 9s ease-in-out infinite}'
+    + '.tmw-ov-glow b.c{width:44vw;height:44vw;left:28vw;top:-16vw;background:radial-gradient(circle,rgba(185,166,255,.32),rgba(185,166,255,0) 68%);animation:tmwOvGlowC 11s ease-in-out infinite}'
     + '@keyframes tmwOvGlowA{0%,100%{transform:translate(0,0) scale(1);opacity:.55}50%{transform:translate(6vw,-4vw) scale(1.24);opacity:.9}}'
     + '@keyframes tmwOvGlowB{0%,100%{transform:translate(0,0) scale(1.05);opacity:.42}50%{transform:translate(-5vw,-6vw) scale(1.3);opacity:.72}}'
     + '@keyframes tmwOvGlowC{0%,100%{transform:translate(0,0) scale(1);opacity:.3}50%{transform:translate(-4vw,5vw) scale(1.22);opacity:.6}}'
@@ -2030,7 +2030,10 @@
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
       +     '<span class="tmw-ov-model'+(deep?' deep':'')+'" title="The model powering TMW Intelligence">'+(deep?'Onyx 4.1 Deep':'Onyx 4.1')+'</span>'
-      +     '<span class="live">'+live+'</span>'
+      // The answer's "Live answer" pip lives in the feedback row (relocated there
+      // by setState). Omit it from the header on the answer state so it doesn't
+      // show twice — the loading/no-answer/error states keep it (no feedback row yet).
+      +     (state === 'answer' ? '' : '<span class="live">'+live+'</span>')
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
       +   '<div class="tmw-ov-intel-foot">'
