@@ -2518,6 +2518,77 @@ async function handlePostCategories(env, origin) {
   return json({ categories }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
 }
 
+// GET /admin/categories — every category with its post count (membership) and
+// how many posts have it as their MAIN category. Powers the Studio's category
+// manager. Admin-gated (exposes the full corpus).
+async function handleAdminCategories(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  const rows = (await env.DB.prepare('SELECT categories, main_category FROM posts').all()).results || [];
+  const count = {}, mainCount = {};
+  for (const r of rows) {
+    const seen = {};
+    for (const c of safeJsonArray(r.categories)) { if (c && !seen[c]) { seen[c] = 1; count[c] = (count[c] || 0) + 1; } }
+    if (r.main_category) mainCount[r.main_category] = (mainCount[r.main_category] || 0) + 1;
+  }
+  const names = new Set([...Object.keys(count), ...Object.keys(mainCount)]);
+  const list = [...names].map(n => ({ name: n, count: count[n] || 0, mainCount: mainCount[n] || 0 }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return json({ categories: list, totalPosts: rows.length }, {}, env, origin);
+}
+
+// Chunked batch of UPDATEs (D1 caps a single batch, and category ops can touch
+// 1000+ posts).
+async function _runBatched(env, statements) {
+  for (let i = 0; i < statements.length; i += 80) await env.DB.batch(statements.slice(i, i + 80));
+}
+
+// POST /admin/categories/assign { ids:[postId], main } — set `main` as the MAIN
+// category on each post (adding it to the categories array, first). "Move these
+// posts to <category> and make it their main."
+async function handleCategoriesAssign(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const ids = Array.isArray(b.ids) ? b.ids.map(String).filter(Boolean).slice(0, 5000) : [];
+  const main = String(b.main || '').trim();
+  const removeCat = b.remove ? String(b.remove).trim() : '';   // optional: drop the old category
+  if (!ids.length || !main || main.length > 120) return json({ error: 'ids and a valid main category are required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const stmt = env.DB.prepare('UPDATE posts SET categories = ?1, main_category = ?2, updated_at = ?3 WHERE id = ?4');
+  const batch = [];
+  for (let i = 0; i < ids.length; i += 300) {
+    const chunk = ids.slice(i, i + 300);
+    const rows = (await env.DB.prepare(`SELECT id, categories FROM posts WHERE id IN (${chunk.map((_, j) => '?' + (j + 1)).join(',')})`).bind(...chunk).all()).results || [];
+    for (const r of rows) {
+      let cats = safeJsonArray(r.categories).filter(c => c && c !== main && (!removeCat || c !== removeCat));
+      cats.unshift(main);   // main first
+      batch.push(stmt.bind(JSON.stringify(cats), main, now, r.id));
+    }
+  }
+  try { await _runBatched(env, batch); } catch (e) { return json({ error: 'update failed: ' + (e.message || e) }, { status: 500 }, env, origin); }
+  return json({ ok: true, updated: batch.length, main }, {}, env, origin);
+}
+
+// POST /admin/categories/merge { from, to } — every post carrying `from` gets
+// `to` instead (deduped), and `to` becomes its MAIN category. Merges from → to;
+// `from` then disappears from the taxonomy (it's derived from posts).
+async function handleCategoriesMerge(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const from = String(b.from || '').trim(), to = String(b.to || '').trim();
+  if (!from || !to || from === to || to.length > 120) return json({ error: 'from and to (distinct) are required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const like = '%"' + from.replace(/[%_\\]/g, '\\$&') + '"%';
+  const rows = (await env.DB.prepare("SELECT id, categories FROM posts WHERE categories LIKE ?1 ESCAPE '\\'").bind(like).all()).results || [];
+  const stmt = env.DB.prepare('UPDATE posts SET categories = ?1, main_category = ?2, updated_at = ?3 WHERE id = ?4');
+  const batch = rows.map(r => {
+    let cats = safeJsonArray(r.categories).filter(c => c && c !== from && c !== to);
+    cats.unshift(to);   // `to` becomes main + first
+    return stmt.bind(JSON.stringify(cats), to, now, r.id);
+  });
+  try { await _runBatched(env, batch); } catch (e) { return json({ error: 'merge failed: ' + (e.message || e) }, { status: 500 }, env, origin); }
+  return json({ ok: true, merged: batch.length, from, to }, {}, env, origin);
+}
+
 // The posts.source column is added lazily (ensureContactsTable runs it on
 // create/update). But the list SELECT references source, so on a fresh deploy —
 // before any write has run the ALTER — a public read would 500. Guard it here
@@ -10128,6 +10199,10 @@ export default {
       if (request.method === 'GET' && url.pathname === '/post-categories') {
         return await handlePostCategories(env, origin);
       }
+      // Category manager (Studio Articles → Categories tab) — admin-gated.
+      if (request.method === 'GET'  && url.pathname === '/admin/categories')        return await handleAdminCategories(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/categories/assign') return await handleCategoriesAssign(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/categories/merge')  return await handleCategoriesMerge(request, env, origin);
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
         if (m && request.method === 'GET') return await handlePostsBySlug(request, env, origin, m[1]);
