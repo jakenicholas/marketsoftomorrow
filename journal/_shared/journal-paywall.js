@@ -116,6 +116,10 @@
       '.paywall-signin{font-size:12px; color:rgba(255,255,255,.45)}',
       '.paywall-signin a{color:#C4B5FD; text-decoration:none; font-weight:600}',
       '.paywall-signin a:hover{text-decoration:underline}',
+      // DESKTOP: wide 2-column layout so the card isn't too tall / cropped off the
+      // bottom — ~2x width, the two plans side by side, features in two columns.
+      // Mobile (below) stays single-column.
+      '@media(min-width:600px){.paywall-card{max-width:880px; padding:34px 46px 28px} .paywall-subtitle{max-width:560px; margin-left:auto; margin-right:auto} .paywall-plans{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px} .paywall-features{display:grid; grid-template-columns:1fr 1fr; column-gap:32px; row-gap:9px}}',
       '@media(max-width:480px){.paywall-card{padding:24px 18px 18px; max-width:100%} .paywall-title{font-size:19px} .paywall-plan-price{font-size:22px}}'
     ].join('\n');
     document.head.appendChild(s);
