@@ -409,14 +409,18 @@ footer .tmw-wordmark{width:118px}
 .article-intel .ai-takes-c{min-height:0}
 @media (prefers-reduced-motion:reduce){ .article-intel .ai-expand svg{animation:none} }
 
-/* Mobile: paragraph-only by default. The bullets join the collapsed region and
-   the caret drops below the paragraph (no bullet line to sit on). */
+/* Mobile: paragraph-only by default — the bullets join the collapsed region.
+   The caret rides the LAST line of the paragraph (far right, in a reserved
+   gutter) so it never takes its own row; it stays put collapsed or open. */
 @media(max-width:700px){
+  .article-intel{padding:15px 17px 14px}
+  .article-intel .ai-tldr{margin-bottom:0; padding-right:36px}
   .article-intel .ai-sum{display:flex; flex-direction:column}
   .article-intel .ai-takes{padding-right:0}
   .article-intel .ai-takes-c{display:grid; grid-template-rows:0fr; opacity:0; order:1;
     transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1), opacity .3s ease}
   .article-intel .ai-takes-c > .ai-takes{overflow:hidden}
   .article-intel.ai-open .ai-takes-c{grid-template-rows:1fr; opacity:1}
-  .article-intel .ai-expand{position:static; align-self:flex-end; order:0; margin-top:4px}
+  /* pull the caret up onto the paragraph's last line (into the 36px gutter) */
+  .article-intel .ai-expand{position:static; order:0; align-self:flex-end; width:30px; height:24px; margin:-28px 0 0}
 }

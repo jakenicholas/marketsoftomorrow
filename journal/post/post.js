@@ -1351,7 +1351,8 @@ function initComments(slug, post) {
     if (expBtn) expBtn.addEventListener('click', function () {
       var open = host.classList.toggle('ai-open');
       expBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open) { var f = host.querySelector('.ai-ask-in'); if (f) try { f.focus({ preventScroll: true }); } catch (e) {} }
+      // Do NOT auto-focus the ask input — that pops the mobile keyboard on
+      // expand. The keyboard should open only when the reader taps Ask Onyx.
     });
     var ain = host.querySelector('.ai-ask-in'), ago = host.querySelector('.ai-ask-go'), ans = host.querySelector('.ai-ask-ans');
     function articleSubject() {
