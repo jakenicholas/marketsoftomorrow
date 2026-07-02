@@ -46,6 +46,13 @@ BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 # no re-migration needed since only the base changes.
 MEDIA_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
 
+# Onyx Deep credit packs — Stripe one-time price IDs (product "Onyx Deep Credits").
+# DEEP_PACK_10_PRICE = 10 deep searches for $5; DEEP_PACK_25_PRICE = 25 for $10.
+# Consumed by /deep-checkout (see DEEP_PACKS in src/index.js). Price IDs are not
+# secret; the Stripe secret key stays a wrangler secret.
+DEEP_PACK_10_PRICE = "price_1Topid5aTtxuiasC3OTdYnlU"
+DEEP_PACK_25_PRICE = "price_1Topid5aTtxuiasCjNchCxFP"
+
 # Cron trigger — drives the Wix → R2 media migration server-side every minute
 # (see scheduled() in src/index.js). Self-pacing and resumable; it auto-pauses
 # (sets sync_state migrate_auto='0') once everything is indexed and copied, so
