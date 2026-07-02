@@ -6997,6 +6997,57 @@ async function handleMediaDeleteFolder(req, env, origin) {
   return json({ ok: true, name, deleted: keys.length }, {}, env, origin);
 }
 
+// POST /admin/media/save-upscaled?source_url=<orig>&scale=N  (body = PNG bytes)
+// Persists a Gigapixel-upscaled photo as a NEW media asset in the SAME folder as
+// its source, so the Design editor can swap the slide's photo for it. Resolves
+// the source's folder from the media index (by url, then by embedded /media/<key>).
+async function handleMediaSaveUpscaled(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB || !env.MEDIA) return json({ error: 'storage not configured' }, { status: 500 }, env, origin);
+  const publicBase = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+  if (!publicBase || /REPLACE-WITH/.test(publicBase)) return json({ error: 'MEDIA_PUBLIC_BASE not set' }, { status: 500 }, env, origin);
+  const sourceUrl = (url.searchParams.get('source_url') || '').trim();
+  const scale = Math.max(1, Math.min(8, parseInt(url.searchParams.get('scale') || '2', 10) || 2));
+  const buf = await req.arrayBuffer();
+  if (!buf || !buf.byteLength) return json({ error: 'empty body' }, { status: 400 }, env, origin);
+  if (buf.byteLength > 40 * 1024 * 1024) return json({ error: 'file too large' }, { status: 413 }, env, origin);
+
+  // Resolve the source photo's folder + a base name for the new file.
+  let folder = '', srcName = 'photo';
+  try {
+    let row = sourceUrl ? await env.DB.prepare('SELECT folder, filename, key FROM media WHERE url = ?1 LIMIT 1').bind(sourceUrl).first() : null;
+    if (!row && sourceUrl) {
+      let key = '';
+      const m = sourceUrl.match(/\/media\/(.+)$/);
+      if (m) key = decodeURIComponent(m[1]);
+      else if (sourceUrl.indexOf(publicBase + '/') === 0) key = sourceUrl.slice(publicBase.length + 1);
+      if (key) row = await env.DB.prepare('SELECT folder, filename, key FROM media WHERE key = ?1 LIMIT 1').bind(key).first();
+    }
+    if (row) { folder = row.folder || ''; srcName = String(row.filename || row.key || 'photo').split('/').pop().replace(/\.[a-z0-9]+$/i, ''); }
+  } catch (_) {}
+
+  const now = Math.floor(Date.now() / 1000);
+  const d = new Date(now * 1000);
+  const yyyy = d.getUTCFullYear(), mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const safe = String(srcName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'photo';
+  const rand = Math.abs(((Date.now() >>> 0) ^ buf.byteLength) % 0xfffff).toString(16);
+  const key = `${yyyy}/${mm}/${rand}-${safe}-${scale}x.png`;
+  const filename = `${safe}-${scale}x.png`;
+  try {
+    await env.MEDIA.put(key, buf, { httpMetadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename } });
+  } catch (e) { return json({ error: 'R2 put failed', detail: e.message || String(e) }, { status: 500 }, env, origin); }
+  const outUrl = `${publicBase}/${key}`;
+  try {
+    await env.DB.prepare(
+      'INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder) ' +
+      "VALUES (?1, ?2, 'image/png', ?3, ?4, ?5, 'studio-upscale', ?6, ?7, ?8) " +
+      'ON CONFLICT(key) DO UPDATE SET size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder, uploaded_at=excluded.uploaded_at'
+    ).bind(key, filename, buf.byteLength, 'Upscaled ' + scale + '×', null, now, outUrl, folder).run();
+  } catch (e) { return json({ error: 'index failed', detail: e.message || String(e) }, { status: 500 }, env, origin); }
+  return json({ ok: true, url: outUrl, key, folder }, {}, env, origin);
+}
+
 // Rename a media FILE's display name. The R2 key + public URL stay the same so
 // existing references never break — only the stored `filename` changes.
 //   POST /admin/media/rename-file { key, filename }
@@ -10183,6 +10234,10 @@ export default {
       // /admin/media/delete-folder — delete a folder + its descendants' media (admin-only)
       if (url.pathname === '/admin/media/delete-folder' && request.method === 'POST') {
         return await handleMediaDeleteFolder(request, env, origin);
+      }
+      // /admin/media/save-upscaled — persist a Gigapixel-upscaled photo into the source's folder
+      if (url.pathname === '/admin/media/save-upscaled' && request.method === 'POST') {
+        return await handleMediaSaveUpscaled(request, env, origin, url);
       }
       // /admin/media/rename-file — rename a file's display name (admin-only)
       if (url.pathname === '/admin/media/rename-file' && request.method === 'POST') {
