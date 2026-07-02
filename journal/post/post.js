@@ -1312,9 +1312,18 @@ function initComments(slug, post) {
 
   function render(intel, follows, mj) {
     var takes = (intel.takeaways || []).filter(Boolean);
+    // Summary block: the intro paragraph is always shown. The takeaways sit in
+    // .ai-sum with the expand caret — on desktop the caret floats to the far
+    // right of the last bullet's line; on mobile the bullets are hidden until
+    // the caret is expanded (paragraph-only by default).
+    var takesHtml = takes.length
+      ? '<div class="ai-takes-c"><ul class="ai-takes">' + takes.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></div>'
+      : '';
+    var caretHtml = '<button class="ai-expand" type="button" aria-label="Show more" aria-expanded="false">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
     var html = HEAD
       + '<p class="ai-tldr">' + esc(intel.tldr) + '</p>'
-      + (takes.length ? '<ul class="ai-takes">' + takes.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '');
+      + '<div class="ai-sum">' + takesHtml + caretHtml + '</div>';
     // Everything below the summary/takeaways (watchlist + Ask Onyx) is tucked
     // behind a pulsing expand caret so the box sits compact by default.
     var moreInner = '';
@@ -1336,9 +1345,7 @@ function initComments(slug, post) {
       + '<input class="ai-ask-in" type="text" placeholder="Ask Onyx about this story…" aria-label="Ask Onyx">'
       + '<button class="ai-ask-go" type="button" aria-label="Ask Onyx"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>'
       + '</div><div class="ai-ask-ans" hidden></div>';
-    html += '<button class="ai-expand" type="button" aria-label="Show watchlist &amp; Ask Onyx" aria-expanded="false">'
-      + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
-      + '<div class="ai-more"><div class="ai-more-inner">' + moreInner + '</div></div>';
+    html += '<div class="ai-more"><div class="ai-more-inner">' + moreInner + '</div></div>';
     host.innerHTML = html;
     var expBtn = host.querySelector('.ai-expand');
     if (expBtn) expBtn.addEventListener('click', function () {
