@@ -197,6 +197,11 @@
   }
 
   function show(ctx, opts) {
+    // Accept a string context ('atlas', 'feature:watch') OR an object some pages
+    // pass (e.g. firm/market pages call tmwShowPaywall({source:'firm_page'})).
+    // Normalize to a string so the headline lookup + analytics trigger are clean
+    // (was logging "[object Object]").
+    if (ctx && typeof ctx === 'object') { if (!opts) opts = ctx; ctx = String(ctx.source || ctx.ctx || ctx.trigger || ''); }
     build();
     hardLock = !!(opts && opts.hard);
     // close any open nav dropdown / drawer so the paywall is unobstructed
