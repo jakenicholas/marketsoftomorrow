@@ -1348,10 +1348,17 @@
   function updateDeepMeta(res){
     if (!deepMeta) return;
     if (res && res.capped) {
-      deepMeta.textContent = 'Monthly deep limit reached — answered in standard mode';
+      deepMeta.textContent = 'Out of deep searches this month';
       deepMeta.classList.add('warn');
+    } else if (res && res.deep && res.unlimited) {
+      deepMeta.textContent = 'Unlimited deep searches';
+      deepMeta.classList.remove('warn');
     } else if (res && res.deep && typeof res.remaining === 'number') {
-      deepMeta.textContent = res.remaining + ' of ' + (res.cap || 12) + ' deep searches left this month';
+      var cap = res.cap || 12;
+      // Base months read "N of 12"; once extra credits are in play just show the total.
+      deepMeta.textContent = (res.remaining > cap)
+        ? (res.remaining + ' deep searches left')
+        : (res.remaining + ' of ' + cap + ' deep searches left this month');
       deepMeta.classList.remove('warn');
     }
   }
