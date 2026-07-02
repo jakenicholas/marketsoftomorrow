@@ -869,6 +869,60 @@ async function handleAdminDeepCredits(req, env, origin) {
   return json({ ok: true, member_id: member, granted_now: props, ...(await deepStatus(env, member)) }, {}, env, origin);
 }
 
+// POST /deep-checkout { member_id, pack } → a Stripe Checkout URL for buying a
+// deep-credit pack. Public (a member calls it); the worst a stranger can do is
+// PAY to grant someone credits. Credits are granted on the paid return, not here.
+async function handleDeepCheckout(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const member = String((b && b.member_id) || '').slice(0, 120).trim();
+  const pack = DEEP_PACKS[String((b && b.pack) || '').trim()];
+  if (!member || member.indexOf('mem_') !== 0) return json({ error: 'sign in required' }, { status: 401 }, env, origin);
+  if (!pack) return json({ error: 'unknown pack' }, { status: 400 }, env, origin);
+  const priceId = env[pack.priceEnv];
+  if (!priceId) return json({ error: 'pack not configured' }, { status: 503 }, env, origin);
+  if (!env.STRIPE_SECRET_KEY) return json({ error: 'stripe not configured' }, { status: 503 }, env, origin);
+  const base = 'https://www.oftmw.com';
+  try {
+    const sess = await stripePost(env, '/checkout/sessions', {
+      mode: 'payment',
+      'line_items[0][price]': priceId,
+      'line_items[0][quantity]': '1',
+      client_reference_id: member,
+      'metadata[member_id]': member,
+      'metadata[credits]': String(pack.credits),
+      'metadata[kind]': 'deep_credits',
+      success_url: base + '/map/?deep_claim={CHECKOUT_SESSION_ID}',
+      cancel_url: base + '/map/?deep_cancel=1',
+    });
+    return json({ ok: true, url: sess.url }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+
+// POST /deep-claim { session_id } → verify a completed Checkout Session was PAID
+// and grant its credits (once). Deduped by session id so a refresh can't double-grant.
+async function handleDeepClaim(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const sid = String((b && b.session_id) || '').slice(0, 200).trim();
+  if (!sid || sid.indexOf('cs_') !== 0) return json({ error: 'bad session' }, { status: 400 }, env, origin);
+  if (!env.STRIPE_SECRET_KEY || !env.DB) return json({ error: 'not configured' }, { status: 503 }, env, origin);
+  try {
+    const sess = await stripeGet(env, '/checkout/sessions/' + encodeURIComponent(sid));
+    if (!sess || sess.payment_status !== 'paid') return json({ error: 'not paid', status: sess && sess.payment_status }, { status: 402 }, env, origin);
+    const md = sess.metadata || {};
+    const member = String(md.member_id || sess.client_reference_id || '').trim();
+    const credits = Math.round(Number(md.credits) || 0);
+    if (md.kind !== 'deep_credits' || !member || credits < 1) return json({ error: 'not a credit purchase' }, { status: 400 }, env, origin);
+    // Dedupe: already claimed this session?
+    const dup = await env.DB.prepare(
+      `SELECT 1 FROM events WHERE event_name='intel_deep_grant' AND member_id=? AND props_json LIKE ? LIMIT 1`
+    ).bind(member, '%"session":"' + sid + '"%').first();
+    if (dup) return json({ ok: true, already: true, member_id: member, ...(await deepStatus(env, member)) }, {}, env, origin);
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), member, 'intel_deep_grant', JSON.stringify({ credits, by: 'purchase', session: sid })).run();
+    return json({ ok: true, granted: credits, member_id: member, ...(await deepStatus(env, member)) }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+
 function stripePerMonth(amount, interval, count) {
   const c = count || 1;
   if (interval === 'year')  return amount / (12 * c);
@@ -8053,6 +8107,13 @@ const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality bal
 // rolling per-member monthly cap keeps the wide-context spend bounded.
 const DEEP_ANSWER_MODEL = SMART_ANSWER_MODEL;
 const DEEP_MONTHLY_CAP = 12;   // deep searches per member per rolling 30 days
+// Paid credit packs a member can buy when they run out. Price IDs come from env
+// (Stripe one-time prices Jake creates); credits are granted on paid return via
+// /deep-claim. Until the env price is set, the pack is "not configured".
+const DEEP_PACKS = {
+  small: { credits: 10, priceEnv: 'DEEP_PACK_10_PRICE', label: '10 deep searches', price: '$5' },
+  large: { credits: 25, priceEnv: 'DEEP_PACK_25_PRICE', label: '25 deep searches', price: '$10' },
+};
 
 // ═══ Shared "TMW brain" layer ════════════════════════════════════════════════
 // One authoring model + one cross-system knowledge READ + one review-gated WRITE
@@ -9849,6 +9910,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }

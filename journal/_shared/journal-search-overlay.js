@@ -731,6 +731,13 @@
     /* Cap meter — a small caption pinned just above the bar, right-aligned. */
     + '.tmw-ov-deep-meta{position:absolute;right:6px;bottom:100%;margin-bottom:9px;z-index:3;pointer-events:none;font:600 11px/1.3 "Inter",-apple-system,system-ui,sans-serif;color:#9C93B5;letter-spacing:.01em}'
     + '.tmw-ov-deep-meta.warn{color:#E6C574}'
+    + '.tmw-ov-deep-meta.buy{pointer-events:auto}'
+    /* "Buy more" pills shown in the meter when a member is out of deep searches. */
+    + '.tmw-ov-buy{display:inline-flex;align-items:center;margin-left:8px;padding:3px 9px;border-radius:999px;border:1px solid rgba(167,139,250,.6);background:rgba(139,92,246,.18);color:#EBE4FF;font:700 11px/1 "Inter",-apple-system,system-ui,sans-serif;cursor:pointer;letter-spacing:.01em}'
+    + '.tmw-ov-buy:hover{background:rgba(139,92,246,.34)}'
+    /* Purchase-confirmation toast (shown on the paid return). */
+    + '.tmw-ov-toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%);z-index:2147483000;background:linear-gradient(135deg,#8b5cf6,#6078ff);color:#fff;font:600 13px/1.3 "Inter",-apple-system,system-ui,sans-serif;padding:11px 18px;border-radius:999px;box-shadow:0 8px 30px rgba(139,92,246,.5);opacity:0;transition:opacity .3s ease}'
+    + '.tmw-ov-toast.show{opacity:1}'
     /* MOBILE: swap the in-bar chip for the top-left one (aligned with New chat). */
     + '@media(max-width:640px){'
     +   '.tmw-ov-deep.in-bar{display:none}'
@@ -1348,19 +1355,61 @@
   function updateDeepMeta(res){
     if (!deepMeta) return;
     if (res && res.capped) {
-      deepMeta.textContent = 'Out of deep searches this month';
-      deepMeta.classList.add('warn');
+      // Out of searches — offer the two credit packs inline.
+      deepMeta.classList.add('warn'); deepMeta.classList.add('buy');
+      deepMeta.innerHTML = '';
+      var lbl = document.createElement('span'); lbl.textContent = 'Out of deep searches —';
+      var b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'tmw-ov-buy'; b1.textContent = '10 for $5'; b1.onclick = function(){ buyDeep('small'); };
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'tmw-ov-buy'; b2.textContent = '25 for $10'; b2.onclick = function(){ buyDeep('large'); };
+      deepMeta.appendChild(lbl); deepMeta.appendChild(b1); deepMeta.appendChild(b2);
     } else if (res && res.deep && res.unlimited) {
+      deepMeta.classList.remove('warn'); deepMeta.classList.remove('buy');
       deepMeta.textContent = 'Unlimited deep searches';
-      deepMeta.classList.remove('warn');
     } else if (res && res.deep && typeof res.remaining === 'number') {
+      deepMeta.classList.remove('warn'); deepMeta.classList.remove('buy');
       var cap = res.cap || 12;
       // Base months read "N of 12"; once extra credits are in play just show the total.
       deepMeta.textContent = (res.remaining > cap)
         ? (res.remaining + ' deep searches left')
         : (res.remaining + ' of ' + cap + ' deep searches left this month');
-      deepMeta.classList.remove('warn');
     }
+  }
+  // Lightweight toast for the purchase return (the overlay may be closed).
+  function deepToast(msg){
+    try {
+      var t = document.createElement('div'); t.className = 'tmw-ov-toast'; t.textContent = msg;
+      document.body.appendChild(t);
+      requestAnimationFrame(function(){ t.classList.add('show'); });
+      setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 400); }, 4200);
+    } catch(_){}
+  }
+  // Buy a credit pack — resolve the member, open Stripe Checkout.
+  function buyDeep(pack){
+    if (!_isPro()) { try { if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('feature:deep'); } catch(_){} return; }
+    _resolveMid().then(function(mid){
+      if (!mid) { deepToast('Please sign in first'); return; }
+      fetch(WORKER_URL + '/deep-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ member_id: mid, pack: pack }) })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if (d && d.url) { window.location.href = d.url; } else { deepToast(d && d.error === 'pack not configured' ? 'Deep packs open soon' : 'Could not start checkout'); } })
+        .catch(function(){ deepToast('Could not start checkout'); });
+    });
+  }
+  // On the paid return (?deep_claim=<session>), confirm + grant, then toast.
+  function claimDeepPurchase(){
+    var sid = null;
+    try { sid = new URLSearchParams(location.search).get('deep_claim'); } catch(_){}
+    if (!sid) return;
+    try { var u = new URL(location.href); u.searchParams.delete('deep_claim'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch(_){}
+    fetch(WORKER_URL + '/deep-claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d && d.ok) {
+          deepToast(d.already ? 'Deep searches already added ✓' : ('✓ Added ' + (d.granted || '') + ' deep searches'));
+          if (_isPro()) setDeep(true);
+          if (typeof d.remaining === 'number') updateDeepMeta({ deep: true, remaining: d.remaining, cap: d.cap });
+        } else { deepToast('Could not confirm purchase'); }
+      })
+      .catch(function(){});
   }
   // Restore prior state — only honor "on" for a Pro member.
   try { if (localStorage.getItem(DEEP_KEY) === '1' && _isPro()) _deep = true; } catch(_){}
@@ -1377,6 +1426,7 @@
       setDeep(!_deep);
     });
   }
+  claimDeepPurchase();   // handle a returning Stripe checkout on any overlay-loaded page
 
   // ── data loading (mirrors /search/) ────────────────────────────────
   var PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false, _loading = null;
