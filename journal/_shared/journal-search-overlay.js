@@ -3058,6 +3058,7 @@
   // Overview, and rebuilds the counts bar so the Projects tab appears. Never
   // overwrites real keyword/spine projects.
   function enrichSemanticProjects(q, token, artCount){
+    if (_answerOnly) { if (slotProjGrid) slotProjGrid.innerHTML = ''; return; }   // answer-only: no Related projects
     var Core = window.TmwSearchCore;
     if (!Core || !slotProjGrid || !Core.rankProjects) return;
     // Food & wellness are JOURNAL coverage, not project types — so semantic
@@ -4227,6 +4228,8 @@
   function renderArticleSection(q, token, opts){
     opts = opts || {};
     if (token !== _renderToken) return 0;
+    // Analytical/synthesis question → the LLM prose IS the answer; no journal list, no tabs.
+    if (_answerOnly) { slotArticles.innerHTML = ''; slotFilterPills.innerHTML = ''; return 0; }
     var Core = window.TmwSearchCore;
     var full = norm(q);
     var toks = tokenize(q);
@@ -4311,6 +4314,7 @@
   }
 
   function renderFilterPills(counts){
+    if (_answerOnly) return '';   // answer-only: no category tabs, just the prose
     var pills = [];
     pills.push('<button class="tmw-ov-fp active" type="button" data-filter="overview">Overview</button>');
     if (counts.projects > 0) {
@@ -4377,6 +4381,7 @@
   // and the old one rejoins the grid). Article heroes only — project-led queries
   // already track the DB lead, and a non-article id simply no-ops here.
   function applyIntelHero(heroId, heroDoc, q, token){
+    if (_answerOnly) { slotHero.innerHTML = ''; return; }   // analytical → prose only, no hero
     var id = String(heroId || '').trim(); if (!id) return;
     var a = null;
     for (var i = 0; i < ARTICLES.length; i++){
