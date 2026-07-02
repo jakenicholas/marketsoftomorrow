@@ -378,9 +378,9 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot{display:none}'
-    /* Hide the "TMW INTELLIGENCE" header row — the "i" info button (top-right of
-       the card) now carries the model attribution. The answer text leads. */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{display:none}'
+    /* Keep the "TMW INTELLIGENCE" header row on every response (Jake wants the
+       title on each answer). Compact spacing so it sits cleanly atop the card. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{display:flex;margin-bottom:10px}'
     /* hero → a compact thumbnail row: title + location only */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero{display:flex;min-height:0;box-shadow:none;border-radius:12px;margin-bottom:8px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .media{min-height:0;width:84px;flex:0 0 84px}'
@@ -2904,35 +2904,14 @@
     // latency; the classifier's `kind` steers routing below, with the heuristic
     // gates as fallback when it's null / low-confidence / times out.
     var _intentP = (Core && Core.classifyIntent) ? Core.classifyIntent(q) : Promise.resolve({ kind: null });
-    // Race classify against a short render deadline so the UI paints fast even
-    // when a fresh classify runs 1.5–3.5s. The full result is applied
-    // retroactively below (analytical → answer-only) so a slow first-run classify
-    // still suppresses the cards once it lands.
+    // Cap the classify wait so the UI paints fast even when a fresh classify runs
+    // 1.5–3.5s; routing falls back to the heuristic gates if it hasn't landed yet.
     var _classDeadline = new Promise(function (r) { setTimeout(function () { r({ kind: null, _timedout: true }); }, 1200); });
     var _renderIntentP = Promise.race([_intentP, _classDeadline]);
-    // Retroactive answer-only: when the true classification arrives (even after
-    // the render deadline), if it's an analytical question, clear any cards the
-    // fast render already painted and leave the LLM prose alone.
-    _intentP.then(function (real) {
-      if (token !== _renderToken) return;
-      var isA = !!(real && real.analytical && (real.confidence == null || real.confidence >= 0.6));
-      if (isA && !_answerOnly) {
-        _answerOnly = true;
-        try { sResults.setAttribute('data-answer-only', '1'); } catch (_) {}
-        try { slotHero.innerHTML = ''; slotProjGrid.innerHTML = ''; slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = ''; } catch (_) {}
-      }
-    });
     return Promise.all([loadData(), _renderIntentP]).then(function (_arr) {
       if (token !== _renderToken) return;
       var intent = _arr[1] || { kind: null };
       var _ik = (intent && (intent.confidence == null || intent.confidence >= 0.6)) ? intent.kind : null;
-      // ANSWER-ONLY: an open-ended synthesis question (compare, why, "what's going
-      // on in X") wants written prose, not project/journal cards. The classifier
-      // flags these via `analytical`; when set (and confident), render the LLM
-      // answer alone — the CSS hides the hero, Related-projects, From-the-journal,
-      // and the count tabs. Never for a plain lookup (a place/firm/project name).
-      _answerOnly = !!(intent && intent.analytical && (intent.confidence == null || intent.confidence >= 0.6));
-      try { sResults.setAttribute('data-answer-only', _answerOnly ? '1' : '0'); } catch (_) {}
       try {
       // ── PHASE 2B: structured smart query ─────────────────────────────
       // Try parseSmartQuery FIRST — if the query has enough structure
@@ -3122,12 +3101,19 @@
     var bio = Core.rankProjects(q, PROJECTS, { kind: 'concept', place: _place });
     if (bio && !bio.semantic && bio.rows.length) { paint(bio.rows.map(function (x) { return x.p; })); return; }
 
-    // STRICT: only the bio-EXACT (verbatim phrase) match above qualifies as a
-    // "clear hit." The pure-semantic fallback — fetching loosely related slugs and
-    // rendering them — is exactly the "throw random stuff at them" behavior we're
-    // killing: cards supplement the answer only on a genuine match, and we can't
-    // track every project on earth, so when there's no exact hit the prose stands
-    // alone rather than reaching for a tangential card. (Re-enable if recall > precision.)
+    // Semantic fallback — fetch related slugs, then rank them through the SAME
+    // retriever (place-scoped) so the render is identical. Topic-clean the query
+    // first so the topic drives recall, not "around the world". Place-scoped so a
+    // semantic neighbor in the wrong place never surfaces.
+    if (!Core.semanticSearch) return;
+    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
+      .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
+      .replace(/\s+/g, ' ').trim();
+    Core.semanticSearch(topicQ || q).then(function (sem) {
+      if (token !== _renderToken) return;
+      var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [], place: _place });
+      paint(r ? r.rows.map(function (x) { return x.p; }) : []);
+    }).catch(function () {});
   }
 
   function pickTitleScopedProject(q, rows){
@@ -4347,12 +4333,12 @@
     if (counts.firms > 0) {
       pills.push('<button class="tmw-ov-fp" type="button" data-filter="firms">Firms &amp; Places <span class="tmw-ov-fp-n">'+counts.firms+'</span></button>');
     }
-    // STRICT: the Journal tab appears only when stories genuinely matched — no
-    // empty tab that leads to a browse-fallback dump. Cards are a supplement to
-    // the answer, shown when there's a real hit, not by default.
-    if (counts.articles > 0) {
-      pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Journal <span class="tmw-ov-fp-n">'+counts.articles+'</span></button>');
-    }
+    // Journal tab is always present (Jake wants the Overview / Journal / Projects
+    // tabs); the COUNT is shown only when stories matched, and the content under it
+    // is curated to real topical hits (see articleHasTextHit) so it's not a dump.
+    pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Journal'
+      + (counts.articles > 0 ? ' <span class="tmw-ov-fp-n">'+counts.articles+'</span>' : '')
+      + '</button>');
     // Don't render the row if there's only "All" (no categories to filter to)
     if (pills.length < 2) return '';
     return '<div class="tmw-ov-fp-row">' + pills.join('') + '</div>';
@@ -4522,7 +4508,10 @@
     var v = (input.value || '').trim();
     // .ready makes the submit button light up gold + show the Enter kbd hint.
     if (go) go.classList.toggle('ready', v.length >= 2);
-    if (!v) setState('starter');
+    // Emptying the box (e.g. backspacing out a query) must NOT snap back to the
+    // starter/home suggestions once a conversation exists — that yanked the user
+    // to the top of the page. Only fall back to the starter on a fresh session.
+    if (!v && (!_thread || !_thread.length)) setState('starter');
   }
 
   // navigateToSearch removed: the overlay IS the search experience now
