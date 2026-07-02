@@ -8490,7 +8490,13 @@ async function handleSmartAnswer(request, env, origin) {
     const reqBody = {
       model: SMART_ANSWER_MODEL,
       max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
-      system: useWeb ? (system + WEB_CLAUSE) : system,
+      // PROMPT CACHING — the system prompt (directives + learned rules + exemplars)
+      // is identical across every query for ~5 min (rules change ~daily), while the
+      // per-query facts live in the user message below. Marking system as a cached
+      // block means every unique search after the first re-reads the system prefix
+      // at 0.1x input price instead of full — the bulk of this endpoint's spend.
+      // GA, no beta header; under the 1024-token min it silently no-ops.
+      system: [{ type: 'text', text: useWeb ? (system + WEB_CLAUSE) : system, cache_control: { type: 'ephemeral' } }],
       messages: history.flatMap(t => ([
         { role: 'user', content: t.q },
         { role: 'assistant', content: t.answer },
