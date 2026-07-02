@@ -319,7 +319,12 @@
     var p = new Promise(function (resolve) {
       var done = false;
       function fin(v) { if (!done) { done = true; resolve(v && typeof v === 'object' ? v : { kind: null }); } }
-      var to = setTimeout(function () { fin({ kind: null }); }, 1200);
+      // Hard cap only (was 1200ms, which discarded the REAL classification when a
+      // fresh Haiku call ran 1.5–3.5s — so late-arriving signals like `analytical`
+      // were lost on a query's first run). The CALLER races this against its own
+      // short render deadline so the UI still paints fast; this promise resolves
+      // with the true result whenever it lands, for retroactive refinement.
+      var to = setTimeout(function () { fin({ kind: null }); }, 6000);
       fetch(WORKER_URL + '/classify?q=' + encodeURIComponent(q))
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) { clearTimeout(to); fin(j); })

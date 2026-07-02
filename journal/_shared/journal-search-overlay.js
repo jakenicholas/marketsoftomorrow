@@ -2894,7 +2894,25 @@
     // latency; the classifier's `kind` steers routing below, with the heuristic
     // gates as fallback when it's null / low-confidence / times out.
     var _intentP = (Core && Core.classifyIntent) ? Core.classifyIntent(q) : Promise.resolve({ kind: null });
-    return Promise.all([loadData(), _intentP]).then(function (_arr) {
+    // Race classify against a short render deadline so the UI paints fast even
+    // when a fresh classify runs 1.5–3.5s. The full result is applied
+    // retroactively below (analytical → answer-only) so a slow first-run classify
+    // still suppresses the cards once it lands.
+    var _classDeadline = new Promise(function (r) { setTimeout(function () { r({ kind: null, _timedout: true }); }, 1200); });
+    var _renderIntentP = Promise.race([_intentP, _classDeadline]);
+    // Retroactive answer-only: when the true classification arrives (even after
+    // the render deadline), if it's an analytical question, clear any cards the
+    // fast render already painted and leave the LLM prose alone.
+    _intentP.then(function (real) {
+      if (token !== _renderToken) return;
+      var isA = !!(real && real.analytical && (real.confidence == null || real.confidence >= 0.6));
+      if (isA && !_answerOnly) {
+        _answerOnly = true;
+        try { sResults.setAttribute('data-answer-only', '1'); } catch (_) {}
+        try { slotHero.innerHTML = ''; slotProjGrid.innerHTML = ''; slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = ''; } catch (_) {}
+      }
+    });
+    return Promise.all([loadData(), _renderIntentP]).then(function (_arr) {
       if (token !== _renderToken) return;
       var intent = _arr[1] || { kind: null };
       var _ik = (intent && (intent.confidence == null || intent.confidence >= 0.6)) ? intent.kind : null;
