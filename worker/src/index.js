@@ -8024,6 +8024,7 @@ async function handleClassify(req, env, origin) {
           status: typeof parsed.status === 'string' ? parsed.status : null,
           sort: typeof parsed.sort === 'string' ? parsed.sort : null,
           isQuestion: !!parsed.isQuestion,
+          analytical: !!parsed.analytical,
           confidence: typeof parsed.confidence === 'number' ? parsed.confidence : null,
         };
       }

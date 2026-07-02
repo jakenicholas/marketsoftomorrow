@@ -761,6 +761,11 @@ const TOOLS = [
     description: 'Journal engagement from GA4 over the last N days (default 28): counts for the custom journal events (jrn_partner, jrn_share, jrn_post_open, jrn_outbound, jrn_map, jrn_mediakit) and newsletter signups (subscribe_home, subscribe_article), plus the top events overall.',
     inputSchema: { type: 'object', properties: { days: { type: 'integer', description: 'Look-back window in days (default 28, max 365)' } } },
   },
+  {
+    name: 'list_content_gaps',
+    description: 'The CONTENT-GAP backlog — what people actually ASK Onyx (TMW Intelligence) where our coverage is thin or empty. Reads the real search/answer logs and returns `gaps` (queries asked repeatedly but with little or no matching coverage — PRIORITIZE these when choosing what to WRITE in daily-articles or what to SCOUT in project-discovery) and `demand` (the most-asked queries overall, whatever the coverage). Call this at the START of a content run so real audience demand steers the topic picks instead of guessing. No admin token needed.',
+    inputSchema: { type: 'object', properties: { days: { type: 'number', description: 'Look-back window in days (default 30, max 120).' }, limit: { type: 'number', description: 'Max gaps to return (default 25).' } } },
+  },
 
   // ── Brand brain (shared house style / taste, updates for both accounts) ──────
   {
@@ -3285,6 +3290,51 @@ const IMPL = {
     const all = (data.rows || []).map((row) => ({ event: row.dimensionValues[0].value, count: Number(row.metricValues[0].value || 0), users: Number(row.metricValues[1].value || 0) }));
     const journal = all.filter((e) => /^jrn_|^subscribe_/.test(e.event));
     return { range_days: days, journal_events: journal, journal_total: journal.reduce((s, e) => s + e.count, 0), top_events: all.slice(0, 40) };
+  },
+
+  // The content-gap backlog — what people ask Onyx where our coverage is thin.
+  // Aggregates the intel_answer + search_feedback event logs so a content routine
+  // can steer topic picks by real demand instead of guessing. Part of the shared
+  // learning loop (question → content).
+  async list_content_gaps(args, env) {
+    if (!env.DB) throw new Error('D1 not configured');
+    const days = Math.min(Math.max(parseInt(args.days, 10) || 30, 1), 120);
+    const limit = Math.min(Math.max(parseInt(args.limit, 10) || 25, 1), 100);
+    const since = Math.floor(Date.now() / 1000) - days * 86400;
+    let rows = [];
+    try {
+      rows = (await env.DB.prepare(
+        `SELECT ts, event_name, props_json FROM events WHERE event_name IN ('intel_answer','search_feedback') AND ts >= ?1 ORDER BY ts ASC`
+      ).bind(since).all()).results || [];
+    } catch (_) { rows = []; }
+    const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const agg = new Map();   // normalized query → rollup
+    for (const r of rows) {
+      let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+      const key = norm(p.q); if (!key || key.length < 3) continue;
+      let e = agg.get(key);
+      if (!e) { e = { query: p.q, asked: 0, cov_sum: 0, cov_n: 0, empty: 0, last: 0, place: p.place || '' }; agg.set(key, e); }
+      e.asked++; e.last = Math.max(e.last, r.ts);
+      if (r.event_name === 'intel_answer') { const c = Number(p.count); if (Number.isFinite(c)) { e.cov_sum += c; e.cov_n++; } }
+      if (r.event_name === 'search_feedback' && (p.result_kind === 'empty' || Number(p.results) === 0)) e.empty++;
+      if (p.place && !e.place) e.place = p.place;
+    }
+    const list = [...agg.values()].map((e) => ({
+      query: e.query, times_asked: e.asked,
+      coverage: e.cov_n ? Math.round((e.cov_sum / e.cov_n) * 10) / 10 : null,
+      empty_results: e.empty > 0, last_asked: iso(e.last), place: e.place || undefined,
+    }));
+    // Gaps = asked repeatedly but thin/empty coverage; rank by demand then thinness.
+    const gaps = list
+      .filter((x) => x.empty_results || (x.coverage != null && x.coverage <= 2))
+      .sort((a, b) => (b.times_asked - a.times_asked) || ((a.coverage == null ? 0 : a.coverage) - (b.coverage == null ? 0 : b.coverage)))
+      .slice(0, limit);
+    const demand = [...list].sort((a, b) => b.times_asked - a.times_asked).slice(0, Math.min(15, limit));
+    return {
+      range_days: days, total_queries_seen: list.length, gap_count: gaps.length,
+      gaps, demand,
+      how_to_use: 'gaps = topics people ASK Onyx about where our coverage is thin or empty — prioritize these when choosing what to WRITE (daily-articles) or SCOUT (project-discovery). demand = the most-asked queries overall. Use real audience demand to steer topic picks; still apply the on-brand/luxury quality bar.',
+    };
   },
 
   // ── Brand brain ─────────────────────────────────────────────────────────────

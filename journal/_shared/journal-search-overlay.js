@@ -305,6 +305,15 @@
     + '[data-state="results"][data-filter="projects"] [data-cat]:not([data-cat="projects"]){display:none}'
     + '[data-state="results"][data-filter="firms"] [data-cat]:not([data-cat="firms"]){display:none}'
     + '[data-state="results"][data-filter="articles"] [data-cat]:not([data-cat="articles"]){display:none}'
+    /* ANSWER-ONLY — for analytical/synthesis questions (compare, why, "what\'s
+       going on in X") the LLM prose IS the answer; suppress the hero card,
+       Related-projects, From-the-journal, Firms, and the count tabs so a
+       semi-arbitrary card doesn\'t cheapen a written answer. */
+    + '[data-state="results"][data-answer-only="1"] .tmw-ov-hero,'
+    + '[data-state="results"][data-answer-only="1"] [data-cat="projects"],'
+    + '[data-state="results"][data-answer-only="1"] [data-cat="articles"],'
+    + '[data-state="results"][data-answer-only="1"] [data-cat="firms"],'
+    + '[data-state="results"][data-answer-only="1"] [data-slot="filter-pills"]{display:none !important}'
     /* The Intelligence answer (+ "understood as" chips) lives in the intel-cta
        slot, which has no data-cat — so the rules above never touch it. Hide it
        explicitly whenever a non-Intelligence category filter is active, so
@@ -2410,6 +2419,7 @@
   }
 
   var _renderToken = 0;
+  var _answerOnly = false;   // analytical/synthesis question → render the LLM prose only, no cards/tabs
   // Separate token for the LLM call so a slow /smart-answer response
   // for query N doesn't paint over the loading shell of query N+1.
   var _intelToken = 0;
@@ -2845,6 +2855,8 @@
     if (!q) { setState('starter'); return; }
 
     var token = ++_renderToken;
+    _answerOnly = false;   // clear any prior analytical query; re-decided after classify
+    try { sResults.setAttribute('data-answer-only', '0'); } catch (_) {}
     setState('thinking');
     // Reset the thumbs row for the incoming query so a previous vote
     // doesn't bleed across. _lastQuery / _lastResultsTotal / _lastResultKind
@@ -2886,6 +2898,13 @@
       if (token !== _renderToken) return;
       var intent = _arr[1] || { kind: null };
       var _ik = (intent && (intent.confidence == null || intent.confidence >= 0.6)) ? intent.kind : null;
+      // ANSWER-ONLY: an open-ended synthesis question (compare, why, "what's going
+      // on in X") wants written prose, not project/journal cards. The classifier
+      // flags these via `analytical`; when set (and confident), render the LLM
+      // answer alone — the CSS hides the hero, Related-projects, From-the-journal,
+      // and the count tabs. Never for a plain lookup (a place/firm/project name).
+      _answerOnly = !!(intent && intent.analytical && (intent.confidence == null || intent.confidence >= 0.6));
+      try { sResults.setAttribute('data-answer-only', _answerOnly ? '1' : '0'); } catch (_) {}
       try {
       // ── PHASE 2B: structured smart query ─────────────────────────────
       // Try parseSmartQuery FIRST — if the query has enough structure
@@ -2950,6 +2969,10 @@
           .filter(function (t) { return _placeStr.indexOf(t) < 0 && !_descr.test(t); });
         if (_toks.length >= 2) { _conceptQ = true; smart = null; }
       }
+      // Analytical/synthesis question → the LLM prose IS the answer. Force the
+      // text/Intelligence path (never a structured project readout) so we always
+      // produce written prose to show after the cards are suppressed.
+      if (_answerOnly) smart = null;
       if (smart) {
         renderStructuredSmart(q, smart, token);
         return;
