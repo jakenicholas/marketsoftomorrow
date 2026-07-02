@@ -409,6 +409,20 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .tmw-ov-specs{display:flex}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .tmw-ov-byline{display:block}'
     + '@media(max-width:700px){[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero{grid-template-columns:1fr}[data-state="results"][data-filter="overview"] .tmw-ov-exacthero .tmw-ov-hero .media{min-height:200px}}'
+    /* JOURNAL HERO — one big full-width story card (like the project hero), never
+       the compact thumbnail row. Mirrors the exact-hero rules for .tmw-ov-arthero. */
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero{display:grid;grid-template-columns:1.05fr 1fr;margin-bottom:0;border-radius:18px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .media{width:auto;flex:initial;min-height:330px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .media .scrim{display:block}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .media .besttag{display:inline-flex}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .body{padding:26px 30px;gap:12px;justify-content:flex-start}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .body h2{font-size:28px}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .desc{display:block}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .tmw-ov-byline{display:block}'
+    + '@media(max-width:700px){[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero{grid-template-columns:1fr}[data-state="results"][data-filter="overview"] .tmw-ov-arthero .tmw-ov-hero .media{min-height:200px}}'
+    /* OVERVIEW journal = the single hero tile only. The full "From the journal"
+       LIST lives in the Journal tab, never stacked under the hero on overview. */
+    + '[data-state="results"][data-filter="overview"] [data-slot="articles-grid"]{display:none}'
     /* sections → tight, with small de-emphasized labels (no big serif headers) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec{margin-bottom:18px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:last-child{margin-bottom:0}'
@@ -416,11 +430,11 @@
        From the journal, …) so they stop cramming against the hero/section above.
        The hero section has no .tmw-ov-sec-head, so it never gets a top rule. */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec:has(> .tmw-ov-sec-head){border-top:1px solid rgba(255,255,255,.08);padding-top:20px}'
-    /* PROJECTS-FIRST: when 3+ projects matched (data-projfirst), the overview
-       leads with the answer + project cards only — journal tiles are hidden here
-       (the Journal pill still opens them). Projects are the database core; when we
-       have a real set, they outrank journal coverage on the default view. */
-    + '[data-state="results"][data-filter="overview"][data-projfirst="1"] [data-cat="articles"]{display:none}'
+    /* PROJECTS-FIRST: the overview journal LIST is always hidden (above); this
+       rule is kept scoped to the list slot so it never hides the single journal
+       HERO tile — the overview shows up to 3 project cards + one big story hero,
+       and the rest of the stories live in the Journal tab. */
+    + '[data-state="results"][data-filter="overview"][data-projfirst="1"] [data-slot="articles-grid"]{display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head{margin-bottom:12px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-sec-head h3,'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
@@ -4020,12 +4034,15 @@
       var heroHtml = '';
       var heroCat = 'projects';
       if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
-      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = '<div class="tmw-ov-grid">' + renderArticlePCard(heroArticle) + '</div>'; heroCat = 'articles'; }
+      else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); heroCat = 'articles'; }
       else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm);       heroCat = 'firms'; }
       // Perfect database match (exact project name) → render the FULL hero card,
-      // not the compacted overview row.
+      // not the compacted overview row. A journal hero is ALWAYS the full card
+      // (Jake: one big full-width story tile like the project hero; the rest of
+      // the stories live in the Journal tab).
       var _fullHero = !!(hero.kind === 'project' && typeof _exactName !== 'undefined' && _exactName);
-      slotHero.innerHTML = '<div class="tmw-ov-sec'+(_fullHero ? ' tmw-ov-exacthero' : '')+'" data-cat="'+heroCat+'">' + heroHtml + '</div>';
+      var _heroClass = _fullHero ? ' tmw-ov-exacthero' : (heroCat === 'articles' ? ' tmw-ov-arthero' : '');
+      slotHero.innerHTML = '<div class="tmw-ov-sec'+_heroClass+'" data-cat="'+heroCat+'">' + heroHtml + '</div>';
     } else {
       slotHero.innerHTML = '';
     }
@@ -4408,7 +4425,7 @@
     }
     if (!a || a === _heroArticleRef) return;
     _heroArticleRef = a;
-    slotHero.innerHTML = '<div class="tmw-ov-sec" data-cat="articles"><div class="tmw-ov-grid">' + renderArticlePCard(a) + '</div></div>';
+    slotHero.innerHTML = '<div class="tmw-ov-sec tmw-ov-arthero" data-cat="articles">' + renderArticleHero(a) + '</div>';
     try { renderArticleSection(q, token, { fromBodyMerge: true }); } catch(_){}
   }
 
