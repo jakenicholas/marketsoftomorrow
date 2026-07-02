@@ -20071,7 +20071,7 @@
     // ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
     // TWO-TIER PAYWALL
     //   ‚Ä¢ Anonymous users: 5 clicks ‚Üí email signup wall
-    //   ‚Ä¢ Free signed-in users: 30 clicks ‚Üí subscription paywall ($9/mo or $90/yr)
+    //   ‚Ä¢ Free signed-in users: 30 clicks ‚Üí subscription paywall ($15/mo or $150/yr)
     //   ‚Ä¢ Paid subscribers: unlimited
     // Click count for signed-in users persists on Memberstack member record,
     // so closing tabs / opening incognito doesn't reset it.
@@ -20086,8 +20086,8 @@
       // fresh localStorage counter) and gets free clicks per refresh.
       const AUTH_HINT_KEY = 'mot_auth_hint';   // 'anon' | 'free' | 'paid'
       const MEMBER_COUNT_CACHE_KEY = 'mot_member_count'; // last-known memberClickCount
-      const PRICE_ID_MONTHLY = 'prc_pro-monthly-14-trial-np2506az';
-      const PRICE_ID_ANNUAL  = 'prc_pro-annual-14-day-trial-g82f0quh';
+      const PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-07--96gd0r24';   // $15/mo, 14-day trial
+      const PRICE_ID_ANNUAL  = 'prc_pro-annual-2026-07--lnjj078s';    // $150/yr, 14-day trial
       const MEMBER_FIELD = 'clickCount';  // Memberstack custom field name
 
       // ── 24-hour preview window (replaces the old click-count gating) ──────
@@ -20437,12 +20437,12 @@
               <button class="paywall-plan paywall-plan-annual" data-price-id="${PRICE_ID_ANNUAL}">
                 <div class="paywall-plan-tag">BEST VALUE</div>
                 <div class="paywall-plan-name">Annual</div>
-                <div class="paywall-plan-price">$90<span class="paywall-plan-per">/year</span></div>
-                <div class="paywall-plan-note">$7.50/month &middot; save 17% &middot; 14 days free</div>
+                <div class="paywall-plan-price">$150<span class="paywall-plan-per">/year</span></div>
+                <div class="paywall-plan-note">$12.50/month &middot; save 17% &middot; 14 days free</div>
               </button>
               <button class="paywall-plan paywall-plan-monthly" data-price-id="${PRICE_ID_MONTHLY}">
                 <div class="paywall-plan-name">Monthly</div>
-                <div class="paywall-plan-price">$9<span class="paywall-plan-per">/month</span></div>
+                <div class="paywall-plan-price">$15<span class="paywall-plan-per">/month</span></div>
                 <div class="paywall-plan-note">14 days free</div>
               </button>
             </div>
@@ -20461,13 +20461,13 @@
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Unlimited article commenting</div>
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Suggest project edits (coming soon)</div>
               <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Openings Tracker &amp; Watchlist</div>
-              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Founder member status, number &amp; rewards</div>
+              <div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span>Pro member status, number &amp; rewards</div>
             </div>
             <!-- Founding-member callout: rate-lock pitch, time-limited.
                  Sits between the feature list and the sign-in link. -->
             <div class="paywall-founding">
-              <span class="paywall-founding-eyebrow">Become a Founding Member</span>
-              <span class="paywall-founding-body">Rate locked for life, before July 2026.</span>
+              <span class="paywall-founding-eyebrow">TMW Pro</span>
+              <span class="paywall-founding-body">Full access to the Map, TMW Intelligence, and the Journal. Cancel anytime.</span>
             </div>
             <div class="paywall-signin" id="subPaywallSigninWrap">
               Already a subscriber? <a href="#" id="subPaywallSigninLink">Sign in</a>
@@ -20517,7 +20517,7 @@
           'Unlimited article commenting',
           'Suggest project edits (coming soon)',
           'Openings Tracker &amp; Watchlist',
-          'Founder member status, number &amp; rewards',
+          'Pro member status, number &amp; rewards',
         ];
         const proFeatureRows = proFeatures.map(label =>
           `<div class="paywall-feature">
@@ -20547,8 +20547,8 @@
                  Reinforces the time-limited rate-lock pitch even at the
                  anon-signup stage. -->
             <div class="paywall-founding">
-              <span class="paywall-founding-eyebrow">Become a Founding Member</span>
-              <span class="paywall-founding-body">Rate locked for life, before July 2026.</span>
+              <span class="paywall-founding-eyebrow">TMW Pro</span>
+              <span class="paywall-founding-body">Full access to the Map, TMW Intelligence, and the Journal. Cancel anytime.</span>
             </div>
             <div class="paywall-signin">
               Already have an account? <a href="#" id="signupWallSigninLink">Sign in</a>

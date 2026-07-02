@@ -233,7 +233,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       <p>The world&rsquo;s smartest news network for luxury development and hospitality. A real-time database of every major project, powered by <em>TMW Intelligence</em>, our AI that forecasts what&rsquo;s coming to the markets you care about.</p>
       <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network &mdash; reaching millions monthly &mdash; now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
       <p>Follow cities, track architects and developers, stay ahead of the openings that matter. Everywhere.</p>
-      <p class="join" id="joinNow" role="button" tabindex="0">Join now to become a founder member at $9/mo or $90/yr &mdash; before July 1st</p>
+      <p class="join" id="joinNow" role="button" tabindex="0">Go Pro &mdash; $15/mo or $150/yr, free for 2 weeks</p>
     </div>
   </div></section>
 
@@ -292,9 +292,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <a class="pc-btn ghost" href="/">Keep reading</a>
       </div>
       <div class="price-card feat reveal d2">
-        <div class="pc-flag">Founder pricing · before July 1st</div>
+        <div class="pc-flag">2 weeks free</div>
         <div class="pc-name">TMW Pro</div>
-        <div class="pc-price"><span class="amt">$9</span><span class="per">/mo</span><span class="alt">or $90/yr</span></div>
+        <div class="pc-price"><span class="amt">$15</span><span class="per">/mo</span><span class="alt">or $150/yr</span></div>
         <div class="pc-sub">The full intelligence layer.</div>
         <ul class="pc-feat">
           <li>Unlock the Development Map &amp; Atlas</li>
@@ -307,7 +307,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
           <li>Unlimited article commenting</li>
           <li>Suggest project edits (coming soon)</li>
           <li>Openings Tracker &amp; Watchlist</li>
-          <li>Founder member status, number &amp; rewards</li>
+          <li>Pro member status, number &amp; rewards</li>
         </ul>
         <button class="pc-btn gold" type="button" id="priceGoPro">Go Pro</button>
       </div>
@@ -405,7 +405,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 </script>
 <script>
 (function(){
-  var caps=['TMW Intelligence','AI Forecasts','The Interactive Map','The Atlas','Watchlist','Compare','Openings Tracker','40+ Markets','Momentum Scores','Developer Tracking','Coverage Depth','Founder Status'];
+  var caps=['TMW Intelligence','AI Forecasts','The Interactive Map','The Atlas','Watchlist','Compare','Openings Tracker','40+ Markets','Momentum Scores','Developer Tracking','Coverage Depth','Pro Status'];
   var tk=document.getElementById('proTicker'); if(tk){ var row=caps.map(function(c){return '<span class="tk">'+c+'</span>';}).join(''); tk.innerHTML=row+row; }
   if('IntersectionObserver' in window){ var rio=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); rio.unobserve(en.target); } }); },{threshold:.12, rootMargin:'0px 0px -8% 0px'}); document.querySelectorAll('.reveal').forEach(function(el){ rio.observe(el); }); }
   else { document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); }); }

@@ -133,7 +133,7 @@
     'Unlimited article commenting',
     'Suggest project edits (coming soon)',
     'Openings Tracker &amp; Watchlist',
-    'Founder member status, number &amp; rewards'
+    'Pro member status, number &amp; rewards'
   ];
 
   function build() {
