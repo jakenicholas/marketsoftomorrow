@@ -398,15 +398,17 @@ footer .tmw-wordmark{width:118px}
    + no tap-highlight + hover gated to hover-capable devices so a mobile tap
    opens on the FIRST touch instead of just applying a hover state. */
 .article-intel .ai-expand{position:absolute; right:0; bottom:0; display:inline-flex; align-items:center; justify-content:center;
-  width:30px; height:30px; padding:0; appearance:none; cursor:pointer; border-radius:50%;
-  background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.36); color:var(--purple-glow);
+  width:24px; height:24px; padding:0; appearance:none; cursor:pointer; border-radius:50%;
+  background:rgba(167,139,250,.07); border:1px solid rgba(167,139,250,.26); color:var(--purple-glow);
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-  box-shadow:0 0 10px rgba(167,139,250,.18); transition:background .18s, border-color .18s, color .18s}
+  transition:background .18s, border-color .18s, color .18s}
 .article-intel .ai-expand svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;
-  transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 1.5s ease-in-out infinite}
-@media(hover:hover){ .article-intel .ai-expand:hover{background:rgba(167,139,250,.24); border-color:var(--purple); color:#fff} }
+  transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 1.6s ease-in-out infinite}
+@media(hover:hover){ .article-intel .ai-expand:hover{background:rgba(167,139,250,.18); border-color:var(--purple); color:#fff} }
 .article-intel.ai-open .ai-expand svg{transform:rotate(180deg); animation:none}
-@keyframes ai-caret-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
+/* Symmetric bob: rest at center (0/50/100%), equal excursion up (25%) and down
+   (75%) — no dwell above the line. */
+@keyframes ai-caret-bob{0%,50%,100%{transform:translateY(0)}25%{transform:translateY(-3px)}75%{transform:translateY(3px)}}
 /* Collapsible region — grid-rows 0fr→1fr animates height without a fixed max,
    so a loaded Onyx answer grows naturally when open. */
 .article-intel .ai-more{display:grid; grid-template-rows:0fr; opacity:0;
@@ -421,7 +423,7 @@ footer .tmw-wordmark{width:118px}
    gutter) so it never takes its own row; it stays put collapsed or open. */
 @media(max-width:700px){
   .article-intel{padding:15px 17px 14px}
-  .article-intel .ai-tldr{margin-bottom:0; padding-right:44px}
+  .article-intel .ai-tldr{margin-bottom:0; padding-right:38px}
   .article-intel .ai-sum{display:flex; flex-direction:column}
   /* gap above the bullets when expanded — lives inside the collapsed region so
      it only appears once open (the caret rides the paragraph's last line). */
@@ -430,8 +432,8 @@ footer .tmw-wordmark{width:118px}
     transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1), opacity .3s ease}
   .article-intel .ai-takes-c > .ai-takes{overflow:hidden}
   .article-intel.ai-open .ai-takes-c{grid-template-rows:1fr; opacity:1}
-  /* pull the caret up onto the paragraph's last line (into the gutter); bigger
-     38px circle = a comfortable touch target, z-index so the tap always lands. */
-  .article-intel .ai-expand{position:relative; z-index:2; order:0; align-self:flex-end; width:38px; height:38px; margin:-34px 0 0}
-  .article-intel .ai-expand svg{width:19px; height:19px}
+  /* pull the caret up onto the paragraph's last line (into the gutter); z-index
+     so the tap always lands over the paragraph text. */
+  .article-intel .ai-expand{position:relative; z-index:2; order:0; align-self:flex-end; width:30px; height:30px; margin:-27px 0 0}
+  .article-intel .ai-expand svg{width:17px; height:17px}
 }
