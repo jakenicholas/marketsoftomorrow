@@ -7982,6 +7982,14 @@ async function handleJournalActive(env, origin) {
 // { answer: null } with 200, and the page keeps its deterministic answer.
 const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality balance on this public endpoint
 
+// Onyx DEEP (Pro) — same model as the standard answer, because the value of a
+// deep search is the WIDE context (reasoning over a large matched set), not a
+// pricier model: Sonnet 4.6 carries the same 1M window at ~1/3 of Fable's cost.
+// Deep widens retrieval and lifts the length cap into a full analyst brief. A
+// rolling per-member monthly cap keeps the wide-context spend bounded.
+const DEEP_ANSWER_MODEL = SMART_ANSWER_MODEL;
+const DEEP_MONTHLY_CAP = 12;   // deep searches per member per rolling 30 days
+
 // ═══ Shared "TMW brain" layer ════════════════════════════════════════════════
 // One authoring model + one cross-system knowledge READ + one review-gated WRITE
 // bus, shared by Onyx, the Studio connector (article write/revise + Make-post),
@@ -8328,6 +8336,41 @@ async function handleSmartAnswer(request, env, origin) {
 
   if (!env.ANTHROPIC_API_KEY) return fail('no_key');
 
+  // DEEP MODE (Pro) — a Pro member flicked the Deep toggle. Same model, but a far
+  // WIDER retrieval + an expansive analyst brief instead of the 1-3 sentence
+  // answer. Gated to Pro client-side; here we key a rolling per-member monthly cap
+  // so the wide-context spend stays bounded. Over the cap we still answer, just in
+  // standard mode, and flag `capped` so the client can nudge toward next month.
+  const member = String(body.member || '').slice(0, 120).trim();
+  let deepMode = body.deep === true && !!member;
+  let deepUsed = 0, deepCapped = false;
+  if (deepMode) {
+    try {
+      const since = Math.floor(Date.now() / 1000) - 30 * 86400;
+      const r = await env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM events WHERE event_name='intel_deep' AND member_id=? AND ts>=?`
+      ).bind(member, since).first();
+      deepUsed = Number(r && r.n) || 0;
+    } catch { /* cap counting is best-effort — never blocks a deep answer */ }
+    if (deepUsed >= DEEP_MONTHLY_CAP) { deepMode = false; deepCapped = true; }
+  }
+  // Meta returned to the client (drives the "N of 12 left" counter + glow state).
+  const deepResp = () => ({
+    mode: deepMode ? 'deep' : 'standard',
+    deep: deepMode,
+    capped: deepCapped,
+    cap: DEEP_MONTHLY_CAP,
+    remaining: Math.max(0, DEEP_MONTHLY_CAP - deepUsed - (deepMode ? 1 : 0)),
+  });
+  // Count a deep answer against the member's monthly allowance (fresh or cached).
+  const logDeep = async () => {
+    if (!deepMode) return;
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), member, 'intel_deep', JSON.stringify({ q: q.slice(0, 200) })).run();
+    } catch { /* best-effort */ }
+  };
+
   // Compact + cap the facts so the prompt stays small and the cache key stable.
   const compact = {
     query: q,
@@ -8413,7 +8456,9 @@ async function handleSmartAnswer(request, env, origin) {
       const recallQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ').replace(/\s+/g, ' ').trim() || q;
       const [vec] = await embedTexts(env, [recallQ]);
       if (Array.isArray(vec)) {
-        const rq = await env.VECTORIZE.query(vec, { topK: 18, returnMetadata: 'all' });
+        // Deep mode pulls a MUCH wider net so the model can reason across the
+        // whole matched set (compare submarkets, group by status, spot patterns).
+        const rq = await env.VECTORIZE.query(vec, { topK: deepMode ? 120 : 18, returnMetadata: 'all' });
         const have = new Set((compact.top || []).map(t => String(t.id)));
         const ms = rq.matches || [];
         // PLACE LOCK: when the query resolved to a place, drop any recalled match
@@ -8428,16 +8473,18 @@ async function handleSmartAnswer(request, env, origin) {
           if (m.metadata && m.metadata.kind === 'article') return true;   // articles aren't geo-scoped here
           return _pc.indexOf(_ncity(m.metadata && m.metadata.city)) >= 0;
         };
-        // Real project/article matches the keyword pass missed — citeable.
+        // Real project/article matches the keyword pass missed — citeable. Deep
+        // mode keeps far more of them (and a slightly looser threshold) so the
+        // brief has real breadth to synthesize across.
         const rel = ms
-          .filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.62 && m.metadata.title && !have.has(String(m.metadata.slug)) && inPlace(m))
-          .slice(0, 6)
+          .filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= (deepMode ? 0.50 : 0.62) && m.metadata.title && !have.has(String(m.metadata.slug)) && inPlace(m))
+          .slice(0, deepMode ? 40 : 6)
           .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         if (rel.length) compact.related = rel;
         // Banked domain knowledge (Onyx self-study) — expert CONTEXT, not project facts.
         const bg = ms
           .filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
-          .slice(0, 3)
+          .slice(0, deepMode ? 10 : 3)
           .map(m => String(m.metadata.text).slice(0, 400));
         if (bg.length) compact.background = bg;
       }
@@ -8470,7 +8517,7 @@ async function handleSmartAnswer(request, env, origin) {
     }
   } catch { /* exemplars are optional */ }
 
-  const sig = await sha256Hex(SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars) + '|' + JSON.stringify(history));
+  const sig = await sha256Hex((deepMode ? 'deep|' : '') + SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars) + '|' + JSON.stringify(history));
   const cache = caches.default;
   const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
   try {
@@ -8480,7 +8527,8 @@ async function handleSmartAnswer(request, env, origin) {
       // Capture cache HITS too — otherwise popular repeat queries (which answer
       // from cache) never get logged and the review routine sees "no traffic".
       await logIntelAnswer(env, q, data.answer, compact);
-      return json({ answer: data.answer, hero: data.hero || null, heroDoc: data.heroDoc || null, cached: true }, {}, env, origin);
+      await logDeep();   // a cached deep answer still counts against the monthly cap
+      return json({ answer: data.answer, hero: data.hero || null, heroDoc: data.heroDoc || null, cached: true, ...deepResp() }, {}, env, origin);
     }
   } catch { /* cache miss path */ }
 
@@ -8629,6 +8677,11 @@ async function handleSmartAnswer(request, env, origin) {
     system += '\n\nPLACE LOCK — this query is specifically about ' + compact.place_name + '. EVERY project or development you name MUST be located in ' + compact.place_name + '. Never cite a project outside it, even one that seems related by brand, architect, or theme.';
   }
   system += '\n\n' + HERO_DIRECTIVE;
+  // DEEP MODE — lift the length cap into a full analyst brief that reasons across
+  // the wide matched set. All grounding rules above still hold without exception.
+  if (deepMode) {
+    system += '\n\nDEEP MODE — the reader is a Pro member who asked for an in-depth briefing, and `related` (plus `background`) carries an unusually WIDE set of real matches. IGNORE the 1-3 sentence limit: write a thorough, well-structured analyst brief of about 3-6 short paragraphs. Synthesize ACROSS the whole set — compare places and submarkets, group by status and asset type, state the count and the pattern, name the most significant projects and the notable outliers, and say plainly where the momentum is and where the risk sits. Obey EVERY grounding rule above without exception: hard figures (floors, units, keys, dates, dollars) only from `top`; `related` items may be cited by name, location, and status ONLY, never with invented numbers; never fabricate a project, figure, or date. Stay in clean prose paragraphs — no markdown, no bullets, no headers, no section labels. Still end with the trailing HERO: line.';
+  }
   // Conversation mode: the current query may be a follow-up to the prior turns
   // (provided as earlier messages). Resolve implicit references against them.
   if (history.length) {
@@ -8648,8 +8701,8 @@ async function handleSmartAnswer(request, env, origin) {
   let answer = null;
   try {
     const reqBody = {
-      model: SMART_ANSWER_MODEL,
-      max_tokens: 700,   // was 320 — a region overview ran long and got cut mid-sentence
+      model: deepMode ? DEEP_ANSWER_MODEL : SMART_ANSWER_MODEL,
+      max_tokens: deepMode ? 2400 : 700,   // deep = full analyst brief; standard was 320 (a region overview ran long)
       // PROMPT CACHING — the system prompt (directives + learned rules + exemplars)
       // is identical across every query for ~5 min (rules change ~daily), while the
       // per-query facts live in the user message below. Marking system as a cached
@@ -8698,10 +8751,13 @@ async function handleSmartAnswer(request, env, origin) {
   answer = answer
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/`+/g, '')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/\s*\n\s*/g, ' ')
-    .replace(/[ \t]{2,}/g, ' ')
-    .trim();
+    .replace(/^#{1,6}\s+/gm, '');
+  answer = deepMode
+    // Deep briefs are multi-paragraph — keep paragraph breaks (blank line between),
+    // just collapse single wraps and runs of blanks so the client can render <p>s.
+    ? answer.replace(/[ \t]*\n[ \t]*\n[ \t]*/g, '\n\n').replace(/([^\n])\n(?!\n)([^\n])/g, '$1 $2').replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+    // Standard answers collapse into the single clean paragraph the UI expects.
+    : answer.replace(/\s*\n\s*/g, ' ').replace(/[ \t]{2,}/g, ' ').trim();
   if (!answer) return fail('empty');
 
   // ── SELF-CHECK GUARD (best-effort) ──────────────────────────────────────
@@ -8754,8 +8810,9 @@ async function handleSmartAnswer(request, env, origin) {
   // Capture Q→A + the signals we had so the nightly intel-review routine can
   // critique sufficiency and learn. Deduped + best-effort; never blocks.
   await logIntelAnswer(env, q, answer, compact);
+  await logDeep();   // count this deep answer against the member's monthly cap
 
-  return json({ answer, hero, heroDoc }, {}, env, origin);
+  return json({ answer, hero, heroDoc, ...deepResp() }, {}, env, origin);
 }
 
 // ---------------------------------------------------------------------------

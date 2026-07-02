@@ -264,11 +264,15 @@
   // Returns a Promise that resolves to { ok, answer, error }. Caller is
   // responsible for debouncing keystrokes and discarding stale responses
   // via its own token check.
-  function askIntelligence(q, facts, history) {
+  function askIntelligence(q, facts, history, opts) {
+    opts = opts || {};
     var payload = { q: q, facts: facts };
     // history: prior turns [{q, answer}] (oldest→newest) so the worker can
     // resolve follow-ups + reference earlier answers. Omitted on a fresh thread.
     if (history && history.length) payload.history = history;
+    // Deep mode (Pro): wide-context analyst brief. `member` keys the monthly cap.
+    if (opts.deep) payload.deep = true;
+    if (opts.member) payload.member = opts.member;
     return fetch(WORKER_URL + '/smart-answer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -276,8 +280,15 @@
     })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
-      if (data && data.answer) return { ok: true, answer: data.answer, hero: data.hero || null };
-      return { ok: false, answer: null };
+      var meta = {
+        mode: (data && data.mode) || 'standard',
+        deep: !!(data && data.deep),
+        capped: !!(data && data.capped),
+        cap: (data && typeof data.cap === 'number') ? data.cap : 0,
+        remaining: (data && typeof data.remaining === 'number') ? data.remaining : null
+      };
+      if (data && data.answer) return Object.assign({ ok: true, answer: data.answer, hero: data.hero || null }, meta);
+      return Object.assign({ ok: false, answer: null }, meta);
     })
     .catch(function (e) { return { ok: false, answer: null, error: e }; });
   }

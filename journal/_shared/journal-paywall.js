@@ -227,7 +227,8 @@
       'feature:compare': ['Comparisons are a Pro feature', 'Stack any projects side by side across cities. Start your free 2-week trial.'],
       'feature:pulse': ['The live Pulse feed is a Pro feature', 'Follow every new project and milestone in real time. Start your free 2-week trial.'],
       'feature:watch': ['Watch this project', 'Watching is a Pro feature. Start your free 2-week trial to track updates and build your list.'],
-      'feature:share': ['Share with friends', 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.']
+      'feature:share': ['Share with friends', 'Sharing projects is a Pro feature. Start your free 2-week trial to send any development to your network.'],
+      'feature:deep': ['Deep search is a Pro feature', 'Onyx Deep reasons across the entire pipeline at once — a full analyst brief, not a one-line answer. Start your free 2-week trial to unlock it.']
     };
     if (titleEl && subEl) {
       var c = map[ctx];

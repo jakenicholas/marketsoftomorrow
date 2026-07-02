@@ -154,7 +154,7 @@
     + '.tmw-ov-hxs-ring{transform-origin:50% 50%;animation:tmwOvHxsRing 4.2s ease-out infinite}'
     + '@media(prefers-reduced-motion:reduce){.tmw-ov-hxs-spin,.tmw-ov-hxs-ring{animation:none}.tmw-ov-hxs-ring{opacity:0}}'
 
-    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 120px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}'
+    + '.tmw-ov-body{flex:1;overflow-y:auto;padding:8px 0 120px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;position:relative;z-index:1}'
     + '.tmw-ov-body::-webkit-scrollbar{width:8px}'
     + '.tmw-ov-body::-webkit-scrollbar-track{background:transparent}'
     + '.tmw-ov-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}'
@@ -690,6 +690,45 @@
     + '.tmw-ov-bar .go:not(.ready):hover{color:#ECEAE5;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.07)}'
     + '@keyframes tmwOvGoPulse{0%,100%{box-shadow:0 0 18px rgba(230,197,116,.45),0 0 4px rgba(230,197,116,.3)}50%{box-shadow:0 0 28px rgba(230,197,116,.65),0 0 8px rgba(230,197,116,.45)}}'
 
+    /* ─── DEEP MODE (Pro) — toggle chip + Gemini-style pulsing glow ─────── */
+    /* A big, soft, breathing aurora that fades in behind ALL overlay content
+       (starter homepage AND in-chat results) the moment Deep is flicked on. Two
+       blurred radial blooms drift + pulse; screen-blended over the dark scrim so
+       it reads as ambient light, not a shape. pointer-events:none — purely
+       decorative, never intercepts a click. */
+    + '.tmw-ov-glow{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity .7s ease}'
+    + '.tmw-ov-root[data-deep="1"] .tmw-ov-glow{opacity:1}'
+    + '.tmw-ov-glow b{position:absolute;border-radius:50%;filter:blur(72px);mix-blend-mode:screen;display:block}'
+    + '.tmw-ov-glow b.a{width:72vw;height:72vw;left:-12vw;bottom:-22vw;background:radial-gradient(circle,rgba(139,92,246,.60),rgba(139,92,246,0) 66%);animation:tmwOvGlowA 7s ease-in-out infinite}'
+    + '.tmw-ov-glow b.b{width:62vw;height:62vw;right:-14vw;bottom:-16vw;background:radial-gradient(circle,rgba(96,120,255,.46),rgba(96,120,255,0) 66%);animation:tmwOvGlowB 9s ease-in-out infinite}'
+    + '.tmw-ov-glow b.c{width:46vw;height:46vw;left:26vw;top:-18vw;background:radial-gradient(circle,rgba(185,166,255,.34),rgba(185,166,255,0) 68%);animation:tmwOvGlowC 11s ease-in-out infinite}'
+    + '@keyframes tmwOvGlowA{0%,100%{transform:translate(0,0) scale(1);opacity:.55}50%{transform:translate(6vw,-4vw) scale(1.24);opacity:.9}}'
+    + '@keyframes tmwOvGlowB{0%,100%{transform:translate(0,0) scale(1.05);opacity:.42}50%{transform:translate(-5vw,-6vw) scale(1.3);opacity:.72}}'
+    + '@keyframes tmwOvGlowC{0%,100%{transform:translate(0,0) scale(1);opacity:.3}50%{transform:translate(-4vw,5vw) scale(1.22);opacity:.6}}'
+    + '@media(prefers-reduced-motion:reduce){.tmw-ov-glow b{animation:none!important}}'
+    /* When Deep is armed, the search bar itself gains a soft purple halo that
+       gently breathes, so it\'s obvious the next question runs deep. */
+    + '.tmw-ov-root[data-deep="1"] .tmw-ov-bar .tmw-dock-search input{border-color:rgba(167,139,250,.55)!important;animation:tmwOvDeepBar 3.4s ease-in-out infinite}'
+    + '@keyframes tmwOvDeepBar{0%,100%{box-shadow:0 0 22px rgba(139,92,246,.32)}50%{box-shadow:0 0 40px rgba(139,92,246,.55)}}'
+    /* Tools row above the bar (holds the Deep toggle + the "N of 12 left" meter),
+       width-matched to the bar so it lines up on desktop and mobile. */
+    + '.tmw-ov-tools{width:min(820px,calc(100vw - 32px));margin:0 auto 10px;display:flex;align-items:center;gap:10px;position:relative;z-index:2}'
+    + '.tmw-ov-deep{display:inline-flex;align-items:center;gap:8px;padding:6px 11px 6px 12px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:#C9C4D6;font:600 12px/1 "Inter",-apple-system,system-ui,sans-serif;letter-spacing:.02em;transition:border-color .25s,color .25s,background .25s,box-shadow .25s}'
+    + '.tmw-ov-deep:hover{border-color:rgba(167,139,250,.5);color:#EFEAFB}'
+    + '.tmw-ov-deep .dico{display:flex;width:14px;height:14px;color:#B9A6FF}'
+    + '.tmw-ov-deep .dico svg{width:14px;height:14px}'
+    + '.tmw-ov-deep .dsw{width:26px;height:15px;border-radius:999px;background:rgba(255,255,255,.16);position:relative;transition:background .25s ease;flex:0 0 auto}'
+    + '.tmw-ov-deep .dsw i{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#EDEBF3;transition:transform .25s ease}'
+    + '.tmw-ov-deep[aria-pressed="true"]{border-color:rgba(167,139,250,.7);color:#fff;background:linear-gradient(135deg,rgba(139,92,246,.34),rgba(96,120,255,.24));box-shadow:0 0 22px rgba(139,92,246,.45)}'
+    + '.tmw-ov-deep[aria-pressed="true"] .dico{color:#DBCFFF}'
+    + '.tmw-ov-deep[aria-pressed="true"] .dsw{background:linear-gradient(135deg,#8b5cf6,#6078ff)}'
+    + '.tmw-ov-deep[aria-pressed="true"] .dsw i{transform:translateX(11px)}'
+    + '.tmw-ov-deep-meta{font:600 11px/1.3 "Inter",-apple-system,system-ui,sans-serif;color:#9C93B5;letter-spacing:.01em}'
+    + '.tmw-ov-deep-meta.warn{color:#E6C574}'
+    /* Deep answers are multi-paragraph — render the \\n\\n breaks the worker keeps. */
+    + '.tmw-ov-intel-ans.deep{white-space:pre-line}'
+    + '.tmw-ov-model.deep{background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(96,120,255,.32));color:#EBE4FF;border-color:rgba(167,139,250,.5)}'
+
     /* ─── PHASE 2: inline TMW Intelligence panel ─────────────────── */
     /* Purple-bordered card that renders the LLM /smart-answer response
        directly inside the overlay (no /search/ handoff). Three visual
@@ -1013,6 +1052,14 @@
   }
 
   // ── DOM ─────────────────────────────────────────────────────────────
+  // Deep-mode sparkle — a four-point star with a small companion, the Gemini-ish
+  // "smarter mode" glyph. Uses currentColor so the toggle can tint it purple.
+  var ICON_DEEP = ''
+    + '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+    +   '<path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/>'
+    +   '<path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/>'
+    + '</svg>';
+
   var ICON_HEX = ''
     + '<svg viewBox="0 0 100 100" aria-hidden="true">'
     +   '<g class="tmw-ov-hxs-spin">'
@@ -1149,6 +1196,7 @@
   root.innerHTML = ''
     + '<div class="tmw-ov-scrim"></div>'
     + '<div class="tmw-ov-lb">'
+    +   '<div class="tmw-ov-glow" aria-hidden="true"><b class="a"></b><b class="b"></b><b class="c"></b></div>'
     +   '<button class="tmw-ov-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
     +   '<button class="tmw-ov-newchat" type="button" aria-label="New chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New chat</button>'
     +   '<div class="tmw-ov-body">'
@@ -1176,6 +1224,14 @@
     /* Bottom dock holds the search bar. (Thumbs feedback now lives per-answer,
        bottom-right of each turn, not in the dock.) */
     +   '<div class="tmw-ov-dock">'
+    +     '<div class="tmw-ov-tools">'
+    +       '<button type="button" class="tmw-ov-deep" data-deep-toggle aria-pressed="false" title="Deep search — wide-context analysis across the whole pipeline (Pro)">'
+    +         '<span class="dico">' + ICON_DEEP + '</span>'
+    +         '<span class="dlbl">Deep</span>'
+    +         '<span class="dsw"><i></i></span>'
+    +       '</button>'
+    +       '<span class="tmw-ov-deep-meta" data-deep-meta></span>'
+    +     '</div>'
     +     '<div class="tmw-ov-bar">'
     +       '<form class="tmw-ov-bar-inner tmw-dock-search" role="search">'
     +         '<span class="ds-ico">' + ICON_SEARCH_DOCK + '</span>'
@@ -1215,6 +1271,56 @@
   let sThinking = null, sResults = null, sEmpty = null;
   let slotFilterPills = null, slotIntel = null, slotHero = null, slotRows = null, slotProjGrid = null, slotEntities = null, slotArticles = null;
   var bodyEl   = root.querySelector('.tmw-ov-body');
+
+  // ─── DEEP MODE (Pro) — wide-context analyst search ─────────────────────
+  // Flicking Deep on arms the pulsing glow and routes the next question through
+  // the worker's wide-context path (Sonnet over a much larger matched set). Pro
+  // only; a free user who taps it gets the paywall instead. State persists per
+  // device so it stays armed across visits.
+  var DEEP_KEY = 'tmw_onyx_deep';
+  var _deep = false;
+  var deepBtn  = root.querySelector('[data-deep-toggle]');
+  var deepMeta = root.querySelector('[data-deep-meta]');
+  function _isPro(){
+    try {
+      if (window.tmwIntel && typeof window.tmwIntel.isPro === 'function' && window.tmwIntel.isPro()) return true;
+    } catch(_){}
+    return window._isPaidMember === true;
+  }
+  function setDeep(on){
+    _deep = !!on;
+    root.setAttribute('data-deep', _deep ? '1' : '0');
+    if (deepBtn) deepBtn.setAttribute('aria-pressed', _deep ? 'true' : 'false');
+    if (deepMeta && !_deep) { deepMeta.textContent = ''; deepMeta.classList.remove('warn'); }
+    try { localStorage.setItem(DEEP_KEY, _deep ? '1' : '0'); } catch(_){}
+  }
+  function _deepActive(){ return _deep && _isPro(); }
+  // Reflect the worker's cap meta after each deep answer ("N of 12 deep left").
+  function updateDeepMeta(res){
+    if (!deepMeta) return;
+    if (res && res.capped) {
+      deepMeta.textContent = 'Monthly deep limit reached — answered in standard mode';
+      deepMeta.classList.add('warn');
+    } else if (res && res.deep && typeof res.remaining === 'number') {
+      deepMeta.textContent = res.remaining + ' of ' + (res.cap || 12) + ' deep searches left this month';
+      deepMeta.classList.remove('warn');
+    }
+  }
+  // Restore prior state — only honor "on" for a Pro member.
+  try { if (localStorage.getItem(DEEP_KEY) === '1' && _isPro()) _deep = true; } catch(_){}
+  setDeep(_deep);
+  if (deepBtn) {
+    deepBtn.addEventListener('click', function(){
+      if (!_isPro()) {
+        try {
+          if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('feature:deep');
+          else window.location.href = 'https://www.oftmw.com/map/?upgrade=1';
+        } catch(_){}
+        return;
+      }
+      setDeep(!_deep);
+    });
+  }
 
   // ── data loading (mirrors /search/) ────────────────────────────────
   var PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false, _loading = null;
@@ -1790,7 +1896,7 @@
   // Replaces the previous link-to-/search/ CTA with a real, in-overlay
   // panel that renders the LLM answer. Three states share the same shell
   // so the swap from loading → answer doesn't shift layout.
-  function intelPanelHtml(state, q, answer){
+  function intelPanelHtml(state, q, answer, deep){
     var live, ansClass, ansHtml;
     if (state === 'loading'){
       live = '<i></i>Thinking';
@@ -1799,7 +1905,8 @@
               + 'Looking through projects and stories for an answer…';
     } else if (state === 'answer'){
       live = '<i></i>Live answer';
-      ansClass = '';
+      // Deep answers keep their \n\n paragraph breaks (CSS white-space:pre-line).
+      ansClass = deep ? 'deep' : '';
       // LLM responses are plain text; render as textContent equivalent
       // (escaped) so a stray "<" can't break the panel.
       ansHtml = esc(answer || '');
@@ -1816,7 +1923,7 @@
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="tmw-ov-model" title="The model powering TMW Intelligence">Onyx 4.1</span>'
+      +     '<span class="tmw-ov-model'+(deep?' deep':'')+'" title="The model powering TMW Intelligence">'+(deep?'Onyx 4.1 Deep':'Onyx 4.1')+'</span>'
       +     '<span class="live">'+live+'</span>'
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
@@ -3460,11 +3567,15 @@
       }
       // Render into the CAPTURED slot (not the live `slotIntel`, which may have
       // advanced to a newer turn) so the answer lands on its own message.
-      Core.askIntelligence(q, facts, hist).then(function(res){
+      Core.askIntelligence(q, facts, hist, { deep: _deepActive(), member: _memberId() }).then(function(res){
         var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (!ansEl) return;
         if (res && res.ok && res.answer){
           ansEl.textContent = res.answer; ansEl.classList.remove('loading'); setLive();
+          // Deep answers are multi-paragraph — render the preserved breaks + badge.
+          if (res.deep) { ansEl.classList.add('deep'); var _m = _intelSlot.querySelector('.tmw-ov-model'); if (_m) { _m.classList.add('deep'); _m.textContent = 'Onyx 4.1 Deep'; } }
+          else ansEl.classList.remove('deep');
+          updateDeepMeta(res);
           cacheAnswer(q, res.answer);                        // remember for instant resume
           if (_turnRec) _turnRec.answer = res.answer;        // feed the next follow-up's context
         } else {
@@ -4472,7 +4583,7 @@
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
-      Core.askIntelligence(q, facts).then(function(res){
+      Core.askIntelligence(q, facts, [], { deep: _deepActive(), member: _memberId() }).then(function(res){
         if (myToken !== _intelToken) return;
         // The 'Thinking' live-pip was relocated into the feedback row by setState
         // BEFORE this async answer arrived; rebuilding the panel below makes a new
@@ -4491,7 +4602,8 @@
           } catch(_){}
         }
         if (res && res.ok && res.answer){
-          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer);
+          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer, res.deep);
+          updateDeepMeta(res);
           _stopThinking(true);
           if (_turnRec) _turnRec.answer = res.answer;   // feed the next follow-up's context
           cacheAnswer(q, res.answer);   // remember for instant resume / repeat
