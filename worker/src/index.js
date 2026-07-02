@@ -771,13 +771,20 @@ async function handleTrialEligible(req, env, origin, url) {
   if (!env.STRIPE_SECRET_KEY) return json({ eligible: true, configured: false }, {}, env, origin);
   const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
   if (!email) return json({ eligible: true }, {}, env, origin);
+  // Pricing cutover: a returning member whose FIRST subscription was created before
+  // this instant is grandfathered onto the legacy $9/$90 no-trial price; anyone who
+  // first subscribed on/after keeps the new $15/$150. 1783036800 = 2026-07-03T00:00Z
+  // (grandfathers everyone who signed up on/before the 2026-07-02 price change).
+  const CUTOVER_TS = 1783036800;
   try {
+    let hadTrial = false, earliest = Infinity;
     const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
     for (const c of (custs.data || [])) {
-      const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=5');
-      if ((subs.data || []).length) return json({ eligible: false, had_trial: true }, {}, env, origin);
+      const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=10');
+      for (const s of (subs.data || [])) { hadTrial = true; if (typeof s.created === 'number' && s.created < earliest) earliest = s.created; }
     }
-    return json({ eligible: true, had_trial: false }, {}, env, origin);
+    if (hadTrial) return json({ eligible: false, had_trial: true, grandfathered: earliest < CUTOVER_TS }, {}, env, origin);
+    return json({ eligible: true, had_trial: false, grandfathered: false }, {}, env, origin);
   } catch (e) { return json({ eligible: true, error: String(e.message || e) }, {}, env, origin); }
 }
 // POST /admin/cancel-subscription { email, immediate? } — admin-gated. Sets the

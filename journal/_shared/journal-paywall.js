@@ -17,18 +17,23 @@
   // the old rate (grandfathered) — we just point NEW signups at the new prices.
   var PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-07--96gd0r24';
   var PRICE_ID_ANNUAL  = 'prc_pro-annual-2026-07--lnjj078s';
-  // No-trial equivalents — used for returning members who already used their trial.
-  // Still the OLD $9/$90 no-trial prices, which grandfathers a returning member
-  // who trialed before now. (If new no-trial $15/$150 prices are created later,
-  // swap these + add a signup-cohort check to charge post-now returners the new rate.)
-  var NOTRIAL = {
+  // No-trial equivalents for returning members who already used their free trial.
+  // LEGACY = old $9/$90 (members grandfathered from before the 2026-07-02 price
+  // change); CURRENT = new $15/$150 (anyone who first subscribed on/after). The
+  // worker's /trial-eligible returns `grandfathered`; startCheckout picks the map.
+  var NOTRIAL_LEGACY = {
     'prc_pro-annual-2026-07--lnjj078s':  'prc_annual-9i2e0eab',
     'prc_pro-monthly-2026-07--96gd0r24': 'prc_monthly-86u0uyc'
+  };
+  var NOTRIAL_CURRENT = {
+    'prc_pro-annual-2026-07--lnjj078s':  'prc_pro-annual-2026-07--ongi0rbn',
+    'prc_pro-monthly-2026-07--96gd0r24': 'prc_pro-monthly-202607--pyjp07pv'
   };
   var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
 
   var _trialUsed = false;   // set true once we learn this member already used their free trial
+  var _grandfathered = false;   // true if this returning member is on legacy $9/$90 pricing (first sub before the 2026-07 cutover)
 
   function ms() { return window.$memberstackDom; }
   // Resolve the signed-in member's email, then ask the worker if they've already
@@ -41,7 +46,7 @@
         var email = (mem.auth && mem.auth.email) || mem.email; if (!email) return;
         fetch(WORKER + '/trial-eligible?email=' + encodeURIComponent(email), { cache: 'no-store' })
           .then(function (x) { return x.ok ? x.json() : null; })
-          .then(function (d) { if (d && d.eligible === false) { _trialUsed = true; showTrialUsedBanner(); } })
+          .then(function (d) { if (d && d.eligible === false) { _trialUsed = true; _grandfathered = !!d.grandfathered; showTrialUsedBanner(); } })
           .catch(function () {});
       }).catch(function () {});
     } catch (e) {}
@@ -232,11 +237,16 @@
     var m = ms();
     if (!m) { alert('Payment system loading — please try again in a moment.'); return; }
     // Already used their one free trial — subscribe immediately on the no-trial
-    // plan (no second free trial), and make sure they see why.
-    if (_trialUsed && NOTRIAL[priceId]) {
-      priceId = NOTRIAL[priceId];
-      showTrialUsedBanner();
-      if (window.gtag) gtag('event', 'paywall_notrial_checkout', { 'price_id': priceId, 'surface': 'journal' });
+    // plan (no second free trial). Grandfathered members (first sub before the
+    // 2026-07 cutover) get the legacy $9/$90 no-trial price; everyone else the new
+    // $15/$150. Fail-open: if the flag never resolved, default to CURRENT pricing.
+    if (_trialUsed) {
+      var _nt = (_grandfathered ? NOTRIAL_LEGACY : NOTRIAL_CURRENT)[priceId];
+      if (_nt) {
+        priceId = _nt;
+        showTrialUsedBanner();
+        if (window.gtag) gtag('event', 'paywall_notrial_checkout', { 'price_id': priceId, 'surface': 'journal', 'grandfathered': _grandfathered });
+      }
     }
     try {
       if (window.gtag) gtag('event', 'paywall_subscribe_clicked', { 'price_id': priceId, 'surface': 'journal' });
