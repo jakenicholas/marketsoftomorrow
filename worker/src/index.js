@@ -7042,18 +7042,24 @@ async function handleMediaSaveUpscaled(req, env, origin, url) {
   const yyyy = d.getUTCFullYear(), mm = String(d.getUTCMonth() + 1).padStart(2, '0');
   const safe = String(srcName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'photo';
   const rand = Math.abs(((Date.now() >>> 0) ^ buf.byteLength) % 0xfffff).toString(16);
-  const key = `${yyyy}/${mm}/${rand}-${safe}-${scale}x.png`;
-  const filename = `${safe}-${scale}x.png`;
+  // Derive format from the request Content-Type (photos come through as JPEG,
+  // which is far smaller than PNG for upscaled imagery).
+  const ct = (req.headers.get('Content-Type') || '').toLowerCase();
+  const fmt = /jpe?g/.test(ct) ? { ext: 'jpg', mime: 'image/jpeg' }
+    : /webp/.test(ct) ? { ext: 'webp', mime: 'image/webp' }
+    : { ext: 'png', mime: 'image/png' };
+  const key = `${yyyy}/${mm}/${rand}-${safe}-${scale}x.${fmt.ext}`;
+  const filename = `${safe}-${scale}x.${fmt.ext}`;
   try {
-    await env.MEDIA.put(key, buf, { httpMetadata: { contentType: 'image/png', cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename } });
+    await env.MEDIA.put(key, buf, { httpMetadata: { contentType: fmt.mime, cacheControl: 'public, max-age=31536000, immutable' }, customMetadata: { filename } });
   } catch (e) { return json({ error: 'R2 put failed', detail: e.message || String(e) }, { status: 500 }, env, origin); }
   const outUrl = `${publicBase}/${key}`;
   try {
     await env.DB.prepare(
       'INSERT INTO media (key, filename, mime_type, size_bytes, alt_text, caption, uploaded_by, uploaded_at, url, folder) ' +
-      "VALUES (?1, ?2, 'image/png', ?3, ?4, ?5, 'studio-upscale', ?6, ?7, ?8) " +
+      "VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'studio-upscale', ?7, ?8, ?9) " +
       'ON CONFLICT(key) DO UPDATE SET size_bytes=excluded.size_bytes, url=excluded.url, folder=excluded.folder, uploaded_at=excluded.uploaded_at'
-    ).bind(key, filename, buf.byteLength, 'Upscaled ' + scale + '×', null, now, outUrl, folder).run();
+    ).bind(key, filename, fmt.mime, buf.byteLength, 'Upscaled ' + scale + '×', null, now, outUrl, folder).run();
   } catch (e) { return json({ error: 'index failed', detail: e.message || String(e) }, { status: 500 }, env, origin); }
   return json({ ok: true, url: outUrl, key, folder }, {}, env, origin);
 }
