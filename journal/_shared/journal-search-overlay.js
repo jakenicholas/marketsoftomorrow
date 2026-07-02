@@ -1453,6 +1453,16 @@
     }
     return false;
   }
+  // STRICT supplement gate: is this article a genuine TOPICAL match to the query
+  // (a phrase or token hit in its title/excerpt/categories/tags), vs merely sharing
+  // the queried place by geography? Cards are a supplement to the answer — we only
+  // surface a "clear hit," never a place-only co-location dump.
+  function articleHasTextHit(a, toks, full){
+    var hay = norm(a.title) + ' ' + norm(a.excerpt) + ' ' + norm((a.categories||[]).join(' ')) + ' ' + norm((a.tags||[]).join(' '));
+    if (full && hay.indexOf(full) >= 0) return true;
+    for (var i=0;i<toks.length;i++){ if (tokenInHay(toks[i], hay)) return true; }
+    return false;
+  }
   function scoreArticle(a, toks, full){
     var _inPlace = articleInPlace(a);
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
@@ -3112,19 +3122,12 @@
     var bio = Core.rankProjects(q, PROJECTS, { kind: 'concept', place: _place });
     if (bio && !bio.semantic && bio.rows.length) { paint(bio.rows.map(function (x) { return x.p; })); return; }
 
-    // Semantic fallback — fetch related slugs, then rank them through the SAME
-    // retriever (place-scoped) so the render is identical. Topic-clean the query
-    // first (strip question/scope/state filler) so the topic, not "around the
-    // world", drives recall. Kept in lockstep with rankProjects's internal strip.
-    if (!Core.semanticSearch) return;
-    var topicQ = q.replace(/\b(what|whats|which|who|where|when|why|how|are|is|am|do|does|did|happening|going on|tell me|show me|about|the|a|an|any|some|right now|currently|these days|nowadays|today|around|across|throughout|worldwide|world|globally|global|anywhere|everywhere|projects?|developments?|buildings?)\b/gi, ' ')
-      .replace(/\b(florida|california|texas|new york|north carolina|south carolina|carolina|tennessee|georgia|nevada|arizona|colorado|utah|hawaii|illinois|fl|ca|tx|ny)\b/gi, ' ')
-      .replace(/\s+/g, ' ').trim();
-    Core.semanticSearch(topicQ || q).then(function (sem) {
-      if (token !== _renderToken) return;
-      var r = Core.rankProjects(q, PROJECTS, { kind: 'concept', semanticSlugs: sem.projects || [], place: _place });
-      paint(r ? r.rows.map(function (x) { return x.p; }) : []);
-    }).catch(function () {});
+    // STRICT: only the bio-EXACT (verbatim phrase) match above qualifies as a
+    // "clear hit." The pure-semantic fallback — fetching loosely related slugs and
+    // rendering them — is exactly the "throw random stuff at them" behavior we're
+    // killing: cards supplement the answer only on a genuine match, and we can't
+    // track every project on earth, so when there's no exact hit the prose stands
+    // alone rather than reaching for a tangential card. (Re-enable if recall > precision.)
   }
 
   function pickTitleScopedProject(q, rows){
@@ -4260,7 +4263,10 @@
 
     var hero = _heroArticleRef;
     var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })
-                          .filter(function(x){ return x.s > 0 && x.a !== hero; })
+                          // STRICT: a card must be a real topical hit, not a place-only
+                          // co-location. Skip the gate only for a broad browse (no query
+                          // tokens, e.g. "what's new") where "latest" is the intent.
+                          .filter(function(x){ return x.s > 0 && x.a !== hero && (!stoks.length || articleHasTextHit(x.a, stoks, full)); })
                           .sort(function(a,b){ return b.s - a.s; });
     // High-rise / tower queries carry no topical article tokens (the height words
     // are stopwords), so the place alone matches every local story — dumping
@@ -4341,12 +4347,12 @@
     if (counts.firms > 0) {
       pills.push('<button class="tmw-ov-fp" type="button" data-filter="firms">Firms &amp; Places <span class="tmw-ov-fp-n">'+counts.firms+'</span></button>');
     }
-    // Journal is ALWAYS present — it's the way to isolate/browse stories even
-    // when the query matched none (the section then shows the latest posts as
-    // a browse fallback). Count shown only when there are matches.
-    pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Journal'
-      + (counts.articles > 0 ? ' <span class="tmw-ov-fp-n">'+counts.articles+'</span>' : '')
-      + '</button>');
+    // STRICT: the Journal tab appears only when stories genuinely matched — no
+    // empty tab that leads to a browse-fallback dump. Cards are a supplement to
+    // the answer, shown when there's a real hit, not by default.
+    if (counts.articles > 0) {
+      pills.push('<button class="tmw-ov-fp" type="button" data-filter="articles">Journal <span class="tmw-ov-fp-n">'+counts.articles+'</span></button>');
+    }
     // Don't render the row if there's only "All" (no categories to filter to)
     if (pills.length < 2) return '';
     return '<div class="tmw-ov-fp-row">' + pills.join('') + '</div>';
