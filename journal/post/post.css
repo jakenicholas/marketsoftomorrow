@@ -403,12 +403,14 @@ footer .tmw-wordmark{width:118px}
   -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   transition:background .18s, border-color .18s, color .18s}
 .article-intel .ai-expand svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;
-  transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 1.6s ease-in-out infinite}
+  transition:transform .35s cubic-bezier(.4,0,.2,1); animation:ai-caret-bob 2.2s linear infinite}
 @media(hover:hover){ .article-intel .ai-expand:hover{background:rgba(167,139,250,.18); border-color:var(--purple); color:#fff} }
 .article-intel.ai-open .ai-expand svg{transform:rotate(180deg); animation:none}
-/* Symmetric bob: rest at center (0/50/100%), equal excursion up (25%) and down
-   (75%) — no dwell above the line. */
-@keyframes ai-caret-bob{0%,50%,100%{transform:translateY(0)}25%{transform:translateY(-3px)}75%{transform:translateY(3px)}}
+/* Smooth sine bob (linear timing over a sine-shaped keyframe curve = no pauses
+   at the turns). Gentle ±1.5px, equal above/below center. */
+@keyframes ai-caret-bob{
+  0%{transform:translateY(0)} 12.5%{transform:translateY(-1.06px)} 25%{transform:translateY(-1.5px)} 37.5%{transform:translateY(-1.06px)}
+  50%{transform:translateY(0)} 62.5%{transform:translateY(1.06px)} 75%{transform:translateY(1.5px)} 87.5%{transform:translateY(1.06px)} 100%{transform:translateY(0)}}
 /* Collapsible region — grid-rows 0fr→1fr animates height without a fixed max,
    so a loaded Onyx answer grows naturally when open. */
 .article-intel .ai-more{display:grid; grid-template-rows:0fr; opacity:0;
