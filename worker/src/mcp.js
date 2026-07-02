@@ -2295,7 +2295,18 @@ const IMPL = {
     }
     const text = stripHtml(bodyHtml);
     const excerpt = deDash((args.excerpt && String(args.excerpt).trim()) || text.slice(0, 180));
-    const categories = args.category ? JSON.stringify([String(args.category)]) : '[]';
+    let categories = args.category ? JSON.stringify([String(args.category)]) : '[]';
+    // The AI routine may NOT create NEW categories — if source='ai' passes a category
+    // that isn't already used on an existing post, drop it (save uncategorized) rather
+    // than mint a new taxonomy entry. Human/Studio creates are unaffected.
+    if (args.category && args.source === 'ai') {
+      try {
+        const _cr = (await env.DB.prepare("SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000").all()).results || [];
+        const _known = new Set();
+        for (const _r of _cr) { try { (JSON.parse(_r.categories) || []).forEach(c => { if (c) _known.add(String(c).toLowerCase()); }); } catch (_) {} }
+        if (!_known.has(String(args.category).toLowerCase())) categories = '[]';
+      } catch (_) {}
+    }
     const reading = Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
     const now = Math.floor(Date.now() / 1000);
     await ensureContactsTable(env);
