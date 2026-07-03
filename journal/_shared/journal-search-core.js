@@ -1121,6 +1121,14 @@
         }
       }
     }
+    // Country-level "United States" scope. There's no country field, but every US
+    // project carries a 2-letter CountyState code while international ones leave it
+    // blank — so "biggest projects in the united states" can filter to US-coded rows
+    // (otherwise a size sort surfaces Saudi/London megaprojects for a US question).
+    var usOnly = false;
+    if (!area && !cities.length && !region && !stateCode) {
+      if (/\b(united states|usa|america|americas|nationwide|stateside)\b/.test(full)) usOnly = true;
+    }
     // year
     var yearMin = null, yearMax = null, yearLabel = '', yearMode = 'delivery';
     var TY = opts.thisYear || THIS_YEAR;
@@ -1283,12 +1291,12 @@
     // structured path sorts by units/floors so real scale wins. (Date/newest sorts
     // are NOT gated here — "latest news" must stay on the text path.)
     var _sizeSort = sort && (sort.key === 'floors' || sort.key === 'units');
-    if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || (pipeline && types.size) || (rolling && types.size)) {
+    if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || usOnly || (pipeline && types.size) || (rolling && types.size)) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-        region: region, area: area, cities: cities, stateCode: stateCode, pipeline: pipeline,
+        region: region, area: area, cities: cities, stateCode: stateCode, usOnly: usOnly, pipeline: pipeline,
         yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel, yearMode: yearMode,
         floorsMin: floorsMin, floorsMax: floorsMax, heightLabel: heightLabel,
         sort: sort, firm: firm, firmRank: firmRank, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
@@ -1301,7 +1309,7 @@
       statuses: statuses, statusLabels: statusLabels,
       phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
       types: types, typeLabel: typeLabel, typeNoun: typeNoun,
-      region: region, cities: cities, stateCode: stateCode,
+      region: region, cities: cities, stateCode: stateCode, usOnly: usOnly,
       yearMin: yearMin, yearMax: yearMax, yearLabel: yearLabel,
       floorsMin: floorsMin, floorsMax: floorsMax, heightLabel: heightLabel,
       sort: sort, firm: firm, rolling: rolling, rollMin: rollMin, rollMax: rollMax,
@@ -1369,6 +1377,10 @@
       if (s.area) { if (!inArea(p, s.area)) return false; }
       else if (s.stateCode) { if (String(p.CountyState || '').trim() !== s.stateCode) return false; }
       else if (s.region === 'Florida' && !inFlorida(p)) return false;
+      // "United States" scope: keep only US-coded rows (a 2-letter state in
+      // CountyState). International projects leave CountyState blank, so this drops
+      // Saudi/London/Dubai megaprojects from a US question.
+      if (s.usOnly) { if (!STATE_NAMES.hasOwnProperty(String(p.CountyState || '').trim().toUpperCase())) return false; }
       if (s.yearMin != null) {
         var y = s.yearMode === 'start' ? startYearOf(p) : yearOf(p);
         if (y == null || y < s.yearMin || y > s.yearMax) return false;
