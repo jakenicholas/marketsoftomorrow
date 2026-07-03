@@ -97,23 +97,33 @@
     var n = parseInt(String(raw).replace(/[^0-9]/g, ''), 10);
     return isFinite(n) && n > 0 ? n : 0;
   }
-  // Rough SIZE of a project on a common square-foot scale, so "biggest projects"
-  // can rank across types when there's no place. We don't store acreage/sq-ft as
-  // fields, but most descriptions state them — so parse the biggest figure out of
-  // the prose (acres → sq-ft), then fall back to units/floors as proxies. Returns
-  // a comparable number; 0 when nothing is parseable.
+  // SIZE = a project's overall SCALE as Gross Floor Area (total BUILT square feet),
+  // so "biggest" means the most development, not the most raw dirt. Built area is
+  // what makes a tall tower on a tiny lot register as massive (floors × floorplate)
+  // while a sprawling low-rise land play does NOT top real buildings.
+  // Order: (1) the pipeline's stored GFA when present (authoritative, scraped by the
+  // routines); (2) else estimate GFA as the MAX of the available built signals —
+  // stated sq-ft in the prose, units × ~1,100 sf × common-area, floors × ~20k sf
+  // floorplate; (3) only a pure-land play with NO built signal falls to a heavily
+  // discounted acreage proxy so acreage alone can never outrank actual buildings.
   function sizeScoreOf(p) {
+    var stored = parseInt(String(firstField(p, ['GfaSqFt', 'GFA', 'gfa_sqft']) || '').replace(/[^0-9]/g, ''), 10);
+    if (isFinite(stored) && stored > 0) return stored;
     var txt = String(firstField(p, ['DescriptionLong', 'Description']) || '');
-    var best = 0, m;
-    var reAcre = /([\d][\d,]*(?:\.\d+)?)\s*-?\s*acre/gi;
-    while ((m = reAcre.exec(txt))) { var a = parseFloat(m[1].replace(/,/g, '')); if (a > 0) best = Math.max(best, a * 43560); }
-    var reSqft = /([\d][\d,]*)\s*(?:square[ -]?feet|square[ -]?foot|sq\.?\s*ft|sf\b)/gi;
-    while ((m = reSqft.exec(txt))) { var sf = parseFloat(m[1].replace(/,/g, '')); if (sf > 1000) best = Math.max(best, sf); }
-    if (best) return best;
+    var stated = 0, m;
+    // "2.5 million sq ft", "1,200,000 square feet", "450,000 gsf/sf"
+    var reSf = /([\d][\d.,]*)\s*(million|m\b)?\s*(?:square[ -]?feet|square[ -]?foot|sq\.?\s*ft|gsf\b|sf\b)/gi;
+    while ((m = reSf.exec(txt))) {
+      var n = parseFloat(m[1].replace(/,/g, '')); if (!isFinite(n)) continue;
+      if (m[2]) n *= 1e6;
+      if (n > 1000) stated = Math.max(stated, n);
+    }
     var u = unitsOf(p), f = floorsOf(p);
-    if (u) return u * 1200;          // ~1,200 sf/unit proxy
-    if (f) return f * 12000;         // ~12,000 sf/floor proxy
-    return 0;
+    var built = Math.max(stated, u * 1265, f * 20000);   // GFA proxies: units×~1.1k×1.15 loss factor; floors×~20k floorplate
+    if (built > 0) return built;
+    var acres = 0, ma, reA = /([\d][\d,]*(?:\.\d+)?)\s*-?\s*acre/gi;
+    while ((ma = reA.exec(txt))) { var a = parseFloat(ma[1].replace(/,/g, '')); if (a > 0) acres = Math.max(acres, a); }
+    return acres * 43560 * 0.1;   // last resort: ~10% built coverage so raw land can't dominate
   }
   function yearOf(p) {
     var m = String(p.DeliveryDate || '').match(/(20\d{2})/);
