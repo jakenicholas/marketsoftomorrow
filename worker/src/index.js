@@ -2589,6 +2589,27 @@ async function handleCategoriesMerge(req, env, origin) {
   return json({ ok: true, merged: batch.length, from, to }, {}, env, origin);
 }
 
+// POST /admin/categories/delete { name } — strip `name` from every post that
+// carries it. If it was a post's MAIN category, main falls back to the next
+// remaining category (or null). The category then disappears (it's derived).
+async function handleCategoriesDelete(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
+  const name = String(b.name || '').trim();
+  if (!name || name.length > 120) return json({ error: 'a valid category name is required' }, { status: 400 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const like = '%"' + name.replace(/[%_\\]/g, '\\$&') + '"%';
+  const rows = (await env.DB.prepare("SELECT id, categories, main_category FROM posts WHERE categories LIKE ?1 ESCAPE '\\'").bind(like).all()).results || [];
+  const stmt = env.DB.prepare('UPDATE posts SET categories = ?1, main_category = ?2, updated_at = ?3 WHERE id = ?4');
+  const batch = rows.map(r => {
+    const cats = safeJsonArray(r.categories).filter(c => c && c !== name);
+    const main = (r.main_category && r.main_category !== name) ? r.main_category : (cats[0] || null);
+    return stmt.bind(JSON.stringify(cats), main, now, r.id);
+  });
+  try { await _runBatched(env, batch); } catch (e) { return json({ error: 'delete failed: ' + (e.message || e) }, { status: 500 }, env, origin); }
+  return json({ ok: true, deleted: batch.length, name }, {}, env, origin);
+}
+
 // The posts.source column is added lazily (ensureContactsTable runs it on
 // create/update). But the list SELECT references source, so on a fresh deploy —
 // before any write has run the ALTER — a public read would 500. Guard it here
@@ -10203,6 +10224,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/categories')        return await handleAdminCategories(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/categories/assign') return await handleCategoriesAssign(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/categories/merge')  return await handleCategoriesMerge(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/categories/delete') return await handleCategoriesDelete(request, env, origin);
       {
         const m = url.pathname.match(/^\/posts\/by-slug\/([^/]+)\/?$/);
         if (m && request.method === 'GET') return await handlePostsBySlug(request, env, origin, m[1]);
