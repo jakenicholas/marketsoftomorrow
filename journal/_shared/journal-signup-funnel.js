@@ -66,14 +66,15 @@
       '.tmw-sub-msg{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;letter-spacing:.04em;color:#1FDF67;margin-top:14px}' +
       '.tmw-sub-msg.err{color:#ff8a8a}' +
       // Combined email + password step → a stacked form (not the single-line pill).
-      '.tmw-sub-form.stack{flex-direction:column;background:transparent;border:0;padding:0;gap:10px;border-radius:0;-webkit-backdrop-filter:none;backdrop-filter:none}' +
-      '.tmw-sub-form.stack input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:13px 16px;height:auto}' +
+      // Email + password sit side by side (2 columns); the button spans below.
+      '.tmw-sub-form.stack{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:transparent;border:0;padding:0;border-radius:0;-webkit-backdrop-filter:none;backdrop-filter:none}' +
+      '.tmw-sub-form.stack input{width:100%;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:13px 16px;height:auto}' +
       '.tmw-sub-form.stack input:focus{border-color:#1FDF67}' +
-      '.tmw-sub-form.stack button{width:100%;padding:14px;border-radius:12px}' +
+      '.tmw-sub-form.stack button{grid-column:1 / -1;width:100%;padding:14px;border-radius:12px}' +
       '.tmw-sub-alt{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;color:#9AA39C;margin-top:13px}' +
       '.tmw-sub-alt a{color:#f0d68a;text-decoration:none;font-weight:600;cursor:pointer}' +
       '.tmw-sub-alt a:hover{text-decoration:underline}' +
-      '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}.tmw-sub-form.stack{padding:0}.tmw-sub-form.stack button{padding:14px}}';
+      '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}.tmw-sub-form.stack{grid-template-columns:1fr;padding:0}.tmw-sub-form.stack button{padding:14px}}';
     var st = document.createElement('style'); st.id = 'tmw-funnel-css'; st.textContent = css; document.head.appendChild(st);
   }
 
