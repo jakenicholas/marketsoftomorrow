@@ -5478,7 +5478,7 @@ async function handleDesignFromPost(req, env, origin) {
   // actually follows TMW's carousel copy rules.
   let carouselGuide = '', voiceGuide = '';
   try {
-    const notes = await env.DB.prepare(`SELECT kind, category, note FROM brand_notes WHERE active = 1 ORDER BY created_at ASC`).all();
+    const notes = await env.DB.prepare(`SELECT kind, category, note FROM brand_notes WHERE active = 1 AND (scope IS NULL OR scope = 'voice') ORDER BY created_at ASC`).all();
     const all = (notes.results || []);
     const isCar = (n) => /carousel|caption|\bslide/i.test((n.category || '') + ' ' + (n.note || ''));
     carouselGuide = all.filter(isCar).map(n => '- ' + n.note).join('\n').slice(0, 5000);
@@ -5904,6 +5904,51 @@ async function handleKnowledgeIngest(req, env, origin) {
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 502 }, env, origin); }
   return json({ ok: true, added }, {}, env, origin);
 }
+
+// ── Brand-brain vectors ──────────────────────────────────────────────────────
+// Pool notes are retrieved by RELEVANCE (canon always loads; see assembleBrain).
+// Each note embeds as kind:'brand_note' with NO title field, so it can never
+// leak into the "facts" bucket (which requires metadata.title).
+export async function brainNoteVectors(env, rows) {
+  if (!retrievalReady(env) || !rows || !rows.length) return 0;
+  let n = 0;
+  for (let i = 0; i < rows.length; i += 40) {
+    const chunk = rows.slice(i, i + 40);
+    const vecs = await embedTexts(env, chunk.map((r) => `[${r.kind}] ${r.note}${r.context ? ' (' + r.context + ')' : ''}`.slice(0, 1200)));
+    const items = chunk.map((r, k) => ({
+      id: vecId('brandnote', r.id),
+      values: vecs[k],
+      metadata: { kind: 'brand_note', note_kind: r.kind || '', scope: r.scope || 'voice', text: String(r.note).slice(0, 1200), ts: Math.floor(Date.now() / 1000) },
+    })).filter((it) => Array.isArray(it.values));
+    if (items.length) { await env.VECTORIZE.upsert(items); n += items.length; }
+  }
+  return n;
+}
+// Daily self-heal: (re)embed every active pool note. Piggybacks the minute cron.
+async function maybeBrainReindex(env) {
+  if (!retrievalReady(env) || !env.DB) return;
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='brain_reindex_at'").first().catch(() => null);
+  if (row && (now - (parseInt(row.value, 10) || 0)) < 20 * 3600) return;   // ~daily
+  await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('brain_reindex_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run();
+  try {
+    const rows = (await env.DB.prepare("SELECT id, kind, note, context, scope FROM brand_notes WHERE active=1 AND tier='pool'").all()).results || [];
+    await brainNoteVectors(env, rows);
+  } catch (_) {}
+}
+// Top-k pool notes relevant to a topic (voice scope only). Exported for MCP.
+export async function brainRelevantNotes(env, topic, k = 6) {
+  const q = String(topic || '').trim();
+  if (!q || !retrievalReady(env)) return [];
+  try {
+    const [vec] = await embedTexts(env, [q.slice(0, 400)]);
+    if (!Array.isArray(vec)) return [];
+    const ms = (await env.VECTORIZE.query(vec, { topK: 16, returnMetadata: 'all' })).matches || [];
+    return ms.filter((m) => m.metadata && m.metadata.kind === 'brand_note' && m.metadata.scope === 'voice' && (m.score || 0) >= 0.45 && m.metadata.text)
+      .slice(0, k).map((m) => ({ kind: String(m.metadata.note_kind || 'note'), note: String(m.metadata.text) }));
+  } catch (_) { return []; }
+}
+
 // GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
 async function handleSemanticSearch(req, env, origin) {
   if (!retrievalReady(env)) return json({ error: 'retrieval not configured', matches: [] }, { status: 503 }, env, origin);
@@ -8400,11 +8445,23 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
   const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '' };
   if (!env || !env.DB) return out;
   if (voice) {
+    // Two tiers: the small curated CANON always loads; pool notes come in by
+    // relevance to the topic (or the latest few when there's no topic). This
+    // replaced the old dump-all-233-notes behavior — see canon-20 for hygiene.
     try {
-      const rows = (await env.DB.prepare(
-        `SELECT kind, note, context FROM brand_notes WHERE active = 1 ORDER BY created_at ASC`
+      const canon = (await env.DB.prepare(
+        `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='canon' ORDER BY id ASC`
       ).all()).results || [];
-      if (rows.length) out.voice = rows.map(r => `- [${r.kind}] ${r.note}${r.context ? ` (${r.context})` : ''}`).join('\n');
+      if (canon.length) out.voice = canon.map(r => `- [${r.kind}] ${r.note}`).join('\n');
+    } catch (_) {}
+    try {
+      let pool = await brainRelevantNotes(env, [topic, place].filter(Boolean).join(' '), 6);
+      if (!pool.length) {
+        pool = ((await env.DB.prepare(
+          `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='pool' AND scope='voice' ORDER BY created_at DESC LIMIT 6`
+        ).all()).results || []).map(r => ({ kind: r.kind, note: r.note }));
+      }
+      if (pool.length) out.voice += (out.voice ? '\n' : '') + 'RELEVANT HOUSE NOTES (specific to this piece):\n' + pool.map(r => `- [${r.kind}] ${r.note}`).join('\n');
     } catch (_) {}
   }
   try {
@@ -10589,6 +10646,7 @@ export default {
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
+    ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
     ctx.waitUntil(refreshLinkedinToken(env));    // keep the LinkedIn token alive (60-day expiry)
   },

@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -770,12 +770,15 @@ const TOOLS = [
   // ── Brand brain (shared house style / taste, updates for both accounts) ──────
   {
     name: 'get_brand_brain',
-    description: 'Read the shared Markets of Tomorrow "brand brain" — the house style and accumulated taste the team teaches over time: voice, rules, structure, topics to lean into, things to avoid, and example posts that worked. CALL THIS FIRST before writing or critiquing any post, carousel, caption, headline, or article so the output matches the brand. Returns a ready-to-use markdown playbook plus the structured notes (with ids). It is the SAME brain for every connected account, so it reflects what either person has taught it.',
-    inputSchema: { type: 'object', properties: {} },
+    description: 'Read the shared Markets of Tomorrow "brand brain" — the house style the team teaches over time. CALL THIS FIRST before writing or critiquing any post, carousel, caption, headline, or article. Returns the curated CANON playbook (always applies) plus pool notes retrieved by relevance to your topic — ALWAYS pass topic with a short description of what you are about to write (e.g. "carousel for a Nashville hotel opening") so the right house notes surface. Pass all:true ONLY when managing the brain (lists every note with ids for remove_brand_note).',
+    inputSchema: { type: 'object', properties: {
+      topic: { type: 'string', description: 'What you are about to write — a short phrase; drives relevance retrieval of house notes' },
+      all: { type: 'boolean', description: 'Management view: return every active note with ids/tiers/scopes' },
+    } },
   },
   {
     name: 'record_preference',
-    description: 'Add a learning to the shared brand brain so it updates for BOTH accounts immediately. Use whenever someone expresses a like, dislike, rule, voice/tone note, structure preference, topic interest, or names a good example. Keep each note to one crisp, reusable sentence. Do this proactively as you learn what they like/dislike.',
+    description: 'Add a learning to the shared brand brain so it updates for BOTH accounts immediately. Use whenever someone expresses a like, dislike, rule, voice/tone note, structure preference, topic interest, or names a good example. Keep each note to one crisp, reusable REUSABLE-CRAFT sentence — never project-specific facts, bug reports, or data gaps (those get scope data/bug/ops and stay out of writing prompts). BEFORE adding a rule that changes an existing one, retire the old note with remove_brand_note instead of stacking a correction on top.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -784,6 +787,7 @@ const TOOLS = [
         category: { type: 'string', description: 'Optional grouping, e.g. "carousel", "article", "headline", "general"' },
         context: { type: 'string', description: 'Optional: a post slug, example snippet, or the reason behind it' },
         by: { type: 'string', description: 'Who said it, if known (e.g. "Jake", "wife")' },
+        scope: { type: 'string', enum: ['voice', 'data', 'bug', 'ops'], description: 'Purpose routing (default auto): voice = house style used in writing prompts; data = dataset correction; bug = system issue; ops = tool how-to' },
       },
       required: ['kind', 'note'],
     },
@@ -1372,8 +1376,21 @@ async function storeScrapedImage(env, src, folder, project, minBytes) {
 }
 async function ensureBrandNotesTable(env) {
   await env.DB.prepare(
-    'CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1)'
+    "CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1, scope TEXT DEFAULT 'voice', tier TEXT DEFAULT 'pool')"
   ).run();
+  // tiering migration for pre-existing tables (no-ops once applied)
+  try { await env.DB.prepare("ALTER TABLE brand_notes ADD COLUMN scope TEXT DEFAULT 'voice'").run(); } catch (_) {}
+  try { await env.DB.prepare("ALTER TABLE brand_notes ADD COLUMN tier TEXT DEFAULT 'pool'").run(); } catch (_) {}
+}
+
+// Misfiled-note router: bug reports / data corrections / tool how-tos are real
+// learnings but do NOT belong in writing prompts — scope them out of 'voice'.
+function classifyNoteScope(note) {
+  const n = String(note || '');
+  if (/^(SEARCH BUG|AUDIT|BUG:)/i.test(n) || /HARNESS BUG/i.test(n)) return 'bug';
+  if (/^DATA[:( ]/.test(n) || /^DATA GAP/i.test(n)) return 'data';
+  if (/(edit_post_draft|create_carousel_draft|update_carousel_draft|create_map_draft|update_project_status|upload_photo|media browser|^Post-building setup)/i.test(n)) return 'ops';
+  return 'voice';
 }
 
 // ── Map drafts → tmw-data/data/drafts.json via the GitHub Contents API ───────
@@ -3417,8 +3434,20 @@ const IMPL = {
   async get_brand_brain(args, env) {
     if (!env.DB) throw new Error('D1 not configured');
     await ensureBrandNotesTable(env);
-    const rows = (await env.DB.prepare(
-      'SELECT id, kind, category, note, context, created_by, created_at FROM brand_notes WHERE active = 1 ORDER BY created_at ASC'
+    // Full-dump escape hatch for brain MANAGEMENT (finding note ids to retire).
+    if (args && args.all) {
+      const rows = (await env.DB.prepare(
+        'SELECT id, kind, category, note, context, created_by, created_at, scope, tier FROM brand_notes WHERE active = 1 ORDER BY tier DESC, created_at ASC'
+      ).all()).results || [];
+      return {
+        count: rows.length,
+        notes: rows.map((r) => ({ id: r.id, tier: r.tier, scope: r.scope, kind: r.kind, category: r.category || '', note: r.note, context: r.context || '', by: r.created_by || '', when: iso(r.created_at) })),
+        how_to_use: 'Management view. tier=canon rows are the always-on constitution; pool rows load by relevance. Retire outdated notes with remove_brand_note.',
+      };
+    }
+    // Default: the curated CANON (always) + pool notes relevant to args.topic.
+    const canon = (await env.DB.prepare(
+      "SELECT id, kind, category, note FROM brand_notes WHERE active = 1 AND tier='canon' ORDER BY id ASC"
     ).all()).results || [];
     const SECTIONS = [
       { title: 'Voice & identity', kinds: ['voice'] },
@@ -3428,23 +3457,33 @@ const IMPL = {
       { title: 'Avoid', kinds: ['dislike', 'avoid'] },
       { title: 'Examples that worked', kinds: ['example'] },
     ];
+    let md = '# Markets of Tomorrow — Brand Brain (canon)\n';
     const used = new Set();
-    let md = '# Markets of Tomorrow — Brand Brain\n';
     for (const s of SECTIONS) {
-      const items = rows.filter((r) => s.kinds.includes(r.kind));
+      const items = canon.filter((r) => s.kinds.includes(r.kind));
       if (!items.length) continue;
       md += `\n## ${s.title}\n`;
-      for (const r of items) { used.add(r.id); md += `- ${r.note}${r.context ? ` _(${r.context})_` : ''}\n`; }
+      for (const r of items) { used.add(r.id); md += `- ${r.note}\n`; }
     }
-    const other = rows.filter((r) => !used.has(r.id));
-    if (other.length) { md += '\n## Other\n'; for (const r of other) md += `- [${r.kind}] ${r.note}\n`; }
-    if (!rows.length) md += '\n_(empty — teach it with record_preference)_\n';
+    for (const r of canon.filter((r) => !used.has(r.id))) md += `- [${r.kind}] ${r.note}\n`;
+    if (!canon.length) md += '\n_(canon empty — teach it with record_preference)_\n';
+    const topic = String((args && args.topic) || '').trim();
+    let relevant = topic ? await brainRelevantNotes(env, topic, 8) : [];
+    if (!relevant.length) {
+      relevant = (((await env.DB.prepare(
+        "SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='pool' AND scope='voice' ORDER BY created_at DESC LIMIT 10"
+      ).all()).results) || []).map((r) => ({ kind: r.kind, note: r.note }));
+    }
+    if (relevant.length) {
+      md += '\n## Relevant house notes' + (topic ? ` (for: ${topic})` : ' (latest)') + '\n';
+      for (const r of relevant) md += `- [${r.kind}] ${r.note}\n`;
+    }
+    const c = await env.DB.prepare("SELECT COUNT(*) c FROM brand_notes WHERE active = 1").first();
     return {
       playbook: md,
-      count: rows.length,
-      last_updated: rows.length ? iso(rows[rows.length - 1].created_at) : null,
-      notes: rows.map((r) => ({ id: r.id, kind: r.kind, category: r.category || '', note: r.note, context: r.context || '', by: r.created_by || '', when: iso(r.created_at) })),
-      how_to_use: 'This is the shared house style for Markets of Tomorrow. Apply the playbook to any post/carousel/caption/article you write or critique. When anyone expresses a new like/dislike/rule, call record_preference so it updates for everyone.',
+      canon_count: canon.length,
+      pool_total: (c ? c.c : 0) - canon.length,
+      how_to_use: 'The canon is the constitution — always apply it. The relevant notes are pool learnings matched to your topic; pass topic (e.g. "carousel for a Nashville hotel opening") to retrieve the right ones. Pass all:true only to manage/retire notes.',
     };
   },
 
@@ -3458,11 +3497,16 @@ const IMPL = {
     if (!note) throw new Error('note is required');
     const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
     const now = Math.floor(Date.now() / 1000);
+    // Route by purpose: only scope='voice' notes ever reach writing prompts.
+    const SCOPES = ['voice', 'data', 'bug', 'ops'];
+    const scope = SCOPES.includes(String(args.scope || '').toLowerCase()) ? String(args.scope).toLowerCase() : classifyNoteScope(note);
     await env.DB.prepare(
-      'INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)'
-    ).bind(id, kind, String(args.category || '').slice(0, 60) || null, note.slice(0, 2000), String(args.context || '').slice(0, 500) || null, String(args.by || 'studio').slice(0, 40), now).run();
+      "INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier) VALUES (?1,?2,?3,?4,?5,?6,?7,1,?8,'pool')"
+    ).bind(id, kind, String(args.category || '').slice(0, 60) || null, note.slice(0, 2000), String(args.context || '').slice(0, 500) || null, String(args.by || 'studio').slice(0, 40), now, scope).run();
+    // Embed immediately so relevance retrieval sees it without waiting for the daily pass.
+    try { await brainNoteVectors(env, [{ id, kind, note: note.slice(0, 2000), context: args.context, scope }]); } catch (_) {}
     const c = await env.DB.prepare('SELECT COUNT(*) c FROM brand_notes WHERE active = 1').first();
-    return { ok: true, id, kind, note, brain_size: c ? c.c : null, msg: 'Recorded to the shared brand brain — visible to every connected account immediately.' };
+    return { ok: true, id, kind, scope, note, brain_size: c ? c.c : null, msg: scope === 'voice' ? 'Recorded to the shared brand brain — retrievable by every connected account immediately.' : `Recorded with scope="${scope}" — kept out of writing prompts (it is a ${scope} note, not house voice).` };
   },
 
   async remove_brand_note(args, env) {
