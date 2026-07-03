@@ -585,13 +585,43 @@ async function handleTrendingSearches(env, origin) {
         GROUP BY LOWER(TRIM(json_extract(props_json,'$.q')))
         ORDER BY n DESC LIMIT 30`
     ).bind(since).all();
-    for (const row of (rs.results || [])) {
-      const q = String(row.q || '').trim();
-      if (q.length < 3 || q.length > 64) continue;
-      if (/^(test|asdf+|hello|hi|hey|yo)$/i.test(q)) continue;
-      out.push({ q, count: Number(row.n) || 0 });
-      if (out.length >= 6) break;
+    // ── Theme dedupe: the raw top-N is dominated by variants of the same ask
+    // ("tallest towers coming to new york?" / "new projects coming to new york
+    // city" / "what about new york?"). Keep ONE query per place, drop
+    // "what about X?" follow-up fragments, near-dupe by token overlap, cap 5.
+    const PLACES = [
+      [/new york|nyc|manhattan|brooklyn/i, 'ny'], [/west palm|wpb/i, 'wpb'],
+      [/miami|brickell|wynwood/i, 'mia'], [/palm beaches/i, 'pbc'],
+      [/caribbean/i, 'car'], [/around the world|worldwide|global/i, 'world'],
+      [/\busa\b|\bus\b|united states|america/i, 'usa'], [/florida\b/i, 'fl'],
+      [/nashville/i, 'bna'], [/austin/i, 'atx'], [/boynton/i, 'boy'], [/delray/i, 'del'],
+    ];
+    const toks = (s) => String(s).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+      .filter((w) => w.length > 2 && !['the', 'and', 'for', 'new', 'what', 'whats', 'about', 'coming', 'opening', 'are', 'in'].includes(w));
+    const placeOf = (q) => { for (const [re, key] of PLACES) if (re.test(q)) return key; return null; };
+    const kept = [];
+    const keep = (q, count) => {
+      const p = placeOf(q);
+      if (p && kept.some((k) => k.place === p)) return false;                 // one query per place
+      const t = toks(q);
+      if (kept.some((k) => t.filter((w) => k.toks.includes(w)).length >= Math.max(2, Math.ceil(t.length * 0.6)))) return false;  // near-dupe wording
+      kept.push({ q, count, place: p, toks: t });
+      return true;
+    };
+    const rows = (rs.results || []).map((r) => ({ q: String(r.q || '').trim(), n: Number(r.n) || 0 }))
+      .filter((r) => r.q.length >= 3 && r.q.length <= 64)
+      .filter((r) => !/^(test|asdf+|hello|hi|hey|yo)$/i.test(r.q))
+      .filter((r) => !/^what('?| i)?s? about /i.test(r.q));                    // follow-up fragments never trend
+    // Curated picks (Jake): surface these themes when present in the log —
+    // matched loosely so the REAL query text + count is what displays.
+    const CURATED = [/tallest .*miami|miami.*tallest/i, /hotels? .*(usa|america|united states)/i];
+    for (const re of CURATED) {
+      const hit = rows.find((r) => re.test(r.q));
+      if (hit) keep(hit.q, hit.n);
     }
+    for (const r of rows) { if (kept.length >= 5) break; keep(r.q, r.n); }
+    kept.sort((a, b) => b.count - a.count);
+    for (const k of kept.slice(0, 5)) out.push({ q: k.q, count: k.count });
   } catch { /* best-effort; empty strip hides itself */ }
   return json({ searches: out }, { headers: { 'Cache-Control': 'public, max-age=1800, s-maxage=1800' } }, env, origin);
 }
