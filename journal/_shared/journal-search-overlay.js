@@ -1746,19 +1746,23 @@
     return false;
   }
   function scoreArticle(a, toks, full){
-    // The worker's body scan (/posts?q=) matched THIS article's body_html for this
-    // exact query — a genuine title+body journal hit the summary-only fields below
-    // can't see. Trust it (mirrors the homepage journal search) with a solid score
-    // so it surfaces, ranked just under strong title matches.
-    if (a && a._bodyHit && a._bodyHit === full) return 45;
+    // The worker's body scan (/posts?q=) confirmed this article's BODY matched the
+    // query. Trust it enough to BYPASS the summary-only exclusion gates below, but
+    // still score it by title/excerpt strength — so a genuine title match ("Moss, a
+    // new private members' club") ranks ABOVE an article that merely mentions the
+    // words in its body (a golf course that happens to say "private" + "club"). A
+    // pure body-only match gets a low floor so it still shows but sinks under the
+    // strong ones. (Was: a flat return 45, which tied every body-hit and let the
+    // worker's DATE order win — burying real matches under recent loosely-related ones.)
+    var _bodyHit = !!(a && a._bodyHit && a._bodyHit === full);
     var _inPlace = articleInPlace(a);
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
-    if (!_inPlace && articleWrongState(title, hay)) return 0;   // title is about a different state → exclude
+    if (!_inPlace && !_bodyHit && articleWrongState(title, hay)) return 0;   // title is about a different state → exclude
     var meaningful = (window.TmwSearchCore && window.TmwSearchCore.filterMeaningfulTokens)
       ? window.TmwSearchCore.filterMeaningfulTokens(toks)
       : toks.filter(function(t){ return t.length>=3; });
-    if (meaningful.length>=2 && !_inPlace){
+    if (meaningful.length>=2 && !_inPlace && !_bodyHit){
       var need = Math.ceil(meaningful.length*0.6);
       var havePhrase = full && hay.indexOf(full)>=0;
       // Synonym-aware coverage so "miami condos" still scores an article
@@ -1788,6 +1792,9 @@
       if (tokenInHay(t, exc))   s+=3;
     }
     if (meaningful.length>=2 && inTitle>=meaningful.length) s+=24;
+    // Confirmed body match but no title/summary signal → a low floor so it still
+    // appears in the Journal tab, but ranks under every title/excerpt match above.
+    if (s === 0 && _bodyHit) s = 12;
     return s;
   }
 
