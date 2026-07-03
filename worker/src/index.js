@@ -567,6 +567,35 @@ async function handleStats(env, origin) {
   }, {}, env, origin);
 }
 
+// GET /trending-searches — the top Onyx search queries in the last 7 days, for
+// the homepage "Trending Onyx searches" strip. Public + edge-cached 30 min;
+// anonymized (query text + count only), excludes the system routines + junk.
+async function handleTrendingSearches(env, origin) {
+  if (!env.DB) return json({ searches: [] }, {}, env, origin);
+  const since = Math.floor(Date.now() / 1000) - 7 * 86400;
+  const out = [];
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT TRIM(json_extract(props_json,'$.q')) AS q, COUNT(*) AS n
+         FROM events
+        WHERE event_name='intel_query' AND ts>=?
+          AND member_id NOT LIKE 'system:%' AND member_id NOT LIKE 'funnel:%'
+          AND member_id NOT LIKE 'test%' AND member_id NOT LIKE 'claude%' AND member_id NOT LIKE 'preview%'
+          AND json_extract(props_json,'$.q') IS NOT NULL
+        GROUP BY LOWER(TRIM(json_extract(props_json,'$.q')))
+        ORDER BY n DESC LIMIT 30`
+    ).bind(since).all();
+    for (const row of (rs.results || [])) {
+      const q = String(row.q || '').trim();
+      if (q.length < 3 || q.length > 64) continue;
+      if (/^(test|asdf+|hello|hi|hey|yo)$/i.test(q)) continue;
+      out.push({ q, count: Number(row.n) || 0 });
+      if (out.length >= 6) break;
+    }
+  } catch { /* best-effort; empty strip hides itself */ }
+  return json({ searches: out }, { headers: { 'Cache-Control': 'public, max-age=1800, s-maxage=1800' } }, env, origin);
+}
+
 // ---------------------------------------------------------------------------
 // GET /subscriptions — Memberstack subscription analytics for the map
 // dashboard's revenue tiles. Memberstack runs paid plans on top of Stripe and
@@ -10219,6 +10248,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/stats') {
         return await handleStats(env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/trending-searches') {
+        return await handleTrendingSearches(env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/funnel-stats') {
         return await handleFunnelStats(env, origin, url);
