@@ -714,7 +714,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), keys (hotel rooms), and gfa_sqft (GROSS FLOOR AREA / total built sq ft — the "how big" number that powers biggest-projects ranking; capture a stated figure or estimate it) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), keys (hotel rooms), and gfa_sqft (GROSS FLOOR AREA / total built sq ft — the "how big" number that powers biggest-projects ranking; capture a stated figure or estimate it) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update. IMPOSSIBLE DATES: when a recorded date is logically impossible for the project\'s own status/scale (e.g. a 47-story tower still pre-construction recorded as delivering next year, or a past construction-start on a project that has not broken ground), FIX it with date_correction:true — clear_start_date/clear_delivery_date to blank it, start_speculative/delivery_speculative (on their own) to flag an existing date as a TMW estimate, or a new start_date/delivery_date + *_speculative to replace it with a realistic estimate. With date_correction:true a `note` explaining WHY stands in for source_url (the project\'s own state is the proof). Use it only for logically-impossible dates, never to overwrite a plausible one without a source.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -727,8 +727,11 @@ const TOOLS = [
         confidence: { type: 'string', enum: ['high', 'low'], description: 'Your confidence in the call' },
         start_date: { type: 'string', description: 'New/confirmed construction start (year or ISO) — updates the date even if status is unchanged' },
         delivery_date: { type: 'string', description: 'New/confirmed completion/opening date (year or ISO) — updates the date even if status is unchanged (catches delays)' },
-        start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed' },
-        delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate' },
+        start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate, not developer-committed. Can be set on its own (no new start_date) to flag an EXISTING date as an estimate — pair with date_correction:true + a note.' },
+        delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate. Can be set on its own (no new delivery_date) to flag an EXISTING date as an estimate — pair with date_correction:true + a note.' },
+        clear_start_date: { type: 'boolean', description: 'Set TRUE to CLEAR (blank) a wrong/impossible recorded construction-start date — e.g. a project recorded as started in a PAST year that is still pre-construction. A DATE CORRECTION (pair with date_correction:true + a note); no source_url needed.' },
+        clear_delivery_date: { type: 'boolean', description: 'Set TRUE to CLEAR (blank) an impossible recorded delivery/opening date — e.g. a 47-story tower not yet under construction recorded as delivering next year. A DATE CORRECTION (pair with date_correction:true + a note); no source_url needed.' },
+        date_correction: { type: 'boolean', description: 'Set TRUE for a self-evident DATE FIX derived from the project\'s OWN state rather than a new external source — clearing an impossible date (clear_start_date/clear_delivery_date), flagging an existing date as a TMW estimate (start_speculative/delivery_speculative on their own), or replacing an impossible date with a realistic estimate (start_date/delivery_date + *_speculative). With date_correction:true a `note` explaining WHY (e.g. "47-story tower still pre-construction, so 2026 delivery is impossible") stands in for source_url. Use ONLY when the recorded dates are logically impossible given the project\'s status/scale — not to overwrite a plausible date without a source.' },
         effective_date: { type: 'string', description: 'When the milestone ACTUALLY happened in the real world — NOT today, and NOT the article\'s publish date. e.g. "broke ground Sept 3, 2025" → "2025-09-03". CRITICAL: the publish date is NOT the event date — a June 2026 article reporting a tower "has gone vertical" usually means it happened MONTHS earlier; date it to when it actually occurred, never to when the article ran. If the source does NOT state the exact date/month, DO NOT guess a precise month and DO NOT fall back to the publish date — pass a VAGUE label instead: "Spring 2026", "Mid 2026", "Late 2026", "Early 2027", or "Q2 2026". Precise forms YYYY / YYYY-MM / YYYY-MM-DD are for when the source actually gives that precision. Powers the dossier timeline. If omitted on a status advance, it falls back to start_date/delivery_date. ALSO pass it with `milestone`.' },
         milestone: { type: 'string', enum: MILESTONE_PHASES, description: 'Log a FINER construction-phase event to the dossier timeline WITHOUT changing the lifecycle status. Use for phases between the coarse statuses: financing (loan/construction financing closed), going-vertical (superstructure rising above grade), halfway (≈50% complete), topping-out (final beam/roof structure complete), tenant (an anchor/retail/office tenant announced), tco (Temporary Certificate of Occupancy issued), move-in (residents begin moving in), bookings (the reservations/sales-launch slot — for a HOTEL taking reservations OR a RESIDENTIAL project launching condo sales; the dossier auto-labels it "Bookings open" for hotels and "Sales launched" for residences by building type, so pick the milestone by what actually happened, not by the label). Pair with effective_date (when it happened) + source_url. The coarse statuses themselves — announced, broke ground, grand opening — go via new_status, not here. A milestone-only call is valid (omit new_status).' },
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
@@ -3103,11 +3106,19 @@ const IMPL = {
     const newStatus = String(args.new_status || '').toLowerCase().trim();
     if (newStatus && !STATUS_ORDER.includes(newStatus)) throw new Error('new_status must be one of: ' + STATUS_ORDER.join(', '));
     const sourceUrl = String(args.source_url || '').trim();
-    if (!sourceUrl) throw new Error('source_url is required — cite where the update came from');
+    // A self-evident DATE CORRECTION (clearing/estimating an impossible date from the
+    // project's own state) needs no external article — but MUST carry a note.
+    const dateCorrection = args.date_correction === true;
+    const noteTrim = String(args.note || '').trim();
+    if (!sourceUrl && !(dateCorrection && noteTrim)) {
+      throw new Error('source_url is required — cite where the update came from. (For a self-evident date fix — clearing an impossible date or flagging one as a TMW estimate from the project\'s own status — pass date_correction:true with a note instead.)');
+    }
     const mode = (String(args.mode || 'apply').toLowerCase() === 'propose') ? 'propose' : 'apply';
     const clean = (v) => (v == null ? '' : String(v).trim());
     const newStart = clean(args.start_date);
     const newDelivery = clean(args.delivery_date);
+    const clearStart = args.clear_start_date === true;
+    const clearDelivery = args.clear_delivery_date === true;
     // The real-world date a milestone occurred (event date), distinct from the
     // `at` record/discovery timestamp. Drives the dossier timeline.
     const effectiveDate = clean(args.effective_date);
@@ -3177,6 +3188,12 @@ const IMPL = {
       const statusChanges = !isBackfill && (statusAdvances || isCorrection);
       const startChanged = !!newStart && newStart !== clean(p.start_date);
       const deliveryChanged = !!newDelivery && newDelivery !== clean(p.delivery_date);
+      // DATE CORRECTIONS: clear an impossible date, or flag an existing one as a
+      // TMW estimate (spec-only, no new value).
+      const startCleared = clearStart && !!clean(p.start_date);
+      const deliveryCleared = clearDelivery && !!clean(p.delivery_date);
+      const startSpecOnly = !newStart && !clearStart && args.start_speculative === true && !p.start_speculative && !!clean(p.start_date);
+      const deliverySpecOnly = !newDelivery && !clearDelivery && args.delivery_speculative === true && !p.delivery_speculative && !!clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
       const nbhdChanged = nbhdWanted != null && nbhdWanted !== String(p.neighborhood || '');
       // Types / preferred_type re-classification (e.g. promoting Hotel + Residences
@@ -3192,7 +3209,7 @@ const IMPL = {
       // enforced — the same phase can legitimately recur with a corrected date;
       // humans can prune dupes in the Studio milestones editor).
       const milestoneAdded = !!milestone;
-      const anyExtra = startChanged || deliveryChanged || numChanged.length > 0 || nbhdChanged || typesChanged || preferredChanged || milestoneAdded || isBackfill;
+      const anyExtra = startChanged || deliveryChanged || startCleared || deliveryCleared || startSpecOnly || deliverySpecOnly || numChanged.length > 0 || nbhdChanged || typesChanged || preferredChanged || milestoneAdded || isBackfill;
 
       // A backward status WITHOUT the correction flag is refused — guards against
       // accidental regressions during a normal forward sweep. Backfill bypasses
@@ -3246,15 +3263,40 @@ const IMPL = {
         const old = clean(p.start_date) || null;
         p.start_date = newStart;
         if (args.start_speculative) p.start_speculative = true;
-        p.status_history.push({ ...base, type: 'date', field: 'start_date', from: old, to: newStart });
-        changes.push(`start ${old || '—'}→${newStart}`);
+        p.status_history.push({ ...base, type: 'date', field: 'start_date', from: old, to: newStart, ...(dateCorrection ? { correction: true } : {}) });
+        changes.push(`start ${old || '—'}→${newStart}${dateCorrection ? ' (est.)' : ''}`);
       }
       if (deliveryChanged) {
         const old = clean(p.delivery_date) || null;
         p.delivery_date = newDelivery;
         if (args.delivery_speculative) p.delivery_speculative = true;
-        p.status_history.push({ ...base, type: 'date', field: 'delivery_date', from: old, to: newDelivery });
-        changes.push(`delivery ${old || '—'}→${newDelivery}`);
+        p.status_history.push({ ...base, type: 'date', field: 'delivery_date', from: old, to: newDelivery, ...(dateCorrection ? { correction: true } : {}) });
+        changes.push(`delivery ${old || '—'}→${newDelivery}${dateCorrection ? ' (est.)' : ''}`);
+      }
+      // Date CLEARS — blank a wrong/impossible recorded date (project hasn't reached
+      // that phase). Logged as a correction to the dossier.
+      if (startCleared) {
+        const old = clean(p.start_date) || null;
+        p.start_date = ''; delete p.start_speculative;
+        p.status_history.push({ ...base, type: 'date', field: 'start_date', from: old, to: null, correction: true });
+        changes.push(`start ${old || '—'}→cleared`);
+      }
+      if (deliveryCleared) {
+        const old = clean(p.delivery_date) || null;
+        p.delivery_date = ''; delete p.delivery_speculative;
+        p.status_history.push({ ...base, type: 'date', field: 'delivery_date', from: old, to: null, correction: true });
+        changes.push(`delivery ${old || '—'}→cleared`);
+      }
+      // Flag an EXISTING (unchanged) date as a TMW estimate.
+      if (startSpecOnly) {
+        p.start_speculative = true;
+        p.status_history.push({ ...base, type: 'date', field: 'start_date', spec: true, correction: true });
+        changes.push('start → TMW estimate');
+      }
+      if (deliverySpecOnly) {
+        p.delivery_speculative = true;
+        p.status_history.push({ ...base, type: 'date', field: 'delivery_date', spec: true, correction: true });
+        changes.push('delivery → TMW estimate');
       }
       for (const u of numChanged) {
         const old = numOrNull(p[u.field]);
