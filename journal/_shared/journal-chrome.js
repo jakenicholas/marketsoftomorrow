@@ -191,7 +191,14 @@
     '.tmw-chrome-foot h4{margin-bottom:12px}',
     '.tmw-chrome-foot ul{gap:11px; font-size:15px}',
     '.tmw-chrome-foot .ft-bot{padding-top:20px; border-top:1px solid var(--hair); margin-top:0}',
-    '}'
+    '}',
+    // Firm-chip arrow (Developer/Architect pills on /markets + /firm): the baked
+    // CSS uses a Unicode glyph (\\2197) with no font-family, so it renders in
+    // whatever arrow font each page happens to have loaded — thin/long for anon,
+    // thick/short for signed-in. Force ONE look everywhere with an inline SVG
+    // (thick, short, green) so it never depends on font fallback.
+    'a.pp-firm-chip::after{content:"" !important;display:inline-block;vertical-align:middle;flex:0 0 auto;width:12px;height:12px;margin-left:5px;opacity:.9;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%20fill=%27none%27%20stroke=%27%231FDF67%27%20stroke-width=%272.6%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%3E%3Cpath%20d=%27M7%207h10v10%27/%3E%3Cpath%20d=%27M7%2017%2017%207%27/%3E%3C/svg%3E")}',
+    'a.pp-firm-chip.pp-firm-more::after{opacity:1;background-image:url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%20fill=%27none%27%20stroke=%27%23B9A6FF%27%20stroke-width=%272.6%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%3E%3Cpath%20d=%27M7%207h10v10%27/%3E%3Cpath%20d=%27M7%2017%2017%207%27/%3E%3C/svg%3E")}'
   ].join('');
 
   function mount() {
