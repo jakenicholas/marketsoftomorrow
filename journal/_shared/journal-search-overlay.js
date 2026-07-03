@@ -105,6 +105,9 @@
     if (/\blist\s+(of|the|all|me|out)?\s*(projects?|developments?|condos?|towers?|hotels?|buildings?|deals?)\b/.test(t)) return true;
     if (/\b(new|newest|latest|recent|upcoming)\s+(projects?|developments?|condos?|listings?|launches?)\b/.test(t)) return true;
     if (/^(list|projects?|developments?)\b/.test(t)) return true;                             // starts with "list"/"projects"
+    // Size/superlative "rank me a list" asks — "biggest projects", "tallest towers",
+    // "most units". These want the ranked cards (now sorted by scale), not pure prose.
+    if (/\b(biggest|largest|tallest|highest|shortest|most|top)\b/.test(t) && /\b(projects?|developments?|towers?|buildings?|condos?|hotels?|deals?|residences?)\b/.test(t)) return true;
     return false;
   }
 
@@ -3924,6 +3927,13 @@
     // on what counts as a question (the local fallback runs only during
     // the brief window before journal-search-core.js finishes loading).
     var question = (Core ? Core.isQuestion : isQuestion)(q);
+    // SLIM (text/keyword path): a QUESTION that isn't an explicit list request drops
+    // the project + firm lists so it reads as the pure LLM answer. Mirrors the same
+    // gate in renderStructuredSmart. List-intent ("give me a list", "biggest
+    // projects") and plain name/keyword lookups keep their cards.
+    if (question && !listIntent(q)) {
+      try { sResults.setAttribute('data-slim', '1'); } catch (_) {}
+    }
 
     _qPlaceTokens = null; _qPlaceMatch = null; _qStateName = '';   // reset place-aware article matching per query
     var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })

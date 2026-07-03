@@ -1277,7 +1277,13 @@
     // A forward-pipeline ask with a type ("new hotels opening around the world",
     // "condos coming soon") is a database query even with no place named — show
     // the whole pipeline of that type globally, not just journal coverage.
-    if (firm || place || firmRank || iconic || floorsMin != null || (pipeline && types.size) || (rolling && types.size)) {
+    // A SIZE superlative alone ("biggest projects", "tallest towers") is enough to
+    // go structured — otherwise it falls to keyword text-match, which ranks by term
+    // overlap and floats tiny projects (a padel court) to the top of "biggest". The
+    // structured path sorts by units/floors so real scale wins. (Date/newest sorts
+    // are NOT gated here — "latest news" must stay on the text path.)
+    var _sizeSort = sort && (sort.key === 'floors' || sort.key === 'units');
+    if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || (pipeline && types.size) || (rolling && types.size)) {
       return {
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
