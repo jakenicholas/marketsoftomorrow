@@ -60,22 +60,24 @@ def firm_board(rows, name_key, slug_key):
     return out
 
 def biggest_board(rows):
+    # Floors + units on SEPARATE lines; no movement arrows here. (Units will be
+    # swapped for Gross Floor Area (GFA) later — see the reminder note.)
     scored = []
     for r in rows:
         fl, un, ke = to_int(r.get('Floors')), to_int(r.get('Units')), to_int(r.get('Keys'))
         scale = fl * 1000 + un + ke        # floors dominate, then unit/key count
         if scale <= 0:
             continue
-        parts = []
-        if fl: parts.append(f'{fl}fl')
-        if un: parts.append(f'{un}u')
-        elif ke: parts.append(f'{ke}keys')
+        lines = []
+        if fl: lines.append(f'{fl} fl')
+        if un: lines.append(f'{un:,} units')
+        elif ke: lines.append(f'{ke:,} keys')
         scored.append({
             'id': r.get('Slug') or r.get('Title'),
             'name': r.get('Title') or '',
             'slug': r.get('Slug') or '',
             'sub': ' · '.join([p for p in [(r.get('ProjectType') or '').split(',')[0].strip(), (r.get('City') or '').strip()] if p]),
-            'metric': ' · '.join(parts),
+            'metric_lines': lines,
             'scale': scale,
         })
     scored.sort(key=lambda x: x['scale'], reverse=True)
@@ -132,7 +134,7 @@ def main():
         'markets_tabs': [{'name': c, 'count': n} for c, n in market_counts.most_common(6)],
         'developers': apply_movement(firm_board(rows, 'Developer', 'DeveloperSlugs'), prev.get('developers')),
         'architects': apply_movement(firm_board(rows, 'Architect', 'ArchitectSlugs'), prev.get('architects')),
-        'biggest':    apply_movement(biggest_board(rows), prev.get('biggest')),
+        'biggest':    biggest_board(rows),   # no movement arrows on the biggest board
         'markets':    market_board(rows),
         'newest':     newest_strip(rows),
     }
