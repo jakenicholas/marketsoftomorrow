@@ -213,12 +213,9 @@
     var delivLine = dParts.join(' · ');
     var subline = [esc((rec.Borough && String(rec.Borough).trim()) || rec.City)]; var t = firstType(rec); if (t) subline.push(esc(t));
 
-    // Part-of-district chip — sits right under .pc-loc when this is a child
-    // component (rec.ParentSlug + rec.ParentTitle resolved at card-build).
-    // The parent_title lookup is done in the caller (mount fn) — see below.
-    var _partOfChipHtml = rec._parentTitle
-      ? '<div class="pc-partof">Part of ' + esc(rec._parentTitle) + '</div>'
-      : '';
+    // NOTE: the parent link ("Part of <District> — see master plan →") lives only
+    // inside the TMW Intelligence box (districtAnchorHtml above) — we intentionally
+    // do NOT also show a chip under the location line, to avoid duplicating it.
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
@@ -229,7 +226,6 @@
     '<div class="pc-body">' +
       '<h3 class="pc-name">' + esc(rec.Title) + '</h3>' +
       '<div class="pc-loc">' + subline.join(' · ') + '</div>' +
-      _partOfChipHtml +
       (rec.Description ? '<p class="pc-desc">' + esc(rec.Description) + '</p>' : '') +
       // Construction timeline — render the SHARED engine (window.TMWIntel) so it
       // is byte-identical to the map modal: same weighted segments, per-stage
@@ -332,7 +328,6 @@
       '.tmw-pcard .pm-intel-pattern .pm-intel-highlight{color:#A78BFA; font-weight:700}',
       '.tmw-pcard .pm-intel-disclaimer{font-size:10px; color:rgba(255,255,255,.4); margin-top:12px; font-style:italic; line-height:1.5}',
       // Part-of-district chip — sits as the 3rd line under .pc-loc.
-      '.tmw-pcard .pc-partof{display:inline-block;margin-top:8px;margin-bottom:2px;padding:2px 7px;font:600 11px/1.2 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.01em;text-transform:none;color:#C9BBFF;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.32);border-radius:5px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       // District-anchor CTA at the bottom of the TMW Intelligence card.
       '.tmw-pcard .pm-intel-anchor{display:inline-flex;align-items:center;margin-top:12px;padding:6px 10px;font-size:12px;font-weight:600;color:#C9BBFF;background:rgba(167,139,250,0.10);border:1px solid rgba(167,139,250,0.32);border-radius:6px;text-decoration:none;transition:background .15s ease,color .15s ease}',
       '.tmw-pcard .pm-intel-anchor:hover{background:rgba(167,139,250,0.22);color:#fff}',
