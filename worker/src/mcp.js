@@ -622,6 +622,8 @@ const TOOLS = [
         units: { type: 'integer', description: 'RESIDENTIAL unit count (condos / apartments / townhomes). Use for residential & mixed-use — NOT for hotel rooms (use keys for those).' },
         keys: { type: 'integer', description: 'HOTEL/RESORT room (key) count. Use for hotels & resorts — NOT residential units. A property with both (branded residences over a hotel) can set both units AND keys.' },
         floors: { type: 'integer', description: 'Floor / story count (tower height proxy).' },
+        gfa_sqft: { type: 'integer', description: 'GROSS FLOOR AREA — total BUILT square feet across the whole project (a district = sum of its buildings). This is the "how big is this development" number that powers "biggest projects" ranking. Capture the STATED figure whenever a source gives one ("a 1.2-million-square-foot tower", "2.5M sq ft mixed-use"); set gfa_source:"stated". If none is stated, ESTIMATE it as max(units×1265, floors×20000, acres×43560×0.1) and set gfa_source:"estimated". A tall tower on a small lot should still be large (floors×20000).' },
+        gfa_source: { type: 'string', enum: ['stated', 'estimated'], description: '"stated" if gfa_sqft came from a source, "estimated" if you derived it from floors/units/acreage.' },
         start_date: { type: 'string', description: 'Construction start / GROUNDBREAKING date — year ("2027") or ISO ("2027-06"). Capture it whenever a source gives it (e.g. "broke ground in 2025"). Set start_speculative when it is a TMW estimate rather than developer-committed.' },
         delivery_date: { type: 'string', description: 'Completion / OPENING date (when it delivers or opens) — year or ISO. Capture it whenever a source gives it (e.g. "opening 2027", "completed 2026"). Set delivery_speculative when it is a TMW estimate.' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate (not developer-committed) — checks the "TMW estimate" box on the start date.' },
@@ -655,6 +657,8 @@ const TOOLS = [
         units: { type: 'integer', description: 'RESIDENTIAL unit count (condos/apartments) — NOT hotel rooms' },
         floors: { type: 'integer', description: 'Floor / story count' },
         keys: { type: 'integer', description: 'HOTEL/RESORT room (key) count — NOT residential units' },
+        gfa_sqft: { type: 'integer', description: 'GROSS FLOOR AREA — total BUILT square feet (powers "biggest projects" ranking). Prefer a STATED figure from a source; else estimate max(units×1265, floors×20000, acres×43560×0.1).' },
+        gfa_source: { type: 'string', enum: ['stated', 'estimated'], description: '"stated" or "estimated" — how gfa_sqft was obtained.' },
         latitude: { type: 'number' },
         longitude: { type: 'number' },
         website: { type: 'string' },
@@ -2798,6 +2802,11 @@ const IMPL = {
       units: num(args.units),
       keys: num(args.keys),
       floors: num(args.floors),
+      // Gross Floor Area (total BUILT sq ft) — the project's overall SCALE, used to
+      // rank "biggest" searches. gfa_source: 'stated' (a source gave the number) or
+      // 'estimated' (derived from floors/units/acreage).
+      gfa_sqft: num(args.gfa_sqft),
+      gfa_source: args.gfa_source ? String(args.gfa_source) : (num(args.gfa_sqft) != null ? 'stated' : null),
     };
     if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
     // Dates (optional). The admin reads start_date/delivery_date + their
@@ -2907,6 +2916,7 @@ const IMPL = {
       if (args.units != null && num(args.units) != null) { data.units = num(args.units); changed.push('units'); }
       if (args.floors != null && num(args.floors) != null) { data.floors = num(args.floors); changed.push('floors'); }
       if (args.keys != null && num(args.keys) != null) { data.keys = num(args.keys); changed.push('keys'); }
+      if (args.gfa_sqft != null && num(args.gfa_sqft) != null) { data.gfa_sqft = num(args.gfa_sqft); data.gfa_source = args.gfa_source ? String(args.gfa_source) : 'stated'; changed.push('gfa_sqft'); }
       if (args.latitude != null) { data.lat = Number(args.latitude); changed.push('lat'); }
       if (args.longitude != null) { data.lng = Number(args.longitude); changed.push('lng'); }
       if (args.website) { data.official_website = String(args.website); changed.push('website'); }
@@ -2932,7 +2942,7 @@ const IMPL = {
     // MCP-facing names → canonical project.json field names.
     const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
     const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'lat', 'lng', 'official_website',
-      'units', 'floors', 'start_date', 'delivery_date', 'description', 'description_long',
+      'units', 'floors', 'keys', 'gfa_sqft', 'gfa_source', 'start_date', 'delivery_date', 'description', 'description_long',
       'types', 'preferred_type']);
     // Types / preferred_type need vocabulary normalization (drop unrecognized
     // tags) before they land in the proposal — same canon as create_map_draft +
@@ -2950,7 +2960,7 @@ const IMPL = {
       const m = {
         name: live.Title, status: live.Status || live.Delivery || '', city: live.City,
         neighborhood: live.Neighborhood, lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
-        units: live.Units, floors: live.Floors, start_date: live.StartDate,
+        units: live.Units, floors: live.Floors, keys: live.Keys, gfa_sqft: live.GfaSqFt, start_date: live.StartDate,
         delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
         types: splitList(live.ProjectType), preferred_type: live.PreferredType,
       };
@@ -2964,7 +2974,7 @@ const IMPL = {
       if (!ALLOWED.has(k)) continue;
       let to = v;
       if (k === 'lat' || k === 'lng') to = (v == null || v === '' || isNaN(Number(v))) ? null : Number(v);
-      else if (k === 'units' || k === 'floors') to = (v == null || v === '' || isNaN(parseInt(v, 10))) ? null : parseInt(v, 10);
+      else if (k === 'units' || k === 'floors' || k === 'keys' || k === 'gfa_sqft') to = (v == null || v === '' || isNaN(parseInt(v, 10))) ? null : parseInt(v, 10);
       else if (k === 'types') to = (Array.isArray(v) ? resolveTypes(v, canonTypes).types : []);
       else if (k === 'preferred_type') to = (v == null ? null : (normType(v, canonTypes) || null));
       else to = (v == null) ? null : String(v);

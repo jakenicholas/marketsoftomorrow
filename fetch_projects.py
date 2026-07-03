@@ -238,6 +238,10 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         'Keys':            _num_str(record.get('keys')),
         'Units':           _num_str(record.get('units')),
         'Floors':          _num_str(record.get('floors')),
+        # Gross Floor Area (total BUILT sq ft) — the project's overall SCALE signal,
+        # what powers "biggest projects" ranking (sizeScoreOf reads GfaSqFt first).
+        'GfaSqFt':         _num_str(record.get('gfa_sqft')),
+        'GfaSource':       (record.get('gfa_source') or '').strip(),
         # Optional one-line nuance fields — render when present, hidden otherwise.
         # `config_summary`  describes physical layout (multi-tower / multi-building)
         # `delivery_phases` describes staggered openings (phase 1 / phase 2 / etc)
