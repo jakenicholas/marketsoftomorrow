@@ -64,7 +64,16 @@
       '.tmw-sub-form button:hover{background:#42EB81}' +
       '.tmw-sub-form button:disabled{opacity:.6;cursor:wait}' +
       '.tmw-sub-msg{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;letter-spacing:.04em;color:#1FDF67;margin-top:14px}' +
-      '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}}';
+      '.tmw-sub-msg.err{color:#ff8a8a}' +
+      // Combined email + password step → a stacked form (not the single-line pill).
+      '.tmw-sub-form.stack{flex-direction:column;background:transparent;border:0;padding:0;gap:10px;border-radius:0;-webkit-backdrop-filter:none;backdrop-filter:none}' +
+      '.tmw-sub-form.stack input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:13px 16px;height:auto}' +
+      '.tmw-sub-form.stack input:focus{border-color:#1FDF67}' +
+      '.tmw-sub-form.stack button{width:100%;padding:14px;border-radius:12px}' +
+      '.tmw-sub-alt{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;color:#9AA39C;margin-top:13px}' +
+      '.tmw-sub-alt a{color:#f0d68a;text-decoration:none;font-weight:600;cursor:pointer}' +
+      '.tmw-sub-alt a:hover{text-decoration:underline}' +
+      '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}.tmw-sub-form.stack{padding:0}.tmw-sub-form.stack button{padding:14px}}';
     var st = document.createElement('style'); st.id = 'tmw-funnel-css'; st.textContent = css; document.head.appendChild(st);
   }
 
@@ -82,7 +91,8 @@
     document.head.appendChild(fontLink);
   }
 
-  // ── Step 1: email subscribe form (first-time anon visitor) ───────────────
+  // ── Step 1: email + password in ONE step → creates the account ───────────
+  // The auto-funnel is just two slides: (1) email + password (this), (2) Go-Pro.
   function build() {
     if (document.querySelector('.tmw-sub')) return;     // max one at a time
     var el = document.createElement('div');
@@ -92,10 +102,12 @@
         '<button class="tmw-sub-x" aria-label="Close">&times;</button>' +
         '<div class="tmw-sub-eyebrow">' + esc(EYEBROW) + '</div>' +
         '<h3 class="tmw-sub-h">' + esc(HEADLINE) + '</h3>' +
-        '<form class="tmw-sub-form">' +
+        '<form class="tmw-sub-form stack">' +
           '<input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>' +
-          '<button type="submit">Get Access</button>' +
+          '<input type="password" name="password" placeholder="Create a password (8+ characters)" autocomplete="new-password" minlength="8" required>' +
+          '<button type="submit">Create free account</button>' +
         '</form>' +
+        '<div class="tmw-sub-alt">Already have an account? <a class="tmw-sub-login" href="#">Log in</a></div>' +
         '<div class="tmw-sub-msg" aria-live="polite"></div>' +
       '</div>';
     document.body.appendChild(el);
@@ -106,52 +118,45 @@
     function close() { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 350); }
     el.querySelector('.tmw-sub-x').addEventListener('click', close);
     el.addEventListener('click', function (e) { if (e.target === el) close(); });
+    // "Log in" → the login modal (existing account, falls back to /account/).
+    function toLogin() { close(); try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('login'); else location.href = '/account/'; } catch (_) { location.href = '/account/'; } }
+    var loginLink = el.querySelector('.tmw-sub-login');
+    if (loginLink) loginLink.addEventListener('click', function (e) { e.preventDefault(); toLogin(); });
 
     var form = el.querySelector('.tmw-sub-form');
     var msg = el.querySelector('.tmw-sub-msg');
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       var email = (form.email.value || '').trim();
-      if (!email) return;
+      var password = (form.password.value || '');
+      msg.className = 'tmw-sub-msg'; msg.style.display = ''; msg.textContent = '';
+      if (!email) { form.email.focus(); return; }
+      if (password.length < 8) { msg.className = 'tmw-sub-msg err'; msg.textContent = 'Password must be at least 8 characters.'; form.password.focus(); return; }
       var btn = form.querySelector('button'); var orig = btn.textContent;
       btn.disabled = true; btn.textContent = 'Checking…';
-      // Known address? Route to login instead of re-subscribing the same email.
+      // Known address? → send them to log in instead of creating a duplicate.
       var status = window.tmwCheckEmail ? await window.tmwCheckEmail(email) : { account: false };
-      var panel = el.querySelector('.tmw-sub-panel');
-      function swapPanel() {
-        ['.tmw-sub-eyebrow', '.tmw-sub-h', '.tmw-sub-form', '.tmw-sub-msg'].forEach(function (sel) { var n = panel.querySelector(sel); if (n) n.style.display = 'none'; });
-        var host = document.createElement('div'); panel.appendChild(host); return host;
+      if (status && status.account) { btn.disabled = false; btn.textContent = orig; toLogin(); return; }
+      btn.textContent = 'Creating…';
+      var res = window.tmwCreateFreeAccount ? await window.tmwCreateFreeAccount(email, password) : { ok: false, message: 'Accounts are still loading — try again in a moment.' };
+      if (res && res.ok) {
+        try { fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) }); } catch (_) {}   // keep them on the newsletter too
+        try { if (window.gtag) window.gtag('event', EVENT); } catch (_) {}
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack(EVENT, { email: email, source: SOURCE }); } catch (_) {}
+        try { window.tmwFunnelTrack && window.tmwFunnelTrack('free_account_created', { email: email, source: SOURCE }); } catch (_) {}
+        mark('subscribed');
+        try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
+        // Account created → confirm, then STEP 2: the Go-Pro pitch.
+        form.style.display = 'none';
+        var alt = el.querySelector('.tmw-sub-alt'); if (alt) alt.style.display = 'none';
+        msg.textContent = "✓ You're in! Welcome to TMW.";
+        setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 1200);
+      } else if (res && res.code === 'exists') {
+        btn.disabled = false; btn.textContent = orig; toLogin();
+      } else {
+        btn.disabled = false; btn.textContent = orig;
+        msg.className = 'tmw-sub-msg err'; msg.textContent = (res && res.message) || 'Could not create your account.';
       }
-      if (status.account) {
-        if (window.tmwAccountExistsPrompt) window.tmwAccountExistsPrompt(swapPanel(), { you: status.you });
-        else { btn.disabled = false; btn.textContent = orig; }
-        return;
-      }
-      btn.textContent = 'Working…';
-      try {
-        var r = await fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) });
-        var d = await r.json().catch(function () { return {}; });
-        if (d && d.success) {
-          try { if (window.gtag) window.gtag('event', EVENT); } catch (_) {}
-          try { window.tmwFunnelTrack && window.tmwFunnelTrack(EVENT, { email: email, source: SOURCE }); } catch (_) {}
-          mark('subscribed');
-          try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
-          // STEP 2 — email captured, now create a PASSWORD (the account). Only
-          // after the account exists do we show the Go-Pro pitch (STEP 3). The
-          // auto-popup always walks email → password → Go-Pro; each step shows
-          // until it's filled (a returning visitor resumes at the password step).
-          var host2 = swapPanel();
-          var ok2 = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host2, email, function (created) {
-            if (created) { setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 200); }
-            else { try { sessionStorage.setItem('tmw-acct-skip', '1'); } catch (e) {} close(); }   // skipped → resumes at password next visit
-          });
-          if (!ok2) {
-            // Password step unavailable → confirm + Go-Pro (old fallback).
-            msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
-            setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 1400);
-          }
-        } else { btn.disabled = false; btn.textContent = orig; }
-      } catch (err) { btn.disabled = false; btn.textContent = orig; }
     });
 
     requestAnimationFrame(function () { el.classList.add('show'); });

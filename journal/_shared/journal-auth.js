@@ -275,8 +275,9 @@
         if (res.ok) {
           try { if (window.gtag) window.gtag('event', 'free_account_created', { source: 'newsletter' }); } catch (_) {}
           try { window.tmwFunnelTrack && window.tmwFunnelTrack('free_account_created', { source: 'newsletter' }); } catch (_) {}
-          // Step 3: collect profile info → Memberstack custom fields + the list.
-          window.tmwProfileStep(host, email, onClose);
+          // Account created → straight to the Go-Pro pitch (the profile step is
+          // dropped; the funnel is just email/password → Go-Pro).
+          window.tmwGoProStep(host, onClose);
         } else if (res.code === 'exists') {
           msg.className = 'tmw-fa-msg err';
           msg.innerHTML = 'Looks like you already have an account. <a href="#" class="tmw-fa-si">Sign in →</a>';
