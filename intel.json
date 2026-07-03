@@ -194,21 +194,57 @@
       "delivery_speculative": true
     },
     "the-brook-tennis-and-pickleball": {
-      "estimate_years": 0.2,
-      "estimate_label": "~2 months",
-      "days_out": 74,
-      "delivery_date": "2026-09-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "medium",
+      "estimate_years": 2.6,
+      "estimate_label": "~2.6 years",
+      "range_low": 0.8,
+      "range_high": 3.0,
+      "confidence": "low",
+      "comparable_count": 3,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.6,
+      "avg_distance_km": 63.7,
+      "avg_distance_mi": 39.6,
+      "scale_used": false,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~2 months based on project type and current stage.",
+      "comparables": [
+        {
+          "name": "Glazer Hall",
+          "slug": "glazer-hall",
+          "location": "Palm Beach",
+          "years": 2.6,
+          "score": 1.0,
+          "distance_km": 22.2,
+          "distance_mi": 13.8
+        },
+        {
+          "name": "Nude Miami",
+          "slug": "nude-miami",
+          "location": "Miami",
+          "years": 0.8,
+          "score": 0.4,
+          "distance_km": 85.7,
+          "distance_mi": 53.3
+        },
+        {
+          "name": "Nu Stadium at Miami Freedom Park",
+          "slug": "nu-stadium-at-miami-freedom-park",
+          "location": "Miami",
+          "years": 3.0,
+          "score": 0.4,
+          "distance_km": 83.2,
+          "distance_mi": 51.7
+        }
+      ],
+      "pattern_summary": "Among 3 same-metro entertainment projects in TMW's data, the median build time is 2.6 years (range 0.8–3).",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "atelier-residences-miami": {
       "estimate_years": 1.5,
@@ -497,9 +533,9 @@
     },
     "ymca-of-the-palm-beaches": {
       "estimate_years": 0.5,
-      "estimate_label": "~6 months",
-      "days_out": 196,
-      "delivery_date": "2027-01-15",
+      "estimate_label": "~5 months",
+      "days_out": 165,
+      "delivery_date": "2026-12-15",
       "source": "known_date",
       "precision": "month",
       "confidence": "medium",
@@ -507,7 +543,7 @@
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~6 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~5 months based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -12343,13 +12379,13 @@
   "stats": {
     "high": 6,
     "medium": 22,
-    "low": 51,
-    "known_date": 414,
+    "low": 52,
+    "known_date": 413,
     "completed": 64,
     "skipped": 65,
     "no_type": 0,
     "firm_boosted": 38,
-    "speculative_softened": 133,
+    "speculative_softened": 132,
     "district": 12,
     "mixed_use_adjusted": 14
   }
