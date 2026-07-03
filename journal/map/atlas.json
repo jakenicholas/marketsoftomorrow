@@ -3,15 +3,15 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 322
+      "count": 324
     },
     {
       "type": "Hotel",
-      "count": 168
+      "count": 167
     },
     {
       "type": "Mixed-Use",
-      "count": 41
+      "count": 40
     },
     {
       "type": "Entertainment",
@@ -27,7 +27,7 @@
     },
     {
       "type": "Travel",
-      "count": 12
+      "count": 13
     },
     {
       "type": "Museum",
@@ -43,7 +43,7 @@
     },
     {
       "type": "Park",
-      "count": 7
+      "count": 6
     },
     {
       "type": "Retail",
@@ -2050,7 +2050,7 @@
     },
     {
       "st": "FL",
-      "ty": "Hotel",
+      "ty": "Residences",
       "sl": "Construction",
       "yr": 2028,
       "sm": "2022-10",
@@ -2931,7 +2931,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
-      "sm": "2024-12",
+      "sm": "2024-04",
       "ci": "Miami Beach",
       "u": 73,
       "k": 0,
@@ -3980,7 +3980,7 @@
       "yr": 2028,
       "sm": null,
       "ci": "Coral Gables",
-      "u": 74,
+      "u": 78,
       "k": 0,
       "fl": 8,
       "dv": [
@@ -7632,7 +7632,7 @@
       "ci": "Palm Beach",
       "u": 12,
       "k": 0,
-      "fl": 0,
+      "fl": 5,
       "dv": [
         [
           "Copperline Partners",
@@ -7694,7 +7694,7 @@
     },
     {
       "st": "TN",
-      "ty": "Park",
+      "ty": "Travel",
       "sl": "Announced",
       "yr": 2028,
       "sm": "2026-08",
@@ -13593,7 +13593,7 @@
       "sm": null,
       "ci": "Cortina d'Ampezzo",
       "u": 0,
-      "k": 0,
+      "k": 83,
       "fl": 0,
       "dv": [
         [
@@ -15985,7 +15985,7 @@
       "ty": "Residences",
       "sl": "Opening Soon",
       "yr": 2026,
-      "sm": null,
+      "sm": "2025-01",
       "ci": "Sarasota",
       "u": 65,
       "k": 0,
@@ -16043,7 +16043,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
-      "sm": "2024-12",
+      "sm": "2024-10",
       "ci": "Sarasota",
       "u": 86,
       "k": 0,
@@ -16076,7 +16076,7 @@
     },
     {
       "st": "FL",
-      "ty": "Mixed-Use",
+      "ty": "Residences",
       "sl": "Construction",
       "yr": null,
       "sm": "2025-11",
@@ -17401,7 +17401,7 @@
       "ty": "Entertainment",
       "sl": "Construction",
       "yr": 2030,
-      "sm": null,
+      "sm": "2026-04",
       "ci": "Guatemala City",
       "u": 0,
       "k": 0,
@@ -17428,7 +17428,7 @@
       "ty": "Hotel",
       "sl": "Construction",
       "yr": 2028,
-      "sm": "2026-12",
+      "sm": "2025-10",
       "ci": "Telluride",
       "u": 69,
       "k": 52,
@@ -17467,9 +17467,9 @@
     "opening_this_year": 100
   },
   "scale": {
-    "units": 251168,
-    "keys": 47003,
-    "floors": 10298
+    "units": 251172,
+    "keys": 47086,
+    "floors": 10303
   },
   "leaderboards": {
     "developers": [
@@ -18314,7 +18314,7 @@
       {
         "name": "Residences",
         "sub": "47% of pipeline",
-        "count": 322,
+        "count": 324,
         "states": [
           "FL",
           "Other",
@@ -18329,8 +18329,8 @@
       },
       {
         "name": "Hotel",
-        "sub": "25% of pipeline",
-        "count": 168,
+        "sub": "24% of pipeline",
+        "count": 167,
         "states": [
           "Other",
           "FL",
@@ -18346,7 +18346,7 @@
       {
         "name": "Mixed-Use",
         "sub": "6% of pipeline",
-        "count": 41,
+        "count": 40,
         "states": [
           "FL",
           "Other",
@@ -18397,11 +18397,12 @@
       {
         "name": "Travel",
         "sub": "2% of pipeline",
-        "count": 12,
+        "count": 13,
         "states": [
           "Other",
           "FL",
           "NY",
+          "TN",
           "FR",
           "UK",
           "JP"
@@ -18440,10 +18441,9 @@
       {
         "name": "Park",
         "sub": "1% of pipeline",
-        "count": 7,
+        "count": 6,
         "states": [
           "FL",
-          "TN",
           "Other"
         ]
       },
@@ -19307,8 +19307,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "67% of pipeline",
-          "count": 215,
+          "sub": "68% of pipeline",
+          "count": 217,
           "states": [
             "FL",
             "Other",
@@ -19336,7 +19336,7 @@
         {
           "name": "Hotel",
           "sub": "6% of pipeline",
-          "count": 20,
+          "count": 19,
           "states": [
             "Other",
             "FL",
@@ -19352,7 +19352,7 @@
         {
           "name": "Mixed-Use",
           "sub": "5% of pipeline",
-          "count": 17,
+          "count": 16,
           "states": [
             "FL",
             "Other",
@@ -19390,7 +19390,6 @@
           "count": 5,
           "states": [
             "FL",
-            "TN",
             "Other"
           ]
         },
@@ -19423,6 +19422,7 @@
             "Other",
             "FL",
             "NY",
+            "TN",
             "FR",
             "UK",
             "JP"
@@ -20141,6 +20141,7 @@
             "Other",
             "FL",
             "NY",
+            "TN",
             "FR",
             "UK",
             "JP"
@@ -20817,13 +20818,17 @@
           ]
         },
         {
-          "name": "Park",
+          "name": "Travel",
           "sub": "3% of pipeline",
           "count": 1,
           "states": [
+            "Other",
             "FL",
+            "NY",
             "TN",
-            "Other"
+            "FR",
+            "UK",
+            "JP"
           ]
         },
         {
@@ -21841,6 +21846,7 @@
             "Other",
             "FL",
             "NY",
+            "TN",
             "FR",
             "UK",
             "JP"
@@ -22156,6 +22162,7 @@
             "Other",
             "FL",
             "NY",
+            "TN",
             "FR",
             "UK",
             "JP"
@@ -22825,6 +22832,7 @@
             "Other",
             "FL",
             "NY",
+            "TN",
             "FR",
             "UK",
             "JP"
@@ -22863,9 +22871,9 @@
         "under_construction": 117
       },
       "scale": {
-        "units": 77743,
+        "units": 77747,
         "keys": 11071,
-        "floors": 5838
+        "floors": 5843
       },
       "status_distribution": [
         {
@@ -23938,7 +23946,7 @@
     {
       "month": "Oct",
       "year": 2025,
-      "count": 10
+      "count": 11
     },
     {
       "month": "Nov",
@@ -23968,7 +23976,7 @@
     {
       "month": "Apr",
       "year": 2026,
-      "count": 13
+      "count": 14
     },
     {
       "month": "May",
@@ -24056,6 +24064,48 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-amancaya-bookings-2026-07-03",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Amancaya  Bookings open",
+      "project_slug": "amancaya",
+      "project_title": "Amancaya",
+      "city": "Bahamas",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e4f665ec8e49e6a68ca87a970d0e3b~mv2.jpeg",
+      "event_date": "2026-04",
+      "source_url": "https://www.sellingbahamas.com/blog/posts/2026/04/28/new-development-in-exuma-the-bahamas-introducing-aman-residences-amancaya/",
+      "link": "https://www.oftmw.com/map/?project=amancaya",
+      "timestamp": "2026-07-03T15:16:49.808Z"
+    },
+    {
+      "id": "ms-continuum-waterfront-district-financing-2026-07-03",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Continuum Waterfront District  Financing secured",
+      "project_slug": "continuum-waterfront-district",
+      "project_title": "Continuum Waterfront District",
+      "city": "Miami",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg",
+      "event_date": "2026-04",
+      "source_url": "https://commercialobserver.com/2026/04/miami-continuum-s3-north-bay-village/",
+      "link": "https://www.oftmw.com/map/?project=continuumwaterfrontdistrict",
+      "timestamp": "2026-07-03T15:16:21.122Z"
+    },
+    {
+      "id": "ms-foro-futeca-breaking-ground-2026-07-03",
+      "type": "status_change",
+      "tag": "Broke ground",
+      "title": "Foro Futeca  Broke ground",
+      "project_slug": "foro-futeca",
+      "project_title": "Foro Futeca",
+      "city": "Guatemala City",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/70e6eb20cb9a-foro-futeca-b4.jpg",
+      "event_date": "2026-04-22",
+      "source_url": "https://revistasumma.com/distrito-futeca-inicia-la-construccion-del-proyecto-urbano-mas-emblematico-y-ambicioso-de-guatemala/",
+      "link": "https://www.oftmw.com/map/?project=forofuteca",
+      "timestamp": "2026-07-03T15:12:13.816Z"
+    },
     {
       "id": "track-four-seasons-resort-and-residences-telluride",
       "type": "tracking",
@@ -24703,48 +24753,6 @@
       "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/100d9d970224-BIP-roundabout-gigapixel-low-resolution-v2-4x.jpeg",
       "link": "https://www.oftmw.com/map/?project=theburgbid",
       "timestamp": "2026-07-02T13:24:58.031370+00:00"
-    },
-    {
-      "id": "ms-new-trafford-financing-2026-07-02",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "New Trafford  Financing secured",
-      "project_slug": "new-trafford",
-      "project_title": "New Trafford",
-      "city": "Manchester",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b154594ef4e540d386423623fbb0d339~mv2.jpg",
-      "event_date": "2026-06",
-      "source_url": "https://www.architectsjournal.co.uk/news/man-utd-bags-site-for-new-100000-capacity-foster-partners-stadium",
-      "link": "https://www.oftmw.com/map/?project=newtrafford",
-      "timestamp": "2026-07-02T13:20:59.767Z"
-    },
-    {
-      "id": "ms-residences-at-palm-beach-west-financing-2026-07-02",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "Residences at Palm Beach West  Financing secured",
-      "project_slug": "residences-at-palm-beach-west",
-      "project_title": "Residences at Palm Beach West",
-      "city": "West Palm Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg",
-      "event_date": "2026-05",
-      "source_url": "https://commercialobserver.com/2026/05/stephen-related-ross-west-palm-beach/",
-      "link": "https://www.oftmw.com/map/?project=residencesatpalmbeachwest",
-      "timestamp": "2026-07-02T13:20:55.608Z"
-    },
-    {
-      "id": "ms-hs2-euston-station-redevelopment-financing-2026-07-02",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "HS2 Euston Station Redevelopment  Financing secured",
-      "project_slug": "hs2-euston-station-redevelopment",
-      "project_title": "HS2 Euston Station Redevelopment",
-      "city": "London",
-      "image": "https://static.dezeen.com/uploads/2022/03/grimshaw-euston-station-hs2_dezeen_2364_col_1a.jpg",
-      "event_date": "2026-04",
-      "source_url": "https://www.constructionenquirer.com/2026/06/29/hs2-reset-hinges-on-contractor-deals-and-8bn-euston-plan/",
-      "link": "https://www.oftmw.com/map/?project=hs2eustonstationredevelopment",
-      "timestamp": "2026-07-02T13:20:40.174Z"
     }
   ],
   "most_covered": [
