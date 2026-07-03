@@ -9329,9 +9329,9 @@ async function handleIntelExemplars(request, env, origin) {
 // member XP column or migration needed. Writes ride normal events.
 const GAME_LEVELS = [
   { lvl: 1, tier: 'Reader', xp: 0 }, { lvl: 2, tier: 'Member', xp: 300 },
-  { lvl: 3, tier: 'Local', xp: 900 }, { lvl: 4, tier: 'Insider', xp: 1800 },
-  { lvl: 5, tier: 'Tastemaker', xp: 3000 }, { lvl: 6, tier: 'Curator', xp: 5500 },
-  { lvl: 7, tier: 'Authority', xp: 10000 }, { lvl: 8, tier: 'Luminary', xp: 18000 },
+  { lvl: 3, tier: 'Local', xp: 2000 }, { lvl: 4, tier: 'Insider', xp: 3500 },
+  { lvl: 5, tier: 'Tastemaker', xp: 5500 }, { lvl: 6, tier: 'Curator', xp: 7000 },
+  { lvl: 7, tier: 'Authority', xp: 15000 }, { lvl: 8, tier: 'Luminary', xp: 25000 },
 ];
 function levelForXp(xp) { let c = GAME_LEVELS[0]; for (const L of GAME_LEVELS) { if (xp >= L.xp) c = L; } return c; }
 function _gameStreak(daySet) {
