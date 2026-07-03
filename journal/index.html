@@ -869,6 +869,135 @@ footer .ft-logo .tmw-wordmark{width:118px}
   </div>
 </section>
 
+<!-- ==================== LIVE BOARD (leaderboards) ==================== -->
+<style>
+.tlb-section{padding:44px 0 34px;background:var(--ink);position:relative;overflow:hidden}
+.tlb-section::before{content:"";position:absolute;top:-12%;right:-8%;width:520px;height:520px;background:radial-gradient(closest-side,rgba(167,139,250,.06),transparent 70%);pointer-events:none}
+.tlb-wrap{position:relative;max-width:1320px;margin:0 auto;padding:0 28px}
+.tlb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+.tlb-eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--green-soft);margin-bottom:11px}
+.tlb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:tlbPulse 2.4s infinite}
+@keyframes tlbPulse{0%{box-shadow:0 0 0 0 rgba(31,223,103,.45)}70%{box-shadow:0 0 0 7px rgba(31,223,103,0)}100%{box-shadow:0 0 0 0 rgba(31,223,103,0)}}
+.tlb-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.4vw,42px);letter-spacing:-.022em;line-height:1.04;color:var(--white);margin:0}
+.tlb-head h2 em{font-style:italic;color:var(--purple-glow)}
+.tlb-updated{font-family:var(--sans);font-size:11px;letter-spacing:.03em;color:var(--mute);white-space:nowrap;padding-bottom:6px}
+.tlb-updated b{color:var(--cream);font-weight:600}
+.tlb-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tlb-tab{font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--mute);background:transparent;border:1px solid var(--hair);border-radius:999px;padding:8px 15px;cursor:pointer;transition:.16s;white-space:nowrap;text-decoration:none}
+.tlb-tab:hover{color:var(--cream);border-color:var(--hair-2)}
+.tlb-tab.on{color:#0a0a0a;background:var(--cream);border-color:var(--cream)}
+.tlb-tab .n{font-size:11px;opacity:.55;margin-left:6px}
+.tlb-board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1080px){.tlb-board{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.tlb-board{grid-template-columns:1fr}}
+.tlb-card{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--ink-2);border:1px solid var(--hair);border-radius:16px;padding:17px 17px 7px}
+.tlb-ct{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.tlb-cl{display:flex;align-items:center;gap:9px}
+.tlb-ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.tlb-ico svg{width:14px;height:14px}
+.tlb-ch{font-size:14px;font-weight:700;color:var(--white);letter-spacing:-.01em}
+.tlb-more{font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);text-decoration:none;white-space:nowrap;transition:.15s}
+.tlb-more:hover{color:var(--purple-glow)}
+.tlb-card.dev .tlb-ico{background:rgba(167,139,250,.16);color:var(--purple-glow)}
+.tlb-card.arch .tlb-ico{background:rgba(240,214,138,.14);color:var(--gold-soft)}
+.tlb-card.big .tlb-ico{background:rgba(31,223,103,.14);color:var(--green-soft)}
+.tlb-card.mkt .tlb-ico{background:rgba(255,255,255,.06);color:var(--cream)}
+.tlb-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--hair);text-decoration:none}
+.tlb-card .tlb-row:first-of-type{border-top:0}
+a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
+.tlb-rank{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--mute);width:14px;text-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.tlb-row.top .tlb-rank{color:var(--gold-soft)}
+.tlb-av{width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:13px;color:var(--cream);background:rgba(255,255,255,.05);border:1px solid var(--hair)}
+.tlb-main{min-width:0;flex:1}
+.tlb-name{font-size:13.5px;font-weight:600;color:var(--white);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+.tlb-sub{font-family:var(--sans);font-size:10.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlb-met{text-align:right;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tlb-val{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--cream);font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+.tlb-val .u{color:var(--mute);font-weight:400;font-size:11px}
+.tlb-mv{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:5px;white-space:nowrap}
+.tlb-mv.up{color:var(--green-soft);background:rgba(31,223,103,.14)}
+.tlb-mv.down{color:#ff8a8a;background:rgba(255,138,138,.12)}
+.tlb-mv.new{color:var(--purple-glow);background:rgba(167,139,250,.16)}
+.tlb-mv.flat{color:var(--mute);background:rgba(255,255,255,.04)}
+.tlb-pbtop{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+.tlb-pmkt{font-size:13px;font-weight:600;color:var(--white)}
+.tlb-pnum{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--green-soft);font-variant-numeric:tabular-nums}
+.tlb-pbar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.tlb-pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(31,223,103,.5),var(--green))}
+.tlb-trend{margin-top:24px;border:1px solid var(--hair);border-radius:16px;background:radial-gradient(120% 160% at 0% 0%,rgba(167,139,250,.09),transparent 55%),var(--ink-2);padding:16px 18px}
+.tlb-th{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.tlb-th .tlb-ico{background:rgba(167,139,250,.16);color:var(--purple-glow)}
+.tlb-thh{font-size:14px;font-weight:700;color:var(--white)}
+.tlb-thh b{color:var(--purple-glow)}
+.tlb-thh .k{font-family:var(--sans);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-left:8px;font-weight:600}
+.tlb-trow{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.tlb-chip{flex:0 0 auto;display:flex;align-items:center;gap:11px;min-width:230px;background:rgba(255,255,255,.03);border:1px solid var(--hair);border-radius:12px;padding:11px 13px;text-decoration:none;transition:.16s}
+.tlb-chip:hover{border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.06)}
+.tlb-chip .tn{font-family:var(--sans);font-size:12px;font-weight:700;color:var(--purple-glow);width:15px;flex:0 0 auto}
+.tlb-chip .tb{min-width:0}
+.tlb-chip .tt{font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlb-chip .ts{font-family:var(--sans);font-size:10px;letter-spacing:.03em;text-transform:uppercase;color:var(--mute);margin-top:3px}
+.tlb-foot{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tlb-foot .note{font-size:12.5px;color:var(--mute);max-width:64ch}
+.tlb-foot .cta{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0a0a0a;background:var(--purple-glow);border-radius:999px;padding:11px 20px;text-decoration:none;transition:.15s}
+.tlb-foot .cta:hover{filter:brightness(1.06)}
+@media(prefers-reduced-motion:reduce){.tlb-dot{animation:none}}
+</style>
+<section class="tlb-section" id="live-board">
+  <div class="tlb-wrap">
+    <div class="tlb-head">
+      <div>
+        <div class="tlb-eyebrow"><span class="tlb-dot"></span> The Board · Live rankings</div>
+        <h2>Who&rsquo;s <em>moving</em> the pipeline right now</h2>
+      </div>
+      <div class="tlb-updated">Straight from the database &middot; rebuilt on every update</div>
+    </div>
+    <div class="tlb-tabs" id="tlbTabs"></div>
+    <div class="tlb-board" id="tlbBoard"></div>
+    <div class="tlb-trend" id="tlbTrend" hidden></div>
+    <div class="tlb-foot">
+      <div class="note">Every board is generated straight from the live database &mdash; rankings, movement, and counts refresh on their own. Nothing here is hand-picked.</div>
+      <a class="cta" href="https://map.oftmw.com">Explore the database &rarr;</a>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var MAP='https://map.oftmw.com';
+  var ICONS={
+    dev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/></svg>',
+    arch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v13h6v-6h6v6h6V7z"/></svg>',
+    big:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V8l6-4v18M14 22V11l6-3v14M4 22h16"/></svg>',
+    mkt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>',
+    spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/></svg>'
+  };
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function slugCity(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+  function initials(n){var p=String(n||'').replace(/[^A-Za-z0-9 ]/g,'').trim().split(/\s+/);return (((p[0]||'')[0]||'')+((p[1]||'')[0]||(p[0]||'')[1]||'')).toUpperCase();}
+  function mvChip(mv){mv=mv||'flat';if(mv==='flat')return '<span class="tlb-mv flat">&mdash;</span>';if(mv==='new')return '<span class="tlb-mv new">NEW</span>';var m=mv.split(' '),up=m[0]==='up';return '<span class="tlb-mv '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+m[1]+'</span>';}
+  function firmRows(list){return (list||[]).map(function(r,i){var href=r.slug?('/firm/'+r.slug+'/'):'#';return '<a class="tlb-row'+(i===0?' top':'')+'" href="'+esc(href)+'"><span class="tlb-rank">'+(i+1)+'</span><span class="tlb-av">'+esc(initials(r.name))+'</span><span class="tlb-main"><span class="tlb-name">'+esc(r.name)+'</span><span class="tlb-sub">'+esc(r.sub||'')+'</span></span><span class="tlb-met"><span class="tlb-val">'+r.count+' <span class="u">proj</span></span>'+mvChip(r.mv)+'</span></a>';}).join('');}
+  function bigRows(list){return (list||[]).map(function(r,i){var href=r.slug?(MAP+'/?project='+encodeURIComponent(r.slug)):'#';return '<a class="tlb-row'+(i===0?' top':'')+'" href="'+esc(href)+'"><span class="tlb-rank">'+(i+1)+'</span><span class="tlb-main"><span class="tlb-name">'+esc(r.name)+'</span><span class="tlb-sub">'+esc(r.sub||'')+'</span></span><span class="tlb-met"><span class="tlb-val">'+esc(r.metric||'')+'</span>'+mvChip(r.mv)+'</span></a>';}).join('');}
+  function mktRows(list){return (list||[]).map(function(r){var href='/markets/'+(r.slug||slugCity(r.name))+'/';return '<a class="tlb-row" href="'+esc(href)+'"><span class="tlb-main"><span class="tlb-pbtop"><span class="tlb-pmkt">'+esc(r.name)+'</span><span class="tlb-pnum">'+r.count+'</span></span><span class="tlb-pbar"><i style="width:'+(r.pct||0)+'%"></i></span></span></a>';}).join('');}
+  function card(cls,ico,title,more,rows){return '<div class="tlb-card '+cls+'"><div class="tlb-ct"><div class="tlb-cl"><span class="tlb-ico">'+ico+'</span><span class="tlb-ch">'+title+'</span></div>'+more+'</div>'+rows+'</div>';}
+  fetch('./leaderboards.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    if(!d) return;
+    var tabs='<a class="tlb-tab on" href="/markets/">All markets <span class="n">'+d.total+'</span></a>'+
+      (d.markets_tabs||[]).slice(0,5).map(function(m){return '<a class="tlb-tab" href="/markets/'+slugCity(m.name)+'/">'+esc(m.name)+' <span class="n">'+m.count+'</span></a>';}).join('');
+    document.getElementById('tlbTabs').innerHTML=tabs;
+    document.getElementById('tlbBoard').innerHTML=
+      card('dev',ICONS.dev,'Most Active Developers','<a class="tlb-more" href="/firm/">All &rarr;</a>',firmRows(d.developers))+
+      card('arch',ICONS.arch,'Most Active Architects','<a class="tlb-more" href="/firm/">All &rarr;</a>',firmRows(d.architects))+
+      card('big',ICONS.big,'Biggest in the Pipeline','<a class="tlb-more" href="'+MAP+'">Map &rarr;</a>',bigRows(d.biggest))+
+      card('mkt',ICONS.mkt,'Market Pulse','<a class="tlb-more" href="/markets/">All &rarr;</a>',mktRows(d.markets));
+    if((d.newest||[]).length){
+      document.getElementById('tlbTrend').innerHTML='<div class="tlb-th"><span class="tlb-ico">'+ICONS.spark+'</span><span class="tlb-thh">Newest to the <b>database</b><span class="k">Fresh this week</span></span></div><div class="tlb-trow">'+
+        d.newest.map(function(r,i){var href=r.slug?(MAP+'/?project='+encodeURIComponent(r.slug)):'#';return '<a class="tlb-chip" href="'+esc(href)+'"><span class="tn">'+(i+1)+'</span><span class="tb"><span class="tt">'+esc(r.name)+'</span><span class="ts">'+esc(r.sub||'')+'</span></span></a>';}).join('')+'</div>';
+      document.getElementById('tlbTrend').hidden=false;
+    }
+  }).catch(function(){});
+})();
+</script>
+
 <!-- ==================== TMW INTELLIGENCE ==================== -->
 <!-- ==================== TMW INTELLIGENCE (shared, synced — /_shared/intelligence.js) ==================== -->
 <div data-tmw-intel data-anchor="intelligence"></div>
