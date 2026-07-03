@@ -806,8 +806,8 @@
     + '.tmw-ov-intel-panel.gate{border-color:rgba(240,214,138,.4);'
     + 'background:radial-gradient(130% 150% at 0% 0%,rgba(240,214,138,.10),transparent 55%),linear-gradient(180deg,#1a1d1a,#141714)}'
     + '.tmw-ov-intel-panel.gate::before{background:conic-gradient(from 210deg,rgba(240,214,138,0) 0deg,rgba(240,214,138,0) 250deg,#e6c574 320deg,#f0d68a 350deg,rgba(240,214,138,0) 360deg)}'
-    + '.tmw-ov-intel-panel.gate .lbl{color:#f0d68a}'
-    + '.tmw-ov-intel-panel.gate .tmw-ov-intel-spark{color:#f0d68a;background:rgba(240,214,138,.16);box-shadow:0 0 16px rgba(240,214,138,.4)}'
+    /* The "TMW Intelligence" header stays PURPLE everywhere (brand), even in the
+       gold-accented gate — only the CTA button carries the gold. */
     + '.tmw-ov-pro-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:12px 20px;border:0;border-radius:11px;cursor:pointer;'
     + 'background:linear-gradient(180deg,#f0d68a,#e6c574);color:#0b0a08;font-family:inherit;font-weight:700;font-size:12px;'
     + 'letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 24px rgba(230,197,116,.3);transition:filter .15s}'
@@ -3155,6 +3155,20 @@
     _lastResultsTotal = 0;
     _lastResultKind = '';
     resetFeedback();
+
+    // ── ACCOUNT GATE ─────────────────────────────────────────────────
+    // TMW Intelligence search requires an account. An anonymous visitor sees
+    // ONLY the "create a free account" gate — no tabs, hero, project/journal
+    // cards, or feedback row. (Signed-in members get results + the free trial.)
+    if (!_intelSignedIn()) {
+      if (slotIntel) slotIntel.innerHTML = intelGateHtml();
+      [slotFilterPills, slotHero, slotRows, slotProjGrid, slotEntities, slotArticles].forEach(function(s){ if (s) s.innerHTML = ''; });
+      setState('results');
+      try { var _fb = sResults && sResults.querySelector('.tmw-ov-feedback'); if (_fb) { _fb.classList.remove('show'); _fb.style.display = 'none'; } } catch(_){}
+      try { if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { gated: 'anon', source: 'overlay' }); } catch(_){}
+      _lastResultKind = 'gate';
+      return;
+    }
 
     // ── Partner-of-Tomorrow spotlight (curated, no LLM, never gated) ──
     // Has to render BEFORE we touch the LLM or hit the database — typing
