@@ -3953,10 +3953,14 @@
     }
 
     _qPlaceTokens = null; _qPlaceMatch = null; _qStateName = '';   // reset place-aware article matching per query
-    var pScored = PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
+    // COVERAGE MISS — the query named a place we don't track ("... in port st lucie").
+    // Show NO project/firm cards rather than keyword-leaking a same-word project from
+    // another city ("port" → "PORT 32 Palm Beach Gardens"); the prose + journal answer.
+    var _cityMiss = (Core && Core.namedCityMiss) ? Core.namedCityMiss(q, PROJECTS) : null;
+    var pScored = _cityMiss ? [] : PROJECTS.map(function(p){ return { p:p, s:scoreProject(p, stoks, full) }; })
                           .filter(function(x){ return x.s >= MIN_PROJECT_SCORE; })
                           .sort(function(a,b){ return b.s - a.s; });
-    var fScored = FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, stoks, full) }; })
+    var fScored = _cityMiss ? [] : FIRMS.map(function(f){ return { f:f, s:scoreFirm(f, stoks, full) }; })
                        .filter(function(x){ return x.s > 0; })
                        .sort(function(a,b){ return b.s - a.s; });
     var aScored = ARTICLES.map(function(a){ return { a:a, s:scoreArticle(a, stoks, full) }; })

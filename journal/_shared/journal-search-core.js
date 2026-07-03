@@ -929,6 +929,33 @@
     return (m[1] + ' ' + m[2]).replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
+  // The query names a PLACE via a preposition ("... in port st lucie", "what's
+  // happening in stuart", "developments in vero beach") but that place resolves to
+  // NOTHING we track — not a city/neighborhood/metro (resolvePlace) and not a
+  // region/county/state (detectArea). Returns the display name of the uncovered
+  // place, else null. Callers use it to SUPPRESS keyword-matched projects so a
+  // place token ("port") never leaks a same-word project from another city
+  // ("PORT 32 Palm Beach Gardens") into "what is happening in Port St Lucie".
+  function namedCityMiss(q, projects) {
+    var full = norm(q);
+    // Trailing "<prep> <place>" — the place is whatever follows the last locational
+    // preposition, to end of string (minus a trailing question mark).
+    var m = full.match(/\b(?:in|near|around|throughout|across|within|coming to|happening in|going on in)\s+([a-z][a-z .'-]{2,})\s*\??$/);
+    if (!m) return null;
+    var placeStr = m[1].trim();
+    if (placeStr.length < 3) return null;
+    // Country-level scope ("in the united states") is handled by the usOnly filter,
+    // not a city miss — never suppress those.
+    if (/\b(united states|usa|u\s*s\s*a|america|americas|nationwide|the country|the us|the u\s*s)\b/.test(placeStr)) return null;
+    if (resolvePlace(q, projects)) return null;   // resolves to a tracked city/metro → we cover it
+    if (detectArea(q, projects)) return null;     // resolves to a region/county/state → we cover it
+    // Guard: don't fire when the tail is actually a firm/known entity rather than a
+    // place (e.g. "in related ross") — a firm name won't be a project LOCATION, so
+    // if any project's city matches the tail we'd have resolved above; reaching here
+    // means no project sits in this named place → genuine coverage miss.
+    return placeStr.replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
   // Build a normalized-city → display-city map from the projects array.
   // Caller passes projects in (rather than a stale module-cached copy)
   // so different surfaces with different filtered project sets stay
@@ -1604,6 +1631,14 @@
     var smart = opts.smart || null;
     var place = opts.place || null;
 
+    // COVERAGE MISS — the query named a place ("... in port st lucie") that resolves
+    // to nothing we track. Return NO projects rather than keyword-matching the place
+    // tokens into same-word projects from other cities ("port" → "PORT 32 Palm Beach
+    // Gardens"). A resolved place (kind==='place') never reaches here.
+    if (kind !== 'place' && kind !== 'structured' && namedCityMiss(q, projects)) {
+      return { kind: 'place-miss', placeDriven: true, exactName: false, semantic: false, rows: [] };
+    }
+
     // STRUCTURED — explicit floors / type / status filters (high-rise, "mixed-use
     // in miami", "towers under construction"). smartFilter owns the tower-type
     // allow-list + lenient-unknown-floors; smartRank owns the spine + sort.
@@ -2079,6 +2114,7 @@
     inArea: inArea,
     citiesInArea: citiesInArea,
     coverageMiss: coverageMiss,
+    namedCityMiss: namedCityMiss,
     // bulletproof place hierarchy (neighborhood→city→borough→county→metro→state→country)
     placeTokensOf: placeTokensOf,
     resolvePlace: resolvePlace,
