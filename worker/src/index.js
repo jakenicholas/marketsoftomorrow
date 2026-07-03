@@ -7862,7 +7862,7 @@ async function handleBrainGet(req, env, origin) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   await ensureBrandNotes(env);
   const rows = (await env.DB.prepare(
-    'SELECT id, kind, category, note, context, created_by, created_at FROM brand_notes WHERE active = 1 ORDER BY created_at ASC'
+    "SELECT id, kind, category, note, context, created_by, created_at, COALESCE(scope,'voice') scope, COALESCE(tier,'pool') tier FROM brand_notes WHERE active = 1 ORDER BY (tier='canon') DESC, created_at ASC"
   ).all()).results || [];
   return json({ count: rows.length, notes: rows }, {}, env, origin);
 }
