@@ -95,6 +95,18 @@
     if (/\b(tell me|more about|everything about|info(?:rmation)?\s+(?:on|about)|details?\s+(?:on|about)|rundown on|overview of|story\s+(?:of|behind|on)|the deal with|the scoop on)\b/i.test(t)) return true;
     return false;
   }
+  // Does the query EXPLICITLY ask for a list of projects? Those keep the project
+  // cards; every other question is slimmed to the pure LLM prose. Deliberately
+  // narrow — an analytical question that merely mentions "opening"/"new" (e.g.
+  // "what's opening across our markets by region?") is NOT a list request.
+  function listIntent(q){
+    var t = String(q||'').toLowerCase().trim();
+    if (/\b(give me|show me|make|build|need|want)\b.*\blist\b/.test(t)) return true;         // "give me a list …"
+    if (/\blist\s+(of|the|all|me|out)?\s*(projects?|developments?|condos?|towers?|hotels?|buildings?|deals?)\b/.test(t)) return true;
+    if (/\b(new|newest|latest|recent|upcoming)\s+(projects?|developments?|condos?|listings?|launches?)\b/.test(t)) return true;
+    if (/^(list|projects?|developments?)\b/.test(t)) return true;                             // starts with "list"/"projects"
+    return false;
+  }
 
   // ── inline styles (namespaced under .tmw-ov-* so we never collide) ──
   var css = ''
@@ -323,6 +335,13 @@
     + '[data-state="results"][data-answer-only="1"] [data-cat="articles"],'
     + '[data-state="results"][data-answer-only="1"] [data-cat="firms"],'
     + '[data-state="results"][data-answer-only="1"] [data-slot="filter-pills"]{display:none !important}'
+    /* SLIM: an analytical QUESTION drops the project LISTS (ranked rows + related
+       grid) and the firm/entity list from the Overview so it reads as the pure LLM
+       answer. A single hero card, the prose, the journal, and the Projects/Journal
+       tabs all stay — so "1 hero card answer" and drill-in still work. */
+    + '[data-state="results"][data-filter="overview"][data-slim="1"] [data-slot="rows"],'
+    + '[data-state="results"][data-filter="overview"][data-slim="1"] [data-slot="projects-grid"],'
+    + '[data-state="results"][data-filter="overview"][data-slim="1"] [data-slot="entities"]{display:none !important}'
     /* The Intelligence answer (+ "understood as" chips) lives in the intel-cta
        slot, which has no data-cat — so the rules above never touch it. Hide it
        explicitly whenever a non-Intelligence category filter is active, so
@@ -387,9 +406,12 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot{display:none}'
-    /* Keep the "TMW INTELLIGENCE" header row on every response (Jake wants the
-       title on each answer). Compact spacing so it sits cleanly atop the card. */
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-h{display:flex;margin-bottom:10px}'
+    /* Responses are slimmed to the pure LLM answer: NO "TMW Intelligence" header
+       row (label + Onyx 4.1 / Deep pill) and NO "Thinking / Live answer" status
+       pip on top of any answer (loading OR answered). The loader dots (while it
+       streams) stay. The sign-up / Go-Pro GATE keeps its header (:not(.gate)). */
+    + '.tmw-ov-intel-panel:not(.gate) .tmw-ov-intel-h{display:none}'
+    + '.tmw-ov-feedback .live{display:none}'
     /* hero → a compact thumbnail row: title + location only */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero{display:flex;min-height:0;box-shadow:none;border-radius:12px;margin-bottom:8px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-hero .media{min-height:0;width:84px;flex:0 0 84px}'
@@ -1081,8 +1103,16 @@
     +   '.tmw-ov-bar{bottom:18px;width:calc(100vw - 22px)}'
     +   '.tmw-ov-row .r-bar{display:none}'
     +   '.tmw-ov-close{top:14px;right:14px;width:34px;height:34px}'
-    +   '.tmw-ov-body{padding:8px 0 96px}'
+    /* Clear the dock (bar + deep-meta) AND iOS Safari\'s bottom toolbar / home
+       indicator so the last line of an answer never hides under the search bar. */
+    +   '.tmw-ov-body{padding:8px 0 calc(120px + env(safe-area-inset-bottom,0px))}'
+    +   '.tmw-ov-dock{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}'
     +   '.tmw-ov-wrap{padding:0 16px}'
+    /* Mobile scroll LAG: a full-screen backdrop-blur re-composites every frame
+       while the lightbox scrolls (same problem the /map/ surface had — see the
+       .tmw-surf-map override above). Drop the blur on small screens and lean on a
+       near-opaque fill so scrolling stays smooth. */
+    +   '.tmw-ov-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(7,8,7,.97)}'
     + '}';
 
   // Inject styles once
@@ -1713,6 +1743,11 @@
     return false;
   }
   function scoreArticle(a, toks, full){
+    // The worker's body scan (/posts?q=) matched THIS article's body_html for this
+    // exact query — a genuine title+body journal hit the summary-only fields below
+    // can't see. Trust it (mirrors the homepage journal search) with a solid score
+    // so it surfaces, ranked just under strong title matches.
+    if (a && a._bodyHit && a._bodyHit === full) return 45;
     var _inPlace = articleInPlace(a);
     var title=norm(a.title), exc=norm(a.excerpt), cats=norm((a.categories||[]).join(' ')), tags=norm((a.tags||[]).join(' '));
     var hay = title+' '+exc+' '+cats+' '+tags;
@@ -2652,10 +2687,8 @@
         fbEl.setAttribute('data-results', String(_lastResultsTotal));
         fbEl.setAttribute('data-kind', _lastResultKind || '');
         markWatchBtn(fbEl);   // reflect already-watched state on the button
-        // Relocate the live/thinking indicator from the answer header into this
-        // feedback row (left side) so it lands on the thumbs' horizontal line.
-        var _liveEl = turn && turn.querySelector('.tmw-ov-intel-h .live');
-        if (_liveEl && _liveEl.parentNode !== fbEl) fbEl.insertBefore(_liveEl, fbEl.firstChild);
+        // (The live/thinking pip is gone — responses are slimmed to the pure
+        // answer, so nothing is relocated into the feedback row anymore.)
       }
       // Position the freshly-answered turn: long → message pinned to top, short
       // → bottom-anchored above the bar. setState('results'/'empty') fires ONCE
@@ -3153,6 +3186,7 @@
     var token = ++_renderToken;
     _answerOnly = false;   // clear any prior analytical query; re-decided after classify
     try { sResults.setAttribute('data-answer-only', '0'); } catch (_) {}
+    try { sResults.setAttribute('data-slim', '0'); } catch (_) {}   // re-decided after classify (project-list suppression)
     setState('thinking');
     // Reset the thumbs row for the incoming query so a previous vote
     // doesn't bleed across. _lastQuery / _lastResultsTotal / _lastResultKind
@@ -3508,6 +3542,15 @@
     // pipeline ranked by the spine — never let its phrasing ("growing", "fast")
     // act as a project-name or neighborhood filter that narrows the set.
     var _isQ = (Core && Core.isQuestion ? Core.isQuestion : isQuestion)(q);
+    // SLIM RESPONSES: an analytical/synthesis QUESTION (not an explicit list
+    // request) drops the PROJECT list + firm list from the Overview so it reads as
+    // the pure LLM answer. The prose, a single hero, the JOURNAL matches, and the
+    // Projects/Journal tabs all stay (drill-in still works). List-intent questions
+    // ("give me a list", "new projects") keep the project cards; plain name/keyword
+    // lookups (not questions) are untouched, so their hero + matches render as before.
+    if (_isQ && !listIntent(q)) {
+      try { sResults.setAttribute('data-slim', '1'); } catch (_) {}
+    }
     // A FIRM browse ("related ross west palm beach") must NOT collapse to one
     // project either — the firm's name tokens ("ross") coincidentally match a
     // single project's TITLE ("Ross Private Club") and would scope away the other
@@ -3835,17 +3878,24 @@
         .catch(function(){ return null; });
     })).then(function(results){
       if (token !== _renderToken) return; // user moved on
-      var seen = {};
-      ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) seen[k] = 1; });
-      var added = 0;
+      // Flag every article the worker matched by BODY for THIS query (nq) — both
+      // ones already loaded (summary-only, so the client scorer missed the body
+      // hit) and brand-new ones. scoreArticle trusts this flag so true title+body
+      // journal matches surface instead of being dropped by the summary-only gate.
+      var nq = norm(q);
+      var bySlug = {};
+      ARTICLES.forEach(function(a){ var k = a.slug || a.id; if (k) bySlug[k] = a; });
+      var changed = 0;
       results.forEach(function(d){
         var items = (d && Array.isArray(d.items)) ? d.items : [];
         items.forEach(function(a){
-          var k = a.slug || a.id;
-          if (k && !seen[k]){ seen[k] = 1; ARTICLES.push(a); added++; }
+          var k = a.slug || a.id; if (!k) return;
+          var ex = bySlug[k];
+          if (ex){ if (ex._bodyHit !== nq){ ex._bodyHit = nq; changed++; } }
+          else { a._bodyHit = nq; ARTICLES.push(a); bySlug[k] = a; changed++; }
         });
       });
-      if (added) renderArticleSection(q, token, { fromBodyMerge: true });
+      if (changed) renderArticleSection(q, token, { fromBodyMerge: true });
     });
   }
 
@@ -4561,7 +4611,9 @@
                           // STRICT: a card must be a real topical hit, not a place-only
                           // co-location. Skip the gate only for a broad browse (no query
                           // tokens, e.g. "what's new") where "latest" is the intent.
-                          .filter(function(x){ return x.s > 0 && x.a !== hero && (!stoks.length || articleHasTextHit(x.a, stoks, full)); })
+                          // A worker BODY hit (_bodyHit === full) always passes — the term
+                          // lives in the article body, which articleHasTextHit can't see.
+                          .filter(function(x){ return x.s > 0 && x.a !== hero && (!stoks.length || (x.a && x.a._bodyHit === full) || articleHasTextHit(x.a, stoks, full)); })
                           .sort(function(a,b){ return b.s - a.s; });
     // High-rise / tower queries carry no topical article tokens (the height words
     // are stopwords), so the place alone matches every local story — dumping
