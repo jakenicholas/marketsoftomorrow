@@ -3927,7 +3927,8 @@ async function handlePostsUpdate(req, env, origin, id) {
   }
   // Publishing now? Set published_at if going draft→published (unless the
   // editor supplied an explicit date in this request).
-  if (patch.status === 'published' && existing.status !== 'published' && !existing.published_at && !('published_at' in body)) {
+  const nowPublishing = patch.status === 'published' && existing.status !== 'published';
+  if (nowPublishing && !existing.published_at && !('published_at' in body)) {
     patch.published_at = Math.floor(Date.now() / 1000);
   }
   if ('body_html' in patch) {
@@ -3947,6 +3948,16 @@ async function handlePostsUpdate(req, env, origin, id) {
     return json({ error: 'update failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
   const updated = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(id).first();
+  // Connector learning loop — the Studio publishes via THIS PATCH endpoint (not
+  // POST /posts/:id/publish), so the learn-from-edit hook must live here too or
+  // Studio-published article edits never teach the brain. On the draft→published
+  // transition, diff the AI-draft snapshot against the just-published body and
+  // propose what the edits teach (review-gated), then advance the baseline so the
+  // next cycle only learns NEW edits. Best-effort: never blocks/fails the publish.
+  if (nowPublishing && updated && updated.ai_original_html) {
+    try { await captureEditLesson(env, updated); } catch (_) { /* learning is best-effort */ }
+    try { await env.DB.prepare(`UPDATE posts SET ai_original_html = ?1 WHERE id = ?2`).bind(updated.body_html || '', id).run(); } catch (_) {}
+  }
   return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
 }
 
@@ -8615,8 +8626,17 @@ async function handleSmartAnswer(request, env, origin) {
   // provide). Only bail when there's truly nothing to work with AND it isn't a
   // question (a bare no-match keyword → the client's own empty path handles it).
   const isQ = !!q && (/\?/.test(q) || /^(what|whats|why|how|when|where|who|which|whose|is|are|am|do|does|did|can|could|will|would|should|has|have|had|tell|describe|explain|summar|compare|give|list|show)\b/i.test(q.trim()));
+  // SOURCE ARTICLE context — when the reader opens full search from a journal
+  // article ("Explore in Onyx"), the question can be terse ("when", "how much")
+  // and only makes sense against that article. Carry its title + summary so Onyx
+  // resolves the question instead of guessing.
+  const article = (body.article && typeof body.article === 'object') ? {
+    title: String(body.article.title || '').slice(0, 200).trim(),
+    summary: String(body.article.summary || '').slice(0, 1500).trim(),
+  } : null;
+  const hasArticle = !!(article && article.title);
   if (!q || !facts) return fail('bad_facts');
-  if (!hasProjects && !hasIconic && !isQ) return fail('no_facts');
+  if (!hasProjects && !hasIconic && !isQ && !hasArticle) return fail('no_facts');
 
   if (!env.ANTHROPIC_API_KEY) return fail('no_key');
 
@@ -8805,7 +8825,7 @@ async function handleSmartAnswer(request, env, origin) {
     }
   } catch { /* exemplars are optional */ }
 
-  const sig = await sha256Hex((deepMode ? 'deep|' : '') + SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars) + '|' + JSON.stringify(history));
+  const sig = await sha256Hex((deepMode ? 'deep|' : '') + (hasArticle ? ('art|' + article.title + '|' + article.summary + '|') : '') + SMART_ANSWER_MODEL + '|' + JSON.stringify(compact) + '|' + JSON.stringify(learnedRules) + '|' + JSON.stringify(learnedExemplars) + '|' + JSON.stringify(history));
   const cache = caches.default;
   const cacheKey = new Request('https://smart-answer.tmw.internal/' + sig, { method: 'GET' });
   try {
@@ -9007,7 +9027,11 @@ async function handleSmartAnswer(request, env, origin) {
       messages: history.flatMap(t => ([
         { role: 'user', content: t.q },
         { role: 'assistant', content: t.answer },
-      ])).concat([{ role: 'user', content: 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }]),
+      ])).concat([{ role: 'user', content:
+        (hasArticle
+          ? ('SOURCE ARTICLE — the reader opened this search from a journal article and their question refers to it (it may be terse, e.g. "when" or "how much"). Resolve their question against THIS article first, then our database/web. Do not answer about anything else.\nArticle title: ' + article.title + (article.summary ? '\nArticle summary: ' + article.summary : '') + '\n\n')
+          : '')
+        + 'Query and verified facts (JSON):\n' + JSON.stringify(compact) }]),
     };
     if (useWeb) reqBody.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
