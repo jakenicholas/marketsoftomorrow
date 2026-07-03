@@ -360,7 +360,7 @@
         var proj = heroName();
         if (proj) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + proj + '? Unlock TMW Intelligence — forecasts, data, and live updates.', eyebrow: 'The Future Is Here', source: 'project_page' };
       } else if (/^\/post\//.test(p)) {
-        window.TMW_FUNNEL_OPTS = { headline: 'Go beyond the article — TMW Intelligence brings forecasts, data, and updates to every story.', eyebrow: 'The Future Is Here', source: 'article', event: 'subscribe_article' };
+        window.TMW_FUNNEL_OPTS = { headline: 'Create a free account to access TMW Intelligence and website features', eyebrow: 'The Future Is Here', source: 'article', event: 'subscribe_article' };
       }
     })();
 

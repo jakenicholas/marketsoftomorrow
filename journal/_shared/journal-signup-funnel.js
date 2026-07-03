@@ -136,15 +136,20 @@
           try { window.tmwFunnelTrack && window.tmwFunnelTrack(EVENT, { email: email, source: SOURCE }); } catch (_) {}
           mark('subscribed');
           try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
-          // Email captured — go straight to the free 2-week trial offer. The old
-          // password / profile steps are dropped; the trial checkout creates the
-          // account (email + password + card) itself.
-          swapPanel();
-          msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
-          setTimeout(function () {
-            el.classList.remove('show');
-            showGoProOncePerSession();
-          }, 1400);
+          // STEP 2 — email captured, now create a PASSWORD (the account). Only
+          // after the account exists do we show the Go-Pro pitch (STEP 3). The
+          // auto-popup always walks email → password → Go-Pro; each step shows
+          // until it's filled (a returning visitor resumes at the password step).
+          var host2 = swapPanel();
+          var ok2 = window.tmwFreeAccountPrompt && window.tmwFreeAccountPrompt(host2, email, function (created) {
+            if (created) { setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 200); }
+            else { try { sessionStorage.setItem('tmw-acct-skip', '1'); } catch (e) {} close(); }   // skipped → resumes at password next visit
+          });
+          if (!ok2) {
+            // Password step unavailable → confirm + Go-Pro (old fallback).
+            msg.style.display = ''; msg.textContent = d.already_subscribed ? "✓ Your email's already live." : "✓ You're in! Welcome to TMW.";
+            setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 1400);
+          }
         } else { btn.disabled = false; btn.textContent = orig; }
       } catch (err) { btn.disabled = false; btn.textContent = orig; }
     });
