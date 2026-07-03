@@ -604,20 +604,28 @@ async function handleTrendingSearches(env, origin) {
       const p = placeOf(q);
       if (p && kept.some((k) => k.place === p)) return false;                 // one query per place
       const t = toks(q);
-      if (kept.some((k) => t.filter((w) => k.toks.includes(w)).length >= Math.max(2, Math.ceil(t.length * 0.6)))) return false;  // near-dupe wording
+      if (kept.some((k) => (!p || !k.place || k.place === p) && t.filter((w) => k.toks.includes(w)).length >= Math.max(2, Math.ceil(t.length * 0.6)))) return false;  // near-dupe wording (same/no place only — "tallest towers" in two cities is two themes)
       kept.push({ q, count, place: p, toks: t });
       return true;
     };
     const rows = (rs.results || []).map((r) => ({ q: String(r.q || '').trim(), n: Number(r.n) || 0 }))
       .filter((r) => r.q.length >= 3 && r.q.length <= 64)
       .filter((r) => !/^(test|asdf+|hello|hi|hey|yo)$/i.test(r.q))
-      .filter((r) => !/^what('?| i)?s? about /i.test(r.q));                    // follow-up fragments never trend
+      .filter((r) => !/^what('?| i)?s? about /i.test(r.q))                     // follow-up fragments never trend
+      .filter((r) => !/wisconsin/i.test(r.q));                                 // editorial exclude (Jake)
     // Curated picks (Jake): surface these themes when present in the log —
     // matched loosely so the REAL query text + count is what displays.
     const CURATED = [/tallest .*miami|miami.*tallest/i, /hotels? .*(usa|america|united states)/i];
     for (const re of CURATED) {
       const hit = rows.find((r) => re.test(r.q));
       if (hit) keep(hit.q, hit.n);
+    }
+    // Pinned (Jake): the Miami-tallest slot always shows — with the real query
+    // text/count once anyone actually asks it (CURATED above wins the slot),
+    // and this stand-in (count borrowed from the top live Miami ask) until then.
+    if (!kept.some((k) => /tallest/i.test(k.q) && /miami/i.test(k.q))) {
+      const mia = (rs.results || []).map((r) => ({ q: String(r.q || ''), n: Number(r.n) || 0 })).find((r) => /miami/i.test(r.q));
+      keep('tallest towers coming to miami', (mia && mia.n) || 20);
     }
     for (const r of rows) { if (kept.length >= 5) break; keep(r.q, r.n); }
     kept.sort((a, b) => b.count - a.count);
