@@ -11,7 +11,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 40
+      "count": 39
     },
     {
       "type": "Entertainment",
@@ -42,11 +42,11 @@
       "count": 8
     },
     {
-      "type": "Park",
-      "count": 6
+      "type": "Retail",
+      "count": 7
     },
     {
-      "type": "Retail",
+      "type": "Park",
       "count": 6
     },
     {
@@ -469,7 +469,7 @@
       "ci": "Nashville",
       "u": 0,
       "k": 245,
-      "fl": 11,
+      "fl": 12,
       "dv": [
         [
           "The Dollywood Company",
@@ -697,10 +697,10 @@
       "st": "FL",
       "ty": "Hotel",
       "sl": "Construction",
-      "yr": null,
+      "yr": 2027,
       "sm": "2026-01",
       "ci": "Naples",
-      "u": 0,
+      "u": 70,
       "k": 70,
       "fl": 6,
       "dv": [
@@ -2640,7 +2640,7 @@
       "yr": null,
       "sm": null,
       "ci": "Palm Beach",
-      "u": 41,
+      "u": 32,
       "k": 0,
       "fl": 5,
       "dv": [
@@ -6545,7 +6545,7 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Announced",
+      "sl": "Breaking Ground",
       "yr": 2028,
       "sm": "2026-12",
       "ci": "St. Petersburg",
@@ -13521,7 +13521,7 @@
     {
       "st": "JP",
       "ty": "Hotel",
-      "sl": "Announced",
+      "sl": "Opening Soon",
       "yr": 2027,
       "sm": null,
       "ci": "Tokyo",
@@ -16847,7 +16847,7 @@
     {
       "st": "Other",
       "ty": "Golf",
-      "sl": "Construction",
+      "sl": "Opening Soon",
       "yr": null,
       "sm": null,
       "ci": "Myakka City",
@@ -17348,7 +17348,7 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Retail",
       "sl": "Announced",
       "yr": 2027,
       "sm": "2026-06",
@@ -17463,13 +17463,13 @@
     "total_projects": 685,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 266,
+    "under_construction": 265,
     "opening_this_year": 99
   },
   "scale": {
-    "units": 251198,
+    "units": 251259,
     "keys": 47060,
-    "floors": 10311
+    "floors": 10312
   },
   "leaderboards": {
     "developers": [
@@ -18346,7 +18346,7 @@
       {
         "name": "Mixed-Use",
         "sub": "6% of pipeline",
-        "count": 40,
+        "count": 39,
         "states": [
           "FL",
           "Other",
@@ -18439,21 +18439,22 @@
         ]
       },
       {
+        "name": "Retail",
+        "sub": "1% of pipeline",
+        "count": 7,
+        "states": [
+          "FL",
+          "FR",
+          "Other"
+        ]
+      },
+      {
         "name": "Park",
         "sub": "1% of pipeline",
         "count": 6,
         "states": [
           "FL",
           "Other"
-        ]
-      },
-      {
-        "name": "Retail",
-        "sub": "1% of pipeline",
-        "count": 6,
-        "states": [
-          "FL",
-          "FR"
         ]
       },
       {
@@ -19399,7 +19400,8 @@
           "count": 5,
           "states": [
             "FL",
-            "FR"
+            "FR",
+            "Other"
           ]
         },
         {
@@ -22858,7 +22860,8 @@
           "count": 1,
           "states": [
             "FL",
-            "FR"
+            "FR",
+            "Other"
           ]
         }
       ]
@@ -22871,18 +22874,18 @@
         "under_construction": 117
       },
       "scale": {
-        "units": 77773,
+        "units": 77834,
         "keys": 11045,
         "floors": 5843
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 125
+          "count": 124
         },
         {
           "label": "Breaking Ground",
-          "count": 14
+          "count": 15
         },
         {
           "label": "Construction",
@@ -23063,7 +23066,7 @@
       "scale": {
         "units": 3852,
         "keys": 1991,
-        "floors": 308
+        "floors": 309
       },
       "status_distribution": [
         {
@@ -23349,11 +23352,15 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 3
+          "count": 2
         },
         {
           "label": "Construction",
           "count": 5
+        },
+        {
+          "label": "Opening Soon",
+          "count": 1
         },
         {
           "label": "Now Open",
@@ -23913,19 +23920,19 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 199
+      "count": 197
     },
     {
       "label": "Breaking Ground",
-      "count": 27
+      "count": 28
     },
     {
       "label": "Construction",
-      "count": 266
+      "count": 265
     },
     {
       "label": "Opening Soon",
-      "count": 77
+      "count": 79
     },
     {
       "label": "Now Open",
@@ -24001,7 +24008,7 @@
     },
     {
       "year": 2027,
-      "count": 135
+      "count": 136
     },
     {
       "year": 2028,
