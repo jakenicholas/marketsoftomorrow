@@ -2450,7 +2450,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     .pp-firms.pp-firms-stack {{ grid-template-columns: 1fr; }}
     .pp-firm-group {{ background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }}
     .pp-firm-group > .k {{ font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.4); }}
-    .pp-firm-chips {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }}
+    .pp-firm-chips {{ display: flex; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; gap: 6px; margin-top: 9px; }}
     .pp-firm-chip {{ display: inline-flex; align-items: center; max-width: 100%; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); font-size: 12.5px; font-weight: 600; color: #fff; text-decoration: none; line-height: 1; box-sizing: border-box; transition: border-color .15s, background .15s; }}
     .pp-firm-chip .nm {{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
     a.pp-firm-chip::after {{ content: "\\2197"; font-size: 11px; margin-left: 5px; color: #1FDF67; opacity: .7; }}
