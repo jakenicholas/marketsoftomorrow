@@ -4106,14 +4106,17 @@ async function captureEditLesson(env, post) {
   const m = txt.match(/\[[\s\S]*\]/); if (!m) return;
   let arr; try { arr = JSON.parse(m[0]); } catch { return; }
   if (!Array.isArray(arr)) return;
-  for (const l of arr.slice(0, 3)) {
-    if (!l || !l.note) continue;
-    await brainWrite(env, {
-      type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note),
-      source: 'studio-edit:' + (post.slug || post.id),
-      evidence: 'Learned from a human edit of AI article "' + String(post.title || post.slug || '').slice(0, 80) + '"',
-    }, { review: true });
-  }
+  // Which notes were in the draft's prompt (for violated-despite-injected telemetry).
+  let injected = [];
+  try {
+    const ev = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='brain_injected' AND member_id = ?1 ORDER BY ts DESC LIMIT 1`).bind(String(post.slug || '')).first();
+    if (ev) { const pj = JSON.parse(ev.props_json); if (Array.isArray(pj.ids)) injected = pj.ids; }
+  } catch (_) {}
+  await routeLessons(env, arr, {
+    source: 'studio-edit:' + (post.slug || post.id),
+    evidence: 'Learned from a human edit of AI article "' + String(post.title || post.slug || '').slice(0, 80) + '"',
+    injected_ids: injected,
+  });
 }
 
 // The human-facing COPY of a carousel design doc — caption + each slide's headline —
@@ -4159,14 +4162,10 @@ async function captureDesignLesson(env, slug) {
   const m = txt.match(/\[[\s\S]*\]/); if (!m) return;
   let arr; try { arr = JSON.parse(m[0]); } catch { return; }
   if (!Array.isArray(arr)) return;
-  for (const l of arr.slice(0, 3)) {
-    if (!l || !l.note) continue;
-    await brainWrite(env, {
-      type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note),
-      source: 'design-edit:' + slug,
-      evidence: 'Learned from carousel edits (caption + slide copy) at export-to-carousels',
-    }, { review: true });
-  }
+  await routeLessons(env, arr, {
+    source: 'design-edit:' + slug,
+    evidence: 'Learned from carousel edits (caption + slide copy) at export-to-carousels',
+  });
   // Advance the baseline so the next edit→export only learns NEW edits.
   try { await env.DB.prepare('UPDATE designs SET ai_original_json = ?1 WHERE slug = ?2').bind(row.doc_json || '', slug).run(); } catch (_) {}
 }
@@ -5965,6 +5964,29 @@ async function maybeBrainReindex(env) {
     await brainNoteVectors(env, rows);
   } catch (_) {}
 }
+// ── Draft-time SELF-CRITIQUE — Haiku grades a fresh draft against the canon +
+// retrieved notes BEFORE it is saved; violations feed one Fable fix cycle in
+// generate_article_draft. Returns [] when clean or on any failure (never blocks).
+export async function critiqueDraft(env, { title = '', excerpt = '', body = '', brainText = '' } = {}) {
+  if (!env || !env.ANTHROPIC_API_KEY || !body) return [];
+  try {
+    const sys = 'You are the style checker for Markets of Tomorrow. Grade the draft ONLY against the house rules provided. Report ONLY genuine, specific violations of those rules (not taste, not suggestions). Output ONLY a JSON array: [{"rule":"<short rule ref>","violation":"<what and where, one line>"}] — empty array [] if clean.';
+    const usr = 'HOUSE RULES:\n' + String(brainText).slice(0, 7000) + '\n\nDRAFT TITLE: ' + title + '\nDRAFT EXCERPT: ' + excerpt + '\n\nDRAFT BODY:\n' + String(body).slice(0, 7000);
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 800, system: sys, messages: [{ role: 'user', content: usr }] }),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+    const m = txt.match(/\[[\s\S]*\]/);
+    if (!m) return [];
+    const arr = JSON.parse(m[0]);
+    return Array.isArray(arr) ? arr.filter((v) => v && v.violation).slice(0, 8) : [];
+  } catch (_) { return []; }
+}
+
 // ── The GARDENER (Phase 2) — the brain prunes itself instead of only growing ─
 // Weekly (or via POST /admin/brain/garden): embeds every active pool voice
 // note, then (a) finds notes the canon already covers → proposes RETIRE,
@@ -6098,9 +6120,96 @@ export async function brainRelevantNotes(env, topic, k = 6) {
     const [vec] = await embedTexts(env, [q.slice(0, 400)]);
     if (!Array.isArray(vec)) return [];
     const ms = (await env.VECTORIZE.query(vec, { topK: 16, returnMetadata: 'all' })).matches || [];
-    return ms.filter((m) => m.metadata && m.metadata.kind === 'brand_note' && m.metadata.scope === 'voice' && (m.score || 0) >= 0.45 && m.metadata.text)
-      .slice(0, k).map((m) => ({ kind: String(m.metadata.note_kind || 'note'), note: String(m.metadata.text) }));
+    const notes = ms.filter((m) => m.metadata && m.metadata.kind === 'brand_note' && m.metadata.scope === 'voice' && (m.score || 0) >= 0.45 && m.metadata.text)
+      .slice(0, k).map((m) => ({ id: String(m.id || '').replace(/^brandnote:/, ''), kind: String(m.metadata.note_kind || 'note'), note: String(m.metadata.text) }));
+    await markNotesRetrieved(env, notes.map((n) => n.id));   // efficacy telemetry
+    return notes;
   } catch (_) { return []; }
+}
+// Efficacy telemetry: count every injection of a note into a prompt, so the
+// gardener can retire notes that never retrieve and flag ones that retrieve
+// but keep getting violated. Best-effort.
+export async function markNotesRetrieved(env, ids) {
+  const clean = (ids || []).filter((id) => /^(bn|canon)-/.test(String(id))).slice(0, 20);
+  if (!clean.length || !env.DB) return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(`UPDATE brand_notes SET retrievals = COALESCE(retrievals,0)+1, last_retrieved_at = ?1 WHERE id IN (${clean.map(() => '?').join(',')})`)
+      .bind(now, ...clean).run();
+  } catch (_) {}
+}
+
+// ── The canon LINTER — deterministic checks for mechanically-verifiable canon
+// rules. Free, instant, no LLM. Returns [{canon, issue}]; empty = clean.
+export function lintCanon({ title = '', body = '', excerpt = '', kind = 'article' } = {}) {
+  const out = [];
+  const text = String(title) + '\n' + String(body);
+  const hit = (re) => { const m = text.match(re); return m ? m[0].slice(0, 60) : null; };
+  let m;
+  if ((m = hit(/\b(storeys?|centres?|metres?|colour|honour|neighbourhood|programme|litres?)\b/i)))
+    out.push({ canon: 'canon-06', issue: 'British spelling: "' + m + '" — use American English' });
+  if ((m = hit(/\b\d[\d,.]*\s*(sq(uare)?\s*m\b|sq\.?m\b|sqm\b|square\s+met(er|re)s?|met(er|re)s?\s+(tall|high|long|wide)|hectares?|kilomet(er|re)s?)\b/i)))
+    out.push({ canon: 'canon-06', issue: 'Metric units left unconverted: "' + m + '" — convert to imperial' });
+  if ((m = hit(/(\$\s?\d[\d,]*\s*(\/|per\s+)night|night(ly)?\s+rates?\s+(from|start|begin))/i)))
+    out.push({ canon: 'canon-12', issue: 'Nightly rate/price shown: "' + m + '" — rates are never displayed' });
+  if ((m = hit(/\b(we track|tracked projects?|our database|our dataset|our records|results returned)\b/i)))
+    out.push({ canon: 'canon-17', issue: 'References the machinery: "' + m + '" — state counts as market fact' });
+  if (/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b/i.test(String(title)))
+    out.push({ canon: 'canon-07', issue: 'Exact calendar date in the headline — soften to a season or month' });
+  const words = String(title).split(/\s+/).filter((w) => w.length > 3);
+  if (words.length >= 5) {
+    const caps = words.slice(1).filter((w) => /^[A-Z]/.test(w)).length;
+    if (caps / (words.length - 1) > 0.75)
+      out.push({ canon: 'canon-07', issue: 'Headline looks Title Case — TMW headlines are sentence case' });
+  }
+  if (kind === 'article' && !String(excerpt).trim())
+    out.push({ canon: 'canon-11', issue: 'Missing excerpt/meta description (~140-160 chars)' });
+  if ((m = String(body).trim().match(/^(the setting is|what makes this (one )?different|that's the magic|here's the (part|thing))/i)))
+    out.push({ canon: 'canon-09', issue: 'Filler/signpost opener: "' + m[0] + '" — open directly on the fact' });
+  return out;
+}
+
+// ── Repeat-offender routing — the anti-inflation valve. Before proposing a
+// NEW lesson, check whether it restates an EXISTING note: if so, count it as a
+// VIOLATION of that note (the note exists but drafts keep breaking it) instead
+// of minting a duplicate. 3+ violations auto-stages an escalation proposal.
+async function matchLessonToExisting(env, noteText) {
+  if (!retrievalReady(env)) return null;
+  try {
+    const [vec] = await embedTexts(env, [String(noteText).slice(0, 600)]);
+    if (!Array.isArray(vec)) return null;
+    const ms = (await env.VECTORIZE.query(vec, { topK: 3, returnMetadata: 'all' })).matches || [];
+    const best = ms.find((m) => m.metadata && m.metadata.kind === 'brand_note' && (m.score || 0) >= 0.86);
+    return best ? { id: String(best.id || '').replace(/^brandnote:/, ''), score: best.score, text: String(best.metadata.text || '') } : null;
+  } catch (_) { return null; }
+}
+export async function routeLessons(env, lessons, { source, evidence, injected_ids = [] } = {}) {
+  const now = Math.floor(Date.now() / 1000);
+  for (const l of (lessons || []).slice(0, 3)) {
+    if (!l || !l.note) continue;
+    const existing = await matchLessonToExisting(env, l.note);
+    if (existing && existing.id) {
+      // The rule already exists — the draft violated it. Count, don't duplicate.
+      try {
+        await env.DB.prepare('UPDATE brand_notes SET violations = COALESCE(violations,0)+1, last_violated_at = ?1 WHERE id = ?2').bind(now, existing.id).run();
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(now, source || 'system', 'brain_violation', JSON.stringify({ note_id: existing.id, lesson: String(l.note).slice(0, 300), source, injected: injected_ids.includes(existing.id) })).run();
+        const row = await env.DB.prepare('SELECT violations, note, kind, tier FROM brand_notes WHERE id = ?1 AND active = 1').bind(existing.id).first();
+        if (row && row.tier !== 'canon' && (row.violations || 0) >= 3) {
+          const pending = await pendingGardenIds(env);
+          if (!pending.has(existing.id)) {
+            await brainWrite(env, {
+              type: 'promote', kind: row.kind, note: row.note, retire_ids: [existing.id],
+              source: 'repeat-offender',
+              evidence: 'Violated ' + row.violations + '× despite existing — drafts keep breaking this rule; promote it to the always-on canon.',
+            });
+          }
+        }
+      } catch (_) {}
+      continue;
+    }
+    await brainWrite(env, { type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note), source, evidence }, { review: true });
+  }
 }
 
 // GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
@@ -7862,7 +7971,7 @@ async function handleBrainGet(req, env, origin) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   await ensureBrandNotes(env);
   const rows = (await env.DB.prepare(
-    "SELECT id, kind, category, note, context, created_by, created_at, COALESCE(scope,'voice') scope, COALESCE(tier,'pool') tier FROM brand_notes WHERE active = 1 ORDER BY (tier='canon') DESC, created_at ASC"
+    "SELECT id, kind, category, note, context, created_by, created_at, COALESCE(scope,'voice') scope, COALESCE(tier,'pool') tier, COALESCE(retrievals,0) retrievals, COALESCE(violations,0) violations FROM brand_notes WHERE active = 1 ORDER BY (tier='canon') DESC, created_at ASC"
   ).all()).results || [];
   return json({ count: rows.length, notes: rows }, {}, env, origin);
 }
@@ -8605,7 +8714,7 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
 // piece is best-effort; a failure just omits that piece. Returns { text } ready
 // to drop into a system prompt, plus the structured parts.
 export async function assembleBrain(env, { topic = '', place = '', voice = true, maxKnowledge = 4, maxFacts = 6 } = {}) {
-  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '' };
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '', injected_ids: [] };
   if (!env || !env.DB) return out;
   if (voice) {
     // Two tiers: the small curated CANON always loads; pool notes come in by
@@ -8621,9 +8730,11 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
       let pool = await brainRelevantNotes(env, [topic, place].filter(Boolean).join(' '), 6);
       if (!pool.length) {
         pool = ((await env.DB.prepare(
-          `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='pool' AND scope='voice' ORDER BY created_at DESC LIMIT 6`
-        ).all()).results || []).map(r => ({ kind: r.kind, note: r.note }));
+          `SELECT id, kind, note FROM brand_notes WHERE active = 1 AND tier='pool' AND scope='voice' ORDER BY created_at DESC LIMIT 6`
+        ).all()).results || []).map(r => ({ id: r.id, kind: r.kind, note: r.note }));
+        await markNotesRetrieved(env, pool.map(r => r.id));
       }
+      out.injected_ids = pool.map(r => r.id).filter(Boolean);
       if (pool.length) out.voice += (out.voice ? '\n' : '') + 'RELEVANT HOUSE NOTES (specific to this piece):\n' + pool.map(r => `- [${r.kind}] ${r.note}`).join('\n');
     } catch (_) {}
   }

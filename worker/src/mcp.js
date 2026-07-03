@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -1385,6 +1385,10 @@ async function ensureBrandNotesTable(env) {
   // tiering migration for pre-existing tables (no-ops once applied)
   try { await env.DB.prepare("ALTER TABLE brand_notes ADD COLUMN scope TEXT DEFAULT 'voice'").run(); } catch (_) {}
   try { await env.DB.prepare("ALTER TABLE brand_notes ADD COLUMN tier TEXT DEFAULT 'pool'").run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE brand_notes ADD COLUMN retrievals INTEGER DEFAULT 0').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE brand_notes ADD COLUMN violations INTEGER DEFAULT 0').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE brand_notes ADD COLUMN last_retrieved_at INTEGER').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE brand_notes ADD COLUMN last_violated_at INTEGER').run(); } catch (_) {}
 }
 
 // Misfiled-note router: bug reports / data corrections / tool how-tos are real
@@ -2139,6 +2143,22 @@ const IMPL = {
     let gen = null;
     if (raw) { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { gen = JSON.parse(m[0]); } catch (_) {} } }
     if (!gen || !gen.body_markdown) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
+    // ── Draft-time enforcement: deterministic canon lint + one Haiku critique →
+    // one Fable fix cycle. Mechanical violations never reach the human editor.
+    let styleReport = { lint_fixed: 0, critique_fixed: 0, remaining: [] };
+    try {
+      const lint1 = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' });
+      const crit1 = await critiqueDraft(env, { title: gen.title || '', excerpt: gen.excerpt || '', body: gen.body_markdown, brainText: brain.text || '' });
+      const problems = lint1.map((w) => w.issue).concat(crit1.map((v) => (v.rule ? v.rule + ': ' : '') + v.violation));
+      if (problems.length) {
+        const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Fix ONLY the listed style violations in the article — change nothing else, preserve every fact. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.';
+        const fixUsr = 'VIOLATIONS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
+        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: 3500 });
+        const fm = fixedRaw && fixedRaw.match(/\{[\s\S]*\}/);
+        if (fm) { try { const fixed = JSON.parse(fm[0]); if (fixed && fixed.body_markdown) { gen = fixed; styleReport.lint_fixed = lint1.length; styleReport.critique_fixed = crit1.length; } } catch (_) {} }
+        styleReport.remaining = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' }).map((w) => w.issue);
+      }
+    } catch (_) {}
     let images = [];
     if (args.folder) {
       const rows = await env.DB.prepare(`SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`).bind(String(args.folder)).all();
@@ -2153,9 +2173,16 @@ const IMPL = {
       category: args.category, cover_image: cover, linked_project: args.linked_project,
       post_type: args.post_type, source: 'ai',
     }, env);
+    // Log which brain notes were in this draft's prompt — closes the efficacy
+    // loop: captureEditLesson reads this to mark violated-despite-injected.
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), article.slug, 'brain_injected', JSON.stringify({ ids: brain.injected_ids || [] })).run();
+    } catch (_) {}
     return {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
       grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
+      style_check: styleReport,
       photos_used: images.length,
       note: 'Article draft written with Fable 5, grounded in the shared TMW brain. Review/finish in the Studio AI tab: ' + article.edit_url,
     };
@@ -2184,7 +2211,8 @@ const IMPL = {
     const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
     if (!revised || !revised.trim()) throw new Error('revision failed — the editor model returned nothing. Try again or edit manually.');
     const res = await IMPL.update_post_draft({ slug, body_markdown: revised.trim() }, env);
-    return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length }, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '". Review in the Studio.' };
+    const lintR = lintCanon({ title: String(row.title || ''), body: revised, excerpt: 'x', kind: 'article' });
+    return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length }, style_warnings: lintR.length ? lintR : undefined, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '". Review in the Studio.' };
   },
 
   async get_post_views(args, env) {
@@ -2406,10 +2434,12 @@ const IMPL = {
                           post_type, income, contact_id, project_slug, campaign_id, source, ai_original_html, created_at, updated_at)
        VALUES (?1, ?2, ?3, ?4, ?4, ?5, ?6, ?7, '[]', ?8, 'draft', NULL, ?9, 'studio-mcp', ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?17)`
     ).bind(id, slug, title, excerpt, bodyHtml, args.cover_image || null, categories, 'Jake Nicholas', reading, postType, income, contactId, projSlugMcp, campaignId, sourceMcp, aiOriginal, now).run();   // seo_description mirrors excerpt (?4)
+    const lint = lintCanon({ title, body: String(args.body_markdown || ''), excerpt: String(args.excerpt || ''), kind: 'article' });
     return {
       ok: true, id, slug, status: 'draft', linked_project: linkedSlug || undefined,
       edit_url: 'https://admin.oftmw.com/post.html?id=' + id,
-      note: 'Saved as a DRAFT. Review/finish it in the Studio, then publish from there.' + (linkedSlug ? ' Project card embedded for "' + linkedSlug + '".' : ''),
+      style_warnings: lint.length ? lint : undefined,
+      note: 'Saved as a DRAFT. Review/finish it in the Studio, then publish from there.' + (linkedSlug ? ' Project card embedded for "' + linkedSlug + '".' : '') + (lint.length ? ' STYLE WARNINGS (canon violations — fix them with update_post_draft): ' + lint.map((w) => w.issue).join(' | ') : ''),
     };
   },
 
@@ -2472,7 +2502,8 @@ const IMPL = {
     sets.push(`updated_at = ?${p++}`); params.push(Math.floor(Date.now() / 1000));
     params.push(slug);
     await env.DB.prepare(`UPDATE posts SET ${sets.join(', ')} WHERE slug = ?${p}`).bind(...params).run();
-    return { ok: true, slug, status: 'draft', linked_project: linkedSlug || undefined, edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id };
+    const lintU = args.body_markdown ? lintCanon({ title: String(args.title || ''), body: String(args.body_markdown), excerpt: String(args.excerpt || 'x'), kind: 'article' }) : [];
+    return { ok: true, slug, status: 'draft', linked_project: linkedSlug || undefined, edit_url: 'https://admin.oftmw.com/post.html?id=' + row.id, style_warnings: lintU.length ? lintU : undefined };
   },
 
   // Surgical find/replace on a draft's HTML body — preserves galleries/figures
