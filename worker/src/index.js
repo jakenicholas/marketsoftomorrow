@@ -5965,6 +5965,131 @@ async function maybeBrainReindex(env) {
     await brainNoteVectors(env, rows);
   } catch (_) {}
 }
+// ── The GARDENER (Phase 2) — the brain prunes itself instead of only growing ─
+// Weekly (or via POST /admin/brain/garden): embeds every active pool voice
+// note, then (a) finds notes the canon already covers → proposes RETIRE,
+// (b) clusters near-duplicate notes → has Fable write ONE merged note →
+// proposes MERGE. Everything is REVIEW-GATED through brainWrite: nothing
+// mutates until approved in the Teach tab (same inbox as edit-lessons).
+function cosineSim(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
+}
+function parseLLMJson(txt) {
+  const s = String(txt || '').replace(/```json|```/g, '').trim();
+  const i = Math.min(...['[', '{'].map((c) => { const x = s.indexOf(c); return x === -1 ? Infinity : x; }));
+  if (!Number.isFinite(i)) return null;
+  try { return JSON.parse(s.slice(i)); } catch (_) { return null; }
+}
+// ids already referenced by PENDING garden proposals — never double-propose.
+async function pendingGardenIds(env) {
+  const out = new Set();
+  try {
+    const rows = (await env.DB.prepare(`SELECT props_json FROM events WHERE event_name IN ('brain_proposed','brain_resolved') ORDER BY ts ASC`).all()).results || [];
+    const resolved = new Set(); const recs = new Map();
+    for (const r of rows) {
+      let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+      if (p && p.ref_id) { resolved.add(String(p.ref_id)); continue; }
+      if (p && p.id && Array.isArray(p.retire_ids)) recs.set(String(p.id), p.retire_ids);
+    }
+    for (const [id, ids] of recs) { if (!resolved.has(id)) ids.forEach((x) => out.add(String(x))); }
+  } catch (_) {}
+  return out;
+}
+export async function gardenBrain(env, { maxClusters = 10, maxProposals = 20 } = {}) {
+  const summary = { pool: 0, absorb_checked: 0, clusters: 0, proposed: 0, errors: 0 };
+  if (!env || !env.DB || !retrievalReady(env) || !env.ANTHROPIC_API_KEY) return summary;
+  const pool = (await env.DB.prepare("SELECT id, kind, note FROM brand_notes WHERE active=1 AND tier='pool' AND scope='voice' ORDER BY created_at ASC").all()).results || [];
+  const canon = (await env.DB.prepare("SELECT id, kind, note FROM brand_notes WHERE active=1 AND tier='canon' ORDER BY id ASC").all()).results || [];
+  summary.pool = pool.length;
+  if (pool.length < 2) return summary;
+  const skip = await pendingGardenIds(env);
+
+  // one embedding space for pool + canon
+  const texts = pool.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)).concat(canon.map((r) => `[${r.kind}] ${r.note}`.slice(0, 1200)));
+  let vecs; try { vecs = await embedTexts(env, texts); } catch (_) { summary.errors++; return summary; }
+  const pv = vecs.slice(0, pool.length), cv = vecs.slice(pool.length);
+
+  // (a) canon absorption — pool notes the constitution already covers
+  const pairs = [];
+  for (let i = 0; i < pool.length; i++) {
+    if (skip.has(pool[i].id)) continue;
+    let best = -1, bs = 0;
+    for (let j = 0; j < canon.length; j++) { const s = cosineSim(pv[i], cv[j]); if (s > bs) { bs = s; best = j; } }
+    if (best >= 0 && bs >= 0.80) pairs.push({ note: pool[i], canon: canon[best], sim: bs });
+  }
+  pairs.sort((a, b) => b.sim - a.sim);
+  const batch = pairs.slice(0, 30);
+  summary.absorb_checked = batch.length;
+  const absorbed = new Set();
+  if (batch.length) {
+    const user = 'CANON RULES vs POOL NOTES. For each pair below, is the pool note FULLY covered by the canon rule (no materially distinct directive lost if the note is deleted)?\n\n'
+      + batch.map((p, k) => `PAIR ${k}\nCANON (${p.canon.id}): ${p.canon.note}\nPOOL (${p.note.id}) [${p.note.kind}]: ${p.note.note}`).join('\n\n')
+      + '\n\nReply ONLY a JSON array, one entry per pair: [{"pair":0,"verdict":"covered"|"distinct"}] — "covered" ONLY when the canon rule genuinely subsumes every directive in the pool note. When in doubt, "distinct".';
+    try {
+      const verdicts = parseLLMJson(await fableGenerate(env, { system: 'You are the brand-brain gardener for Markets of Tomorrow. You prune redundant style notes conservatively. Output ONLY JSON.', user, maxTokens: 1500 })) || [];
+      const covered = batch.filter((_, k) => verdicts.some((v) => v && v.pair === k && v.verdict === 'covered'));
+      // group into a few retire proposals (reviewable chunks of ≤8)
+      for (let i = 0; i < covered.length && summary.proposed < maxProposals; i += 8) {
+        const chunk = covered.slice(i, i + 8);
+        const r = await brainWrite(env, {
+          type: 'retire', kind: 'rule',
+          note: 'GARDENER — retire ' + chunk.length + ' pool note(s) fully covered by the canon: ' + chunk.map((c) => `"${c.note.note.slice(0, 70)}…" (≈${c.canon.id})`).join(' · '),
+          retire_ids: chunk.map((c) => c.note.id),
+          source: 'gardener', evidence: chunk.map((c) => `${c.note.id} covered by ${c.canon.id} (sim ${c.sim.toFixed(2)})`).join('\n'),
+        });
+        if (r.ok) summary.proposed++; else summary.errors++;
+        chunk.forEach((c) => absorbed.add(c.note.id));
+      }
+    } catch (_) { summary.errors++; }
+  }
+
+  // (b) near-duplicate clusters among what remains → merge
+  const idx = pool.map((r, i) => ({ r, i })).filter(({ r }) => !absorbed.has(r.id) && !skip.has(r.id));
+  const parent = new Map(idx.map(({ r }) => [r.id, r.id]));
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  for (let a = 0; a < idx.length; a++) for (let b = a + 1; b < idx.length; b++) {
+    const s = cosineSim(pv[idx[a].i], pv[idx[b].i]);
+    const conflicty = /CORRECTION|SUPERSEDES/i.test(idx[a].r.note) || /CORRECTION|SUPERSEDES/i.test(idx[b].r.note);
+    if (s >= (conflicty ? 0.78 : 0.86)) parent.set(find(idx[a].r.id), find(idx[b].r.id));
+  }
+  const groups = new Map();
+  for (const { r } of idx) { const root = find(r.id); if (!groups.has(root)) groups.set(root, []); groups.get(root).push(r); }
+  const clusters = [...groups.values()].filter((g) => g.length >= 2)
+    .sort((a, b) => b.length - a.length).slice(0, maxClusters);
+  summary.clusters = clusters.length;
+  for (const g of clusters) {
+    if (summary.proposed >= maxProposals) break;
+    const user = 'These ' + g.length + ' brand-brain notes overlap. If they are variations of the same guidance, write ONE merged note that preserves EVERY distinct directive (including any CORRECTION/SUPERSEDES — the corrected version wins; fold it in cleanly with no meta-language about corrections). If they are genuinely different guidance, reply keep.\n\n'
+      + g.map((r) => `(${r.id}) [${r.kind}] ${r.note}`).join('\n\n')
+      + '\n\nReply ONLY JSON: {"action":"merge","kind":"rule|structure|voice|avoid|topic|example|like|dislike","note":"<the single merged note>","retire_ids":["..."]} or {"action":"keep"}.';
+    try {
+      const v = parseLLMJson(await fableGenerate(env, { system: 'You are the brand-brain gardener for Markets of Tomorrow. Merge duplicate style notes into one clean, crisp instruction. Never lose a distinct directive. Output ONLY JSON.', user, maxTokens: 1200 }));
+      if (v && v.action === 'merge' && v.note) {
+        const ids = (Array.isArray(v.retire_ids) && v.retire_ids.length ? v.retire_ids : g.map((r) => r.id)).filter((id) => g.some((r) => r.id === id));
+        const r = await brainWrite(env, { type: 'merge', kind: v.kind || g[0].kind, note: String(v.note), retire_ids: ids, source: 'gardener', evidence: g.map((r) => `(${r.id}) ${r.note.slice(0, 160)}`).join('\n') });
+        if (r.ok) summary.proposed++; else summary.errors++;
+      }
+    } catch (_) { summary.errors++; }
+  }
+
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), 'gardener', 'brain_gardened', JSON.stringify(summary)).run();
+  } catch (_) {}
+  return summary;
+}
+// Weekly cadence on the minute cron.
+async function maybeGardenBrain(env) {
+  if (!env.DB) return;
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='brain_garden_at'").first().catch(() => null);
+  if (row && (now - (parseInt(row.value, 10) || 0)) < 7 * 86400) return;   // ~weekly
+  await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('brain_garden_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run();
+  try { await gardenBrain(env, {}); } catch (_) {}
+}
+
 // Top-k pool notes relevant to a topic (voice scope only). Exported for MCP.
 export async function brainRelevantNotes(env, topic, k = 6) {
   const q = String(topic || '').trim();
@@ -7611,6 +7736,15 @@ async function ensureBrandNotes(env) {
     'CREATE TABLE IF NOT EXISTS brand_notes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, category TEXT, note TEXT NOT NULL, context TEXT, created_by TEXT, created_at INTEGER, active INTEGER DEFAULT 1)'
   ).run();
 }
+// POST /admin/brain/garden — run the gardener on demand (weekly cron also runs
+// it). Stages review-gated merge/retire proposals; returns what it found.
+async function handleBrainGarden(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  const summary = await gardenBrain(env, {});
+  return json({ ok: true, ...summary }, {}, env, origin);
+}
+
 // GET /brain/proposed — the review queue of learnings captured from human edits,
 // feedback, and routine critique (events 'brain_proposed'), minus any already
 // approved/dismissed. Surfaced in the Studio Teach tab for one-click approval.
@@ -8533,14 +8667,18 @@ export async function brainWrite(env, lesson, { review = true } = {}) {
     if (!env || !env.DB || !lesson) return { ok: false };
     const rec = {
       id: 'lsn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)),
-      type: String(lesson.type || 'voice'),                              // voice | rule | fact | exemplar | gap
+      type: String(lesson.type || 'voice'),                              // voice | rule | fact | exemplar | gap | merge | retire | promote
       note: String(lesson.note || '').slice(0, 2000),
       kind: lesson.kind ? String(lesson.kind).slice(0, 40) : null,       // brand_notes kind when type=voice
       source: String(lesson.source || 'system').slice(0, 60),
       evidence: lesson.evidence ? String(lesson.evidence).slice(0, 1200) : null,
       status: 'proposed',
     };
-    if (!rec.note) return { ok: false };
+    // Gardener fields: which live notes this proposal retires/absorbs on approval.
+    if (Array.isArray(lesson.retire_ids) && lesson.retire_ids.length) rec.retire_ids = lesson.retire_ids.map(String).slice(0, 12);
+    if (lesson.canon_id) rec.canon_id = String(lesson.canon_id).slice(0, 40);
+    if (!rec.note && rec.type !== 'retire') return { ok: false };
+    if (rec.type === 'retire' && (!rec.retire_ids || !rec.retire_ids.length)) return { ok: false };
     const ts = Math.floor(Date.now() / 1000);
     if (review) {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
@@ -8569,8 +8707,45 @@ async function applyLesson(env, rec) {
   await ensureBrandNotes(env);
   const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
   const kind = rec.kind && ALLOWED.includes(rec.kind) ? rec.kind : 'rule';
+
+  // ── Gardener actions (Phase 2) — consolidate instead of accumulate ────────
+  if (rec.type === 'retire') {                     // stale/duplicate notes out
+    await retireBrandNotes(env, rec.retire_ids || []);
+    return;
+  }
+  if (rec.type === 'merge') {                      // N overlapping notes → 1 clean note
+    const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier) VALUES (?1,?2,'merged',?3,?4,'gardener',?5,1,'voice','pool')`)
+      .bind(id, kind, rec.note.slice(0, 2000), 'merged ' + (rec.retire_ids || []).length + ' notes', now).run();
+    try { await brainNoteVectors(env, [{ id, kind, note: rec.note.slice(0, 2000), scope: 'voice' }]); } catch (_) {}
+    await retireBrandNotes(env, rec.retire_ids || []);
+    return;
+  }
+  if (rec.type === 'promote') {                    // recurring learning → the canon
+    let cid = rec.canon_id && /^canon-\d+$/.test(rec.canon_id) ? rec.canon_id : null;
+    if (!cid) {
+      const mx = await env.DB.prepare("SELECT id FROM brand_notes WHERE id LIKE 'canon-%' ORDER BY id DESC LIMIT 1").first();
+      const n = mx && mx.id ? parseInt(String(mx.id).slice(6), 10) + 1 : 1;
+      cid = 'canon-' + String(n).padStart(2, '0');
+    }
+    await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier) VALUES (?1,?2,'promoted',?3,'promoted by gardener','gardener',?4,1,'voice','canon')
+      ON CONFLICT(id) DO UPDATE SET kind=?2, note=?3, created_at=?4, active=1`)
+      .bind(cid, kind, rec.note.slice(0, 2000), now).run();
+    await retireBrandNotes(env, rec.retire_ids || []);
+    return;
+  }
+
   await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active) VALUES (?1,?2,?3,?4,?5,?6,?7,1)`)
     .bind('bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)), kind, 'learned', rec.note.slice(0, 2000), 'via ' + rec.source, 'brain-approve', now).run();
+}
+
+// Deactivate notes + drop their vectors so retrieval can't resurface them.
+export async function retireBrandNotes(env, ids) {
+  const clean = (ids || []).map(String).filter((id) => /^(bn|canon)-/.test(id)).slice(0, 12);
+  for (const id of clean) {
+    try { await env.DB.prepare('UPDATE brand_notes SET active = 0 WHERE id = ?1').bind(id).run(); } catch (_) {}
+  }
+  try { if (env.VECTORIZE && clean.length) await env.VECTORIZE.deleteByIds(clean.map((id) => vecId('brandnote', id))); } catch (_) {}
 }
 
 // ─── Intent router (#1) ──────────────────────────────────────────────────────
@@ -10650,6 +10825,7 @@ export default {
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
       if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
+      if (url.pathname === '/admin/brain/garden' && request.method === 'POST') return await handleBrainGarden(request, env, origin);
       if (url.pathname === '/brain/feed'     && request.method === 'GET')  return await handleBrainFeed(request, env, origin);
       if (url.pathname === '/brain/resolve'  && request.method === 'POST') return await handleBrainResolve(request, env, origin);
       if (url.pathname === '/brain' || url.pathname === '/brain/') {
@@ -10679,6 +10855,7 @@ export default {
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
+    ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
     ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
     ctx.waitUntil(refreshLinkedinToken(env));    // keep the LinkedIn token alive (60-day expiry)
   },

@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -3524,7 +3524,7 @@ const IMPL = {
     await ensureBrandNotesTable(env);
     const id = String(args.id || '').trim();
     if (!id) throw new Error('id is required (from get_brand_brain)');
-    await env.DB.prepare('UPDATE brand_notes SET active = 0 WHERE id = ?1').bind(id).run();
+    await retireBrandNotes(env, [id]);   // deactivates AND drops the vector so retrieval can't resurface it
     return { ok: true, id, removed: true };
   },
 
