@@ -201,8 +201,13 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   .tabs-bar .wrap{flex-direction:column; align-items:stretch; gap:12px}
   .tabs{justify-content:space-between}
   .tab-btn{flex:1; text-align:center; padding:10px 6px; letter-spacing:.12em}
-  .tabs-bar .actions{justify-content:space-between}
-  .ctlbar{flex:1; justify-content:space-between}
+  /* Keep sort + views together and centered; the divider (iv-toggle's left
+     border) lands at the exact middle via two equal halves — sort text hugs it
+     from the left, the view buttons from the right. */
+  .tabs-bar .actions{justify-content:center}
+  .ctlbar{width:100%; justify-content:center; gap:0}
+  .ctlbar .sort{flex:1 1 0; min-width:0; text-align:right; text-align-last:right; padding-right:16px}
+  .ctlbar .iv-toggle{flex:1 1 0; justify-content:flex-start; margin-left:0}
 }
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
 .edit-toggle:hover{border-color:var(--gold); color:var(--gold-soft)}
@@ -1943,18 +1948,16 @@ async function loadNewsAndTicker() {
     console.log('[restaurants] feed via:', via, '·', items.length, 'items', error ? '(notes: ' + error + ')' : '');
     if (!items.length) throw new Error(error || 'no items from any source');
 
-    // Match golf-related posts by category (proper) OR title/excerpt
-    // fallback (in case categories are empty in D1 until next sync).
-    const golfRe = /restaurant|dining|chef|cuisine|michelin|menu|tasting|culinary|food|eatery/i;
-    const golfy = items.filter(it => {
-      const inCats = (it.categories || []).some(c => golfRe.test(c));
-      const inText = golfRe.test((it.title || '') + ' ' + (it.summary || ''));
-      return inCats || inText;
-    });
-    const newsList = golfy.length ? golfy : items.slice(0, 9);
-    document.getElementById('newsCount').textContent = '· ' + newsList.length;
-    renderNews(newsList);
-    renderFeaturedCard((golfy[0]) || items[0]);
+    // ONLY posts tagged with a Food & Drinks CATEGORY may appear here —
+    // "All Food & Drinks", "Florida Food & Drinks", and one per focus market.
+    // Match the category label ONLY: no title/excerpt guessing (a hotel piece
+    // mentioning "menu" isn't food news) and NO fallback to unrelated posts
+    // (the old `items.slice(0,9)` fallback is exactly what leaked hotel news in).
+    const foodRe = /food\s*(?:&|&amp;|and)\s*drinks?/i;
+    const foody = items.filter(it => (it.categories || []).some(c => foodRe.test(c)));
+    document.getElementById('newsCount').textContent = '· ' + foody.length;
+    renderNews(foody);
+    renderFeaturedCard(foody[0] || null);
   } catch (e) {
     console.warn('news/ticker failed', e);
     document.getElementById('newsCards').innerHTML = `<div style="grid-column:1/-1; padding:60px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px">News feed unavailable — ${escapeHtml(e.message || '')}.</div>`;

@@ -201,8 +201,12 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   .tabs-bar .wrap{flex-direction:column; align-items:stretch; gap:12px}
   .tabs{justify-content:space-between}
   .tab-btn{flex:1; text-align:center; padding:10px 6px; letter-spacing:.12em}
-  .tabs-bar .actions{justify-content:space-between}
-  .ctlbar{flex:1; justify-content:space-between}
+  /* Keep sort + views together and centered; the divider (iv-toggle's left
+     border) lands at the exact middle via two equal halves. */
+  .tabs-bar .actions{justify-content:center}
+  .ctlbar{width:100%; justify-content:center; gap:0}
+  .ctlbar .sort{flex:1 1 0; min-width:0; text-align:right; text-align-last:right; padding-right:16px}
+  .ctlbar .iv-toggle{flex:1 1 0; justify-content:flex-start; margin-left:0}
 }
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
 .edit-toggle:hover{border-color:var(--gold); color:var(--gold-soft)}
