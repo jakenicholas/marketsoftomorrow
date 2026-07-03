@@ -1775,18 +1775,14 @@ async function loadNewsAndTicker() {
     console.log('[hotels] feed via:', via, '·', items.length, 'items', error ? '(notes: ' + error + ')' : '');
     if (!items.length) throw new Error(error || 'no items from any source');
 
-    // Match golf-related posts by category (proper) OR title/excerpt
-    // fallback (in case categories are empty in D1 until next sync).
-    const golfRe = /hotel|resort|hospitality|suite|stay|travel|lodging|retreat|hotelier|check-in/i;
-    const golfy = items.filter(it => {
-      const inCats = (it.categories || []).some(c => golfRe.test(c));
-      const inText = golfRe.test((it.title || '') + ' ' + (it.summary || ''));
-      return inCats || inText;
-    });
-    const newsList = golfy.length ? golfy : items.slice(0, 9);
-    document.getElementById('newsCount').textContent = '· ' + newsList.length;
-    renderNews(newsList);
-    renderFeaturedCard((golfy[0]) || items[0]);
+    // ONLY posts carrying the Hotels CATEGORY may appear here — no title/text
+    // guessing, and NO fallback to unrelated posts (that fallback was leaking
+    // non-hotel news in). Empty -> the renderNews empty state.
+    const hotelRe = /\bhotels?\b/i;
+    const hotely = items.filter(it => (it.categories || []).some(c => hotelRe.test(c)));
+    document.getElementById('newsCount').textContent = '· ' + hotely.length;
+    renderNews(hotely);
+    renderFeaturedCard(hotely[0] || null);
   } catch (e) {
     console.warn('news/ticker failed', e);
     document.getElementById('newsCards').innerHTML = `<div style="grid-column:1/-1; padding:60px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px">News feed unavailable — ${escapeHtml(e.message || '')}.</div>`;
