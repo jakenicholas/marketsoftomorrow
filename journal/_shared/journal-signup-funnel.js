@@ -74,6 +74,7 @@
       '.tmw-sub-alt{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;color:#9AA39C;margin-top:13px}' +
       '.tmw-sub-alt a{color:#f0d68a;text-decoration:none;font-weight:600;cursor:pointer}' +
       '.tmw-sub-alt a:hover{text-decoration:underline}' +
+      '.tmw-sub-msg a{color:#f0d68a;text-decoration:underline;font-weight:600;cursor:pointer}' +
       '@media(max-width:560px){.tmw-sub{padding:0 8px 8px}.tmw-sub-panel{padding:22px 18px 20px}.tmw-sub-form{padding:6px 6px 6px 18px}.tmw-sub-form button{padding:11px 16px}.tmw-sub-form.stack{grid-template-columns:1fr;padding:0}.tmw-sub-form.stack button{padding:14px}}';
     var st = document.createElement('style'); st.id = 'tmw-funnel-css'; st.textContent = css; document.head.appendChild(st);
   }
@@ -134,11 +135,11 @@
       if (!email) { form.email.focus(); return; }
       if (password.length < 8) { msg.className = 'tmw-sub-msg err'; msg.textContent = 'Password must be at least 8 characters.'; form.password.focus(); return; }
       var btn = form.querySelector('button'); var orig = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Checking…';
-      // Known address? → send them to log in instead of creating a duplicate.
-      var status = window.tmwCheckEmail ? await window.tmwCheckEmail(email) : { account: false };
-      if (status && status.account) { btn.disabled = false; btn.textContent = orig; toLogin(); return; }
-      btn.textContent = 'Creating…';
+      btn.disabled = true; btn.textContent = 'Creating…';
+      // Memberstack signup IS the source of truth — try to create, and only if
+      // IT reports the email is registered do we surface "you already have an
+      // account" (an /email-status pre-check false-positives on newsletter-only
+      // addresses, redirecting people who have no account to log into).
       var res = window.tmwCreateFreeAccount ? await window.tmwCreateFreeAccount(email, password) : { ok: false, message: 'Accounts are still loading — try again in a moment.' };
       if (res && res.ok) {
         try { fetch(SUB_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, markets: MARKETS }) }); } catch (_) {}   // keep them on the newsletter too
@@ -147,13 +148,18 @@
         try { window.tmwFunnelTrack && window.tmwFunnelTrack('free_account_created', { email: email, source: SOURCE }); } catch (_) {}
         mark('subscribed');
         try { localStorage.setItem(SUB_EMAIL_KEY, email); } catch (_) {}
-        // Account created → confirm, then STEP 2: the Go-Pro pitch.
+        // Account created (Memberstack signs them in) → confirm, then STEP 2: Go-Pro.
         form.style.display = 'none';
         var alt = el.querySelector('.tmw-sub-alt'); if (alt) alt.style.display = 'none';
         msg.textContent = "✓ You're in! Welcome to TMW.";
         setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 1200);
       } else if (res && res.code === 'exists') {
-        btn.disabled = false; btn.textContent = orig; toLogin();
+        // Already registered → warn + offer login (don't silently redirect).
+        btn.disabled = false; btn.textContent = orig;
+        msg.className = 'tmw-sub-msg err';
+        msg.innerHTML = 'You already have an account. <a class="tmw-sub-login" href="#">Log in</a>';
+        var si = msg.querySelector('.tmw-sub-login');
+        if (si) si.addEventListener('click', function (ev) { ev.preventDefault(); toLogin(); });
       } else {
         btn.disabled = false; btn.textContent = orig;
         msg.className = 'tmw-sub-msg err'; msg.textContent = (res && res.message) || 'Could not create your account.';
