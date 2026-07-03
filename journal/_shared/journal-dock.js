@@ -218,6 +218,15 @@
   // track against the same state.
   window.tmwIntel = {
     FREE: 5,
+    // Worker base for the SERVER-side, account-bound quota ledger (/intel-usage).
+    // The free 5 are now counted per ACCOUNT server-side (rolling 30 days), so a
+    // non-Pro user can't reset them by clearing localStorage / going incognito /
+    // switching devices. The localStorage counters below remain only as an offline
+    // fallback + optimistic UI until sync() hydrates the authoritative _srv state.
+    _WORKER: 'https://tmw.jake-ab7.workers.dev',
+    _srv: { loaded: false, remaining: null, cap: 5, pro: null },
+    _onChange: null,   // the search overlay sets this to refresh the "N / FREE left" pill live
+    _mid: function () { try { return (window.__tmwMember && window.__tmwMember.id) || null; } catch (e) { return null; } },
     isPro: function () {
       try { return window._isPaidMember === true
         || (window.__tmwMember && window.__tmwMember.plan === 'paid')
@@ -234,21 +243,52 @@
     _norm: function (q) { return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); },
     _used: function () { try { return parseInt(localStorage.getItem('tmw_intel_used') || '0', 10) || 0; } catch (e) { return 0; } },
     _seen: function () { try { return JSON.parse(localStorage.getItem('tmw_intel_seen') || '[]'); } catch (e) { return []; } },
-    used: function () { return this._used(); },
-    left: function () { return this.isPro() ? Infinity : Math.max(0, this.FREE - this._used()); },
+    used: function () { return (this._srv.loaded && this._srv.remaining != null) ? Math.max(0, this._srv.cap - this._srv.remaining) : this._used(); },
+    left: function () {
+      if (this.isPro()) return Infinity;
+      if (this._srv.loaded && this._srv.remaining != null) return this._srv.remaining;   // server truth
+      return Math.max(0, this.FREE - this._used());                                       // offline fallback
+    },
     seen: function (q) { return this._seen().indexOf(this._norm(q)) >= 0; },
-    // Allowed to run? Pro always; otherwise you must have an ACCOUNT, then it's
-    // the free trial cap (or a query already counted). Anon → must sign up first.
-    allowed: function (q) { if (this.isPro()) return true; if (!this.signedIn()) return false; return this._used() < this.FREE || this.seen(q); },
-    // Count a NEW distinct query (no-op for Pro / repeats). Returns queries left.
+    // Allowed to run? Pro always; otherwise you must have an ACCOUNT, then it's the
+    // (server-backed) free cap — or a query already counted. Anon → must sign up.
+    allowed: function (q) { if (this.isPro()) return true; if (!this.signedIn()) return false; return this.seen(q) || this.left() > 0; },
+    // Pull the account-bound remaining from the server (source of truth). Best-effort;
+    // on failure we keep whatever _srv/localStorage we have. Refreshes the pill via _onChange.
+    sync: function (cb) {
+      var self = this;
+      if (this.isPro()) { this._srv = { loaded: true, remaining: null, cap: this.FREE, pro: true }; if (this._onChange) { try { this._onChange(); } catch (e) {} } if (cb) cb(); return; }
+      var mid = this._mid();
+      var url = this._WORKER + '/intel-usage?pro=0' + (mid ? '&member=' + encodeURIComponent(mid) : '');
+      fetch(url, { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (d) self._srv = { loaded: true, remaining: (d.remaining == null ? null : d.remaining), cap: d.cap || self.FREE, pro: !!d.pro };
+          if (self._onChange) { try { self._onChange(); } catch (e) {} }
+          if (cb) cb();
+        })
+        .catch(function () { if (cb) cb(); });
+    },
+    // Count a NEW distinct query. Pro / repeats → no-op. Optimistically bumps the
+    // local counters, then POSTs the authoritative server consume (account-bound,
+    // monthly) which reconciles _srv.remaining. Returns queries left (best-known).
     count: function (q) {
       if (this.isPro()) return Infinity;
       var nq = this._norm(q); if (!nq) return this.left();
+      if (this.seen(nq)) return this.left();   // repeat — already counted, free
       var seen = this._seen();
-      if (seen.indexOf(nq) < 0) {
-        seen.push(nq);
-        try { localStorage.setItem('tmw_intel_seen', JSON.stringify(seen.slice(-300))); } catch (e) {}
-        try { localStorage.setItem('tmw_intel_used', String(this._used() + 1)); } catch (e) {}
+      seen.push(nq);
+      try { localStorage.setItem('tmw_intel_seen', JSON.stringify(seen.slice(-300))); } catch (e) {}
+      try { localStorage.setItem('tmw_intel_used', String(this._used() + 1)); } catch (e) {}
+      var self = this, mid = this._mid();
+      if (mid) {
+        fetch(this._WORKER + '/intel-usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ member: mid, pro: false }) })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (d) self._srv = { loaded: true, remaining: (d.remaining == null ? null : d.remaining), cap: d.cap || self.FREE, pro: !!d.pro };
+            if (self._onChange) { try { self._onChange(); } catch (e) {} }
+          })
+          .catch(function () {});
       }
       return this.left();
     },
@@ -961,7 +1001,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260703-quota5';
+  var SEARCH_V = '20260703-srvquota';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');

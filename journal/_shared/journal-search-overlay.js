@@ -1192,6 +1192,9 @@
     var slot = root.querySelector('[data-pill-slot]');
     if (slot) slot.innerHTML = renderProPill();
   }
+  // Let the shared quota object refresh the pill live whenever the server-side,
+  // account-bound remaining changes (sync on open, consume after a query).
+  try { if (window.tmwIntel) window.tmwIntel._onChange = refreshProPill; } catch (e) {}
 
   // Per-turn answer block (chat thread). One of these is created for every query
   // and appended to .tmw-ov-thread; the render functions write into ITS slots
@@ -4864,9 +4867,10 @@
     _savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.style.overflow = 'hidden';
     root.classList.add('open');
-    // Refresh the PRO / quota badge in the teach card -- the user may have
-    // burned queries since the last time the overlay was opened.
-    refreshProPill();
+    // Refresh the PRO / quota badge in the teach card -- and pull the AUTHORITATIVE
+    // account-bound remaining from the server (so the gate + counter reflect real
+    // usage, not per-device localStorage). sync() refreshes the pill on return.
+    if (window.tmwIntel && window.tmwIntel.sync) window.tmwIntel.sync(); else refreshProPill();
     if (initialQuery) {
       _resumeThenSubmit(initialQuery);   // restore the saved thread, then append this query (was: blow it away)
     } else if (_thread.length) {
@@ -5242,7 +5246,7 @@
     document.documentElement.style.overflow = 'hidden';
     root.classList.add('open');
     setState('starter');                     // stays in starter (no search run)
-    refreshProPill();
+    if (window.tmwIntel && window.tmwIntel.sync) window.tmwIntel.sync(); else refreshProPill();
     input.value = '';
     if (prefix && prefix.trim()) {
       var v = prefix.trim() + ' ';

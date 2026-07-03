@@ -849,6 +849,61 @@ async function deepStatus(env, member) {
   return { cap, monthlyUsed, granted, extraUsed, creditBalance, unlimited, freeRemaining, remaining };
 }
 
+// Account-bound STANDARD (non-deep) intel usage for a non-Pro member — the free
+// "taste" quota, enforced SERVER-side (not per-device localStorage) so it can't
+// be reset by clearing the browser / going incognito / switching devices.
+// Counts `intel_std` events (logged only by /intel-usage below) in a rolling
+// 30-day window. Pro members are never counted here (unlimited standard).
+async function intelStdStatus(env, member) {
+  const cap = FREE_STD_MONTHLY_CAP;
+  let used = 0;
+  if (env.DB && member) {
+    const since = Math.floor(Date.now() / 1000) - 30 * 86400;
+    try {
+      const r = await env.DB.prepare(
+        `SELECT COUNT(*) n FROM events WHERE event_name='intel_std' AND member_id=? AND ts>=?`
+      ).bind(member, since).first();
+      used = Number(r && r.n) || 0;
+    } catch { /* best-effort — treat as fresh */ }
+  }
+  return { cap, used, remaining: Math.max(0, cap - used) };
+}
+
+// GET  /intel-usage?member=&pro=   → { pro, cap, used, remaining } (no consume) —
+//                                    the client renders the "N / 5 left" counter
+//                                    from this, so it's account-bound on load.
+// POST /intel-usage { member, pro } → CONSUME one standard credit. Pro → unlimited
+//   (never counted). Non-Pro over cap → { allowed:false, gated:true }. Otherwise
+//   logs one `intel_std` event and returns the decremented remaining.
+// Pro is asserted by the client (same trust model as the Deep toggle); the point
+// here is that the COUNT is server-side and tied to the account.
+async function handleIntelUsage(req, env, origin, url) {
+  const isPost = req.method === 'POST';
+  let member = '', pro = false;
+  if (isPost) {
+    let b; try { b = await req.json(); } catch { b = {}; }
+    member = String(b.member || '').slice(0, 120).trim();
+    pro = b.pro === true || b.pro === 'true';
+  } else {
+    member = String(url.searchParams.get('member') || '').slice(0, 120).trim();
+    pro = url.searchParams.get('pro') === 'true' || url.searchParams.get('pro') === '1';
+  }
+  // Pro members: unlimited standard — never counted, never gated.
+  if (pro) return json({ pro: true, cap: FREE_STD_MONTHLY_CAP, used: 0, remaining: null, allowed: true }, {}, env, origin);
+  // Only real Memberstack accounts are account-bound; without one we can't key a
+  // ledger, so report the full free allowance (the client also gates on signup).
+  if (!member || !/^mem_/.test(member)) return json({ pro: false, cap: FREE_STD_MONTHLY_CAP, used: 0, remaining: FREE_STD_MONTHLY_CAP, allowed: true, unkeyed: true }, {}, env, origin);
+  const st = await intelStdStatus(env, member);
+  if (!isPost) return json({ pro: false, cap: st.cap, used: st.used, remaining: st.remaining, allowed: st.remaining > 0 }, {}, env, origin);
+  // POST = consume. Over cap → gate WITHOUT logging (so it stays at 0).
+  if (st.remaining <= 0) return json({ pro: false, cap: st.cap, used: st.used, remaining: 0, allowed: false, gated: true }, {}, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,'intel_std',?3)`)
+      .bind(Math.floor(Date.now() / 1000), member, JSON.stringify({ used: st.used + 1 })).run();
+  } catch (_) { /* best-effort: if the log fails, still allow the answer */ }
+  return json({ pro: false, cap: st.cap, used: st.used + 1, remaining: Math.max(0, st.remaining - 1), allowed: true }, {}, env, origin);
+}
+
 // GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
 // POST /admin/deep-credits { member_id, credits?, unlimited? } → grant extra deep
 // credits and/or flip the unlimited flag (owner + testers). Admin-gated. Mirrors
@@ -8286,6 +8341,7 @@ const SMART_ANSWER_MODEL = 'claude-sonnet-4-6';   // chosen for cost/quality bal
 // rolling per-member monthly cap keeps the wide-context spend bounded.
 const DEEP_ANSWER_MODEL = SMART_ANSWER_MODEL;
 const DEEP_MONTHLY_CAP = 12;   // deep searches per member per rolling 30 days
+const FREE_STD_MONTHLY_CAP = 5;   // free (non-Pro) STANDARD intel searches per member per rolling 30 days
 // Paid credit packs a member can buy when they run out. Price IDs come from env
 // (Stripe one-time prices Jake creates); credits are granted on paid return via
 // /deep-claim. Until the env price is set, the pack is "not configured".
@@ -10110,6 +10166,7 @@ export default {
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-usage') return await handleIntelUsage(request, env, origin, url);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }
