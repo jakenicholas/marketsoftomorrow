@@ -503,7 +503,12 @@
   var SORT_GROUPS = [
     { key:'floors', dir:'desc', label:'Tallest first',   unit:'Stories', stat:'Tallest',     syn:['tallest','highest','tall'] },
     { key:'floors', dir:'asc',  label:'Shortest first',  unit:'Stories', stat:'Shortest',    syn:['shortest','lowest'] },
-    { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['biggest','largest','most units','most residences','most homes'] },
+    // "Biggest / largest" = overall physical SCALE (acres/sq-ft, then unit/floor
+    // proxies via sizeScoreOf) — a mega district beats a slim tower. Distinct from
+    // "tallest" (floors) and "most units" (unit count). Listed BEFORE units so
+    // "biggest" resolves to scale, not unit count.
+    { key:'size',   dir:'desc', label:'Biggest first',   unit:'Size',    stat:'Biggest',     syn:['biggest','largest','most massive','grandest','most sprawling'] },
+    { key:'units',  dir:'desc', label:'Most units',      unit:'Units',   stat:'Most units',  syn:['most units','most residences','most homes','most keys','most rooms'] },
     { key:'date',   dir:'asc',  label:'Opening soonest', unit:'Delivers',stat:'Opens first', syn:['soonest','earliest','opening first','next to open','delivering first'] },
     { key:'date',   dir:'desc', label:'Furthest out',    unit:'Delivers',stat:'Latest',      syn:['furthest out','latest delivery','last to open'] },
     { key:'updated',dir:'desc', label:'Newest',          unit:'Updated', stat:'Newest',      syn:['newest','newly','latest','most recent','recently added','just added'] }
@@ -1290,7 +1295,7 @@
     // overlap and floats tiny projects (a padel court) to the top of "biggest". The
     // structured path sorts by units/floors so real scale wins. (Date/newest sorts
     // are NOT gated here — "latest news" must stay on the text path.)
-    var _sizeSort = sort && (sort.key === 'floors' || sort.key === 'units');
+    var _sizeSort = sort && (sort.key === 'floors' || sort.key === 'units' || sort.key === 'size');
     if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || usOnly || (pipeline && types.size) || (rolling && types.size)) {
       return {
         statuses: statuses, statusLabels: statusLabels,
@@ -1495,6 +1500,10 @@
         var fb = floorsOf(b) || (dir > 0 ? big : -1);
         return (fa - fb) * dir || floorsOf(b) - floorsOf(a);
       });
+    } else if (s.sort && s.sort.key === 'size') {
+      // "Biggest" = overall scale (acres/sq-ft parsed from the dossier, then
+      // unit/floor proxies) so a sprawling district outranks a slim high-unit tower.
+      rows.sort(function (a, b) { return sizeScoreOf(b) - sizeScoreOf(a) || unitsOf(b) - unitsOf(a); });
     } else if (s.sort && s.sort.key === 'units') {
       rows.sort(function (a, b) { return unitsOf(b) - unitsOf(a); });
     } else if (s.sort && s.sort.key === 'date') {
