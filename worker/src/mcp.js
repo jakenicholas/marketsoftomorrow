@@ -216,7 +216,7 @@ const TOOLS = [
         contact_id:  { type: 'string', description: 'Studio contact id (from list_contacts) — the PR/brand contact tied to this post.' },
         project_slug:{ type: 'string', description: 'Map of Tomorrow project slug this post should be linked to in the dashboard (separate from the in-body embed — `linked_project` controls the embed; `project_slug` is the structured link the dashboard groups posts by).' },
         campaign_id: { type: 'string', description: 'Campaign id (from list_campaigns) — links this post to a multi-month commitment. When set, income is auto-derived from the campaign\'s total_income / planned_posts unless an explicit `income` is also passed.' },
-        source:      { type: 'string', enum: ['ai'], description: 'Set to "ai" when this draft is written by the daily automated article routine — it files the draft under the Studio "AI" tab (separate from human Drafts) for review. Omit for human-authored drafts.' },
+        source:      { type: 'string', enum: ['ai', 'human'], description: 'Provenance tag. DEFAULTS to "ai": every draft created through this connector (the routine AND interactive Studio-connector sessions) is machine-drafted, so it files under the Studio "AI" tab for review. Only pass "human" to deliberately file a connector draft as a human Drafts-tab post (rare). Truly hand-authored posts come through the Studio editor, not this tool.' },
       },
       required: ['title'],
     },
@@ -2363,7 +2363,11 @@ const IMPL = {
     const contactId   = args.contact_id || null;
     const projSlugMcp = args.project_slug ? String(args.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
     const campaignId  = args.campaign_id || null;
-    const sourceMcp   = args.source === 'ai' ? 'ai' : null;   // 'ai' → lands in the studio "AI" tab (daily article routine)
+    // Every connector-created draft is machine-drafted → default 'ai' (Studio "AI"
+    // tab). Covers the daily-articles routine, generate_article_draft,
+    // write_article_and_post, and direct create_post_draft in an interactive
+    // Studio-connector session. Only an explicit source:'human' opts out.
+    const sourceMcp   = args.source === 'human' ? null : 'ai';
     // Snapshot the ORIGINAL body so publish-time can diff it against the
     // human-edited final and learn from every edit (the connector learning loop).
     // Every real article is connector-written then edited by hand, so we snapshot
