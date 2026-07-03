@@ -1523,9 +1523,12 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
   var audioLocked=false;   // user took manual control of the sound
   var userPaused=false;    // user explicitly paused — don't let scrolling auto-resume
   // Pause button <-> play button: pause icon while playing, play icon while paused.
-  function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.hidden=!playing; if(icPlay)icPlay.hidden=playing; pp.setAttribute('aria-label',playing?'Pause':'Play'); }
+  // NOTE: use toggleAttribute, NOT el.hidden — these icons are <svg> (SVGElement),
+  // which does not reflect the `hidden` IDL property to the attribute, so `.hidden=`
+  // silently fails to match the `svg[hidden]{display:none}` rule and the icon never swaps.
+  function syncIcon(){ if(!pp||!v)return; var playing=!v.paused; if(icPause)icPause.toggleAttribute('hidden',!playing); if(icPlay)icPlay.toggleAttribute('hidden',playing); pp.setAttribute('aria-label',playing?'Pause':'Play'); }
   // Sound button: speaker while unmuted, muted-speaker while muted.
-  function syncMute(){ if(!mb||!v)return; if(icOn)icOn.hidden=v.muted; if(icOff)icOff.hidden=!v.muted; mb.setAttribute('aria-label',v.muted?'Unmute':'Mute'); }
+  function syncMute(){ if(!mb||!v)return; if(icOn)icOn.toggleAttribute('hidden',v.muted); if(icOff)icOff.toggleAttribute('hidden',!v.muted); mb.setAttribute('aria-label',v.muted?'Unmute':'Mute'); }
   if(v){ v.addEventListener('play',syncIcon); v.addEventListener('pause',syncIcon); v.addEventListener('volumechange',syncMute); syncIcon(); syncMute(); }
   // NEVER auto-start on load — only once the video is actually IN FRAME.
   function playInView(){ if(!v||userPaused)return; var p=v.play(); if(p&&p.catch){ p.catch(function(){ v.muted=true; syncMute(); v.play().catch(function(){}); }); } }
