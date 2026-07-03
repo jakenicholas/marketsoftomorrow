@@ -1241,10 +1241,20 @@ function initComments(slug, post) {
   }
   // Open the Onyx / TMW Intelligence overlay with the reader's question (falls
   // back to the homepage ?q= deep-link, which auto-opens the overlay).
-  function openOnyx(q) {
+  function openOnyx(q, ctx) {
     q = (q || '').trim();
-    try { if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') { window.tmwOverlay.open(q); return; } } catch (e) {}
-    location.href = 'https://www.oftmw.com/?q=' + encodeURIComponent(q);
+    try { if (window.tmwOverlay && typeof window.tmwOverlay.open === 'function') { window.tmwOverlay.open(q, ctx); return; } } catch (e) {}
+    location.href = 'https://www.oftmw.com/?q=' + encodeURIComponent(q) + ((ctx && ctx.slug) ? ('&from=' + encodeURIComponent(ctx.slug)) : '');
+  }
+  // The article this search was launched from — carried into the overlay so a
+  // terse follow-up ("when") resolves against it (chip + Onyx context).
+  function articleCtx() {
+    var h1 = document.getElementById('article-title');
+    var title = h1 ? String(h1.textContent).replace(/\s+/g, ' ').trim() : '';
+    var dk = document.getElementById('article-deck');
+    var summary = dk ? String(dk.textContent).replace(/\s+/g, ' ').trim() : '';
+    if (!summary) { var bc = document.getElementById('article-body-content'); summary = bc ? String(bc.textContent).replace(/\s+/g, ' ').trim() : ''; }
+    return { slug: slug, title: title, summary: summary.slice(0, 700) };
   }
 
   // Entity → followable-slug resolution (firms + projects DB, cached).
@@ -1382,7 +1392,7 @@ function initComments(slug, post) {
     }
     function wireMore(q) {
       var mb = ans.querySelector('.ai-ask-more');
-      if (mb) mb.addEventListener('click', function () { var subj = articleSubject(); openOnyx((q && subj) ? (subj + ' — ' + q) : (q || subj)); });
+      if (mb) mb.addEventListener('click', function () { var subj = articleSubject(); openOnyx((q && subj) ? (subj + ' — ' + q) : (q || subj), articleCtx()); });
     }
     if (ago) ago.addEventListener('click', ask);
     if (ain) ain.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ask(); } });

@@ -273,6 +273,8 @@
     // Deep mode (Pro): wide-context analyst brief. `member` keys the monthly cap.
     if (opts.deep) payload.deep = true;
     if (opts.member) payload.member = opts.member;
+    // Source article (opened from "Explore in Onyx") so a terse question resolves.
+    if (opts.article && opts.article.title) payload.article = { title: String(opts.article.title).slice(0, 200), summary: String(opts.article.summary || '').slice(0, 1500) };
     return fetch(WORKER_URL + '/smart-answer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

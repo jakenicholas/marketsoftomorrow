@@ -172,11 +172,20 @@
     +   'border:1px solid rgba(167,139,250,.38);color:#F4F1EA;font-family:"Inter",system-ui,sans-serif;'
     +   'font-size:15px;line-height:1.4;font-weight:500;padding:11px 16px;border-radius:16px 16px 4px 16px;'
     +   'box-shadow:0 2px 14px rgba(167,139,250,.12);word-break:break-word}'
+    /* Source-article chip under the query bubble — shows Onyx (and the reader)
+       exactly which article a handed-off question is about; links to it. */
+    + '.tmw-ov-actx{margin-top:7px;display:inline-flex;align-items:center;gap:6px;max-width:80%;padding:5px 11px;'
+    +   'border-radius:999px;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.12);'
+    +   'color:#C9BBFF;font:600 11.5px/1.2 "Inter",-apple-system,system-ui,sans-serif;text-decoration:none;'
+    +   'transition:background .18s,border-color .18s}'
+    + '.tmw-ov-actx:hover{background:rgba(167,139,250,.22);border-color:rgba(167,139,250,.75);color:#EFEAFB}'
+    + '.tmw-ov-actx svg{width:13px;height:13px;flex:0 0 auto}'
+    + '.tmw-ov-actx span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
     + '.tmw-ov-answer{display:block}'
     /* Per-answer thumbs: bottom-right of each turn, votes on that turn alone.
        Pin the "Noted" confirmation under the right-aligned buttons (the base
        rule centers it on the row, which is full-width here). */
-    + '.tmw-ov-turn-fb{justify-content:space-between;align-items:center;width:100%;margin-top:16px}'
+    + '.tmw-ov-turn-fb{justify-content:flex-end;align-items:center;width:100%;margin-top:16px}'
     + '.tmw-ov-turn-fb .tmw-ov-fb-thanks{left:auto;right:6px;transform:none}'
     /* Live/Thinking indicator relocated (by setState) from the answer header to
        the bottom feedback row — left-aligned, on the thumbs' horizontal line. */
@@ -2571,11 +2580,28 @@
   // Chat thread: every query gets its own turn (user message + answer block).
   // newTurn() appends a turn and RE-POINTS the render targets at it, so all the
   // existing render functions keep writing into "the current turn" unchanged.
+  // Source-article context for a search opened from an article ("Explore in
+  // Onyx"). _pendingCtx is set by open(q, ctx); the next turn consumes it into
+  // _currentTurnCtx — a purple chip on the query bubble + the article context
+  // sent to Onyx so a terse question ("when") resolves against the right article.
+  var _pendingCtx = null, _currentTurnCtx = null;
+  function _ctxChipHtml(ctx){
+    if (!ctx || !ctx.title) return '';
+    var t = String(ctx.title);
+    var short = t.length > 46 ? (t.slice(0, 44).replace(/\s+\S*$/, '') + '…') : t;
+    var href = ctx.slug ? ('https://www.oftmw.com/post/' + ctx.slug + '/') : '#';
+    return '<div class="tmw-ov-msg-row"><a class="tmw-ov-actx" href="' + esc(href) + '" target="_blank" rel="noopener" title="' + esc(t) + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>'
+      + '<span>' + esc(short) + '</span></a></div>';
+  }
+
   function newTurn(userText){
     sStarter.classList.add('tmw-ov-hidden');        // hide the teach card once a conversation starts
+    _currentTurnCtx = _pendingCtx; _pendingCtx = null;   // this turn owns the article context (if any)
     var turn = document.createElement('div');
     turn.className = 'tmw-ov-turn';
     turn.innerHTML = '<div class="tmw-ov-msg-row"><div class="tmw-ov-msg">' + esc(userText) + '</div></div>'
+      + _ctxChipHtml(_currentTurnCtx)
       + '<div class="tmw-ov-answer">' + TURN_ANSWER_HTML + '</div>';
     _threadEl.appendChild(turn);
     // Re-point the per-turn render targets at this turn.
@@ -3688,6 +3714,7 @@
     var hist = _isFollowupQ(q) ? threadHistory() : [];       // context only for real follow-ups
     var _intelSlot = slotIntel;                              // capture THIS turn's slot (it moves per turn)
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
+    var _turnCtx = _currentTurnCtx;                          // article context for THIS turn (if opened from an article)
     var myToken = ++_intelToken;
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
@@ -3699,7 +3726,7 @@
       }
       // Render into the CAPTURED slot (not the live `slotIntel`, which may have
       // advanced to a newer turn) so the answer lands on its own message.
-      Core.askIntelligence(q, facts, hist, { deep: _deepActive(), member: _memberId() }).then(function(res){
+      Core.askIntelligence(q, facts, hist, { deep: _deepActive(), member: _memberId(), article: _turnCtx }).then(function(res){
         var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (!ansEl) return;
         if (res && res.ok && res.answer){
@@ -4707,6 +4734,7 @@
     // answer is stored for follow-up context + faithful resume — the structured
     // path does this; this path didn't, so those turns never fed the LLM history.
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
+    var _turnCtx = _currentTurnCtx;                          // article context for THIS turn (if opened from an article)
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
     // placeTerms lets the worker pull body-level matches from D1 for the place.
     var facts = attachPlaceScope((topic && Core.buildJournalFacts)
@@ -4716,7 +4744,7 @@
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
-      Core.askIntelligence(q, facts, [], { deep: _deepActive(), member: _memberId() }).then(function(res){
+      Core.askIntelligence(q, facts, [], { deep: _deepActive(), member: _memberId(), article: _turnCtx }).then(function(res){
         if (myToken !== _intelToken) return;
         // The 'Thinking' live-pip was relocated into the feedback row by setState
         // BEFORE this async answer arrived; rebuilding the panel below makes a new
@@ -4812,7 +4840,8 @@
       }
     } catch(_){}
   }
-  function open(initialQuery){
+  function open(initialQuery, ctx){
+    _pendingCtx = (ctx && ctx.title) ? ctx : null;   // article handoff context for the first turn
     if (root.classList.contains('open')) return;
     _savedScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.style.overflow = 'hidden';
@@ -4913,6 +4942,7 @@
   // homescreen (the teach/starter screen), keeping the overlay open.
   function newChat(){
     closeProj();   // park the embed out of the thread before we wipe it
+    _pendingCtx = null; _currentTurnCtx = null;   // drop any source-article context
     _thread = [];
     if (_threadEl) _threadEl.innerHTML = '';
     try { localStorage.removeItem(_THREAD_KEY); } catch (_) {}
