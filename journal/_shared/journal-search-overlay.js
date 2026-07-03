@@ -799,7 +799,7 @@
     + '.tmw-ov-intel-panel.gate::before{background:conic-gradient(from 210deg,rgba(240,214,138,0) 0deg,rgba(240,214,138,0) 250deg,#e6c574 320deg,#f0d68a 350deg,rgba(240,214,138,0) 360deg)}'
     + '.tmw-ov-intel-panel.gate .lbl{color:#f0d68a}'
     + '.tmw-ov-intel-panel.gate .tmw-ov-intel-spark{color:#f0d68a;background:rgba(240,214,138,.16);box-shadow:0 0 16px rgba(240,214,138,.4)}'
-    + '.tmw-ov-pro-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:12px 20px;border-radius:11px;'
+    + '.tmw-ov-pro-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:12px 20px;border:0;border-radius:11px;cursor:pointer;'
     + 'background:linear-gradient(180deg,#f0d68a,#e6c574);color:#0b0a08;font-family:inherit;font-weight:700;font-size:12px;'
     + 'letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 24px rgba(230,197,116,.3);transition:filter .15s}'
     + '.tmw-ov-pro-btn:hover{filter:brightness(1.07)}'
@@ -1170,9 +1170,13 @@
     if (!window.tmwIntel) return '';
     var pro = window.tmwIntel.isPro && window.tmwIntel.isPro();
     if (pro) return '<span class="tmw-ov-pro on">PRO</span>';
-    var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 5);
+    // No account → an account is required to try Intelligence; prompt to sign up
+    // rather than showing a free-quota they can't actually spend.
+    var signedIn = window.tmwIntel.signedIn ? window.tmwIntel.signedIn() : true;
+    if (!signedIn) return '<a class="tmw-ov-pro" data-tmw-signup href="#">Sign up to try</a>';
+    var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 2);
     var lowCls = left <= 3 ? ' low' : '';
-    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' left</span>'
+    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 2) + ' left</span>'
       + '<a class="tmw-ov-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
   }
   function refreshProPill(){
@@ -1427,6 +1431,13 @@
     });
   }
   claimDeepPurchase();   // handle a returning Stripe checkout on any overlay-loaded page
+  // The Intelligence gate's "Create a free account" button opens the signup modal.
+  root.addEventListener('click', function(e){
+    var b = e.target && e.target.closest && e.target.closest('[data-tmw-signup]');
+    if (!b) return;
+    e.preventDefault();
+    try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('signup'); } catch(_){}
+  });
 
   // ── data loading (mirrors /search/) ────────────────────────────────
   var PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false, _loading = null;
@@ -2042,16 +2053,28 @@
       + '</section>';
   }
 
-  // Out-of-free-queries upgrade panel (gold accent) — mirrors /search/'s
-  // intel-gate; opens the native in-page paywall via [data-tmw-paywall].
+  // Intelligence gate. Two states: (1) NOT SIGNED IN → you need an account to try
+  // TMW Intelligence at all → prompt to create a free account; (2) signed-in but
+  // out of free searches → the Go Pro upgrade panel.
+  function _intelSignedIn(){
+    try {
+      if (window.tmwIntel && typeof window.tmwIntel.signedIn === 'function') return window.tmwIntel.signedIn();
+      return window._tmwSignedIn === true || window._isPaidMember === true || !!(window.__tmwMember && window.__tmwMember.id);
+    } catch (e) { return false; }
+  }
   function intelGateHtml(){
+    var head = '<div class="tmw-ov-intel-h"><span class="tmw-ov-intel-spark">'+ICON_HEX+'</span><span class="lbl">TMW Intelligence</span></div>';
+    if (!_intelSignedIn()) {
+      return '<section class="tmw-ov-intel-panel gate">'
+        + head
+        + '<p class="tmw-ov-intel-ans">Create a free account to try <b>TMW Intelligence</b> — natural-language answers across the entire development pipeline: every project, firm, and milestone.</p>'
+        + '<button type="button" class="tmw-ov-pro-btn" data-tmw-signup>Create a free account</button>'
+        + '</section>';
+    }
     return '<section class="tmw-ov-intel-panel gate">'
-      +   '<div class="tmw-ov-intel-h">'
-      +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
-      +     '<span class="lbl">TMW Intelligence</span>'
-      +   '</div>'
-      +   '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
-      +   '<a class="tmw-ov-pro-btn" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">Go Pro — unlimited intelligence</a>'
+      + head
+      + '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 2) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
+      + '<a class="tmw-ov-pro-btn" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">Go Pro — unlimited intelligence</a>'
       + '</section>';
   }
 

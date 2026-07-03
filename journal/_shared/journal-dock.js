@@ -223,14 +223,23 @@
         || (window.__tmwMember && window.__tmwMember.plan === 'paid')
         || localStorage.getItem('tmw_auth_state') === 'pro'; } catch (e) { return false; }
     },
+    // Signed-in = has an account (free or paid). Trying TMW Intelligence at all
+    // requires an account; anon users are sent to create one first.
+    signedIn: function () {
+      try {
+        return window._tmwSignedIn === true || window._isPaidMember === true
+          || !!(window.__tmwMember && window.__tmwMember.id);
+      } catch (e) { return false; }
+    },
     _norm: function (q) { return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); },
     _used: function () { try { return parseInt(localStorage.getItem('tmw_intel_used') || '0', 10) || 0; } catch (e) { return 0; } },
     _seen: function () { try { return JSON.parse(localStorage.getItem('tmw_intel_seen') || '[]'); } catch (e) { return []; } },
     used: function () { return this._used(); },
     left: function () { return this.isPro() ? Infinity : Math.max(0, this.FREE - this._used()); },
     seen: function (q) { return this._seen().indexOf(this._norm(q)) >= 0; },
-    // Allowed to run? Pro, under the cap, or a query already counted before.
-    allowed: function (q) { return this.isPro() || this._used() < this.FREE || this.seen(q); },
+    // Allowed to run? Pro always; otherwise you must have an ACCOUNT, then it's
+    // the free trial cap (or a query already counted). Anon → must sign up first.
+    allowed: function (q) { if (this.isPro()) return true; if (!this.signedIn()) return false; return this._used() < this.FREE || this.seen(q); },
     // Count a NEW distinct query (no-op for Pro / repeats). Returns queries left.
     count: function (q) {
       if (this.isPro()) return Infinity;
