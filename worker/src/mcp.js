@@ -678,7 +678,7 @@ const TOOLS = [
         target_name: { type: 'string', description: 'The current name of that project, for display' },
         changes: {
           type: 'object',
-          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, keys, gfa_sqft (GROSS FLOOR AREA — total BUILT square feet; the "how big is this development" number that powers "biggest projects" ranking — capture a STATED figure when a source gives one, else ESTIMATE max(units×1265, floors×20000, acres×43560×0.1)), gfa_source ("stated" or "estimated"), start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
         },
         proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
         source_note: { type: 'string', description: 'Source URL / where this came from' },
@@ -714,7 +714,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), and keys (hotel rooms) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), keys (hotel rooms), and gfa_sqft (GROSS FLOOR AREA / total built sq ft — the "how big" number that powers biggest-projects ranking; capture a stated figure or estimate it) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -734,6 +734,8 @@ const TOOLS = [
         units: { type: 'integer', description: 'Residential unit count — fill/correct when a credible source states it (auto-applies; many projects are missing this)' },
         floors: { type: 'integer', description: 'Floor / story count — fill/correct from a credible source (auto-applies)' },
         keys: { type: 'integer', description: 'Hotel key (room) count — fill/correct from a credible source for hotels/resorts (auto-applies)' },
+        gfa_sqft: { type: 'integer', description: 'GROSS FLOOR AREA — total BUILT square feet across the whole project (auto-applies like units/floors; the "how big is this development" number that powers "biggest projects" ranking, and most projects are missing it). Capture the STATED figure whenever a source gives one ("a 1.2-million-square-foot tower", "2.5M sq ft mixed-use") and set gfa_source:"stated". If none is stated, ESTIMATE it as max(units×1265, floors×20000, acres×43560×0.1) and set gfa_source:"estimated" (a tall tower on a small lot should still be large — floors×20000).' },
+        gfa_source: { type: 'string', enum: ['stated', 'estimated'], description: '"stated" if gfa_sqft came from a source, "estimated" if you derived it from floors/units/acreage. Defaults to "stated" when gfa_sqft is provided without it.' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
         borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan"). NYC boroughs auto-derive from coordinates; set this only to override. City is unchanged.' },
         types: { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of project type tags (auto-applies). Use to re-classify — most commonly to promote a multi-use project to Mixed-Use, or to add a Retail tag to a project that had Eateries. Pass the WHOLE list (not a diff); pre-existing tags not in this array are removed. Tags are normalized against the existing vocabulary and unrecognized tags are dropped — never coin new ones. CLASSIFICATION RULE: Resort always wins (preferred_type=Resort, no Mixed-Use). Otherwise, if 2+ types from {Residences, Office, Hotel, Retail, Cultural, Education, Entertainment, Stadium, Hospital, Travel} are present, the project IS Mixed-Use (add "Mixed-Use" to types AND set preferred_type="Mixed-Use"). Hospitality with amenities only (Hotel + Eateries/Park/Marina) stays Hotel — restaurants are amenities, not separate primary uses.' },
@@ -3122,9 +3124,10 @@ const IMPL = {
     // Factual spec fields the agent fills/corrects when it finds them (auto-apply).
     const numOrNull = (v) => { if (v == null || v === '') return null; const n = parseInt(v, 10); return isNaN(n) ? null : n; };
     const NUM_FIELDS = [
-      { arg: 'units',  field: 'units',  label: 'units' },
-      { arg: 'floors', field: 'floors', label: 'floors (stories)' },
-      { arg: 'keys',   field: 'keys',   label: 'keys' },
+      { arg: 'units',    field: 'units',    label: 'units' },
+      { arg: 'floors',   field: 'floors',   label: 'floors (stories)' },
+      { arg: 'keys',     field: 'keys',     label: 'keys' },
+      { arg: 'gfa_sqft', field: 'gfa_sqft', label: 'GFA (sq ft)' },
     ];
     const numWanted = NUM_FIELDS.map((f) => ({ ...f, val: numOrNull(args[f.arg]) })).filter((f) => f.val != null);
     // Neighborhood / submarket — a free-text spec field that auto-applies like
@@ -3258,6 +3261,10 @@ const IMPL = {
         p[u.field] = u.val;
         p.status_history.push({ ...base, type: 'field', field: u.field, from: old, to: u.val });
         changes.push(`${u.label} ${old == null ? '—' : old}→${u.val}`);
+      }
+      // GFA carries a companion source flag (stated vs estimated) like create_map_draft.
+      if (numChanged.some((u) => u.field === 'gfa_sqft')) {
+        p.gfa_source = args.gfa_source ? String(args.gfa_source) : 'stated';
       }
       if (nbhdChanged) {
         const old = String(p.neighborhood || '') || null;
