@@ -208,7 +208,7 @@ const TOOLS = [
         title: { type: 'string', description: 'Article headline' },
         body_markdown: { type: 'string', description: 'Article body in Markdown. Supports: # / ## / ### headings, paragraphs, **bold**, *italic*, [links](url), `- ` bullet lists, and IMAGES via ![alt](url) -- a paragraph that is JUST an image becomes a <figure>, and ![alt](url "caption text") adds a <figcaption>. Use real image URLs (R2 / official press kit URLs), never link a website as if it were an image. Use AT MOST 10 images per article (any beyond the first 10 are dropped automatically). Avoid em dashes (—) in the prose; use commas or periods instead.' },
         excerpt: { type: 'string', description: '1–2 sentence summary (optional; auto-derived if omitted)' },
-        category: { type: 'string', description: 'Primary category label (optional)' },
+        category: { type: 'string', description: 'Optional — must be an EXISTING category label (call search_posts/list_posts to see what exists). New/unknown labels are NOT created here; they are dropped and the post saves uncategorized. Categories are created only in the Studio Categories tab.' },
         cover_image: { type: 'string', description: 'Absolute cover image URL (optional)' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project this article covers — embeds the live project card (status, intel, stats) in the post, exactly like the Studio "linked project" picker. Use the slug from search_projects. Always set this when the article is about a tracked project.' },
         post_type:   { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Editorial/commercial classification (Monday-replacement). Default Editorial.' },
@@ -247,7 +247,7 @@ const TOOLS = [
         caption:        { type: 'string', description: 'Instagram caption for the carousel post.' },
         folder:         { type: 'string', description: 'Media-library folder holding the photos to use in BOTH the article and the post (newest-first). The first photo becomes the article cover unless cover_image is set.' },
         excerpt:        { type: 'string', description: 'Article summary (optional; auto-derived).' },
-        category:       { type: 'string', description: 'Article category (optional).' },
+        category:       { type: 'string', description: 'Optional — must be an EXISTING category label. New/unknown labels are NOT created; they are dropped and the post saves uncategorized. Create categories in the Studio Categories tab only.' },
         cover_image:    { type: 'string', description: 'Explicit article cover URL (optional; defaults to the folder\'s first photo).' },
         linked_project: { type: 'string', description: 'Map of Tomorrow project slug to embed in the article (optional).' },
         post_type:      { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Article classification (default Editorial).' },
@@ -272,7 +272,7 @@ const TOOLS = [
         facts:          { type: 'string', description: 'Optional verified facts/quotes/source notes to ground the piece. The model must NOT invent numbers, dates, prices, or firm names beyond what you provide here + what it already knows to be true.' },
         folder:         { type: 'string', description: 'Optional media-library folder — photos (newest-first) are sprinkled into the body and the first becomes the cover.' },
         cover_image:    { type: 'string', description: 'Optional explicit cover URL.' },
-        category:       { type: 'string', description: 'Optional article category.' },
+        category:       { type: 'string', description: 'Optional — must be an EXISTING category label. New/unknown labels are NOT created; they are dropped and the post saves uncategorized. Create categories in the Studio Categories tab only.' },
         linked_project: { type: 'string', description: 'Optional Map of Tomorrow project slug to embed as a live card.' },
         post_type:      { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'], description: 'Article classification (default Editorial).' },
       },
@@ -302,7 +302,7 @@ const TOOLS = [
         title: { type: 'string' },
         body_markdown: { type: 'string', description: 'Replacement body in Markdown. Same syntax as create_post_draft: headings, **bold**, *italic*, [links](url), `- ` lists, and IMAGES via ![alt](url) (or ![alt](url "caption") for a captioned figure). Use real image URLs, not website links. Use AT MOST 10 images per article (extras are dropped automatically). Avoid em dashes (—) in the prose; use commas or periods instead.' },
         excerpt: { type: 'string' },
-        category: { type: 'string' },
+        category: { type: 'string', description: 'Re-categorize into an EXISTING category label only. New/unknown labels are ignored (the post keeps its current categories); categories are created in the Studio Categories tab only.' },
         cover_image: { type: 'string' },
         linked_project: { type: 'string', description: 'Slug of the Map of Tomorrow project to link — embeds the live project card (added once if not already present). Use to connect an existing draft to its project.' },
         post_type:   { type: 'string', enum: ['Editorial', 'Barter', 'Potential Barter', 'Partner', 'Paid'] },
@@ -957,6 +957,23 @@ const TOOLS = [
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function iso(ts) { return ts ? new Date(ts * 1000).toISOString().slice(0, 10) : null; }
 function parseJSON(s, fallback) { try { return JSON.parse(s); } catch (_) { return fallback; } }
+
+// Category firewall for the connector: NO post-writing MCP tool may mint a NEW
+// category. New categories are created deliberately by Jake in the Studio
+// Categories tab only. Given a candidate label, return it verbatim if it
+// already exists on some post (case-insensitive), else '' (→ save uncategorized).
+// Fails OPEN only on a DB error (returns the label) so a transient failure never
+// silently drops a legit existing category.
+async function knownCategoryOrBlank(env, cat) {
+  const c = String(cat || '').trim();
+  if (!c) return '';
+  try {
+    const rows = (await env.DB.prepare("SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000").all()).results || [];
+    const known = new Set();
+    for (const r of rows) { try { (JSON.parse(r.categories) || []).forEach(x => { if (x) known.add(String(x).toLowerCase()); }); } catch (_) {} }
+    return known.has(c.toLowerCase()) ? c : '';
+  } catch (_) { return c; }
+}
 
 function slugify(s) {
   return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
@@ -2331,18 +2348,12 @@ const IMPL = {
     }
     const text = stripHtml(bodyHtml);
     const excerpt = deDash((args.excerpt && String(args.excerpt).trim()) || text.slice(0, 180));
-    let categories = args.category ? JSON.stringify([String(args.category)]) : '[]';
-    // The AI routine may NOT create NEW categories — if source='ai' passes a category
-    // that isn't already used on an existing post, drop it (save uncategorized) rather
-    // than mint a new taxonomy entry. Human/Studio creates are unaffected.
-    if (args.category && args.source === 'ai') {
-      try {
-        const _cr = (await env.DB.prepare("SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000").all()).results || [];
-        const _known = new Set();
-        for (const _r of _cr) { try { (JSON.parse(_r.categories) || []).forEach(c => { if (c) _known.add(String(c).toLowerCase()); }); } catch (_) {} }
-        if (!_known.has(String(args.category).toLowerCase())) categories = '[]';
-      } catch (_) {}
-    }
+    // No connector path (routine OR interactive Studio connector session) may mint
+    // a NEW category — regardless of source. If the passed category isn't already
+    // on an existing post, drop it and save uncategorized. New categories are
+    // created deliberately in the Studio Categories tab only.
+    const _cat = await knownCategoryOrBlank(env, args.category);
+    const categories = _cat ? JSON.stringify([_cat]) : '[]';
     const reading = Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
     const now = Math.floor(Date.now() / 1000);
     await ensureContactsTable(env);
@@ -2407,7 +2418,13 @@ const IMPL = {
       sets.push(`excerpt = ?${p++}`); params.push(effExcerpt);
       sets.push(`seo_description = ?${p++}`); params.push(effExcerpt);
     }
-    if (args.category != null) { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([String(args.category)])); }
+    if (args.category != null) {
+      // Same firewall as create: only re-categorize into an EXISTING category.
+      // If the label is new/unknown, leave the post's categories untouched rather
+      // than mint a new taxonomy entry (or wipe the existing one).
+      const _known = await knownCategoryOrBlank(env, args.category);
+      if (_known) { sets.push(`categories = ?${p++}`); params.push(JSON.stringify([_known])); }
+    }
     if (args.cover_image != null) { sets.push(`cover_image = ?${p++}`); params.push(String(args.cover_image)); }
     if (args.post_type != null)    { sets.push(`post_type = ?${p++}`);    params.push(normalizePostTypeMcp(args.post_type)); }
     if ('income'      in args)     { sets.push(`income = ?${p++}`);       params.push(args.income == null || args.income === '' ? null : Number(args.income)); }
