@@ -778,7 +778,16 @@ async function handleTrialEligible(req, env, origin, url) {
     const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
     for (const c of (custs.data || [])) {
       const subs = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=10');
-      for (const s of (subs.data || [])) { hadTrial = true; if (typeof s.created === 'number' && s.created < earliest) earliest = s.created; }
+      for (const s of (subs.data || [])) {
+        // Ignore checkouts that never actually started a subscription — an
+        // abandoned/failed checkout creates an `incomplete` (then
+        // `incomplete_expired`) sub with a Stripe customer, which must NOT burn
+        // the one free trial. Only a sub that reached trialing/active/paused/
+        // past_due/unpaid/canceled means the trial was genuinely used.
+        if (s.status === 'incomplete' || s.status === 'incomplete_expired') continue;
+        hadTrial = true;
+        if (typeof s.created === 'number' && s.created < earliest) earliest = s.created;
+      }
     }
     if (hadTrial) return json({ eligible: false, had_trial: true, grandfathered: earliest < CUTOVER_TS }, {}, env, origin);
     return json({ eligible: true, had_trial: false, grandfathered: false }, {}, env, origin);

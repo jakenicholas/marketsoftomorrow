@@ -1183,9 +1183,9 @@
     // rather than showing a free-quota they can't actually spend.
     var signedIn = window.tmwIntel.signedIn ? window.tmwIntel.signedIn() : true;
     if (!signedIn) return '<a class="tmw-ov-pro" data-tmw-signup href="#">Sign up to try</a>';
-    var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 2);
+    var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 5);
     var lowCls = left <= 3 ? ' low' : '';
-    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 2) + ' left</span>'
+    return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' left</span>'
       + '<a class="tmw-ov-pro" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">PRO</a>';
   }
   function refreshProPill(){
@@ -2082,7 +2082,7 @@
     }
     return '<section class="tmw-ov-intel-panel gate">'
       + head
-      + '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 2) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
+      + '<p class="tmw-ov-intel-ans">You’ve used all <b>' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' free</b> TMW Intelligence searches. Go <b>Pro</b> for unlimited natural-language search across the entire development pipeline — every project, firm, and milestone.</p>'
       + '<a class="tmw-ov-pro-btn" href="https://www.oftmw.com/map/?upgrade=1" data-tmw-paywall="feature:intelligence">Go Pro — unlimited intelligence</a>'
       + '</section>';
   }
@@ -2625,6 +2625,10 @@
   function setState(name){
     // 'starter' = the empty-thread teach screen (standalone, above the thread).
     sStarter.classList.toggle('tmw-ov-hidden', name !== 'starter');
+    // The free-quota pill lives in the starter header — refresh it on every entry
+    // so the "N / FREE left" count reflects queries burned this session (New chat,
+    // empty-query reset, etc.), not the stale value from when the overlay opened.
+    if (name === 'starter') refreshProPill();
     // thinking / results / empty operate on the CURRENT turn (re-pointed by
     // newTurn). Guard in case a state is set before any turn exists.
     if (sThinking) sThinking.classList.toggle('show', name === 'thinking');
