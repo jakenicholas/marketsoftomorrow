@@ -70,7 +70,9 @@ def biggest_board(rows):
             continue
         lines = []
         if fl: lines.append(f'{fl} fl')
-        if un: lines.append(f'{un:,} units')
+        gfa = to_int(r.get('GfaSqFt'))            # Gross Floor Area (populated in the Studio → gfa_sqft → GfaSqFt)
+        if gfa: lines.append(f'{gfa:,} sq ft')    # prefer GFA; falls back to units/keys until GFA is populated
+        elif un: lines.append(f'{un:,} units')
         elif ke: lines.append(f'{ke:,} keys')
         scored.append({
             'id': r.get('Slug') or r.get('Title'),
