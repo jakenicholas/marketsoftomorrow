@@ -3295,7 +3295,17 @@
       if (_ik === 'project') {
         smart = null;                       // exact project lookup → text path's full-hero
       } else if (_ik === 'concept' || _ik === 'topic') {
-        _conceptQ = true; smart = null;     // topic/policy → semantic concept path, no place dump
+        // Topic/policy → semantic concept path. BUT if parseSmartQuery already found
+        // a concrete structured intent — a SIZE sort, an explicit type, a height
+        // band, or a US-country scope — it's a database LIST ("biggest projects in
+        // the united states"), not a concept. Keep the structured parse so it ranks
+        // by scale instead of falling to keyword text-match (which floated a padel
+        // court into "biggest projects"). Place-only questions still go concept.
+        if (smart && (smart.sort || smart.usOnly || (smart.types && smart.types.size) || smart.floorsMin != null)) {
+          /* keep smart — structured list */
+        } else {
+          _conceptQ = true; smart = null;
+        }
       }
       // #4 (hybrid steering, down payment): let the classifier's structured
       // extraction drive RETRIEVAL, not just routing — fill a filter the
