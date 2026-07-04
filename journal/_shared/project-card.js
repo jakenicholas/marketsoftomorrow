@@ -219,13 +219,18 @@
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
-      '<button class="pc-flyover" type="button" aria-label="See on the map"><span class="lbl">See on the map</span>' +
-        '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
+      // "View on Map" — identical to the map project modal\'s pm-viewmap-btn (map-pin
+      // icon + label); opens this project on the Map of Tomorrow.
+      '<button class="pc-flyover" type="button" aria-label="View on Map"><span class="lbl">View on Map</span>' +
+        '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>' +
     '</div>' +
     '<div class="pc-body">' +
       '<h3 class="pc-name">' + esc(rec.Title) + '</h3>' +
       '<div class="pc-loc">' + subline.join(' · ') + '</div>' +
       (rec.Description ? '<p class="pc-desc">' + esc(rec.Description) + '</p>' : '') +
+      // Official Website — subtle text link with arrow, just BELOW the bio (mirrors
+      // the SEO project page + map modal placement).
+      (rec.OfficialWebsite ? '<a class="pc-website" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' : '') +
       // Construction timeline — render the SHARED engine (window.TMWIntel) so it
       // is byte-identical to the map modal: same weighted segments, per-stage
       // colours, %, and the "Delivered <mon> '<yy>" subtitle for completed
@@ -251,14 +256,12 @@
           '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
           '<span class="pc-watch-lbl">Watch</span></button>' +
       '</div>' +
-      // Official Website — subtle text link with arrow, after the CTAs (mirrors the SEO page's btn-website).
-      (rec.OfficialWebsite ? '<a class="pc-website" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' : '') +
     '</div>';
   }
 
   function wire(card, slug) {
     var fly = card.querySelector('.pc-flyover');
-    if (fly) fly.addEventListener('click', function () { window.open(projectUrl(slug), '_blank', 'noopener'); });
+    if (fly) fly.addEventListener('click', function () { window.open('https://www.oftmw.com/map/?project=' + encodeURIComponent(slug), '_blank', 'noopener'); });
     var wb = card.querySelector('.pc-btn.watch');
     if (wb) { hydrateWatch(wb, slug); wb.addEventListener('click', function () { toggleWatch(wb, slug); }); }
   }

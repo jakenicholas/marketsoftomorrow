@@ -4989,10 +4989,16 @@
     cursor: pointer; text-decoration: none;
     display: flex; align-items: center; justify-content: center; gap: 7px;
     box-shadow: 0 0 22px rgba(167,139,250,0.40), 0 2px 10px rgba(0,0,0,0.35);
-    transition: box-shadow .18s ease, background .18s ease;
+    transition: box-shadow .18s ease, background .18s ease, transform .12s ease;
+    animation: pmDiveGlow 3.2s ease-in-out infinite;
   }
+  @keyframes pmDiveGlow {
+    0%, 100% { box-shadow: 0 0 22px rgba(167,139,250,0.30), 0 2px 10px rgba(0,0,0,0.35); }
+    50%      { box-shadow: 0 0 34px rgba(167,139,250,0.55), 0 2px 12px rgba(0,0,0,0.4); }
+  }
+  @media (prefers-reduced-motion: reduce) { #projectModal .pm-btn-learn { animation: none; } }
   #projectModal .pm-btn-learn:hover {
-    background: rgba(167,139,250,0.18);
+    background: rgba(167,139,250,0.18); animation: none; transform: translateY(-1px);
     box-shadow: 0 0 30px rgba(167,139,250,0.62), 0 2px 12px rgba(0,0,0,0.4);
   }
   #projectModal .pm-btn-learn svg { width:15px; height:15px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
@@ -9060,8 +9066,10 @@
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 22px;
-      padding: 8px 8px 8px 16px;
-      display: flex; align-items: center; gap: 8px;
+      /* Tighter left padding + gap so the placeholder sits right next to the
+         search icon (was 16px pad / 8px gap — placeholder read as floating). */
+      padding: 8px 8px 8px 13px;
+      display: flex; align-items: center; gap: 4px;
       flex-shrink: 0;
       color: rgba(255,255,255,0.72);
     }
@@ -12640,7 +12648,7 @@
                under the bio; the Watch button sits in the 2nd slot, label always
                visible (incl. mobile) so the watch action reads clearly. -->
           <div class="pm-cta">
-            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Project Profile</a>
+            <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>Dive Deeper</a>
             <!-- Watch button (Phase 1). Replaces the old icon-only favorite
                  button. The underlying isFavorited()/toggleFavorite() data
                  layer is unchanged -- only the UI is rebranded to "Watch". -->
@@ -17465,7 +17473,7 @@
               <p class="city" style="color:#ccc!important;margin:0 0 auto;">${f.properties.borough || f.properties.city}${_type ? ' · ' + _type : ''}</p>
               ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
-          d.onclick = () => {
+          const tileActivate = () => {
             if (window.gridRendering[targetId]) return;
             if (!map.getSource('projects')?._data) return;
             gtag('event', 'project_click', { 'project_name': f.properties.title, 'project_city': f.properties.city, 'project_featured': f.properties.featured||false, 'click_source': 'tile', 'device_type': isMobile?'mobile':'desktop', 'grid_position': index+1 });
@@ -17494,6 +17502,26 @@
               window.openProjectModal(f, 'tile');
             }
           };
+          // This is the MOBILE DRAWER (#gridMobile) tile renderer. iOS Safari cancels
+          // the emulated `click` inside the momentum-scroll sheet, so a bare onclick
+          // never fires — use the same pointer-tap the search rows use (immune to that
+          // AND the collapsed-drawer touchstart preventDefault). Fire on a still tap only.
+          (function(){
+            const TH = 10; let sx = 0, sy = 0, tracking = false;
+            d.addEventListener('pointerdown', (e) => {
+              if (e.target.closest && e.target.closest('.grid-parent-chip')) { tracking = false; return; }
+              tracking = true; sx = e.clientX; sy = e.clientY;
+            }, { passive: true });
+            d.addEventListener('pointermove', (e) => {
+              if (!tracking) return;
+              if (Math.abs(e.clientX - sx) > TH || Math.abs(e.clientY - sy) > TH) tracking = false;
+            }, { passive: true });
+            d.addEventListener('pointerup', (e) => {
+              if (!tracking) return; tracking = false;
+              if (Math.abs(e.clientX - sx) <= TH && Math.abs(e.clientY - sy) <= TH) { e.preventDefault(); tileActivate(); }
+            }, { passive: false });
+            d.addEventListener('pointercancel', () => { tracking = false; });
+          })();
           return d;
         };
 
@@ -20317,7 +20345,8 @@
       }
 
       // ‚îÄ‚îÄ‚îÄ Refresh authentication + paid status from Memberstack ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
-      async function refreshMemberStatus() {
+      async function refreshMemberStatus(opts) {
+        opts = opts || {};
         if (!window.$memberstackDom) return;
         try {
           // Source auth from the shared single source of truth (journal-auth's
@@ -20338,6 +20367,20 @@
           }
 
           if (!signedIn || !member) {
+            // SAFARI ITP GUARD: on the INITIAL resolution (not an explicit
+            // auth-change event), a null Memberstack read while we hold a cached
+            // 'paid' hint is UNRELIABLE — Safari's partitioned storage / ITP often
+            // hides a logged-in Pro member, and downgrading them here wrongly gates
+            // every project tap behind the paywall. Keep them Pro; a REAL sign-out
+            // arrives via onAuthChange (opts.fromAuthEvent) and still downgrades.
+            if (!opts.fromAuthEvent && getAuthHint() === 'paid') {
+              isSignedIn = true;
+              isPaidMember = true;
+              window._memberstackSignedIn = true;
+              window._isPaidMember = true;
+              authResolved = true;
+              return;
+            }
             isSignedIn = false;
             isPaidMember = false;
             memberClickCount = 0;
@@ -22319,6 +22362,12 @@
       window.paywallCheck = function() {
         // Pro (paid) gets unlimited access.
         if (isPaidMember) return true;
+        // FAIL OPEN when we can't yet be sure the user is non-paid: (a) auth hasn't
+        // resolved this load, or (b) a persisted 'paid' hint says they're Pro but
+        // the live resolution failed (Safari ITP). Better to let a returning Pro
+        // through than to gate them out of a feature they pay for; a confirmed
+        // non-paid member (hint 'free'/'anon') still hits the paywall below.
+        if (!authResolved || getAuthHint() === 'paid') return true;
         // Browsing the map (pan / zoom / search) is free for everyone; opening a
         // project — a Pro detail — offers the free 2-week trial. Soft + dismissible
         // so they keep exploring the map. No 24h timer / click counter anymore.
@@ -22340,7 +22389,7 @@
         var onAuthChanged = function () {
           setTimeout(async () => {
             try { if (ms.hideModal) await ms.hideModal(); } catch (e) { /* modal might not be open */ }
-            await refreshMemberStatus();
+            await refreshMemberStatus({ fromAuthEvent: true });   // explicit auth change → trust anon (real sign-out)
             if (isPaidMember) {
               hideAllPaywalls();
             }
