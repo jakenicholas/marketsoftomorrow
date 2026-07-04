@@ -46,7 +46,15 @@
         var email = (mem.auth && mem.auth.email) || mem.email; if (!email) return;
         fetch(WORKER + '/trial-eligible?email=' + encodeURIComponent(email), { cache: 'no-store' })
           .then(function (x) { return x.ok ? x.json() : null; })
-          .then(function (d) { if (d && d.eligible === false) { _trialUsed = true; _grandfathered = !!d.grandfathered; showTrialUsedBanner(); } })
+          .then(function (d) {
+            if (!d) return;
+            // Authoritative BOTH ways — never latch. A prior (trialed) account in
+            // this page session must not leave _trialUsed stuck true for a later
+            // eligible member (that showed the wrong banner AND pushed them onto
+            // the no-trial price, which broke checkout).
+            if (d.eligible === false) { _trialUsed = true; _grandfathered = !!d.grandfathered; showTrialUsedBanner(); }
+            else { _trialUsed = false; _grandfathered = false; hideTrialUsedBanner(); }
+          })
           .catch(function () {});
       }).catch(function () {});
     } catch (e) {}
@@ -63,6 +71,19 @@
       if (/^14 days free$/i.test(t)) t = 'billed monthly';                      // monthly: replace outright
       n.textContent = t;
     });
+  }
+  // Inverse of showTrialUsedBanner — used when a re-check finds the CURRENT member
+  // is actually trial-eligible, so any latched "trial used" state is undone and the
+  // "14 days free" wording is restored to the default.
+  function hideTrialUsedBanner() {
+    var b = document.getElementById('paywallTrialUsed'); if (b) b.hidden = true;
+    var modal = document.getElementById('paywallModal'); if (!modal) return;
+    var sub = modal.querySelector('.paywall-subtitle');
+    if (sub) sub.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:';
+    var annual = modal.querySelector('.paywall-plan-annual .paywall-plan-note');
+    if (annual) annual.innerHTML = '$12.50/month &middot; save 17% &middot; 14 days free';
+    var monthly = modal.querySelector('.paywall-plan-monthly .paywall-plan-note');
+    if (monthly) monthly.textContent = '14 days free';
   }
 
   // ── styles (ported from the map, prefixed-safe class names) ───────────
