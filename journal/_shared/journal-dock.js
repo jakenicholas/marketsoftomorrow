@@ -218,6 +218,7 @@
   // track against the same state.
   window.tmwIntel = {
     FREE: 5,
+    ANON_FREE: 2,   // anonymous visitors get 2 preview searches (per device) before the account gate
     // Worker base for the SERVER-side, account-bound quota ledger (/intel-usage).
     // The free 5 are now counted per ACCOUNT server-side (rolling 30 days), so a
     // non-Pro user can't reset them by clearing localStorage / going incognito /
@@ -242,17 +243,29 @@
     },
     _norm: function (q) { return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); },
     _used: function () { try { return parseInt(localStorage.getItem('tmw_intel_used') || '0', 10) || 0; } catch (e) { return 0; } },
+    _anonUsed: function () { try { return parseInt(localStorage.getItem('tmw_intel_anon_used') || '0', 10) || 0; } catch (e) { return 0; } },
+    anonLeft: function () { return Math.max(0, this.ANON_FREE - this._anonUsed()); },
     _seen: function () { try { return JSON.parse(localStorage.getItem('tmw_intel_seen') || '[]'); } catch (e) { return []; } },
-    used: function () { return (this._srv.loaded && this._srv.remaining != null) ? Math.max(0, this._srv.cap - this._srv.remaining) : this._used(); },
+    used: function () {
+      if (!this.isPro() && !this.signedIn()) return this._anonUsed();                     // anon: local preview count
+      return (this._srv.loaded && this._srv.remaining != null) ? Math.max(0, this._srv.cap - this._srv.remaining) : this._used();
+    },
     left: function () {
       if (this.isPro()) return Infinity;
-      if (this._srv.loaded && this._srv.remaining != null) return this._srv.remaining;   // server truth
-      return Math.max(0, this.FREE - this._used());                                       // offline fallback
+      if (!this.signedIn()) return this.anonLeft();                                        // anon: 2 preview searches
+      if (this._srv.loaded && this._srv.remaining != null) return this._srv.remaining;     // server truth
+      return Math.max(0, this.FREE - this._used());                                        // offline fallback
     },
     seen: function (q) { return this._seen().indexOf(this._norm(q)) >= 0; },
-    // Allowed to run? Pro always; otherwise you must have an ACCOUNT, then it's the
-    // (server-backed) free cap — or a query already counted. Anon → must sign up.
-    allowed: function (q) { if (this.isPro()) return true; if (!this.signedIn()) return false; return this.seen(q) || this.left() > 0; },
+    // Allowed to run? Pro always; repeats always (already counted). A free ACCOUNT
+    // gets the server-backed 5/month cap. An anon visitor gets ANON_FREE preview
+    // searches (per device), then the "create a free account" gate.
+    allowed: function (q) {
+      if (this.isPro()) return true;
+      if (this.seen(q)) return true;                       // repeats are always free
+      if (this.signedIn()) return this.left() > 0;         // free account: server-backed 5 / month
+      return this._anonUsed() < this.ANON_FREE;            // anon: 2 preview searches, then the account gate
+    },
     // Pull the account-bound remaining from the server (source of truth). Best-effort;
     // on failure we keep whatever _srv/localStorage we have. Refreshes the pill via _onChange.
     sync: function (cb) {
@@ -279,6 +292,13 @@
       var seen = this._seen();
       seen.push(nq);
       try { localStorage.setItem('tmw_intel_seen', JSON.stringify(seen.slice(-300))); } catch (e) {}
+      if (!this.signedIn()) {
+        // Anon preview — no account to bind to the server ledger, so count it
+        // locally (per device). The account gate fires once these run out.
+        try { localStorage.setItem('tmw_intel_anon_used', String(this._anonUsed() + 1)); } catch (e) {}
+        if (this._onChange) { try { this._onChange(); } catch (e) {} }
+        return this.anonLeft();
+      }
       try { localStorage.setItem('tmw_intel_used', String(this._used() + 1)); } catch (e) {}
       var self = this, mid = this._mid();
       if (mid) {

@@ -1215,7 +1215,11 @@
     // No account → an account is required to try Intelligence; prompt to sign up
     // rather than showing a free-quota they can't actually spend.
     var signedIn = window.tmwIntel.signedIn ? window.tmwIntel.signedIn() : true;
-    if (!signedIn) return '<a class="tmw-ov-pro" data-tmw-signup href="#">Sign up to try</a>';
+    if (!signedIn) {
+      var _al = window.tmwIntel.anonLeft ? window.tmwIntel.anonLeft() : ((window.tmwIntel && window.tmwIntel.ANON_FREE) || 2);
+      if (_al > 0) return '<span class="tmw-ov-quota' + (_al <= 1 ? ' low' : '') + '">' + _al + ' free preview' + (_al === 1 ? '' : 's') + '</span>';
+      return '<a class="tmw-ov-pro" data-tmw-signup href="#">Sign up to try</a>';
+    }
     var left = window.tmwIntel.left ? window.tmwIntel.left() : ((window.tmwIntel && window.tmwIntel.FREE) || 5);
     var lowCls = left <= 3 ? ' low' : '';
     return '<span class="tmw-ov-quota'+lowCls+'">' + left + ' / ' + ((window.tmwIntel && window.tmwIntel.FREE) || 5) + ' left</span>'
@@ -2122,9 +2126,14 @@
   function intelGateHtml(){
     var head = '<div class="tmw-ov-intel-h"><span class="tmw-ov-intel-spark">'+ICON_HEX+'</span><span class="lbl">TMW Intelligence</span></div>';
     if (!_intelSignedIn()) {
+      var _af = (window.tmwIntel && window.tmwIntel.ANON_FREE) || 2;
+      var _au = (window.tmwIntel && window.tmwIntel._anonUsed) ? window.tmwIntel._anonUsed() : 0;
+      var _msg = _au >= _af
+        ? 'You’ve used your <b>' + _af + ' free previews</b>. Create a free account for <b>5 searches every month</b> — natural-language answers across every project, firm, and milestone.'
+        : 'Create a free account to try <b>TMW Intelligence</b> — natural-language answers across the entire development pipeline: every project, firm, and milestone.';
       return '<section class="tmw-ov-intel-panel gate">'
         + head
-        + '<p class="tmw-ov-intel-ans">Create a free account to try <b>TMW Intelligence</b> — natural-language answers across the entire development pipeline: every project, firm, and milestone.</p>'
+        + '<p class="tmw-ov-intel-ans">' + _msg + '</p>'
         + '<button type="button" class="tmw-ov-pro-btn" data-tmw-signup>Create a free account</button>'
         + '</section>';
     }
@@ -3208,10 +3217,11 @@
     resetFeedback();
 
     // ── ACCOUNT GATE ─────────────────────────────────────────────────
-    // TMW Intelligence search requires an account. An anonymous visitor sees
-    // ONLY the "create a free account" gate — no tabs, hero, project/journal
-    // cards, or feedback row. (Signed-in members get results + the free trial.)
-    if (!_intelSignedIn()) {
+    // Anonymous visitors get ANON_FREE preview searches (per device). While a
+    // preview remains they flow through to real results like a signed-in member;
+    // once they run out, this full-screen "create a free account" gate takes over
+    // (no tabs, hero, project/journal cards, or feedback row).
+    if (!_intelSignedIn() && !(window.tmwIntel && window.tmwIntel.allowed && window.tmwIntel.allowed(q))) {
       if (slotIntel) slotIntel.innerHTML = intelGateHtml();
       [slotFilterPills, slotHero, slotRows, slotProjGrid, slotEntities, slotArticles].forEach(function(s){ if (s) s.innerHTML = ''; });
       setState('results');
