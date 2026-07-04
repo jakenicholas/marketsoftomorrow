@@ -20158,6 +20158,11 @@
       // fresh localStorage counter) and gets free clicks per refresh.
       const AUTH_HINT_KEY = 'mot_auth_hint';   // 'anon' | 'free' | 'paid'
       const MEMBER_COUNT_CACHE_KEY = 'mot_member_count'; // last-known memberClickCount
+      // Non-paid visitors (anonymous OR signed-in-free) get a few free project
+      // opens before the paywall — a taste to drive trials — so the map is never
+      // "dead" on the first click. Per-browser lifetime count in localStorage.
+      const FREE_OPEN_LIMIT = 3;
+      const FREE_OPENS_KEY = 'mot_free_opens';
       const PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-07--96gd0r24';   // $15/mo, 14-day trial
       const PRICE_ID_ANNUAL  = 'prc_pro-annual-2026-07--lnjj078s';    // $150/yr, 14-day trial
       const MEMBER_FIELD = 'clickCount';  // Memberstack custom field name
@@ -20220,6 +20225,14 @@
       }
       function getCachedMemberCount() {
         return parseInt(localStorage.getItem(MEMBER_COUNT_CACHE_KEY) || '0', 10) || 0;
+      }
+      // Free-open counter for non-paid visitors (see FREE_OPEN_LIMIT).
+      function getFreeOpens() {
+        try { return parseInt(localStorage.getItem(FREE_OPENS_KEY) || '0', 10) || 0; }
+        catch (e) { return 0; }
+      }
+      function incFreeOpens() {
+        try { localStorage.setItem(FREE_OPENS_KEY, String(getFreeOpens() + 1)); } catch (e) {}
       }
       function setCachedMemberCount(n) {
         try { localStorage.setItem(MEMBER_COUNT_CACHE_KEY, String(n)); } catch (e) {}
@@ -22377,9 +22390,18 @@
         // through than to gate them out of a feature they pay for; a confirmed
         // non-paid member (hint 'free'/'anon') still hits the paywall below.
         if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
-        // Browsing the map (pan / zoom / search) is free for everyone; opening a
-        // project — a Pro detail — offers the free 2-week trial. Soft + dismissible
-        // so they keep exploring the map. No 24h timer / click counter anymore.
+        // Non-paid (anonymous or signed-in-free): allow FREE_OPEN_LIMIT project
+        // opens as a taste, THEN gate. Without this the very first click returned
+        // false and showPopup/openProjectModal bailed — so an anonymous visitor
+        // (incl. anyone in Safari Private mode) saw NOTHING open, which read as
+        // "the map is broken." Each open counts once: a pin→popup counts here and
+        // its "Learn More" full modal is a skipGate source (no double-count).
+        if (getFreeOpens() < FREE_OPEN_LIMIT) {
+          incFreeOpens();
+          return true;
+        }
+        // Out of free opens — offer the free 2-week trial. Soft + dismissible so
+        // they keep exploring/panning the map (browsing itself is always free).
         showSubscriptionPaywall('trial_ended');
         return false;
       };
