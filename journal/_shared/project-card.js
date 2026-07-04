@@ -219,7 +219,6 @@
     return '' +
     '<div class="pc-media">' +
       (rec.ImageURL ? '<img src="' + esc(img(rec.ImageURL)) + '" alt="' + esc(rec.Title) + '" loading="lazy">' : '') +
-      '<span class="pc-badge">Tracking</span>' +
       '<button class="pc-flyover" type="button" aria-label="See on the map"><span class="lbl">See on the map</span>' +
         '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
     '</div>' +
@@ -244,15 +243,64 @@
       (firms.length ? '<div class="pc-firms">' + firms.join(' · ') + '</div>' : '') +
       renderIntel(entry, rec) +
       '<div class="pc-actions">' +
-        '<a class="pc-btn primary" href="' + projectUrl(slug) + '">Explore</a>' +
-        (rec.OfficialWebsite ? '<a class="pc-btn ghost" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Visit site <svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></a>' : '') +
+        // Primary CTA — purple-glow "Dive Deeper" (matches the SEO project page's btn-dive).
+        '<a class="pc-btn dive" href="' + projectUrl(slug) + '">Dive Deeper ' +
+          '<svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>' +
+        // Watch — eye + "Watch" label, toggles the same Memberstack favorites the map/SEO pages use.
+        '<button class="pc-btn watch" type="button" data-watch="' + esc(slug) + '" aria-label="Watch this project">' +
+          '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+          '<span class="pc-watch-lbl">Watch</span></button>' +
       '</div>' +
+      // Official Website — subtle text link with arrow, after the CTAs (mirrors the SEO page's btn-website).
+      (rec.OfficialWebsite ? '<a class="pc-website" href="' + esc(rec.OfficialWebsite) + '" target="_blank" rel="noopener">Official Website <svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>' : '') +
     '</div>';
   }
 
   function wire(card, slug) {
     var fly = card.querySelector('.pc-flyover');
     if (fly) fly.addEventListener('click', function () { window.open(projectUrl(slug), '_blank', 'noopener'); });
+    var wb = card.querySelector('.pc-btn.watch');
+    if (wb) { hydrateWatch(wb, slug); wb.addEventListener('click', function () { toggleWatch(wb, slug); }); }
+  }
+
+  // ── Watch — toggles the SAME Memberstack `favorites` store the map + SEO project
+  // pages use, so watch state stays in sync across surfaces. Anon / free / no-
+  // Memberstack falls back to the project page, which owns the signup + paywall UX.
+  function watchFallback(slug) { window.location.href = projectUrl(slug); }
+  function setWatchUI(btn, watching) {
+    btn.classList.toggle('watching', !!watching);
+    var lbl = btn.querySelector('.pc-watch-lbl');
+    if (lbl) lbl.textContent = watching ? 'Watching' : 'Watch';
+  }
+  function hydrateWatch(btn, slug) {
+    try {
+      var ms = window.$memberstackDom;
+      if (!ms || !ms.getMemberJSON) return;
+      ms.getMemberJSON().then(function (got) {
+        var json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+        var favs = Array.isArray(json.favorites) ? json.favorites : [];
+        setWatchUI(btn, favs.indexOf(slug) !== -1);
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function toggleWatch(btn, slug) {
+    var ms = window.$memberstackDom;
+    if (!ms || !ms.getCurrentMember) { watchFallback(slug); return; }
+    ms.getCurrentMember().then(function (r) {
+      var member = r && r.data;
+      if (!member) { watchFallback(slug); return; }   // anon → signup on the project page
+      var plans = member.planConnections || [];
+      var isPaid = plans.some(function (p) { return p.active === true || p.status === 'ACTIVE' || p.status === 'TRIALING'; });
+      if (!isPaid) { watchFallback(slug); return; }   // free → paywall on the project page
+      return ms.getMemberJSON().then(function (got) {
+        var json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+        var favs = Array.isArray(json.favorites) ? json.favorites : [];
+        var idx = favs.indexOf(slug), watching;
+        if (idx === -1) { favs.push(slug); watching = true; } else { favs.splice(idx, 1); watching = false; }
+        json.favorites = favs;
+        return ms.updateMemberJSON({ json: json }).then(function () { setWatchUI(btn, watching); });
+      });
+    }).catch(function () { watchFallback(slug); });
   }
 
   // ── 5) Styles (scoped under .tmw-pcard) ─────────────────────────────────
@@ -338,6 +386,21 @@
       '.tmw-pcard .pc-btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 34px rgba(240,214,138,.55)}',
       '.tmw-pcard .pc-btn.ghost{background:transparent; color:var(--cream); border:1px solid transparent; padding-left:8px; padding-right:8px}',
       '.tmw-pcard .pc-btn.ghost:hover{color:#fff}',
+      // Dive Deeper — purple-glow CTA (mirrors the SEO project page's .btn-dive).
+      '.tmw-pcard .pc-btn.dive{background:rgba(167,139,250,.12); color:#fff; border:1px solid rgba(167,139,250,.5); box-shadow:0 6px 22px rgba(167,139,250,.30), 0 0 34px rgba(167,139,250,.26); animation:pcDiveGlow 3.2s ease-in-out infinite}',
+      '.tmw-pcard .pc-btn.dive:hover{transform:translateY(-1px); animation:none; background:rgba(167,139,250,.18); box-shadow:0 8px 28px rgba(167,139,250,.5), 0 0 48px rgba(167,139,250,.45)}',
+      '@keyframes pcDiveGlow{0%,100%{box-shadow:0 6px 22px rgba(167,139,250,.28), 0 0 30px rgba(167,139,250,.22)}50%{box-shadow:0 6px 24px rgba(167,139,250,.45), 0 0 44px rgba(167,139,250,.4)}}',
+      '@media (prefers-reduced-motion:reduce){.tmw-pcard .pc-btn.dive{animation:none}}',
+      // Watch — dark pill, eye + "Watch" label; green-tinted once watching.
+      '.tmw-pcard .pc-btn.watch{background:rgba(255,255,255,.06); color:var(--cream); border:1px solid rgba(255,255,255,.16)}',
+      '.tmw-pcard .pc-btn.watch:hover{background:rgba(255,255,255,.11); color:#fff}',
+      '.tmw-pcard .pc-btn.watch svg{width:16px;height:16px;stroke-width:1.8}',
+      '.tmw-pcard .pc-btn.watch.watching{background:rgba(31,223,103,.12); border-color:rgba(31,223,103,.5); color:var(--grn)}',
+      '.tmw-pcard .pc-btn.watch.watching:hover{background:rgba(31,223,103,.18)}',
+      // Official Website — subtle text link with arrow, below the CTAs (mirrors .btn-website).
+      '.tmw-pcard .pc-website{display:inline-flex; align-items:center; gap:6px; margin:14px 0 2px; color:#fff; opacity:.82; font-size:13px; font-weight:500; text-decoration:none; transition:opacity .15s, gap .15s}',
+      '.tmw-pcard .pc-website:hover{opacity:1; gap:9px}',
+      '.tmw-pcard .pc-website svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
       // Tighter vertical rhythm so the card stays wide & shallow, not tall.
       '.tmw-pcard .pc-body{padding:24px 30px}.tmw-pcard .pc-desc{margin-top:11px}.tmw-pcard .pc-status{margin-top:14px}.tmw-pcard .pc-stats{margin-top:14px}.tmw-pcard .pc-firms{margin-top:12px}.tmw-pcard .pm-intel{margin-top:14px;padding:15px 16px}.tmw-pcard .pm-intel-head{margin-bottom:10px}.tmw-pcard .pm-intel-estimate{margin-bottom:9px}.tmw-pcard .pc-actions{margin-top:15px}',
       '@media(max-width:720px){.tmw-pcard{grid-template-columns:1fr}.tmw-pcard .pc-media{min-height:240px}.tmw-pcard .pc-media::after{background:linear-gradient(180deg, transparent 55%, rgba(10,12,10,.5))}.tmw-pcard .pc-body{padding:24px 22px}.tmw-pcard .pm-intel-similars{grid-template-columns:1fr}}'

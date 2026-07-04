@@ -4434,6 +4434,18 @@
     font-size: 13px; color: rgba(255,255,255,0.55);
     line-height: 1.65; padding: 8px 0 0;
   }
+  /* Official Website — subtle text link with arrow under the bio (mirrors the SEO
+     project page's .btn-website). No background, white, far less prominent than
+     the Project Profile / Watch CTAs. */
+  #projectModal .pm-website {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 12px 0 2px; color: #fff; opacity: 0.82;
+    font-size: 13px; font-weight: 500; text-decoration: none;
+    transition: opacity 0.15s, gap 0.15s;
+  }
+  #projectModal .pm-website:hover { opacity: 1; gap: 9px; }
+  #projectModal .pm-website svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #projectModal .pm-website[hidden] { display: none; }
   /* Stat cards — gap above is owned by the TMW Intelligence block's
      symmetric margin below it (see .pm-intel) so we keep this at 0
      to avoid double-spacing. When intel is hidden the rule below
@@ -5076,14 +5088,13 @@
   #projectModal .pm-watch-btn.watching.has-unread .pm-watch-btn-dot {
     display: inline-block;
   }
-  /* Mobile: collapse to icon-only square (~40px) to match prior layout */
+  /* Mobile: keep the "Watch" LABEL visible (icon + word) so the watch action reads
+     clearly — Jake wants it prominent, not collapsed to an icon-only square. */
   @media (max-width: 480px) {
     #projectModal .pm-watch-btn {
-      width: 40px;
-      padding: 0;
-      gap: 0;
+      padding: 0 16px;
+      gap: 7px;
     }
-    #projectModal .pm-watch-btn .pm-watch-btn-label { display: none; }
     /* On mobile, when there's unread activity, dock the dot inside the
        button as a small corner pip rather than a horizontal sibling. */
     #projectModal .pm-watch-btn-dot {
@@ -12605,6 +12616,10 @@
           </div>
           <div class="pm-div"></div>
           <p class="pm-desc" id="pmDesc"></p>
+          <!-- Official Website — subtle text link with arrow under the bio (mirrors
+               the SEO project page). Populated + revealed by JS when a website exists. -->
+          <a class="pm-website" id="pmWebsite" href="#" target="_blank" rel="noopener" hidden>Official Website
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a>
           <!-- The story so far — sourced, event-dated milestone timeline (same
                "living dossier" as the project page). Populated by JS from the
                project's statusHistory + start/delivery dates; hidden when thin. -->
@@ -12620,20 +12635,15 @@
             <div class="pm-section-title">Developer &amp; Design</div>
             <div class="pm-firms-grid" id="pmFirms"></div>
           </div>
+          <!-- Action row order: Project Profile · Watch · Share (mirrors the SEO
+               project page). Visit Site moved above to the "Official Website" link
+               under the bio; the Watch button sits in the 2nd slot, label always
+               visible (incl. mobile) so the watch action reads clearly. -->
           <div class="pm-cta">
             <a class="pm-btn-learn" id="pmLearnBtn" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>Project Profile</a>
-            <a class="pm-btn-visit" id="pmVisitBtn" href="#" target="_blank" rel="noopener" hidden>
-                Visit Site&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;flex-shrink:0;"><path d="M7 17 17 7M9 7h8v8"/></svg>
-              </a>
-            <div class="pm-btn-icon" id="pmShareIconBtn">
-              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            </div>
             <!-- Watch button (Phase 1). Replaces the old icon-only favorite
                  button. The underlying isFavorited()/toggleFavorite() data
-                 layer is unchanged -- only the UI is rebranded to "Watch".
-                 The .watching class is toggled by the modal-open hook, and
-                 .has-unread is toggled when the unread-counter computation
-                 reports > 0 events since the user last viewed this project. -->
+                 layer is unchanged -- only the UI is rebranded to "Watch". -->
             <button class="pm-watch-btn" id="pmLikeBtn" type="button" aria-label="Watch this project">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -12642,6 +12652,9 @@
               <span class="pm-watch-btn-label" id="pmWatchBtnLabel">Watch</span>
               <span class="pm-watch-btn-dot" aria-hidden="true"></span>
             </button>
+            <div class="pm-btn-icon" id="pmShareIconBtn">
+              <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </div>
           </div>
           <!-- (Project Updates removed — superseded by the "story so far" dossier
                above, which is event-dated + sourced.) -->
@@ -16238,7 +16251,7 @@
         // https:// if the protocol is missing (otherwise target="_blank" opens a
         // broken relative URL and the button feels "unclickable").
         const learnBtn = document.getElementById('pmLearnBtn');
-        const visitBtn = document.getElementById('pmVisitBtn');
+        const websiteLink = document.getElementById('pmWebsite');
         const rawWebsite = (p.website || '').replace(/[\s\u200B-\u200D\uFEFF]/g, '');
         let websiteUrl = '';
         if (rawWebsite && /\./.test(rawWebsite)) {
@@ -16246,10 +16259,10 @@
         }
         // "Project Profile" (gold) \u2192 the project's full page; always available.
         if (learnBtn) learnBtn.href = projectShareUrl(p.title);
-        // "Visit Site" (dark) \u2192 the official website; hidden when there's none.
-        if (visitBtn) {
-          if (websiteUrl) { visitBtn.href = websiteUrl; visitBtn.hidden = false; }
-          else { visitBtn.href = '#'; visitBtn.hidden = true; }
+        // "Official Website" (subtle text link under the bio) \u2192 hidden when none.
+        if (websiteLink) {
+          if (websiteUrl) { websiteLink.href = websiteUrl; websiteLink.hidden = false; }
+          else { websiteLink.href = '#'; websiteLink.hidden = true; }
         }
 
         // Watch button — sync to current state for this project. The
@@ -17687,7 +17700,7 @@
               <p class="city" style="color:#ccc!important;margin:0 0 auto;font-size:12px;padding-bottom:8px;">${f.properties.borough || f.properties.city}</p>
               ${f.properties.parentSlug ? `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${f.properties.parentSlug}');">Part of ${(window._parentDisplayName?window._parentDisplayName(f.properties.parentSlug):f.properties.parentSlug).replace(/'/g,"&#39;")} →</a>` : ''}
             </div>${deliveryBarHTML(f.properties.delivery)}`;
-        d.onclick = () => {
+        const tileActivate = () => {
           if (window.gridRendering[targetId] || !map.getSource('projects')?._data) return;
           // Same "Fly to pin" toggle gate as renderGrid's tile click
           // handler. ON (default) = fly + open; OFF = open without
@@ -17708,6 +17721,28 @@
             window.openProjectModal(f, 'tile');
           }
         };
+        // Robust tap: iOS Safari CANCELS the emulated `click` inside the momentum-
+        // scroll drawer sheet (GPU-composited, -webkit-overflow-scrolling:touch), so
+        // a bare `onclick` silently never fires on mobile Safari (Chrome is lenient).
+        // Pointer events are a separate stream — immune to that AND to the collapsed-
+        // drawer touchstart preventDefault — so mirror the search-row tap: fire only
+        // when the pointer didn't travel past the scroll threshold (a tap, not a drag).
+        (function(){
+          const TH = 10; let sx = 0, sy = 0, tracking = false;
+          d.addEventListener('pointerdown', (e) => {
+            if (e.target.closest && e.target.closest('.grid-parent-chip')) { tracking = false; return; } // chip handles its own tap
+            tracking = true; sx = e.clientX; sy = e.clientY;
+          }, { passive: true });
+          d.addEventListener('pointermove', (e) => {
+            if (!tracking) return;
+            if (Math.abs(e.clientX - sx) > TH || Math.abs(e.clientY - sy) > TH) tracking = false;
+          }, { passive: true });
+          d.addEventListener('pointerup', (e) => {
+            if (!tracking) return; tracking = false;
+            if (Math.abs(e.clientX - sx) <= TH && Math.abs(e.clientY - sy) <= TH) { e.preventDefault(); tileActivate(); }
+          }, { passive: false });
+          d.addEventListener('pointercancel', () => { tracking = false; });
+        })();
         return d;
       };
 
