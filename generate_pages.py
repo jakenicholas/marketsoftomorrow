@@ -1550,7 +1550,14 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
+  <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>

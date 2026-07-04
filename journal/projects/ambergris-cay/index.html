@@ -27,6 +27,7 @@
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
        the button so initial render works even on slow connections. -->
+  <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>

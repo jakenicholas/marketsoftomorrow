@@ -20201,6 +20201,15 @@
         try { return localStorage.getItem(AUTH_HINT_KEY) || 'anon'; }
         catch (e) { return 'anon'; }
       }
+      // Durable, SITE-WIDE Pro signal written by journal-auth's publishAuth on
+      // any page that resolved a paid member (localStorage 'tmw_auth_state').
+      // The map trusts it as a fallback so a returning Pro is never gated out by
+      // a flaky live Memberstack read on Safari (ITP). Cleared to 'in'/'out' by
+      // journal-auth on a real plan-change / sign-out, so it can't go stale-Pro.
+      function sharedProHint() {
+        try { return localStorage.getItem('tmw_auth_state') === 'pro'; }
+        catch (e) { return false; }
+      }
       function setAuthHint(hint) {
         // Map-local cache only (used by seedFromCache to gate the paywall during the
         // load window). The shared Intelligence quota signals — window._isPaidMember
@@ -20373,7 +20382,7 @@
             // hides a logged-in Pro member, and downgrading them here wrongly gates
             // every project tap behind the paywall. Keep them Pro; a REAL sign-out
             // arrives via onAuthChange (opts.fromAuthEvent) and still downgrades.
-            if (!opts.fromAuthEvent && getAuthHint() === 'paid') {
+            if (!opts.fromAuthEvent && (getAuthHint() === 'paid' || sharedProHint())) {
               isSignedIn = true;
               isPaidMember = true;
               window._memberstackSignedIn = true;
@@ -22367,7 +22376,7 @@
         // the live resolution failed (Safari ITP). Better to let a returning Pro
         // through than to gate them out of a feature they pay for; a confirmed
         // non-paid member (hint 'free'/'anon') still hits the paywall below.
-        if (!authResolved || getAuthHint() === 'paid') return true;
+        if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
         // Browsing the map (pan / zoom / search) is free for everyone; opening a
         // project — a Pro detail — offers the free 2-week trial. Soft + dismissible
         // so they keep exploring the map. No 24h timer / click counter anymore.
