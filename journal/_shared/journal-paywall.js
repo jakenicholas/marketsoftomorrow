@@ -177,8 +177,8 @@
           FEATURES.map(function (f) { return '<div class="paywall-feature"><span class="paywall-feature-pro-pill">PRO</span><span>' + f + '</span></div>'; }).join('') +
         '</div>' +
         '<div class="paywall-founding">' +
-          '<span class="paywall-founding-eyebrow">TMW Pro</span>' +
-          '<span class="paywall-founding-body">Full access to the Map, TMW Intelligence, and the Journal. Cancel anytime.</span>' +
+          '<span class="paywall-founding-eyebrow">Become a Blueprint Member</span>' +
+          '<span class="paywall-founding-body">Subscribe and claim your member number — join the Blueprint Members shaping the map of what&rsquo;s next. Cancel anytime.</span>' +
         '</div>' +
         '<div class="paywall-signin" id="tmwPaywallSigninWrap">Already a subscriber? <a href="#" id="tmwPaywallSignin">Sign in</a></div>' +
       '</div>';

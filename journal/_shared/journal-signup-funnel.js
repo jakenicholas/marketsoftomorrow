@@ -152,7 +152,14 @@
         form.style.display = 'none';
         var alt = el.querySelector('.tmw-sub-alt'); if (alt) alt.style.display = 'none';
         msg.textContent = "✓ You're in! Welcome to TMW.";
-        setTimeout(function () { el.classList.remove('show'); showGoProOncePerSession(); }, 1200);
+        // Celebrate the free account first (perks + limits + confetti), then let
+        // its CTA carry them into the Go-Pro trial. Falls back to the old direct
+        // Go-Pro pitch if the celebration module hasn't loaded yet.
+        setTimeout(function () {
+          el.classList.remove('show');
+          if (window.tmwWelcomePopup) window.tmwWelcomePopup();
+          else showGoProOncePerSession();
+        }, 1200);
       } else if (res && res.code === 'exists') {
         // Already registered → warn + offer login (don't silently redirect).
         btn.disabled = false; btn.textContent = orig;

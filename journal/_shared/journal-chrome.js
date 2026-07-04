@@ -346,6 +346,18 @@
       document.body.appendChild(pwScript);
     }
 
+    // Celebration layer — free-account welcome popup + confetti, and the
+    // auto-firing "Welcome to Pro" celebration on the Stripe ?subscribed=1
+    // return. Singleton; must be on every page so the pro-return check runs
+    // wherever Stripe sends the member back. (self-inits on load)
+    if (!window.tmwConfetti && !document.querySelector('script[data-tmw-celebrate-loader]')) {
+      var celScript = document.createElement('script');
+      celScript.src = '/_shared/tmw-celebrate.js';
+      celScript.defer = true;
+      celScript.setAttribute('data-tmw-celebrate-loader', '');
+      document.body.appendChild(celScript);
+    }
+
     // Contextual headline for the ONE universal funnel — the boxes are identical
     // everywhere (one module, one CSS), but the headline is tailored per context
     // (the smart "Following X?" text). Markets sets its own opts in the block
