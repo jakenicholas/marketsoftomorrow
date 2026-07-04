@@ -375,7 +375,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function render(m){
     var cur=lvlOf(m.xp),next=LEVELS[cur.lvl];
     $('av').textContent=ini(m.name); $('nm').textContent=m.name;
-    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding Member':' · Pro Member');
+    $('subId').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding Member':' · Blueprint Member');
     $('tierbadge').innerHTML='&#9670; '+tierName(cur,m);
     $('lvNum').textContent=cur.lvl;
     $('lvName').innerHTML='<span>'+cur.tier+'</span>';
@@ -383,7 +383,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     $('cardNo').textContent='MEMBER No. '+String(m.memberNo||1).padStart(4,'0')+' · SINCE '+(m.since||2026);
     if(window.__tmwCardQR) window.__tmwCardQR(m.memberNo||1);
     var cm=$('cardMarket'); if(cm){ cm.textContent=m.market||''; cm.style.display=m.market?'':'none'; }
-    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding':' · Pro');
+    $('acctNo').innerHTML='No. '+String(m.memberNo||1).padStart(4,'0')+(m.founding?' · Founding':' · Blueprint');
     if(next){var pct=Math.max(4,Math.min(100,Math.round((m.xp-cur.xp)/(next.xp-cur.xp)*100)));$('xpFill').style.width=pct+'%';$('xpNext').textContent=fmt(next.xp-m.xp)+' to '+next.tier;}
     else{$('xpFill').style.width='100%';$('xpNext').textContent='Max level';}
     $('xpNow').innerHTML='<b>'+fmt(m.xp)+'</b> XP';
@@ -397,7 +397,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       return '<div class="lv '+st+'"><div class="lvnode">'+(st==='done'?'✓':L.lvl)+'</div><div class="lvbody"><div class="t"><div class="lvtier">'+tierName(L,m)+'</div><div class="lvunlock">'+L.unlock+'</div></div>'+tag+'</div></div>';
     }).join('');
     var ach=m.achievements||{};
-    BADGES[0].on=(ach.founding!=null)?ach.founding:!!m.founding;
+    // Cohort badge: #0001–0099 = Founding Member; #0100+ = Blueprint Member.
+    BADGES[0].n=m.founding?'Founding Member':'Blueprint Member';
+    BADGES[0].d=m.founding?'One of the first 100':'Member No. '+String(m.memberNo||100).padStart(4,'0');
+    BADGES[0].on=true;
     BADGES[1].on=(ach.reader!=null)?ach.reader:((S.articles||0)>=30);
     BADGES[2].on=(ach.globetrotter!=null)?ach.globetrotter:((S.markets||0)>=5);
     BADGES[3].on=(ach.tastemaker!=null)?ach.tastemaker:false;
