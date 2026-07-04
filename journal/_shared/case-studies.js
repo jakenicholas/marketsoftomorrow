@@ -174,9 +174,23 @@
   function render(mount){
     var matchTags = (mount.getAttribute('data-match')||'').toLowerCase().split(',').map(function(t){return t.trim();}).filter(Boolean);
     var limit = parseInt(mount.getAttribute('data-limit')||'2', 10);
-    var headline = mount.getAttribute('data-headline') || 'developers like you';
+    // data-headline: OMIT the attribute for the default "developers like you";
+    // set a phrase for "…for <em>phrase</em>"; set it EMPTY ("") to render just
+    // "What we delivered" — used when the client's OWN project is on the network,
+    // so "for a comparable developer" would read wrong.
+    var hlAttr = mount.getAttribute('data-headline');
+    var headline = (hlAttr === null) ? 'developers like you' : hlAttr.trim();
+    // data-exclude: comma list of name/sub substrings to drop from the pool, so a
+    // prospect is never shown their OWN project as a "comparable" case study.
+    var exclude = (mount.getAttribute('data-exclude')||'').toLowerCase().split(',').map(function(t){return t.trim();}).filter(Boolean);
+    var pool = STUDIES.filter(function(st){
+      if (!exclude.length) return true;
+      var hay = (st.name+' '+st.sub).toLowerCase();
+      for (var i=0;i<exclude.length;i++){ if (exclude[i] && hay.indexOf(exclude[i])!==-1) return false; }
+      return true;
+    });
 
-    var ranked = STUDIES.map(function(st){ return {st:st, s:score(st, matchTags)}; })
+    var ranked = pool.map(function(st){ return {st:st, s:score(st, matchTags)}; })
       .sort(function(a,b){ return b.s - a.s; }).map(function(x){ return x.st; });
     if (!ranked.length) return;
 
@@ -188,7 +202,7 @@
     mount.className += ' tmw-cases';
     mount.innerHTML = ''+
       '<div class="cs-eyebrow">Proven Results</div>'+
-      '<h2 class="cs-h">What we delivered for <em>'+esc(headline)+'</em></h2>'+
+      '<h2 class="cs-h">'+(headline ? ('What we delivered for <em>'+esc(headline)+'</em>') : 'What we delivered')+'</h2>'+
       '<p class="cs-sub">Before the numbers below, here&rsquo;s a real luxury campaign on the network &mdash; matched to your market and asset type.</p>'+
       featuredHTML(featured)+
       '<div class="cs-also">More proof in your market</div>'+
