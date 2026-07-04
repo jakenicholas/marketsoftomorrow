@@ -269,7 +269,14 @@
   // ── Watch — toggles the SAME Memberstack `favorites` store the map + SEO project
   // pages use, so watch state stays in sync across surfaces. Anon / free / no-
   // Memberstack falls back to the project page, which owns the signup + paywall UX.
-  function watchFallback(slug) { window.location.href = projectUrl(slug); }
+  function watchFallback(slug) {
+    // Non-Pro (anon or free): Watching is a Pro feature → show the 'Watch this
+    // project' paywall IN PLACE. Never navigate to the map — that made the Watch
+    // button behave exactly like Dive Deeper. Fall back to the project page only
+    // if the shared paywall script somehow isn't loaded.
+    if (window.tmwShowPaywall) { try { window.tmwShowPaywall('feature:watch'); return; } catch (e) {} }
+    window.location.href = projectUrl(slug);
+  }
   function setWatchUI(btn, watching) {
     btn.classList.toggle('watching', !!watching);
     var lbl = btn.querySelector('.pc-watch-lbl');
