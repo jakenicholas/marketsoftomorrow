@@ -22374,19 +22374,25 @@
       // ‚îÄ‚îÄ‚îÄ Public API: gate every project interaction ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Returns true if interaction is allowed, false if blocked
       window.paywallCheck = function() {
-        // VIEWING A PROJECT IS FREE FOR EVERYONE — anonymous, signed-in-free, and
-        // Pro. The pin popup, the detail modal, and the full project page are the
-        // top of the funnel and must NEVER die, so this gate is always open.
-        //
-        // (Was: non-paid got FREE_OPEN_LIMIT "free opens" then a hard gate that
-        // returned false — but showPopup()/openProjectModal() bail on false, so
-        // once the per-browser counter maxed out — trivial while testing, or on
-        // any auth glitch / Safari Private window — NOTHING opened and the map
-        // read as completely broken for non-Pro visitors. Gating *views* is the
-        // wrong model: the paywall belongs on Pro FEATURES, which gate themselves
-        // — Watch/favorite (feature:watch), comparisons, the full Atlas, and Deep
-        // intelligence — not on merely looking at a project.)
-        return true;
+        // Pro (paid) → unlimited. Loading / persisted-Pro hint → FAIL OPEN, so a
+        // returning Pro whose live auth hasn't resolved (Safari ITP) is never gated.
+        if (isPaidMember) return true;
+        if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
+        // SIGNED-IN FREE members: opening a project is FREE (unlimited). The Pro
+        // nudge lives on features + soft prompts, NOT on viewing — gating a
+        // signed-in member's views is exactly what made the map read as broken, so
+        // we never do it here.
+        if (isSignedIn) return true;
+        // ANONYMOUS visitors: ANON_CLICK_LIMIT (5) free project opens, then a hard
+        // account wall. CRITICAL SAFETY RULE: when we block, we ALWAYS surface a
+        // VISIBLE modal (showSignupWall) and never silently return false into a
+        // blank map. Re-prompts on every further open until they make a free
+        // account. This is the ONLY place anon opens are counted (both view call
+        // sites route here), so a fresh visitor always gets a real 5.
+        var clicks = getAnonClicks();
+        if (clicks < ANON_CLICK_LIMIT) { setAnonClicks(clicks + 1); return true; }
+        showSignupWall();   // default copy = "Keep exploring — sign up free…"
+        return false;
       };
 
       // ‚îÄ‚îÄ‚îÄ Init ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ

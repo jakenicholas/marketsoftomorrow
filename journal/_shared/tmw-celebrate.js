@@ -30,7 +30,7 @@
     opts = opts || {};
     if (reduce) return;                                   // respect reduced-motion
     var count = opts.count || 120;
-    var duration = opts.duration || 2600;
+    var duration = opts.duration || 4400;
     var cv = document.createElement('canvas');
     cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:100050';
     document.body.appendChild(cv);
@@ -44,15 +44,16 @@
     for (var i = 0; i < count; i++) {
       var side = i % 3;                                   // 0 left, 1 right, 2 center-top
       var ox, oy, ang, spd;
-      if (side === 0) { ox = W() * 0.06; oy = H() * 0.92; ang = -Math.PI / 2 - 0.5 - Math.random() * 0.5; spd = 10 + Math.random() * 9; }
-      else if (side === 1) { ox = W() * 0.94; oy = H() * 0.92; ang = -Math.PI / 2 + 0.5 + Math.random() * 0.5; spd = 10 + Math.random() * 9; }
-      else { ox = W() * (0.35 + Math.random() * 0.3); oy = -20; ang = Math.PI / 2 + (Math.random() - 0.5) * 0.7; spd = 3 + Math.random() * 4; }
+      if (side === 0) { ox = W() * 0.05; oy = H() * 0.94; ang = -Math.PI / 2 - 0.55 - Math.random() * 0.55; spd = 8 + Math.random() * 6; }
+      else if (side === 1) { ox = W() * 0.95; oy = H() * 0.94; ang = -Math.PI / 2 + 0.55 + Math.random() * 0.55; spd = 8 + Math.random() * 6; }
+      else { ox = W() * (0.05 + Math.random() * 0.9); oy = -20; ang = Math.PI / 2 + (Math.random() - 0.5) * 0.7; spd = 1.5 + Math.random() * 2.5; }
       parts.push({
         x: ox, y: oy,
         vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
         w: 6 + Math.random() * 6, h: 8 + Math.random() * 7,
         color: COLORS[(Math.random() * COLORS.length) | 0],
         rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.4,
+        sway: Math.random() * 6.28, swayAmp: 0.4 + Math.random() * 0.7,
         life: 0
       });
     }
@@ -64,10 +65,11 @@
       var stillAlive = false;
       for (var j = 0; j < parts.length; j++) {
         var p = parts[j];
-        p.vy += 0.28;                                     // gravity
-        p.vx *= 0.99; p.vy *= 0.99;                       // drag
-        p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life = elapsed;
-        var alpha = elapsed < duration - 700 ? 1 : Math.max(0, (duration - elapsed) / 700);
+        p.vy += 0.13;                                     // gravity — gentle so it floats down
+        p.vx *= 0.985; p.vy *= 0.985;                     // air resistance
+        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * p.swayAmp;   // side-to-side flutter
+        p.y += p.vy; p.rot += p.vr; p.life = elapsed;
+        var alpha = elapsed < duration - 1200 ? 1 : Math.max(0, (duration - elapsed) / 1200);
         if (p.y < H() + 40 && alpha > 0) stillAlive = true;
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -177,7 +179,7 @@
     requestAnimationFrame(function () { modal.classList.add('active'); });
     try { if (window.gtag) gtag('event', 'welcome_popup_shown', { surface: 'journal' }); } catch (e) {}
     // a beat after the pop so the burst reads as a reward, not a page load
-    setTimeout(function () { confetti({ count: 130 }); }, 260);
+    setTimeout(function () { confetti({ count: 110 }); }, 260);
   }
 
   // ── celebratory toast ──────────────────────────────────────────────────
@@ -205,7 +207,7 @@
       history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
     } catch (e) {}
     function go() {
-      confetti({ count: 180, duration: 3200 });
+      confetti({ count: 150, duration: 4800 });
       // new subscribers are #0100+ → Blueprint Members (founding cohort is closed)
       setTimeout(function () {
         toast({ emoji: '🎉', title: 'Welcome to TMW Pro', sub: 'You&rsquo;re a Blueprint Member — enjoy unlimited access.' });
