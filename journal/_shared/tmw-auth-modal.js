@@ -99,11 +99,10 @@
       '.tmw-am-lockrows{display:flex; flex-direction:column; gap:8px; margin-bottom:18px; -webkit-mask-image:linear-gradient(#000 30%,transparent); mask-image:linear-gradient(#000 30%,transparent); pointer-events:none}',
       '.tmw-am-lockrow{height:44px; border-radius:11px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08)}',
       // combined signup form — wider card + two-column field grid on desktop
-      '.tmw-am-card.signup{max-width:600px}',
-      '.tmw-am-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}',
-      '.tmw-am-grid .tmw-am-span{grid-column:1 / -1}',
+      '.tmw-am-card.signup{max-width:430px}',
+      '.tmw-am-namerow{display:grid; grid-template-columns:1fr 1fr; gap:0 12px}',
       '.tmw-am-req{color:#1FDF67; margin-left:3px; font-weight:700}',
-      '@media(max-width:600px){.tmw-am-card.signup{max-width:430px} .tmw-am-grid{grid-template-columns:1fr}}',
+      '@media(max-width:360px){.tmw-am-namerow{grid-template-columns:1fr}}',
       '@media(max-width:560px){.tmw-am-wl{grid-template-columns:1fr}}',
       '@media(max-width:480px){.tmw-am-card{padding:30px 22px 24px}}'
     ].join('');
@@ -196,10 +195,11 @@
   }
 
   // ── signup ──────────────────────────────────────────────────────────────
-  // One combined form (name → email → company → profession → based → password),
-  // two columns on desktop. Required: first, last, email, password. When opened
-  // from the paywall a priceId is passed → after signup we go straight to the
-  // Stripe Checkout trial; otherwise it's a plain free account.
+  // Compact form to match the small login popup: first+last on one row, then
+  // email, then password — all required. (The old company/profession/based
+  // fields were dropped as overwhelming.) When opened from the paywall a priceId
+  // is passed → after signup we go straight to the Stripe Checkout trial;
+  // otherwise it's a plain free account.
   function viewSignup(host, opts) {
     opts = opts || {}; var priceId = opts.priceId || null;
     var card = host.closest && host.closest('.tmw-am-card'); if (card) card.classList.add('signup');
@@ -208,22 +208,19 @@
       LOGO +
       '<h2>Create your account</h2>' +
       '<form class="tmw-am-form" novalidate>' +
-        '<div class="tmw-am-grid">' +
+        '<div class="tmw-am-namerow">' +
           '<div class="tmw-am-field"><label>First name' + STAR + '</label><div class="tmw-am-inp"><input name="first" autocomplete="given-name" placeholder="First name" required></div></div>' +
           '<div class="tmw-am-field"><label>Last name' + STAR + '</label><div class="tmw-am-inp"><input name="last" autocomplete="family-name" placeholder="Last name" required></div></div>' +
-          '<div class="tmw-am-field"><label>Email Address' + STAR + '</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div></div>' +
-          '<div class="tmw-am-field"><label>Company name</label><div class="tmw-am-inp"><input name="company" autocomplete="organization" placeholder="Company name"></div></div>' +
-          '<div class="tmw-am-field"><label>Profession</label><div class="tmw-am-inp"><input name="profession" placeholder="Profession"></div></div>' +
-          '<div class="tmw-am-field"><label>Based</label><div class="tmw-am-geo"><div class="tmw-am-inp"><input name="based" autocomplete="off" placeholder="City"></div><div class="tmw-am-geolist" hidden></div></div></div>' +
-          '<div class="tmw-am-field tmw-am-span"><label>Password' + STAR + '</label><div class="tmw-am-inp"><input name="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="tmw-am-eye" aria-label="Show password">' + EYE + '</button></div></div>' +
         '</div>' +
+        '<div class="tmw-am-field"><label>Email Address' + STAR + '</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div></div>' +
+        '<div class="tmw-am-field"><label>Password' + STAR + '</label><div class="tmw-am-inp"><input name="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="tmw-am-eye" aria-label="Show password">' + EYE + '</button></div></div>' +
         '<button type="submit" class="tmw-am-primary">' + (priceId ? 'Continue' : 'Create account') + '</button>' +
       '</form>' +
       '<div class="tmw-am-or">or</div>' +
       '<button type="button" class="tmw-am-google" data-act="google">' + GOOGLE_ICON + ' Continue with Google</button>' +
       '<div class="tmw-am-msg" aria-live="polite"></div>' +
       '<div class="tmw-am-alt">Already have an account? <a data-act="to-login">Log in</a></div>';
-    wireEye(host); wireGeo(host);
+    wireEye(host);
     var resetBtn = function (btn) { btn.disabled = false; btn.textContent = priceId ? 'Continue' : 'Create account'; };
     host.querySelector('[data-act="to-login"]').addEventListener('click', function () { viewLogin(host, opts); });
     host.querySelector('[data-act="google"]').addEventListener('click', function () {
@@ -235,17 +232,16 @@
       var f = e.target;
       var val = function (n) { var i = f.querySelector('input[name="' + n + '"]'); return (i && i.value || '').trim(); };
       var first = val('first'), last = val('last'), email = val('email');
-      var company = val('company'), profession = val('profession'), based = val('based');
       var pw = (f.querySelector('input[name="password"]').value) || '';
       if (!first || !last) { setMsg(host, 'err', 'Enter your first and last name.'); return; }
       if (!email) { setMsg(host, 'err', 'Enter your email.'); return; }
       if (pw.length < 8) { setMsg(host, 'err', 'Use a password of at least 8 characters.'); return; }
       var btn = f.querySelector('.tmw-am-primary'); btn.disabled = true; btn.textContent = 'Creating…'; setMsg(host, '', '');
       var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); resetBtn(btn); return; }
-      m.signupMemberEmailPassword({ email: email, password: pw, customFields: { 'first-name': first, 'last-name': last, 'company-name': company, 'profession': profession, 'based': based } }).then(function () {
+      m.signupMemberEmailPassword({ email: email, password: pw, customFields: { 'first-name': first, 'last-name': last } }).then(function () {
         try { if (window.gtag) window.gtag('event', 'sign_up', { method: 'email' }); } catch (_) {}
         // best-effort sync to the newsletter/CRM worker (same shape as the profile step)
-        try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last, profession: profession, company_name: company, based: based }) }).catch(function () {}); } catch (_) {}
+        try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last }) }).catch(function () {}); } catch (_) {}
         afterAuth(host, priceId);
       }).catch(function (err) {
         var nm = niceError(err);
