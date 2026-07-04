@@ -17486,17 +17486,12 @@
             let flyOn = true;
             try { flyOn = localStorage.getItem('tmw-fly-to-pin') !== 'false'; } catch(_) {}
             if (isMobile) {
-              // Mobile: close drawer, fly to pin, show small popup preview.
-              // User can tap "Learn More" inside the popup for the full modal.
-              window.mobileDrawerCollapse?.();
-              if (flyOn) {
-                zoomToPinOnly(f);
-                setTimeout(() => { showPopup(f); }, 1500);
-              } else {
-                // Toggle OFF on mobile: skip the fly, but still open the
-                // full project modal so the click isn't a no-op.
-                window.openProjectModal(f, 'tile');
-              }
+              // Mobile: the drawer covers the map, so flying to the pin is wasted
+              // motion and yanks the map out from under the view the user chose.
+              // Keep the map LOCKED where they left it (their zoom/center) and open
+              // the full project detail — the modal covers the drawer. No fly, no
+              // drawer collapse, no map popup.
+              window.openProjectModal(f, 'tile');
             } else {
               if (flyOn) zoomToPinOnly(f);
               window.openProjectModal(f, 'tile');
@@ -17736,14 +17731,11 @@
           let flyOn = true;
           try { flyOn = localStorage.getItem('tmw-fly-to-pin') !== 'false'; } catch(_) {}
           if (isMobile) {
-            // Mobile: close drawer, fly to pin, show small popup preview
-            window.mobileDrawerCollapse?.();
-            if (flyOn) {
-              zoomToPinOnly(f);
-              setTimeout(() => { showPopup(f); }, 1500);
-            } else {
-              window.openProjectModal(f, 'tile');
-            }
+            // Mobile: the drawer covers the map, so flying to the pin is wasted
+            // motion and yanks the map out from under the user's chosen view.
+            // Keep the map LOCKED and open the full project detail — the modal
+            // covers the drawer. No fly, no drawer collapse, no map popup.
+            window.openProjectModal(f, 'tile');
           } else {
             if (flyOn) zoomToPinOnly(f);
             window.openProjectModal(f, 'tile');
