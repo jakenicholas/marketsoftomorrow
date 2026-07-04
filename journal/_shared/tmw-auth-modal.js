@@ -244,17 +244,28 @@
       if (pw.length < 8) { setMsg(host, 'err', 'Use a password of at least 8 characters.'); return; }
       var btn = f.querySelector('.tmw-am-primary'); btn.disabled = true; btn.textContent = 'Creating…'; setMsg(host, '', '');
       var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); resetBtn(btn); return; }
-      m.signupMemberEmailPassword({ email: email, password: pw, customFields: { 'first-name': first, 'last-name': last } }).then(function () {
-        try { if (window.gtag) window.gtag('event', 'sign_up', { method: 'email' }); } catch (_) {}
-        // best-effort sync to the newsletter/CRM worker (same shape as the profile step)
-        try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last }) }).catch(function () {}); } catch (_) {}
-        afterAuth(host, priceId, true);
-      }).catch(function (err) {
-        var nm = niceError(err);
-        setMsg(host, 'err', /log in instead/.test(nm) ? 'That email already has an account. <a data-act="to-login">Log in</a>' : nm);
-        var ln = host.querySelector('.tmw-am-msg [data-act="to-login"]'); if (ln) ln.addEventListener('click', function () { viewLogin(host, opts); });
-        resetBtn(btn);
-      });
+      var doSignup = function () {
+        m.signupMemberEmailPassword({ email: email, password: pw, customFields: { 'first-name': first, 'last-name': last } }).then(function () {
+          try { if (window.gtag) window.gtag('event', 'sign_up', { method: 'email' }); } catch (_) {}
+          // best-effort sync to the newsletter/CRM worker (same shape as the profile step)
+          try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last }) }).catch(function () {}); } catch (_) {}
+          afterAuth(host, priceId, true);
+        }).catch(function (err) {
+          var nm = niceError(err);
+          setMsg(host, 'err', /log in instead/.test(nm) ? 'That email already has an account. <a data-act="to-login">Log in</a>' : nm);
+          var ln = host.querySelector('.tmw-am-msg [data-act="to-login"]'); if (ln) ln.addEventListener('click', function () { viewLogin(host, opts); });
+          resetBtn(btn);
+        });
+      };
+      // Clean-switch: if a previous member is STILL signed in (common when cycling
+      // accounts in one session — and what corrupts the session state), log them
+      // out FIRST so the new account is authoritative. Otherwise Memberstack can
+      // keep the old member, so getCurrentMember() returns a stale email → wrong
+      // trial-eligibility banner, a dead Watch button reading the wrong plan, etc.
+      m.getCurrentMember().then(function (cur) {
+        if (cur && cur.data && m.logout) { m.logout().then(doSignup).catch(doSignup); }
+        else { doSignup(); }
+      }).catch(doSignup);
     });
   }
 
