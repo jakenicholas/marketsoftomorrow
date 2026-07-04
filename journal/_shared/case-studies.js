@@ -16,20 +16,20 @@
   /* ── the library — one entry per client. Canonical fields below. ───────── */
   var STUDIES = [
     {
-      badge:'4C', name:'The Residences at 400 Central', sub:'St. Petersburg, FL · Tampa Bay · Luxury Condo',
+      badge:'NG', name:'Naftali Group', sub:'St. Petersburg, FL · Tampa Bay · Luxury Condo',
       tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','waterfront'],
       pills:['Luxury Condo','St. Petersburg'],
       status:'complete', months:12,
-      impressions:'6.4M', mediaValue:'$196K', ctr:'1.57%', spend:'$65K',
-      quote:'Across a completed 12-month program, The Residences at 400 Central amassed <b>6.4M impressions</b> and earned <b>~$196K in media value</b> &mdash; the network&rsquo;s top-performing tower campaign, at a 1.57% newsletter CTR that carried it through sell-out.'
+      impressions:'6.4M', mediaValue:'$196K', ctr:'1.57%', spend:'$25K',
+      quote:'Across a completed 12-month program, Naftali Group amassed <b>6.4M impressions</b> and earned <b>~$196K in media value</b> &mdash; the network&rsquo;s top-performing tower campaign, at a 1.57% newsletter CTR that carried it through sell-out.'
     },
     {
-      badge:'MP', name:'Marina Point', sub:'St. Petersburg, FL · Tampa Bay · Waterfront Condo',
+      badge:'BT', name:'BTI Partners', sub:'St. Petersburg, FL · Tampa Bay · Waterfront Condo',
       tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','waterfront','marina'],
       pills:['Waterfront Condo','St. Petersburg'],
       status:'complete', months:12,
       impressions:'4.1M', mediaValue:'$121K', ctr:'1.50%', spend:'$42K',
-      quote:'Across a completed 12-month program, Marina Point amassed <b>4.1M impressions</b> and earned <b>~$121K in media value</b> &mdash; a 1.50% newsletter CTR that kept the waterfront tower top-of-mind through sell-out.'
+      quote:'Across a completed 12-month program, BTI Partners amassed <b>4.1M impressions</b> and earned <b>~$121K in media value</b> &mdash; a 1.50% newsletter CTR that kept the waterfront tower top-of-mind through sell-out.'
     },
     {
       badge:'WA', name:'Waldorf Astoria Residences', sub:'St. Petersburg, FL · Tampa Bay · Branded Residences',
@@ -48,12 +48,12 @@
       quote:'Halfway through a 14-month program, Ponce Park has amassed <b>3.3M impressions</b>, driven <b>7,229 clicks</b> to their sales site, and earned <b>~$99K in media value</b> &mdash; a 1.49% newsletter CTR into a 46%-realtor audience.'
     },
     {
-      badge:'TB', name:'The Berkeley', sub:'West Palm Beach, FL · Luxury Condo',
+      badge:'RR', name:'Related Ross', sub:'West Palm Beach, FL · Luxury Condo',
       tags:['florida','south-florida','palm-beaches','west-palm-beach','wpb','luxury-condo','condo'],
       pills:['Luxury Condo','West Palm Beach'],
-      status:'complete', months:10,
+      status:'complete', months:5,
       impressions:'4.58M', mediaValue:'$132.4K', ctr:'1.54%', spend:'$46.5K',
-      quote:'Across a completed 10-month program, The Berkeley amassed <b>4.58M impressions</b> and earned <b>~$132K in media value</b> &mdash; a 1.54% newsletter CTR that kept the tower top-of-mind through sell-out.'
+      quote:'Across a completed 5-month program, Related Ross amassed <b>4.58M impressions</b> and earned <b>~$132K in media value</b> &mdash; a 1.54% newsletter CTR that kept the tower top-of-mind through sell-out.'
     },
     {
       badge:'MO', name:'Mandarin Oriental Residences', sub:'West Palm Beach, FL · Branded Residences',
