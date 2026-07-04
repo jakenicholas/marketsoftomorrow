@@ -140,7 +140,7 @@
 
   // After auth completes, either send a buyer to Stripe Checkout (priceId from
   // the paywall) or just close the modal.
-  function afterAuth(host, priceId) {
+  function afterAuth(host, priceId, isSignup) {
     var m = ms();
     if (priceId && m && m.purchasePlansWithCheckout) {
       m.purchasePlansWithCheckout({
@@ -148,7 +148,13 @@
         cancelUrl: window.location.href,
         successUrl: window.location.href.split('?')[0] + '?subscribed=1'
       }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
-    } else { close(); }
+    } else {
+      close();
+      // Brand-new FREE account (no plan to buy) → celebrate + orient with the
+      // welcome popup (perks + confetti). Login and paid-checkout signups skip it
+      // (checkout gets its own confetti on the ?subscribed=1 return).
+      if (isSignup && window.tmwWelcomePopup) { try { window.tmwWelcomePopup(); } catch (e) {} }
+    }
   }
 
   // ── login ───────────────────────────────────────────────────────────────
@@ -225,7 +231,7 @@
     host.querySelector('[data-act="to-login"]').addEventListener('click', function () { viewLogin(host, opts); });
     host.querySelector('[data-act="google"]').addEventListener('click', function () {
       var m = ms(); if (!m) return;
-      m.signupWithProvider({ provider: 'google' }).then(function () { afterAuth(host, priceId); }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
+      m.signupWithProvider({ provider: 'google' }).then(function () { afterAuth(host, priceId, true); }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
     });
     host.querySelector('.tmw-am-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -242,7 +248,7 @@
         try { if (window.gtag) window.gtag('event', 'sign_up', { method: 'email' }); } catch (_) {}
         // best-effort sync to the newsletter/CRM worker (same shape as the profile step)
         try { fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last }) }).catch(function () {}); } catch (_) {}
-        afterAuth(host, priceId);
+        afterAuth(host, priceId, true);
       }).catch(function (err) {
         var nm = niceError(err);
         setMsg(host, 'err', /log in instead/.test(nm) ? 'That email already has an account. <a data-act="to-login">Log in</a>' : nm);
