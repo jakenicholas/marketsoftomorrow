@@ -22382,28 +22382,19 @@
       // ‚îÄ‚îÄ‚îÄ Public API: gate every project interaction ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
       // Returns true if interaction is allowed, false if blocked
       window.paywallCheck = function() {
-        // Pro (paid) gets unlimited access.
-        if (isPaidMember) return true;
-        // FAIL OPEN when we can't yet be sure the user is non-paid: (a) auth hasn't
-        // resolved this load, or (b) a persisted 'paid' hint says they're Pro but
-        // the live resolution failed (Safari ITP). Better to let a returning Pro
-        // through than to gate them out of a feature they pay for; a confirmed
-        // non-paid member (hint 'free'/'anon') still hits the paywall below.
-        if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
-        // Non-paid (anonymous or signed-in-free): allow FREE_OPEN_LIMIT project
-        // opens as a taste, THEN gate. Without this the very first click returned
-        // false and showPopup/openProjectModal bailed — so an anonymous visitor
-        // (incl. anyone in Safari Private mode) saw NOTHING open, which read as
-        // "the map is broken." Each open counts once: a pin→popup counts here and
-        // its "Learn More" full modal is a skipGate source (no double-count).
-        if (getFreeOpens() < FREE_OPEN_LIMIT) {
-          incFreeOpens();
-          return true;
-        }
-        // Out of free opens — offer the free 2-week trial. Soft + dismissible so
-        // they keep exploring/panning the map (browsing itself is always free).
-        showSubscriptionPaywall('trial_ended');
-        return false;
+        // VIEWING A PROJECT IS FREE FOR EVERYONE — anonymous, signed-in-free, and
+        // Pro. The pin popup, the detail modal, and the full project page are the
+        // top of the funnel and must NEVER die, so this gate is always open.
+        //
+        // (Was: non-paid got FREE_OPEN_LIMIT "free opens" then a hard gate that
+        // returned false — but showPopup()/openProjectModal() bail on false, so
+        // once the per-browser counter maxed out — trivial while testing, or on
+        // any auth glitch / Safari Private window — NOTHING opened and the map
+        // read as completely broken for non-Pro visitors. Gating *views* is the
+        // wrong model: the paywall belongs on Pro FEATURES, which gate themselves
+        // — Watch/favorite (feature:watch), comparisons, the full Atlas, and Deep
+        // intelligence — not on merely looking at a project.)
+        return true;
       };
 
       // ‚îÄ‚îÄ‚îÄ Init ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
