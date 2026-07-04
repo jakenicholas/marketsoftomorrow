@@ -20599,7 +20599,9 @@
         if (document.getElementById('signupWall')) return;
         const modal = document.createElement('div');
         modal.id = 'signupWall';
-        modal.className = 'paywall-modal';
+        // paywall-soft reveals the close button — the anon wall is DISMISSIBLE so
+        // it re-prompts on the next project open rather than trapping the visitor.
+        modal.className = 'paywall-modal paywall-soft';
         // Pro features advertised on the anon wall. Each row gets a yellow
         // PRO pill (matching the avatar dropdown tag) instead of a green
         // checkmark to communicate that these are paid features unlocked
@@ -20629,6 +20631,7 @@
         modal.innerHTML = `
           <div class="paywall-backdrop"></div>
           <div class="paywall-card">
+            <button class="paywall-close" id="signupWallClose" type="button" aria-label="Close">&times;</button>
             <div class="paywall-icon">
               <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
             </div>
@@ -20675,6 +20678,11 @@
           e.preventDefault();
           openSignIn();
         });
+        // Dismissible: close button + backdrop tap just hide the wall (map stays
+        // interactive behind it). Opening another project re-prompts via paywallCheck.
+        const dismiss = () => modal.classList.remove('active');
+        modal.querySelector('#signupWallClose').addEventListener('click', dismiss);
+        modal.querySelector('.paywall-backdrop').addEventListener('click', dismiss);
       }
 
       function showSignupWall(triggerCtx) {
