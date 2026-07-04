@@ -4096,8 +4096,61 @@ async function handlePostsDelete(req, env, origin, id) {
   const authCheck = await requireAdminToken(req, env, origin);
   if (authCheck) return authCheck;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  // Deleting a DRAFT is an editorial rejection — remember it so the daily
+  // routine doesn't redraft the same story next run (suppressed ~120 days,
+  // enforced in generate_article_draft + surfaced via list_content_gaps).
+  try {
+    const row = await env.DB.prepare(`SELECT slug, title, status, source FROM posts WHERE id = ?1`).bind(id).first();
+    if (row && row.status === 'draft' && row.title) {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), 'editor-delete', 'draft_rejected',
+          JSON.stringify({ slug: row.slug, title: String(row.title).slice(0, 200), source: row.source || '' })).run();
+    }
+  } catch (_) {}
   const r = await env.DB.prepare(`DELETE FROM posts WHERE id = ?1`).bind(id).run();
   return json({ ok: true, id, deleted: r.meta && r.meta.changes ? r.meta.changes : 0 }, {}, env, origin);
+}
+
+// Titles the editor rejected (deleted drafts) in the last N days — the daily
+// routine's do-not-redraft list. Exported for mcp.js.
+export async function rejectedTopics(env, days = 120) {
+  if (!env || !env.DB) return [];
+  try {
+    const since = Math.floor(Date.now() / 1000) - days * 86400;
+    const rows = (await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name='draft_rejected' AND ts >= ?1 ORDER BY ts DESC LIMIT 60`
+    ).bind(since).all()).results || [];
+    const seen = new Set(); const out = [];
+    for (const r of rows) {
+      let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+      const t = String((p && p.title) || '').trim();
+      if (!t || seen.has(t.toLowerCase())) continue;
+      seen.add(t.toLowerCase());
+      out.push({ title: t, rejected_at: r.ts, until: r.ts + days * 86400 });
+    }
+    return out;
+  } catch (_) { return []; }
+}
+// Does a proposed topic collide with a rejected title? Distinctive-token match
+// (e.g. "shorecrest", "edition") + embedding similarity as backstop.
+const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update']);
+export async function topicRejected(env, topic, days = 120) {
+  const rejected = await rejectedTopics(env, days);
+  if (!rejected.length) return null;
+  const toksOf = (x) => String(x).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length >= 6 && !TOPIC_STOP.has(w));
+  const tt = new Set(toksOf(topic));
+  for (const r of rejected) {
+    if (toksOf(r.title).some((w) => tt.has(w))) return r;
+  }
+  if (retrievalReady(env)) {
+    try {
+      const vecs = await embedTexts(env, [String(topic).slice(0, 300)].concat(rejected.map((r) => r.title.slice(0, 300))));
+      for (let i = 1; i < vecs.length; i++) {
+        if (cosineSim(vecs[0], vecs[i]) >= 0.78) return rejected[i - 1];
+      }
+    } catch (_) {}
+  }
+  return null;
 }
 
 async function handlePostsPublish(req, env, origin, id) {

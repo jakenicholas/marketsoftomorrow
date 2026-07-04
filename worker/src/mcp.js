@@ -21,7 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -772,7 +772,7 @@ const TOOLS = [
   },
   {
     name: 'list_content_gaps',
-    description: 'The CONTENT-GAP backlog — what people actually ASK Onyx (TMW Intelligence) where our coverage is thin or empty. Reads the real search/answer logs and returns `gaps` (queries asked repeatedly but with little or no matching coverage — PRIORITIZE these when choosing what to WRITE in daily-articles or what to SCOUT in project-discovery) and `demand` (the most-asked queries overall, whatever the coverage). Call this at the START of a content run so real audience demand steers the topic picks instead of guessing. No admin token needed.',
+    description: 'The CONTENT-GAP backlog — what people actually ASK Onyx (TMW Intelligence) where our coverage is thin or empty. Reads the real search/answer logs and returns `gaps` (queries asked repeatedly but with little or no matching coverage — PRIORITIZE these when choosing what to WRITE in daily-articles or what to SCOUT in project-discovery) and `demand` (the most-asked queries overall, whatever the coverage). Call this at the START of a content run so real audience demand steers the topic picks instead of guessing. No admin token needed. ALSO returns do_not_cover: draft topics the human editor REJECTED (deleted) in the last ~4 months — never draft these stories or close variants; generate_article_draft will refuse them.',
     inputSchema: { type: 'object', properties: { days: { type: 'number', description: 'Look-back window in days (default 30, max 120).' }, limit: { type: 'number', description: 'Max gaps to return (default 25).' } } },
   },
 
@@ -2132,6 +2132,10 @@ const IMPL = {
     if (!env.DB) throw new Error('D1 not configured');
     const topic = String(args.topic || '').trim();
     if (!topic) throw new Error('topic is required');
+    // Editorial rejection memory: if the editor deleted a draft on this story
+    // in the last ~4 months, refuse — pick a DIFFERENT story instead.
+    const rej = await topicRejected(env, topic + ' ' + String(args.angle || ''));
+    if (rej) throw new Error('TOPIC REJECTED BY EDITOR: a draft on this story ("' + rej.title + '") was deleted on ' + new Date(rej.rejected_at * 1000).toISOString().slice(0, 10) + ' — it is suppressed until ' + new Date(rej.until * 1000).toISOString().slice(0, 10) + '. Do NOT redraft it or a close variant; choose a different story.');
     const brain = await assembleBrain(env, { topic, place: String(args.place || '') });
     const sys = [
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
@@ -3513,7 +3517,9 @@ const IMPL = {
       .sort((a, b) => (b.times_asked - a.times_asked) || ((a.coverage == null ? 0 : a.coverage) - (b.coverage == null ? 0 : b.coverage)))
       .slice(0, limit);
     const demand = [...list].sort((a, b) => b.times_asked - a.times_asked).slice(0, Math.min(15, limit));
+    const do_not_cover = await rejectedTopics(env);
     return {
+      do_not_cover: do_not_cover.length ? do_not_cover.map((r) => ({ title: r.title, rejected: new Date(r.rejected_at * 1000).toISOString().slice(0, 10), suppressed_until: new Date(r.until * 1000).toISOString().slice(0, 10) })) : undefined,
       range_days: days, total_queries_seen: list.length, gap_count: gaps.length,
       gaps, demand,
       how_to_use: 'gaps = topics people ASK Onyx about where our coverage is thin or empty — prioritize these when choosing what to WRITE (daily-articles) or SCOUT (project-discovery). demand = the most-asked queries overall. Use real audience demand to steer topic picks; still apply the on-brand/luxury quality bar.',
