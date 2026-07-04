@@ -3,15 +3,15 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 324
+      "count": 327
     },
     {
       "type": "Hotel",
-      "count": 167
+      "count": 168
     },
     {
       "type": "Mixed-Use",
-      "count": 39
+      "count": 40
     },
     {
       "type": "Entertainment",
@@ -23,7 +23,7 @@
     },
     {
       "type": "Golf",
-      "count": 27
+      "count": 28
     },
     {
       "type": "Travel",
@@ -2844,11 +2844,11 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Breaking Ground",
-      "yr": 2028,
+      "sl": "Construction",
+      "yr": 2027,
       "sm": "2025-12",
       "ci": "Miami Beach",
-      "u": 44,
+      "u": 40,
       "k": 60,
       "fl": 17,
       "dv": [
@@ -3624,8 +3624,8 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Announced",
-      "yr": 2026,
-      "sm": "2025-12",
+      "yr": 2032,
+      "sm": "2027-12",
       "ci": "Fort Lauderdale",
       "u": 830,
       "k": 0,
@@ -5043,7 +5043,7 @@
       "sm": null,
       "ci": "West Palm Beach",
       "u": 0,
-      "k": 401,
+      "k": 400,
       "fl": 20,
       "dv": [
         [
@@ -6501,7 +6501,7 @@
       "ci": "Miami",
       "u": 0,
       "k": 0,
-      "fl": 50,
+      "fl": 41,
       "dv": [
         [
           "Santander Bank",
@@ -17457,19 +17457,160 @@
           "clements-design"
         ]
       ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Construction",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Madrid",
+      "u": 0,
+      "k": 50,
+      "fl": 0,
+      "dv": [
+        [
+          "Nobu Hospitality",
+          "nobu-hospitality"
+        ]
+      ],
+      "ar": [
+        [
+          "Studio Caramba",
+          "studio-caramba"
+        ],
+        [
+          "GRONDA",
+          "gronda"
+        ]
+      ]
+    },
+    {
+      "st": "FL",
+      "ty": "Residences",
+      "sl": "Breaking Ground",
+      "yr": 2028,
+      "sm": "2026-01",
+      "ci": "Miami",
+      "u": 352,
+      "k": 0,
+      "fl": 29,
+      "dv": [
+        [
+          "The Allen Morris Company",
+          "the-allen-morris-company"
+        ],
+        [
+          "Black Salmon",
+          "black-salmon"
+        ]
+      ],
+      "ar": [
+        [
+          "Arquitectonica",
+          "arquitectonica"
+        ]
+      ]
+    },
+    {
+      "st": "FL",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Fort Myers",
+      "u": 377,
+      "k": 0,
+      "fl": 25,
+      "dv": [
+        [
+          "AIRN Management",
+          "airn-management"
+        ]
+      ],
+      "ar": [
+        [
+          "Michael Graves Architecture & Design",
+          "michael-graves-architecture-design"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": null,
+      "ci": "Scottsdale",
+      "u": 1330,
+      "k": 0,
+      "fl": 8,
+      "dv": [
+        [
+          "Optima",
+          "optima"
+        ]
+      ],
+      "ar": [
+        [
+          "Optima",
+          "optima"
+        ]
+      ]
+    },
+    {
+      "st": "NY",
+      "ty": "Residences",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "New York",
+      "u": 430,
+      "k": 0,
+      "fl": 86,
+      "dv": [
+        [
+          "Extell Development",
+          "extell-development"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "FL",
+      "ty": "Golf",
+      "sl": "Breaking Ground",
+      "yr": null,
+      "sm": "2026-12",
+      "ci": "Port St. Lucie",
+      "u": 1204,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Taylor Morrison",
+          "taylor-morrison"
+        ]
+      ],
+      "ar": [
+        [
+          "C.W. Golf Architecture",
+          "c-w-golf-architecture"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 685,
+    "total_projects": 691,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 258,
+    "under_construction": 261,
     "opening_this_year": 99
   },
   "scale": {
-    "units": 251311,
-    "keys": 47060,
-    "floors": 10331
+    "units": 255000,
+    "keys": 47109,
+    "floors": 10470
   },
   "leaderboards": {
     "developers": [
@@ -17605,6 +17746,15 @@
         ]
       },
       {
+        "name": "The Allen Morris Company",
+        "slug": "the-allen-morris-company",
+        "sub": "Miami",
+        "count": 5,
+        "states": [
+          "FL"
+        ]
+      },
+      {
         "name": "Witkoff",
         "slug": "witkoff",
         "sub": "West Palm Beach",
@@ -17627,15 +17777,6 @@
         "name": "Place Projects",
         "slug": "place-projects",
         "sub": "West Palm Beach",
-        "count": 4,
-        "states": [
-          "FL"
-        ]
-      },
-      {
-        "name": "The Allen Morris Company",
-        "slug": "the-allen-morris-company",
-        "sub": "Coconut Grove",
         "count": 4,
         "states": [
           "FL"
@@ -17762,7 +17903,7 @@
         "name": "Arquitectonica",
         "slug": "arquitectonica",
         "sub": "Miami",
-        "count": 63,
+        "count": 64,
         "states": [
           "FL",
           "Other"
@@ -18071,8 +18212,8 @@
     "cities": [
       {
         "name": "Miami",
-        "sub": "88 developments \u00b7 115 developers",
-        "count": 88,
+        "sub": "89 developments \u00b7 115 developers",
+        "count": 89,
         "states": [
           "FL"
         ]
@@ -18278,6 +18419,14 @@
         ]
       },
       {
+        "name": "Scottsdale",
+        "sub": "6 developments \u00b7 7 developers",
+        "count": 6,
+        "states": [
+          "Other"
+        ]
+      },
+      {
         "name": "St. Petersburg",
         "sub": "5 developments \u00b7 10 developers",
         "count": 5,
@@ -18300,21 +18449,13 @@
         "states": [
           "Other"
         ]
-      },
-      {
-        "name": "Bangkok",
-        "sub": "5 developments \u00b7 7 developers",
-        "count": 5,
-        "states": [
-          "Other"
-        ]
       }
     ],
     "types": [
       {
         "name": "Residences",
         "sub": "47% of pipeline",
-        "count": 324,
+        "count": 327,
         "states": [
           "FL",
           "Other",
@@ -18330,7 +18471,7 @@
       {
         "name": "Hotel",
         "sub": "24% of pipeline",
-        "count": 167,
+        "count": 168,
         "states": [
           "Other",
           "FL",
@@ -18346,7 +18487,7 @@
       {
         "name": "Mixed-Use",
         "sub": "6% of pipeline",
-        "count": 39,
+        "count": 40,
         "states": [
           "FL",
           "Other",
@@ -18385,7 +18526,7 @@
       {
         "name": "Golf",
         "sub": "4% of pipeline",
-        "count": 27,
+        "count": 28,
         "states": [
           "Other",
           "FL",
@@ -18564,6 +18705,15 @@
           ]
         },
         {
+          "name": "The Allen Morris Company",
+          "slug": "the-allen-morris-company",
+          "sub": "Miami",
+          "count": 5,
+          "states": [
+            "FL"
+          ]
+        },
+        {
           "name": "Terra",
           "slug": "terra",
           "sub": "Miami",
@@ -18589,15 +18739,6 @@
           "states": [
             "FL",
             "Other"
-          ]
-        },
-        {
-          "name": "The Allen Morris Company",
-          "slug": "the-allen-morris-company",
-          "sub": "Coconut Grove",
-          "count": 4,
-          "states": [
-            "FL"
           ]
         },
         {
@@ -18773,7 +18914,7 @@
           "name": "Arquitectonica",
           "slug": "arquitectonica",
           "sub": "Miami",
-          "count": 60,
+          "count": 61,
           "states": [
             "FL",
             "Other"
@@ -19066,8 +19207,8 @@
       "cities": [
         {
           "name": "Miami",
-          "sub": "88 developments \u00b7 115 developers",
-          "count": 88,
+          "sub": "89 developments \u00b7 115 developers",
+          "count": 89,
           "states": [
             "FL"
           ]
@@ -19297,9 +19438,9 @@
           ]
         },
         {
-          "name": "Dania Beach",
-          "sub": "1 development \u00b7 1 developer",
-          "count": 1,
+          "name": "Fort Myers",
+          "sub": "2 developments \u00b7 3 developers",
+          "count": 2,
           "states": [
             "FL"
           ]
@@ -19308,8 +19449,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "68% of pipeline",
-          "count": 217,
+          "sub": "67% of pipeline",
+          "count": 218,
           "states": [
             "FL",
             "Other",
@@ -19353,7 +19494,7 @@
         {
           "name": "Mixed-Use",
           "sub": "5% of pipeline",
-          "count": 16,
+          "count": 17,
           "states": [
             "FL",
             "Other",
@@ -19386,6 +19527,18 @@
           ]
         },
         {
+          "name": "Golf",
+          "sub": "2% of pipeline",
+          "count": 5,
+          "states": [
+            "Other",
+            "FL",
+            "TN",
+            "SC",
+            "TX"
+          ]
+        },
+        {
           "name": "Park",
           "sub": "2% of pipeline",
           "count": 5,
@@ -19402,18 +19555,6 @@
             "FL",
             "FR",
             "Other"
-          ]
-        },
-        {
-          "name": "Golf",
-          "sub": "1% of pipeline",
-          "count": 4,
-          "states": [
-            "Other",
-            "FL",
-            "TN",
-            "SC",
-            "TX"
           ]
         },
         {
@@ -20072,16 +20213,16 @@
           ]
         },
         {
-          "name": "Sag Harbor",
-          "sub": "1 development \u00b7 3 developers",
-          "count": 1,
+          "name": "New York",
+          "sub": "2 developments \u00b7 2 developers",
+          "count": 2,
           "states": [
             "NY"
           ]
         },
         {
-          "name": "New York",
-          "sub": "1 development \u00b7 1 developer",
+          "name": "Sag Harbor",
+          "sub": "1 development \u00b7 3 developers",
           "count": 1,
           "states": [
             "NY"
@@ -20091,8 +20232,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "62% of pipeline",
-          "count": 21,
+          "sub": "63% of pipeline",
+          "count": 22,
           "states": [
             "FL",
             "Other",
@@ -20107,7 +20248,7 @@
         },
         {
           "name": "Office",
-          "sub": "18% of pipeline",
+          "sub": "17% of pipeline",
           "count": 6,
           "states": [
             "FL",
@@ -20121,7 +20262,7 @@
         },
         {
           "name": "Hotel",
-          "sub": "12% of pipeline",
+          "sub": "11% of pipeline",
           "count": 4,
           "states": [
             "Other",
@@ -20226,8 +20367,8 @@
           "sub": "Nashville",
           "count": 1,
           "states": [
-            "TN",
-            "Other"
+            "Other",
+            "TN"
           ]
         },
         {
@@ -22870,26 +23011,26 @@
   "by_state": {
     "FL": {
       "hero_stats": {
-        "total_projects": 321,
-        "under_construction": 114
+        "total_projects": 324,
+        "under_construction": 115
       },
       "scale": {
-        "units": 77836,
-        "keys": 11045,
-        "floors": 5840
+        "units": 79765,
+        "keys": 11044,
+        "floors": 5885
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 126
+          "count": 127
         },
         {
           "label": "Breaking Ground",
-          "count": 15
+          "count": 16
         },
         {
           "label": "Construction",
-          "count": 114
+          "count": 115
         },
         {
           "label": "Opening Soon",
@@ -22924,12 +23065,12 @@
         {
           "month": "Dec",
           "year": 2025,
-          "count": 15
+          "count": 14
         },
         {
           "month": "Jan",
           "year": 2026,
-          "count": 7
+          "count": 8
         },
         {
           "month": "Feb",
@@ -22965,18 +23106,18 @@
     },
     "NY": {
       "hero_stats": {
-        "total_projects": 34,
+        "total_projects": 35,
         "under_construction": 10
       },
       "scale": {
-        "units": 8911,
+        "units": 9341,
         "keys": 666,
-        "floors": 1044
+        "floors": 1130
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 9
+          "count": 10
         },
         {
           "label": "Breaking Ground",
@@ -23915,20 +24056,21 @@
     "Estero": "FL",
     "Cypress": "Other",
     "Hanahan": "Other",
-    "Guatemala City": "Other"
+    "Guatemala City": "Other",
+    "Port St. Lucie": "FL"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 199
+      "count": 201
     },
     {
       "label": "Breaking Ground",
-      "count": 28
+      "count": 29
     },
     {
       "label": "Construction",
-      "count": 258
+      "count": 261
     },
     {
       "label": "Opening Soon",
@@ -23963,12 +24105,12 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 32
+      "count": 31
     },
     {
       "month": "Jan",
       "year": 2026,
-      "count": 9
+      "count": 10
     },
     {
       "month": "Feb",
@@ -24008,7 +24150,7 @@
     },
     {
       "year": 2027,
-      "count": 134
+      "count": 136
     },
     {
       "year": 2028,
@@ -24027,12 +24169,12 @@
     {
       "code": "FL",
       "label": "Florida",
-      "count": 321
+      "count": 324
     },
     {
       "code": "NY",
       "label": "New York",
-      "count": 34
+      "count": 35
     },
     {
       "code": "TN",
@@ -24071,6 +24213,72 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260704T1325-6",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 6 more projects",
+      "city": "Nobu Hotel Madrid +5 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/962bfbf37c4f-arquitectos-ayala-nobu-hotel-madrid.-calle-alcala-26-hotels-archello.1745224436.",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-07-04T13:25:55.098075+00:00"
+    },
+    {
+      "id": "ms-soleste-on-the-trail-halfway-2026-07-04",
+      "type": "status_change",
+      "tag": "Halfway there",
+      "title": "Soleste on the Trail  Halfway there",
+      "project_slug": "soleste-on-the-trail",
+      "project_title": "Soleste on the Trail",
+      "city": "Riviera Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_65cd7b0d4af547c38b2973fd999efe33~mv2.jpeg",
+      "event_date": "2026-06",
+      "source_url": "https://floridayimby.com/2025/09/soleste-on-the-trail-to-feature-255-apartments-at-7920-n-military-trail-riviera-beach-fl.html",
+      "link": "https://www.oftmw.com/map/?project=solesteonthetrail",
+      "timestamp": "2026-07-04T13:16:28.015Z"
+    },
+    {
+      "id": "ms-sage-intracoastal-residences-going-vertical-2026-07-04",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Sage Intracoastal Residences  Going vertical",
+      "project_slug": "sage-intracoastal-residences",
+      "project_title": "Sage Intracoastal Residences",
+      "city": "Fort Lauderdale",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp",
+      "event_date": "2026-05-18",
+      "source_url": "https://floridayimby.com/2026/06/foundation-pour-completed-for-sage-intracoastal-residences-fort-lauderdale.html",
+      "link": "https://www.oftmw.com/map/?project=sageintracoastalresidences",
+      "timestamp": "2026-07-04T13:14:48.426Z"
+    },
+    {
+      "id": "ms-ybor-harbor-financing-2026-07-04",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Ybor Harbor  Financing secured",
+      "project_slug": "ybor-harbor",
+      "project_title": "Ybor Harbor",
+      "city": "Tampa",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1585133743843e7853f3b67a1a56c12~mv2.jpg",
+      "event_date": "2026-05",
+      "source_url": "https://www.tampabay.com/news/2026/05/14/ybor-harbor-darryl-shaw/",
+      "link": "https://www.oftmw.com/map/?project=yborharbor",
+      "timestamp": "2026-07-04T13:14:40.439Z"
+    },
+    {
+      "id": "ms-bayside-north-financing-2026-07-04",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Bayside North  Financing secured",
+      "project_slug": "bayside-north",
+      "project_title": "Bayside North",
+      "city": "Sarasota",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4816454d37d1-ALLEN_MORRIS_BAYSIDE_PHASE_II-ENTRY_CORNER_05_002__1__pqvghq.webp",
+      "event_date": "2026-06",
+      "source_url": "https://profilemiamire.com/miamirealestate/2026/6/4/allen-morris-co-closes-43-million-construction-loan-with-affinius-capital-and-axonic-capital-for-second-phase-of-bayshore-apartments-in-sarasota",
+      "link": "https://www.oftmw.com/map/?project=baysidenorth",
+      "timestamp": "2026-07-04T13:14:36.737Z"
+    },
     {
       "id": "ms-pendry-barbados-topping-out-2026-07-03",
       "type": "status_change",
@@ -24696,76 +24904,6 @@
       "source_url": "https://www.jaxdailyrecord.com/news/2026/may/20/here-we-are-after-nearly-six-years-related-group-launches-work-on-downtown-jacksonville-high-rise/",
       "link": "https://www.oftmw.com/map/?project=southbankresidences",
       "timestamp": "2026-07-03T01:58:25.611Z"
-    },
-    {
-      "id": "ms-eden-residences-breaking-ground-2026-07-03",
-      "type": "status_change",
-      "tag": "Broke ground",
-      "title": "Eden Residences  Broke ground",
-      "project_slug": "eden-residences",
-      "project_title": "Eden Residences",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg",
-      "event_date": "2026-06-08",
-      "source_url": "https://floridayimby.com/2026/06/32-unit-eden-residences-planned-for-late-2027-completion-at-2557-ne-190th-st-aventura-fl.html",
-      "link": "https://www.oftmw.com/map/?project=edenresidences",
-      "timestamp": "2026-07-03T01:57:23.217Z"
-    },
-    {
-      "id": "ms-flow-at-aventura-corporate-center-tenant-2026-07-03",
-      "type": "status_change",
-      "tag": "Tenant announced",
-      "title": "Flow at Aventura Corporate Center  Tenant announced",
-      "project_slug": "flow-at-aventura-corporate-center",
-      "project_title": "Flow at Aventura Corporate Center",
-      "city": "Aventura",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0758e0d93883-aventura-flow-2.jpeg",
-      "event_date": "2026-06-02",
-      "source_url": "https://therealdeal.com/miami/2026/06/03/adam-neumanns-flow-supersizes-aventura-project/",
-      "link": "https://www.oftmw.com/map/?project=flowataventuracorporatecenter",
-      "timestamp": "2026-07-03T01:57:04.319Z"
-    },
-    {
-      "id": "ms-tierras-villas-open-2026-07-02",
-      "type": "status_change",
-      "tag": "Now Open",
-      "title": "Tierras Villas  Now Open",
-      "project_slug": "tierras-villas",
-      "project_title": "Tierras Villas",
-      "city": "Agia Pelagia",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6572bfabf926-tierras-villas-complex.jpeg",
-      "event_date": "2026-07-01",
-      "source_url": "tmw://auto-promote",
-      "link": "https://www.oftmw.com/map/?project=tierrasvillas",
-      "timestamp": "2026-07-02T23:54:58.015Z"
-    },
-    {
-      "id": "ms-the-residences-claude-pepper-construction-2026-07-02",
-      "type": "status_change",
-      "tag": "Under construction",
-      "title": "The Residences Claude Pepper  Under construction",
-      "project_slug": "the-residences-claude-pepper",
-      "project_title": "The Residences Claude Pepper",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4420e8fccb3f-aerial-3-2.jpeg",
-      "event_date": "2026-06",
-      "source_url": "https://floridayimby.com/2026/06/the-residences-at-claude-pepper-set-for-2028-debut-at-702-nw-18th-terrace-miami-fl.html",
-      "link": "https://www.oftmw.com/map/?project=theresidencesclaudepepper",
-      "timestamp": "2026-07-02T23:17:20.359Z"
-    },
-    {
-      "id": "ms-parkside-residences-bookings-2026-07-02",
-      "type": "status_change",
-      "tag": "Bookings open",
-      "title": "Parkside Residences  Bookings open",
-      "project_slug": "parkside-residences",
-      "project_title": "Parkside Residences",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_778eff26f4b145ef9a3334fc6fe10366~mv2.jpg",
-      "event_date": "2026-06",
-      "source_url": "https://profilemiamire.com/miamirealestate/2026/6/10/bi-group-usa-opens-sales-gallery-for-parkside-residences-in-brickell",
-      "link": "https://www.oftmw.com/map/?project=parksideresidences",
-      "timestamp": "2026-07-02T23:17:16.175Z"
     }
   ],
   "most_covered": [
@@ -24998,6 +25136,17 @@
       "display_precision": "month"
     },
     {
+      "slug": "nobu-hotel-madrid",
+      "title": "Nobu Hotel Madrid",
+      "city": "Madrid",
+      "delivery_date": "2026-09-01",
+      "days_out": 59,
+      "bucket": "90d",
+      "status": "Construction",
+      "display_label": "59d",
+      "display_precision": "day"
+    },
+    {
       "slug": "2200-brickell",
       "title": "2200 Brickell",
       "city": "Miami",
@@ -25023,17 +25172,6 @@
       "slug": "9900-west",
       "title": "9900 West",
       "city": "Bay Harbor Islands",
-      "delivery_date": "2026-09-15",
-      "days_out": 73,
-      "bucket": "90d",
-      "status": "Opening Soon",
-      "display_label": "Sep",
-      "display_precision": "month"
-    },
-    {
-      "slug": "the-sound",
-      "title": "The Sound",
-      "city": "West Palm Beach",
       "delivery_date": "2026-09-15",
       "days_out": 73,
       "bucket": "90d",
