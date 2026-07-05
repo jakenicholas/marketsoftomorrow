@@ -408,7 +408,8 @@
     /* answer panel → plain text block (no inner box / glow / footer) */
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel{border:0;background:none;box-shadow:none;padding:0;margin:0 0 14px}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-panel::before{display:none}'
-    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot{display:none}'
+    + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot:not(.has-ground){display:none}'
+    + '.tmw-ov-intel-foot .dim{opacity:.55}'
     /* Responses are slimmed to the pure LLM answer: NO "TMW Intelligence" header
        row (label + Onyx 4.1 / Deep pill) and NO "Thinking / Live answer" status
        pip on top of any answer (loading OR answered). The loader dots (while it
@@ -2074,7 +2075,7 @@
   // Replaces the previous link-to-/search/ CTA with a real, in-overlay
   // panel that renders the LLM answer. Three states share the same shell
   // so the swap from loading → answer doesn't shift layout.
-  function intelPanelHtml(state, q, answer, deep){
+  function intelPanelHtml(state, q, answer, deep, grounding){
     var live, ansClass, ansHtml;
     if (state === 'loading'){
       live = '<i></i>Thinking';
@@ -2108,10 +2109,24 @@
       +     (state === 'answer' ? '' : '<span class="live">'+live+'</span>')
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
-      +   '<div class="tmw-ov-intel-foot">'
-      +     '<span class="ai">Onyx 4.1</span> · TMW Intelligence, synthesized from the journal &amp; database'
+      +   '<div class="tmw-ov-intel-foot' + ((state === 'answer' && grounding && (grounding.p || grounding.a)) ? ' has-ground' : '') + '">'
+      +     '<span class="ai">Onyx 4.1</span> · ' + _groundingLine(state, grounding)
       +   '</div>'
       + '</section>';
+  }
+
+  // The receipts line under every answer: exactly what the reply was grounded
+  // in ("Grounded in 14 tracked projects · 2 TMW articles · Miami"), with the
+  // sources themselves rendered as the cards right below the panel. Falls back
+  // to the generic line when a path has no grounding info (errors, misses).
+  function _groundingLine(state, g){
+    if (state !== 'answer' || !g || (!g.p && !g.a)) return 'TMW Intelligence, synthesized from the journal &amp; database';
+    var bits = [];
+    if (g.p) bits.push('<b>' + g.p + ' tracked project' + (g.p === 1 ? '' : 's') + '</b>');
+    if (g.a) bits.push('<b>' + g.a + ' TMW article' + (g.a === 1 ? '' : 's') + '</b>');
+    var line = 'Grounded in ' + bits.join(' · ');
+    if (g.place) line += ' · ' + esc(String(g.place));
+    return line + ' <span class="dim">— shown below</span>';
   }
 
   // Intelligence gate. Two states: (1) NOT SIGNED IN → you need an account to try
@@ -3042,10 +3057,10 @@
   var _ANS_KEY = 'tmw_intel_ans', _ANS_TTL = 24 * 3600 * 1000;   // matches the worker's 24h server cache
   function _normKey(q){ return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
   function _ansMap(){ try { return JSON.parse(localStorage.getItem(_ANS_KEY) || '{}'); } catch(_){ return {}; } }
-  function cacheAnswer(q, a){
+  function cacheAnswer(q, a, g){
     if (!q || !a) return;
     try {
-      var m = _ansMap(); m[_normKey(q)] = { a: String(a), ts: Date.now() };
+      var m = _ansMap(); m[_normKey(q)] = { a: String(a), g: g || null, ts: Date.now() };
       var keys = Object.keys(m);
       if (keys.length > 40) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; }
       localStorage.setItem(_ANS_KEY, JSON.stringify(m));
@@ -3055,11 +3070,15 @@
     try { var e = _ansMap()[_normKey(q)]; if (e && e.a && (Date.now() - (e.ts || 0) < _ANS_TTL)) return e.a; } catch(_){}
     return null;
   }
+  function cachedGrounding(q){
+    try { var e = _ansMap()[_normKey(q)]; if (e && e.g && (Date.now() - (e.ts || 0) < _ANS_TTL)) return e.g; } catch(_){}
+    return null;
+  }
   // Loading panel that shows the cached LLM answer up front when we have one
   // (so there's no spinner on a repeat/resumed query).
   function intelLoadingHtml(q){
     var c = cachedAnswer(q);
-    return c ? intelPanelHtml('answer', q, c) : intelPanelHtml('loading', q);
+    return c ? intelPanelHtml('answer', q, c, false, cachedGrounding(q)) : intelPanelHtml('loading', q);
   }
 
   // ── Thumbs feedback ─────────────────────────────────────────────────
@@ -4781,7 +4800,11 @@
     if (!full || full.split(/\s+/).length > 4) return null;
     var set = Core.buildCitySet(PROJECTS), best = null;
     set.forEach(function(disp, nc){ if (full === nc && (!best || nc.length > best.nc.length)) best = { disp: disp, nc: nc }; });
-    return best ? best.disp : null;
+    if (best) return best.disp;
+    // Bare neighborhood ("brickell", "wynwood") → its parent city, so the query
+    // scopes to Miami's pipeline instead of falling to fuzzy text-match.
+    var nb = Core.detectNeighborhood ? Core.detectNeighborhood(q, PROJECTS) : null;
+    return nb && nb.city ? nb.city : null;
   }
   function inCity(cityDisp){
     var Core = window.TmwSearchCore, target = Core.norm(cityDisp);
@@ -4877,11 +4900,14 @@
           } catch(_){}
         }
         if (res && res.ok && res.answer){
-          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer, res.deep);
+          var _artN = 0;
+          try { _artN = (facts.top || []).filter(function(t){ return t && t.status === 'Article'; }).length; } catch(_){}
+          var _ground = { p: Math.max(0, (facts.count || 0)), a: _artN, place: facts.place || null };
+          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer, res.deep, _ground);
           updateDeepMeta(res);
           _stopThinking(true);
           if (_turnRec) _turnRec.answer = res.answer;   // feed the next follow-up's context
-          cacheAnswer(q, res.answer);   // remember for instant resume / repeat
+          cacheAnswer(q, res.answer, _ground);   // remember for instant resume / repeat
           // Count this against the user's free quota (window.tmwIntel.FREE)
           // (intelligence.js
           // gate; Pro users are uncounted). Mirrors /search/.

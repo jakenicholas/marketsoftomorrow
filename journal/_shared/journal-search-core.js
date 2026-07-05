@@ -587,6 +587,30 @@
     return la >= 24.3 && la <= 31.1 && ln >= -87.8 && ln <= -79.8;
   }
 
+  // Bare NEIGHBORHOOD queries ("brickell", "wynwood") — exact match against
+  // every project's Neighborhood value (and its comma parts), normalized, →
+  // { city, neighborhood }. Data-driven from the DB like buildCitySet; no
+  // table to maintain. Used by the overlay's bare-place chain after city+area
+  // detection miss, so "brickell" scopes to Miami instead of text-matching.
+  function detectNeighborhood(q, projects) {
+    var full = norm(q).trim();
+    if (!full || full.split(/\s+/).length > 3) return null;
+    var best = null;
+    (projects || []).forEach(function (p) {
+      var nb = String(p.Neighborhood || '').trim();
+      if (!nb) return;
+      var parts = [nb].concat(nb.split(',').map(function (x) { return x.trim(); }));
+      parts.forEach(function (part) {
+        if (!part) return;
+        var np = norm(part);
+        if (np === full && (!best || np.length > best.np.length)) {
+          best = { np: np, neighborhood: part, city: String(p.City || '').split(',')[0].trim() };
+        }
+      });
+    });
+    return best ? { neighborhood: best.neighborhood, city: best.city } : null;
+  }
+
   // Multi-city AREAS (county / metro / region). Each project is stamped with a
   // `County` field (reverse-geocoded from lat/lng at build — see
   // geocode_counties.py), so SINGLE counties resolve data-driven: any "<X>
@@ -2111,6 +2135,7 @@
     buildIntelFacts: buildIntelFacts,
     buildJournalFacts: buildJournalFacts,
     detectArea: detectArea,
+    detectNeighborhood: detectNeighborhood,
     inArea: inArea,
     citiesInArea: citiesInArea,
     coverageMiss: coverageMiss,
