@@ -10,7 +10,8 @@ the entries whose new key is confirmed live (consumed by the reference rewrite).
   python3 apply_image_renames.py --city west-palm-beach --execute  # do the copy
   python3 apply_image_renames.py --execute                         # ALL cities
 """
-import json, subprocess, argparse, tempfile, os, re, urllib.request, collections, sys
+import json, subprocess, argparse, tempfile, os, re, urllib.request, collections, sys, threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 BASE   = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
 BUCKET = "tmw-media"
@@ -44,6 +45,7 @@ def main():
     ap.add_argument('--city', help='city slug filter, e.g. west-palm-beach')
     ap.add_argument('--execute', action='store_true', help='actually copy (default: dry run)')
     ap.add_argument('--limit', type=int)
+    ap.add_argument('--workers', type=int, default=10, help='parallel copies (default 10)')
     a = ap.parse_args()
 
     m = json.load(open('image-rename-map.json', encoding='utf-8'))
@@ -56,39 +58,48 @@ def main():
     st = collections.Counter()
     done, errors = [], []
     total = len(m)
+    lock = threading.Lock()
+    n_seen = [0]
     print(f"{'EXECUTE' if a.execute else 'DRY RUN'} — {total} images"
-          + (f" in {a.city}" if a.city else " (all cities)"), flush=True)
+          + (f" in {a.city}" if a.city else " (all cities)")
+          + (f" · {a.workers} workers" if a.execute else ""), flush=True)
 
-    for i, e in enumerate(m, 1):
+    def handle(e):
+        # Idempotent: skip anything already live at the new key.
         if url_ok(e['new_url']):
-            st['skip_exists'] += 1; done.append(e)
-            if i % 20 == 0: print(f"  {i}/{total} …", flush=True)
-            continue
+            return ('skip_exists', e, None)
         if not a.execute:
-            st['would_copy'] += 1
-            continue
+            return ('would_copy', e, None)
         ext = e['new_key'].rsplit('.', 1)[-1].lower()
         ct  = CT.get(ext, 'image/jpeg')
         tf  = tempfile.NamedTemporaryFile(delete=False, suffix='.' + ext).name
         try:
             g = wr(['r2', 'object', 'get', f"{BUCKET}/{e['old_key']}", '--file', tf, '--remote'])
             if os.path.getsize(tf) == 0:
-                st['get_fail'] += 1
-                errors.append({'new_key': e['new_key'], 'old_key': e['old_key'],
-                               'stage': 'get', 'msg': (g.stderr or g.stdout)[-160:]})
-                continue
+                return ('get_fail', e, (g.stderr or g.stdout)[-160:])
             p = wr(['r2', 'object', 'put', f"{BUCKET}/{e['new_key']}", '--file', tf,
                     '--content-type', ct, '--remote'])
             if 'Upload complete' in (p.stdout + p.stderr):
-                st['copied'] += 1; done.append(e)
-            else:
-                st['put_fail'] += 1
-                errors.append({'new_key': e['new_key'], 'stage': 'put', 'msg': (p.stderr or p.stdout)[-160:]})
+                return ('copied', e, None)
+            return ('put_fail', e, (p.stderr or p.stdout)[-160:])
         finally:
             try: os.unlink(tf)
             except OSError: pass
-        if i % 10 == 0:
-            print(f"  {i}/{total}  copied={st['copied']} skip={st['skip_exists']} err={st['get_fail']+st['put_fail']}", flush=True)
+
+    with ThreadPoolExecutor(max_workers=max(1, a.workers)) as ex:
+        futs = [ex.submit(handle, e) for e in m]
+        for fut in as_completed(futs):
+            status, e, msg = fut.result()
+            with lock:
+                st[status] += 1
+                if status in ('copied', 'skip_exists'):
+                    done.append(e)
+                elif status in ('get_fail', 'put_fail'):
+                    errors.append({'new_key': e['new_key'], 'old_key': e['old_key'], 'stage': status, 'msg': msg})
+                n_seen[0] += 1
+                if n_seen[0] % 25 == 0:
+                    print(f"  {n_seen[0]}/{total}  copied={st['copied']} skip={st['skip_exists']} "
+                          f"err={st['get_fail']+st['put_fail']}", flush=True)
 
     json.dump(done, open('image-rename-done.json', 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
     if errors:
