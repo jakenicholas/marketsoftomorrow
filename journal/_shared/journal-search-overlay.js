@@ -3893,6 +3893,7 @@
   // text-match or structured-smart — produced the projects/firms/intel counts.
   var _lastFilterCounts = { intel: false, projects: 0, firms: 0 };
   var _heroArticleRef = null; // article promoted to hero (text path), excluded from the journal list
+  var _qPlaceArts = null;     // place question → ALL the place's stories for the Journal tab (newest first)
   function fetchBodyMatches(q, stoks, token){
     _bodyMatchFor = q; // mark up front so we fire at most once per query
     var terms = stoks.filter(function(t){ return t.length >= 4; });
@@ -4278,6 +4279,20 @@
           if (_qSet && _qSet.length >= 3) {
             pScored = _qSet.map(function(pp, i){ return { p: pp, s: _qSet.length - i }; });
             placeDriven = true; placeName = _qName;
+            // Journal tab: a place question lists ALL the place's stories
+            // (newest first) — not the few keyword matches. Same terms
+            // matching the food path uses (title + excerpt + categories).
+            try {
+              var _qTerms = placeAliasTerms(_qName) || [];
+              if (_qTerms.length) {
+                var _qArts = ARTICLES.filter(function(a){
+                  var hay = norm((a.title || '') + ' ' + (a.excerpt || '') + ' ' + (a.categories || []).join(' '));
+                  for (var i2 = 0; i2 < _qTerms.length; i2++){ if (_qTerms[i2] && hay.indexOf(_qTerms[i2]) >= 0) return true; }
+                  return false;
+                }).sort(function(a, b){ return String(b.published_iso || '').localeCompare(String(a.published_iso || '')); });
+                if (_qArts.length > aScored.length) { aScored = _qArts.map(function(a, i){ return { a: a, s: _qArts.length - i }; }); _qPlaceArts = _qArts; }
+              }
+            } catch(_){}
           }
         } catch(_){}
       }
@@ -4784,6 +4799,11 @@
         return _towerRe.test(blob);
       });
       if (_tw.length) aScored = _tw;
+    }
+    // Place question: the Journal tab lists ALL the place's stories (newest
+    // first, from the promo block's place-term match) — not keyword matches.
+    if (_qPlaceArts && _qPlaceArts.length > aScored.length) {
+      aScored = _qPlaceArts.filter(function(a){ return a !== hero; }).map(function(a, i){ return { a: a, s: _qPlaceArts.length - i }; });
     }
     var count = aScored.length + (hero ? 1 : 0);
 
