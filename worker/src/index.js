@@ -6193,6 +6193,93 @@ export async function gardenBrain(env, { maxClusters = 10, maxProposals = 20 } =
   } catch (_) {}
   return summary;
 }
+// ── EMBEDDING A/B HARNESS — compares candidate embedding models on REAL TMW
+// retrieval tasks before any migration. Dormant: runs only when sync_state
+// 'embed_ab_request' is set (via d1); writes an 'embed_ab_result' event and
+// clears the flag. Tasks: (1) project-name lookup MRR, (2) place-query
+// precision@5, (3) style-vs-data note discrimination margin.
+async function embedTextsWith(env, model, texts) {
+  const out = [];
+  for (let i = 0; i < texts.length; i += 90) {
+    const r = await env.AI.run(model, { text: texts.slice(i, i + 90) });
+    for (const v of (r && r.data) || []) out.push(v);
+  }
+  return out;
+}
+async function maybeEmbedAB(env) {
+  if (!env.DB || !env.AI) return;
+  const flag = await env.DB.prepare("SELECT value FROM sync_state WHERE key='embed_ab_request'").first().catch(() => null);
+  if (!flag || String(flag.value) !== '1') return;
+  await env.DB.prepare("DELETE FROM sync_state WHERE key='embed_ab_request'").run();
+  const MODELS = ['@cf/baai/bge-base-en-v1.5', '@cf/baai/bge-large-en-v1.5', '@cf/baai/bge-m3'];
+  const results = {};
+  try {
+    // corpus: real projects with texts, city-diverse
+    const r = await fetch('https://www.oftmw.com/map/projects-flat.json', { cf: { cacheTtl: 60 } });
+    const j = await r.json();
+    const rows = (Array.isArray(j) ? j : (j.projects || j.rows || []))
+      .map((p2) => ({ name: String(p2.Title || p2.Name || p2.name || p2.title || ''), city: String(p2.City || p2.city || ''), text: projectText(p2) }))
+      .filter((d) => d.name.length >= 8 && d.text.length > 120 && d.city);
+    const byCity = {};
+    for (const d of rows) { (byCity[d.city] = byCity[d.city] || []).push(d); }
+    const docs = [];
+    for (const c of ['West Palm Beach', 'Miami', 'New York', 'Nashville', 'Tampa']) for (const d of (byCity[c] || []).slice(0, 6)) docs.push(d);
+    for (const d of rows) { if (docs.length >= 52) break; if (!docs.includes(d)) docs.push(d); }
+    const nameQs = docs.filter((_, i) => i % 6 === 0).slice(0, 8).map((d) => ({ q: d.name.toLowerCase(), doc: d }));
+    const placeQs = [
+      { q: 'new projects in west palm beach', city: 'West Palm Beach' },
+      { q: 'new projects coming to new york city', city: 'New York' },
+      { q: 'new hotels in miami', city: 'Miami' },
+    ];
+    // brain notes: carousel-craft (should match) vs data/bug (should not)
+    const vn = (await env.DB.prepare("SELECT note FROM brand_notes WHERE active=1 AND scope='voice' AND (note LIKE '%slide%' OR note LIKE '%carousel%') LIMIT 2").all()).results || [];
+    const dn = (await env.DB.prepare("SELECT note FROM brand_notes WHERE active=1 AND scope IN ('data','bug') LIMIT 2").all()).results || [];
+    const styleQ = 'carousel slide hooks for a nashville hotel opening';
+    const texts = docs.map((d) => d.text.slice(0, 1200))
+      .concat(nameQs.map((x) => x.q), placeQs.map((x) => x.q), [styleQ], vn.map((x) => x.note.slice(0, 1200)), dn.map((x) => x.note.slice(0, 1200)));
+    for (const model of MODELS) {
+      const vecs = await embedTextsWith(env, model, texts);
+      const D = vecs.slice(0, docs.length);
+      let k = docs.length;
+      const nameV = vecs.slice(k, k += nameQs.length);
+      const placeV = vecs.slice(k, k += placeQs.length);
+      const styleV = vecs[k++];
+      const vnV = vecs.slice(k, k += vn.length);
+      const dnV = vecs.slice(k, k += dn.length);
+      // (1) name lookup MRR + hit@1
+      let mrr = 0, hit1 = 0;
+      nameQs.forEach((x, qi) => {
+        const target = docs.indexOf(x.doc);
+        const ranked = D.map((dv, di) => ({ di, s: cosineSim(nameV[qi], dv) })).sort((a, b) => b.s - a.s);
+        const rank = ranked.findIndex((e) => e.di === target) + 1;
+        mrr += 1 / rank; if (rank === 1) hit1++;
+      });
+      // (2) place precision@5
+      let prec = 0;
+      placeQs.forEach((x, qi) => {
+        const top5 = D.map((dv, di) => ({ di, s: cosineSim(placeV[qi], dv) })).sort((a, b) => b.s - a.s).slice(0, 5);
+        prec += top5.filter((e) => docs[e.di].city === x.city).length / 5;
+      });
+      // (3) style-vs-data margin (want voice notes ABOVE data/bug notes)
+      const vSims = vnV.map((v) => cosineSim(styleV, v));
+      const dSims = dnV.map((v) => cosineSim(styleV, v));
+      const margin = (vSims.length && dSims.length) ? (Math.min(...vSims) - Math.max(...dSims)) : null;
+      results[model] = {
+        name_mrr: +(mrr / nameQs.length).toFixed(3), name_hit1: hit1 + '/' + nameQs.length,
+        place_p5: +(prec / placeQs.length).toFixed(3),
+        style_margin: margin == null ? null : +margin.toFixed(3),
+        voice_sims: vSims.map((x) => +x.toFixed(3)), data_sims: dSims.map((x) => +x.toFixed(3)),
+        dims: (D[0] || []).length,
+      };
+    }
+    results._setup = { docs: docs.length, name_queries: nameQs.length, place_queries: placeQs.length };
+  } catch (e) { results._error = String(e && e.message || e).slice(0, 300); }
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), 'embed-ab', 'embed_ab_result', JSON.stringify(results)).run();
+  } catch (_) {}
+}
+
 // Weekly cadence on the minute cron.
 async function maybeGardenBrain(env) {
   if (!env.DB) return;
@@ -11058,6 +11145,7 @@ export default {
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
+    ctx.waitUntil(maybeEmbedAB(env));            // embedding A/B (dormant unless flagged)
     ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
     ctx.waitUntil(refreshLinkedinToken(env));    // keep the LinkedIn token alive (60-day expiry)
   },
