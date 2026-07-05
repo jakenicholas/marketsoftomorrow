@@ -2991,6 +2991,19 @@
     return Promise.resolve('');
   }
   function _threadQs(){ return _thread.map(function(t){ return t.q; }).filter(Boolean).slice(-12); }
+  // Full turns for the account thread: query + the answer we rendered + its
+  // grounding receipts. Sent alongside `qs` so a resume (this device or another)
+  // paints every turn instantly instead of replaying the whole conversation
+  // through the LLM — the "returns to loading and re-queries" bug.
+  function _threadTurns(){
+    return _thread.filter(function(t){ return t && t.q; }).slice(-12).map(function(t){
+      return {
+        q: String(t.q).slice(0, 200),
+        a: t.answer || cachedAnswer(t.q) || null,
+        g: cachedGrounding(t.q) || null,
+      };
+    });
+  }
   var _serverSaveTimer = null;
   var _syncedTs = 0;   // cloud updated_at (server ms) this device is currently in sync with
   // Push the query list to the worker so the same member resumes on any device.
@@ -3003,7 +3016,7 @@
         try {
           fetch(WORKER_URL + '/intel-thread', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
-            body: JSON.stringify({ member_id: mid, qs: _threadQs() })
+            body: JSON.stringify({ member_id: mid, qs: _threadQs(), turns: _threadTurns() })
           })
           .then(function(r){ return r.ok ? r.json() : null; })
           .then(function(d){ if (d && d.ts) _syncedTs = d.ts; try { console.info('[TMW Intelligence] conversation synced to your account'); } catch(_){} })
@@ -3019,6 +3032,14 @@
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(d){
           var qs = (d && Array.isArray(d.qs) && d.qs.length) ? d.qs : null;
+          // Seed the local answer cache from the stored turns BEFORE any replay
+          // runs, so every restored turn renders its remembered answer (and
+          // receipts) instantly — no loading shell, no LLM re-query.
+          try {
+            ((d && d.turns) || []).forEach(function(t){
+              if (t && t.q && t.a) cacheAnswer(t.q, t.a, t.g || null);
+            });
+          } catch(_){}
           return { qs: qs, ts: (d && d.ts) || 0 };
         })
         .catch(function(){ return { qs: null, ts: 0 }; });
@@ -3172,7 +3193,9 @@
     try {
       var m = _ansMap(); m[_normKey(q)] = { a: String(a), g: g || null, ts: Date.now() };
       var keys = Object.keys(m);
-      if (keys.length > 40) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; }
+      // 120-entry cap (was 40 — heavy sessions evicted answers the thread still
+      // referenced, so a resume re-queried turns it should have had on hand).
+      while (keys.length > 120) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; keys.shift(); }
       localStorage.setItem(_ANS_KEY, JSON.stringify(m));
     } catch(_){}
   }
@@ -5155,6 +5178,17 @@
     // answer is stored for follow-up context + faithful resume — the structured
     // path does this; this path didn't, so those turns never fed the LLM history.
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
+    // INSTANT RESUME — an answer we already have (this device's 24h cache, or
+    // seeded from the account thread) renders immediately and NEVER re-queries
+    // the LLM. The structured path has had this guard for a while; this path
+    // didn't, so every restored question-turn flashed the loading shell and
+    // burned a fresh /smart-answer call on each return visit.
+    var _cachedA = cachedAnswer(q);
+    if (_cachedA) {
+      slotIntel.innerHTML = intelPanelHtml('answer', q, _cachedA, false, cachedGrounding(q));
+      if (_turnRec) _turnRec.answer = _cachedA;   // follow-ups still get their context
+      return;
+    }
     var _turnCtx = _currentTurnCtx;                          // article context for THIS turn (if opened from an article)
     // Capture THIS turn's intel slot too — `slotIntel` advances when the next
     // turn renders, so an async answer painted into the LIVE slotIntel lands on

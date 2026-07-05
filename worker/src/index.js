@@ -290,11 +290,14 @@ async function handleEventIngest(req, env, origin) {
 }
 
 // /intel-thread — device-to-device TMW Intelligence chat resume for logged-in
-// members. GET ?member_id=mem_… returns the saved query list; POST { member_id,
-// qs:[…] } upserts it. First-party only (trusted Origin, same gate as /event);
-// only real Memberstack accounts (mem_*) get a row, so anon/bot traffic never
-// writes. Stores just the query strings (answers replay + re-cache on the new
-// device) — small, and not sensitive.
+// members. GET ?member_id=mem_… returns the saved conversation; POST { member_id,
+// qs:[…], turns:[{q,a,g}…] } upserts it. First-party only (trusted Origin, same
+// gate as /event); only real Memberstack accounts (mem_*) get a row, so anon/bot
+// traffic never writes. Turns carry the ANSWER (a) and grounding receipts (g)
+// alongside each query so a resume renders instantly instead of re-querying the
+// LLM for every restored turn — the old queries-only format replayed the whole
+// thread through /smart-answer on every return visit. Old rows (bare query
+// array) and old clients (qs-only POST) still work.
 async function handleIntelThread(request, env, origin, url) {
   const reqOrigin = request.headers.get('Origin') || '';
   const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -305,27 +308,52 @@ async function handleIntelThread(request, env, origin, url) {
 
   try { await env.DB.prepare('CREATE TABLE IF NOT EXISTS intel_threads (member_id TEXT PRIMARY KEY, thread_json TEXT, updated_at INTEGER)').run(); } catch (_) {}
 
+  // One turn = { q: query, a: answer prose | null, g: grounding {p,a,place} | null }.
+  const sanitizeTurns = (arr) => (Array.isArray(arr) ? arr : [])
+    .filter(t => t && typeof t.q === 'string' && t.q.trim())
+    .map(t => ({
+      q: t.q.slice(0, 200),
+      a: (typeof t.a === 'string' && t.a.trim()) ? t.a.slice(0, 8000) : null,
+      g: (t.g && typeof t.g === 'object')
+        ? { p: Math.max(0, +t.g.p || 0), a: Math.max(0, +t.g.a || 0), place: typeof t.g.place === 'string' ? t.g.place.slice(0, 80) : null }
+        : null,
+    }))
+    .slice(-12);
+
   if (request.method === 'GET') {
     const memberId = url.searchParams.get('member_id') || '';
-    if (memberId.indexOf('mem_') !== 0) return json({ ok: true, qs: [], ts: 0 }, {}, env, origin);
+    if (memberId.indexOf('mem_') !== 0) return json({ ok: true, qs: [], turns: [], ts: 0 }, {}, env, origin);
     let row = null;
     try { row = await env.DB.prepare('SELECT thread_json, updated_at FROM intel_threads WHERE member_id = ?').bind(memberId).first(); } catch (_) {}
-    let qs = [];
-    try { if (row && row.thread_json) qs = JSON.parse(row.thread_json); } catch (_) {}
-    return json({ ok: true, qs: Array.isArray(qs) ? qs : [], ts: (row && row.updated_at) || 0 }, {}, env, origin);
+    let qs = [], turns = [];
+    try {
+      if (row && row.thread_json) {
+        const parsed = JSON.parse(row.thread_json);
+        if (Array.isArray(parsed)) { qs = parsed; }                        // legacy: bare query list
+        else if (parsed && typeof parsed === 'object') {
+          turns = sanitizeTurns(parsed.turns);
+          qs = turns.length ? turns.map(t => t.q) : (Array.isArray(parsed.qs) ? parsed.qs : []);
+        }
+      }
+    } catch (_) {}
+    return json({ ok: true, qs, turns, ts: (row && row.updated_at) || 0 }, {}, env, origin);
   }
 
   // POST — upsert (last write wins; the most-recently-active device is truth).
   let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const memberId = String(body.member_id || '');
   if (memberId.indexOf('mem_') !== 0) return json({ ok: true, skipped: 'not a member account' }, {}, env, origin);
-  const qs = Array.isArray(body.qs)
-    ? body.qs.filter(q => typeof q === 'string' && q.trim()).map(q => q.slice(0, 200)).slice(-12)
-    : [];
+  const turns = sanitizeTurns(body.turns);
+  const qs = turns.length ? turns.map(t => t.q)
+    : (Array.isArray(body.qs) ? body.qs.filter(q => typeof q === 'string' && q.trim()).map(q => q.slice(0, 200)).slice(-12) : []);
   const ts = Date.now();
   try {
-    if (qs.length) await env.DB.prepare('INSERT OR REPLACE INTO intel_threads (member_id, thread_json, updated_at) VALUES (?,?,?)').bind(memberId, JSON.stringify(qs), ts).run();
-    else await env.DB.prepare('DELETE FROM intel_threads WHERE member_id = ?').bind(memberId).run();
+    if (qs.length) {
+      const payload = JSON.stringify({ qs, turns });
+      await env.DB.prepare('INSERT OR REPLACE INTO intel_threads (member_id, thread_json, updated_at) VALUES (?,?,?)').bind(memberId, payload, ts).run();
+    } else {
+      await env.DB.prepare('DELETE FROM intel_threads WHERE member_id = ?').bind(memberId).run();
+    }
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
   return json({ ok: true, ts }, {}, env, origin);
 }
@@ -8923,7 +8951,13 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model, max_tokens: maxTokens, system: system || undefined, messages: [{ role: 'user', content: String(user) }] }),
+        // Cache the assembled-brain system block (default 5m TTL): a
+        // generate→revise loop on the same draft re-sends the identical brain
+        // within minutes, and Fable input is $10/MTok — the reads pay for the
+        // 1.25x write quickly. Below the cacheable minimum it silently no-ops.
+        body: JSON.stringify({ model, max_tokens: maxTokens,
+          system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral' } }] : undefined,
+          messages: [{ role: 'user', content: String(user) }] }),
       });
       if (!r.ok) continue;
       const d = await r.json();
@@ -9552,8 +9586,7 @@ async function handleSmartAnswer(request, env, origin) {
      compact.topic.toUpperCase() + ', which we cover in our JOURNAL — these `top` items are ARTICLES we have ' +
      'published (name = headline, blurb = excerpt, delivery = publish date), NOT database projects. Write a ' +
      'tight, insightful answer (1-3 sentences) that orients the reader to our coverage like an editor: the ' +
-     'freshest / most notable openings or stories' + (compact.place ? ' in ' + String(compact.place).slice(0,60) : '') +
-     ', named specifically.\n\n' +
+     'freshest / most notable openings or stories, named specifically.\n\n' +
      'Hard rules:\n' +
      '- Use ONLY the article facts provided (headlines + excerpts). Never invent a venue, dish, date, or place.\n' +
      '- These are ARTICLES, not buildings — never call them "projects", never mention floors/units/keys or a ' +
@@ -9644,11 +9677,21 @@ async function handleSmartAnswer(request, env, origin) {
     (learnedExemplars.length ? '\n\nExamples of excellent TMW answers — match their VOICE and STRUCTURE (how they '
       + 'lead and frame), but NEVER reuse their specific projects, numbers, or places:\n'
       + learnedExemplars.map((ex, i) => (i + 1) + '. Q: "' + ex.query + '" -> ' + ex.answer).join('\n') : '');
+  // ── VOLATILE SYSTEM CLAUSES ───────────────────────────────────────────────
+  // Everything per-query (place, iconic, deep, multi-turn, web) collects here
+  // and ships as a SECOND system block AFTER the cache breakpoint. The block
+  // above stays byte-identical across queries, so its prompt-cache entry
+  // actually gets read; injecting any of this into `system` itself was what
+  // made cache writes outnumber reads.
+  let systemExtra = '';
+  if (compact.topic && compact.place) {
+    systemExtra += '\n\nPLACE FOCUS — the reader asked about ' + String(compact.place).slice(0, 60) + ': feature the openings and stories there.';
+  }
   // ICONIC curation queries ("best golf in florida", "good hotels in california"):
   // weave the editorial iconic picks (existing celebrated venues, with their own
   // descriptions) together with whatever is NEW in the pipeline.
   if (compact.iconic && compact.iconic.items && compact.iconic.items.length) {
-    system += '\n\nICONIC EDITORIAL LIST — THIS IS THE HEART OF THE ANSWER: `iconic` is TMW\'s curated ranking of the most iconic '
+    systemExtra += '\n\nICONIC EDITORIAL LIST — THIS IS THE HEART OF THE ANSWER: `iconic` is TMW\'s curated ranking of the most iconic '
       + compact.iconic.kind + ' for this query — EXISTING, celebrated venues (NOT pipeline projects), each carrying its own editorial `description`. '
       + 'Structure the answer in two beats: (1) ONLY IF `top` actually has development projects, open by noting briefly what is NEW or COMING'
       + (compact.place ? ' in ' + String(compact.place).slice(0, 60) : '') + ' — name the soonest / most notable with its status (e.g. a course or hotel opening soon); '
@@ -9661,20 +9704,23 @@ async function handleSmartAnswer(request, env, origin) {
       + '"proposed", "in the pipeline", or "tracked in our database"; reserve that language for the `top` development projects only.';
   }
   if (compact.place_name) {
-    system += '\n\nPLACE LOCK — this query is specifically about ' + compact.place_name + '. EVERY project or development you name MUST be located in ' + compact.place_name + '. Never cite a project outside it, even one that seems related by brand, architect, or theme.';
+    systemExtra += '\n\nPLACE LOCK — this query is specifically about ' + compact.place_name + '. EVERY project or development you name MUST be located in ' + compact.place_name + '. Never cite a project outside it, even one that seems related by brand, architect, or theme.';
   }
-  system += '\n\n' + HERO_DIRECTIVE;
+  system += '\n\n' + HERO_DIRECTIVE;   // static — stays inside the cached block
   // DEEP MODE — lift the length cap into a full analyst brief that reasons across
   // the wide matched set. All grounding rules above still hold without exception.
   if (deepMode) {
-    system += '\n\nDEEP MODE — the reader is a Pro member who asked for an in-depth briefing, and `related` (plus `background`) carries an unusually WIDE set of real matches. IGNORE the 1-3 sentence limit: write a thorough, well-structured analyst brief of about 3-6 short paragraphs. Synthesize ACROSS the whole set — compare places and submarkets, group by status and asset type, state the count and the pattern, name the most significant projects and the notable outliers, and say plainly where the momentum is and where the risk sits. Obey EVERY grounding rule above without exception: hard figures (floors, units, keys, dates, dollars) only from `top`; `related` items may be cited by name, location, and status ONLY, never with invented numbers; never fabricate a project, figure, or date. Stay in clean prose paragraphs — no markdown, no bullets, no headers, no section labels. Still end with the trailing HERO: line.';
+    systemExtra += '\n\nDEEP MODE — the reader is a Pro member who asked for an in-depth briefing, and `related` (plus `background`) carries an unusually WIDE set of real matches. IGNORE the 1-3 sentence limit: write a thorough, well-structured analyst brief of about 3-6 short paragraphs. Synthesize ACROSS the whole set — compare places and submarkets, group by status and asset type, state the count and the pattern, name the most significant projects and the notable outliers, and say plainly where the momentum is and where the risk sits. Obey EVERY grounding rule above without exception: hard figures (floors, units, keys, dates, dollars) only from `top`; `related` items may be cited by name, location, and status ONLY, never with invented numbers; never fabricate a project, figure, or date. Stay in clean prose paragraphs — no markdown, no bullets, no headers, no section labels. Still end with the trailing HERO: line.';
   }
   // Conversation mode: the current query may be a follow-up to the prior turns
   // (provided as earlier messages). Resolve implicit references against them.
+  // Appended to the volatile block (NOT prepended to `system` — prepending
+  // changed the very first prompt bytes and invalidated the whole cache on
+  // every follow-up turn).
   if (history.length) {
-    system = 'This is a MULTI-TURN conversation — earlier turns appear as prior messages. The current query may be a FOLLOW-UP; '
+    systemExtra += '\n\nMULTI-TURN — this is a multi-turn conversation; earlier turns appear as prior messages. The current query may be a FOLLOW-UP: '
       + 'resolve its pronouns and implicit places/types against the conversation (e.g. after "best hotels", "what about Miami?" means Miami hotels). '
-      + 'Answer ONLY the new turn from its verified facts; don\'t repeat the previous answer.\n\n' + system;
+      + 'Answer ONLY the new turn from its verified facts; don\'t repeat the previous answer.';
   }
 
   // DB-FIRST web access: only hand Onyx the web_search tool when our own data is
@@ -9690,13 +9736,19 @@ async function handleSmartAnswer(request, env, origin) {
     const reqBody = {
       model: deepMode ? DEEP_ANSWER_MODEL : SMART_ANSWER_MODEL,
       max_tokens: deepMode ? 2400 : 700,   // deep = full analyst brief; standard was 320 (a region overview ran long)
-      // PROMPT CACHING — the system prompt (directives + learned rules + exemplars)
-      // is identical across every query for ~5 min (rules change ~daily), while the
-      // per-query facts live in the user message below. Marking system as a cached
-      // block means every unique search after the first re-reads the system prefix
-      // at 0.1x input price instead of full — the bulk of this endpoint's spend.
-      // GA, no beta header; under the 1024-token min it silently no-ops.
-      system: [{ type: 'text', text: useWeb ? (system + WEB_CLAUSE) : system, cache_control: { type: 'ephemeral' } }],
+      // PROMPT CACHING — block 1 is the STABLE prefix (directives + learned rules
+      // + exemplars + hero directive): identical across every query until the
+      // review routine rewrites the rules (~daily). The 1h TTL costs 2x to write
+      // but survives the gaps between public searches — with the default 5m TTL
+      // most writes expired unread. Block 2 carries every per-query clause
+      // (place lock, iconic, deep, multi-turn, web) AFTER the breakpoint, so it
+      // can vary freely without touching the cached prefix. The per-query facts
+      // stay in the user message. GA, no beta header; a prefix under the model's
+      // cacheable minimum silently no-ops.
+      system: [
+        { type: 'text', text: system, cache_control: { type: 'ephemeral', ttl: '1h' } },
+      ].concat((useWeb ? (systemExtra + WEB_CLAUSE) : systemExtra).trim()
+        ? [{ type: 'text', text: (useWeb ? (systemExtra + WEB_CLAUSE) : systemExtra).trim() }] : []),
       messages: history.flatMap(t => ([
         { role: 'user', content: t.q },
         { role: 'assistant', content: t.answer },
