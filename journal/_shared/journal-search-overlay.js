@@ -1098,6 +1098,7 @@
     + 'border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .2s,background .2s,color .2s}'
     + '.tmw-ov-loadmore:hover{border-color:#1FDF67;color:#fff;background:#1a1d1a}'
     + '.tmw-ov-row-hidden{display:none}'   /* project rows past the first page, revealed by Load more */
+    + '.tmw-ov-card-hidden{display:none}'  /* grid tiles past the first page, revealed by Load more */
 
     + '.tmw-ov-hidden{display:none!important}'
 
@@ -1687,6 +1688,101 @@
     var out = [c], first = c.split(' ')[0];
     if (first.length >= 4 && !GEN_GEO_WORDS[first] && out.indexOf(first) < 0) out.push(first);
     return out;
+  }
+
+  // ALL of a place's journal stories, geography-first (newest first). The old
+  // bare term match over title+excerpt let name-collision stories pollute a
+  // place's Journal tab — a "london" query pulled "The London" (an NYC hotel),
+  // NYC restaurants debuting London concepts, and WPB golf. Geography outranks
+  // words:
+  //  · linked project sits in the place            → in
+  //  · linked project sits in a DIFFERENT city     → out, whatever the text says
+  //  · a curated category names the place          → in
+  //  · a category names another covered city       → out
+  //  · no geography signal at all                  → term match (title+excerpt)
+  function articlesForPlace(placeName){
+    var terms = placeAliasTerms(placeName) || [];
+    if (!terms.length) return [];
+    function hit(s){
+      if (!s) return false;
+      for (var i = 0; i < terms.length; i++){ if (terms[i] && s.indexOf(terms[i]) >= 0) return true; }
+      return false;
+    }
+    var Core = window.TmwSearchCore, citySet = null;
+    try { citySet = (Core && Core.buildCitySet) ? Core.buildCitySet(PROJECTS) : null; } catch(_){}
+    // Same-family place names are NOT "another city": "Palm Beach" / "The Palm
+    // Beaches" on a West Palm Beach query, "Miami Beach" on a Miami query.
+    // Containment either way (with a plural strip) marks the family — without
+    // this, the exclusion rules dropped nine legit Palm-Beaches stories from
+    // the WPB Journal tab.
+    function family(nc){
+      if (!nc) return false;
+      var ncs = nc.replace(/s$/, '');
+      for (var i = 0; i < terms.length; i++){
+        var t = terms[i]; if (!t) continue;
+        if (nc.indexOf(t) >= 0 || t.indexOf(nc) >= 0) return true;
+        if (ncs && (t.indexOf(ncs) >= 0 || ncs.indexOf(t) >= 0)) return true;
+      }
+      return false;
+    }
+    function isOtherCity(nc){
+      if (!nc || family(nc)) return false;
+      if (citySet && citySet.has(nc)) return true;
+      return NYC_FAMILY.indexOf(nc) >= 0;   // "New York City" isn't a City-field value but IS a place
+    }
+    // Curated category → its place form: "The Palm Beaches" → "palm beaches",
+    // "New York of Tomorrow" → "new york", "All Food & Drinks" → "food & drinks".
+    function catPlace(c){
+      return norm(c).replace(/^the /, '').replace(/^all /, '')
+        .replace(/ of tomorrow$/, '').replace(/ food & drinks?$/, '');
+    }
+    return ARTICLES.filter(function(a){
+      var pr = a.project_slug ? projBySlug()[a.project_slug] : null;
+      if (pr){
+        var pc = norm(String(pr.City || '').split(',')[0].trim());
+        if (pc && family(pc)) return true;
+        if (isOtherCity(pc)) return false;
+      }
+      // main_category is the editor's PRIMARY placement and outranks the
+      // multi-tag list — "Gymkhana, London's ... debuts NYC concept" carries
+      // BOTH a "London" and a "New York City" category, but its main is
+      // New York City: it's a New York story.
+      var mc = catPlace(a.main_category || '');
+      if (mc){
+        if (family(mc)) return true;
+        if (isOtherCity(mc)) return false;
+      }
+      var cats = a.categories || [], i, cn;
+      for (i = 0; i < cats.length; i++){
+        cn = catPlace(cats[i]);
+        if (family(cn)) return true;
+      }
+      for (i = 0; i < cats.length; i++){
+        cn = catPlace(cats[i]);
+        if (isOtherCity(cn)) return false;
+      }
+      // Fallback: words — but the place must WIN the title's geography.
+      // "Gymkhana, London's Michelin-starred venue, debuts NYC concept" names
+      // London first yet is a New York story: in TMW's title style the
+      // DESTINATION is the last place named ("X ... debuts in Y"), an origin
+      // qualifier loses to it. Compare END positions so a nested city name
+      // ("Palm Beach" inside "West Palm Beach") can't outrank the place
+      // itself. An excerpt-only mention loses to ANY other city in the title.
+      var tl = norm(a.title || ''), selfEnd = -1, otherEnd = -1;
+      for (i = 0; i < terms.length; i++){
+        var si = terms[i] ? tl.lastIndexOf(terms[i]) : -1;
+        if (si >= 0 && si + terms[i].length > selfEnd) selfEnd = si + terms[i].length;
+      }
+      function scanOther(nc){
+        if (!nc || family(nc)) return;
+        var oi = tl.lastIndexOf(nc);
+        if (oi >= 0 && oi + nc.length > otherEnd) otherEnd = oi + nc.length;
+      }
+      if (citySet) citySet.forEach(function(disp, nc){ scanOther(nc); });
+      for (i = 0; i < NYC_FAMILY.length; i++) scanOther(NYC_FAMILY[i]);
+      if (otherEnd > selfEnd) return false;   // another city wins the title
+      return hit(tl + ' ' + norm(a.excerpt || ''));
+    }).sort(function(a, b){ return String(b.published_iso || '').localeCompare(String(a.published_iso || '')); });
   }
 
   // Place-aware article matching state, set per query when a place is resolved.
@@ -2450,7 +2546,18 @@
   // The intel panel with the deterministic answer + DB-derived stats grid.
   // After this renders, fireSmartIntelUpgrade() may replace the sentence
   // with an LLM-written version (figures stay; only the prose softens).
-  function renderSmartIntelPanel(ans, q, immediate){
+  // Receipts for the structured-smart path. The material behind the answer is
+  // known synchronously (the ranked rows + iconic picks the LLM is fed), so the
+  // grounding line can render with the panel — the question path builds the same
+  // shape from its facts. Without this, smart-path turns ("resorts in hawaii")
+  // showed NO receipts footer at all.
+  function smartGrounding(s, rows, iconicHits){
+    var place = s.area ? s.area.name
+      : (s.cities && s.cities.length ? s.cities.join(' & ') : (s.region || null));
+    return { p: (rows || []).length, a: (iconicHits || []).length, place: place };
+  }
+
+  function renderSmartIntelPanel(ans, q, immediate, ground){
     var stats = '';
     if (ans.stats && ans.stats.length){
       stats = '<div class="tmw-ov-intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">'
@@ -2480,6 +2587,9 @@
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansCls+'" data-fallback="'+esc(ans.html)+'">'+ansHtml+'</p>'
       +   stats
+      +   '<div class="tmw-ov-intel-foot' + ((ground && (ground.p || ground.a)) ? ' has-ground' : '') + '">'
+      +     '<span class="ai">Onyx 4.1</span> · ' + _groundingLine((ground && (ground.p || ground.a)) ? 'answer' : '', ground)
+      +   '</div>'
       + '</section>';
   }
 
@@ -3222,6 +3332,13 @@
     if (!q) { setState('starter'); return; }
 
     var token = ++_renderToken;
+    // A new turn instantly invalidates any in-flight Intelligence answer from a
+    // prior turn. Without this there's a gap — the prior turn's token stays
+    // "current" until THIS turn's own fire bumps it — and a late-arriving answer
+    // for the old query passes the token guard and paints into the NEW turn's
+    // slot (the London-turn-shows-the-WPB-answer-and-receipts bug).
+    _intelToken++;
+    _qPlaceArts = null;    // never let a prior turn's place-journal set leak into this one
     _answerOnly = false;   // clear any prior analytical query; re-decided after classify
     try { sResults.setAttribute('data-answer-only', '0'); } catch (_) {}
     try { sResults.setAttribute('data-slim', '0'); } catch (_) {}   // re-decided after classify (project-list suppression)
@@ -3683,7 +3800,7 @@
 
     // Header slot carries the "understood as" chips
     var chipsHtml = renderUnderstoodChips(s);
-    var panelHtml = renderSmartIntelPanel(ans, q, !willFire);
+    var panelHtml = renderSmartIntelPanel(ans, q, !willFire, smartGrounding(s, rows, iconicHits));
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
     // Promote the top smart-filtered project to a hero card -- same rich
@@ -3725,29 +3842,47 @@
       }
       return rs[0];
     }
-    var SMART_CAP = 40, ROW_PAGE = 10;
+    var SMART_CAP = 40, ROW_PAGE = 10, GRID_PAGE = 12;
     var maxMetric = 1;
     if (s.sort && s.sort.key === 'floors') maxMetric = Math.max.apply(null, rows.map(Core.floorsOf).concat([1]));
     else if (s.sort && s.sort.key === 'units') maxMetric = Math.max.apply(null, rows.map(Core.unitsOf).concat([1]));
-    // Render a paginated project-rows section (header + first ROW_PAGE rows +
-    // the rest hidden behind a Load-more button). startRank = the first row's #.
+    // Numbered rows ONLY for a quantitative ranking ("tallest", "most units",
+    // "opening soonest") — there the rank + metric bar IS the answer. Every
+    // other project set (place/type/status browses) renders the same tile GRID
+    // the text-match path uses, so "projects coming to london" and a WPB place
+    // question look identical (tiles everywhere).
+    var rankedList = !!(s.sort && s.sort.key);
+    // Render a paginated projects section (header + first page + the rest
+    // hidden behind a Load-more button). startRank = the first row's #.
     function renderRowsSection(rowsArr, headHtml, startRank, withCredit){
       if (!rowsArr.length) return '';
       var shownR = rowsArr.slice(0, SMART_CAP);
-      var rowsH = shownR.map(function(p, i){
-        var html = renderSmartRow(p, i + startRank, s, maxMetric);
-        return i >= ROW_PAGE ? html.replace('class="tmw-ov-row ', 'class="tmw-ov-row tmw-ov-row-hidden ') : html;
-      }).join('');
-      var hc = Math.max(0, shownR.length - ROW_PAGE);
-      var mb = hc > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hc)+' more</button>' : '';
+      var listH, mb;
+      if (rankedList){
+        var rowsH = shownR.map(function(p, i){
+          var html = renderSmartRow(p, i + startRank, s, maxMetric);
+          return i >= ROW_PAGE ? html.replace('class="tmw-ov-row ', 'class="tmw-ov-row tmw-ov-row-hidden ') : html;
+        }).join('');
+        var hc = Math.max(0, shownR.length - ROW_PAGE);
+        mb = hc > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-rows">Load '+Math.min(ROW_PAGE, hc)+' more</button>' : '';
+        listH = '<div class="tmw-ov-rows">' + rowsH + '</div>';
+      } else {
+        var cardsH = shownR.map(function(p, i){
+          var html = renderProjectCard(p);
+          return i >= GRID_PAGE ? html.replace('class="tmw-ov-pcard"', 'class="tmw-ov-pcard tmw-ov-card-hidden"') : html;
+        }).join('');
+        var hcg = Math.max(0, shownR.length - GRID_PAGE);
+        mb = hcg > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-cards">Load '+Math.min(GRID_PAGE, hcg)+' more</button>' : '';
+        listH = '<div class="tmw-ov-grid">' + cardsH + '</div>';
+      }
       var ft = (rowsArr.length > SMART_CAP) ? '<div class="tmw-ov-smart-foot">Showing top '+SMART_CAP+' of '+rowsArr.length+' — refine your question to narrow it.</div>' : '';
       if (withCredit) ft += '<div class="tmw-ov-smart-foot"><span class="ai">TMW Intelligence</span> · answer synthesized from the project database · figures verified, not generated</div>';
       // Onyx Overview: a "see all N →" jumps to the full Projects tab (visible
-      // only in Overview, where the rows are capped to 3; the in-section
+      // only in Overview, where the list is capped to 3; the in-section
       // "Load more" is hidden there).
       var saMore = rowsArr.length - 3;   // Overview shows the top 3; this is the rest
       var sa = (saMore > 0) ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">'+saMore+' more projects <span aria-hidden="true">&rarr;</span></button>' : '';
-      return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + '<div class="tmw-ov-rows">' + rowsH + '</div>' + sa + mb + ft + '</div>';
+      return '<div class="tmw-ov-sec" data-cat="projects">' + headHtml + listH + sa + mb + ft + '</div>';
     }
 
     // ONE hero at a time. When the answer is iconic (the curated list), its top
@@ -3788,6 +3923,12 @@
     // Place-gate the journal to the queried state (drops a TX/FL golf piece on a
     // CA query). Only for an actual US state (stateCode set, or Florida).
     _qStateName = (s.stateCode || s.region === 'Florida') ? norm(s.region) : '';
+    // Journal for a PLACE browse ("projects coming to london") lists the place's
+    // stories geography-first — the keyword score alone let name-collision
+    // stories through ("The London", an NYC hotel; WPB golf). Same helper (and
+    // same authority) as the place-question path.
+    var _smPlace = s.area ? s.area.name : (s.cities.length === 1 ? s.cities[0] : '');
+    if (_smPlace) { try { var _smArts = articlesForPlace(_smPlace); if (_smArts.length) _qPlaceArts = _smArts; } catch(_){} }
     renderArticleSection(q, token, { suppressFallback: iconicHits.length > 0 });
 
     // LLM upgrade: replace the deterministic sentence with prose (stats stay).
@@ -3849,7 +3990,7 @@
           if (res.deep) ansEl.classList.add('deep'); else ansEl.classList.remove('deep');
           syncModelBadge(_intelSlot, !!res.deep);
           updateDeepMeta(res);
-          cacheAnswer(q, res.answer);                        // remember for instant resume
+          cacheAnswer(q, res.answer, smartGrounding(s, rows, iconicHits));   // remember (with receipts) for instant resume
           if (_turnRec) _turnRec.answer = res.answer;        // feed the next follow-up's context
         } else {
           fallback();                                        // LLM unreachable → deterministic sentence
@@ -4280,18 +4421,15 @@
             pScored = _qSet.map(function(pp, i){ return { p: pp, s: _qSet.length - i }; });
             placeDriven = true; placeName = _qName;
             // Journal tab: a place question lists ALL the place's stories
-            // (newest first) — not the few keyword matches. Same terms
-            // matching the food path uses (title + excerpt + categories).
+            // (newest first) — not the few keyword matches. Geography-first
+            // matching (articlesForPlace) so name-collision stories from other
+            // cities never pollute the tab.
             try {
-              var _qTerms = placeAliasTerms(_qName) || [];
-              if (_qTerms.length) {
-                var _qArts = ARTICLES.filter(function(a){
-                  var hay = norm((a.title || '') + ' ' + (a.excerpt || '') + ' ' + (a.categories || []).join(' '));
-                  for (var i2 = 0; i2 < _qTerms.length; i2++){ if (_qTerms[i2] && hay.indexOf(_qTerms[i2]) >= 0) return true; }
-                  return false;
-                }).sort(function(a, b){ return String(b.published_iso || '').localeCompare(String(a.published_iso || '')); });
-                if (_qArts.length > aScored.length) { aScored = _qArts.map(function(a, i){ return { a: a, s: _qArts.length - i }; }); _qPlaceArts = _qArts; }
-              }
+              // AUTHORITATIVE when non-empty (not a count contest against the
+              // keyword list): a smaller clean geography set beats a bigger
+              // polluted keyword set every time.
+              var _qArts = articlesForPlace(_qName);
+              if (_qArts.length) { aScored = _qArts.map(function(a, i){ return { a: a, s: _qArts.length - i }; }); _qPlaceArts = _qArts; }
             } catch(_){}
           }
         } catch(_){}
@@ -4625,18 +4763,29 @@
         return false;
       });
     }
-    var gridProjects = restProjects.slice(0, MAX_PROJECTS_GRID).map(function(x){ return x.p; });
+    // A full place pipeline can run 60+ projects — render up to GRID_CAP tiles
+    // with everything past the first page hidden behind a Load-more (the grid
+    // previously hard-capped at 12 with only the Overview see-all, so the
+    // Projects tab could never show the rest).
+    var GRID_CAP = 60;
+    var gridProjects = restProjects.slice(0, GRID_CAP).map(function(x){ return x.p; });
     if (gridProjects.length){
       // Section label changed from "Nearby Projects" -> "Projects" — the
       // grid wasn't geographically nearby (the rest of the result set
       // can include any matching city), so the spatial framing was
       // misleading. Count reflects the filtered set, not the raw text-
       // match total.
+      var gridHtml = gridProjects.map(function(p, gi){
+        var html = renderProjectCard(p);
+        return gi >= MAX_PROJECTS_GRID ? html.replace('class="tmw-ov-pcard"', 'class="tmw-ov-pcard tmw-ov-card-hidden"') : html;
+      }).join('');
+      var gridHidden = Math.max(0, gridProjects.length - MAX_PROJECTS_GRID);
       slotProjGrid.innerHTML = ''
         + '<div class="tmw-ov-sec" data-cat="projects">'
         +   '<div class="tmw-ov-sec-head"><h3>Projects</h3><span class="count">'+restProjects.length+(heroProject?' more':' total')+'</span></div>'
-        +   '<div class="tmw-ov-grid">' + gridProjects.map(renderProjectCard).join('') + '</div>'
+        +   '<div class="tmw-ov-grid">' + gridHtml + '</div>'
         +   (restProjects.length > 3 ? '<button class="tmw-ov-seeall" type="button" data-goto="projects">See all '+restProjects.length+' projects <span aria-hidden="true">&rarr;</span></button>' : '')
+        +   (gridHidden > 0 ? '<button class="tmw-ov-loadmore" type="button" data-action="more-cards">Load '+Math.min(MAX_PROJECTS_GRID, gridHidden)+' more</button>' : '')
         + '</div>';
     } else {
       slotProjGrid.innerHTML = '';
@@ -4800,9 +4949,11 @@
       });
       if (_tw.length) aScored = _tw;
     }
-    // Place question: the Journal tab lists ALL the place's stories (newest
-    // first, from the promo block's place-term match) — not keyword matches.
-    if (_qPlaceArts && _qPlaceArts.length > aScored.length) {
+    // Place question/browse: the Journal tab lists ALL the place's stories
+    // (newest first, geography-first via articlesForPlace) — keyword matches
+    // are ignored entirely, whatever their count: a smaller clean geography
+    // set beats a bigger polluted one.
+    if (_qPlaceArts && _qPlaceArts.length) {
       aScored = _qPlaceArts.filter(function(a){ return a !== hero; }).map(function(a, i){ return { a: a, s: _qPlaceArts.length - i }; });
     }
     var count = aScored.length + (hero ? 1 : 0);
@@ -4995,6 +5146,11 @@
     // path does this; this path didn't, so those turns never fed the LLM history.
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     var _turnCtx = _currentTurnCtx;                          // article context for THIS turn (if opened from an article)
+    // Capture THIS turn's intel slot too — `slotIntel` advances when the next
+    // turn renders, so an async answer painted into the LIVE slotIntel lands on
+    // the WRONG turn's panel (stale answer + receipts on a follow-up turn). The
+    // structured path (fireSmartIntelUpgrade) already does this.
+    var _intelSlot = slotIntel;
     // `topic` (e.g. 'food & drink') → answer from journal ARTICLES, not projects.
     // placeTerms lets the worker pull body-level matches from D1 for the place.
     var facts = attachPlaceScope((topic && Core.buildJournalFacts)
@@ -5014,7 +5170,7 @@
         // own setLive(); this is the question/concept/journal path's equivalent.)
         function _stopThinking(ok){
           try {
-            var _t = slotIntel.closest && slotIntel.closest('.tmw-ov-turn');
+            var _t = _intelSlot.closest && _intelSlot.closest('.tmw-ov-turn');
             if (!_t) return;
             _t.querySelectorAll('.live').forEach(function(l){
               if (ok) { l.classList.remove('dim'); l.innerHTML = '<i></i>Live answer'; }
@@ -5026,7 +5182,7 @@
           var _artN = 0;
           try { _artN = (facts.top || []).filter(function(t){ return t && t.status === 'Article'; }).length; } catch(_){}
           var _ground = { p: Math.max(0, (facts.count || 0)), a: _artN, place: facts.place || null };
-          slotIntel.innerHTML = intelPanelHtml('answer', q, res.answer, res.deep, _ground);
+          _intelSlot.innerHTML = intelPanelHtml('answer', q, res.answer, res.deep, _ground);
           updateDeepMeta(res);
           _stopThinking(true);
           if (_turnRec) _turnRec.answer = res.answer;   // feed the next follow-up's context
@@ -5042,10 +5198,10 @@
           // story it chose to feature over the blunt keyword-ranked one.
           if (res.hero) applyIntelHero(res.hero, res.heroDoc, q, token);
         } else if (res && res.error){
-          slotIntel.innerHTML = intelPanelHtml('error', q);
+          _intelSlot.innerHTML = intelPanelHtml('error', q);
           _stopThinking(false);
         } else {
-          slotIntel.innerHTML = intelPanelHtml('no-answer', q);
+          _intelSlot.innerHTML = intelPanelHtml('no-answer', q);
           _stopThinking(false);
         }
       });
@@ -5380,6 +5536,21 @@
         var left = sec.querySelectorAll('.tmw-ov-row.tmw-ov-row-hidden').length;
         if (left > 0) moreRows.textContent = 'Load ' + Math.min(ROW_PAGE, left) + ' more';
         else moreRows.remove();
+      }
+      return;
+    }
+    // Load-more for project TILES (the grid mirror of more-rows above).
+    var moreCards = e.target.closest && e.target.closest('[data-action="more-cards"]');
+    if (moreCards) {
+      e.preventDefault();
+      var csec = moreCards.closest('.tmw-ov-sec');
+      if (csec) {
+        var chidden = csec.querySelectorAll('.tmw-ov-pcard.tmw-ov-card-hidden');
+        var CARD_PAGE = 12;
+        for (var ci = 0; ci < Math.min(CARD_PAGE, chidden.length); ci++) chidden[ci].classList.remove('tmw-ov-card-hidden');
+        var cleft = csec.querySelectorAll('.tmw-ov-pcard.tmw-ov-card-hidden').length;
+        if (cleft > 0) moreCards.textContent = 'Load ' + Math.min(CARD_PAGE, cleft) + ' more';
+        else moreCards.remove();
       }
       return;
     }
