@@ -16043,13 +16043,11 @@
         // umbrella (e.g. The Nora Hotel \u2192 The Nora District). Reuses the
         // same .grid-parent-chip style for visual consistency with cards.
         (() => {
+          // Parent-district chip removed from the top of the panel \u2014 the same
+          // "Part of \u2026 \u2192 see master plan" link lives in the TMW Intelligence box
+          // below, so this top chip was a duplicate.
           const row = document.getElementById('pmParentChipRow');
-          if (!row) return;
-          const ps = (p.parentSlug || '').trim();
-          if (!ps) { row.hidden = true; row.innerHTML = ''; return; }
-          const name = window._parentDisplayName ? window._parentDisplayName(ps) : ps;
-          row.hidden = false;
-          row.innerHTML = `<a class="grid-parent-chip" onclick="event.stopPropagation();window._openDistrictBySlug&&window._openDistrictBySlug('${ps}');">Part of ${name.replace(/'/g,'&#39;')} \u2192</a>`;
+          if (row) { row.hidden = true; row.innerHTML = ''; }
         })();
 
         // Configuration & phasing block — render between subtitle and
@@ -20141,8 +20139,9 @@
     // so closing tabs / opening incognito doesn't reset it.
     // ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
     (function() {
-      const ANON_CLICK_LIMIT = 5;        // before email signup wall
-      const FREE_MEMBER_CLICK_LIMIT = 12; // 5 anon + 7 after signup, then subscription paywall
+      const ANON_CLICK_LIMIT = 5;        // anon: lifetime project opens before the signup wall
+      const FREE_MEMBER_CLICK_LIMIT = 12; // (legacy, retained for reference)
+      const FREE_MEMBER_DAILY_LIMIT = 10; // signed-in FREE: project opens PER DAY, then the trial paywall
       const STORAGE_KEY = 'mot_click_count';
       // Local cache of auth state so we can gate clicks during the brief window
       // before Memberstack finishes loading on page load. Without these, a signed-in
@@ -20192,6 +20191,11 @@
       function clearAnonClicks() {
         localStorage.removeItem(STORAGE_KEY);
       }
+      // Signed-in FREE members get FREE_MEMBER_DAILY_LIMIT project opens per DAY.
+      // Per-browser, keyed by date so it resets at local midnight.
+      function freeDayKey() { try { return 'mot_free_day_' + new Date().toISOString().slice(0, 10); } catch (e) { return 'mot_free_day'; } }
+      function getFreeDayCount() { try { return parseInt(localStorage.getItem(freeDayKey()) || '0', 10) || 0; } catch (e) { return 0; } }
+      function incFreeDayCount() { try { localStorage.setItem(freeDayKey(), String(getFreeDayCount() + 1)); } catch (e) {} }
 
       // ‚îÄ‚îÄ‚îÄ Auth hint cache (lets us gate clicks before Memberstack loads) ‚îÄ‚îÄ‚îÄ
       function getAuthHint() {
@@ -20636,7 +20640,7 @@
               <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
             </div>
             <h2 class="paywall-title">Keep exploring</h2>
-            <p class="paywall-subtitle">You've previewed ${ANON_CLICK_LIMIT} projects. Sign up free to unlock ${FREE_MEMBER_CLICK_LIMIT - ANON_CLICK_LIMIT} more &mdash; no credit card required.</p>
+            <p class="paywall-subtitle">You've previewed ${ANON_CLICK_LIMIT} projects. Sign up free to keep exploring &mdash; no credit card required.</p>
             <button class="paywall-cta-primary" id="signupWallSignupBtn">
               Sign up free
             </button>
@@ -20706,8 +20710,7 @@
             subEl.textContent = 'Sign up free to send any development to your network.';
           } else {
             titleEl.textContent = 'Keep exploring';
-            subEl.textContent = "You've previewed " + ANON_CLICK_LIMIT + " projects. Sign up free to unlock " +
-              (FREE_MEMBER_CLICK_LIMIT - ANON_CLICK_LIMIT) + " more — no credit card required.";
+            subEl.textContent = "You've previewed " + ANON_CLICK_LIMIT + " projects. Sign up free to keep exploring — no credit card required.";
           }
         }
         if (window.gtag) gtag('event', 'signup_wall_shown', {
@@ -22386,11 +22389,16 @@
         // returning Pro whose live auth hasn't resolved (Safari ITP) is never gated.
         if (isPaidMember) return true;
         if (!authResolved || getAuthHint() === 'paid' || sharedProHint()) return true;
-        // SIGNED-IN FREE members: opening a project is FREE (unlimited). The Pro
-        // nudge lives on features + soft prompts, NOT on viewing — gating a
-        // signed-in member's views is exactly what made the map read as broken, so
-        // we never do it here.
-        if (isSignedIn) return true;
+        // SIGNED-IN FREE members: FREE_MEMBER_DAILY_LIMIT (10) project opens per
+        // DAY, then the soft (dismissible) trial paywall — which re-prompts on the
+        // next open. This is a per-day nudge to go Pro, not a hard lock: browsing
+        // the map is always free, and the paywall is always a VISIBLE modal (never
+        // a silent false into a blank map).
+        if (isSignedIn) {
+          if (getFreeDayCount() < FREE_MEMBER_DAILY_LIMIT) { incFreeDayCount(); return true; }
+          showSubscriptionPaywall('trial_ended');
+          return false;
+        }
         // ANONYMOUS visitors: ANON_CLICK_LIMIT (5) free project opens, then a hard
         // account wall. CRITICAL SAFETY RULE: when we block, we ALWAYS surface a
         // VISIBLE modal (showSignupWall) and never silently return false into a

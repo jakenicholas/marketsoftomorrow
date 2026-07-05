@@ -168,9 +168,17 @@
       document.documentElement.style.overflow = '';
       setTimeout(function () { try { modal.remove(); } catch (e) {} }, 250);
     }
-    modal.querySelector('.tmwc-backdrop').addEventListener('click', close);
-    modal.querySelector('.tmwc-close').addEventListener('click', close);
-    modal.querySelector('.tmwc-later').addEventListener('click', close);
+    // Dismissing the welcome (X / backdrop / "Explore for now") RELOADS the current
+    // page. The account was just created, so a reload hands the user a clean
+    // logged-in state — recurring signup/paywall popups stop, the account UI
+    // populates — and lands them right back where they were (same URL, same map
+    // spot via ?project=). Falls back to a plain close if reload is unavailable.
+    function dismissAndRefresh() {
+      try { window.location.reload(); } catch (e) { close(); }
+    }
+    modal.querySelector('.tmwc-backdrop').addEventListener('click', dismissAndRefresh);
+    modal.querySelector('.tmwc-close').addEventListener('click', dismissAndRefresh);
+    modal.querySelector('.tmwc-later').addEventListener('click', dismissAndRefresh);
     modal.querySelector('.tmwc-cta').addEventListener('click', function () {
       close();
       try { if (window.gtag) gtag('event', 'welcome_go_pro_clicked', { surface: 'journal' }); } catch (e) {}
