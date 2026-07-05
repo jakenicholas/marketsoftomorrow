@@ -4316,11 +4316,64 @@
             });
             intelProjects = intelProjects.slice(0, 5);
           } else {
-            intelProjects = pScored.slice(0, 5).map(function(x){ return x.p; });
+            // A QUESTION that names a place ("tell me about the construction
+            // pipeline in west palm beach", "what's happening in brickell") must
+            // be grounded in the PLACE'S pipeline — not the handful of
+            // keyword-scored matches — or the answer (and its receipts) see 5
+            // projects where the city has 60. The analytical override skips the
+            // structured RENDER path, so reuse the parse/resolvers for SCOPE.
+            var _placeSet = null;
+            try {
+              var sPl = Core.parseSmartQuery ? Core.parseSmartQuery(q, { projects: PROJECTS, firms: FIRMS || [] }) : null;
+              if (sPl && (sPl.area || (sPl.cities && sPl.cities.length))) {
+                _placeSet = Core.smartRank(Core.smartFilter(sPl, PROJECTS) || [], sPl);
+                intelPlace = sPl.area ? sPl.area.name : sPl.cities.join(' & ');
+                // The parse may carry status/type narrowing ("construction" →
+                // Under Construction, 13 of WPB's 60). Good lead ordering — but
+                // an overview answer wants the WHOLE pipeline behind it, so top
+                // up with the rest of the place's projects after the narrowed set.
+                if (_placeSet.length && _placeSet.length < 25) {
+                  var sAll = Core.parseSmartQuery(intelPlace, { projects: PROJECTS, firms: [] });
+                  if (sAll) {
+                    var _seen = {}; _placeSet.forEach(function(pp){ _seen[pp.Title] = 1; });
+                    (Core.smartRank(Core.smartFilter(sAll, PROJECTS) || [], sAll)).forEach(function(pp){
+                      if (!_seen[pp.Title]) { _placeSet.push(pp); _seen[pp.Title] = 1; }
+                    });
+                  }
+                }
+              }
+              if (!_placeSet || !_placeSet.length) {
+                // Neighborhood or place named mid-sentence ("what's happening in
+                // brickell right now") — vocab scan, then neighborhood → parent city.
+                var rp = Core.resolvePlace ? Core.resolvePlace(q, PROJECTS) : null;
+                if (rp && rp.name) {
+                  var sName = Core.parseSmartQuery(rp.name, { projects: PROJECTS, firms: [] });
+                  if (sName) {
+                    _placeSet = Core.smartRank(Core.smartFilter(sName, PROJECTS) || [], sName);
+                    intelPlace = rp.name;
+                  } else if (Core.detectNeighborhood) {
+                    var nbq = Core.detectNeighborhood(rp.name, PROJECTS);
+                    if (nbq && nbq.city) { _placeSet = PROJECTS.filter(inCity(nbq.city)); intelPlace = nbq.city; }
+                  }
+                }
+              }
+            } catch(_){ _placeSet = null; }
+            if (_placeSet && _placeSet.length) {
+              intelProjects = _placeSet.slice(0, 60);
+            } else {
+              intelProjects = pScored.slice(0, 5).map(function(x){ return x.p; });
+              intelPlace = null;
+            }
           }
           // Food queries already fired (journal facts) inside the branch above.
           if (!foodIntent) {
-            fireIntelligence(q, intelProjects, aScored.slice(0,3).map(function(x){ return x.a; }), nycPlace(intelPlace), null, token);
+            // Among the top keyword-scored articles, prefer the NEWEST for the
+            // answer's context — a year-old top-off story shouldn't headline a
+            // "what's happening now" answer just because it scores highest.
+            var _recentArts = aScored.slice(0, 8).map(function(x){ return x.a; })
+              .sort(function(a, b){ return String(b.published_iso || '').localeCompare(String(a.published_iso || '')); })
+              .slice(0, 3);
+            fireIntelligence(q, intelProjects, _recentArts, nycPlace(intelPlace), null, token);
           }
         } else if (Core){
           slotIntel.innerHTML = intelLoadingHtml(q);
@@ -4768,7 +4821,13 @@
   function appendArticles(){
     var listEl = slotArticles.querySelector('.tmw-ov-alist');
     if (!listEl) return;
-    var batch = _articlesAll.slice(_articlesShown, _articlesShown + ARTICLES_BATCH);
+    // End every paint on a COMPLETE row while more stories remain — a lone
+    // card on the last row reads as "that's the end" when it isn't.
+    var _cols = 3;
+    try { _cols = (getComputedStyle(listEl).gridTemplateColumns || '').split(' ').filter(Boolean).length || 3; } catch(_){}
+    var _want = _articlesShown + ARTICLES_BATCH;
+    if (_want < _articlesAll.length && _cols > 1 && (_want % _cols)) _want -= (_want % _cols);
+    var batch = _articlesAll.slice(_articlesShown, Math.max(_articlesShown + 1, _want));
     if (!batch.length) return;
     listEl.insertAdjacentHTML('beforeend', batch.map(renderArticleCard).join(''));
     _articlesShown += batch.length;
