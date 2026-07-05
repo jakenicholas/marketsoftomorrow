@@ -4239,6 +4239,45 @@
       // synthesize -- a single isolated project becomes the existing
       // hero card and doesn't need a synthesized sentence).
       var cityHit = cityQuery;
+      // ── Analytical questions that NAME a place render as a PLACE BROWSE ──
+      // "tell me about the construction pipeline in west palm beach" was
+      // keyword-scored: Projects tab said 1 (of WPB's 60) and a stale article
+      // took the hero. Resolve the place from the question, promote its full
+      // spine-ranked pipeline into the result set, and flip placeDriven so the
+      // hero policy leads with the answer + project cards, not an old article.
+      if (question && !placeDriven && !areaHit && !cityHit && !foodIntent){
+        try {
+          var _qs = Core.parseSmartQuery ? Core.parseSmartQuery(q, { projects: PROJECTS, firms: FIRMS || [] }) : null;
+          var _qName = null, _qSet = null;
+          if (_qs && (_qs.area || (_qs.cities && _qs.cities.length))) {
+            _qName = _qs.area ? _qs.area.name : _qs.cities.join(' & ');
+            _qSet = Core.smartRank(Core.smartFilter(_qs, PROJECTS) || [], _qs);
+            if (_qSet.length && _qSet.length < 25) {          // top thin status/type cuts up to the whole pipeline
+              var _qAll = Core.parseSmartQuery(_qName, { projects: PROJECTS, firms: [] });
+              if (_qAll) {
+                var _qSeen = {}; _qSet.forEach(function(pp){ _qSeen[pp.Title] = 1; });
+                (Core.smartRank(Core.smartFilter(_qAll, PROJECTS) || [], _qAll)).forEach(function(pp){
+                  if (!_qSeen[pp.Title]) { _qSet.push(pp); _qSeen[pp.Title] = 1; }
+                });
+              }
+            }
+          } else if (Core.resolvePlace) {                     // place/neighborhood named mid-sentence
+            var _qrp = Core.resolvePlace(q, PROJECTS);
+            if (_qrp && _qrp.name) {
+              var _qsn = Core.parseSmartQuery(_qrp.name, { projects: PROJECTS, firms: [] });
+              if (_qsn) { _qSet = Core.smartRank(Core.smartFilter(_qsn, PROJECTS) || [], _qsn); _qName = _qrp.name; }
+              else if (Core.detectNeighborhood) {
+                var _qnb = Core.detectNeighborhood(_qrp.name, PROJECTS);
+                if (_qnb && _qnb.city) { _qSet = PROJECTS.filter(inCity(_qnb.city)); _qName = _qnb.city; }
+              }
+            }
+          }
+          if (_qSet && _qSet.length > pScored.length) {
+            pScored = _qSet.map(function(pp, i){ return { p: pp, s: _qSet.length - i }; });
+            placeDriven = true; placeName = _qName;
+          }
+        } catch(_){}
+      }
       // GUARDRAIL: a county/parish/borough named but uncovered (and it isn't a
       // city/region/firm we know either) → answer honestly instead of dumping
       // unrelated results.
@@ -4296,7 +4335,9 @@
             // Place query at any level → the LLM leads with the SAME spine-ranked
             // set the grid + hero show (pScored is already the place set, ranked).
             // Top of the list first so the prose opens on the hero (Nora, etc.).
-            intelProjects = pScored.slice(0, 8).map(function(x){ return x.p; });
+            // Feed the FULL place set (facts caps its own detail rows; count =
+            // everything), so the answer + receipts reflect the real pipeline.
+            intelProjects = pScored.slice(0, 60).map(function(x){ return x.p; });
             intelPlace = placeName;
           } else if (areaHit) {
             // County/metro project overview — every project inside the bbox.
