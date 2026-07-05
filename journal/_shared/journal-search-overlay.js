@@ -4272,7 +4272,10 @@
               }
             }
           }
-          if (_qSet && _qSet.length > pScored.length) {
+          // The place set is AUTHORITATIVE scope for a place question — loose
+          // keyword scoring can "match" hundreds of projects on words like
+          // "development"/"west", so never compare sizes against it.
+          if (_qSet && _qSet.length >= 3) {
             pScored = _qSet.map(function(pp, i){ return { p: pp, s: _qSet.length - i }; });
             placeDriven = true; placeName = _qName;
           }
