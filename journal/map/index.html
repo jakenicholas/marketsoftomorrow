@@ -3239,9 +3239,14 @@
        always readable, even with the bottom sheet visible. */
     .mapboxgl-popup { z-index: 2100; }
     .mapboxgl-popup-content {
-      background: rgba(20,20,20,0.8) !important;
+      /* SOLID, not frosted: a translucent bg (rgba .8) + backdrop-filter blur
+         reads as solid when the map is still, but on iOS WebKit the
+         backdrop-filter drops out while the map flies/pans — so the moving map
+         shows through the popup until it settles (~1s), then snaps opaque. An
+         opaque bg with no backdrop-filter stays solid at every frame. */
+      background: #141414 !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      border-radius: 12px; backdrop-filter: blur(12px);
+      border-radius: 12px;
       color: #fff; padding: 16px; font-size: 16px;
       width: 350px !important; overflow: visible !important;
     }
