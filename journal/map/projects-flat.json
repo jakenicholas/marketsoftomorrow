@@ -11972,7 +11972,7 @@
     "Delivery": "Announced",
     "DeliveryDate": "2028",
     "StartDate": "2026-11",
-    "ProjectType": "Mixed-Use, Residences, Retail, Hotel, Office",
+    "ProjectType": "Residences, Office, Retail, Hotel, Entertainment, Mixed-Use",
     "PreferredType": "Mixed-Use",
     "Architect": "Marcel Breuer, CP Group renovation",
     "ArchitectSlugs": "marcel-breuer, cp-group-renovation",
@@ -11988,8 +11988,8 @@
     "Keys": "140",
     "Units": "1243",
     "Floors": "",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "2000000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -11998,7 +11998,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:21:31.352Z",
+    "UpdatedAt": "2026-07-05T17:20:56.055Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:37:32.011Z",
@@ -12029,6 +12029,37 @@
           "Retail",
           "Hotel",
           "Office"
+        ]
+      },
+      {
+        "at": "2026-07-05T17:20:56.055Z",
+        "source_url": "https://www.terragroup.com/media-press/nearly-1200-new-boca-raton-residences-with-a-retail-village-of-shops-and-dining-will-be-done-in-phases",
+        "note": "Mixed-use master plan: up to 1,243 res units + 125k retail + 85k medical office + 55k entertainment + 140-key hotel on 124 ac; GFA estimated; keys 140; reclassified Mixed-Use per Terra Group/Boca Magazine",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 2000000
+      },
+      {
+        "at": "2026-07-05T17:20:56.055Z",
+        "source_url": "https://www.terragroup.com/media-press/nearly-1200-new-boca-raton-residences-with-a-retail-village-of-shops-and-dining-will-be-done-in-phases",
+        "note": "Mixed-use master plan: up to 1,243 res units + 125k retail + 85k medical office + 55k entertainment + 140-key hotel on 124 ac; GFA estimated; keys 140; reclassified Mixed-Use per Terra Group/Boca Magazine",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Mixed-Use",
+          "Residences",
+          "Retail",
+          "Hotel",
+          "Office"
+        ],
+        "to": [
+          "Residences",
+          "Office",
+          "Retail",
+          "Hotel",
+          "Entertainment",
+          "Mixed-Use"
         ]
       }
     ],
@@ -13831,9 +13862,9 @@
     "DescriptionLong": "Next phase of a 56‑acre waterfront district adding new residences, offices, hotels, retail, and WELL‑certified public realm.",
     "Delivery": "Under Construction",
     "DeliveryDate": "2027",
-    "StartDate": "2025",
-    "ProjectType": "Entertainment, Office, Hotel, Residences, Retail",
-    "PreferredType": "Entertainment",
+    "StartDate": "2025-05-20",
+    "ProjectType": "Residences, Office, Hotel, Entertainment, Retail, Mixed-Use",
+    "PreferredType": "Mixed-Use",
     "Architect": "Gensler",
     "ArchitectSlugs": "gensler",
     "Developer": "Strategic Property Partners",
@@ -13858,7 +13889,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:22:43.126Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:38:27.154Z",
@@ -13868,6 +13899,58 @@
         "field": "neighborhood",
         "from": null,
         "to": "Water Street"
+      },
+      {
+        "at": "2026-07-05T17:21:00.151Z",
+        "source_url": "https://www.costar.com/article/1538242982/phase-ii-of-water-street-is-under-construction-in-tampa-florida",
+        "source_published": "2025-05-20",
+        "note": "Phase Two broke ground 2025-05-20 (CoStar confirms under construction): tallest tower (Gensler condos) + trophy office + entertainment/hotel district + 1-ac park; Downtown Tampa/Water Street; reclassified Mixed-Use",
+        "type": "date",
+        "field": "start_date",
+        "from": "2025",
+        "to": "2025-05-20"
+      },
+      {
+        "at": "2026-07-05T17:21:00.151Z",
+        "source_url": "https://www.costar.com/article/1538242982/phase-ii-of-water-street-is-under-construction-in-tampa-florida",
+        "source_published": "2025-05-20",
+        "note": "Phase Two broke ground 2025-05-20 (CoStar confirms under construction): tallest tower (Gensler condos) + trophy office + entertainment/hotel district + 1-ac park; Downtown Tampa/Water Street; reclassified Mixed-Use",
+        "type": "field",
+        "field": "types",
+        "from": [
+          "Entertainment",
+          "Office",
+          "Hotel",
+          "Residences",
+          "Retail"
+        ],
+        "to": [
+          "Residences",
+          "Office",
+          "Hotel",
+          "Entertainment",
+          "Retail",
+          "Mixed-Use"
+        ]
+      },
+      {
+        "at": "2026-07-05T17:21:00.151Z",
+        "source_url": "https://www.costar.com/article/1538242982/phase-ii-of-water-street-is-under-construction-in-tampa-florida",
+        "source_published": "2025-05-20",
+        "note": "Phase Two broke ground 2025-05-20 (CoStar confirms under construction): tallest tower (Gensler condos) + trophy office + entertainment/hotel district + 1-ac park; Downtown Tampa/Water Street; reclassified Mixed-Use",
+        "type": "field",
+        "field": "preferred_type",
+        "from": "Entertainment",
+        "to": "Mixed-Use"
+      },
+      {
+        "at": "2026-07-05T17:22:43.126Z",
+        "source_url": "https://tbbwmag.com/2024/04/29/spp-unveils-plans-for-new-office-and-residential-towers-in-water-street-tampa-renderings/",
+        "source_published": "2024-04-29",
+        "note": "SPP unveils Water Street Phase Two — new office and residential towers extending the district north",
+        "type": "backfill",
+        "to": "announced",
+        "effective_date": "2024-04"
       }
     ],
     "County": "Hillsborough County",
@@ -24475,8 +24558,8 @@
     "Keys": "",
     "Units": "369",
     "Floors": "16",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "466785",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -24485,7 +24568,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:20:44.017Z",
     "StatusHistory": [
       {
         "at": "2026-06-16T20:52:39.233Z",
@@ -24504,6 +24587,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "Northwood"
+      },
+      {
+        "at": "2026-07-05T17:20:44.017Z",
+        "source_url": "https://therealdeal.com/miami/2024/01/12/savanna-proposes-second-west-palm-beach-resi-tower/",
+        "source_published": "2024-01-12",
+        "note": "GFA estimated from 369 units (16 floors, +7,600 sf retail) per The Real Deal. Note: $380M loan reported elsewhere is Savanna's OLARA (1919 N Flagler), NOT this project",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 466785
       }
     ],
     "County": "Palm Beach County",
@@ -24685,8 +24778,8 @@
     "Keys": "",
     "Units": "",
     "Floors": "",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "231000",
+    "GfaSource": "stated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -24695,7 +24788,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:20:28.546Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:11:39.265Z",
@@ -24706,6 +24799,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "SoSo"
+      },
+      {
+        "at": "2026-07-05T17:20:28.546Z",
+        "source_url": "https://commercialobserver.com/2026/02/west-palm-beach-norton-museum-florida-expansion/",
+        "source_published": "2026-02-01",
+        "note": "Total campus ~231,000 sf after expansion (~100k sf addition) per Commercial Observer; City Commission approved 2026-03-31",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 231000
       }
     ],
     "County": "Palm Beach County",
@@ -26567,7 +26670,7 @@
     "DescriptionLong": "Pagani Residences is the world's first branded residential project from Italian hypercar maker Pagani, rising as a 30-story, 70-unit luxury waterfront condominium tower at 7940 West Drive on Harbor Island in North Bay Village, Miami. Developed by Riviera Horizons in collaboration with Pagani and the Pagani Arte design studio, with architecture by A++, the boutique tower offers only four all-corner residences per floor, each framing panoramic views of Biscayne Bay and the Atlantic. Interiors carry Pagani's signature blend of artisan craftsmanship and aerospace-grade detailing, complemented by expansive private terraces and double-height penthouses. Amenities include a rooftop pool with 360-degree views, a top-floor wellness and spa level, a private marina, a 240-foot waterfront boardwalk, and yacht- and beach-club access, with an automotive concierge program rounding out a lifestyle aimed squarely at collectors.",
     "Delivery": "Under Construction",
     "DeliveryDate": "2027",
-    "StartDate": "2026-05-15",
+    "StartDate": "2026-05-19",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "Revuelta Architecture International",
@@ -26584,8 +26687,8 @@
     "Keys": "",
     "Units": "70",
     "Floors": "30",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "600000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -26594,7 +26697,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:15:12.147Z",
+    "UpdatedAt": "2026-07-05T17:15:28.755Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:02:53.690Z",
@@ -26681,6 +26784,35 @@
         "field": "neighborhood",
         "from": "Harbor Island",
         "to": "North Bay Village"
+      },
+      {
+        "at": "2026-07-05T17:15:20.392Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2026/5/19/riviera-horizons-breaks-ground-on-pagani-residences-in-miamis-north-bay-village",
+        "source_published": "2026-05-19",
+        "note": "Refine construction start to 2026-05-19 groundbreaking (Riviera Horizons) per PROFILEmiami; GFA estimated from 30 floors; Harbor Island, North Bay Village",
+        "type": "date",
+        "field": "start_date",
+        "from": "2026-05-15",
+        "to": "2026-05-19"
+      },
+      {
+        "at": "2026-07-05T17:15:20.392Z",
+        "source_url": "https://profilemiamire.com/miamirealestate/2026/5/19/riviera-horizons-breaks-ground-on-pagani-residences-in-miamis-north-bay-village",
+        "source_published": "2026-05-19",
+        "note": "Refine construction start to 2026-05-19 groundbreaking (Riviera Horizons) per PROFILEmiami; GFA estimated from 30 floors; Harbor Island, North Bay Village",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 600000
+      },
+      {
+        "at": "2026-07-05T17:15:28.755Z",
+        "source_url": "https://www.businesswire.com/news/home/20251127850533/en/Pagani-Unveils-Exclusive-Penthouse-Project-in-Miami",
+        "source_published": "2025-11-27",
+        "note": "Sales launched — Pagani unveils record penthouses ($28.5M–$30M, each w/ bespoke Utopia Roadster) per BusinessWire/Robb Report",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2025-11-27"
       }
     ],
     "County": "Miami-Dade County",
@@ -30207,7 +30339,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:20:55.608Z",
+    "UpdatedAt": "2026-07-05T17:22:30.377Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:38:23.494Z",
@@ -30222,6 +30354,15 @@
         "at": "2026-07-02T13:20:55.608Z",
         "source_url": "https://commercialobserver.com/2026/05/stephen-related-ross-west-palm-beach/",
         "note": "Related Ross paid $55M to buy into the development partnership",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-05"
+      },
+      {
+        "at": "2026-07-05T17:22:30.377Z",
+        "source_url": "https://commercialobserver.com/2026/05/stephen-related-ross-west-palm-beach/",
+        "source_published": "2026-05-14",
+        "note": "Related Ross paid $55M for the full downtown block and joined the JV (with 13th Floor, Wexford, L&L) per Commercial Observer",
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2026-05"
@@ -32203,8 +32344,8 @@
     "Keys": "",
     "Units": "600",
     "Floors": "55",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "1100000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -32213,7 +32354,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:10:40.816Z",
+    "UpdatedAt": "2026-07-05T17:22:39.555Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:34:02.363Z",
@@ -32308,6 +32449,34 @@
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "2026-03"
+      },
+      {
+        "at": "2026-07-05T17:21:24.650Z",
+        "source_url": "https://newyorkyimby.com/2026/03/55-story-skyscraper-readies-for-vertical-construction-at-24-19-jackson-avenue-in-long-island-city-queens.html",
+        "source_published": "2026-03-01",
+        "note": "GFA estimated from 55 floors / 600 units (676 ft); Court Square, Long Island City per NY YIMBY",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 1100000
+      },
+      {
+        "at": "2026-07-05T17:22:34.224Z",
+        "source_url": "https://qns.com/2025/11/construction-skyscraper-600-condo-retail-lic/",
+        "source_published": "2025-11-01",
+        "note": "Chelsea Piers Fitness signed for a 72,000-sf podium club (pool, basketball court, running track) per QNS/NY YIMBY",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2025-11"
+      },
+      {
+        "at": "2026-07-05T17:22:39.555Z",
+        "source_url": "https://newyorkyimby.com/2026/03/55-story-skyscraper-readies-for-vertical-construction-at-24-19-jackson-avenue-in-long-island-city-queens.html",
+        "source_published": "2026-03-01",
+        "note": "Foundations complete, superstructure rising per NY YIMBY (Mar 2026 'readies for vertical construction')",
+        "type": "milestone",
+        "phase": "going-vertical",
+        "effective_date": "Spring 2026"
       }
     ],
     "County": "Queens County",
@@ -32816,8 +32985,8 @@
     "Keys": "",
     "Units": "",
     "Floors": "4",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "80000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -32826,7 +32995,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:21:37.122Z",
+    "UpdatedAt": "2026-07-05T17:20:48.301Z",
     "StatusHistory": [
       {
         "at": "2026-06-16T20:52:45.839Z",
@@ -32854,6 +33023,16 @@
         "field": "floors",
         "from": null,
         "to": 4
+      },
+      {
+        "at": "2026-07-05T17:20:48.301Z",
+        "source_url": "https://therealdeal.com/miami/2026/05/28/jeff-greene-plans-live-local-act-project-in-west-palm-beach/",
+        "source_published": "2026-05-28",
+        "note": "GFA estimated from 4-story mass-timber expansion (WPB approved mass timber ~2026-05); do not reuse the ~20k sf original school figure",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 80000
       }
     ],
     "County": "Palm Beach County",
@@ -33085,8 +33264,8 @@
     "Keys": "",
     "Units": "151",
     "Floors": "7",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "191015",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -33095,7 +33274,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:20:33.082Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:58:30.618Z",
@@ -33105,6 +33284,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "Northwood"
+      },
+      {
+        "at": "2026-07-05T17:20:33.082Z",
+        "source_url": "https://therealdeal.com/miami/2026/03/25/procida-cos-proposes-west-palm-beach-affordable-housing/",
+        "source_published": "2026-03-25",
+        "note": "GFA estimated from 151 units (7 floors, +5k sf retail); Northwood/Broadway corridor per The Real Deal",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 191015
       }
     ],
     "County": "Palm Beach County",
@@ -33240,8 +33429,8 @@
     "Keys": "",
     "Units": "238",
     "Floors": "18",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "360000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -33250,7 +33439,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:15:03.806Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:34:23.183Z",
@@ -33356,6 +33545,16 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-09-15"
+      },
+      {
+        "at": "2026-07-05T17:15:03.806Z",
+        "source_url": "https://floridayimby.com/2025/09/238-unit-gaia-residences-set-for-401-north-federal-highway-hollywood-florida.html",
+        "source_published": "2025-09-01",
+        "note": "GFA estimated from 18 floors (tower); neighborhood Downtown Hollywood per Florida YIMBY (401 N Federal Hwy)",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 360000
       }
     ],
     "County": "Broward County",
@@ -34160,7 +34359,7 @@
     "DescriptionLong": "Stephen Ross and the city of West of Palm Beach have been working on moving a stretch of Flagler Drive to turn the waterfront area into an expanse of lawn like a \"Central Park.\"",
     "Delivery": "Announced",
     "DeliveryDate": "TBD",
-    "StartDate": "2025-05-06",
+    "StartDate": "",
     "ProjectType": "Park, Entertainment",
     "PreferredType": "Park",
     "Architect": "OJB Landscape Architecture",
@@ -34187,7 +34386,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:20:36.782Z",
     "StatusHistory": [
       {
         "at": "2026-06-16T20:52:42.485Z",
@@ -34206,6 +34405,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "Downtown West Palm Beach"
+      },
+      {
+        "at": "2026-07-05T17:20:36.782Z",
+        "source_url": "https://hoodline.com/2026/04/west-palm-beach-waterfront-showdown-mayor-shoots-down-eminent-domain-talk/",
+        "note": "Project still announced/paused (eminent-domain dispute, 2026-04) — recorded 2025 construction start is impossible for an un-started, paused park; cleared. Downtown WPB waterfront (Flagler Dr, Fern–Clematis)",
+        "type": "date",
+        "field": "start_date",
+        "from": "2025-05-06",
+        "to": null,
+        "correction": true
       }
     ],
     "County": "Palm Beach County",
@@ -35666,7 +35875,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:20:18.464Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T13:07:40.152Z",
@@ -36359,7 +36568,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:20:40.174Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:35:13.491Z",
@@ -39261,7 +39470,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:35:16.353Z",
@@ -39798,7 +40007,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:58:34.591Z",
@@ -41091,7 +41300,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:20:59.767Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:00:28.453Z",
@@ -41707,8 +41916,8 @@
     "Keys": "40",
     "Units": "16",
     "Floors": "2",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "120000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -41717,7 +41926,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:21:07.873Z",
+    "UpdatedAt": "2026-07-05T17:22:47.411Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:58:08.484Z",
@@ -41808,6 +42017,44 @@
         "field": "neighborhood",
         "from": "Ambergris Caye",
         "to": "Emerald Caye"
+      },
+      {
+        "at": "2026-07-05T17:21:51.077Z",
+        "source_url": "https://www.forbes.com/sites/emmakershaw/2026/03/31/six-senses-residences-belize-launches-sales-for-overwater-villas-starting-at-375-million/",
+        "source_published": "2026-03-31",
+        "note": "16 residences (2,500–5,000 sf) + 40-key overwater bungalow resort on Emerald Caye off Ambergris Caye; keys 40; GFA estimated per Forbes/Premier Construction News",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 120000
+      },
+      {
+        "at": "2026-07-05T17:21:51.077Z",
+        "source_url": "https://www.forbes.com/sites/emmakershaw/2026/03/31/six-senses-residences-belize-launches-sales-for-overwater-villas-starting-at-375-million/",
+        "source_published": "2026-03-31",
+        "note": "16 residences (2,500–5,000 sf) + 40-key overwater bungalow resort on Emerald Caye off Ambergris Caye; keys 40; GFA estimated per Forbes/Premier Construction News",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Emerald Caye",
+        "to": "Ambergris Caye"
+      },
+      {
+        "at": "2026-07-05T17:22:06.438Z",
+        "source_url": "https://premierconstructionnews.com/2026/02/23/belize-welcomes-six-senses-residences-to-the-shores-of-ambergris-caye/",
+        "note": "Restore more-specific neighborhood Emerald Caye (private island off Ambergris Caye) — do not vaguen",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Ambergris Caye",
+        "to": "Emerald Caye"
+      },
+      {
+        "at": "2026-07-05T17:22:47.411Z",
+        "source_url": "https://www.forbes.com/sites/emmakershaw/2026/03/31/six-senses-residences-belize-launches-sales-for-overwater-villas-starting-at-375-million/",
+        "source_published": "2026-03-31",
+        "note": "Sales launched — overwater/beach residences from $3.75M per Forbes/Globetrender",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2026-03-31"
       }
     ],
     "County": "",
@@ -42085,7 +42332,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:58:37.634Z",
@@ -45861,8 +46108,8 @@
     "Keys": "",
     "Units": "242",
     "Floors": "12",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "306130",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -45871,7 +46118,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:20:31.340Z",
+    "UpdatedAt": "2026-07-05T17:15:24.652Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T19:13:54.421Z",
@@ -45916,6 +46163,16 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2026-02"
+      },
+      {
+        "at": "2026-07-05T17:15:24.652Z",
+        "source_url": "https://floridayimby.com/2025/11/alta-development-plans-vista-harbor-residences-yacht-club-for-555-nw-s-river-dr-miami-fl.html",
+        "source_published": "2025-11-01",
+        "note": "GFA estimated from 242 units (two 12-story towers); Miami River submarket per Florida YIMBY",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 306130
       }
     ],
     "County": "Miami-Dade County",
@@ -47173,7 +47430,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:58:49.829Z",
@@ -47560,8 +47817,8 @@
     "Keys": "",
     "Units": "298",
     "Floors": "18",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "507600",
+    "GfaSource": "stated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -47570,7 +47827,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:21:28.541Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T21:00:21.656Z",
@@ -47580,6 +47837,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "South Central Waterfront"
+      },
+      {
+        "at": "2026-07-05T17:21:28.541Z",
+        "source_url": "https://therealdeal.com/texas/austin/2025/07/11/austin-greenlights-related-companies-lady-bird-lake-highrise/",
+        "source_published": "2025-07-11",
+        "note": "Stated GFA 507,600 sf (494k MF + 10.4k restaurant + 3.2k retail); 298 units = 101 condos + 197 apts; Related Cos., KPF; site-plan approved 2025-07-01",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 507600
       }
     ],
     "County": "Travis County",
@@ -47614,8 +47881,8 @@
     "Keys": "1000",
     "Units": "",
     "Floors": "14",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "560000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -47624,7 +47891,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:15:11.868Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:59:01.266Z",
@@ -47634,6 +47901,16 @@
         "field": "neighborhood",
         "from": null,
         "to": "Blue Lagoon"
+      },
+      {
+        "at": "2026-07-05T17:15:11.868Z",
+        "source_url": "https://floridayimby.com/2026/06/rezoning-sought-for-1000-key-expansion-of-hilton-miami-airport-blue-lagoon-at-5101-blue-lagoon-drive.html",
+        "source_published": "2026-06-01",
+        "note": "Expansion = 1,000 new keys across two 14-story, 500-key towers per Florida YIMBY + Bisnow + Connect CRE; GFA estimated; Blue Lagoon submarket",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 560000
       }
     ],
     "County": "Miami-Dade County",
@@ -48902,9 +49179,9 @@
     "Image5": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olana-naples-5.jpg",
     "Keys": "",
     "Units": "12",
-    "Floors": "6",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "Floors": "7",
+    "GfaSqFt": "140000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -48913,7 +49190,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:15:47.312Z",
+    "UpdatedAt": "2026-07-05T17:20:52.055Z",
     "StatusHistory": [
       {
         "at": "2026-06-15T20:56:55.888Z",
@@ -48960,6 +49237,26 @@
         "field": "delivery_date",
         "from": "2027",
         "to": "2028"
+      },
+      {
+        "at": "2026-07-05T17:20:52.055Z",
+        "source_url": "https://floridayimby.com/2025/02/olana-naples-residences-announced-at-1121-gulf-shore-boulevard-north-in-naples-florida.html",
+        "source_published": "2025-02-01",
+        "note": "Floors corrected 6→7 (seven-story mid-rise); GFA estimated from 12 full-floor residences (~10k sf each); Coquina Sands per Florida YIMBY/Business Observer",
+        "type": "field",
+        "field": "floors",
+        "from": 6,
+        "to": 7
+      },
+      {
+        "at": "2026-07-05T17:20:52.055Z",
+        "source_url": "https://floridayimby.com/2025/02/olana-naples-residences-announced-at-1121-gulf-shore-boulevard-north-in-naples-florida.html",
+        "source_published": "2025-02-01",
+        "note": "Floors corrected 6→7 (seven-story mid-rise); GFA estimated from 12 full-floor residences (~10k sf each); Coquina Sands per Florida YIMBY/Business Observer",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 140000
       }
     ],
     "County": "Collier County",
@@ -60417,7 +60714,7 @@
     "Longitude": "-115.1518053",
     "Description": "Cello Tower is a 32-story luxury condominium high-rise anchoring the Symphony Park arts-and-culture district in Downtown Las Vegas, developed by Red Ridge Development and designed by Perkins Eastman — the city's first residential-only high-rise in roughly 15 years. Its 240 residences range from one-bedrooms to penthouses above more than 40,000 square feet of amenities spread across three floors, including a resort-style pool, fitness and wellness areas, a golf simulator, pet spa, entertainment kitchen, private workspaces and an outdoor cigar lounge, all steps from The Smith Center for the Performing Arts.",
     "DescriptionLong": "Cello Tower is a 32-story luxury condominium high-rise anchoring the Origin at Symphony Park district in downtown Las Vegas, marking the city's first new residential-only high-rise in over a decade. Developed by Red Ridge Development and designed by Perkins Eastman with interiors by One Line Design Studio, the 240-residence tower rises 379 feet above the emerging Symphony Park enclave. Residences range from one-bedroom layouts to an exclusive top-floor penthouse collection, served by more than 40,000 square feet of amenities across three dedicated floors. Highlights include a resort-style pool with skyline views, a wellness and spa level, a golf simulator, an outdoor cigar lounge, and a ground-floor retail destination.",
-    "Delivery": "Under Construction",
+    "Delivery": "Breaking Ground",
     "DeliveryDate": "2027",
     "StartDate": "2025-04-29",
     "ProjectType": "Residences",
@@ -60436,8 +60733,8 @@
     "Keys": "",
     "Units": "240",
     "Floors": "32",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "640000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -60446,7 +60743,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:22:51.218Z",
     "StatusHistory": [
       {
         "at": "2026-06-24T18:22:47.292Z",
@@ -60493,6 +60790,24 @@
         "field": "delivery_date",
         "from": "2026",
         "to": "2027"
+      },
+      {
+        "at": "2026-07-05T17:21:32.529Z",
+        "source_url": "https://www.reviewjournal.com/business/housing/first-look-32-story-condo-building-in-downtown-to-be-379-feet-tall-2939063/",
+        "note": "GFA estimated from 32 floors / 240 units (379 ft); Symphony Park, Downtown Las Vegas (part of Origin at Symphony Park) per LVRJ",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 640000
+      },
+      {
+        "at": "2026-07-05T17:22:51.218Z",
+        "source_url": "https://www.reviewjournal.com/business/housing/developer-aims-to-start-building-luxury-las-vegas-high-rise-this-spring-3730351/",
+        "source_published": "2026-03-01",
+        "note": "Overstated as 'construction': LVRJ (Mar 2026) reports only a ceremonial 2025 groundbreaking; developer had NOT closed on the city-owned site (deadline extended to 2026-08-19) and vertical construction had not begun. Demote toward breaking-ground/announced — queued for human review of exact target. Start date 2025-04-29 reflects the ceremonial event, not real construction.",
+        "from": "construction",
+        "to": "breaking-ground",
+        "correction": true
       }
     ],
     "County": "Clark County",
@@ -60635,7 +60950,7 @@
     "DescriptionLong": "Hi Line Square is a landmark mixed-use development anchoring the Hi Line sub-neighborhood of the Dallas Design District at 1650 Oak Lawn Avenue. Developed by McCourt Partners with HN Capital Partners and designed by Perkins & Will, the project pairs a 30-story residential tower of 300 units — including penthouses, townhomes, and what backers call Dallas's highest swimming pool — with a 17-story office tower and roughly 45,000 square feet of curated retail and dining. The architecture blends the district's industrial heritage in brick and concrete with sleek glass-and-metal stepped terraces, organized around a pedestrian plaza centered on a preserved heirloom tree. The development is positioned as a dynamic urban gateway uniting luxury residential living, hospitality-inspired workspace, showrooms, and dining.",
     "Delivery": "Announced",
     "DeliveryDate": "2030",
-    "StartDate": "2027",
+    "StartDate": "2026",
     "ProjectType": "Mixed-Use, Residences, Office, Retail",
     "PreferredType": "Mixed-Use",
     "Architect": "Perkins&Will",
@@ -60652,8 +60967,8 @@
     "Keys": "",
     "Units": "300",
     "Floors": "30",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "610500",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -60662,7 +60977,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:21:39.539Z",
     "StatusHistory": [
       {
         "at": "2026-06-24T18:23:04.244Z",
@@ -60681,6 +60996,26 @@
         "field": "start_date",
         "from": "2026",
         "to": "2027"
+      },
+      {
+        "at": "2026-07-05T17:21:39.539Z",
+        "source_url": "https://mccourtpartners.com/releases/mccourt-partners-and-hn-capital-partners-introduce-hi-line-square-a-landmark-for-the-dallas-design-district/",
+        "source_published": "2025-01-31",
+        "note": "Two-tower mixed-use: 30-story/300-unit resi + 17-story/186k sf office + 45k sf retail; start 2026 (developer target) per McCourt/PRNewswire; Dallas Design District; reclassified Mixed-Use; GFA estimated",
+        "type": "date",
+        "field": "start_date",
+        "from": "2027",
+        "to": "2026"
+      },
+      {
+        "at": "2026-07-05T17:21:39.539Z",
+        "source_url": "https://mccourtpartners.com/releases/mccourt-partners-and-hn-capital-partners-introduce-hi-line-square-a-landmark-for-the-dallas-design-district/",
+        "source_published": "2025-01-31",
+        "note": "Two-tower mixed-use: 30-story/300-unit resi + 17-story/186k sf office + 45k sf retail; start 2026 (developer target) per McCourt/PRNewswire; Dallas Design District; reclassified Mixed-Use; GFA estimated",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 610500
       }
     ],
     "County": "Dallas County",
@@ -60851,7 +61186,7 @@
     "Slug": "mori-jp-tower",
     "City": "Tokyo",
     "Borough": "",
-    "Neighborhood": "Azabudai, Minato",
+    "Neighborhood": "Azabudai",
     "Latitude": "35.6612155",
     "Longitude": "139.740616",
     "Description": "At 330 meters, Japan's tallest building — the lotus-crowned office and residential centerpiece of Azabudai Hills, holding Aman Residences Tokyo on its top floors.",
@@ -60885,7 +61220,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:21:45.929Z",
     "StatusHistory": [
       {
         "at": "2026-06-25T13:20:37.884Z",
@@ -60921,6 +61256,15 @@
         "type": "backfill",
         "to": "open",
         "effective_date": "2023-11-24"
+      },
+      {
+        "at": "2026-07-05T17:21:45.929Z",
+        "source_url": "https://www.nippon.com/en/news/l00314/",
+        "note": "Centerpiece of Azabudai Hills, Minato, Tokyo; Japan's tallest building (325.2m). Firm correction (manual): design architect is Pelli Clarke & Partners, not Mori Building",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Azabudai, Minato",
+        "to": "Azabudai"
       }
     ],
     "County": "",
@@ -61553,7 +61897,7 @@
     "Description": "A 118-key Four Seasons resort on the Sea of Cortez at Costa Palmas, the brand's first marina offering, with suites, villas, dining, pools, and a spa.",
     "DescriptionLong": "Four Seasons Resort Los Cabos at Costa Palmas brings the brand's hospitality to Baja's less-traveled East Cape, set on the calm, swimmable waters of the Sea of Cortez. The 118-key resort offers suites, villas, and residences alongside inspired dining, a series of pools, a spa and athletic center, and a swimming cove, all designed with a contemporary sensibility where light and shade, art and architecture, and indoor and outdoor space meet. Opened in 2019 as the anchor of the Costa Palmas community, it marked Four Seasons' first-ever marina offering, with guests and owners enjoying direct access to the marina, the Robert Trent Jones II golf course, the Beach & Yacht Club, and three kilometers of white-sand beach.",
     "Delivery": "Completed",
-    "DeliveryDate": "2019-11",
+    "DeliveryDate": "2019-10",
     "StartDate": "",
     "ProjectType": "Hotel, Residences",
     "PreferredType": "Mixed-Use",
@@ -61581,7 +61925,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:21:04.283Z",
     "StatusHistory": [
       {
         "at": "2026-06-25T13:20:41.618Z",
@@ -61608,6 +61952,15 @@
         "type": "backfill",
         "to": "open",
         "effective_date": "2019-11-01"
+      },
+      {
+        "at": "2026-07-05T17:21:04.283Z",
+        "source_url": "https://www.prnewswire.com/news-releases/four-seasons-redefines-los-cabos-with-the-debut-of-four-seasons-resort-los-cabos-at-costa-palmas-300854786.html",
+        "note": "Keys corrected to 141 rooms (incl. 23 suites) per Four Seasons debut release; opening refined to 2019-10 (Nov 1 = reservations open). Stored 123 'units' figure is suspect (residences are separate)",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2019-11",
+        "to": "2019-10"
       }
     ],
     "County": "",
@@ -61696,7 +62049,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T01:09:34.940Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-25T13:20:46.536Z",
@@ -65503,7 +65856,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:09:14.944Z",
+    "UpdatedAt": "2026-07-05T17:10:07.762Z",
     "StatusHistory": [
       {
         "at": "2026-06-29T10:15:55.141Z",
@@ -67751,8 +68104,8 @@
     "Keys": "",
     "Units": "600",
     "Floors": "8",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "759000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -67761,7 +68114,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-02T13:15:07.798Z",
+    "UpdatedAt": "2026-07-05T17:15:15.541Z",
     "StatusHistory": [
       {
         "at": "2026-07-02T13:15:07.798Z",
@@ -67770,6 +68123,16 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2024-10"
+      },
+      {
+        "at": "2026-07-05T17:15:15.541Z",
+        "source_url": "https://floridayimby.com/2026/06/miami-dade-county-commission-approves-600-unit-residential-redevelopment-at-5800-blue-lagoon-drive-in-miami.html",
+        "source_published": "2026-06-01",
+        "note": "GFA estimated from 600 units (two 8-story bldgs, ~14,900 sf retail); Blue Lagoon / Airport West submarket per Florida YIMBY + Bisnow",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 759000
       }
     ],
     "County": "Miami-Dade County",
