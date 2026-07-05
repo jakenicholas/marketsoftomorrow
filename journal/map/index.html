@@ -20196,6 +20196,38 @@
       function freeDayKey() { try { return 'mot_free_day_' + new Date().toISOString().slice(0, 10); } catch (e) { return 'mot_free_day'; } }
       function getFreeDayCount() { try { return parseInt(localStorage.getItem(freeDayKey()) || '0', 10) || 0; } catch (e) { return 0; } }
       function incFreeDayCount() { try { localStorage.setItem(freeDayKey(), String(getFreeDayCount() + 1)); } catch (e) {} }
+      // Server-ENFORCED daily map-open quota for free members (tamper-proof). The
+      // count lives in D1 keyed by member_id (/map-usage), so clearing
+      // localStorage / incognito / switching devices can't reset it — the cap
+      // follows the account. getFreeDayCount() above is only the optimistic local
+      // fallback used until the server value hydrates.
+      const mapQuota = {
+        memberId: null,
+        srv: { loaded: false, remaining: null },
+        remaining: function () {
+          if (this.srv.loaded && this.srv.remaining != null) return this.srv.remaining;   // server truth
+          return Math.max(0, FREE_MEMBER_DAILY_LIMIT - getFreeDayCount());                 // optimistic fallback
+        },
+        sync: function (memberId) {
+          this.memberId = memberId || this.memberId;
+          if (!this.memberId) return;
+          var self = this;
+          fetch('https://tmw.jake-ab7.workers.dev/map-usage?member=' + encodeURIComponent(this.memberId), { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d && !d.unkeyed && d.remaining != null) self.srv = { loaded: true, remaining: d.remaining }; })
+            .catch(function () {});
+        },
+        consume: function () {
+          incFreeDayCount();   // optimistic local bump
+          if (this.srv.loaded && this.srv.remaining != null) this.srv.remaining = Math.max(0, this.srv.remaining - 1);
+          if (!this.memberId) return;
+          var self = this;
+          fetch('https://tmw.jake-ab7.workers.dev/map-usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ member: this.memberId, pro: false }) })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d && d.remaining != null) self.srv = { loaded: true, remaining: d.remaining }; })
+            .catch(function () {});
+        }
+      };
 
       // ‚îÄ‚îÄ‚îÄ Auth hint cache (lets us gate clicks before Memberstack loads) ‚îÄ‚îÄ‚îÄ
       function getAuthHint() {
@@ -20422,6 +20454,10 @@
           isSignedIn = true;
           window._memberstackSignedIn = true;
           isPaidMember = paid;
+
+          // Hydrate the server-side daily map-open count for FREE members (the
+          // account-bound source of truth; clearing localStorage can't reset it).
+          try { if (!paid && member && member.id) mapQuota.sync(member.id); } catch (_) {}
 
           // Wire GA4 identity AS SOON AS we have the member object, before any
           // downstream events fire (loadFavoritesFromMember, paywall checks, etc.)
@@ -22395,7 +22431,10 @@
         // the map is always free, and the paywall is always a VISIBLE modal (never
         // a silent false into a blank map).
         if (isSignedIn) {
-          if (getFreeDayCount() < FREE_MEMBER_DAILY_LIMIT) { incFreeDayCount(); return true; }
+          // Server-enforced (account-bound) daily cap — mapQuota.remaining() uses
+          // the hydrated D1 count, falling back to the local optimistic count only
+          // until the server value loads. consume() bumps both + POSTs the server.
+          if (mapQuota.remaining() > 0) { mapQuota.consume(); return true; }
           showSubscriptionPaywall('trial_ended');
           return false;
         }

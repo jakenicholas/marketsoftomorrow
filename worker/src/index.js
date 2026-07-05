@@ -971,6 +971,55 @@ async function handleIntelUsage(req, env, origin, url) {
   return json({ pro: false, cap: st.cap, used: st.used + 1, remaining: Math.max(0, st.remaining - 1), allowed: true }, {}, env, origin);
 }
 
+// ── Map project-open quota (free members) ───────────────────────────────────
+// Signed-in FREE members get FREE_MAP_DAILY_CAP project opens per rolling 24h.
+// Counting `map_open` events server-side makes the cap ACCOUNT-BOUND: clearing
+// localStorage, going incognito, or switching devices can't reset it (the count
+// follows the member, not the browser). The project data is already client-side,
+// so this can't withhold content — it defeats casual bypass, not a JS editor.
+const FREE_MAP_DAILY_CAP = 10;
+async function mapDayStatus(env, member) {
+  const cap = FREE_MAP_DAILY_CAP;
+  let used = 0;
+  if (env.DB && member) {
+    const since = Math.floor(Date.now() / 1000) - 86400;   // rolling 24h
+    try {
+      const r = await env.DB.prepare(
+        `SELECT COUNT(*) n FROM events WHERE event_name='map_open' AND member_id=? AND ts>=?`
+      ).bind(member, since).first();
+      used = Number(r && r.n) || 0;
+    } catch { /* best-effort — treat as fresh */ }
+  }
+  return { cap, used, remaining: Math.max(0, cap - used) };
+}
+// GET  /map-usage?member=&pro=  → { pro, cap, used, remaining, allowed } (no consume)
+// POST /map-usage { member, pro } → CONSUME one project open. Pro → unlimited
+//   (never counted). Non-Pro over cap → { allowed:false, gated:true }. Otherwise
+//   logs one `map_open` event and returns the decremented remaining. Mirrors
+//   /intel-usage: the COUNT is server-side and tied to the account.
+async function handleMapUsage(req, env, origin, url) {
+  const isPost = req.method === 'POST';
+  let member = '', pro = false;
+  if (isPost) {
+    let b; try { b = await req.json(); } catch { b = {}; }
+    member = String(b.member || '').slice(0, 120).trim();
+    pro = b.pro === true || b.pro === 'true';
+  } else {
+    member = String(url.searchParams.get('member') || '').slice(0, 120).trim();
+    pro = url.searchParams.get('pro') === 'true' || url.searchParams.get('pro') === '1';
+  }
+  if (pro) return json({ pro: true, cap: FREE_MAP_DAILY_CAP, used: 0, remaining: null, allowed: true }, {}, env, origin);
+  if (!member || !/^mem_/.test(member)) return json({ pro: false, cap: FREE_MAP_DAILY_CAP, used: 0, remaining: FREE_MAP_DAILY_CAP, allowed: true, unkeyed: true }, {}, env, origin);
+  const st = await mapDayStatus(env, member);
+  if (!isPost) return json({ pro: false, cap: st.cap, used: st.used, remaining: st.remaining, allowed: st.remaining > 0 }, {}, env, origin);
+  if (st.remaining <= 0) return json({ pro: false, cap: st.cap, used: st.used, remaining: 0, allowed: false, gated: true }, {}, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,'map_open',?3)`)
+      .bind(Math.floor(Date.now() / 1000), member, JSON.stringify({ used: st.used + 1 })).run();
+  } catch (_) { /* best-effort: if the log fails, still allow the open */ }
+  return json({ pro: false, cap: st.cap, used: st.used + 1, remaining: Math.max(0, st.remaining - 1), allowed: true }, {}, env, origin);
+}
+
 // GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
 // POST /admin/deep-credits { member_id, credits?, unlimited? } → grant extra deep
 // credits and/or flip the unlimited flag (owner + testers). Admin-gated. Mirrors
@@ -10729,6 +10778,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-usage') return await handleIntelUsage(request, env, origin, url);
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/map-usage') return await handleMapUsage(request, env, origin, url);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }
