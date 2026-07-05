@@ -1,0 +1,84 @@
+# Image-rename sweep — keeps every project image on an SEO keyword R2 key
+# (<city>/<project-slug>.<ext>). Incremental + idempotent + NON-DESTRUCTIVE:
+# it only copies images still on a hash key, keeps every original as a fallback,
+# and never deletes. New projects added since the last run get canonicalized;
+# already-renamed images are no-ops. The city always comes from the project's
+# own record — never guessed.
+#
+# REQUIRED SECRETS (confirm scopes before trusting the nightly cron):
+#   CLOUDFLARE_API_TOKEN   - must include R2 read+write on `tmw-media` AND D1
+#                            write on `tmw_events` (the worker-deploy token may
+#                            be Workers-only; broaden it or add a dedicated one).
+#   CLOUDFLARE_ACCOUNT_ID  - account id.
+#   TMW_DATA_WRITE_TOKEN   - GitHub PAT with repo WRITE on tmw-data (the existing
+#                            TMW_DATA_TOKEN is read-only; this one must push).
+#
+# Test with "Run workflow" (workflow_dispatch) once and confirm it's green
+# before relying on the schedule.
+name: Image rename sweep
+
+on:
+  schedule:
+    - cron: '0 7 * * *'      # nightly ~3am ET
+  workflow_dispatch:
+
+concurrency:
+  group: image-rename-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TMW_DATA_TOKEN: ${{ secrets.TMW_DATA_TOKEN }}
+    steps:
+      - name: Checkout marketsoftomorrow (scripts)
+        uses: actions/checkout@v4
+
+      - name: Checkout tmw-data (source of truth, writable)
+        uses: actions/checkout@v4
+        with:
+          repository: jakenicholas/tmw-data
+          token: ${{ secrets.TMW_DATA_WRITE_TOKEN }}
+          path: tmw-data
+
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm i -g wrangler@4
+
+      - name: Snapshot projects-flat.json from tmw-data
+        run: python3 fetch_projects.py
+
+      - name: Plan + copy any new hash-named images to keyword keys
+        run: |
+          python3 plan_image_renames.py
+          python3 apply_image_renames.py --execute --workers 8
+
+      - name: Repoint references (projects.json + projects-flat.json)
+        run: python3 rewrite_image_refs.py --write
+
+      - name: Repoint media-library rows (D1, in place)
+        run: python3 update_media_library.py --write
+
+      - name: Commit + push tmw-data if anything changed
+        run: |
+          cd tmw-data
+          if [ -n "$(git status --porcelain data/projects.json)" ]; then
+            git config user.name  "tmw-image-sweep"
+            git config user.email "noreply@oftmw.com"
+            git add data/projects.json
+            git commit -m "Auto-canonicalize new project images to keyword R2 keys"
+            git push
+          else
+            echo "No new images to rename."
+          fi
+
+      - name: Trigger page regeneration
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run generate-pages.yml --ref main || true
