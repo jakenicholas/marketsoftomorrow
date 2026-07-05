@@ -2123,10 +2123,10 @@
     if (state !== 'answer' || !g || (!g.p && !g.a)) return 'TMW Intelligence, synthesized from the journal &amp; database';
     var bits = [];
     if (g.p) bits.push('<b>' + g.p + ' tracked project' + (g.p === 1 ? '' : 's') + '</b>');
-    if (g.a) bits.push('<b>' + g.a + ' TMW article' + (g.a === 1 ? '' : 's') + '</b>');
+    if (g.a) bits.push('<b>' + g.a + ' Article' + (g.a === 1 ? '' : 's') + '</b>');
     var line = 'Grounded in ' + bits.join(' · ');
     if (g.place) line += ' · ' + esc(String(g.place));
-    return line + ' <span class="dim">— shown below</span>';
+    return line;
   }
 
   // Intelligence gate. Two states: (1) NOT SIGNED IN → you need an account to try
