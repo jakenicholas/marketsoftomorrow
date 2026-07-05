@@ -5038,8 +5038,18 @@
     if (!listEl) return;
     // End every paint on a COMPLETE row while more stories remain — a lone
     // card on the last row reads as "that's the end" when it isn't.
+    // Column count: when the grid is laid out, gridTemplateColumns resolves to
+    // a px list ("437px 437px 437px" → count the entries). But this runs while
+    // the results pane is still hidden (setState('results') comes after the
+    // render), where the SPECIFIED value comes back instead — "repeat(3, 1fr)"
+    // — which the splitter miscounted as 2, so 10 % 2 === 0 skipped the trim
+    // and the Journal tab opened on an orphaned last row. Parse repeat(N) first.
     var _cols = 3;
-    try { _cols = (getComputedStyle(listEl).gridTemplateColumns || '').split(' ').filter(Boolean).length || 3; } catch(_){}
+    try {
+      var _tc = getComputedStyle(listEl).gridTemplateColumns || '';
+      var _rep = _tc.match(/repeat\(\s*(\d+)/);
+      _cols = _rep ? +_rep[1] : ((_tc.split(' ').filter(Boolean).length) || 3);
+    } catch(_){}
     var _want = _articlesShown + ARTICLES_BATCH;
     if (_want < _articlesAll.length && _cols > 1 && (_want % _cols)) _want -= (_want % _cols);
     var batch = _articlesAll.slice(_articlesShown, Math.max(_articlesShown + 1, _want));
