@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-performing-arts-center/" aria-label="Open Tennessee Performing Arts Center">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2b406e5a9f9a4e61a163b0b2b6ce4a7d~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2b406e5a9f9a4e61a163b0b2b6ce4a7d~mv2.jpeg" alt="Tennessee Performing Arts Center — Cultural in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tennessee Performing Arts Center</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">175 Third Street</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/" aria-label="Open Athletics Las Vegas Ballpark">
-    <div class="card-img" style="background-image:url('https://www.designboom.com/wp-content/uploads/2024/03/bjarke-ingels-group-las-vegas-ballpark-hntb-oakland-athletics-baseball-designboom-1200.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.designboom.com/wp-content/uploads/2024/03/bjarke-ingels-group-las-vegas-ballpark-hntb-oakland-athletics-baseball-designboom-1200.jpg" alt="Athletics Las Vegas Ballpark — Stadium in The Strip, Las Vegas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Athletics Las Vegas Ballpark</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg" alt="Jungle Island — Mixed-Use in Watson Island, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Jungle Island</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/" aria-label="Open Suzhou Museum of Contemporary Art">
-    <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg" alt="Suzhou Museum of Contemporary Art — Museum in Suzhou" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Suzhou Museum of Contemporary Art</div>

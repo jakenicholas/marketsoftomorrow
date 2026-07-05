@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
-    <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/08/A.png')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/08/A.png" alt="Hudson Yards West — Residences in Hudson Yards, New York City" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hudson Yards West</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/101-franklin-street/" aria-label="Open 101 Franklin Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124fbdd4db0b-101-Franklin-Arrival-Credit-to-VISUALISATION-ONE-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124fbdd4db0b-101-Franklin-Arrival-Credit-to-VISUALISATION-ONE-scaled.jpg" alt="101 Franklin Street — Residences in Tribeca, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">101 Franklin Street</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/24-19-jackson-avenue/" aria-label="Open 24-19 Jackson Avenue">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2eae6256aad440f5a49b2a4bc236fc84~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2eae6256aad440f5a49b2a4bc236fc84~mv2.jpg" alt="24-19 Jackson Avenue — Residences in Court Square, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">24-19 Jackson Avenue</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sorin/" aria-label="Open Sorin">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6fbf7c3a10dc-sorin-facade.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6fbf7c3a10dc-sorin-facade.jpg" alt="Sorin — Residences in Hudson Yards, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Sorin</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">175 Third Street</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/255-east-77th-street/" aria-label="Open 255 East 77th Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6cb7e32f646c-255e77-residences-exterior.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6cb7e32f646c-255e77-residences-exterior.jpg" alt="255 East 77th Street — Residences in Lenox Hill, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">255 East 77th Street</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/malabar-residences/" aria-label="Open Malabar Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_81504faf2a86404ea3d8746cfb6b0285~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_81504faf2a86404ea3d8746cfb6b0285~mv2.jpg" alt="Malabar Residences — Residences in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Malabar Residences</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-willow/" aria-label="Open The Willow">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c858dcb124d48c5a620a5f7dcb4e107~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c858dcb124d48c5a620a5f7dcb4e107~mv2.jpeg" alt="The Willow — Residences in Gramercy, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Willow</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/310-greenwich-street/" aria-label="Open 310 Greenwich Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f23be788e016-57b32f5132236d3a1cfa0263cc43388f4ee7207b-777x432.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f23be788e016-57b32f5132236d3a1cfa0263cc43388f4ee7207b-777x432.jpeg" alt="310 Greenwich Street — Residences in Tribeca, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">310 Greenwich Street</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/affirmation-tower/" aria-label="Open Affirmation Tower">
-    <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/03/affirmation-tower-main.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/03/affirmation-tower-main.jpg" alt="Affirmation Tower — Mixed-Use in Hudson Yards, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Affirmation Tower</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/200-east-83rd/" aria-label="Open 200 East 83rd">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/889bb9f72b87-04_Hero_Looking_East-scaled-e1635203735145.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/889bb9f72b87-04_Hero_Looking_East-scaled-e1635203735145.jpg" alt="200 East 83rd — Residences in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">200 East 83rd</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/520-fifth-avenue/" aria-label="Open 520 Fifth Avenue">
-    <div class="card-img" style="background-image:url('https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg" alt="520 Fifth Avenue — Mixed-Use in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">520 Fifth Avenue</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-bellemont/" aria-label="Open The Bellemont">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c0f50e3ec38a-A19035-2024FD57_403_RT.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c0f50e3ec38a-A19035-2024FD57_403_RT.jpg" alt="The Bellemont — Residences in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Bellemont</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-benson/" aria-label="Open The Benson">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0517539cd198-8_Building_d717cad1b7.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0517539cd198-8_Building_d717cad1b7.jpg" alt="The Benson — Residences in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Benson</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-henry/" aria-label="Open The Henry">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d721d4aeaf5b-the-henry-residences-uws-building.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d721d4aeaf5b-the-henry-residences-uws-building.jpg" alt="The Henry — Residences in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Henry</div>

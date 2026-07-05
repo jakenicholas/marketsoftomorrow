@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/atavia/" aria-label="Open Atavia">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4ba87ef572ef-Atavia-Courtyard.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4ba87ef572ef-Atavia-Courtyard.jpeg" alt="Atavia — Residences in North Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Atavia</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-scottsdale/" aria-label="Open One Scottsdale">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67b51a72ffc1-Atavia_Exterior_Streetscape-1024x683.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67b51a72ffc1-Atavia_Exterior_Streetscape-1024x683.jpg" alt="One Scottsdale — Mixed-Use in North Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">One Scottsdale</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/optima-mcdowell-mountain-village/" aria-label="Open Optima McDowell Mountain Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/16c7c00342cc-Optima-McDowell-Mountain-Village_Aerial_Plaza-min-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/16c7c00342cc-Optima-McDowell-Mountain-Village_Aerial_Plaza-min-scaled.jpg" alt="Optima McDowell Mountain Village — Residences in North Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Optima McDowell Mountain Village</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/seven-desert-mountain/" aria-label="Open Seven Desert Mountain">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/02e84c3e211a-Cullum-Seven-Desert-Mountain_1020x437.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/02e84c3e211a-Cullum-Seven-Desert-Mountain_1020x437.jpg" alt="Seven Desert Mountain — Golf in Desert Mountain, Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Seven Desert Mountain</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-parque/" aria-label="Open The Parque">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a3125665aee5-This-rendering-shows-one-of-four-restaurants-at-The-Parque-project-in-North-Scot')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a3125665aee5-This-rendering-shows-one-of-four-restaurants-at-The-Parque-project-in-North-Scot" alt="The Parque — Mixed-Use in North Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Parque</div>

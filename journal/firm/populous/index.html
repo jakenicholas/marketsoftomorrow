@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-bay-sands-expansion/" aria-label="Open Marina Bay Sands Expansion">
-    <div class="card-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original" alt="Marina Bay Sands Expansion — Hotel in Marina Bay, Singapore" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Bay Sands Expansion</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg" alt="New AS Roma Stadium — Stadium in Pietralata, Rome" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New AS Roma Stadium</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom" alt="Bridgestone Arena — Entertainment in SoBro, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bridgestone Arena</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/" aria-label="Open New Kansas City Royals Stadium">
-    <div class="card-img" style="background-image:url('https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true" alt="New Kansas City Royals Stadium — Stadium in Crown Center, Kansas City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New Kansas City Royals Stadium</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg" alt="Aloha Stadium — Residences in Hālawa, Honolulu" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Aloha Stadium</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-bay-rays-stadium/" aria-label="Open Tampa Bay Rays Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp" alt="Tampa Bay Rays Stadium — Entertainment in West Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tampa Bay Rays Stadium</div>
@@ -515,7 +519,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/new-highmark-stadium/" aria-label="Open New Highmark Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_25424c85ce404060bc93aed739604e57~mv2.jpg" alt="New Highmark Stadium — Stadium in Orchard Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New Highmark Stadium</div>

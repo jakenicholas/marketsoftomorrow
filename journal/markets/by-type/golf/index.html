@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/costa-palmas/" aria-label="Open Costa Palmas">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_5d843024f4774697b806ee735317e462~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_5d843024f4774697b806ee735317e462~mv2.jpg" alt="Costa Palmas — Mixed-Use in East Cape, La Ribera" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Costa Palmas</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2de55c97b9ad41cb83ef1278af817b6e~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2de55c97b9ad41cb83ef1278af817b6e~mv2.jpeg" alt="Jack&#x27;s Bay Club &amp; Resort — Residences in Bahamas" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Jack&#x27;s Bay Club &amp; Resort</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/anson-at-palmetto-bluff/" aria-label="Open Anson at Palmetto Bluff">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/181854ad0b04-7AnsonPointPalmettoBluff.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/181854ad0b04-7AnsonPointPalmettoBluff.jpg" alt="Anson at Palmetto Bluff — Golf in Palmetto Bluff, Bluffton" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Anson at Palmetto Bluff</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg" alt="Candyroot Lodge — Golf in Chesterfield County, South Carolina" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Candyroot Lodge</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/coral-mountain-desert-club/" aria-label="Open Coral Mountain Desert Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg" alt="Coral Mountain Desert Club — Golf in La Quinta" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Coral Mountain Desert Club</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/maverick-golf-ranch-club/" aria-label="Open Maverick Golf &amp; Ranch Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cba9763246df-Hole-8-Golf-Drone-1200x800.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cba9763246df-Hole-8-Golf-Drone-1200x800.jpg" alt="Maverick Golf &amp; Ranch Club — Golf in Veale Ranch, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Maverick Golf &amp; Ranch Club</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg" alt="NOKOSI Golf Club — Golf in Former Sherbrooke Golf &amp;amp; Country Club site, Lantana" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">NOKOSI Golf Club</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/old-shores/" aria-label="Open Old Shores">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_373f1c2ac9cd441caed6933cb112d26d~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_373f1c2ac9cd441caed6933cb112d26d~mv2.jpg" alt="Old Shores — Golf in Panhandle" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Old Shores</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/purebred-farm/" aria-label="Open Purebred Farm">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/52e488cdbcdd-kohler.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/52e488cdbcdd-kohler.jpeg" alt="Purebred Farm — Golf in Kohler" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Purebred Farm</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_609c4b28c4394126a87eed36ba761180~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_609c4b28c4394126a87eed36ba761180~mv2.jpg" alt="Ritz-Carlton Reserve at Cotton Bay — Residences in Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Ritz-Carlton Reserve at Cotton Bay</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rodeo-dunes/" aria-label="Open Rodeo Dunes">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/629b8f6e1a3f-Rodeo-Dunes-Aerials-26-79.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/629b8f6e1a3f-Rodeo-Dunes-Aerials-26-79.jpg" alt="Rodeo Dunes — Golf in Roggen" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rodeo Dunes</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/scottsdale-golf-retreat-at-troon-north/" aria-label="Open Scottsdale Golf Retreat at Troon North">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/6902a1bfb571-hgallery1-3-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/6902a1bfb571-hgallery1-3-1.jpg" alt="Scottsdale Golf Retreat at Troon North — Hotel in Troon North, Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Scottsdale Golf Retreat at Troon North</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/seven-desert-mountain/" aria-label="Open Seven Desert Mountain">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/02e84c3e211a-Cullum-Seven-Desert-Mountain_1020x437.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/02e84c3e211a-Cullum-Seven-Desert-Mountain_1020x437.jpg" alt="Seven Desert Mountain — Golf in Desert Mountain, Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Seven Desert Mountain</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shell-bay-residences/" aria-label="Open Shell Bay Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp" alt="Shell Bay Residences — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Shell Bay Residences</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sweetens-cove-golf-club/" aria-label="Open Sweetens Cove Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg" alt="Sweetens Cove Golf Club — Golf in Sequatchie Valley, South Pittsburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Sweetens Cove Golf Club</div>
@@ -749,7 +753,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-green-at-abaco-club/" aria-label="Open The Green at Abaco Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_916ebe7caa5b4efeb9a8f598628c1ded~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_916ebe7caa5b4efeb9a8f598628c1ded~mv2.jpeg" alt="The Green at Abaco Club — Residences in Great Abaco Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Green at Abaco Club</div>
@@ -771,7 +775,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_67ad6d01d0db42bf8b59bfe003328493~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_67ad6d01d0db42bf8b59bfe003328493~mv2.jpg" alt="The Ocean Club, Four Seasons Residences — Residences in Paradise Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ocean Club, Four Seasons Residences</div>
@@ -793,7 +797,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tributer-resort/" aria-label="Open Tributer Resort">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/09fd968cb3b1-TR-TGR-Clubhouse_1-1-gigapixel-low-resolution-v2-2x.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/09fd968cb3b1-TR-TGR-Clubhouse_1-1-gigapixel-low-resolution-v2-2x.jpg" alt="Tributer Resort — Golf in Lake Anna, Mineral" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tributer Resort</div>
@@ -815,7 +819,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-wellington/" aria-label="Open The Wellington">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a2b46f668ea043b592fee9ef58e8965d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a2b46f668ea043b592fee9ef58e8965d~mv2.jpeg" alt="The Wellington — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Wellington</div>
@@ -837,7 +841,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bear-lakes-country-club-expansion/" aria-label="Open Bear Lakes Country Club (Expansion)">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1beb58b9da54078ad1f0abc5c4e31e2~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1beb58b9da54078ad1f0abc5c4e31e2~mv2.jpeg" alt="Bear Lakes Country Club (Expansion) — Country Club in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bear Lakes Country Club (Expansion)</div>
@@ -859,7 +863,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/streamsong-resort/" aria-label="Open Bone Valley at Streamsong">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb287b553b1148aba0e86ae2f4452f6f~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fb287b553b1148aba0e86ae2f4452f6f~mv2.jpeg" alt="Bone Valley at Streamsong — Park in Bowling Green" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bone Valley at Streamsong</div>
@@ -881,7 +885,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/firefly/" aria-label="Open Firefly">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f50d4e8a26804b06ae1778103f0d601c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f50d4e8a26804b06ae1778103f0d601c~mv2.jpg" alt="Firefly — Golf in Spring Hill, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Firefly</div>
@@ -903,7 +907,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg" alt="Four Seasons Resort and Residences Caye Chapel — Hotel in Caye Chapel (private island)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
@@ -925,7 +929,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-los-cabos-at-oleada/" aria-label="Open Grand Hyatt Los Cabos at Oleada">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ed0e9c5082ce-GrandHyattLosCabos-Rendering.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ed0e9c5082ce-GrandHyattLosCabos-Rendering.jpg" alt="Grand Hyatt Los Cabos at Oleada — Hotel in OLEADA, Cabo San Lucas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Grand Hyatt Los Cabos at Oleada</div>
@@ -947,7 +951,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marcella-club/" aria-label="Open Marcella Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fa62e315ff3747a7969609661566143e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fa62e315ff3747a7969609661566143e~mv2.jpeg" alt="Marcella Club — Golf in Jordanelle Ridge, Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marcella Club</div>
@@ -969,7 +973,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/miakka-golf-club/" aria-label="Open Miakka Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6852c314dd13-Miakka-8.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6852c314dd13-Miakka-8.jpg" alt="Miakka Golf Club — Golf in Myakka City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Miakka Golf Club</div>
@@ -991,7 +995,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-antognolla/" aria-label="Open Six Senses Antognolla">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48c2e8ab6305-c01-e.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48c2e8ab6305-c01-e.jpg" alt="Six Senses Antognolla — Hotel in Antognolla, Perugia (Umbria)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Six Senses Antognolla</div>
@@ -1013,7 +1017,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wild-spring-dunes/" aria-label="Open Wild Spring Dunes">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3c4a42f69a7b-dream-golf-pod-feat-768x394.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3c4a42f69a7b-dream-golf-pod-feat-768x394.webp" alt="Wild Spring Dunes — Golf in Mount Enterprise (East Texas)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wild Spring Dunes</div>
@@ -1035,7 +1039,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/esplanade-at-solaeris/" aria-label="Open Esplanade at Solaeris">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d46d53ed0722-Planned-Pro-Shoppe-and-Aqua-Range-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d46d53ed0722-Planned-Pro-Shoppe-and-Aqua-Range-1.jpg" alt="Esplanade at Solaeris — Golf in Solaeris, Port St. Lucie" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Esplanade at Solaeris</div>
@@ -1057,7 +1061,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/" aria-label="Open Mandarin Oriental Esencia, Puerto Rico">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3f5d12b136040e2b57c201577c4c282~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3f5d12b136040e2b57c201577c4c282~mv2.jpeg" alt="Mandarin Oriental Esencia, Puerto Rico — Hotel in Boquerón Bay, Cabo Rojo" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mandarin Oriental Esencia, Puerto Rico</div>
@@ -1079,7 +1083,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/orange-hill-course-kiawah-island-club/" aria-label="Open Orange Hill Course, Kiawah Island Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/40787d1adc53-61e07cb6d6ab3.image.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/40787d1adc53-61e07cb6d6ab3.image.jpg" alt="Orange Hill Course, Kiawah Island Club — Golf in Johns Island, Kiawah Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Orange Hill Course, Kiawah Island Club</div>
@@ -1101,7 +1105,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/altamira-by-lennar/" aria-label="Open Altamira by Lennar">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/09/dah_porto_altamira_rend_exterior_frontview_th_12_06_23.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/09/dah_porto_altamira_rend_exterior_frontview_th_12_06_23.webp" alt="Altamira by Lennar — Residences in Homestead" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Altamira by Lennar</div>
@@ -1123,7 +1127,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/apogee-golf-club/" aria-label="Open Apogee Golf Club">
-    <div class="card-img" style="background-image:url('https://golfdigest.sports.sndimg.com/content/dam/images/golfdigest/fullset/2023/1/GD0923_FEAT_HOBIE_04.jpg.rend.hgtvcom.966.725.suffix/1692215573614.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://golfdigest.sports.sndimg.com/content/dam/images/golfdigest/fullset/2023/1/GD0923_FEAT_HOBIE_04.jpg.rend.hgtvcom.966.725.suffix/1692215573614.jpeg" alt="Apogee Golf Club — Golf in Hobe Sound" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Apogee Golf Club</div>
@@ -1145,7 +1149,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/bounty-club/" aria-label="Open Bounty Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5ab628fd22b84049a5dfd631e1be01d2~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5ab628fd22b84049a5dfd631e1be01d2~mv2.jpg" alt="Bounty Club — Golf in Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bounty Club</div>
@@ -1167,7 +1171,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-citrus-farms/" aria-label="Open Cabot Citrus Farms">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg" alt="Cabot Citrus Farms — Golf in Brooksville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Cabot Citrus Farms</div>
@@ -1189,7 +1193,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-commons/" aria-label="Open Commons">
-    <div class="card-img" style="background-image:url('https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333" alt="Commons — Golf in Nekooska" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Commons</div>
@@ -1211,7 +1215,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/costa-palmas-golf-club/" aria-label="Open Costa Palmas Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_369895c5da2148d29a37a882c7061728~mv2.jpg')"><span class="card-parent-chip">Part of Costa Palmas</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_369895c5da2148d29a37a882c7061728~mv2.jpg" alt="Costa Palmas Golf Club — Golf in East Cape, La Ribera" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Costa Palmas</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Costa Palmas Golf Club</div>
@@ -1233,7 +1237,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/dutchman-s-pipe/" aria-label="Open Dutchman&#x27;s Pipe">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg" alt="Dutchman&#x27;s Pipe — Golf in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Dutchman&#x27;s Pipe</div>
@@ -1255,7 +1259,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/fairmont-the-red-sea/" aria-label="Open Fairmont The Red Sea">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e1dcbe446ea0-View-16_Pool-Restaurant_Update_Final-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e1dcbe446ea0-View-16_Pool-Restaurant_Update_Final-scaled.jpg" alt="Fairmont The Red Sea — Hotel in Shura Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Fairmont The Red Sea</div>
@@ -1277,7 +1281,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-amaala/" aria-label="Open Four Seasons Resort and Residences AMAALA">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/17f3a7773c9d-AML_004_aspect16x9.jpeg')"><span class="card-parent-chip">Part of AMAALA</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/17f3a7773c9d-AML_004_aspect16x9.jpeg" alt="Four Seasons Resort and Residences AMAALA — Hotel in Triple Bay, AMAALA" loading="lazy" decoding="async"><span class="card-parent-chip">Part of AMAALA</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Resort and Residences AMAALA</div>
@@ -1299,7 +1303,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/" aria-label="Open Four Seasons Resort and Residences Puerto Rico">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dac0c0b0da0c-9da58101-a036-42e2-9401-a33078ecd414.avif')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dac0c0b0da0c-9da58101-a036-42e2-9401-a33078ecd414.avif" alt="Four Seasons Resort and Residences Puerto Rico — Hotel in Bahía Beach, Río Grande" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Resort and Residences Puerto Rico</div>
@@ -1321,7 +1325,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/high-grove-golf-club/" aria-label="Open High Grove Golf Club">
-    <div class="card-img" style="background-image:url('https://www.golfcoursearchitecture.net/Portals/0/Images/HighGroveHanse-4_web.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.golfcoursearchitecture.net/Portals/0/Images/HighGroveHanse-4_web.jpg" alt="High Grove Golf Club — Golf in Central Florida" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">High Grove Golf Club</div>
@@ -1343,7 +1347,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nauka/" aria-label="Open Nauka">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg" alt="Nauka — Residences in Riviera Nayarit" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nauka</div>
@@ -1365,7 +1369,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/panther-national/" aria-label="Open Panther National">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_560293121b6649eaafc71820126fe9df~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_560293121b6649eaafc71820126fe9df~mv2.jpeg" alt="Panther National — Golf in Palm Beach Gardens" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Panther National</div>
@@ -1387,7 +1391,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-belgrove-resort-spa/" aria-label="Open The Belgrove Resort &amp; Spa">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg" alt="The Belgrove Resort &amp; Spa — Hotel in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Belgrove Resort &amp; Spa</div>
@@ -1409,7 +1413,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-hills/" aria-label="Open The Hills">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ef12df7d7fee-1733835060-binyan_dlc3007_thehills_s070_ext_lot6_flatfacadelight_final3500-copy.')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ef12df7d7fee-1733835060-binyan_dlc3007_thehills_s070_ext_lot6_flatfacadelight_final3500-copy." alt="The Hills — Golf in East Quogue" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Hills</div>
@@ -1431,7 +1435,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/trout-national-the-reserve/" aria-label="Open Trout National - The Reserve">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2fe73e80ea69-663089541_18519100999078955_489163552406675399_n-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2fe73e80ea69-663089541_18519100999078955_489163552406675399_n-crop.jpg" alt="Trout National - The Reserve — Golf in Millville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Trout National - The Reserve</div>

@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/diriyah-gate/" aria-label="Open Diriyah Gate">
-    <div class="card-img" style="background-image:url('https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c" alt="Diriyah Gate — Residences in At-Turaif, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Diriyah Gate</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-murabba/" aria-label="Open New Murabba">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b5240d178ef34f6ab3c2f4d8cf32f23c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b5240d178ef34f6ab3c2f4d8cf32f23c~mv2.jpg" alt="New Murabba — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New Murabba</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp" alt="Trojena — Entertainment in NEOM, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Trojena</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/amaala/" aria-label="Open AMAALA">
-    <div class="card-img" style="background-image:url('https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp" alt="AMAALA — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">AMAALA</div>

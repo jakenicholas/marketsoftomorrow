@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-lady-bird-lake/" aria-label="Open One Lady Bird Lake">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7c8a12353853-3338_1_000_N31_atchain-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7c8a12353853-3338_1_000_N31_atchain-scaled.jpg" alt="One Lady Bird Lake — Residences in South Central Waterfront, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">One Lady Bird Lake</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg" alt="1 Hotel Austin — Hotel in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1 Hotel Austin</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg" alt="Waterline — Residences in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waterline</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/luminary/" aria-label="Open Luminary">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a7c5aa045c4-625274594_18093009460970043_5193259207472991455_n.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a7c5aa045c4-625274594_18093009460970043_5193259207472991455_n.jpg" alt="Luminary — Residences in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Luminary</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wilson-tower/" aria-label="Open Wilson Tower">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/65e522142daf-Wilson-Tower-Ground-Floor-1-04-2023-Web.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/65e522142daf-Wilson-Tower-Ground-Floor-1-04-2023-Web.jpg" alt="Wilson Tower — Residences in Downtown Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wilson Tower</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/atx-tower/" aria-label="Open ATX Tower">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a5841cd4d2ed-01.573.11.003.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a5841cd4d2ed-01.573.11.003.jpg" alt="ATX Tower — Mixed-Use in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">ATX Tower</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-travis/" aria-label="Open The Travis">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9a74fe20d73d-residential-travis-01.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9a74fe20d73d-residential-travis-01.jpg" alt="The Travis — Residences in Rainey Street District, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Travis</div>

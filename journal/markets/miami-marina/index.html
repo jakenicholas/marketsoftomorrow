@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg" alt="Baccarat Residences Miami — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Baccarat Residences Miami</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg" alt="Continuum Waterfront District — Office in North Bay Village, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Continuum Waterfront District</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg" alt="Riverside Wharf — Mixed-Use in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Riverside Wharf</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-terminal-g/" aria-label="Open Royal Caribbean: Terminal G">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef92003073747bf844ca602b1e8851d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef92003073747bf844ca602b1e8851d~mv2.jpeg" alt="Royal Caribbean: Terminal G — Marina in PortMiami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Royal Caribbean: Terminal G</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/faena-residences-miami/" aria-label="Open Faena Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg" alt="Faena Residences Miami — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Faena Residences Miami</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/vista-harbor-residences/" aria-label="Open Vista Harbor Residences">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2026/03/image-7.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/image-7.webp" alt="Vista Harbor Residences — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Vista Harbor Residences</div>

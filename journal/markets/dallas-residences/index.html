@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/" aria-label="Open Four Seasons Hotel and Residences Dallas at Turtle Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg" alt="Four Seasons Hotel and Residences Dallas at Turtle Creek — Mixed-Use in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Hotel and Residences Dallas at Turtle Creek</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/" aria-label="Open Rosewood Residences Turtle Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07eab61152cd-EXT01_Teaser-Entrance_Final_7k_NEW_cmyk-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07eab61152cd-EXT01_Teaser-Entrance_Final_7k_NEW_cmyk-scaled.jpg" alt="Rosewood Residences Turtle Creek — Residences in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences Turtle Creek</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-knox/" aria-label="Open The Knox">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp" alt="The Knox — Mixed-Use in Knox Street District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Knox</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/711-north-pearl/" aria-label="Open 711 North Pearl">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg" alt="711 North Pearl — Residences in Downtown Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">711 North Pearl</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/" aria-label="Open Dallas Proper Hotel and Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c03110bde20a-Lincoln_2500CedarSprings_Hotel_Plaza_FINAL_101325-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c03110bde20a-Lincoln_2500CedarSprings_Hotel_Plaza_FINAL_101325-crop.jpg" alt="Dallas Proper Hotel and Residences — Hotel in Uptown, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Dallas Proper Hotel and Residences</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hi-line-square/" aria-label="Open Hi Line Square">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg" alt="Hi Line Square — Mixed-Use in Design District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hi Line Square</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/" aria-label="Open The Dallas EDITION Hotel &amp; Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg" alt="The Dallas EDITION Hotel &amp; Residences — Mixed-Use in Harwood District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Dallas EDITION Hotel &amp; Residences</div>

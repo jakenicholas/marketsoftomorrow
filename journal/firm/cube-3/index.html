@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -354,7 +358,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-st-petersburg/" aria-label="Open Waldorf Astoria Residences St. Petersburg">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dc6d133f0bfe-waldorf-astoria-residences-st-petersburg-florida-of-tomorrow-crop.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dc6d133f0bfe-waldorf-astoria-residences-st-petersburg-florida-of-tomorrow-crop.jpg" alt="Waldorf Astoria Residences St. Petersburg — Residences in Downtown St. Petersburg" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Residences St. Petersburg</div>
@@ -376,7 +380,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-apartments/" aria-label="Open Nora Apartments">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_51f0a9d6d72a4b7dbfc08f038768a40f~mv2.jpeg')"><span class="card-parent-chip">Part of The Nora District</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_51f0a9d6d72a4b7dbfc08f038768a40f~mv2.jpeg" alt="Nora Apartments — Residences in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nora Apartments</div>
@@ -398,7 +402,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-twelve-residences/" aria-label="Open One West Twelve Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3284a1eb3f3422e9fd2d5c0dc151716~mv2.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f3284a1eb3f3422e9fd2d5c0dc151716~mv2.png" alt="One West Twelve Residences — Residences in Historic Overtown, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">One West Twelve Residences</div>
@@ -420,7 +424,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/twenty-sixth-2nd-wynwood-residences/" aria-label="Open Twenty Sixth &amp; 2nd Wynwood Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e0db6ee90db46b1a4d170504c4b6550~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e0db6ee90db46b1a4d170504c4b6550~mv2.jpg" alt="Twenty Sixth &amp; 2nd Wynwood Residences — Residences in Wynwood, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Twenty Sixth &amp; 2nd Wynwood Residences</div>
@@ -442,7 +446,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-atlantic-university-residence-hall/" aria-label="Open Palm Beach Atlantic University Residence Hall">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/74e4de533040-pbau-tower_900xx1613-907-0-58.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/74e4de533040-pbau-tower_900xx1613-907-0-58.jpg" alt="Palm Beach Atlantic University Residence Hall — Education in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Beach Atlantic University Residence Hall</div>

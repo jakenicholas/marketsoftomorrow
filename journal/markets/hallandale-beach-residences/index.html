@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/7-park-residences-hallandale/" aria-label="Open 7 Park Residences Hallandale">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/07/building-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/07/building-1.jpg" alt="7 Park Residences Hallandale — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">7 Park Residences Hallandale</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shell-bay-residences/" aria-label="Open Shell Bay Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp" alt="Shell Bay Residences — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Shell Bay Residences</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/oasis-hallandale/" aria-label="Open Oasis Hallandale">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ee231384a2904d75a72f793315aa691b~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ee231384a2904d75a72f793315aa691b~mv2.jpg" alt="Oasis Hallandale — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Oasis Hallandale</div>

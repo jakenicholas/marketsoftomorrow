@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/intercontinental-turks-caicos/" aria-label="Open InterContinental Turks &amp; Caicos">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/68e249945085-ihg-turks-and-caicos-image-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/68e249945085-ihg-turks-and-caicos-image-1.jpg" alt="InterContinental Turks &amp; Caicos — Hotel in The Bight, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">InterContinental Turks &amp; Caicos</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/janu-turks-caicos/" aria-label="Open Janu Turks &amp; Caicos">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_cf4541d7a69944409010be523880bcca~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_cf4541d7a69944409010be523880bcca~mv2.jpeg" alt="Janu Turks &amp; Caicos — Hotel in Northwest Point, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Janu Turks &amp; Caicos</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-loren-at-turtle-cove/" aria-label="Open The Loren at Turtle Cove">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a5d72c637854-1-the-loren-turtle-cove-view-from-ocean-1024x640.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a5d72c637854-1-the-loren-turtle-cove-view-from-ocean-1024x640.jpg" alt="The Loren at Turtle Cove — Hotel in Turtle Cove, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Loren at Turtle Cove</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-point-at-point-grace/" aria-label="Open The Point at Point Grace">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5d88b1aaf360-1627_Grace_Point_Aerial_Shot_Back_004.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5d88b1aaf360-1627_Grace_Point_Aerial_Shot_Back_004.jpg" alt="The Point at Point Grace — Residences in Grace Bay, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Point at Point Grace</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kempinski-grace-bay/" aria-label="Open Kempinski Grace Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_4ae7c8f295ca4a10959f269e6e6a596e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_4ae7c8f295ca4a10959f269e6e6a596e~mv2.jpeg" alt="Kempinski Grace Bay — Hotel in Grace Bay Beach, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Kempinski Grace Bay</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/andaz-turks-caicos-at-grace-bay/" aria-label="Open Andaz Turks &amp; Caicos at Grace Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0676629544b-Andaz-Turks-Caicos-Rendering.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b0676629544b-Andaz-Turks-Caicos-Rendering.jpeg" alt="Andaz Turks &amp; Caicos at Grace Bay — Hotel in Grace Bay, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Andaz Turks &amp; Caicos at Grace Bay</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/amaris-grace-bay/" aria-label="Open AMARIS Grace Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a66b0135ad6d-AMARIS-Grace-Bay-LXR-Hotels-Resorts-Exterior.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a66b0135ad6d-AMARIS-Grace-Bay-LXR-Hotels-Resorts-Exterior.jpg" alt="AMARIS Grace Bay — Hotel in Grace Bay, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">AMARIS Grace Bay</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kimpton-turks-caicos/" aria-label="Open Kimpton Turks &amp; Caicos">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5743b6320c33-Intercon-and-Kimpton-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5743b6320c33-Intercon-and-Kimpton-scaled.jpg" alt="Kimpton Turks &amp; Caicos — Hotel in Grace Bay, Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Kimpton Turks &amp; Caicos</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-strand/" aria-label="Open The Strand">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e278c554a15b4eecbe1004721ddb87a9~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e278c554a15b4eecbe1004721ddb87a9~mv2.jpeg" alt="The Strand — Residences in Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Strand</div>

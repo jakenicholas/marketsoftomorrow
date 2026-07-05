@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -354,7 +358,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000-sport-wellness-residences/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2026/03/ContinuumCompanyLaunchesContinuum12000SportWellnessResidencesOnNorthMiamisWaterfront2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/ContinuumCompanyLaunchesContinuum12000SportWellnessResidencesOnNorthMiamisWaterfront2.webp" alt="Continuum 12000 Sport &amp; Wellness Residences — Residences in Keystone Point, North Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Continuum 12000 Sport &amp; Wellness Residences</div>
@@ -376,7 +380,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-tree-residences-miami/" aria-label="Open Palm Tree Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg" alt="Palm Tree Residences Miami — Mixed-Use in Park West, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Tree Residences Miami</div>
@@ -398,7 +402,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cove-miami/" aria-label="Open Cove Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a3d7b8c41584494db6c76c679d32b8be~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a3d7b8c41584494db6c76c679d32b8be~mv2.jpg" alt="Cove Miami — Residences in Edgewater, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Cove Miami</div>
@@ -420,7 +424,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edge-house/" aria-label="Open Edge House">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c62cfbf42c54237940107a2b8c5ef7a~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c62cfbf42c54237940107a2b8c5ef7a~mv2.webp" alt="Edge House — Residences in Edgewater, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Edge House</div>
@@ -442,7 +446,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-pointe/" aria-label="Open Marina Pointe: Luna">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp" alt="Marina Pointe: Luna — Residences in Westshore Marina District, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Pointe: Luna</div>
@@ -464,7 +468,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/parkside-residences/" aria-label="Open Parkside Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_778eff26f4b145ef9a3334fc6fe10366~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_778eff26f4b145ef9a3334fc6fe10366~mv2.jpg" alt="Parkside Residences — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Parkside Residences</div>
@@ -489,7 +493,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/21-hollywood/" aria-label="Open 21 Hollywood">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ce274d0c98ef490ea4a155983715c3e9~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ce274d0c98ef490ea4a155983715c3e9~mv2.webp" alt="21 Hollywood — Residences in Downtown Hollywood" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">21 Hollywood</div>
@@ -511,7 +515,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/alma-residences-bay-harbor/" aria-label="Open Alma Residences Bay Harbor">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/12/acRlv2AWfgqAHKVmyGgZC6NESs.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/12/acRlv2AWfgqAHKVmyGgZC6NESs.jpg" alt="Alma Residences Bay Harbor — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Alma Residences Bay Harbor</div>
@@ -533,7 +537,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mila-residences-bay-harbor/" aria-label="Open Mila Residences Bay Harbor">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/12/U6z9kyNm0iM7OZURVGgCYRALPI.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/12/U6z9kyNm0iM7OZURVGgCYRALPI.jpg" alt="Mila Residences Bay Harbor — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mila Residences Bay Harbor</div>
@@ -555,7 +559,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/opus-coconut-grove/" aria-label="Open OPUS Coconut Grove">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_172fb84da52d4ff1a79fd8bd92e03bee~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_172fb84da52d4ff1a79fd8bd92e03bee~mv2.jpg" alt="OPUS Coconut Grove — Residences in Coconut Grove, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">OPUS Coconut Grove</div>
@@ -577,7 +581,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shell-bay-residences/" aria-label="Open Shell Bay Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp" alt="Shell Bay Residences — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Shell Bay Residences</div>
@@ -599,7 +603,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-raleigh-rosewood-residences/" aria-label="Open The Raleigh Rosewood Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d738bd873eb946909861f8fc0084014d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d738bd873eb946909861f8fc0084014d~mv2.jpeg" alt="The Raleigh Rosewood Residences — Residences in Mid-Beach, Miami Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Raleigh Rosewood Residences</div>
@@ -621,7 +625,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/villa-17/" aria-label="Open Villa 17">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4b9f07ce3544e50bf9463a1549caa96~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4b9f07ce3544e50bf9463a1549caa96~mv2.jpeg" alt="Villa 17 — Residences in South Beach, Miami Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Villa 17</div>
@@ -643,7 +647,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg" alt="District at Northwood — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">District at Northwood</div>
@@ -665,7 +669,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/adagio-sarasota/" aria-label="Open Adagio Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/424316f66dd0-Screenshot-2025-08-04-at-10.43.31-PM.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/424316f66dd0-Screenshot-2025-08-04-at-10.43.31-PM.png" alt="Adagio Sarasota — Residences in Downtown, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Adagio Sarasota</div>
@@ -687,7 +691,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hb-capital-group-tower/" aria-label="Open HB Capital Group Tower">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_012767c00c8c4eeea25d3b2c33c40498~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_012767c00c8c4eeea25d3b2c33c40498~mv2.jpg" alt="HB Capital Group Tower — Mixed-Use in Lake Eola Heights, Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">HB Capital Group Tower</div>

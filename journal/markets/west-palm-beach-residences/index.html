@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mr-c-residences-west-palm-beach/" aria-label="Open Mr. C Residences West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c00a21a76b794f25b63e7d178185946d~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c00a21a76b794f25b63e7d178185946d~mv2.jpg" alt="Mr. C Residences West Palm Beach — Residences in Downtown West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mr. C Residences West Palm Beach</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/olara/" aria-label="Open Olara">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg" alt="Olara — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Olara</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/south-flagler-house/" aria-label="Open South Flagler House">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b87f778bff8b4b90a5675b2b2f769a49~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b87f778bff8b4b90a5675b2b2f769a49~mv2.jpg" alt="South Flagler House — Residences in South End, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">South Flagler House</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-berkeley/" aria-label="Open The Berkeley">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f984daff5f54b249d669a5112ca45f9~mv2.webp')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f984daff5f54b249d669a5112ca45f9~mv2.webp" alt="The Berkeley — Residences in Clear Lake District, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Berkeley</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-residences-west-palm-beach/" aria-label="Open Mandarin Oriental Residences, West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8c82130e3ed4ee890c293295bab0104~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8c82130e3ed4ee890c293295bab0104~mv2.jpeg" alt="Mandarin Oriental Residences, West Palm Beach — Residences in North End, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mandarin Oriental Residences, West Palm Beach</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg" alt="District at Northwood — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">District at Northwood</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-atlantic-university-residence-hall/" aria-label="Open Palm Beach Atlantic University Residence Hall">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/74e4de533040-pbau-tower_900xx1613-907-0-58.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/74e4de533040-pbau-tower_900xx1613-907-0-58.jpg" alt="Palm Beach Atlantic University Residence Hall — Education in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Beach Atlantic University Residence Hall</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/shorecrest-flagler-drive/" aria-label="Open Shorecrest Flagler Drive">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0571ca7200743de980d42d760494d6f~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0571ca7200743de980d42d760494d6f~mv2.jpeg" alt="Shorecrest Flagler Drive — Residences in North Flagler Drive, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Shorecrest Flagler Drive</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-west-palm-beach/" aria-label="Open The Ritz Carlton Residences, West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b4fc5cf3814bb0ac4d6c35ea321557~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b4fc5cf3814bb0ac4d6c35ea321557~mv2.jpg" alt="The Ritz Carlton Residences, West Palm Beach — Residences in North Flagler District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz Carlton Residences, West Palm Beach</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-palm/" aria-label="Open ONE West Palm">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_49be1e0e818341a1820b65fc9db2d553~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_49be1e0e818341a1820b65fc9db2d553~mv2.webp" alt="ONE West Palm — Office in Currie Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">ONE West Palm</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-estates-at-nomar/" aria-label="Open The Estates at NoMar">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4eb5c990851479e9e695aa4b3303cc1~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4eb5c990851479e9e695aa4b3303cc1~mv2.webp" alt="The Estates at NoMar — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Estates at NoMar</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-sound/" aria-label="Open The Sound">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg" alt="The Sound — Residences in South End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Sound</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/120-s-dixie-highway/" aria-label="Open 120 S. Dixie Highway">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_104293149edd404384cba9afa259f283~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_104293149edd404384cba9afa259f283~mv2.jpg" alt="120 S. Dixie Highway — Residences in Downtown, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">120 S. Dixie Highway</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1830-n-dixie/" aria-label="Open 1830 N. Dixie">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_74b5740440cf45a99a38d4cc94aee3d3~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_74b5740440cf45a99a38d4cc94aee3d3~mv2.webp" alt="1830 N. Dixie — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1830 N. Dixie</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/201-arkona-court/" aria-label="Open 201 Arkona Court">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53656fdd7a21-201-203-Arkona-Court-Sculpture-Options_Page_1-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53656fdd7a21-201-203-Arkona-Court-Sculpture-Options_Page_1-crop.jpg" alt="201 Arkona Court — Residences in Near the Norton Museum of Art, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">201 Arkona Court</div>
@@ -749,7 +753,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/2823-broadway/" aria-label="Open 2823 Broadway">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f61781c8e2bf4d0eb6eb017570e31fad~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f61781c8e2bf4d0eb6eb017570e31fad~mv2.jpg" alt="2823 Broadway — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">2823 Broadway</div>
@@ -771,7 +775,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/apogee-residences/" aria-label="Open Apogee Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2a2f74a2181444378da13d03c0dafade~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2a2f74a2181444378da13d03c0dafade~mv2.jpeg" alt="Apogee Residences — Residences in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Apogee Residences</div>
@@ -793,7 +797,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/banyan-tree-residences/" aria-label="Open Banyan Tree Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_22b710e464784a678139ab0375a08f49~mv2.jpg" alt="Banyan Tree Residences — Residences in Downtown, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Banyan Tree Residences</div>
@@ -815,7 +819,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/breakers-employee-housing-campus/" aria-label="Open Breakers Employee Housing Campus">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0712682d395f441ab45978d97ce37019~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0712682d395f441ab45978d97ce37019~mv2.webp" alt="Breakers Employee Housing Campus — Residences in North Australian Avenue, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Breakers Employee Housing Campus</div>
@@ -837,7 +841,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/coleman-park-revitalization/" aria-label="Open Coleman Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg" alt="Coleman Park — Mixed-Use in Coleman Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Coleman Park</div>
@@ -859,7 +863,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/currie-park-towers/" aria-label="Open Currie Park Towers">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8543a1c138fb49b0a5f1b094086145b9~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8543a1c138fb49b0a5f1b094086145b9~mv2.jpg" alt="Currie Park Towers — Residences in Currie Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Currie Park Towers</div>
@@ -881,7 +885,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edgeworth/" aria-label="Open Edgeworth">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg" alt="Edgeworth — Residences in South Flagler, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Edgeworth</div>
@@ -903,7 +907,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/good-samaritan-medical-district/" aria-label="Open Good Samaritan Medical District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b3aca0110642f1aef69b1965dc45f9~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b3aca0110642f1aef69b1965dc45f9~mv2.jpg" alt="Good Samaritan Medical District — Hotel in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Good Samaritan Medical District</div>
@@ -925,7 +929,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/maison-dor/" aria-label="Open Maison D&#x27;Or">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5097cec359e64c639a5079748f1246d6~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5097cec359e64c639a5079748f1246d6~mv2.jpeg" alt="Maison D&#x27;Or — Residences in South Flagler, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Maison D&#x27;Or</div>
@@ -947,7 +951,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-apartments/" aria-label="Open Nora Apartments">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_51f0a9d6d72a4b7dbfc08f038768a40f~mv2.jpeg')"><span class="card-parent-chip">Part of The Nora District</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_51f0a9d6d72a4b7dbfc08f038768a40f~mv2.jpeg" alt="Nora Apartments — Residences in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nora Apartments</div>
@@ -969,7 +973,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-house/" aria-label="Open Nora House">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_01d94917d2bf403292da5b44797488cd~mv2.png')"><span class="card-parent-chip">Part of The Nora District</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_01d94917d2bf403292da5b44797488cd~mv2.png" alt="Nora House — Residences in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nora House</div>
@@ -991,7 +995,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/415-s-dixie-hwy/" aria-label="Open Residences at Palm Beach West">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg" alt="Residences at Palm Beach West — Residences in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Residences at Palm Beach West</div>
@@ -1013,7 +1017,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-west-palm-beach/" aria-label="Open Rosewood Residences West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c31060b077d40609c4c999b3a2de90f~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c31060b077d40609c4c999b3a2de90f~mv2.jpg" alt="Rosewood Residences West Palm Beach — Residences in Flagler Waterfront, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences West Palm Beach</div>
@@ -1035,7 +1039,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/safe-harbor-rybovich-district/" aria-label="Open Safe Harbor Rybovich District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b1078c0e871c44f7a27cab3ea75f18b7~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b1078c0e871c44f7a27cab3ea75f18b7~mv2.jpeg" alt="Safe Harbor Rybovich District — Entertainment in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Safe Harbor Rybovich District</div>
@@ -1057,7 +1061,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/pbkc-redevelopment/" aria-label="Open Westgate Village (Palm Beach Kennel Club Redevelopment)">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56780272183c4480b570953cdd68ec09~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_56780272183c4480b570953cdd68ec09~mv2.jpg" alt="Westgate Village (Palm Beach Kennel Club Redevelopment) — Mixed-Use in Westgate, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Westgate Village (Palm Beach Kennel Club Redevelopment)</div>
@@ -1079,7 +1083,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/alba/" aria-label="Open Alba">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_04a68b0e129c44cab7f991d7c62bc595~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_04a68b0e129c44cab7f991d7c62bc595~mv2.jpg" alt="Alba — Residences in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Alba</div>
@@ -1101,7 +1105,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/fort-on-flagler/" aria-label="Open Forté on Flagler">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2a29bdc443f4baca16e4fedd722052c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2a29bdc443f4baca16e4fedd722052c~mv2.jpg" alt="Forté on Flagler — Residences in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Forté on Flagler</div>
@@ -1123,7 +1127,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/inscription-west-palm-beach/" aria-label="Open Inscription">
-    <div class="card-img" style="background-image:url('https://www.ecigroups.com/wp-content/uploads/2023/12/WPB_CorpHero.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.ecigroups.com/wp-content/uploads/2023/12/WPB_CorpHero.png" alt="Inscription — Residences in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Inscription</div>
@@ -1145,7 +1149,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-belgrove-resort-spa/" aria-label="Open The Belgrove Resort &amp; Spa">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_abad40b17c484cbc8d931f65d4fbbb43~mv2.jpeg" alt="The Belgrove Resort &amp; Spa — Hotel in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Belgrove Resort &amp; Spa</div>
@@ -1167,7 +1171,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75fec2a79d1b49eca4dd15a680da5365~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75fec2a79d1b49eca4dd15a680da5365~mv2.jpeg" alt="The Nora District — Mixed-Use in Nora District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Nora District</div>
@@ -1189,7 +1193,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-spruce/" aria-label="Open The Spruce">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cdaade641f0c-339539604-741771830741020-8650321499658193623-n-64b223e8bc78c-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cdaade641f0c-339539604-741771830741020-8650321499658193623-n-64b223e8bc78c-crop.jpg" alt="The Spruce — Residences in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Spruce</div>

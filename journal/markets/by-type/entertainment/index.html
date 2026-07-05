@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/east-bank-campus/" aria-label="Open East Bank">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg" alt="East Bank — Residences in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">East Bank</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-revelstoke/" aria-label="Open Cabot Revelstoke">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_968b7467eecf4f0b9dc41e149039250c~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_968b7467eecf4f0b9dc41e149039250c~mv2.jpeg" alt="Cabot Revelstoke — Hotel in Revelstoke Mountain Resort" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Cabot Revelstoke</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-hotel/" aria-label="Open The Nora Hotel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c538863e8f3a4b43abfdbaba46b3b185~mv2.jpg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span><span class="card-parent-chip">Part of The Nora District</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c538863e8f3a4b43abfdbaba46b3b185~mv2.jpg" alt="The Nora Hotel — Hotel in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Nora Hotel</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
-    <div class="card-img" style="background-image:url('https://newyorkyimby.com/wp-content/uploads/2024/08/A.png')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/08/A.png" alt="Hudson Yards West — Residences in Hudson Yards, New York City" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hudson Yards West</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom" alt="Bridgestone Arena — Entertainment in SoBro, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bridgestone Arena</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/6c03f6_848634658af841a88b954129ec0f9bbf~mv2.jpg" alt="Candyroot Lodge — Golf in Chesterfield County, South Carolina" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Candyroot Lodge</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/coral-mountain-desert-club/" aria-label="Open Coral Mountain Desert Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_79313d37bf88452b8de2243d5b7c1d7c~mv2.jpg" alt="Coral Mountain Desert Club — Golf in La Quinta" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Coral Mountain Desert Club</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/court-club/" aria-label="Open Court Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_95730396d85b4c09ae21d96f32238f07~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_95730396d85b4c09ae21d96f32238f07~mv2.jpeg" alt="Court Club — Park in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Court Club</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/currie-park/" aria-label="Open Currie Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9b8fdf12fa864e96b5f6698509c06acd~mv2.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9b8fdf12fa864e96b5f6698509c06acd~mv2.png" alt="Currie Park — Entertainment in Currie Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Currie Park</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/diriyah-gate/" aria-label="Open Diriyah Gate">
-    <div class="card-img" style="background-image:url('https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c" alt="Diriyah Gate — Residences in At-Turaif, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Diriyah Gate</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e158cc23c0524a639b200559a056d351~mv2.jpg" alt="District at Northwood — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">District at Northwood</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/foro-futeca/" aria-label="Open Foro Futeca">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/70e6eb20cb9a-foro-futeca-b4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/70e6eb20cb9a-foro-futeca-b4.jpg" alt="Foro Futeca — Entertainment in Zona 10, Guatemala City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Foro Futeca</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-jacksonville/" aria-label="Open Four Seasons Hotel and Residences Jacksonville">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f5eb44c5dd947aa98d74a0317a65de6~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f5eb44c5dd947aa98d74a0317a65de6~mv2.jpeg" alt="Four Seasons Hotel and Residences Jacksonville — Residences in Downtown Jacksonville (Northbank)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Hotel and Residences Jacksonville</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/gasworx/" aria-label="Open Gasworx">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_13969b4b12be43059f3351c2cfc570fd~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_13969b4b12be43059f3351c2cfc570fd~mv2.jpg" alt="Gasworx — Entertainment in Ybor City, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Gasworx</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hard-rock-las-vegas/" aria-label="Open Hard Rock Las Vegas">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2eae081ce264-hardrockguitar.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2eae081ce264-hardrockguitar.webp" alt="Hard Rock Las Vegas — Hotel in The Strip, Las Vegas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hard Rock Las Vegas</div>
@@ -749,7 +753,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/huntington-bank-field/" aria-label="Open Huntington Bank Field">
-    <div class="card-img" style="background-image:url('https://www.archpaper.com/wp-content/uploads/2026/02/xq8ftrxvfxhk4d3dz9rx.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2026/02/xq8ftrxvfxhk4d3dz9rx.jpg" alt="Huntington Bank Field — Stadium in Brook Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Huntington Bank Field</div>
@@ -771,7 +775,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jacksonville-jaguars-stadium/" aria-label="Open Jacksonville Jaguars Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6391c15f8ba4859abdabfd897d0d6e6~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6391c15f8ba4859abdabfd897d0d6e6~mv2.webp" alt="Jacksonville Jaguars Stadium — Stadium in Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Jacksonville Jaguars Stadium</div>
@@ -793,7 +797,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kawonu-golf-club/" aria-label="Open Kawonu Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5178df7e3ba645c58621057701ca66bf~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5178df7e3ba645c58621057701ca66bf~mv2.jpeg" alt="Kawonu Golf Club — Entertainment in Southern Greenville County" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Kawonu Golf Club</div>
@@ -815,7 +819,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-park/" aria-label="Open King Salman Park">
-    <div class="card-img" style="background-image:url('https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg" alt="King Salman Park — Park in Former Riyadh Air Base" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">King Salman Park</div>
@@ -837,7 +841,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/madrid-nuevo-norte-bbva-tower-towers/" aria-label="Open Madrid Nuevo Norte – BBVA Tower &amp; Towers">
-    <div class="card-img" style="background-image:url('https://www.bbva.com/wp-content/uploads/2018/07/Imagen-2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.bbva.com/wp-content/uploads/2018/07/Imagen-2.jpg" alt="Madrid Nuevo Norte – BBVA Tower &amp; Towers — Residences in Chamartín, Madrid" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Madrid Nuevo Norte – BBVA Tower &amp; Towers</div>
@@ -859,7 +863,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village/" aria-label="Open Marina Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568f9e4382404ec98a5c614fd666dd37~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568f9e4382404ec98a5c614fd666dd37~mv2.jpg" alt="Marina Village — Residences in Marina District, Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Village</div>
@@ -881,7 +885,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-murabba/" aria-label="Open New Murabba">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b5240d178ef34f6ab3c2f4d8cf32f23c~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b5240d178ef34f6ab3c2f4d8cf32f23c~mv2.jpg" alt="New Murabba — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New Murabba</div>
@@ -903,7 +907,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75dac417c7384bcc9ef8ed0e95108fcd~mv2.jpeg" alt="NOKOSI Golf Club — Golf in Former Sherbrooke Golf &amp;amp; Country Club site, Lantana" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">NOKOSI Golf Club</div>
@@ -925,7 +929,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/osaka-ir-casino-entertainment-resort/" aria-label="Open Osaka IR Casino &amp; Entertainment Resort">
-    <div class="card-img" style="background-image:url('https://parametric-architecture.com/wp-content/uploads/2026/01/MGM-Osaka-04.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://parametric-architecture.com/wp-content/uploads/2026/01/MGM-Osaka-04.webp" alt="Osaka IR Casino &amp; Entertainment Resort — Entertainment in Yumeshima, Osaka" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Osaka IR Casino &amp; Entertainment Resort</div>
@@ -947,7 +951,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/" aria-label="Open Palm Beach Gardens IcePlex">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/91ceaf0ba1e5-PBNAF_Exterior_Daytime_Rendering_2500x1220.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/91ceaf0ba1e5-PBNAF_Exterior_Daytime_Rendering_2500x1220.jpg" alt="Palm Beach Gardens IcePlex — Stadium in Plant Drive Park, Palm Beach Gardens" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Beach Gardens IcePlex</div>
@@ -969,7 +973,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/phoenix-arts-innovation-district-phxjax/" aria-label="Open Phoenix Arts &amp; Innovation District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5adb4c5612454432841f9f9af1330e55~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5adb4c5612454432841f9f9af1330e55~mv2.jpeg" alt="Phoenix Arts &amp; Innovation District — Mixed-Use in North Springfield, Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Phoenix Arts &amp; Innovation District</div>
@@ -991,7 +995,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg" alt="Riverside Wharf — Mixed-Use in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Riverside Wharf</div>
@@ -1013,7 +1017,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sofi-stadium-district/" aria-label="Open SoFi Stadium District">
-    <div class="card-img" style="background-image:url('https://www.archpaper.com/wp-content/uploads/2022/09/Cosm_HollywoodPark-copy.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2022/09/Cosm_HollywoodPark-copy.jpg" alt="SoFi Stadium District — Entertainment in Hollywood Park, Inglewood" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">SoFi Stadium District</div>
@@ -1035,7 +1039,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sweetens-cove-golf-club/" aria-label="Open Sweetens Cove Golf Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg" alt="Sweetens Cove Golf Club — Golf in Sequatchie Valley, South Pittsburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Sweetens Cove Golf Club</div>
@@ -1057,7 +1061,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-titans-stadium/" aria-label="Open Tennessee Titans Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b4312c8ac1a5487bb7b5c96b19bf55e4~mv2.webp" alt="Tennessee Titans Stadium — Entertainment in Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tennessee Titans Stadium</div>
@@ -1079,7 +1083,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-78/" aria-label="Open The 78">
-    <div class="card-img" style="background-image:url('https://www.costar.com/_next/image?url=https%3A%2F%2Fcostar.brightspotcdn.com%2Fdims4%2Fdefault%2Fd7d30b4%2F2147483647%2Fstrip%2Ftrue%2Fcrop%2F2100x1400%2B0%2B0%2Fresize%2F2100x1400!%2Fquality%2F100%2F%3Furl%3Dhttp%253A%252F%252Fcostar-brightspot.s3.us-east-1.amazonaws.com%252F40%252F1c%252F2b5adc414056a1eee36fc82a8b1d%252Fdpi.jpg&amp;w=3840&amp;q=75')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.costar.com/_next/image?url=https%3A%2F%2Fcostar.brightspotcdn.com%2Fdims4%2Fdefault%2Fd7d30b4%2F2147483647%2Fstrip%2Ftrue%2Fcrop%2F2100x1400%2B0%2B0%2Fresize%2F2100x1400!%2Fquality%2F100%2F%3Furl%3Dhttp%253A%252F%252Fcostar-brightspot.s3.us-east-1.amazonaws.com%252F40%252F1c%252F2b5adc414056a1eee36fc82a8b1d%252Fdpi.jpg&amp;w=3840&amp;q=75" alt="The 78 — Residences in Near South Side, Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The 78</div>
@@ -1101,7 +1105,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-breakers-family-entertainment-center/" aria-label="Open The Breakers Family Entertainment Center">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4585d14ec8dd-85343985007-fec-entrance-july.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4585d14ec8dd-85343985007-fec-entrance-july.jpeg" alt="The Breakers Family Entertainment Center — Entertainment in Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Breakers Family Entertainment Center</div>
@@ -1123,7 +1127,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-carnelian/" aria-label="Open The Carnelian">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3b4e0d69f31349db87e3ef881f155d7c~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3b4e0d69f31349db87e3ef881f155d7c~mv2.jpeg" alt="The Carnelian — Hotel in North Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Carnelian</div>
@@ -1145,7 +1149,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-mix/" aria-label="Open The Mix">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/459f3e6bedbc-hero-home.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/459f3e6bedbc-hero-home.jpg" alt="The Mix — Mixed-Use in North Platinum Corridor, Frisco" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Mix</div>
@@ -1167,7 +1171,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-power-district/" aria-label="Open The Power District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8bbf3e5b0854c009d436d5577e000d8~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8bbf3e5b0854c009d436d5577e000d8~mv2.jpg" alt="The Power District — Mixed-Use in Salt Lake City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Power District</div>
@@ -1189,7 +1193,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ef6d1dad64154966a82b89b09bc97618~mv2.webp" alt="Trojena — Entertainment in NEOM, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Trojena</div>
@@ -1211,7 +1215,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/water-street-phase-two/" aria-label="Open Water Street Phase Two">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg" alt="Water Street Phase Two — Entertainment in Water Street, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Water Street Phase Two</div>
@@ -1233,7 +1237,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wyld-oaks/" aria-label="Open Wyld Oaks">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/32c3ccd4e1aa-Wyld-Oaks-Rendering-View-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/32c3ccd4e1aa-Wyld-Oaks-Rendering-View-1.jpg" alt="Wyld Oaks — Mixed-Use in Kelly Park Corridor, Apopka" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wyld Oaks</div>
@@ -1255,7 +1259,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/" aria-label="Open YMCA of the Palm Beaches">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_263e842882cc4910a1fbd3f25c153cb4~mv2.avif')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_263e842882cc4910a1fbd3f25c153cb4~mv2.avif" alt="YMCA of the Palm Beaches — Education in Lake Lytal Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">YMCA of the Palm Beaches</div>
@@ -1277,7 +1281,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">175 Third Street</div>
@@ -1299,7 +1303,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d9bbf3644ad417c8ee44895764bb3b6~mv2.jpg" alt="Aloha Stadium — Residences in Hālawa, Honolulu" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Aloha Stadium</div>
@@ -1321,7 +1325,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/brisbane-olympic-stadium/" aria-label="Open Brisbane Olympic Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_89eea35118f34c75ad8132b4d19f7fca~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_89eea35118f34c75ad8132b4d19f7fca~mv2.jpeg" alt="Brisbane Olympic Stadium — Stadium in Victoria Park, Brisbane" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Brisbane Olympic Stadium</div>
@@ -1343,7 +1347,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg" alt="Eastpoint — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Eastpoint</div>
@@ -1365,7 +1369,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-campus/" aria-label="Open Oracle Campus">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg" alt="Oracle Campus — Hotel in River North, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Oracle Campus</div>
@@ -1387,7 +1391,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/westcourt-orlando/" aria-label="Open Westcourt Orlando">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b44f18e2a9e34cef985c5d82d313df14~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b44f18e2a9e34cef985c5d82d313df14~mv2.webp" alt="Westcourt Orlando — Entertainment in Downtown Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Westcourt Orlando</div>
@@ -1409,7 +1413,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/coral-cay-waterpark/" aria-label="Open Coral Cay Adventure Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c6a2c99868948bf91f96e02bf8f21fd~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c6a2c99868948bf91f96e02bf8f21fd~mv2.webp" alt="Coral Cay Adventure Park — Entertainment in Duck Key, Florida Keys" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Coral Cay Adventure Park</div>
@@ -1431,7 +1435,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/dus-padel/" aria-label="Open DUS Padel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg" alt="DUS Padel — Entertainment in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">DUS Padel</div>
@@ -1453,7 +1457,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/fat-village/" aria-label="Open FAT Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp" alt="FAT Village — Mixed-Use in Flagler Village, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">FAT Village</div>
@@ -1475,7 +1479,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hudsons-detroit/" aria-label="Open Hudson&#x27;s Detroit">
-    <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/68e8/1672/7f27/f801/8d0d/156e/large_jpg/shop-architects-completes-first-stage-of-mixed-use-development-in-downtown-detroit_4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/68e8/1672/7f27/f801/8d0d/156e/large_jpg/shop-architects-completes-first-stage-of-mixed-use-development-in-downtown-detroit_4.jpg" alt="Hudson&#x27;s Detroit — Mixed-Use in Downtown, Detroit" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hudson&#x27;s Detroit</div>
@@ -1497,7 +1501,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/" aria-label="Open Lucas Museum of Narrative Art">
-    <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg" alt="Lucas Museum of Narrative Art — Museum in Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Lucas Museum of Narrative Art</div>
@@ -1519,7 +1523,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-west-palm/" aria-label="Open ONE West Palm">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_49be1e0e818341a1820b65fc9db2d553~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_49be1e0e818341a1820b65fc9db2d553~mv2.webp" alt="ONE West Palm — Office in Currie Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">ONE West Palm</div>
@@ -1541,7 +1545,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-brook-tennis-and-pickleball/" aria-label="Open The Brook Tennis and Pickleball">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ab05ab0d85e1-90249866007-the-brook-render.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ab05ab0d85e1-90249866007-the-brook-render.webp" alt="The Brook Tennis and Pickleball — Entertainment in West Boynton Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Brook Tennis and Pickleball</div>
@@ -1563,7 +1567,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-sound/" aria-label="Open The Sound">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b2304dd2921c4a8c93351cdc4c83b027~mv2.jpg" alt="The Sound — Residences in South End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Sound</div>
@@ -1585,7 +1589,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wedgewood-village/" aria-label="Open Wedgewood Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4aa6368441dc45ba845be0570ae5bb04~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4aa6368441dc45ba845be0570ae5bb04~mv2.jpg" alt="Wedgewood Village — Mixed-Use in Wedgewood-Houston, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wedgewood Village</div>
@@ -1607,7 +1611,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/201-arkona-court/" aria-label="Open 201 Arkona Court">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53656fdd7a21-201-203-Arkona-Court-Sculpture-Options_Page_1-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53656fdd7a21-201-203-Arkona-Court-Sculpture-Options_Page_1-crop.jpg" alt="201 Arkona Court — Residences in Near the Norton Museum of Art, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">201 Arkona Court</div>
@@ -1629,7 +1633,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-city-hall/" aria-label="Open Boca Raton City Hall">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg" alt="Boca Raton City Hall — Entertainment in Boca Raton" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Boca Raton City Hall</div>
@@ -1651,7 +1655,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-jumeira/" aria-label="Open Burj Jumeira">
-    <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg" alt="Burj Jumeira — Mixed-Use in Al Sufouh, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Burj Jumeira</div>
@@ -1673,7 +1677,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/central-waterfront-park/" aria-label="Open Central Waterfront Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_31ae79dd95054797a87523c62be6d1af~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_31ae79dd95054797a87523c62be6d1af~mv2.jpeg" alt="Central Waterfront Park — Park in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Central Waterfront Park</div>
@@ -1695,7 +1699,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_77565ac2b73f424d9784dd97563c65d4~mv2.jpeg" alt="Jungle Island — Mixed-Use in Watson Island, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Jungle Island</div>
@@ -1717,7 +1721,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/lake-eola-expansion/" aria-label="Open Lake Eola Expansion">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7e739e7a6d514a6291e1b50cc3b7158d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7e739e7a6d514a6291e1b50cc3b7158d~mv2.jpeg" alt="Lake Eola Expansion — Park in Downtown Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Lake Eola Expansion</div>
@@ -1739,7 +1743,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/lincoln-yards/" aria-label="Open Lincoln Yards">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg" alt="Lincoln Yards — Residences in Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Lincoln Yards</div>
@@ -1761,7 +1765,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/live-nation-gasworx/" aria-label="Open Live Nation Gasworx">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6c6d9248e37a4369b8cc051d31a2fe62~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6c6d9248e37a4369b8cc051d31a2fe62~mv2.jpeg" alt="Live Nation Gasworx — Entertainment in Ybor City, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Live Nation Gasworx</div>
@@ -1783,7 +1787,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/midtown-park/" aria-label="Open Midtown Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0dc8e50ab8d344e18c9cdfdc95b9e451~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0dc8e50ab8d344e18c9cdfdc95b9e451~mv2.jpeg" alt="Midtown Park — Mixed-Use in Midtown, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Midtown Park</div>
@@ -1805,7 +1809,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/navy-seal-museum-san-diego/" aria-label="Open Navy SEAL Museum San Diego">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_20f4702d022240db9f2c5ea51cf48ef5~mv2.jpg" alt="Navy SEAL Museum San Diego — Museum in Embarcadero, San Diego" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Navy SEAL Museum San Diego</div>
@@ -1827,7 +1831,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/" aria-label="Open New Kansas City Royals Stadium">
-    <div class="card-img" style="background-image:url('https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true" alt="New Kansas City Royals Stadium — Stadium in Crown Center, Kansas City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New Kansas City Royals Stadium</div>
@@ -1849,7 +1853,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-san-siro-stadium/" aria-label="Open New San Siro Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg" alt="New San Siro Stadium — Stadium in San Siro, Milan" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New San Siro Stadium</div>
@@ -1871,7 +1875,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/norton-museum-of-art-expansion/" aria-label="Open Norton Museum of Art (Expansion)">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6ee678e0ee6404d9bc8f899cda44d54~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6ee678e0ee6404d9bc8f899cda44d54~mv2.jpg" alt="Norton Museum of Art (Expansion) — Education in SoSo, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Norton Museum of Art (Expansion)</div>
@@ -1893,7 +1897,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Palm Harbor Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f1cd59b9dc0b409d992891865dc455d5~mv2.jpg" alt="Palm Harbor Club — Entertainment in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Harbor Club</div>
@@ -1915,7 +1919,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-tree-residences-miami/" aria-label="Open Palm Tree Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c2efdadc0a6b497389fe3943c351ab92~mv2.jpg" alt="Palm Tree Residences Miami — Mixed-Use in Park West, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palm Tree Residences Miami</div>
@@ -1937,7 +1941,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rb-sports-center/" aria-label="Open R&amp;B Sports Center">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_33fcb13f728e44619cc5a0ecc2014180~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_33fcb13f728e44619cc5a0ecc2014180~mv2.jpeg" alt="R&amp;B Sports Center — Entertainment in Greenbriar Boulevard, Wellington" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">R&amp;B Sports Center</div>
@@ -1959,7 +1963,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/safe-harbor-rybovich-district/" aria-label="Open Safe Harbor Rybovich District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b1078c0e871c44f7a27cab3ea75f18b7~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b1078c0e871c44f7a27cab3ea75f18b7~mv2.jpeg" alt="Safe Harbor Rybovich District — Entertainment in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Safe Harbor Rybovich District</div>
@@ -1981,7 +1985,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-bahia-mar/" aria-label="Open St. Regis Bahia Mar">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg" alt="St. Regis Bahia Mar — Entertainment in Bahia Mar, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">St. Regis Bahia Mar</div>
@@ -2003,7 +2007,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-bay-rays-stadium/" aria-label="Open Tampa Bay Rays Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp" alt="Tampa Bay Rays Stadium — Entertainment in West Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tampa Bay Rays Stadium</div>
@@ -2025,7 +2029,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-performing-arts-center/" aria-label="Open Tennessee Performing Arts Center">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2b406e5a9f9a4e61a163b0b2b6ce4a7d~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2b406e5a9f9a4e61a163b0b2b6ce4a7d~mv2.jpeg" alt="Tennessee Performing Arts Center — Cultural in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Tennessee Performing Arts Center</div>
@@ -2047,7 +2051,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-dynasty/" aria-label="Open The Dynasty">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bbf5c789de064bb3be1367ae6073fc71~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bbf5c789de064bb3be1367ae6073fc71~mv2.webp" alt="The Dynasty — Mixed-Use in Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Dynasty</div>
@@ -2069,7 +2073,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png" alt="The East Bend — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The East Bend</div>
@@ -2091,7 +2095,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/toro-district/" aria-label="Open Toro District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1857ab42b588-Toro-District-Rendering.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1857ab42b588-Toro-District-Rendering.jpg" alt="Toro District — Mixed-Use in Bridgeland, Cypress" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Toro District</div>
@@ -2113,7 +2117,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/water-street-tampa-entertainment-district/" aria-label="Open Water Street Tampa Entertainment District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4bcdea1811f74330b5673feea32e6145~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4bcdea1811f74330b5673feea32e6145~mv2.jpg" alt="Water Street Tampa Entertainment District — Mixed-Use in Water Street, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Water Street Tampa Entertainment District</div>
@@ -2135,7 +2139,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/woodlawn-cemetery/" aria-label="Open Woodlawn Cemetery">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_14634dd344804874b9bf83fb1592ec83~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_14634dd344804874b9bf83fb1592ec83~mv2.jpeg" alt="Woodlawn Cemetery — Park in SoSo, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Woodlawn Cemetery</div>
@@ -2157,7 +2161,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ybor-harbor/" aria-label="Open Ybor Harbor">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1585133743843e7853f3b67a1a56c12~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a1585133743843e7853f3b67a1a56c12~mv2.jpg" alt="Ybor Harbor — Entertainment in Ybor City, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Ybor Harbor</div>
@@ -2179,7 +2183,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/naples-beach-club-a-four-seasons-resort/" aria-label="Open Naples Beach Club, A Four Seasons Resort">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3085512003864b19ac166f9509fb1d03~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3085512003864b19ac166f9509fb1d03~mv2.jpeg" alt="Naples Beach Club, A Four Seasons Resort — Hotel in Naples" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Naples Beach Club, A Four Seasons Resort</div>
@@ -2201,7 +2205,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/amaala/" aria-label="Open AMAALA">
-    <div class="card-img" style="background-image:url('https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp" alt="AMAALA — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">AMAALA</div>
@@ -2223,7 +2227,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-citrus-farms/" aria-label="Open Cabot Citrus Farms">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c0c60707f153402599535b1db40c5f05~mv2.jpeg" alt="Cabot Citrus Farms — Golf in Brooksville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Cabot Citrus Farms</div>
@@ -2245,7 +2249,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/deer-valley-resort-expansion/" aria-label="Open Deer Valley Resort (Expansion)">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2118c3418275-e4c7857ea3e929770e35f78448832e022fc549c6-4800x4000-gigapixel-low-resolution-v2-2')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2118c3418275-e4c7857ea3e929770e35f78448832e022fc549c6-4800x4000-gigapixel-low-resolution-v2-2" alt="Deer Valley Resort (Expansion) — Hotel in Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Deer Valley Resort (Expansion)</div>
@@ -2267,7 +2271,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/e11even-club-hotel-residences/" aria-label="Open E11EVEN® Club Hotel &amp; Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg" alt="E11EVEN® Club Hotel &amp; Residences — Residences in Park West, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">E11EVEN® Club Hotel &amp; Residences</div>
@@ -2289,7 +2293,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/glazer-hall/" aria-label="Open Glazer Hall">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_833f27082e1c431abb15bf95a43adf3b~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_833f27082e1c431abb15bf95a43adf3b~mv2.webp" alt="Glazer Hall — Entertainment in Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Glazer Hall</div>
@@ -2311,7 +2315,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/miami-worldcenter/" aria-label="Open Miami Worldcenter">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_06390188f370436fa9c2c772a6056af5~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_06390188f370436fa9c2c772a6056af5~mv2.webp" alt="Miami Worldcenter — Mixed-Use in Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Miami Worldcenter</div>
@@ -2333,7 +2337,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nashville-yards/" aria-label="Open Nashville Yards">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5429785301164211a5f6ff46fedd6b6d~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5429785301164211a5f6ff46fedd6b6d~mv2.webp" alt="Nashville Yards — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nashville Yards</div>
@@ -2355,7 +2359,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cad443df22ba4b8ab83ddb512aef35ad~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cad443df22ba4b8ab83ddb512aef35ad~mv2.jpeg" alt="Nu Stadium at Miami Freedom Park — Stadium in Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nu Stadium at Miami Freedom Park</div>
@@ -2377,7 +2381,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nude-miami/" aria-label="Open Nude Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_29d9bd8eb76a4601be518c9177e06cce~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_29d9bd8eb76a4601be518c9177e06cce~mv2.jpg" alt="Nude Miami — Entertainment" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nude Miami</div>
@@ -2399,7 +2403,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/pier-sixty-six/" aria-label="Open Pier Sixty-Six">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg" alt="Pier Sixty-Six — Residences in Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Pier Sixty-Six</div>
@@ -2421,7 +2425,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75fec2a79d1b49eca4dd15a680da5365~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_75fec2a79d1b49eca4dd15a680da5365~mv2.jpeg" alt="The Nora District — Mixed-Use in Nora District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Nora District</div>
@@ -2443,7 +2447,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/toranomon-hills-station-tower/" aria-label="Open Toranomon Hills Station Tower">
-    <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg" alt="Toranomon Hills Station Tower — Residences in Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Toranomon Hills Station Tower</div>
@@ -2465,7 +2469,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/universal-epic-universe/" aria-label="Open Universal Epic Universe">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_864f961f539d491e94ca74c52af174f7~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_864f961f539d491e94ca74c52af174f7~mv2.webp" alt="Universal Epic Universe — Entertainment in Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Universal Epic Universe</div>

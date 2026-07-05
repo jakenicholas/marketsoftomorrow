@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/9900-west/" aria-label="Open 9900 West">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3b99adcbd9e44398482a52e438bc49b~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3b99adcbd9e44398482a52e438bc49b~mv2.webp" alt="9900 West — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">9900 West</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/alma-residences-bay-harbor/" aria-label="Open Alma Residences Bay Harbor">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/12/acRlv2AWfgqAHKVmyGgZC6NESs.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/12/acRlv2AWfgqAHKVmyGgZC6NESs.jpg" alt="Alma Residences Bay Harbor — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Alma Residences Bay Harbor</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mila-residences-bay-harbor/" aria-label="Open Mila Residences Bay Harbor">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/12/U6z9kyNm0iM7OZURVGgCYRALPI.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/12/U6z9kyNm0iM7OZURVGgCYRALPI.jpg" alt="Mila Residences Bay Harbor — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mila Residences Bay Harbor</div>

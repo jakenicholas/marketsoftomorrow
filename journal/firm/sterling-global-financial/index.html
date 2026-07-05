@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hyatt-centric-grand-cayman/" aria-label="Open Hyatt Centric Grand Cayman">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/24121f3ead6d-Artists-rendering-Hyatt-Centric-1024x1024.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/24121f3ead6d-Artists-rendering-Hyatt-Centric-1024x1024.jpg" alt="Hyatt Centric Grand Cayman — Hotel in Seven Mile Beach, Grand Cayman" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hyatt Centric Grand Cayman</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg" alt="Montage Cay — Residences in The Abacos" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Montage Cay</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-grand-cayman/" aria-label="Open Grand Hyatt Grand Cayman">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ca181ca16df-Exterior-rendering-sunset.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ca181ca16df-Exterior-rendering-sunset.jpg" alt="Grand Hyatt Grand Cayman — Hotel in Seven Mile Beach, Grand Cayman" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Grand Hyatt Grand Cayman</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/thirty-six/" aria-label="Open Thirty Six">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8f57782363be-058-36-Paradise-Island-DJI_0058-Edit.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8f57782363be-058-36-Paradise-Island-DJI_0058-Edit.jpg" alt="Thirty Six — Residences in Paradise Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Thirty Six</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/" aria-label="Open Hurricane Hole Superyacht Marina">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/812fd2f9d214-DJI_0156-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/812fd2f9d214-DJI_0156-scaled.jpg" alt="Hurricane Hole Superyacht Marina — Marina in Paradise Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hurricane Hole Superyacht Marina</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/indigo-bay/" aria-label="Open Indigo Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/87b7d85f5d33-Indigo-BayDerek-KellyK221129-1-03-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/87b7d85f5d33-Indigo-BayDerek-KellyK221129-1-03-scaled.jpg" alt="Indigo Bay — Residences in Grand Harbour" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Indigo Bay</div>

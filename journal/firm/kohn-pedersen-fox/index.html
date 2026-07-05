@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/10-cityplace/" aria-label="Open 10 CityPlace">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg" alt="10 CityPlace — Office in CityPlace, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">10 CityPlace</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/singapore-changi-airport-terminal-5/" aria-label="Open Singapore Changi Airport Terminal 5">
-    <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2022/09/singapore-changi-airport-terminal-5-heatherwick-studio-kpf_dezeen_2364_hero.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2022/09/singapore-changi-airport-terminal-5-heatherwick-studio-kpf_dezeen_2364_hero.jpg" alt="Singapore Changi Airport Terminal 5 — Travel in Singapore" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Singapore Changi Airport Terminal 5</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/725-randolph/" aria-label="Open 725 Randolph">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1b451d4e9a17-725-Randolph_East-Aerial_Related-Midwest_KPF.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1b451d4e9a17-725-Randolph_East-Aerial_Related-Midwest_KPF.jpg" alt="725 Randolph — Office in Fulton Market, Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">725 Randolph</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6768db8848214fdfa59d88fbb0d40fbe~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6768db8848214fdfa59d88fbb0d40fbe~mv2.jpg" alt="Anantara Miami Resort &amp; Residences — Mixed-Use in Edgewater, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Anantara Miami Resort &amp; Residences</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/seven-broadway/" aria-label="Open Seven Broadway">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_db9553c66fec42838cb24f0ef7bdea70~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_db9553c66fec42838cb24f0ef7bdea70~mv2.jpeg" alt="Seven Broadway — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Seven Broadway</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-mandarin-oriental-miami/" aria-label="Open The Residences at Mandarin Oriental, Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d90a5b424734738b12484bba93c8b75~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d90a5b424734738b12484bba93c8b75~mv2.jpg" alt="The Residences at Mandarin Oriental, Miami — Residences in Brickell Key, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Residences at Mandarin Oriental, Miami</div>
@@ -515,7 +519,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/edgeworth/" aria-label="Open Edgeworth">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4e3b28a3b34a4e81944fa7c2c95f97c5~mv2.jpeg" alt="Edgeworth — Residences in South Flagler, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Edgeworth</div>
@@ -537,7 +541,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-deer-valley-resort-and-residences/" aria-label="Open Waldorf Astoria Deer Valley Resort and Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_46f9a0944f154020b6f337a77010f62e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_46f9a0944f154020b6f337a77010f62e~mv2.jpeg" alt="Waldorf Astoria Deer Valley Resort and Residences — Hotel in Deer Valley East Village, Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Deer Valley Resort and Residences</div>
@@ -559,7 +563,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/fulton-bond/" aria-label="Open Fulton Bond">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f1333372f3a480eb301774eaf6e22c5~mv2.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f1333372f3a480eb301774eaf6e22c5~mv2.png" alt="Fulton Bond — Residences in Fulton Market, Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Fulton Bond</div>
@@ -581,7 +585,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-seoul/" aria-label="Open Rosewood Seoul">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0869c538abd430c8f6108c74f35c110~mv2.avif')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0869c538abd430c8f6108c74f35c110~mv2.avif" alt="Rosewood Seoul — Hotel in Yongsan-gu, Seoul" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Seoul</div>
@@ -603,7 +607,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/" aria-label="Open The Birdsall, Auberge Resorts Collection">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg" alt="The Birdsall, Auberge Resorts Collection — Hotel in River Oaks, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Birdsall, Auberge Resorts Collection</div>
@@ -625,7 +629,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg" alt="1 Hotel Austin — Hotel in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1 Hotel Austin</div>
@@ -647,7 +651,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg" alt="Waterline — Residences in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waterline</div>
@@ -669,7 +673,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-city-hall/" aria-label="Open Boca Raton City Hall">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8eb6bac37f6464f9a54ac268fc9fe6e~mv2.jpeg" alt="Boca Raton City Hall — Entertainment in Boca Raton" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Boca Raton City Hall</div>
@@ -691,7 +695,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/capella-residences-bangkok/" aria-label="Open Capella Residences Bangkok">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48323bc7fc2f-IMG_9456.jpeg')"><span class="card-parent-chip">Part of WellEra</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48323bc7fc2f-IMG_9456.jpeg" alt="Capella Residences Bangkok — Residences in Lumphini, Bangkok" loading="lazy" decoding="async"><span class="card-parent-chip">Part of WellEra</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Capella Residences Bangkok</div>
@@ -713,7 +717,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/520-fifth-avenue/" aria-label="Open 520 Fifth Avenue">
-    <div class="card-img" style="background-image:url('https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg" alt="520 Fifth Avenue — Mixed-Use in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">520 Fifth Avenue</div>
@@ -735,7 +739,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/atlantis-the-royal/" aria-label="Open Atlantis The Royal">
-    <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6549/546b/f96c/7679/a590/f474/large_jpg/atlantis-the-royal-kpf_3.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6549/546b/f96c/7679/a590/f474/large_jpg/atlantis-the-royal-kpf_3.jpg" alt="Atlantis The Royal — Hotel in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Atlantis The Royal</div>

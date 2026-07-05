@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-dubai/" aria-label="Open Aman Dubai">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3a43a8d0c2643909dcfd601e4394b1c~mv2.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3a43a8d0c2643909dcfd601e4394b1c~mv2.png" alt="Aman Dubai — Residences in Jumeirah 2, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Aman Dubai</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-azizi/" aria-label="Open Burj Azizi">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_212f34bee78b4f97bfda1aa8f2278895~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_212f34bee78b4f97bfda1aa8f2278895~mv2.jpeg" alt="Burj Azizi — Mixed-Use in Sheikh Zayed Road, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Burj Azizi</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-binghatti-jacob-co-residences/" aria-label="Open Burj Binghatti Jacob &amp; Co Residences">
-    <div class="card-img" style="background-image:url('https://metropolitan.realestate/wp-content/uploads/2022/11/Binghatti_Jacob-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://metropolitan.realestate/wp-content/uploads/2022/11/Binghatti_Jacob-1.jpg" alt="Burj Binghatti Jacob &amp; Co Residences — Residences in Business Bay, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Burj Binghatti Jacob &amp; Co Residences</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/janu-residences-dubai/" aria-label="Open Janu Residences Dubai">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7fed8ec8fc94783b571db15dcb1b67e~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7fed8ec8fc94783b571db15dcb1b67e~mv2.jpg" alt="Janu Residences Dubai — Mixed-Use in DIFC, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Janu Residences Dubai</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-jumeira/" aria-label="Open Burj Jumeira">
-    <div class="card-img" style="background-image:url('https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg" alt="Burj Jumeira — Mixed-Use in Al Sufouh, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Burj Jumeira</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/atlantis-the-royal/" aria-label="Open Atlantis The Royal">
-    <div class="card-img" style="background-image:url('https://images.adsttc.com/media/images/6549/546b/f96c/7679/a590/f474/large_jpg/atlantis-the-royal-kpf_3.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6549/546b/f96c/7679/a590/f474/large_jpg/atlantis-the-royal-kpf_3.jpg" alt="Atlantis The Royal — Hotel in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Atlantis The Royal</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/ciel-dubai-marina/" aria-label="Open Ciel Dubai Marina">
-    <div class="card-img" style="background-image:url('https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/news/2025/ciel-dubai-marina-vignette-collection-debuts-as-the-worlds-tallest-hotel-hero-img.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/news/2025/ciel-dubai-marina-vignette-collection-debuts-as-the-worlds-tallest-hotel-hero-img.jpg" alt="Ciel Dubai Marina — Hotel in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Ciel Dubai Marina</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/wasl-tower/" aria-label="Open Wasl Tower">
-    <div class="card-img" style="background-image:url('https://prod-waslcdn.wasl.ae/waslae-filesystem/styles/max_2600x2600/azblob/2025-09/700%20X%204006-min_0.jpg?itok=aHng4bKB')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://prod-waslcdn.wasl.ae/waslae-filesystem/styles/max_2600x2600/azblob/2025-09/700%20X%204006-min_0.jpg?itok=aHng4bKB" alt="Wasl Tower — Mixed-Use in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wasl Tower</div>

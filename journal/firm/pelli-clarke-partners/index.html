@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/" aria-label="Open Four Seasons Hotel and Residences Dallas at Turtle Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg" alt="Four Seasons Hotel and Residences Dallas at Turtle Creek — Mixed-Use in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Hotel and Residences Dallas at Turtle Creek</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-tokyo-nihonbashi/" aria-label="Open Waldorf Astoria Tokyo Nihonbashi">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ad36ecff4c5-2fd57d77-main-2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ad36ecff4c5-2fd57d77-main-2.jpg" alt="Waldorf Astoria Tokyo Nihonbashi — Hotel in Nihonbashi, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Tokyo Nihonbashi</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/mori-jp-tower/" aria-label="Open Mori JP Tower">
-    <div class="card-img" style="background-image:url('https://mms.businesswire.com/media/20210217006076/en/859592/5/Panoramic_View%28Night%29.jpg')"><span class="card-parent-chip">Part of Azabudai Hills</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://mms.businesswire.com/media/20210217006076/en/859592/5/Panoramic_View%28Night%29.jpg" alt="Mori JP Tower — Mixed-Use in Azabudai, Minato, Tokyo" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Azabudai Hills</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mori JP Tower</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-residences-tokyo/" aria-label="Open Aman Residences Tokyo">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg')"><span class="card-parent-chip">Part of Mori JP Tower</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg" alt="Aman Residences Tokyo — Residences in Azabudai Hills, Tokyo" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Mori JP Tower</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Aman Residences Tokyo</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/azabudai-hills/" aria-label="Open Azabudai Hills">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cefe6c7e7ad6-Panoramic_View-Day-2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cefe6c7e7ad6-Panoramic_View-Day-2.jpg" alt="Azabudai Hills — Mixed-Use in Azabudai, Minato, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Azabudai Hills</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/toranomon-hills-station-tower/" aria-label="Open Toranomon Hills Station Tower">
-    <div class="card-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg" alt="Toranomon Hills Station Tower — Residences in Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Toranomon Hills Station Tower</div>

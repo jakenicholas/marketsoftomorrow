@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-hook/" aria-label="Open 1221 Grundy">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg')"><span class="card-parent-chip">Part of 1221 Grundy Street</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg" alt="1221 Grundy — Mixed-Use in North Gulch, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of 1221 Grundy Street</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1221 Grundy</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1221-grundy-street/" aria-label="Open 1221 Grundy Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/238b69a75596-1221-grundy-street-fullview-2000x844-web-gigapixel-standard-v2-2x.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/238b69a75596-1221-grundy-street-fullview-2000x844-web-gigapixel-standard-v2-2x.jpg" alt="1221 Grundy Street — Mixed-Use in The Gulch, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1221 Grundy Street</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/belle-meade-village/" aria-label="Open Belle Meade Village">
-    <div class="card-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village — Mixed-Use in Belle Meade, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Belle Meade Village</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-motley/" aria-label="Open The Motley">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c216fdbb4c3b4cf7a0cc695166b94d9d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c216fdbb4c3b4cf7a0cc695166b94d9d~mv2.jpeg" alt="The Motley — Mixed-Use in Midtown, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Motley</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg" alt="Eastpoint — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Eastpoint</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png" alt="The East Bend — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The East Bend</div>

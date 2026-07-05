@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-denver-cherry-creek/" aria-label="Open Waldorf Astoria Residences Denver Cherry Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a19512195bf-WACC_250203_Hero_Disclaimer-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a19512195bf-WACC_250203_Hero_Disclaimer-scaled.jpg" alt="Waldorf Astoria Residences Denver Cherry Creek — Residences in Cherry Creek North, Denver" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Residences Denver Cherry Creek</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/virgin-hotels-denver/" aria-label="Open Virgin Hotels Denver">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/03a156d5e0be-Fox-Park-Rendering-03.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/03a156d5e0be-Fox-Park-Rendering-03.jpg" alt="Virgin Hotels Denver — Hotel in Globeville, Denver" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Virgin Hotels Denver</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-cherry-creek/" aria-label="Open Four Seasons Private Residences Cherry Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8e19f21fe07c-fs-cherry-creek-1.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8e19f21fe07c-fs-cherry-creek-1.png" alt="Four Seasons Private Residences Cherry Creek — Residences in Cherry Creek North, Denver" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Private Residences Cherry Creek</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/apiary-hotel-residences/" aria-label="Open Apiary Hotel &amp; Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07cf36e03cd3-173157_Renderings_08_2023_N2_lowres.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07cf36e03cd3-173157_Renderings_08_2023_N2_lowres.jpg" alt="Apiary Hotel &amp; Residences — Mixed-Use in Belleview Station, Denver" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Apiary Hotel &amp; Residences</div>

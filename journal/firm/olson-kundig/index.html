@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-telluride/" aria-label="Open Four Seasons Resort and Residences Telluride">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_b82b82ad6b004af693cd77db2e6ce2f7~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_b82b82ad6b004af693cd77db2e6ce2f7~mv2.jpeg" alt="Four Seasons Resort and Residences Telluride — Hotel in Mountain Village, Telluride" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Resort and Residences Telluride</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/amansanu/" aria-label="Open Amansanu">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6e08fa6d5d8b4919a4cae8318461b77f~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6e08fa6d5d8b4919a4cae8318461b77f~mv2.jpg" alt="Amansanu — Hotel in Texas Hill Country" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Amansanu</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kali-u/" aria-label="Open Kaliʻu">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dec5913674cc-kaliu-ok900-0025044-view-10-3br-hover-final-upscaled-13.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dec5913674cc-kaliu-ok900-0025044-view-10-3br-hover-final-upscaled-13.jpg" alt="Kaliʻu — Residences in Kakaʻako, Honolulu" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Kaliʻu</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marcella-club/" aria-label="Open Marcella Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fa62e315ff3747a7969609661566143e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fa62e315ff3747a7969609661566143e~mv2.jpeg" alt="Marcella Club — Golf in Jordanelle Ridge, Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marcella Club</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-napa-valley/" aria-label="Open Six Senses Napa Valley">
-    <div class="card-img" style="background-image:url('https://cornerboothhospitality.com/wp-content/uploads/2025/03/Six-Senses-Napa-Aetna-Springs-08-1000x800.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://cornerboothhospitality.com/wp-content/uploads/2025/03/Six-Senses-Napa-Aetna-Springs-08-1000x800.jpg" alt="Six Senses Napa Valley — Hotel in Aetna Springs, Pope Valley" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Six Senses Napa Valley</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nauka/" aria-label="Open Nauka">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg" alt="Nauka — Residences in Riviera Nayarit" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nauka</div>

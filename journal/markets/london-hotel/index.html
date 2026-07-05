@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-oberoi-mayfair/" aria-label="Open The Oberoi, Mayfair">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1d945825294f-oberoi1.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1d945825294f-oberoi1.png" alt="The Oberoi, Mayfair — Hotel in Mayfair, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Oberoi, Mayfair</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/cambridge-house-auberge-resorts-collection/" aria-label="Open Cambridge House, Auberge Resorts Collection">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg" alt="Cambridge House, Auberge Resorts Collection — Hotel in Mayfair, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Cambridge House, Auberge Resorts Collection</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-shepherd-mayfair/" aria-label="Open The Shepherd Mayfair">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1f95eff4b998-The-Shepherd-Mayfair.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1f95eff4b998-The-Shepherd-Mayfair.jpg" alt="The Shepherd Mayfair — Hotel in Mayfair, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Shepherd Mayfair</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-london/" aria-label="Open The St. Regis London">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53b9fbb8250a-RENDER-St-Regis-London-Lobby.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/53b9fbb8250a-RENDER-St-Regis-London-Lobby.jpg" alt="The St. Regis London — Hotel in Mayfair, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The St. Regis London</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-london-admiralty-arch/" aria-label="Open Waldorf Astoria London Admiralty Arch">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1fcb1972140e-Waldorf-Astoria-London-Admiralty-Arch-Photo-Credit-David-Iliff-creative-commons-')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1fcb1972140e-Waldorf-Astoria-London-Admiralty-Arch-Photo-Credit-David-Iliff-creative-commons-" alt="Waldorf Astoria London Admiralty Arch — Mixed-Use in St James&#x27;s, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria London Admiralty Arch</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-london-at-the-whiteley/" aria-label="Open Six Senses London at The Whiteley">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b7d32802e0a6-six-senses-exterior-london-min-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b7d32802e0a6-six-senses-exterior-london-min-crop.jpg" alt="Six Senses London at The Whiteley — Hotel in London" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Six Senses London at The Whiteley</div>

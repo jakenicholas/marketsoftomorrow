@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -354,7 +358,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-residences-west-palm-beach/" aria-label="Open Mandarin Oriental Residences, West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8c82130e3ed4ee890c293295bab0104~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8c82130e3ed4ee890c293295bab0104~mv2.jpeg" alt="Mandarin Oriental Residences, West Palm Beach — Residences in North End, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mandarin Oriental Residences, West Palm Beach</div>
@@ -376,7 +380,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-bay-sands-expansion/" aria-label="Open Marina Bay Sands Expansion">
-    <div class="card-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original" alt="Marina Bay Sands Expansion — Hotel in Marina Bay, Singapore" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Bay Sands Expansion</div>

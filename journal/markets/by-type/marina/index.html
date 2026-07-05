@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2de55c97b9ad41cb83ef1278af817b6e~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2de55c97b9ad41cb83ef1278af817b6e~mv2.jpeg" alt="Jack&#x27;s Bay Club &amp; Resort — Residences in Bahamas" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Jack&#x27;s Bay Club &amp; Resort</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/olara/" aria-label="Open Olara">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68d5035d453d4231ba1a1106850152f7~mv2.jpeg" alt="Olara — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Olara</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/3300-gulf-shore/" aria-label="Open 3300 Gulf Shore">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a2425220d5a3-3300-gulf-shore-hp-marina-min.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a2425220d5a3-3300-gulf-shore-hp-marina-min.jpg" alt="3300 Gulf Shore — Residences in The Moorings, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">3300 Gulf Shore</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/amancaya/" aria-label="Open Amancaya">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e4f665ec8e49e6a68ca87a970d0e3b~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e4f665ec8e49e6a68ca87a970d0e3b~mv2.jpeg" alt="Amancaya — Hotel in Children&#x27;s Bay Cay, Exuma, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Amancaya</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg" alt="Baccarat Residences Miami — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Baccarat Residences Miami</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/banyan-tree-bimini/" aria-label="Open Banyan Tree Bimini">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16609edc311e428d8ffbb888d63f49ed~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16609edc311e428d8ffbb888d63f49ed~mv2.webp" alt="Banyan Tree Bimini — Residences in Rockwell Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Banyan Tree Bimini</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52e79c06d92d4a598ad5d0b30cd00955~mv2.jpg" alt="Continuum Waterfront District — Office in North Bay Village, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Continuum Waterfront District</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/la-baia-north/" aria-label="Open La Baia North">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1145c38adbe44ed19876aee1a4918ce5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1145c38adbe44ed19876aee1a4918ce5~mv2.jpeg" alt="La Baia North — Residences in Bay Harbor Islands, Bay Harbour Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">La Baia North</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village/" aria-label="Open Marina Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568f9e4382404ec98a5c614fd666dd37~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_568f9e4382404ec98a5c614fd666dd37~mv2.jpg" alt="Marina Village — Residences in Marina District, Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Village</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_609c4b28c4394126a87eed36ba761180~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_609c4b28c4394126a87eed36ba761180~mv2.jpg" alt="Ritz-Carlton Reserve at Cotton Bay — Residences in Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Ritz-Carlton Reserve at Cotton Bay</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36c36ae60ded48b3b44aeab4e65c3985~mv2.jpeg" alt="Riverside Wharf — Mixed-Use in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Riverside Wharf</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-half-moon-bay-antigua/" aria-label="Open Rosewood Half Moon Bay Antigua">
-    <div class="card-img" style="background-image:url('https://vitainc.com/wp-content/uploads/2020/06/7_Antigua-HMB_Illustrative-Master-Plan_Top-View.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://vitainc.com/wp-content/uploads/2020/06/7_Antigua-HMB_Illustrative-Master-Plan_Top-View.jpg" alt="Rosewood Half Moon Bay Antigua — Hotel in Half Moon Bay" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Half Moon Bay Antigua</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-terminal-g/" aria-label="Open Royal Caribbean: Terminal G">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef92003073747bf844ca602b1e8851d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bef92003073747bf844ca602b1e8851d~mv2.jpeg" alt="Royal Caribbean: Terminal G — Marina in PortMiami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Royal Caribbean: Terminal G</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-residences-belize/" aria-label="Open Six Senses Residences Belize">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_166ddc052ce34353b79f0d583a90413e~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_166ddc052ce34353b79f0d583a90413e~mv2.jpeg" alt="Six Senses Residences Belize — Residences in Emerald Caye, Belize" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Six Senses Residences Belize</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/southbank-residences/" aria-label="Open Southbank Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg" alt="Southbank Residences — Residences in Southbank, Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Southbank Residences</div>
@@ -749,7 +753,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_67ad6d01d0db42bf8b59bfe003328493~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_67ad6d01d0db42bf8b59bfe003328493~mv2.jpg" alt="The Ocean Club, Four Seasons Residences — Residences in Paradise Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ocean Club, Four Seasons Residences</div>
@@ -771,7 +775,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-waterfront-daniel-island/" aria-label="Open The Waterfront Daniel Island">
-    <div class="card-img" style="background-image:url('https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?" alt="The Waterfront Daniel Island — Residences in Daniel Island, Charleston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Waterfront Daniel Island</div>
@@ -793,7 +797,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f89525ae7e8c-175-third-street-gowanus-brooklyn-big_dezeen_2364_col_4.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">175 Third Street</div>
@@ -815,7 +819,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/9900-west/" aria-label="Open 9900 West">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3b99adcbd9e44398482a52e438bc49b~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d3b99adcbd9e44398482a52e438bc49b~mv2.webp" alt="9900 West — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">9900 West</div>
@@ -837,7 +841,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8c27ca62bf2d-Amanvari-Mexico-F-B-Casa-Grande-Lodge.jpg')"><span class="card-parent-chip">Part of Costa Palmas</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8c27ca62bf2d-Amanvari-Mexico-F-B-Casa-Grande-Lodge.jpg" alt="Amanvari — Hotel in La Ribera / East Cape, Los Cabos" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Costa Palmas</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Amanvari</div>
@@ -859,7 +863,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc42c0ea1b2c-CayeChapel_Aerial.jpg" alt="Four Seasons Resort and Residences Caye Chapel — Hotel in Caye Chapel (private island)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Resort and Residences Caye Chapel</div>
@@ -881,7 +885,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4412a971219644e2b2c8144db5e432af~mv2.jpg" alt="Montage Cay — Residences in The Abacos" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Montage Cay</div>
@@ -903,7 +907,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/pendry-barbados/" aria-label="Open Pendry Barbados">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/60c73641d4c7-PBD-2025-Renderings-03.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/60c73641d4c7-PBD-2025-Renderings-03.jpg" alt="Pendry Barbados — Hotel in Speightstown, Saint Peter" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Pendry Barbados</div>
@@ -925,7 +929,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/port-32-palm-beach-gardens/" aria-label="Open PORT 32 Palm Beach Gardens">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2762716cdd04-IMG_3680.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/2762716cdd04-IMG_3680.webp" alt="PORT 32 Palm Beach Gardens — Marina" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">PORT 32 Palm Beach Gardens</div>
@@ -947,7 +951,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-naples/" aria-label="Open The Ritz-Carlton Residences, Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg" alt="The Ritz-Carlton Residences, Naples — Residences in Vanderbilt Beach, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz-Carlton Residences, Naples</div>
@@ -969,7 +973,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_03da05365f014e6b94e590aca30a0fd2~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_03da05365f014e6b94e590aca30a0fd2~mv2.webp" alt="Continuum 12000 Sport &amp; Wellness Residences — Residences in North Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Continuum 12000 Sport &amp; Wellness Residences</div>
@@ -991,7 +995,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000-sport-wellness-residences/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2026/03/ContinuumCompanyLaunchesContinuum12000SportWellnessResidencesOnNorthMiamisWaterfront2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/ContinuumCompanyLaunchesContinuum12000SportWellnessResidencesOnNorthMiamisWaterfront2.webp" alt="Continuum 12000 Sport &amp; Wellness Residences — Residences in Keystone Point, North Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Continuum 12000 Sport &amp; Wellness Residences</div>
@@ -1013,7 +1017,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/" aria-label="Open Equinox Resort Anguilla Port Nimara">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg" alt="Equinox Resort Anguilla Port Nimara — Mixed-Use in West End, The Valley" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Equinox Resort Anguilla Port Nimara</div>
@@ -1035,7 +1039,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/faena-residences-miami/" aria-label="Open Faena Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0c506a6b7f194770a270e526bd1ed625~mv2.jpg" alt="Faena Residences Miami — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Faena Residences Miami</div>
@@ -1057,7 +1061,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-pointe/" aria-label="Open Marina Pointe: Luna">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp" alt="Marina Pointe: Luna — Residences in Westshore Marina District, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Pointe: Luna</div>
@@ -1079,7 +1083,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-towers-by-tatweer-misr/" aria-label="Open Marina Towers by Tatweer Misr">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c945f24c621d40b1b7af71ee3b3bf8a9~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c945f24c621d40b1b7af71ee3b3bf8a9~mv2.webp" alt="Marina Towers by Tatweer Misr — Mixed-Use in Galala City, Ain Sokhna" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Marina Towers by Tatweer Misr</div>
@@ -1101,7 +1105,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/singer-island-gateway/" aria-label="Open Singer Island Gateway">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_17b207ad3c1740328bc801963fda7c82~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_17b207ad3c1740328bc801963fda7c82~mv2.webp" alt="Singer Island Gateway — Residences in Singer Island, Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Singer Island Gateway</div>
@@ -1123,7 +1127,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-fort-lauderdale-beach/" aria-label="Open The Ritz-Carlton Residences, Fort Lauderdale Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5fc9e82ab2c04a74a9784da88a46efe8~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5fc9e82ab2c04a74a9784da88a46efe8~mv2.jpeg" alt="The Ritz-Carlton Residences, Fort Lauderdale Beach — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz-Carlton Residences, Fort Lauderdale Beach</div>
@@ -1145,7 +1149,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/vista-harbor-residences/" aria-label="Open Vista Harbor Residences">
-    <div class="card-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2026/03/image-7.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/image-7.webp" alt="Vista Harbor Residences — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Vista Harbor Residences</div>
@@ -1167,7 +1171,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/alba/" aria-label="Open Alba">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_04a68b0e129c44cab7f991d7c62bc595~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_04a68b0e129c44cab7f991d7c62bc595~mv2.jpg" alt="Alba — Residences in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Alba</div>
@@ -1189,7 +1193,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/aqua-at-westshore-yacht-club/" aria-label="Open AQUA at Westshore Yacht Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2ed0a8db310f4956a7b0a7c1c4dc85de~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2ed0a8db310f4956a7b0a7c1c4dc85de~mv2.webp" alt="AQUA at Westshore Yacht Club — Residences in Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">AQUA at Westshore Yacht Club</div>
@@ -1211,7 +1215,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/briland-club-residences-marina/" aria-label="Open Briland Club Residences &amp; Marina">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/434a4cdc5cba-BRILAND-CLUB-4TH-JULY-2024-DRONE-PHOTOS-27-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/434a4cdc5cba-BRILAND-CLUB-4TH-JULY-2024-DRONE-PHOTOS-27-scaled.jpg" alt="Briland Club Residences &amp; Marina — Residences in Harbour Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Briland Club Residences &amp; Marina</div>
@@ -1233,7 +1237,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/havn-residences-yacht-club/" aria-label="Open HAVN Residences &amp; Yacht Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d9b0d14155948458f18f4f2bd434803~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0d9b0d14155948458f18f4f2bd434803~mv2.jpg" alt="HAVN Residences &amp; Yacht Club — Residences in Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">HAVN Residences &amp; Yacht Club</div>
@@ -1255,7 +1259,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/" aria-label="Open Hurricane Hole Superyacht Marina">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/812fd2f9d214-DJI_0156-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/812fd2f9d214-DJI_0156-scaled.jpg" alt="Hurricane Hole Superyacht Marina — Marina in Paradise Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hurricane Hole Superyacht Marina</div>
@@ -1277,7 +1281,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/pier-sixty-six/" aria-label="Open Pier Sixty-Six">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e251b0be8a50-IMG_3554-2048x1382.jpeg" alt="Pier Sixty-Six — Residences in Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Pier Sixty-Six</div>
@@ -1299,7 +1303,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/sindalah/" aria-label="Open Sindalah">
-    <div class="card-img" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/b/bd/Sindalah_Illustartion.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Sindalah_Illustartion.png" alt="Sindalah — Hotel in NEOM" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Sindalah</div>
@@ -1321,7 +1325,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-strand/" aria-label="Open The Strand">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e278c554a15b4eecbe1004721ddb87a9~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e278c554a15b4eecbe1004721ddb87a9~mv2.jpeg" alt="The Strand — Residences in Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Strand</div>

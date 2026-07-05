@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-hotel-florence/" aria-label="Open Baccarat Hotel Florence">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/56aa84b7086e-Villa-Camerata.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/56aa84b7086e-Villa-Camerata.jpg" alt="Baccarat Hotel Florence — Hotel in Camerata, Florence" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Baccarat Hotel Florence</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-danieli/" aria-label="Open Four Seasons Hotel Danieli">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/52719725a5be-four-seasons-hotel-danieli.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/52719725a5be-four-seasons-hotel-danieli.jpg" alt="Four Seasons Hotel Danieli — Hotel in Castello, Venice" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Hotel Danieli</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-cristallo-cortina-d-ampezzo/" aria-label="Open Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/44b4c1e913d9-cristallo-inverno.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/44b4c1e913d9-cristallo-inverno.jpg" alt="Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mandarin Oriental Cristallo, Cortina d&#x27;Ampezzo</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-milan/" aria-label="Open Six Senses Milan">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/36e7e38b0584-six-senses-milan.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/36e7e38b0584-six-senses-milan.webp" alt="Six Senses Milan — Hotel in Brera, Milan" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Six Senses Milan</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_093c413c7cca4a11b2b2e171641d378a~mv2.jpg" alt="New AS Roma Stadium — Stadium in Pietralata, Rome" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New AS Roma Stadium</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/new-san-siro-stadium/" aria-label="Open New San Siro Stadium">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_afa91be92c8541bd9743a6ffccc52de6~mv2.jpg" alt="New San Siro Stadium — Stadium in San Siro, Milan" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">New San Siro Stadium</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/orient-express-palazzo-dona-giovannelli/" aria-label="Open Orient Express Palazzo Donà Giovannelli">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_698c0a209395443a984251a9aa1c5112~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_698c0a209395443a984251a9aa1c5112~mv2.jpg" alt="Orient Express Palazzo Donà Giovannelli — Hotel in Cannaregio, Venice" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Orient Express Palazzo Donà Giovannelli</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/villa-san-michele-a-belmond-hotel/" aria-label="Open Villa San Michele, A Belmond Hotel">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9d845fd47af0-vsm-ext13.avif')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9d845fd47af0-vsm-ext13.avif" alt="Villa San Michele, A Belmond Hotel — Hotel in Fiesole Hills" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Villa San Michele, A Belmond Hotel</div>

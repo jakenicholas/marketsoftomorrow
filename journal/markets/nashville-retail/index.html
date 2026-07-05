@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card featured" data-featured="1" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/east-bank-campus/" aria-label="Open East Bank">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_73950ce472e34d47b77184f636ab9b13~mv2.jpeg" alt="East Bank — Residences in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">East Bank</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-hook/" aria-label="Open 1221 Grundy">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg')"><span class="card-parent-chip">Part of 1221 Grundy Street</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg" alt="1221 Grundy — Mixed-Use in North Gulch, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of 1221 Grundy Street</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1221 Grundy</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1221-grundy-street/" aria-label="Open 1221 Grundy Street">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/238b69a75596-1221-grundy-street-fullview-2000x844-web-gigapixel-standard-v2-2x.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/238b69a75596-1221-grundy-street-fullview-2000x844-web-gigapixel-standard-v2-2x.jpg" alt="1221 Grundy Street — Mixed-Use in The Gulch, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1221 Grundy Street</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/belle-meade-village/" aria-label="Open Belle Meade Village">
-    <div class="card-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format" alt="Belle Meade Village — Mixed-Use in Belle Meade, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Belle Meade Village</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe8599ca74fb-bridgestone-arena-transformation-renovation-nashville-predators-tennessee-of-tom" alt="Bridgestone Arena — Entertainment in SoBro, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bridgestone Arena</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/pendry-nashville/" aria-label="Open Pendry Nashville">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b34dde8ad572426c82d358ceafeb46c5~mv2.jpeg" alt="Pendry Nashville — Residences in Paseo South Gulch, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Pendry Nashville</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-motley/" aria-label="Open The Motley">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c216fdbb4c3b4cf7a0cc695166b94d9d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c216fdbb4c3b4cf7a0cc695166b94d9d~mv2.jpeg" alt="The Motley — Mixed-Use in Midtown, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Motley</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nashville-edition/" aria-label="Open The Nashville EDITION">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg" alt="The Nashville EDITION — Residences in The Gulch, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Nashville EDITION</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_60ab4d682fa94cec845ba26d912020a3~mv2.jpeg" alt="Eastpoint — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Eastpoint</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-campus/" aria-label="Open Oracle Campus">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6905822acd7344b892917a4d013673bc~mv2.jpeg" alt="Oracle Campus — Hotel in River North, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Oracle Campus</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wedgewood-village/" aria-label="Open Wedgewood Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4aa6368441dc45ba845be0570ae5bb04~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4aa6368441dc45ba845be0570ae5bb04~mv2.jpg" alt="Wedgewood Village — Mixed-Use in Wedgewood-Houston, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wedgewood Village</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nobu-hotel-nashville/" aria-label="Open Nobu Hotel Nashville">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_212159e88b9940aca67fb876e2e0c4bf~mv2.jpeg')"><span class="card-parent-chip">Part of Oracle Campus</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_212159e88b9940aca67fb876e2e0c4bf~mv2.jpeg" alt="Nobu Hotel Nashville — Hotel in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Oracle Campus</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nobu Hotel Nashville</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/park-place/" aria-label="Open Park Place">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_39211225b4d24ede9aaf5b6383f45e0d~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_39211225b4d24ede9aaf5b6383f45e0d~mv2.jpeg" alt="Park Place — Residences in SoBro, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Park Place</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png')"><span class="card-parent-chip">Part of East Bank</span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07f59c4f4dc6-image-197.png" alt="The East Bend — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The East Bend</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/nashville-yards/" aria-label="Open Nashville Yards">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5429785301164211a5f6ff46fedd6b6d~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5429785301164211a5f6ff46fedd6b6d~mv2.webp" alt="Nashville Yards — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nashville Yards</div>

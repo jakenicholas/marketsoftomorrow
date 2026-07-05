@@ -174,7 +174,11 @@ PAYWALL_CSS = """
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -580,10 +584,37 @@ def card_html(p: dict) -> str:
         if parent_title else ''
     )
 
+    # Keyword-rich ALT so Google Images can index every render and we "own" the
+    # city in Images: "<Title> — <Type> in <Location>". Rendered as a REAL <img>
+    # (not a CSS background) below — CSS backgrounds are invisible to Google
+    # Images, which is why our galleries never ranked despite the assets. The
+    # location de-dupes the city so we never emit "Downtown West Palm Beach West
+    # Palm Beach" or repeat a city the title already carries (keyword-stuffing).
+    _a_title = (p.get('Title') or '').strip()
+    _a_city  = (p.get('City') or '').strip()
+    _a_neigh = (p.get('Neighborhood') or '').strip()
+    _a_type  = (p.get('PreferredType') or (p.get('ProjectType') or '').split(',')[0] or '').strip()
+    if _a_neigh and _a_city and _a_city.lower() in _a_neigh.lower():
+        _a_loc = _a_neigh
+    elif _a_neigh and _a_city:
+        _a_loc = f'{_a_neigh}, {_a_city}'
+    else:
+        _a_loc = _a_neigh or _a_city
+    if _a_loc and _a_title.lower().endswith(_a_loc.lower()):
+        _a_loc = ''  # title already ends with this exact location
+    if _a_type and _a_loc:
+        img_alt = esc(f'{_a_title} — {_a_type} in {_a_loc}')
+    elif _a_type:
+        img_alt = esc(f'{_a_title} — {_a_type}')
+    elif _a_loc:
+        img_alt = esc(f'{_a_title} — {_a_loc}')
+    else:
+        img_alt = esc(_a_title)
+
     return (
         f'<div class="card{" featured" if featured else ""}"{featured_attrs}{status_attr}>\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
-        f'    <div class="card-img" style="background-image:url(\'{img}\')">{feat_badge}{parent_chip_html}</div>\n'
+        f'    <div class="card-img"><img class="card-img-el" src="{img}" alt="{img_alt}" loading="lazy" decoding="async">{feat_badge}{parent_chip_html}</div>\n'
         f'    <div class="card-body">\n'
         f'      <div class="card-head">\n'
         f'        <div class="card-title">{title}</div>\n'

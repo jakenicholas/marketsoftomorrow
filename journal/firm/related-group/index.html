@@ -280,7 +280,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -380,7 +384,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-bahia-mar/" aria-label="Open St. Regis Bahia Mar">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a5b400f808a84cc4b97ada6a454fe3e7~mv2.jpeg" alt="St. Regis Bahia Mar — Entertainment in Bahia Mar, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">St. Regis Bahia Mar</div>
@@ -402,7 +406,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/w-pompano-beach/" aria-label="Open W Pompano Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ab89884c57e472b960265156d4d7a23~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ab89884c57e472b960265156d4d7a23~mv2.jpeg" alt="W Pompano Beach — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">W Pompano Beach</div>
@@ -424,7 +428,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ff1cbf8e0054cbbb3bcaf71cff29e13~mv2.jpg" alt="Baccarat Residences Miami — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Baccarat Residences Miami</div>
@@ -446,7 +450,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/icon-beach/" aria-label="Open Icon Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7b8d953839e5-2-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7b8d953839e5-2-crop.jpg" alt="Icon Beach — Residences in Hollywood" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Icon Beach</div>
@@ -468,7 +472,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/southbank-residences/" aria-label="Open Southbank Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg" alt="Southbank Residences — Residences in Southbank, Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Southbank Residences</div>
@@ -490,7 +494,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-west-palm-beach/" aria-label="Open The Ritz Carlton Residences, West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b4fc5cf3814bb0ac4d6c35ea321557~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_37b4fc5cf3814bb0ac4d6c35ea321557~mv2.jpg" alt="The Ritz Carlton Residences, West Palm Beach — Residences in North Flagler District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz Carlton Residences, West Palm Beach</div>
@@ -515,7 +519,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-aventura/" aria-label="Open Viceroy Aventura">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3d41389792404c38a79670655db48d25~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3d41389792404c38a79670655db48d25~mv2.jpg" alt="Viceroy Aventura — Mixed-Use" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Viceroy Aventura</div>
@@ -537,7 +541,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/apogee-residences/" aria-label="Open Apogee Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2a2f74a2181444378da13d03c0dafade~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2a2f74a2181444378da13d03c0dafade~mv2.jpeg" alt="Apogee Residences — Residences in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Apogee Residences</div>
@@ -559,7 +563,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-hillsboro-beach/" aria-label="Open Rosewood Hillsboro Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c3e97bf27274407b92f576b1fbef5dd6~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c3e97bf27274407b92f576b1fbef5dd6~mv2.webp" alt="Rosewood Hillsboro Beach — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Hillsboro Beach</div>
@@ -581,7 +585,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-st-regis-residences-miami/" aria-label="Open The St. Regis Residences, Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fada83e7bb294f09a9069f6b53379d7e~mv2.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fada83e7bb294f09a9069f6b53379d7e~mv2.webp" alt="The St. Regis Residences, Miami — Residences in South Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The St. Regis Residences, Miami</div>
@@ -603,7 +607,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-burg-bid/" aria-label="Open Historic Gas Plant District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/100d9d970224-BIP-roundabout-gigapixel-low-resolution-v2-4x.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/100d9d970224-BIP-roundabout-gigapixel-low-resolution-v2-4x.jpeg" alt="Historic Gas Plant District — Mixed-Use in Historic Gas Plant District, St. Petersburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Historic Gas Plant District</div>
@@ -625,7 +629,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/manor-riverwalk-district/" aria-label="Open Manor Riverwalk District">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/81969aa98250-2024.05.08-Manor-Riverwalk-Night-Rendering.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/81969aa98250-2024.05.08-Manor-Riverwalk-Night-Rendering.jpeg" alt="Manor Riverwalk District — Mixed-Use in Downtown Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Manor Riverwalk District</div>
@@ -647,7 +651,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-west-palm-beach/" aria-label="Open Rosewood Residences West Palm Beach">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c31060b077d40609c4c999b3a2de90f~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c31060b077d40609c4c999b3a2de90f~mv2.jpg" alt="Rosewood Residences West Palm Beach — Residences in Flagler Waterfront, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences West Palm Beach</div>
@@ -669,7 +673,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/viceroy-brickell-residences/" aria-label="Open Viceroy Brickell Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fd34127b34804ba3857582358cf2ff51~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fd34127b34804ba3857582358cf2ff51~mv2.jpg" alt="Viceroy Brickell Residences — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Viceroy Brickell Residences</div>
@@ -691,7 +695,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/casa-bella-residences-miami/" aria-label="Open Casa Bella Residences Miami">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d69aa899f553416a8388e8e42f7f25cc~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d69aa899f553416a8388e8e42f7f25cc~mv2.jpg" alt="Casa Bella Residences Miami — Residences in Arts &amp; Entertainment District, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Casa Bella Residences Miami</div>

@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/" aria-label="Open Four Seasons Hotel and Residences Dallas at Turtle Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8ff82287d6be-03-building-hero-night_1200xx3440-3440-280-0-crop.jpg" alt="Four Seasons Hotel and Residences Dallas at Turtle Creek — Mixed-Use in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Four Seasons Hotel and Residences Dallas at Turtle Creek</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/maverick-golf-ranch-club/" aria-label="Open Maverick Golf &amp; Ranch Club">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cba9763246df-Hole-8-Golf-Drone-1200x800.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cba9763246df-Hole-8-Golf-Drone-1200x800.jpg" alt="Maverick Golf &amp; Ranch Club — Golf in Veale Ranch, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Maverick Golf &amp; Ranch Club</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-residences-houston/" aria-label="Open St. Regis Residences, Houston">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5cded7f94ea8-67eed0a4c299cd19fe26b83a_DE_St_Regis_Ph3_V04_Crown_A02_Round1-1.avif')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5cded7f94ea8-67eed0a4c299cd19fe26b83a_DE_St_Regis_Ph3_V04_Crown_A02_Round1-1.avif" alt="St. Regis Residences, Houston — Residences in Memorial Park, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">St. Regis Residences, Houston</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/" aria-label="Open The Birdsall, Auberge Resorts Collection">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db306f167cad-the-birdsall-auberge-resorts-collection-at-the-ro-development.jpg" alt="The Birdsall, Auberge Resorts Collection — Hotel in River Oaks, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Birdsall, Auberge Resorts Collection</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-lily-river-oaks/" aria-label="Open The Lily River Oaks">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ed95d8681b33-2811-Kirby-Exterior-rendering-1-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ed95d8681b33-2811-Kirby-Exterior-rendering-1-scaled.jpg" alt="The Lily River Oaks — Mixed-Use in Upper Kirby, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Lily River Oaks</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-texas-hill-country/" aria-label="Open Waldorf Astoria Texas Hill Country">
-    <div class="card-img" style="background-image:url('https://imgproxy.divecdn.com/DJ4fd68OEwUT8wvJjivqwJFWpfanzfi6q__7aQ-2Hlw/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9XYWxkb3JmLUFzdG9yaWEtVGV4YXMtSGlsbC1Db3VudHJ5LUFydGlzdHMtQ29uY2VwdHVhbC1SZW5kZXJpbmcuanBn.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://imgproxy.divecdn.com/DJ4fd68OEwUT8wvJjivqwJFWpfanzfi6q__7aQ-2Hlw/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9XYWxkb3JmLUFzdG9yaWEtVGV4YXMtSGlsbC1Db3VudHJ5LUFydGlzdHMtQ29uY2VwdHVhbC1SZW5kZXJpbmcuanBn.webp" alt="Waldorf Astoria Texas Hill Country — Hotel in Fredericksburg (Texas Hill Country)" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Texas Hill Country</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/westside-village/" aria-label="Open Westside Village">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/aeabaad3d867-08-East-Model_Entry-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/aeabaad3d867-08-East-Model_Entry-scaled.jpg" alt="Westside Village — Mixed-Use in Cultural District, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Westside Village</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-lady-bird-lake/" aria-label="Open One Lady Bird Lake">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7c8a12353853-3338_1_000_N31_atchain-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7c8a12353853-3338_1_000_N31_atchain-scaled.jpg" alt="One Lady Bird Lake — Residences in South Central Waterfront, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">One Lady Bird Lake</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1aee96277a1c4e8fac25a3d55463fbe5~mv2.jpg" alt="1 Hotel Austin — Hotel in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1 Hotel Austin</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/" aria-label="Open Rosewood Residences Turtle Creek">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07eab61152cd-EXT01_Teaser-Entrance_Final_7k_NEW_cmyk-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07eab61152cd-EXT01_Teaser-Entrance_Final_7k_NEW_cmyk-scaled.jpg" alt="Rosewood Residences Turtle Creek — Residences in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences Turtle Creek</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-knox/" aria-label="Open The Knox">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp" alt="The Knox — Mixed-Use in Knox Street District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Knox</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3ff594dc5015-KPF_WallerCreek_Vision_copyrightWAX-copy-1-scaled.jpg" alt="Waterline — Residences in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waterline</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/711-north-pearl/" aria-label="Open 711 North Pearl">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg" alt="711 North Pearl — Residences in Downtown Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">711 North Pearl</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/ace-ivy/" aria-label="Open Ace &amp; Ivy">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67e67812562f-Condos-Vision.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/67e67812562f-Condos-Vision.jpg" alt="Ace &amp; Ivy — Residences in River Oaks, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Ace &amp; Ivy</div>
@@ -727,7 +731,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/amansanu/" aria-label="Open Amansanu">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6e08fa6d5d8b4919a4cae8318461b77f~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6e08fa6d5d8b4919a4cae8318461b77f~mv2.jpg" alt="Amansanu — Hotel in Texas Hill Country" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Amansanu</div>
@@ -749,7 +753,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/" aria-label="Open Dallas Proper Hotel and Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c03110bde20a-Lincoln_2500CedarSprings_Hotel_Plaza_FINAL_101325-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c03110bde20a-Lincoln_2500CedarSprings_Hotel_Plaza_FINAL_101325-crop.jpg" alt="Dallas Proper Hotel and Residences — Hotel in Uptown, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Dallas Proper Hotel and Residences</div>
@@ -771,7 +775,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/hi-line-square/" aria-label="Open Hi Line Square">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg" alt="Hi Line Square — Mixed-Use in Design District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Hi Line Square</div>
@@ -793,7 +797,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/luminary/" aria-label="Open Luminary">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a7c5aa045c4-625274594_18093009460970043_5193259207472991455_n.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5a7c5aa045c4-625274594_18093009460970043_5193259207472991455_n.jpg" alt="Luminary — Residences in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Luminary</div>
@@ -815,7 +819,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/" aria-label="Open The Dallas EDITION Hotel &amp; Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg" alt="The Dallas EDITION Hotel &amp; Residences — Mixed-Use in Harwood District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Dallas EDITION Hotel &amp; Residences</div>
@@ -837,7 +841,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-houston/" aria-label="Open The Ritz-Carlton Residences Houston">
-    <div class="card-img" style="background-image:url('https://brandedliving.co/wp-content/uploads/2025/09/The-Ritz-Carlton-Residences-Houston_Hero-1_The-Boundary-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://brandedliving.co/wp-content/uploads/2025/09/The-Ritz-Carlton-Residences-Houston_Hero-1_The-Boundary-scaled.jpg" alt="The Ritz-Carlton Residences Houston — Residences in Post Oak, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz-Carlton Residences Houston</div>
@@ -859,7 +863,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/wilson-tower/" aria-label="Open Wilson Tower">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/65e522142daf-Wilson-Tower-Ground-Floor-1-04-2023-Web.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/65e522142daf-Wilson-Tower-Ground-Floor-1-04-2023-Web.jpg" alt="Wilson Tower — Residences in Downtown Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Wilson Tower</div>
@@ -881,7 +885,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/atx-tower/" aria-label="Open ATX Tower">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a5841cd4d2ed-01.573.11.003.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a5841cd4d2ed-01.573.11.003.jpg" alt="ATX Tower — Mixed-Use in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">ATX Tower</div>
@@ -903,7 +907,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/the-travis/" aria-label="Open The Travis">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9a74fe20d73d-residential-travis-01.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9a74fe20d73d-residential-travis-01.jpg" alt="The Travis — Residences in Rainey Street District, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Travis</div>

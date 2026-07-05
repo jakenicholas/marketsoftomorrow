@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bayside-north/" aria-label="Open Bayside North">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4816454d37d1-ALLEN_MORRIS_BAYSIDE_PHASE_II-ENTRY_CORNER_05_002__1__pqvghq.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4816454d37d1-ALLEN_MORRIS_BAYSIDE_PHASE_II-ENTRY_CORNER_05_002__1__pqvghq.webp" alt="Bayside North — Residences in Rosemary District, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bayside North</div>
@@ -438,7 +442,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/mira-mar-residences/" aria-label="Open Mira Mar Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4fb293c1f6704962871489b8424fc0df~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4fb293c1f6704962871489b8424fc0df~mv2.jpg" alt="Mira Mar Residences — Residences in Downtown Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Mira Mar Residences</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/one-park-sarasota/" aria-label="Open One Park Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/402a6a2a5081-1703103852-OnePark_Quay_CamA_05-Credit-Imerza-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/402a6a2a5081-1703103852-OnePark_Quay_CamA_05-Credit-Imerza-scaled.jpg" alt="One Park Sarasota — Residences in The Quay, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">One Park Sarasota</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-palm-625-sarasota/" aria-label="Open The Palm 625 Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8b4c5f3b6973-pg-625-the-palm-exterior-street-020624-min_frbx6s.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/8b4c5f3b6973-pg-625-the-palm-exterior-street-020624-min_frbx6s.jpg" alt="The Palm 625 Sarasota — Residences in Downtown, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Palm 625 Sarasota</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/1000-boulevard-of-the-arts/" aria-label="Open 1000 Boulevard of the Arts">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/13d6b0b0cef7-1000-BOTA-Exterior-2048x1478-1.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/13d6b0b0cef7-1000-BOTA-Exterior-2048x1478-1.jpeg" alt="1000 Boulevard of the Arts — Mixed-Use in Downtown Sarasota Waterfront" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">1000 Boulevard of the Arts</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/bath-and-racquet-residences/" aria-label="Open Bath and Racquet Residences">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_558863207da741cdb12066f1ec87f162~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_558863207da741cdb12066f1ec87f162~mv2.jpg" alt="Bath and Racquet Residences — Residences in Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Bath and Racquet Residences</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-lido-key/" aria-label="Open Rosewood Residences Lido Key">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/84e4d1277e54-ROSEWOOD_RESIDENCES_LIDO_KEY_LR_fy6jqw.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/84e4d1277e54-ROSEWOOD_RESIDENCES_LIDO_KEY_LR_fy6jqw.webp" alt="Rosewood Residences Lido Key — Residences in Lido Key, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences Lido Key</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-edge-sarasota/" aria-label="Open The Edge Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d20c0fa86ffb-IMG_8077-777x568.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d20c0fa86ffb-IMG_8077-777x568.png" alt="The Edge Sarasota — Residences in Downtown Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Edge Sarasota</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-sarasota-bay/" aria-label="Open The Ritz-Carlton Residences Sarasota Bay">
-    <div class="card-img" style="background-image:url('https://www.theresidencessarasotabay.com/wp-content/uploads/2024/03/the-ritz-homepage-social-rendering-min.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://www.theresidencessarasotabay.com/wp-content/uploads/2024/03/the-ritz-homepage-social-rendering-min.jpg" alt="The Ritz-Carlton Residences Sarasota Bay — Residences in The Quay, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz-Carlton Residences Sarasota Bay</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/adagio-sarasota/" aria-label="Open Adagio Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/424316f66dd0-Screenshot-2025-08-04-at-10.43.31-PM.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/424316f66dd0-Screenshot-2025-08-04-at-10.43.31-PM.png" alt="Adagio Sarasota — Residences in Downtown, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Adagio Sarasota</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/sarasota-square-apartments/" aria-label="Open Sarasota Square Apartments">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7df4761ebffa-sarasota-square-apartments-building.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7df4761ebffa-sarasota-square-apartments-building.jpg" alt="Sarasota Square Apartments — Residences in Palmer Ranch, Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Sarasota Square Apartments</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/saravela/" aria-label="Open Saravela">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/39d62cb39c98-SA_cam_001_e-MoreSky.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/39d62cb39c98-SA_cam_001_e-MoreSky.jpeg" alt="Saravela — Residences in Downtown Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Saravela</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-sarasota/" aria-label="Open Waldorf Astoria Residences Sarasota">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f17ca4b43ff1-EXT01_Roundabout-Corner-Restaurant_B6-crop.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f17ca4b43ff1-EXT01_Roundabout-Corner-Restaurant_B6-crop.jpg" alt="Waldorf Astoria Residences Sarasota — Residences in Downtown Sarasota" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Waldorf Astoria Residences Sarasota</div>

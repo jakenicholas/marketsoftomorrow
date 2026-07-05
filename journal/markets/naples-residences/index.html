@@ -347,7 +347,11 @@
        needed). Lives here in PAYWALL_CSS so BOTH market and firm pages
        (which import PAYWALL_CSS) inherit the rule. Needs .card-img to be
        position:relative — handled by the existing card styles. */
-    .card-img { position: relative; }
+    .card-img { position: relative; overflow: hidden; }
+    /* Real, crawlable <img> fills the fixed-height .card-img box exactly like
+       the old CSS background did (object-fit:cover, centered). Shared here so
+       BOTH market and firm pages render indexable images. */
+    .card-img .card-img-el { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
     .card-parent-chip {
       position: absolute;
       left: 10px;
@@ -416,7 +420,7 @@
       <div class="grid tmw-project-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/3300-gulf-shore/" aria-label="Open 3300 Gulf Shore">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a2425220d5a3-3300-gulf-shore-hp-marina-min.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a2425220d5a3-3300-gulf-shore-hp-marina-min.jpg" alt="3300 Gulf Shore — Residences in The Moorings, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">3300 Gulf Shore</div>
@@ -460,7 +464,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/epique-at-pelican-bay/" aria-label="Open Epique at Pelican Bay">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e70093a05afd-inquire-building.webp')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e70093a05afd-inquire-building.webp" alt="Epique at Pelican Bay — Residences in Pelican Bay, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Epique at Pelican Bay</div>
@@ -482,7 +486,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/kalea-bay-tower-500/" aria-label="Open Kalea Bay Tower 500">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7adbeca73d64-amenities3.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7adbeca73d64-amenities3.jpg" alt="Kalea Bay Tower 500 — Residences in North Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Kalea Bay Tower 500</div>
@@ -504,7 +508,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/palazzo-at-bayfront/" aria-label="Open Palazzo at Bayfront">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b4f32832b533-PALAZZO-EXTERIOR-BLDNG-67-RENDER-01.2-NO-CARS-NO-PEOPLE-300dpi-1024x576.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b4f32832b533-PALAZZO-EXTERIOR-BLDNG-67-RENDER-01.2-NO-CARS-NO-PEOPLE-300dpi-1024x576.png" alt="Palazzo at Bayfront — Residences in Old Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Palazzo at Bayfront</div>
@@ -526,7 +530,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-avenue-naples/" aria-label="Open The Avenue Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d6361f34ce404a81a2607981b664da3a~mv2.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d6361f34ce404a81a2607981b664da3a~mv2.jpeg" alt="The Avenue Naples — Mixed-Use in Old Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Avenue Naples</div>
@@ -551,7 +555,7 @@
         <div class="grid tmw-project-grid tmw-locked-grid">
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/avra-at-metropolitan-naples/" aria-label="Open Avra at Metropolitan Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6120c5db8c86-Screenshot-2026-01-15-at-7.58.29-PM.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/6120c5db8c86-Screenshot-2026-01-15-at-7.58.29-PM.png" alt="Avra at Metropolitan Naples — Residences in Downtown Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Avra at Metropolitan Naples</div>
@@ -573,7 +577,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-naples/" aria-label="Open Rosewood Residences Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/919f657bbb9f-Rosewood-Residences-Naples-1-1440x803.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/919f657bbb9f-Rosewood-Residences-Naples-1-1440x803.jpg" alt="Rosewood Residences Naples — Residences in Coquina Sands, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Rosewood Residences Naples</div>
@@ -595,7 +599,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-cayden-olde-naples/" aria-label="Open The Cayden Olde Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cb91bc22650a-28208056.jpeg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cb91bc22650a-28208056.jpeg" alt="The Cayden Olde Naples — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Cayden Olde Naples</div>
@@ -617,7 +621,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-naples/" aria-label="Open The Ritz-Carlton Residences, Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b5598344ef72-Aerial_The-Ritz-Carlton-Residences-Naples-at-Dusk-scaled.jpg" alt="The Ritz-Carlton Residences, Naples — Residences in Vanderbilt Beach, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Ritz-Carlton Residences, Naples</div>
@@ -639,7 +643,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/olana-naples/" aria-label="Open Olana Naples">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f12b797041fd43a2b9a0dabe66903ccb~mv2.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f12b797041fd43a2b9a0dabe66903ccb~mv2.jpg" alt="Olana Naples — Residences in Coquina Sands, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Olana Naples</div>
@@ -661,7 +665,7 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/the-halcyon-residences-marina/" aria-label="Open The Halcyon Residences &amp; Marina">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db806b453c7e-The_Halcyon_-NAPLES_EXT_VIEW_02_pool-1024x787.jpg')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db806b453c7e-The_Halcyon_-NAPLES_EXT_VIEW_02_pool-1024x787.jpg" alt="The Halcyon Residences &amp; Marina — Residences in East Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">The Halcyon Residences &amp; Marina</div>
@@ -683,7 +687,7 @@
 </div>
 <div class="card featured" data-featured="1" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/naples-beach-club-a-four-seasons-resort/" aria-label="Open Naples Beach Club, A Four Seasons Resort">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3085512003864b19ac166f9509fb1d03~mv2.jpeg')"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3085512003864b19ac166f9509fb1d03~mv2.jpeg" alt="Naples Beach Club, A Four Seasons Resort — Hotel in Naples" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Naples Beach Club, A Four Seasons Resort</div>
@@ -705,7 +709,7 @@
 </div>
 <div class="card" data-status="completed">
   <a class="card-link" href="https://www.oftmw.com/projects/fiori/" aria-label="Open Fiori">
-    <div class="card-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52b6d43374c441b699a1871b2476eaa2~mv2.png')"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52b6d43374c441b699a1871b2476eaa2~mv2.png" alt="Fiori — Residences in East Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Fiori</div>
