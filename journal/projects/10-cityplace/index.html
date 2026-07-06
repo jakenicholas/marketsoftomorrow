@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="10 CityPlace, West Palm Beach | Markets of Tomorrow">
   <meta property="og:description" content="10 CityPlace is a Class A office tower in downtown West Palm Beach, Florida, part of Related Ross's roughly one-million-square-foot 10 & 15 CityPlace office expansion in the CityPlace district. Develo…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/10-cityplace/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="10 CityPlace, West Palm Beach | Markets of Tomorrow">
   <meta name="twitter:description" content="10 CityPlace is a Class A office tower in downtown West Palm Beach, Florida, part of Related Ross's roughly one-million-square-foot 10 & 15 CityPlace office expansion in the CityPlace district. Develo…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "10 CityPlace",
   "description": "10 CityPlace is a Class A office tower in downtown West Palm Beach, Florida, part of Related Ross's roughly one-million-square-foot 10 & 15 CityPlace office expansion in the CityPlace district. Develo\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg",
   "url": "https://www.oftmw.com/projects/10-cityplace/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Kohn Pedersen Fox"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "December 2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.7088491",
+    "longitude": "-80.056986"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is 10 CityPlace located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "10 CityPlace is located in West Palm Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will 10 CityPlace be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "10 CityPlace is under construction, with completion expected in December 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing 10 CityPlace?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Related Ross is the developer behind 10 CityPlace."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed 10 CityPlace?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "10 CityPlace was designed by Kohn Pedersen Fox."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is 10 CityPlace?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "10 CityPlace rises 22 stories."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="10-cityplace" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8c0e48a45876477a9cdbd777514ca02c~mv2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_999563775ad94ee89bc1f37a6155172f~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="10-cityplace" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace-3.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_00b60a4758d54f5ebf671f1aeff8618b~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1173,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">10 CityPlace has been covered in 6 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-ross-shares-a-look-at-the-future-of-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1e387e9d8255411fb67a29de30a9c226~mv2.jpg')"><span class="pp-fam-status">Feb 13, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Ross Shares A Look At The Future Of West Palm Beach</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-ross-just-secured-the-biggest-construction-loan-in-florida-history" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_df3f460114264608b037c16850c70cd0~mv2.jpeg')"><span class="pp-fam-status">Dec 19, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Ross secures the biggest construction loan in Florida history</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/olukai-the-hawaiian-inspired-footwear-brand-opens-its-doors-at-cityplace" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8d2c2d27b5934b7a83e452e66e8397a7~mv2.jpg')"><span class="pp-fam-status">Oct 24, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">OluKai, the Hawaiian-inspired footwear brand, opens its doors at CityPlace</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/eric-silagy-joins-related-ross-as-vice-chairman-to-accelerate-south-florida-s-transformation" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0372a6ba3788474891736e567f5a32f2~mv2.jpg')"><span class="pp-fam-status">May 21, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Eric Silagy Joins Related Ross As Vice Chairman To Accelerate South Florida S Transformation</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/cityplace-announces-equinox-fitness-club-alo-moxie-s-and-crate-barrel" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5d588c9963454fe49f491fd90278e6af~mv2.jpg')"><span class="pp-fam-status">Nov 21, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">CityPlace announces Equinox Fitness Club, Alo, Moxie’s, and Crate &amp; Barrel</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/cityplace-to-host-temporary-pickleball-shopping-pop-up-at-future-office-towers-site" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8cca73e3cdeb4572b28ba0142b272076~mv2.jpg')"><span class="pp-fam-status">Oct 19, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">CityPlace to host temporary pickleball, shopping pop-up at future office towers site</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/dutchmans-pipe/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dutchman's Pipe</div><div class="pp-near-m">West Palm Beach · Golf</div></div></a><a class="pp-near-card" href="/projects/pine-crest-school-west-palm-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db1488239c81-Upper-school-building.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Pine Crest School West Palm Beach</div><div class="pp-near-m">West Palm Beach · Education</div></div></a><a class="pp-near-card" href="/projects/coleman-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Coleman Park</div><div class="pp-near-m">West Palm Beach · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is 10 CityPlace located?</summary><p>10 CityPlace is located in West Palm Beach.</p></details><details class="pp-faq-item"><summary>When will 10 CityPlace be completed?</summary><p>10 CityPlace is under construction, with completion expected in December 2027.</p></details><details class="pp-faq-item"><summary>Who is developing 10 CityPlace?</summary><p>Related Ross is the developer behind 10 CityPlace.</p></details><details class="pp-faq-item"><summary>Who designed 10 CityPlace?</summary><p>10 CityPlace was designed by Kohn Pedersen Fox.</p></details><details class="pp-faq-item"><summary>How big is 10 CityPlace?</summary><p>10 CityPlace rises 22 stories.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/dutchmans-pipe/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dutchman-s-pipe.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dutchman's Pipe</div><div class="pp-near-m">West Palm Beach · Golf</div></div></a><a class="pp-near-card" href="/projects/pine-crest-school-west-palm-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/pine-crest-school-west-palm-beach.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Pine Crest School West Palm Beach</div><div class="pp-near-m">West Palm Beach · Education</div></div></a><a class="pp-near-card" href="/projects/coleman-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/coleman-park-revitalization.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Coleman Park</div><div class="pp-near-m">West Palm Beach · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

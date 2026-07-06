@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="The Lincoln, Miami | Markets of Tomorrow">
   <meta property="og:description" content="The Lincoln is a boutique luxury condominium in Miami's historic Coconut Grove, where Lore Development Group and Element Development are delivering just 48 residences across an eight-story mid-rise at…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-lincoln.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/the-lincoln/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="The Lincoln, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="The Lincoln is a boutique luxury condominium in Miami's historic Coconut Grove, where Lore Development Group and Element Development are delivering just 48 residences across an eight-story mid-rise at…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-lincoln.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "The Lincoln",
   "description": "The Lincoln is a boutique luxury condominium in Miami's historic Coconut Grove, where Lore Development Group and Element Development are delivering just 48 residences across an eight-story mid-rise at\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-lincoln.jpeg",
   "url": "https://www.oftmw.com/projects/the-lincoln/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Paredes Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "48"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7328001",
+    "longitude": "-80.23727"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is The Lincoln located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Lincoln is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will The Lincoln be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Lincoln is under construction, with completion expected in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing The Lincoln?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lore Development Group, Element Development is the developer behind The Lincoln."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed The Lincoln?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Lincoln was designed by Paredes Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is The Lincoln?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Lincoln rises 8 stories with 48 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="the-lincoln" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="the-lincoln" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-lincoln.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b409417c311e42e09794d95168a4aa40~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-lincoln.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">The Lincoln has been covered in 13 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/bespoke-real-estate-unveils-17-4-million-vision-on-la-gorce-island" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b0cbe9d22265469f9a50cf6a7c85824d~mv2.jpg')"><span class="pp-fam-status">Oct 6, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Bespoke Real Estate unveils $17.4 million vision on La Gorce Island</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/playboy-moves-global-hq-to-rivani-miami-beach-the-world-s-first-class-x-office" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_932da66df5ca4b5e8aa9bb970178ccd8~mv2.jpeg')"><span class="pp-fam-status">Aug 13, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Playboy moves global HQ to Rivani Miami Beach, the world's first Class-X office</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/lincoln-center-plans-massive-transformation-of-its-western-edge" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d88e81e6e7114095a1fdba1dd7e821e3~mv2.jpg')"><span class="pp-fam-status">May 27, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Lincoln Center plans massive transformation of its Western Edge</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/the-lincoln-coconut-grove-launches-bringing-a-boutique-collection-of-48-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e2b430e2f3bd49609d4dcdec75c6a203~mv2.jpg')"><span class="pp-fam-status">Jan 21, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">The Lincoln Coconut Grove launches, bringing a boutique collection of 48 residences</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/eight-beautiful-projects-that-are-reshaping-the-future-of-miami-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e43d2d25757644b6a56c3bf6d08e194d~mv2.jpg')"><span class="pp-fam-status">Jan 8, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Eight beautiful projects that are reshaping the future of Miami Beach</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/metlife-stadium-to-host-2025-fifa-club-world-cup-final-next-year" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b53143d1ca0443e6b43ffa1fe6236be2~mv2.jpg')"><span class="pp-fam-status">Sep 29, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">MetLife Stadium to host 2025 FIFA Club World Cup final next year</div></div></a></div><details class="pp-cov-more-wrap"><summary class="pp-cov-more"><span class="pp-cov-more-show">Show all 13 articles</span><span class="pp-cov-more-hide">Show less</span><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="6 9 12 15 18 9"/></svg></summary><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/fifa-club-world-cup-2025-the-first-ever-32-team-tournament-is-coming-to-miami-and-orlando" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8a5c6d942ce46c4bded584ae0e0c54c~mv2.jpg')"><span class="pp-fam-status">Sep 29, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">FIFA Club World Cup 2025, the first-ever 32-team tournament is coming to Miami and Orlando</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/westshore-plaza-to-undergo-a-significant-transformation-into-a-3-5-million-square-feet-mixed-use-dev" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_01c002d664d640cf8c3aa15279dfddbb~mv2.webp')"><span class="pp-fam-status">Apr 27, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Westshore Plaza to undergo a significant transformation into a 3.5 million square-feet mixed-use development following Tampa City Council's approval</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/owners-of-south-beach-s-ritz-carlton-and-sagamore-hotelare-embarking-on-a-transformative-project-for" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5f1c654fee7a487da01315d89330ba87~mv2.webp')"><span class="pp-fam-status">Mar 21, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Owners of South Beach’s Ritz-Carlton and Sagamore Hotel are embarking on a transformative project for the 100 block of Lincoln Road and its beachwalk entrance</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/anatomy-opens-their-new-flagship-location-on-miami-beach-offering-iv-lounge-normatec-and-more" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fe55b368466d487db7123e5ba1fc1930~mv2.webp')"><span class="pp-fam-status">Dec 17, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Anatomy opens their new flagship location on Miami Beach, offering IV lounge, Normatec, and more</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/after-11-years-popular-south-beach-restaurant-juvia-will-relocate-to-the-miami-world-center" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_09a9b42c54514ca69002dc57997acc67~mv2.webp')"><span class="pp-fam-status">Oct 10, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">After 11 years, popular South Beach restaurant, Juvia, will relocate to the Miami World Center</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/meat-market-a-modern-american-steakhouse-make-their-debut-in-midtown-boca-raton" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9ed3c65416e24ae1b06e7ad91639d007~mv2.webp')"><span class="pp-fam-status">Oct 6, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Meat Market, a modern American steakhouse make their debut in midtown Boca Raton</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/the-alton-a-200-000-sqft-commercial-development-on-the-corner-of-lincoln-and-alton-coming-2025" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_03e377ffe7a44573b94cba56bed72296~mv2.webp')"><span class="pp-fam-status">Sep 5, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">The Alton, a 200,000+ sqft commercial development on the corner of Lincoln and Alton, coming 2025 </div></div></a></div></details></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is The Lincoln located?</summary><p>The Lincoln is located in Miami.</p></details><details class="pp-faq-item"><summary>When will The Lincoln be completed?</summary><p>The Lincoln is under construction, with completion expected in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing The Lincoln?</summary><p>Lore Development Group, Element Development is the developer behind The Lincoln.</p></details><details class="pp-faq-item"><summary>Who designed The Lincoln?</summary><p>The Lincoln was designed by Paredes Architects.</p></details><details class="pp-faq-item"><summary>How big is The Lincoln?</summary><p>The Lincoln rises 8 stories with 48 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

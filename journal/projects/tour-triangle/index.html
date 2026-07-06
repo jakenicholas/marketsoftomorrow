@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Herzog & de Meuron"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "42"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "130"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "48.8328",
+    "longitude": "2.287"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Tour Triangle located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tour Triangle is located in Paris."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Tour Triangle open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tour Triangle is opening soon, with completion expected in 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Tour Triangle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unibail-Rodamco-Westfield is the developer behind Tour Triangle."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Tour Triangle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tour Triangle was designed by Herzog & de Meuron."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Tour Triangle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tour Triangle rises 42 stories with 130 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1064,9 +1143,9 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=tourtriangle">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="tour-triangle" data-title="Tour Triangle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 6, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
+    <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:78%"></div>
         <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
@@ -1074,7 +1153,7 @@
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
           
-          <div class="pp-minis"><div class="pp-mini"><div class="v">12.21</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2026</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">42</div><div class="k">Floors</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">12.21</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">130</div><div class="k">Keys</div></div><div class="pp-mini"><div class="v">42</div><div class="k">Floors</div></div></div>
         </div>
       </div>
 
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2021 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Dec 2021</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">2026 <span class="dos-est">est.</span></span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Structure standing and nearly complete (Paris's 3rd-tallest), 2026 delivery, per ArchDaily/France Bleu</span></span></div><a class="dos-src" href="https://www.archdaily.com/1041808/herzog-and-de-meurons-triangle-tower-in-paris-nears-completion-captured-by-stefano-candito" target="_blank" rel="noopener">archdaily.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Apr 24, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Tour Triangle topped out at 180m/42 stories on Apr 24 2026 (Dezeen); 15th arr., Porte de Versailles</span></span></div><a class="dos-src" href="https://www.dezeen.com/2026/05/11/tour-triangle-skyscraper-herzog-de-meuron-tops-out-paris/" target="_blank" rel="noopener">dezeen.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2021 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Dec 2021</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Apr 27, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">The Herzog &amp; de Meuron tower reaches its final 180 m height with the last concrete pour on the 40th floor.</span></span></div><a class="dos-src" href="https://www.besix.com/en/news/topping-out-celebrated-on-triangle-in-paris" target="_blank" rel="noopener">besix.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">2027 <span class="dos-est">est.</span></span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Structure standing and nearly complete (Paris's 3rd-tallest), 2026 delivery, per ArchDaily/France Bleu</span></span></div><a class="dos-src" href="https://www.archdaily.com/1041808/herzog-and-de-meurons-triangle-tower-in-paris-nears-completion-captured-by-stefano-candito" target="_blank" rel="noopener">archdaily.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2027</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/unibail-rodamco-westfield/"><span class="nm">Unibail-Rodamco-Westfield</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/herzog-de-meuron/"><span class="nm">Herzog &amp; de Meuron</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/grand-paris-express/"><div class="pp-near-img" style="background-image:url('https://www.leausa.us/media/immagini/5783_z_LEA-perspective-de-la-gare-pont-de-bondy-credits-001_1.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Grand Paris Express</div><div class="pp-near-m">Paris · Travel</div></div></a><a class="pp-near-card" href="/projects/louis-vuitton-103-champs-lyses/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/127b18ee55e5-louis-vuitton-hotel-paris-champs-elysees-trunk-facade-2026.jpg.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">Louis Vuitton 103 Champs-Élysées</div><div class="pp-near-m">Paris · Retail</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Tour Triangle located?</summary><p>Tour Triangle is located in Paris.</p></details><details class="pp-faq-item"><summary>When will Tour Triangle open?</summary><p>Tour Triangle is opening soon, with completion expected in 2027.</p></details><details class="pp-faq-item"><summary>Who is developing Tour Triangle?</summary><p>Unibail-Rodamco-Westfield is the developer behind Tour Triangle.</p></details><details class="pp-faq-item"><summary>Who designed Tour Triangle?</summary><p>Tour Triangle was designed by Herzog &amp; de Meuron.</p></details><details class="pp-faq-item"><summary>How big is Tour Triangle?</summary><p>Tour Triangle rises 42 stories with 130 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/grand-paris-express/"><div class="pp-near-img" style="background-image:url('https://www.leausa.us/media/immagini/5783_z_LEA-perspective-de-la-gare-pont-de-bondy-credits-001_1.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Grand Paris Express</div><div class="pp-near-m">Paris · Travel</div></div></a><a class="pp-near-card" href="/projects/louis-vuitton-103-champs-lyses/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/paris/louis-vuitton-hotel-champs-elysees.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">Louis Vuitton 103 Champs-Élysées</div><div class="pp-near-m">Paris · Retail</div></div></a></div></div>
     </div>
   </main>
 

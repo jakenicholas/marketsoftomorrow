@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Dolly Parton's SongTeller Hotel, Nashville | Markets of Tomorrow">
   <meta property="og:description" content="A 12-story downtown Nashville hotel just off Lower Broadway, conceived as Dolly Parton's love letter to Music City and marked by a guitar-shaped entryway. The 245 music-themed rooms and suites range f…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/dolly-partons-songteller-hotel/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Dolly Parton's SongTeller Hotel, Nashville | Markets of Tomorrow">
   <meta name="twitter:description" content="A 12-story downtown Nashville hotel just off Lower Broadway, conceived as Dolly Parton's love letter to Music City and marked by a guitar-shaped entryway. The 245 music-themed rooms and suites range f…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Dolly Parton's SongTeller Hotel",
   "description": "A 12-story downtown Nashville hotel just off Lower Broadway, conceived as Dolly Parton's love letter to Music City and marked by a guitar-shaped entryway. The 245 music-themed rooms and suites range f\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg",
   "url": "https://www.oftmw.com/projects/dolly-partons-songteller-hotel/",
   "address": {
     "@type": "PostalAddress",
@@ -411,7 +417,7 @@
     {
       "@type": "PropertyValue",
       "name": "Status",
-      "value": "Opening Soon"
+      "value": "Now Open"
     },
     {
       "@type": "PropertyValue",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Pivot Studio"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "12"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "245"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "June 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "36.1623",
+    "longitude": "-86.7754"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Dolly Parton's SongTeller Hotel located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dolly Parton's SongTeller Hotel is located in Nashville."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Dolly Parton's SongTeller Hotel open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dolly Parton's SongTeller Hotel is now open. It was completed in June 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Dolly Parton's SongTeller Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Dollywood Company, Herschend Enterprises is the developer behind Dolly Parton's SongTeller Hotel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Dolly Parton's SongTeller Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dolly Parton's SongTeller Hotel was designed by Pivot Studio."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Dolly Parton's SongTeller Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dolly Parton's SongTeller Hotel rises 12 stories with 245 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,15 +1122,15 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="dolly-partons-songteller-hotel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2b805a16031-download.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/811d806301ab-Greeting-Lobby-scaled.png&quot;]">
+  <main class="pp" id="pp" data-slug="dolly-partons-songteller-hotel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel-3.png&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
         <div class="pp-hero-main">
           <div class="pp-hero-head">
-            <span class="pp-eyebrow"><span class="d" style="color:#1FDF67"></span>Opening Soon</span>
+            <span class="pp-eyebrow"><span class="d" style="color:#1FDF67"></span>Now Open</span>
             <h1 class="pp-h1">Dolly Parton's SongTeller Hotel</h1>
             <div class="pp-loc">Nashville · Hotel</div>
             
@@ -1064,14 +1143,14 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=dollypartonssongtellerhotel">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="dolly-partons-songteller-hotel" data-title="Dolly Parton's SongTeller Hotel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 3, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">Delivery Jun 2026</div>
+    <div class="pm-tl"><div class="pm-tl-date">Delivered Jun '26</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:79%"></div>
-        <div class="pm-tl-knob" style="left:79%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">79%</div>
+        <div class="pm-tl-empty" style="left:100%"></div>
+        <div class="pm-tl-knob" style="left:calc(100% - 18px);box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(31,223,103,.42),0 0 12px rgba(31,223,103,.55)">100%</div>
       </div>
-      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
+      <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage done">Opening Soon</span><span class="pm-tl-stage on" style="color:#1FDF67;font-weight:800;text-shadow:0 0 12px rgba(31,223,103,.5)">Now Open</span></div>
     </div>
           
           <div class="pp-minis"><div class="pp-mini"><div class="v">11.24</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">Est 06.26</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">245</div><div class="k">Keys</div></div><div class="pp-mini"><div class="v">12</div><div class="k">Floors</div></div></div>
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2024 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Nov 2024</span></div></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Bookings open</span> <span class="dos-date">Oct 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Reservations &amp; museum pre-sale tickets opened Oct 2025; openings targeted June 2026 — official DollyParton.com</span></span></div><a class="dos-src" href="https://dollyparton.com/life-and-career/dolly-partons-songteller-hotel-dollys-life-of-many-colors-museum-now-accepting-reservations-and-pre-sale-tickets-ahead-of-june-2026-openings" target="_blank" rel="noopener">dollyparton.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Jun 2026 <span class="dos-est">est.</span></span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2024 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Nov 2024</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Bookings open</span> <span class="dos-date">Oct 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Reservations opened Oct 2025 ahead of June 2026 opening per MusicRow</span></span></div><a class="dos-src" href="https://musicrow.com/2025/10/dolly-partons-songteller-hotel-accepting-reservations-ahead-of-june-2026-opening/" target="_blank" rel="noopener">musicrow.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Opened</span> <span class="dos-date">Jun 10, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Opened June 10, 2026 in downtown Nashville; 245 music-themed rooms + Life of Many Colors museum</span></span></div><a class="dos-src" href="https://dollyparton.com/life-and-career/dolly-partons-songteller-hotel-dollys-life-of-many-colors-museum-now-accepting-reservations-and-pre-sale-tickets-ahead-of-june-2026-openings" target="_blank" rel="noopener">dollyparton.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">A 12-story downtown Nashville hotel just off Lower Broadway, conceived as Dolly Parton's love letter to Music City and marked by a guitar-shaped entryway. The 245 music-themed rooms and suites range from Signature Rooms to Acoustic Suites, the six-guest Six Sisters Suites honoring Dolly's sisters, and a two-story SongTeller Suite, with signature touches like in-room guitars and record players. A rainbow-hued Listening Lobby with gilded ceilings plays Dolly's songs every hour and hosts songwriting sessions, while two venues — Parton's Live, a performance space for songwriter sessions and rising-star showcases, and Jolene's, a piano lounge — bring live music under the same roof alongside craft cocktails and elevated fare. The hotel's third floor houses Dolly's Life of Many Colors Museum, a 20,000-plus-square-foot exhibit billed as the largest celebration of her life and career in the world, steps from the Ryman Auditorium, Bridgestone Arena, and the heart of Lower Broadway.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/the-dollywood-company/"><span class="nm">The Dollywood Company</span></a><a class="pp-firm-chip" href="/firm/herschend-enterprises/"><span class="nm">Herschend Enterprises</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/pivot-studio/"><span class="nm">Pivot Studio</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Dolly Parton's SongTeller Hotel has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/dolly-parton-s-songteller-hotel-brings-245-music-filled-rooms-and-a-career-spanning-museum-to-downtown-nashville" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg')"><span class="pp-fam-status">Jul 3, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Dolly Parton's SongTeller Hotel and career-spanning museum will arrive in Nashville this fall</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/1-iris-lane-the-residences-at-belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cf2243b7baed-756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125-crop-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">1 Iris Lane, The Residences at Belle Meade Village</div><div class="pp-near-m">Nashville · Residences</div></div></a><a class="pp-near-card" href="/projects/belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Belle Meade Village</div><div class="pp-near-m">Nashville · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/nobu-hotel-nashville/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_212159e88b9940aca67fb876e2e0c4bf~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Nobu Hotel Nashville</div><div class="pp-near-m">Nashville · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Dolly Parton's SongTeller Hotel located?</summary><p>Dolly Parton's SongTeller Hotel is located in Nashville.</p></details><details class="pp-faq-item"><summary>Is Dolly Parton's SongTeller Hotel open?</summary><p>Dolly Parton's SongTeller Hotel is now open. It was completed in June 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Dolly Parton's SongTeller Hotel?</summary><p>The Dollywood Company, Herschend Enterprises is the developer behind Dolly Parton's SongTeller Hotel.</p></details><details class="pp-faq-item"><summary>Who designed Dolly Parton's SongTeller Hotel?</summary><p>Dolly Parton's SongTeller Hotel was designed by Pivot Studio.</p></details><details class="pp-faq-item"><summary>How big is Dolly Parton's SongTeller Hotel?</summary><p>Dolly Parton's SongTeller Hotel rises 12 stories with 245 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/1-iris-lane-the-residences-at-belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/1-iris-lane-the-residences-at-belle-meade-village.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">1 Iris Lane, The Residences at Belle Meade Village</div><div class="pp-near-m">Nashville · Residences</div></div></a><a class="pp-near-card" href="/projects/belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Belle Meade Village</div><div class="pp-near-m">Nashville · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/nobu-hotel-nashville/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/nobu-hotel-nashville.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Nobu Hotel Nashville</div><div class="pp-near-m">Nashville · Hotel</div></div></a></div></div>
     </div>
   </main>
 

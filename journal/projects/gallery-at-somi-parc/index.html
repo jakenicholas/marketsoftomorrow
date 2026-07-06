@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Gallery at SoMi Parc, South Miami | Markets of Tomorrow">
   <meta property="og:description" content="Gallery at SoMi Parc is a mixed-income residential development in South Miami, Florida, delivered by Related Urban Development Group. Its 11-story second phase adds roughly 390 apartments above ground…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-miami/gallery-at-somi-parc.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/gallery-at-somi-parc/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Gallery at SoMi Parc, South Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Gallery at SoMi Parc is a mixed-income residential development in South Miami, Florida, delivered by Related Urban Development Group. Its 11-story second phase adds roughly 390 apartments above ground…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-miami/gallery-at-somi-parc.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Gallery at SoMi Parc",
   "description": "Gallery at SoMi Parc is a mixed-income residential development in South Miami, Florida, delivered by Related Urban Development Group. Its 11-story second phase adds roughly 390 apartments above ground\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-miami/gallery-at-somi-parc.jpg",
   "url": "https://www.oftmw.com/projects/gallery-at-somi-parc/",
   "address": {
     "@type": "PostalAddress",
@@ -420,8 +426,61 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": ""
+      "name": "Floors",
+      "value": "11"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "390"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7082222",
+    "longitude": "-80.2899295"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Gallery at SoMi Parc located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Gallery at SoMi Parc is located in South Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Gallery at SoMi Parc be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Gallery at SoMi Parc is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Gallery at SoMi Parc?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Related Urban is the developer behind Gallery at SoMi Parc."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Gallery at SoMi Parc?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Gallery at SoMi Parc rises 11 stories with 390 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1009,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1109,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="gallery-at-somi-parc" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="gallery-at-somi-parc" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-miami/gallery-at-somi-parc.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5607ee1ac371-503974608_17894845626240033_1387399188596134588_n.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-miami/gallery-at-somi-parc.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1130,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=galleryatsomiparc">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="gallery-at-somi-parc" data-title="Gallery at SoMi Parc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 6, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1083,7 +1149,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Mar 11, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Recorded "construction" appears overstated: trusted press (TRD Mar 2025, Florida YIMBY Jul 2025) shows only proposal/site-plan review as of mid-2025; no groundbreaking confirmed. Propose walking status back to announced for review.</span></span></div><a class="dos-src" href="https://floridayimby.com/2025/07/second-phase-of-the-gallery-at-somi-parc-proposed-for-5949-s-w-68th-street-south-miami-fl.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected groundbreaking</span> <span class="dos-date">Jun 2026</span></div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Mar 11, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Recorded "construction" appears overstated: trusted press (TRD Mar 2025, Florida YIMBY Jul 2025) shows only proposal/site-plan review as of mid-2025; no groundbreaking confirmed. Propose walking status back to announced for review.</span></span></div><a class="dos-src" href="https://floridayimby.com/2025/07/second-phase-of-the-gallery-at-somi-parc-proposed-for-5949-s-w-68th-street-south-miami-fl.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Financing secured</span> <span class="dos-date">Mar 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Miami-Dade Housing Finance Authority approves tax-exempt bond financing for the Live Local Act phase-two building.</span></span></div><a class="dos-src" href="https://www.miamidade.gov/govaction/legistarfiles/Matters/Y2026/260542.pdf" target="_blank" rel="noopener">miamidade.gov<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected groundbreaking</span> <span class="dos-date">Jun 2026</span></div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Gallery at SoMi Parc is a mixed-income residential development in South Miami, Florida, delivered by Related Urban Development Group. Its 11-story second phase adds roughly 390 apartments above ground-floor retail near the South Miami Metrorail station, advanced under Florida's Live Local Act with a substantial share of workforce housing reserved for households at or below 120% of area median income. Designed by Modis Architects for a walkable, transit-oriented setting, the project pairs market-rate and attainable homes in one of Miami-Dade's most connected suburban cores.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/related-urban/"><span class="nm">Related Urban</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,6 +1165,7 @@
       
       
       
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Gallery at SoMi Parc located?</summary><p>Gallery at SoMi Parc is located in South Miami.</p></details><details class="pp-faq-item"><summary>When will Gallery at SoMi Parc be built?</summary><p>Gallery at SoMi Parc is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing Gallery at SoMi Parc?</summary><p>Related Urban is the developer behind Gallery at SoMi Parc.</p></details><details class="pp-faq-item"><summary>How big is Gallery at SoMi Parc?</summary><p>Gallery at SoMi Parc rises 11 stories with 390 residences.</p></details></div>
       
     </div>
   </main>

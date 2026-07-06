@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Piero Lissoni"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "134"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.8553",
+    "longitude": "-80.1209"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is 72 Carlyle Miami Beach located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "72 Carlyle Miami Beach is located in Miami Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will 72 Carlyle Miami Beach be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "72 Carlyle Miami Beach is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing 72 Carlyle Miami Beach?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Lefferts is the developer behind 72 Carlyle Miami Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed 72 Carlyle Miami Beach?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "72 Carlyle Miami Beach was designed by Piero Lissoni."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is 72 Carlyle Miami Beach?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "72 Carlyle Miami Beach rises 20 stories with 134 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nobe-parc-miami-beach/"><div class="pp-near-img" style="background-image:url('https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">NoBe PARC Miami Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/1250-west-avenue/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_54c80e79f2a440d6af56e4af68b65489~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">1250 West Avenue</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/ritz-carlton-residences-south-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fe45b2c2aa1142b6b06b5212fe6dc42e~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ritz-Carlton Residences, South Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is 72 Carlyle Miami Beach located?</summary><p>72 Carlyle Miami Beach is located in Miami Beach.</p></details><details class="pp-faq-item"><summary>When will 72 Carlyle Miami Beach be built?</summary><p>72 Carlyle Miami Beach is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing 72 Carlyle Miami Beach?</summary><p>Lefferts is the developer behind 72 Carlyle Miami Beach.</p></details><details class="pp-faq-item"><summary>Who designed 72 Carlyle Miami Beach?</summary><p>72 Carlyle Miami Beach was designed by Piero Lissoni.</p></details><details class="pp-faq-item"><summary>How big is 72 Carlyle Miami Beach?</summary><p>72 Carlyle Miami Beach rises 20 stories with 134 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nobe-parc-miami-beach/"><div class="pp-near-img" style="background-image:url('https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">NoBe PARC Miami Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/1250-west-avenue/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/1250-west-avenue.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">1250 West Avenue</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/ritz-carlton-residences-south-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/ritz-carlton-residences-south-beach.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ritz-Carlton Residences, South Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a></div></div>
     </div>
   </main>
 

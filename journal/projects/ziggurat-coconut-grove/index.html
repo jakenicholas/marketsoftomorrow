@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Ziggurat Coconut Grove, Coconut Grove | Markets of Tomorrow">
   <meta property="og:description" content="A sculptural mixed-use sanctuary in the heart of Coconut Grove, organized around 19 boutique residences, 100,000 square feet of Class-A office space, and 40,000 square feet of curated retail. The buil…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png">
   <meta property="og:url" content="https://www.oftmw.com/projects/ziggurat-coconut-grove/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Ziggurat Coconut Grove, Coconut Grove | Markets of Tomorrow">
   <meta name="twitter:description" content="A sculptural mixed-use sanctuary in the heart of Coconut Grove, organized around 19 boutique residences, 100,000 square feet of Class-A office space, and 40,000 square feet of curated retail. The buil…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Ziggurat Coconut Grove",
   "description": "A sculptural mixed-use sanctuary in the heart of Coconut Grove, organized around 19 boutique residences, 100,000 square feet of Class-A office space, and 40,000 square feet of curated retail. The buil\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png",
   "url": "https://www.oftmw.com/projects/ziggurat-coconut-grove/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Oppenheim Architecture"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "February 2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7287312",
+    "longitude": "-80.243736"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Ziggurat Coconut Grove located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ziggurat Coconut Grove is located in Coconut Grove."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Ziggurat Coconut Grove be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ziggurat Coconut Grove is breaking ground, with completion targeted in February 2028 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Ziggurat Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Allen Morris Company is the developer behind Ziggurat Coconut Grove."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Ziggurat Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ziggurat Coconut Grove was designed by Oppenheim Architecture."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Ziggurat Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ziggurat Coconut Grove rises 3 stories with 19 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="ziggurat-coconut-grove" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e5dcaca252164280be45dc38a658109a~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_695e6896630741f4a8d814febadd7e0d~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9a82de74c3b14788aed2e2669cf697d1~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d0be87511d9d460d9448e8d34c512dae~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="ziggurat-coconut-grove" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove-5.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1100,8 +1179,9 @@ The rooftop is reserved as a private wellness sanctuary anchored by a hydrothera
     </a></div>
       
       
-      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Ziggurat Coconut Grove has been covered in 4 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-co-launches-first-of-its-kind-sales-gallery-with-chèvre-in-coconut-grove" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_baee3828b12c454fb626b05573dc35f3~mv2.webp')"><span class="pp-fam-status">Aug 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Co. launches first-of-its-kind sales gallery with Chèvre in Coconut Grove </div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/this-coconut-grove-address-is-set-to-become-one-of-miami-s-healthiest" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_457961b351f54054b32e0efdc920c106~mv2.jpg')"><span class="pp-fam-status">Jul 17, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">This Coconut Grove address is set to become one of Miami’s healthiest</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-company-launches-hyper-exclusive-ziggurat-home-sales-and-office-leases" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ab89da2343b94dc29b2ed08239eefdf0~mv2.jpg')"><span class="pp-fam-status">Jun 17, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Company launches hyper-exclusive Ziggurat home sales and office leases</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-co-secures-138-5-million-construction-loan-for-ziggurat" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_203aa5803c72413999f6eb108a941179~mv2.png')"><span class="pp-fam-status">Dec 11, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Co Secures 138 5 Million Construction Loan For Ziggurat</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-well-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fcbbe9b8699b43a5b05485be0240f503~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The WELL Coconut Grove</div><div class="pp-near-m">Coconut Grove · Residences</div></div></a><a class="pp-near-card" href="/projects/vita-at-grove-isle/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8323855cd5704d689f6cfe5f9a0d95de~mv2.webp')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Vita at Grove Isle</div><div class="pp-near-m">Coconut Grove · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Ziggurat Coconut Grove has been covered in 4 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-co-launches-first-of-its-kind-sales-gallery-with-chèvre-in-coconut-grove" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_baee3828b12c454fb626b05573dc35f3~mv2.webp')"><span class="pp-fam-status">Aug 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Co. launches first-of-its-kind sales gallery with Chèvre in Coconut Grove </div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/this-coconut-grove-address-is-set-to-become-one-of-miami-s-healthiest" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_457961b351f54054b32e0efdc920c106~mv2.jpg')"><span class="pp-fam-status">Jul 17, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">This Coconut Grove address is set to become one of Miami’s healthiest</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-company-launches-hyper-exclusive-ziggurat-home-sales-and-office-leases" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ab89da2343b94dc29b2ed08239eefdf0~mv2.jpg')"><span class="pp-fam-status">Jun 17, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Company launches hyper-exclusive Ziggurat home sales and office leases</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/allen-morris-co-secures-138-5-million-construction-loan-for-ziggurat" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/ziggurat-coconut-grove.png')"><span class="pp-fam-status">Dec 11, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Allen Morris Co Secures 138 5 Million Construction Loan For Ziggurat</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Ziggurat Coconut Grove located?</summary><p>Ziggurat Coconut Grove is located in Coconut Grove.</p></details><details class="pp-faq-item"><summary>When will Ziggurat Coconut Grove be completed?</summary><p>Ziggurat Coconut Grove is breaking ground, with completion targeted in February 2028 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Ziggurat Coconut Grove?</summary><p>The Allen Morris Company is the developer behind Ziggurat Coconut Grove.</p></details><details class="pp-faq-item"><summary>Who designed Ziggurat Coconut Grove?</summary><p>Ziggurat Coconut Grove was designed by Oppenheim Architecture.</p></details><details class="pp-faq-item"><summary>How big is Ziggurat Coconut Grove?</summary><p>Ziggurat Coconut Grove rises 3 stories with 19 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-well-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/the-well-coconut-grove.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The WELL Coconut Grove</div><div class="pp-near-m">Coconut Grove · Residences</div></div></a><a class="pp-near-card" href="/projects/vita-at-grove-isle/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coconut-grove/vita-at-grove-isle.webp')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Vita at Grove Isle</div><div class="pp-near-m">Coconut Grove · Residences</div></div></a></div></div>
     </div>
   </main>
 

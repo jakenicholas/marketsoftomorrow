@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -422,6 +428,54 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Kohn Pedersen Fox, Heatherwick Studio"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2035"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "1.36",
+    "longitude": "103.99"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Singapore Changi Airport Terminal 5 located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Singapore Changi Airport Terminal 5 is located in Singapore."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Singapore Changi Airport Terminal 5 be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Singapore Changi Airport Terminal 5 is under construction, with completion expected in 2035 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Singapore Changi Airport Terminal 5?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Changi Airport Group is the developer behind Singapore Changi Airport Terminal 5."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Singapore Changi Airport Terminal 5?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Singapore Changi Airport Terminal 5 was designed by Kohn Pedersen Fox, Heatherwick Studio."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1064,7 +1125,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=singaporechangiairportterminal5">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="singapore-changi-airport-terminal-5" data-title="Singapore Changi Airport Terminal 5"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 1, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">9.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,7 +1160,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/skywaters-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4050e4e3ff341949a36b24362ba09c8~mv2.webp')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Skywaters Residences</div><div class="pp-near-m">Singapore · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/marina-bay-sands-expansion/"><div class="pp-near-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Marina Bay Sands Expansion</div><div class="pp-near-m">Singapore · Hotel</div></div></a><a class="pp-near-card" href="/projects/nomad-singapore/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_0c4e152a5cc74922bc17db7f7eccb48e~mv2.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">NoMad Singapore</div><div class="pp-near-m">Singapore · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Singapore Changi Airport Terminal 5 located?</summary><p>Singapore Changi Airport Terminal 5 is located in Singapore.</p></details><details class="pp-faq-item"><summary>When will Singapore Changi Airport Terminal 5 be completed?</summary><p>Singapore Changi Airport Terminal 5 is under construction, with completion expected in 2035 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Singapore Changi Airport Terminal 5?</summary><p>Changi Airport Group is the developer behind Singapore Changi Airport Terminal 5.</p></details><details class="pp-faq-item"><summary>Who designed Singapore Changi Airport Terminal 5?</summary><p>Singapore Changi Airport Terminal 5 was designed by Kohn Pedersen Fox, Heatherwick Studio.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/skywaters-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/singapore/skywaters-residences.webp')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Skywaters Residences</div><div class="pp-near-m">Singapore · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/marina-bay-sands-expansion/"><div class="pp-near-img" style="background-image:url('https://media.cnn.com/api/v1/images/stellar/prod/an-aerial-view-of-the-lower-and-upper-skyloop-2-credit-to-safdie-architects.jpg?c=original')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Marina Bay Sands Expansion</div><div class="pp-near-m">Singapore · Hotel</div></div></a><a class="pp-near-card" href="/projects/nomad-singapore/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/singapore/nomad-singapore.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">NoMad Singapore</div><div class="pp-near-m">Singapore · Hotel</div></div></a></div></div>
     </div>
   </main>
 

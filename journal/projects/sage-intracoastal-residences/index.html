@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Sage Intracoastal Residences, Fort Lauderdale | Markets of Tomorrow">
   <meta property="og:description" content="Boutique waterfront condos with boat slips, resort deck, and contemporary interiors along the Intracoastal.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sage-intracoastal-residences.webp">
   <meta property="og:url" content="https://www.oftmw.com/projects/sage-intracoastal-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Sage Intracoastal Residences, Fort Lauderdale | Markets of Tomorrow">
   <meta name="twitter:description" content="Boutique waterfront condos with boat slips, resort deck, and contemporary interiors along the Intracoastal.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sage-intracoastal-residences.webp">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Sage Intracoastal Residences",
   "description": "Boutique waterfront condos with boat slips, resort deck, and contemporary interiors along the Intracoastal.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sage-intracoastal-residences.webp",
   "url": "https://www.oftmw.com/projects/sage-intracoastal-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "FSMY Architects + Planners"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "28"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "44"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "Late 2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.1197785",
+    "longitude": "-80.130821"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Sage Intracoastal Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sage Intracoastal Residences is located in Fort Lauderdale."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Sage Intracoastal Residences be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sage Intracoastal Residences is under construction, with completion expected in Late 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Sage Intracoastal Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Property Markets Group is the developer behind Sage Intracoastal Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Sage Intracoastal Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sage Intracoastal Residences was designed by FSMY Architects + Planners."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Sage Intracoastal Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sage Intracoastal Residences rises 28 stories with 44 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="sage-intracoastal-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="sage-intracoastal-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sage-intracoastal-residences.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cac1a51df0034a18b4deea5f4329b35a~mv2.webp')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sage-intracoastal-residences.webp')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Sage Intracoastal Residences has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/pmg-partners-with-shift4-to-launch-first-ever-crypto-payment-option-for-pre-construction-condo-sales" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0f9d698fe0a14bb0ae5f56600ac276cb~mv2.jpg')"><span class="pp-fam-status">May 20, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">PMG Partners with Shift4 to launch first-ever crypto payment option for pre-construction condo sales</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/pmg-launches-sales-for-the-sage-intracoastal-residences-fort-lauderdale-a-boutique-18-story-condomi" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e578856884b14eb39950f5c77ec23dcf~mv2.webp')"><span class="pp-fam-status">Mar 14, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">PMG announces Sage Intracoastal Residences Fort Lauderdale, a boutique 18-story condominium along the Intracoastal waterway offering 44 residences</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-galleria-at-fort-lauderdale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bd805d0adf604dcbbe0b20758acf1038~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Galleria at Fort Lauderdale</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/sereno/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0ecd054f6656463daa85a049627ab83a~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Sereno</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fat-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">FAT Village</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Sage Intracoastal Residences located?</summary><p>Sage Intracoastal Residences is located in Fort Lauderdale.</p></details><details class="pp-faq-item"><summary>When will Sage Intracoastal Residences be completed?</summary><p>Sage Intracoastal Residences is under construction, with completion expected in Late 2027.</p></details><details class="pp-faq-item"><summary>Who is developing Sage Intracoastal Residences?</summary><p>Property Markets Group is the developer behind Sage Intracoastal Residences.</p></details><details class="pp-faq-item"><summary>Who designed Sage Intracoastal Residences?</summary><p>Sage Intracoastal Residences was designed by FSMY Architects + Planners.</p></details><details class="pp-faq-item"><summary>How big is Sage Intracoastal Residences?</summary><p>Sage Intracoastal Residences rises 28 stories with 44 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-galleria-at-fort-lauderdale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/the-galleria-at-fort-lauderdale-redevelopment.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Galleria at Fort Lauderdale</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/sereno/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sereno.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Sereno</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fat-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/fat-village.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">FAT Village</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

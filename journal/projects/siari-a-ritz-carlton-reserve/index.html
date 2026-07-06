@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Siari, a Ritz-Carlton Reserve, Riviera Nayarit | Markets of Tomorrow">
   <meta property="og:description" content="Siari is a Ritz-Carlton Reserve on Riviera Nayarit's Emerald Coast, developed by LIFE Properties International between the Sierra Madre foothills and the Pacific about 45 minutes north of Puerto Valla…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/siari-a-ritz-carlton-reserve/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Siari, a Ritz-Carlton Reserve, Riviera Nayarit | Markets of Tomorrow">
   <meta name="twitter:description" content="Siari is a Ritz-Carlton Reserve on Riviera Nayarit's Emerald Coast, developed by LIFE Properties International between the Sierra Madre foothills and the Pacific about 45 minutes north of Puerto Valla…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Siari, a Ritz-Carlton Reserve",
   "description": "Siari is a Ritz-Carlton Reserve on Riviera Nayarit's Emerald Coast, developed by LIFE Properties International between the Sierra Madre foothills and the Pacific about 45 minutes north of Puerto Valla\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg",
   "url": "https://www.oftmw.com/projects/siari-a-ritz-carlton-reserve/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Bernardi + Peschard"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "91"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "November 2025"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "20.917",
+    "longitude": "-105.533"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Siari, a Ritz-Carlton Reserve located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Siari, a Ritz-Carlton Reserve is located in Riviera Nayarit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Siari, a Ritz-Carlton Reserve open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Siari, a Ritz-Carlton Reserve is now open. It was completed in November 2025."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Siari, a Ritz-Carlton Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LIFE Properties International is the developer behind Siari, a Ritz-Carlton Reserve."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Siari, a Ritz-Carlton Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Siari, a Ritz-Carlton Reserve was designed by Bernardi + Peschard."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Siari, a Ritz-Carlton Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Siari, a Ritz-Carlton Reserve features 91 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="siari-a-ritz-carlton-reserve" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_9bf03240bc764bc3b1c45109795474b3~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fdbe8c971cd74020a15627beeeed317d~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_48b2fc1d1f6347c992915de176baeb2d~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a38da69183474df4b9be81cd43c56c74~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="siari-a-ritz-carlton-reserve" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve-5.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1173,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nauka/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Nauka</div><div class="pp-near-m">Riviera Nayarit · Residences</div></div></a><a class="pp-near-card" href="/projects/rosewood-mandarina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Rosewood Mandarina</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Siari, a Ritz-Carlton Reserve located?</summary><p>Siari, a Ritz-Carlton Reserve is located in Riviera Nayarit.</p></details><details class="pp-faq-item"><summary>Is Siari, a Ritz-Carlton Reserve open?</summary><p>Siari, a Ritz-Carlton Reserve is now open. It was completed in November 2025.</p></details><details class="pp-faq-item"><summary>Who is developing Siari, a Ritz-Carlton Reserve?</summary><p>LIFE Properties International is the developer behind Siari, a Ritz-Carlton Reserve.</p></details><details class="pp-faq-item"><summary>Who designed Siari, a Ritz-Carlton Reserve?</summary><p>Siari, a Ritz-Carlton Reserve was designed by Bernardi + Peschard.</p></details><details class="pp-faq-item"><summary>How big is Siari, a Ritz-Carlton Reserve?</summary><p>Siari, a Ritz-Carlton Reserve features 91 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nauka/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Nauka</div><div class="pp-near-m">Riviera Nayarit · Residences</div></div></a><a class="pp-near-card" href="/projects/rosewood-mandarina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Rosewood Mandarina</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a></div></div>
     </div>
   </main>
 

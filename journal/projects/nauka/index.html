@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Nauka, Riviera Nayarit | Markets of Tomorrow">
   <meta property="og:description" content="Nauka is a private members' golf and residential community on Mexico's Riviera Nayarit, developed by LIFE Properties International across a sweeping Pacific-coast site of jungle, volcanic cliffs, estu…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/nauka/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Nauka, Riviera Nayarit | Markets of Tomorrow">
   <meta name="twitter:description" content="Nauka is a private members' golf and residential community on Mexico's Riviera Nayarit, developed by LIFE Properties International across a sweeping Pacific-coast site of jungle, volcanic cliffs, estu…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Nauka",
   "description": "Nauka is a private members' golf and residential community on Mexico's Riviera Nayarit, developed by LIFE Properties International across a sweeping Pacific-coast site of jungle, volcanic cliffs, estu\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg",
   "url": "https://www.oftmw.com/projects/nauka/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Olson Kundig"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "395"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "91"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "May 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "21.093743705329864",
+    "longitude": "-105.22212577760132"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Nauka located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nauka is located in Riviera Nayarit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Nauka open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nauka is now open. It was completed in May 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Nauka?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LIFE Properties International is the developer behind Nauka."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Nauka?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nauka was designed by Olson Kundig."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Nauka?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nauka features 395 residences and 91 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="nauka" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/785c2661198f-DJI_20251106085029_0195-.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ec8073af2305-Nauka14_no-tracks_DJI_20251106185407_0405-.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b96f1cbc78834596a3bc2a018a45fb0b~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="nauka" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Nauka has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/tom-fazio-s-new-nauka-golf-club-opens-on-mexico-s-riviera-nayarit-with-three-oceanfront-holes-built-for-a-mid-round-swim" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/785c2661198f-DJI_20251106085029_0195-.jpeg')"><span class="pp-fam-status">Jun 3, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Nauka Golf Club opens on Mexico's Riviera Nayarit with three oceanfront holes built for a mid-round swim</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/ritz-carlton-reserve-debuts-siari-at-nauka-the-920-acre-enclave" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b96f1cbc78834596a3bc2a018a45fb0b~mv2.jpeg')"><span class="pp-fam-status">Nov 25, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Ritz-Carlton Reserve debuts Siari at Nauka, the 920-acre enclave</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/siari-a-ritz-carlton-reserve/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Siari, a Ritz-Carlton Reserve</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a><a class="pp-near-card" href="/projects/rosewood-mandarina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Rosewood Mandarina</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Nauka located?</summary><p>Nauka is located in Riviera Nayarit.</p></details><details class="pp-faq-item"><summary>Is Nauka open?</summary><p>Nauka is now open. It was completed in May 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Nauka?</summary><p>LIFE Properties International is the developer behind Nauka.</p></details><details class="pp-faq-item"><summary>Who designed Nauka?</summary><p>Nauka was designed by Olson Kundig.</p></details><details class="pp-faq-item"><summary>How big is Nauka?</summary><p>Nauka features 395 residences and 91 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/siari-a-ritz-carlton-reserve/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Siari, a Ritz-Carlton Reserve</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a><a class="pp-near-card" href="/projects/rosewood-mandarina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Rosewood Mandarina</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a></div></div>
     </div>
   </main>
 

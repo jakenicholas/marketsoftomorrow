@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Aria Reserve, Miami | Markets of Tomorrow">
   <meta property="og:description" content="Aria Reserve is a twin-tower luxury condominium development on five acres of Biscayne Bay waterfront in Miami's Edgewater neighborhood — twin 62-story glass towers rising approximately 649 feet, set t…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/aria-reserve/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Aria Reserve, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Aria Reserve is a twin-tower luxury condominium development on five acres of Biscayne Bay waterfront in Miami's Edgewater neighborhood — twin 62-story glass towers rising approximately 649 feet, set t…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Aria Reserve",
   "description": "Aria Reserve is a twin-tower luxury condominium development on five acres of Biscayne Bay waterfront in Miami's Edgewater neighborhood \u2014 twin 62-story glass towers rising approximately 649 feet, set t\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve.jpg",
   "url": "https://www.oftmw.com/projects/aria-reserve/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Arquitectonica & More"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "62"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "782"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.8001662",
+    "longitude": "-80.1859131"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Aria Reserve located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aria Reserve is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Aria Reserve open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aria Reserve is opening soon, with completion expected in 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Aria Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Melo Group is the developer behind Aria Reserve."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Aria Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aria Reserve was designed by Arquitectonica & More."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Aria Reserve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aria Reserve rises 62 stories with 782 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="aria-reserve" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e3d2b17b12c647129f68fba67c12fdfe~mv2.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c5125901a229-Cam11-min-1.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4da7b9036f4f-desktop_00001.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/d2f2b353cf2e-Cam-05b-min-1.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="aria-reserve" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve-2.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve-4.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve-5.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1eec28e330f9-01-Aria-Reserve-Building-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/aria-reserve.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1143,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=ariareserve">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="aria-reserve" data-title="Aria Reserve"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2022 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">May 2022</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Apr 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">South Tower topped off at 62 stories — PROFILEmiami</span></span></div><a class="dos-src" href="https://profilemiamire.com/miamirealestate/2024/4/10/melo-group-tops-off-construction-on-south-tower-at-aria-reserve-in-edgewater" target="_blank" rel="noopener">profilemiamire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Halfway there</span> <span class="dos-date">Mar 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Aria Reserve's North Tower surpassed the halfway mark in construction.</span></span></div><a class="dos-src" href="https://floridayimby.com/2025/03/aria-reserve-north-tower-surpasses-halfway-mark-in-edgewater-miami.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">TCO received</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">South Tower received its TCO — first Edgewater tower delivered, with closings underway. (North Tower topped out 2025-08-19 and is finishing.)</span></span></div><a class="dos-src" href="https://www.wjhl.com/business/press-releases/ein-presswire/841279198/aria-reserve-sets-record-timeline-as-first-residential-tower-delivered-in-edgewaters-new-era/" target="_blank" rel="noopener">wjhl.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Resident move-in</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Aria Reserve South Tower delivered and ready for occupancy in Edgewater</span></span></div><a class="dos-src" href="https://www.miamicondoinvestments.com/aria-reserve-miami/aria-reserves-first-tower-now-complete-setting-the-stage-for-miamis-iconic-waterfront-twin-towers" target="_blank" rel="noopener">miamicondoinvestments.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2022 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">May 2022</span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Apr 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">South Tower topped off at 62 stories — PROFILEmiami</span></span></div><a class="dos-src" href="https://profilemiamire.com/miamirealestate/2024/4/10/melo-group-tops-off-construction-on-south-tower-at-aria-reserve-in-edgewater" target="_blank" rel="noopener">profilemiamire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Halfway there</span> <span class="dos-date">Mar 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Aria Reserve's North Tower surpassed the halfway mark in construction.</span></span></div><a class="dos-src" href="https://floridayimby.com/2025/03/aria-reserve-north-tower-surpasses-halfway-mark-in-edgewater-miami.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Resident move-in</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Aria Reserve South Tower delivered and ready for occupancy in Edgewater</span></span></div><a class="dos-src" href="https://www.miamicondoinvestments.com/aria-reserve-miami/aria-reserves-first-tower-now-complete-setting-the-stage-for-miamis-iconic-waterfront-twin-towers" target="_blank" rel="noopener">miamicondoinvestments.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">TCO received</span> <span class="dos-date">Early 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">South Tower complete — received TCO and closings began early 2026; North Tower delivering Q2 2026.</span></span></div><a class="dos-src" href="https://www.miamicondoinvestments.com/aria-reserve-miami/aria-reserves-first-tower-now-complete-setting-the-stage-for-miamis-iconic-waterfront-twin-towers" target="_blank" rel="noopener">miamicondoinvestments.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Aria Reserve is a twin-tower luxury condominium development on five acres of Biscayne Bay waterfront in Miami's Edgewater neighborhood — twin 62-story glass towers rising approximately 649 feet, set to become the tallest waterfront residential twin towers in the United States. Together the towers deliver 782 condominium residences across 547 linear feet of water frontage, behind an iconic zig-zag facade pattern designed to read as twin sinuous curves rising from bay to sky. The South Tower opened in 2025 and the North Tower follows in 2026. Floor categorizations include Panoramic Residences on floors 3–50 (10-foot ceilings), Skyview Residences on floors 51–56 (11-foot ceilings), Penthouses on floors 57–59, and three Tri-Level Penthouse Mansions on floors 60–62 — seven-bedroom three-story residences ranging from 7,790 to 8,385 square feet, each with a private rooftop terrace, summer kitchen, and private pool. Every residence features two private elevators, a dedicated office or bonus room, flow-through layouts with east- and west-facing waterfront views, and 11-foot-deep outdoor terraces. The amenity program spans more than two acres of indoor and outdoor space — a semi-Olympic pool, full-service spa, fitness and yoga studios, tennis and basketball courts, children's play zones, screening rooms, co-working lounges, a private marina component, a luxury bayview restaurant, a dog park, meditation deck, and podium and bayfront decks tied into the Miami Baywalk, anchored by a residents-only sky lobby with wine cellar and business center.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/the-melo-group/"><span class="nm">The Melo Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="/firm/morada-haute-furniture-boutique/"><span class="nm">MORADA Haute Furniture Boutique</span></a><a class="pp-firm-chip" href="/firm/arquitectonicageo/"><span class="nm">ArquitectonicaGEO</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Aria Reserve has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/new-york-s-flatiron-room-plans-to-open-at-the-new-aria-reserve-in-miami" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_932aa58e15594d52a47ca8b2f8a8d4ce~mv2.jpg')"><span class="pp-fam-status">Sep 12, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">New York's Flatiron Room plans to open at the new Aria Reserve in Miami</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/aria-reserve-is-set-to-be-the-tallest-twin-tower-waterfront-development-in-the-united-states" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52265cf538bf40f4a4ebeabe30876c1b~mv2.webp')"><span class="pp-fam-status">Oct 22, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Aria Reserve is set to be the tallest twin-tower waterfront development in the United States</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Aria Reserve located?</summary><p>Aria Reserve is located in Miami.</p></details><details class="pp-faq-item"><summary>When will Aria Reserve open?</summary><p>Aria Reserve is opening soon, with completion expected in 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Aria Reserve?</summary><p>The Melo Group is the developer behind Aria Reserve.</p></details><details class="pp-faq-item"><summary>Who designed Aria Reserve?</summary><p>Aria Reserve was designed by Arquitectonica &amp; More.</p></details><details class="pp-faq-item"><summary>How big is Aria Reserve?</summary><p>Aria Reserve rises 62 stories with 782 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

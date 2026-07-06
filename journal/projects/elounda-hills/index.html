@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Elounda Hills, Agios Nikolaos | Markets of Tomorrow">
   <meta property="og:description" content="Elounda Hills is an ultra-luxury resort community unfolding across the hillsides above Elounda near Agios Nikolaos on the Greek island of Crete. Developed by Mirum Hellas and operated by Barry Sternli…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/elounda-hills/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Elounda Hills, Agios Nikolaos | Markets of Tomorrow">
   <meta name="twitter:description" content="Elounda Hills is an ultra-luxury resort community unfolding across the hillsides above Elounda near Agios Nikolaos on the Greek island of Crete. Developed by Mirum Hellas and operated by Barry Sternli…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Elounda Hills",
   "description": "Elounda Hills is an ultra-luxury resort community unfolding across the hillsides above Elounda near Agios Nikolaos on the Greek island of Crete. Developed by Mirum Hellas and operated by Barry Sternli\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills.jpg",
   "url": "https://www.oftmw.com/projects/elounda-hills/",
   "address": {
     "@type": "PostalAddress",
@@ -420,8 +426,61 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": ""
+      "name": "Residences",
+      "value": "130"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "129"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2030"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "35.2296591",
+    "longitude": "25.7315477"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Elounda Hills located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Elounda Hills is located in Agios Nikolaos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Elounda Hills be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Elounda Hills is breaking ground, with completion targeted in 2030."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Elounda Hills?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mirum Group, 1 Hotels & Homes is the developer behind Elounda Hills."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Elounda Hills?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Elounda Hills features 130 residences and 129 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1009,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1109,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="elounda-hills" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/270e37ac9585-elounda-hills-aerial.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/772f69ac5116-1-Hotel-main-page-scaled.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c5f1e4605470-oqbJ4JE0.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="elounda-hills" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills-3.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills-4.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff48bd23cd9d-Elounda-Hills-view-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/agios-nikolaos/elounda-hills.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,6 +1165,7 @@
       
       
       
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Elounda Hills located?</summary><p>Elounda Hills is located in Agios Nikolaos.</p></details><details class="pp-faq-item"><summary>When will Elounda Hills be completed?</summary><p>Elounda Hills is breaking ground, with completion targeted in 2030.</p></details><details class="pp-faq-item"><summary>Who is developing Elounda Hills?</summary><p>Mirum Group, 1 Hotels &amp; Homes is the developer behind Elounda Hills.</p></details><details class="pp-faq-item"><summary>How big is Elounda Hills?</summary><p>Elounda Hills features 130 residences and 129 hotel keys.</p></details></div>
       
     </div>
   </main>

@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Sweetens Cove Golf Club, South Pittsburg | Markets of Tomorrow">
   <meta property="og:description" content="Sweetens Cove Golf Club is undergoing a property-wide expansion that will transform the cult nine-hole inland links course in South Pittsburg, Tennessee — 30 miles west of Chattanooga — into what cour…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/sweetens-cove-golf-club/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Sweetens Cove Golf Club, South Pittsburg | Markets of Tomorrow">
   <meta name="twitter:description" content="Sweetens Cove Golf Club is undergoing a property-wide expansion that will transform the cult nine-hole inland links course in South Pittsburg, Tennessee — 30 miles west of Chattanooga — into what cour…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Sweetens Cove Golf Club",
   "description": "Sweetens Cove Golf Club is undergoing a property-wide expansion that will transform the cult nine-hole inland links course in South Pittsburg, Tennessee \u2014 30 miles west of Chattanooga \u2014 into what cour\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg",
   "url": "https://www.oftmw.com/projects/sweetens-cove-golf-club/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,54 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "King-Collins Dormer, Pfeffer Torode Architecture"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "35.0499435",
+    "longitude": "-85.7222937"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Sweetens Cove Golf Club located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sweetens Cove Golf Club is located in South Pittsburg."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Sweetens Cove Golf Club be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sweetens Cove Golf Club is under construction, with completion expected in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Sweetens Cove Golf Club?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Reef Capital Partners is the developer behind Sweetens Cove Golf Club."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Sweetens Cove Golf Club?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sweetens Cove Golf Club was designed by King-Collins Dormer, Pfeffer Torode Architecture."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1104,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="sweetens-cove-golf-club" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d8e697cbcfc04c1e91c94d5bc7e2b073~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3be01c7848c040bc9153e1455a44de9c~mv2.avif&quot;]">
+  <main class="pp" id="pp" data-slug="sweetens-cove-golf-club" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club-3.avif&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2f65527527d9404d97e62d6548102dc5~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,9 +1125,9 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=sweetenscovegolfclub">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="sweetens-cove-golf-club" data-title="Sweetens Cove Golf Club"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:43%"></div>
         <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
@@ -1074,7 +1135,7 @@
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
           
-          <div class="pp-minis"><div class="pp-mini"><div class="v">05.26</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2027</div><div class="k">Completion</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">05.26</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div></div>
         </div>
       </div>
 
@@ -1083,7 +1144,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Oct 22, 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sweetens Cove unveils major expansion: short course, restaurant, distillery and lodging</span></span></div><a class="dos-src" href="https://golf.com/travel/sweetens-cove-expansion-short-course-whiskey-lodging/" target="_blank" rel="noopener">golf.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 10, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sweetens Cove just broke ground on its 13-hole short course — the next chapter for golf's cult Tennessee destination</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/sweetens-cove-just-broke-ground-on-its-13-hole-short-course-the-next-chapter-for-golf-s-cult-tennessee-destination/" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Under construction</span> </div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2027</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Oct 22, 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sweetens Cove unveils major expansion: short course, restaurant, distillery and lodging</span></span></div><a class="dos-src" href="https://golf.com/travel/sweetens-cove-expansion-short-course-whiskey-lodging/" target="_blank" rel="noopener">golf.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 10, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sweetens Cove just broke ground on its 13-hole short course — the next chapter for golf's cult Tennessee destination</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/sweetens-cove-just-broke-ground-on-its-13-hole-short-course-the-next-chapter-for-golf-s-cult-tennessee-destination/" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Under construction</span> </div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Sweetens Cove Golf Club is undergoing a property-wide expansion that will transform the cult nine-hole inland links course in South Pittsburg, Tennessee — 30 miles west of Chattanooga — into what course architect Rob Collins calls "the ultimate 24-hour golf playground." Led by Reef Capital Partners (CEO Jared Lucero) in partnership with the Sweetens Cove ownership group, the multi-year expansion adds a King Collins Dormer-designed 13-hole short course (groundbreaking May 2026, opening summer 2027) that connects to and overlaps with the existing King Collins course, encouraging "cross-country" play. A two-acre winding putting green debuts spring 2027. The expansion delivers the property's first overnight stay: one-bedroom cabins with single or double occupancy, opening in phases starting late 2027 with completion in 2028. A 5,100-square-foot private full-service restaurant and bar — reserved for golf-package guests — and a 1,775-square-foot public-facing Sweetens Cove Spirits bottle shop and micro-distillery (opening fall 2027) round out the hospitality program, alongside three golf simulator bays with club fitting, expanded retail, a fishing dock near the sixth hole, a skeet shooting range, an Octagon Barn event space with storage for 60 whiskey barrels, and a Thermal Village debuting spring 2028. The hospitality program is designed by Pfeffer Torode Architecture; course work continues under King Collins Dormer, the Rob Collins and Tad King design partnership that crafted the original 2014 routing. The expansion preserves Sweetens Cove's distinct operating model: all-day passes, 8:30 a.m. shed gatherings for course conditions and starting-hole assignments, daily caps of 60 passes Tuesday through Thursday and 45 Friday through Sunday.
 
 Story so far: Rob Collins and Ari Techner signed the original Sweetens Cove lease in May 2014; King Collins designed the nine-hole inland links course that opened later that year and quickly became a national pilgrimage site. In 2019, the ownership group expanded to include Peyton Manning, Andy Roddick, Tom Nolan, Skip Bronson, Drew Holcomb, and Chris Parsons (now Sweetens Cove Spirits CEO). Reef Capital Partners joined as expansion developer in early 2025. The King Collins Dormer-designed 13-hole short course broke ground in May 2026 — the first construction milestone in the property-wide expansion.</p></div>
@@ -1101,6 +1162,7 @@ Story so far: Rob Collins and Ari Techner signed the original Sweetens Cove leas
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Sweetens Cove Golf Club has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/sweetens-cove-just-broke-ground-on-its-13-hole-short-course-the-next-chapter-for-golf-s-cult-tennessee-destination" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d8e697cbcfc04c1e91c94d5bc7e2b073~mv2.jpeg')"><span class="pp-fam-status">Jun 10, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Sweetens Cove just broke ground on its 13-hole short course — the next chapter for golf's cult Tennessee destination</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/sweetens-cove-plans-its-major-expansion-bringing-stay-and-play-cabins-night-golf-short-course-an" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_96c2a56e0a2a40a980dc00f7a0fb8c98~mv2.jpg')"><span class="pp-fam-status">May 13, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Sweetens Cove plans its major expansion, bringing stay-and-play cabins, night golf, short course, and more</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Sweetens Cove Golf Club located?</summary><p>Sweetens Cove Golf Club is located in South Pittsburg.</p></details><details class="pp-faq-item"><summary>When will Sweetens Cove Golf Club be completed?</summary><p>Sweetens Cove Golf Club is under construction, with completion expected in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing Sweetens Cove Golf Club?</summary><p>Reef Capital Partners is the developer behind Sweetens Cove Golf Club.</p></details><details class="pp-faq-item"><summary>Who designed Sweetens Cove Golf Club?</summary><p>Sweetens Cove Golf Club was designed by King-Collins Dormer, Pfeffer Torode Architecture.</p></details></div>
       
     </div>
   </main>

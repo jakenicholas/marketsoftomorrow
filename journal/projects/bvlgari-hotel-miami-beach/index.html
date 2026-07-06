@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Bvlgari Hotel Miami Beach, Miami Beach | Markets of Tomorrow">
   <meta property="og:description" content="The Bvlgari Hotel Miami Beach is Bvlgari Hotels & Resorts' first hotel in the United States, an adaptive reuse of the historic Seagull Hotel at 100 21st Street in Miami Beach. Developed by Blue Horizo…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e7f9e3da8c69-bvlgari-miami-beach.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/bvlgari-hotel-miami-beach.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/bvlgari-hotel-miami-beach/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Bvlgari Hotel Miami Beach, Miami Beach | Markets of Tomorrow">
   <meta name="twitter:description" content="The Bvlgari Hotel Miami Beach is Bvlgari Hotels & Resorts' first hotel in the United States, an adaptive reuse of the historic Seagull Hotel at 100 21st Street in Miami Beach. Developed by Blue Horizo…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e7f9e3da8c69-bvlgari-miami-beach.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/bvlgari-hotel-miami-beach.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Bvlgari Hotel Miami Beach",
   "description": "The Bvlgari Hotel Miami Beach is Bvlgari Hotels & Resorts' first hotel in the United States, an adaptive reuse of the historic Seagull Hotel at 100 21st Street in Miami Beach. Developed by Blue Horizo\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e7f9e3da8c69-bvlgari-miami-beach.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/bvlgari-hotel-miami-beach.jpg",
   "url": "https://www.oftmw.com/projects/bvlgari-hotel-miami-beach/",
   "address": {
     "@type": "PostalAddress",
@@ -415,13 +421,61 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Developer",
-      "value": ""
+      "name": "Architect",
+      "value": "ACPV Architects"
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": "ACPV Architects"
+      "name": "Hotel keys",
+      "value": "100"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7959642",
+    "longitude": "-80.128293"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Bvlgari Hotel Miami Beach located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bvlgari Hotel Miami Beach is located in Miami Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Bvlgari Hotel Miami Beach be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bvlgari Hotel Miami Beach is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Bvlgari Hotel Miami Beach?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bvlgari Hotel Miami Beach was designed by ACPV Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Bvlgari Hotel Miami Beach?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bvlgari Hotel Miami Beach features 100 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1104,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="bvlgari-hotel-miami-beach" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e7f9e3da8c69-bvlgari-miami-beach.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="bvlgari-hotel-miami-beach" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/bvlgari-hotel-miami-beach.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e7f9e3da8c69-bvlgari-miami-beach.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/bvlgari-hotel-miami-beach.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1125,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=bvlgarihotelmiamibeach">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="bvlgari-hotel-miami-beach" data-title="Bvlgari Hotel Miami Beach"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,7 +1160,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nobe-parc-miami-beach/"><div class="pp-near-img" style="background-image:url('https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">NoBe PARC Miami Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/1250-west-avenue/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_54c80e79f2a440d6af56e4af68b65489~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">1250 West Avenue</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/ritz-carlton-residences-south-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fe45b2c2aa1142b6b06b5212fe6dc42e~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ritz-Carlton Residences, South Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Bvlgari Hotel Miami Beach located?</summary><p>Bvlgari Hotel Miami Beach is located in Miami Beach.</p></details><details class="pp-faq-item"><summary>When will Bvlgari Hotel Miami Beach be built?</summary><p>Bvlgari Hotel Miami Beach is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who designed Bvlgari Hotel Miami Beach?</summary><p>Bvlgari Hotel Miami Beach was designed by ACPV Architects.</p></details><details class="pp-faq-item"><summary>How big is Bvlgari Hotel Miami Beach?</summary><p>Bvlgari Hotel Miami Beach features 100 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/nobe-parc-miami-beach/"><div class="pp-near-img" style="background-image:url('https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">NoBe PARC Miami Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/1250-west-avenue/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/1250-west-avenue.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">1250 West Avenue</div><div class="pp-near-m">Miami Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/ritz-carlton-residences-south-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami-beach/ritz-carlton-residences-south-beach.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ritz-Carlton Residences, South Beach</div><div class="pp-near-m">Miami Beach · Residences</div></div></a></div></div>
     </div>
   </main>
 

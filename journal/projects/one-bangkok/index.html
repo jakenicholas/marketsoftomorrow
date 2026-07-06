@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -422,6 +428,54 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Skidmore, Owings & Merrill"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "13.7228",
+    "longitude": "100.5418"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is One Bangkok located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Bangkok is located in Bangkok."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is One Bangkok open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Bangkok is now open. It was completed in 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing One Bangkok?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "TCC Assets, Frasers Property is the developer behind One Bangkok."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed One Bangkok?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Bangkok was designed by Skidmore, Owings & Merrill."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1099,7 +1160,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">One Bangkok has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/inside-the-new-ritz-carlton-situated-within-the-iconic-one-bangkok-district" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_17c1270ef2a14832bc46a22a0525cfd9~mv2.jpg')"><span class="pp-fam-status">Apr 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Inside the new Ritz-Carlton, situated within the iconic One Bangkok District</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/aman-nai-lert-bangkok/"><div class="pp-near-img" style="background-image:url('https://robbreport.com/wp-content/uploads/2024/01/Aman_Bangkok1.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Aman Nai Lert Bangkok</div><div class="pp-near-m">Bangkok · Hotel</div></div></a><a class="pp-near-card" href="/projects/hatai-bangkok/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7da7f5c26a364d69902c51db1dee511e~mv2.jpeg')"><span class="pp-near-status">Breaking Ground</span></div><div class="pp-near-b"><div class="pp-near-t">Hatai Bangkok</div><div class="pp-near-m">Bangkok · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/capella-residences-bangkok/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48323bc7fc2f-IMG_9456.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Capella Residences Bangkok</div><div class="pp-near-m">Bangkok · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is One Bangkok located?</summary><p>One Bangkok is located in Bangkok.</p></details><details class="pp-faq-item"><summary>Is One Bangkok open?</summary><p>One Bangkok is now open. It was completed in 2026.</p></details><details class="pp-faq-item"><summary>Who is developing One Bangkok?</summary><p>TCC Assets, Frasers Property is the developer behind One Bangkok.</p></details><details class="pp-faq-item"><summary>Who designed One Bangkok?</summary><p>One Bangkok was designed by Skidmore, Owings &amp; Merrill.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/aman-nai-lert-bangkok/"><div class="pp-near-img" style="background-image:url('https://robbreport.com/wp-content/uploads/2024/01/Aman_Bangkok1.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Aman Nai Lert Bangkok</div><div class="pp-near-m">Bangkok · Hotel</div></div></a><a class="pp-near-card" href="/projects/hatai-bangkok/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bangkok/hatai-bangkok.jpeg')"><span class="pp-near-status">Breaking Ground</span></div><div class="pp-near-b"><div class="pp-near-t">Hatai Bangkok</div><div class="pp-near-m">Bangkok · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/capella-residences-bangkok/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bangkok/capella-residences-bangkok.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Capella Residences Bangkok</div><div class="pp-near-m">Bangkok · Residences</div></div></a></div></div>
     </div>
   </main>
 

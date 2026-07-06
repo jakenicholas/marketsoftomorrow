@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Eden Residences, Miami | Markets of Tomorrow">
   <meta property="og:description" content="Eden Residences is a boutique 10-story luxury condominium in Miami's Ojus neighborhood, developed by Growin Group minutes from Aventura Mall, Brightline, and the Atlantic beaches. Designed for an inti…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/eden-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Eden Residences, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Eden Residences is a boutique 10-story luxury condominium in Miami's Ojus neighborhood, developed by Growin Group minutes from Aventura Mall, Brightline, and the Atlantic beaches. Designed for an inti…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Eden Residences",
   "description": "Eden Residences is a boutique 10-story luxury condominium in Miami's Ojus neighborhood, developed by Growin Group minutes from Aventura Mall, Brightline, and the Atlantic beaches. Designed for an inti\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg",
   "url": "https://www.oftmw.com/projects/eden-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Gaviria Architects, Garc\u00eda Milla-Le\u00f3n"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "32"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "December 2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.9586",
+    "longitude": "-80.1469"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Eden Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Eden Residences is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Eden Residences be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Eden Residences is under construction, with completion expected in December 2027 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Eden Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Growin Group is the developer behind Eden Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Eden Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Eden Residences was designed by Gaviria Architects, Garc\u00eda Milla-Le\u00f3n."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Eden Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Eden Residences rises 10 stories with 32 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="eden-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a0da83ab4886-Screenshot-2026-06-02-at-7.16.46-PM.png&quot;]">
+  <main class="pp" id="pp" data-slug="eden-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences-2.png&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,17 +1143,17 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=edenresidences">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="eden-residences" data-title="Eden Residences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 3, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
-    <div class="pm-tl">
+    <div class="pm-tl"><div class="pm-tl-date">17 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:50%"></div>
-        <div class="pm-tl-knob" style="left:50%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">50%</div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
           
-          <div class="pp-minis"><div class="pp-mini"><div class="v">06.26</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">Est 2027</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">32</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">10</div><div class="k">Floors</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">06.26</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">Est 12.27</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">32</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">10</div><div class="k">Floors</div></div></div>
         </div>
       </div>
 
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">GrowIn filed county applications / condos planned in Ojus per The Real Deal, June 2025</span></span></div><a class="dos-src" href="https://therealdeal.com/miami/2025/06/20/jorge-saivay-luis-ochoas-growin-plans-condos-in-ojus/" target="_blank" rel="noopener">therealdeal.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Sales launched</span> <span class="dos-date">2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sales launched; ~30% of 32 residences reserved by mid-2026, prices from $570K per Florida YIMBY</span></span></div><a class="dos-src" href="https://floridayimby.com/2026/06/32-unit-eden-residences-planned-for-late-2027-completion-at-2557-ne-190th-st-aventura-fl.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 8, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Broke ground June 8, 2026 per Florida YIMBY + EIN Presswire; completion targeted late 2027</span></span></div><a class="dos-src" href="https://floridayimby.com/2026/06/32-unit-eden-residences-planned-for-late-2027-completion-at-2557-ne-190th-st-aventura-fl.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jun 8, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Developers celebrated groundbreaking on EDEN Residences, a 32-unit, 10-story boutique condo at 2557 NE 190th St in Ojus/Aventura; construction underway.</span></span></div><a class="dos-src" href="https://www.einpresswire.com/article/918227271/developers-break-ground-on-eden-a-new-boutique-luxury-condominium-near-aventura-mall" target="_blank" rel="noopener">einpresswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Late 2027 <span class="dos-est">est.</span></span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">GrowIn filed county applications / condos planned in Ojus per The Real Deal, June 2025</span></span></div><a class="dos-src" href="https://therealdeal.com/miami/2025/06/20/jorge-saivay-luis-ochoas-growin-plans-condos-in-ojus/" target="_blank" rel="noopener">therealdeal.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Sales launched</span> <span class="dos-date">2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Sales launched; ~30% of 32 residences reserved by mid-2026, prices from $570K per Florida YIMBY</span></span></div><a class="dos-src" href="https://floridayimby.com/2026/06/32-unit-eden-residences-planned-for-late-2027-completion-at-2557-ne-190th-st-aventura-fl.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 8, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Broke ground June 8, 2026 near Aventura Mall (GC Saivay Construction); completion slated late 2027</span></span></div><a class="dos-src" href="https://www.einpresswire.com/article/918227271/developers-break-ground-on-eden-a-new-boutique-luxury-condominium-near-aventura-mall" target="_blank" rel="noopener">einpresswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jun 8, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Developers celebrated groundbreaking on EDEN Residences, a 32-unit, 10-story boutique condo at 2557 NE 190th St in Ojus/Aventura; construction underway.</span></span></div><a class="dos-src" href="https://www.einpresswire.com/article/918227271/developers-break-ground-on-eden-a-new-boutique-luxury-condominium-near-aventura-mall" target="_blank" rel="noopener">einpresswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Dec 2027 <span class="dos-est">est.</span></span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Eden Residences is a boutique 10-story luxury condominium in Miami's Ojus neighborhood, developed by Growin Group minutes from Aventura Mall, Brightline, and the Atlantic beaches. Designed for an intimate resident community, the building holds just 32 short-term-rental-friendly residences ranging from one to three bedrooms, with roughly a quarter reserved as workforce housing. A rooftop sky deck anchors the amenity program with a resort pool and spa, an alfresco gourmet lounge, and a fitness center, while community-minded touches such as a prayer room and Shabbat-ready elevators tailor the project to Aventura-area buyers seeking design-forward living near the coast.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/growin-group/"><span class="nm">Growin Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/gaviria-architects/"><span class="nm">Gaviria Architects</span></a><a class="pp-firm-chip" href="/firm/garcia-milla-leon/"><span class="nm">García Milla-León</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/atelier-residences-miami/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c566323ac694-Atelier-Residences-Miami.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Atelier Residences Miami</div><div class="pp-near-m">Miami · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Eden Residences located?</summary><p>Eden Residences is located in Miami.</p></details><details class="pp-faq-item"><summary>When will Eden Residences be completed?</summary><p>Eden Residences is under construction, with completion expected in December 2027 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Eden Residences?</summary><p>Growin Group is the developer behind Eden Residences.</p></details><details class="pp-faq-item"><summary>Who designed Eden Residences?</summary><p>Eden Residences was designed by Gaviria Architects, García Milla-León.</p></details><details class="pp-faq-item"><summary>How big is Eden Residences?</summary><p>Eden Residences rises 10 stories with 32 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/atelier-residences-miami/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/atelier-residences-miami.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Atelier Residences Miami</div><div class="pp-near-m">Miami · Residences</div></div></a></div></div>
     </div>
   </main>
 

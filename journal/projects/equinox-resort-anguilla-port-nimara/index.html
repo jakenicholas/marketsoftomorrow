@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Equinox Resort Anguilla Port Nimara, The Valley | Markets of Tomorrow">
   <meta property="og:description" content="Equinox Resort Anguilla Port Nimara is a wellness-led integrated resort anchoring the new Port Nimara marina development on the South West End of Anguilla, set on a private site between the Cap Juluca…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Equinox Resort Anguilla Port Nimara, The Valley | Markets of Tomorrow">
   <meta name="twitter:description" content="Equinox Resort Anguilla Port Nimara is a wellness-led integrated resort anchoring the new Port Nimara marina development on the South West End of Anguilla, set on a private site between the Cap Juluca…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Equinox Resort Anguilla Port Nimara",
   "description": "Equinox Resort Anguilla Port Nimara is a wellness-led integrated resort anchoring the new Port Nimara marina development on the South West End of Anguilla, set on a private site between the Cap Juluca\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg",
   "url": "https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/",
   "address": {
     "@type": "PostalAddress",
@@ -420,8 +426,61 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": ""
+      "name": "Residences",
+      "value": "71"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "62"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2029"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "18.17621",
+    "longitude": "-63.14517"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Equinox Resort Anguilla Port Nimara located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Equinox Resort Anguilla Port Nimara is located in The Valley."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Equinox Resort Anguilla Port Nimara be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Equinox Resort Anguilla Port Nimara is an announced development that has not yet started construction, targeting completion in 2029 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Equinox Resort Anguilla Port Nimara?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "South West Harbour Inc. & More is the developer behind Equinox Resort Anguilla Port Nimara."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Equinox Resort Anguilla Port Nimara?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Equinox Resort Anguilla Port Nimara features 71 residences and 62 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1009,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1109,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="equinox-resort-anguilla-port-nimara" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_9b64cba135b246e2a7a73d89e5e25dc1~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_f66ff95e4e3a48e4bb007823773c63a5~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_222da19fd73c4c3c9e75053eb981862b~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="equinox-resort-anguilla-port-nimara" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara-4.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1130,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=equinoxresortanguillaportnimara">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="equinox-resort-anguilla-port-nimara" data-title="Equinox Resort Anguilla Port Nimara"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 6, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,6 +1165,7 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Equinox Resort Anguilla Port Nimara has been covered in 3 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/equinox-hotels-unveils-plans-for-its-caribbean-debut" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_82233775d406422883f86d60514da34b~mv2.jpeg')"><span class="pp-fam-status">Jan 22, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Equinox Hotels unveils plans for its Caribbean debut</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/equinox-unveils-its-new-west-palm-beach-club-arriving-this-fall" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ffc167a160af43df95b9853f6d4d8ce6~mv2.jpg')"><span class="pp-fam-status">Jul 12, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Equinox unveils its new West Palm Beach club, arriving this fall</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/five-star-equinox-hotel-with-fitness-club-and-spa-unveiled-in-nashville" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_68a70a4115b34a6f8be2d389e3aa5f01~mv2.jpg')"><span class="pp-fam-status">May 29, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Five-Star Equinox Hotel with fitness club and spa unveiled in Nashville</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Equinox Resort Anguilla Port Nimara located?</summary><p>Equinox Resort Anguilla Port Nimara is located in The Valley.</p></details><details class="pp-faq-item"><summary>When will Equinox Resort Anguilla Port Nimara be built?</summary><p>Equinox Resort Anguilla Port Nimara is an announced development that has not yet started construction, targeting completion in 2029 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Equinox Resort Anguilla Port Nimara?</summary><p>South West Harbour Inc. &amp; More is the developer behind Equinox Resort Anguilla Port Nimara.</p></details><details class="pp-faq-item"><summary>How big is Equinox Resort Anguilla Port Nimara?</summary><p>Equinox Resort Anguilla Port Nimara features 71 residences and 62 hotel keys.</p></details></div>
       
     </div>
   </main>

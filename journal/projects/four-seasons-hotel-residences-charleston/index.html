@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Four Seasons Hotel & Residences Charleston, Charleston | Markets of Tomorrow">
   <meta property="og:description" content="The Four Seasons Hotel & Residences Charleston is a planned eight-story luxury development at 155 Meeting Street in Charleston's historic district, South Carolina, within walking distance of King Stre…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/four-seasons-hotel-residences-charleston/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Four Seasons Hotel & Residences Charleston, Charleston | Markets of Tomorrow">
   <meta name="twitter:description" content="The Four Seasons Hotel & Residences Charleston is a planned eight-story luxury development at 155 Meeting Street in Charleston's historic district, South Carolina, within walking distance of King Stre…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Four Seasons Hotel & Residences Charleston",
   "description": "The Four Seasons Hotel & Residences Charleston is a planned eight-story luxury development at 155 Meeting Street in Charleston's historic district, South Carolina, within walking distance of King Stre\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg",
   "url": "https://www.oftmw.com/projects/four-seasons-hotel-residences-charleston/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,77 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Morris Adjmi Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "36"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "139"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2029"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "32.7796366",
+    "longitude": "-79.9322596"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Four Seasons Hotel & Residences Charleston located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel & Residences Charleston is located in Charleston."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Four Seasons Hotel & Residences Charleston be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel & Residences Charleston is an announced development that has not yet started construction, targeting completion in 2029 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Four Seasons Hotel & Residences Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Strategic Property Partners is the developer behind Four Seasons Hotel & Residences Charleston."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Four Seasons Hotel & Residences Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel & Residences Charleston was designed by Morris Adjmi Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Four Seasons Hotel & Residences Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel & Residences Charleston rises 8 stories with 36 residences and 139 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1027,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1127,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="four-seasons-hotel-residences-charleston" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0ba19501625d-BINYAN_SPP3330_FourSeasons_Charleston_S030_EXT_HorlbeckAlley_Final3500.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="four-seasons-hotel-residences-charleston" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston-2.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1148,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=fourseasonshotelresidencescharleston">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="four-seasons-hotel-residences-charleston" data-title="Four Seasons Hotel &amp; Residences Charleston"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,7 +1183,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-waterfront-daniel-island/"><div class="pp-near-img" style="background-image:url('https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Waterfront Daniel Island</div><div class="pp-near-m">Charleston · Residences</div></div></a><a class="pp-near-card" href="/projects/limelight-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dcb0a211160d-aspen-one-limelight-hotel-charleston-hotels-of-tomorrow-crop.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Limelight Charleston</div><div class="pp-near-m">Charleston · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/the-cooper/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_4e805fa0286d44e49d75ba1ae0939e65~mv2.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Cooper</div><div class="pp-near-m">Charleston · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Four Seasons Hotel &amp; Residences Charleston located?</summary><p>Four Seasons Hotel &amp; Residences Charleston is located in Charleston.</p></details><details class="pp-faq-item"><summary>When will Four Seasons Hotel &amp; Residences Charleston be built?</summary><p>Four Seasons Hotel &amp; Residences Charleston is an announced development that has not yet started construction, targeting completion in 2029 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Four Seasons Hotel &amp; Residences Charleston?</summary><p>Strategic Property Partners is the developer behind Four Seasons Hotel &amp; Residences Charleston.</p></details><details class="pp-faq-item"><summary>Who designed Four Seasons Hotel &amp; Residences Charleston?</summary><p>Four Seasons Hotel &amp; Residences Charleston was designed by Morris Adjmi Architects.</p></details><details class="pp-faq-item"><summary>How big is Four Seasons Hotel &amp; Residences Charleston?</summary><p>Four Seasons Hotel &amp; Residences Charleston rises 8 stories with 36 residences and 139 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-waterfront-daniel-island/"><div class="pp-near-img" style="background-image:url('https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Waterfront Daniel Island</div><div class="pp-near-m">Charleston · Residences</div></div></a><a class="pp-near-card" href="/projects/limelight-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/limelight-charleston.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Limelight Charleston</div><div class="pp-near-m">Charleston · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/the-cooper/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/the-cooper.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Cooper</div><div class="pp-near-m">Charleston · Hotel</div></div></a></div></div>
     </div>
   </main>
 

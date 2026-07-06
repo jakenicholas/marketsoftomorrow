@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="DUS Padel, West Palm Beach | Markets of Tomorrow">
   <meta property="og:description" content="DUS Padel is the first Florida location for hospitality-driven padel brand DUS Padel, an approximately 26,000-square-foot indoor racquet club at 2031 Okeechobee Boulevard in West Palm Beach, just off…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/dus-padel/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="DUS Padel, West Palm Beach | Markets of Tomorrow">
   <meta name="twitter:description" content="DUS Padel is the first Florida location for hospitality-driven padel brand DUS Padel, an approximately 26,000-square-foot indoor racquet club at 2031 Okeechobee Boulevard in West Palm Beach, just off…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "DUS Padel",
   "description": "DUS Padel is the first Florida location for hospitality-driven padel brand DUS Padel, an approximately 26,000-square-foot indoor racquet club at 2031 Okeechobee Boulevard in West Palm Beach, just off\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel.jpeg",
   "url": "https://www.oftmw.com/projects/dus-padel/",
   "address": {
     "@type": "PostalAddress",
@@ -420,8 +426,43 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": ""
+      "name": "Expected completion",
+      "value": "2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.7076166130314",
+    "longitude": "-80.08174348552299"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is DUS Padel located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "DUS Padel is located in West Palm Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will DUS Padel open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "DUS Padel is opening soon, with completion expected in 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing DUS Padel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Philippe Urreiztieta is the developer behind DUS Padel."
+      }
     }
   ]
 }</script>
@@ -950,6 +991,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1091,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="dus-padel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8cec7f341ac44060afdeaeefaf1407c7~mv2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5e493235f27c46f1bd3c7a6f8fb96f2c~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_826779c0e6504c46979e39c87dc266ae~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="dus-padel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel-4.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dus-padel.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1112,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=duspadel">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="dus-padel" data-title="DUS Padel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,7 +1147,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">DUS Padel has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/a-new-world-class-padel-center-is-coming-to-west-palm-beach" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b972a4152207406993df014ace977d78~mv2.jpeg')"><span class="pp-fam-status">May 26, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">A new world-class padel center is coming to West Palm Beach</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/dutchmans-pipe/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/659820a59b4c-DutchmansPipe_TMW_1.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dutchman's Pipe</div><div class="pp-near-m">West Palm Beach · Golf</div></div></a><a class="pp-near-card" href="/projects/pine-crest-school-west-palm-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/db1488239c81-Upper-school-building.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Pine Crest School West Palm Beach</div><div class="pp-near-m">West Palm Beach · Education</div></div></a><a class="pp-near-card" href="/projects/coleman-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5b44a99ed3bd-Coleman-Park.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Coleman Park</div><div class="pp-near-m">West Palm Beach · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is DUS Padel located?</summary><p>DUS Padel is located in West Palm Beach.</p></details><details class="pp-faq-item"><summary>When will DUS Padel open?</summary><p>DUS Padel is opening soon, with completion expected in 2026.</p></details><details class="pp-faq-item"><summary>Who is developing DUS Padel?</summary><p>Philippe Urreiztieta is the developer behind DUS Padel.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/dutchmans-pipe/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/dutchman-s-pipe.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dutchman's Pipe</div><div class="pp-near-m">West Palm Beach · Golf</div></div></a><a class="pp-near-card" href="/projects/pine-crest-school-west-palm-beach/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/pine-crest-school-west-palm-beach.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Pine Crest School West Palm Beach</div><div class="pp-near-m">West Palm Beach · Education</div></div></a><a class="pp-near-card" href="/projects/coleman-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/coleman-park-revitalization.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Coleman Park</div><div class="pp-near-m">West Palm Beach · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

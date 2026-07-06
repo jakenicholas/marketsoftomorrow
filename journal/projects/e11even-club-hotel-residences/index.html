@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="E11EVEN® Club Hotel & Residences, Miami | Markets of Tomorrow">
   <meta property="og:description" content="A 65-story, dual-tower luxury condo-hotel, featuring fully furnished studio to two-bedroom units, penthouse collections, and high-end amenities like a rooftop pool, Chopra Spa, and a world-famous nigh…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/e11even-club-hotel-residences.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/e11even-club-hotel-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="E11EVEN® Club Hotel & Residences, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="A 65-story, dual-tower luxury condo-hotel, featuring fully furnished studio to two-bedroom units, penthouse collections, and high-end amenities like a rooftop pool, Chopra Spa, and a world-famous nigh…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/e11even-club-hotel-residences.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "E11EVEN\u00ae Club Hotel & Residences",
   "description": "A 65-story, dual-tower luxury condo-hotel, featuring fully furnished studio to two-bedroom units, penthouse collections, and high-end amenities like a rooftop pool, Chopra Spa, and a world-famous nigh\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/e11even-club-hotel-residences.jpg",
   "url": "https://www.oftmw.com/projects/e11even-club-hotel-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Sieger Suarez Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "65"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "456"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "February 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7844779",
+    "longitude": "-80.193593"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is E11EVEN\u00ae Club Hotel & Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "E11EVEN\u00ae Club Hotel & Residences is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is E11EVEN\u00ae Club Hotel & Residences open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "E11EVEN\u00ae Club Hotel & Residences is now open. It was completed in February 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing E11EVEN\u00ae Club Hotel & Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "E11EVEN Partners, Property Markets Group is the developer behind E11EVEN\u00ae Club Hotel & Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed E11EVEN\u00ae Club Hotel & Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "E11EVEN\u00ae Club Hotel & Residences was designed by Sieger Suarez Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is E11EVEN\u00ae Club Hotel & Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "E11EVEN\u00ae Club Hotel & Residences rises 65 stories with 456 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="e11even-club-hotel-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="e11even-club-hotel-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/e11even-club-hotel-residences.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3f201809fb5a4d3cb12e4e4e767ee66d~mv2.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/e11even-club-hotel-residences.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">E11EVEN® Club Hotel &amp; Residences has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/riviera-dining-group-unveils-honō-a-new-japanese-steakhouse-and-rooftop-in-downtown-miami" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8fe84b89279643a88f9b8f7fb91c3597~mv2.jpg')"><span class="pp-fam-status">Apr 14, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Riviera Dining Group unveils HONŌ, a new Japanese steakhouse and rooftop in downtown Miami</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is E11EVEN® Club Hotel &amp; Residences located?</summary><p>E11EVEN® Club Hotel &amp; Residences is located in Miami.</p></details><details class="pp-faq-item"><summary>Is E11EVEN® Club Hotel &amp; Residences open?</summary><p>E11EVEN® Club Hotel &amp; Residences is now open. It was completed in February 2026.</p></details><details class="pp-faq-item"><summary>Who is developing E11EVEN® Club Hotel &amp; Residences?</summary><p>E11EVEN Partners, Property Markets Group is the developer behind E11EVEN® Club Hotel &amp; Residences.</p></details><details class="pp-faq-item"><summary>Who designed E11EVEN® Club Hotel &amp; Residences?</summary><p>E11EVEN® Club Hotel &amp; Residences was designed by Sieger Suarez Architects.</p></details><details class="pp-faq-item"><summary>How big is E11EVEN® Club Hotel &amp; Residences?</summary><p>E11EVEN® Club Hotel &amp; Residences rises 65 stories with 456 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

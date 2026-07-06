@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Cambridge House, Auberge Resorts Collection, London | Markets of Tomorrow">
   <meta property="og:description" content="Cambridge House, Auberge Resorts Collection is the careful resurrection of one of Mayfair's grandest addresses — the Grade I-listed Georgian mansion at 94 Piccadilly long known as the In and Out Naval…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/cambridge-house-auberge-resorts-collection/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Cambridge House, Auberge Resorts Collection, London | Markets of Tomorrow">
   <meta name="twitter:description" content="Cambridge House, Auberge Resorts Collection is the careful resurrection of one of Mayfair's grandest addresses — the Grade I-listed Georgian mansion at 94 Piccadilly long known as the In and Out Naval…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Cambridge House, Auberge Resorts Collection",
   "description": "Cambridge House, Auberge Resorts Collection is the careful resurrection of one of Mayfair's grandest addresses \u2014 the Grade I-listed Georgian mansion at 94 Piccadilly long known as the In and Out Naval\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection.jpg",
   "url": "https://www.oftmw.com/projects/cambridge-house-auberge-resorts-collection/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "PDP London"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "102"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "Spring 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "51.5058629",
+    "longitude": "-0.145436"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Cambridge House, Auberge Resorts Collection located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cambridge House, Auberge Resorts Collection is located in London."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Cambridge House, Auberge Resorts Collection open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cambridge House, Auberge Resorts Collection is opening soon, with completion expected in Spring 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Cambridge House, Auberge Resorts Collection?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Reuben Brothers is the developer behind Cambridge House, Auberge Resorts Collection."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Cambridge House, Auberge Resorts Collection?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cambridge House, Auberge Resorts Collection was designed by PDP London."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Cambridge House, Auberge Resorts Collection?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cambridge House, Auberge Resorts Collection features 102 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="cambridge-house-auberge-resorts-collection" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c47da73fc843-_AP_0603_2500px.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="cambridge-house-auberge-resorts-collection" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection-2.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b2ea78e212aa-Cambridge-House-Exterior-Rendering.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/cambridge-house-auberge-resorts-collection.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,12 +1138,12 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=cambridgehouseaubergeresortscollection">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="cambridge-house-auberge-resorts-collection" data-title="Cambridge House, Auberge Resorts Collection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 1, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">6 months to delivery</div>
+    <div class="pm-tl"><div class="pm-tl-date">Delivery Jun 2026</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:78%"></div>
-        <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
+        <div class="pm-tl-empty" style="left:79%"></div>
+        <div class="pm-tl-knob" style="left:79%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">79%</div>
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage done">Construction</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
@@ -1083,7 +1157,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Jul 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Reuben Brothers appoint Auberge Resorts Collection to operate Cambridge House — a 102-key hotel at 94 Piccadilly (former In &amp; Out club), Auberge's UK debut</span></span></div><a class="dos-src" href="https://www.prnewswire.com/news-releases/reuben-brothers-appoints-auberge-resorts-collection-to-operate-cambridge-house-in-mayfair-302195035.html" target="_blank" rel="noopener">prnewswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Tenant announced</span> <span class="dos-date">Oct 16, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Major Food Group (Carbone) to open Major's Grill, 220 seats, in Q2 2026 as the hotel's destination restaurant</span></span></div><a class="dos-src" href="https://www.bloomberg.com/news/articles/2025-10-16/carbone-team-opening-second-london-restaurant-major-s-grill-exclusive" target="_blank" rel="noopener">bloomberg.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Spring-2026 opening (was 2027-01); GM/MD appointed, fit-out near complete; 102 keys per The Caterer &amp; Boutique Hotelier</span></span></div><a class="dos-src" href="https://www.thecaterer.com/news/auberge-resorts-collection-to-open-first-uk-hotel" target="_blank" rel="noopener">thecaterer.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Jul 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Reuben Brothers appoint Auberge Resorts Collection to operate Cambridge House — a 102-key hotel at 94 Piccadilly (former In &amp; Out club), Auberge's UK debut</span></span></div><a class="dos-src" href="https://www.prnewswire.com/news-releases/reuben-brothers-appoints-auberge-resorts-collection-to-operate-cambridge-house-in-mayfair-302195035.html" target="_blank" rel="noopener">prnewswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Tenant announced</span> <span class="dos-date">Oct 16, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Major Food Group (Carbone) to open Major's Grill, 220 seats, in Q2 2026 as the hotel's destination restaurant</span></span></div><a class="dos-src" href="https://www.bloomberg.com/news/articles/2025-10-16/carbone-team-opening-second-london-restaurant-major-s-grill-exclusive" target="_blank" rel="noopener">bloomberg.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Spring-2026 opening (was 2027-01); GM/MD appointed, fit-out near complete; 102 keys per The Caterer &amp; Boutique Hotelier</span></span></div><a class="dos-src" href="https://www.thecaterer.com/news/auberge-resorts-collection-to-open-first-uk-hotel" target="_blank" rel="noopener">thecaterer.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Spring 2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Cambridge House, Auberge Resorts Collection is the careful resurrection of one of Mayfair's grandest addresses — the Grade I-listed Georgian mansion at 94 Piccadilly long known as the In and Out Naval and Military Club, which once hosted royalty and the political elite. Restored and reimagined by PDP London for the Reuben Brothers, the property pairs meticulously conserved period interiors with a contemporary luxury hotel and private members' club. Signature moments include a restored Georgian ballroom, an open-air courtyard planted with jasmine, and a dramatic double-level spa anchored by two swimming pools, alongside intimate dining rooms, lounges and a collection of suites overlooking Green Park. The result is conceived as a discreet sanctuary in the heart of Mayfair, blending heritage craftsmanship with the residential warmth and personalized service that define the Auberge portfolio.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/reuben-brothers/"><span class="nm">Reuben Brothers</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/pdp-london/"><span class="nm">PDP London</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1173,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/hs2-euston-station-redevelopment/"><div class="pp-near-img" style="background-image:url('https://static.dezeen.com/uploads/2022/03/grimshaw-euston-station-hs2_dezeen_2364_col_1a.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">HS2 Euston Station Redevelopment</div><div class="pp-near-m">London · Travel</div></div></a><a class="pp-near-card" href="/projects/brent-cross-town/"><div class="pp-near-img" style="background-image:url('https://relatedargent.co.uk/media/P_BXS_M2013_DEV_001_N3_bxt-1920x1080.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Brent Cross Town</div><div class="pp-near-m">London · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/six-senses-london-at-the-whiteley/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b7d32802e0a6-six-senses-exterior-london-min-crop.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Six Senses London at The Whiteley</div><div class="pp-near-m">London · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Cambridge House, Auberge Resorts Collection located?</summary><p>Cambridge House, Auberge Resorts Collection is located in London.</p></details><details class="pp-faq-item"><summary>When will Cambridge House, Auberge Resorts Collection open?</summary><p>Cambridge House, Auberge Resorts Collection is opening soon, with completion expected in Spring 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Cambridge House, Auberge Resorts Collection?</summary><p>Reuben Brothers is the developer behind Cambridge House, Auberge Resorts Collection.</p></details><details class="pp-faq-item"><summary>Who designed Cambridge House, Auberge Resorts Collection?</summary><p>Cambridge House, Auberge Resorts Collection was designed by PDP London.</p></details><details class="pp-faq-item"><summary>How big is Cambridge House, Auberge Resorts Collection?</summary><p>Cambridge House, Auberge Resorts Collection features 102 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/hs2-euston-station-redevelopment/"><div class="pp-near-img" style="background-image:url('https://static.dezeen.com/uploads/2022/03/grimshaw-euston-station-hs2_dezeen_2364_col_1a.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">HS2 Euston Station Redevelopment</div><div class="pp-near-m">London · Travel</div></div></a><a class="pp-near-card" href="/projects/brent-cross-town/"><div class="pp-near-img" style="background-image:url('https://relatedargent.co.uk/media/P_BXS_M2013_DEV_001_N3_bxt-1920x1080.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Brent Cross Town</div><div class="pp-near-m">London · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/six-senses-london-at-the-whiteley/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/six-senses-london-at-the-whiteley.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Six Senses London at The Whiteley</div><div class="pp-near-m">London · Hotel</div></div></a></div></div>
     </div>
   </main>
 

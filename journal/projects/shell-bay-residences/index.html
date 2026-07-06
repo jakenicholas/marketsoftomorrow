@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Shell Bay Residences, Hallandale Beach | Markets of Tomorrow">
   <meta property="og:description" content="Ultra‑private golf and racquet club community with limited‑edition residences, hotel‑level dining, and caddie‑ready amenities.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp">
   <meta property="og:url" content="https://www.oftmw.com/projects/shell-bay-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Shell Bay Residences, Hallandale Beach | Markets of Tomorrow">
   <meta name="twitter:description" content="Ultra‑private golf and racquet club community with limited‑edition residences, hotel‑level dining, and caddie‑ready amenities.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Shell Bay Residences",
   "description": "Ultra\u2011private golf and racquet club community with limited\u2011edition residences, hotel\u2011level dining, and caddie\u2011ready amenities.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp",
   "url": "https://www.oftmw.com/projects/shell-bay-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Kobi Karp"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "108"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.9909671",
+    "longitude": "-80.129286"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Shell Bay Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Shell Bay Residences is located in Hallandale Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Shell Bay Residences be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Shell Bay Residences is under construction, with completion expected in 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Shell Bay Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Witkoff, PPG Development is the developer behind Shell Bay Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Shell Bay Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Shell Bay Residences was designed by Kobi Karp."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Shell Bay Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Shell Bay Residences rises 20 stories with 108 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="shell-bay-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="shell-bay-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c455b6e2be4047809307d68d556b7878~mv2.webp')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1068,8 +1147,8 @@
           
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:49%"></div>
-        <div class="pm-tl-knob" style="left:49%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">49%</div>
+        <div class="pm-tl-empty" style="left:50%"></div>
+        <div class="pm-tl-knob" style="left:50%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">50%</div>
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/oasis-hallandale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_ee231384a2904d75a72f793315aa691b~mv2.jpg')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">Oasis Hallandale</div><div class="pp-near-m">Hallandale Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/7-park-residences-hallandale/"><div class="pp-near-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/07/building-1.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">7 Park Residences Hallandale</div><div class="pp-near-m">Hallandale Beach · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Shell Bay Residences located?</summary><p>Shell Bay Residences is located in Hallandale Beach.</p></details><details class="pp-faq-item"><summary>When will Shell Bay Residences be completed?</summary><p>Shell Bay Residences is under construction, with completion expected in 2027.</p></details><details class="pp-faq-item"><summary>Who is developing Shell Bay Residences?</summary><p>Witkoff, PPG Development is the developer behind Shell Bay Residences.</p></details><details class="pp-faq-item"><summary>Who designed Shell Bay Residences?</summary><p>Shell Bay Residences was designed by Kobi Karp.</p></details><details class="pp-faq-item"><summary>How big is Shell Bay Residences?</summary><p>Shell Bay Residences rises 20 stories with 108 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/oasis-hallandale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/oasis-hallandale.jpg')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">Oasis Hallandale</div><div class="pp-near-m">Hallandale Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/7-park-residences-hallandale/"><div class="pp-near-img" style="background-image:url('https://miamipre.com/wp-content/uploads/2025/07/building-1.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">7 Park Residences Hallandale</div><div class="pp-near-m">Hallandale Beach · Residences</div></div></a></div></div>
     </div>
   </main>
 

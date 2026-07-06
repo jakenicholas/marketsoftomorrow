@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Southbank Residences, Jacksonville | Markets of Tomorrow">
   <meta property="og:description" content="Southbank Residences is a $200 million, landmark mixed-use development that broke ground on May 20, 2026 along Jacksonville's St. Johns River — the city's first new luxury high-rise on the downtown ri…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/southbank-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Southbank Residences, Jacksonville | Markets of Tomorrow">
   <meta name="twitter:description" content="Southbank Residences is a $200 million, landmark mixed-use development that broke ground on May 20, 2026 along Jacksonville's St. Johns River — the city's first new luxury high-rise on the downtown ri…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Southbank Residences",
   "description": "Southbank Residences is a $200 million, landmark mixed-use development that broke ground on May 20, 2026 along Jacksonville's St. Johns River \u2014 the city's first new luxury high-rise on the downtown ri\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg",
   "url": "https://www.oftmw.com/projects/southbank-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Carlos Ott & More"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "25"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "395"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "30.3204",
+    "longitude": "-81.6589"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Southbank Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Southbank Residences is located in Jacksonville."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Southbank Residences be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Southbank Residences is under construction, with completion expected in 2028 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Southbank Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Related Group is the developer behind Southbank Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Southbank Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Southbank Residences was designed by Carlos Ott & More."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Southbank Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Southbank Residences rises 25 stories with 395 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="southbank-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b9fcd1c588be4762ab7a24f812242890~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6d353487f99e470d954afac1d757fa6f~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="southbank-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences-3.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,12 +1143,12 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=southbankresidences">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="southbank-residences" data-title="Southbank Residences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 3, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
-    <div class="pm-tl">
+    <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
-        <div class="pm-tl-empty" style="left:50%"></div>
-        <div class="pm-tl-knob" style="left:50%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">50%</div>
+        <div class="pm-tl-empty" style="left:43%"></div>
+        <div class="pm-tl-knob" style="left:43%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">43%</div>
       </div>
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2026 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">May 20, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Ceremonial groundbreaking May 20, 2026 after ~6 yrs of delays; $202.7M project; 30-36mo build → completion late 2028-early 2029 — Jax Daily Record/Jacksonville Today/News4Jax</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/related-group-breaks-ground-on-jacksonville-s-first-luxury-riverfront-high-rise-in-over-a-decade" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">May 20, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Related Group broke ground May 20, 2026 after ~6 years; $202.7M investment, city permit issued June 11 2026 (Jax Daily Record)</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/related-group-breaks-ground-on-jacksonville-s-first-luxury-riverfront-high-rise-in-over-a-decade" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Late 2028 <span class="dos-est">est.</span></span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2026 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">May 20, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Groundbreaking 2026-05-20 (Jax Daily Record + Jacksonville Today + News4Jax); $200M rental project, 395 units, completion late 2028/early 2029; GFA estimated</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/related-group-breaks-ground-on-jacksonville-s-first-luxury-riverfront-high-rise-in-over-a-decade" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">May 20, 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Related Group broke ground May 20, 2026 after ~6 years; $202.7M investment, city permit issued June 11 2026 (Jax Daily Record)</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/related-group-breaks-ground-on-jacksonville-s-first-luxury-riverfront-high-rise-in-over-a-decade" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028 <span class="dos-est">est.</span></span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Southbank Residences is a $200 million, landmark mixed-use development that broke ground on May 20, 2026 along Jacksonville's St. Johns River — the city's first new luxury high-rise on the downtown riverfront in more than a decade. Developed by Related Group and designed by internationally acclaimed architect Carlos Ott (Paris's Opéra Bastille), with MSA Architects as record architect and interiors by ID & Design International, the project delivers 395 rental residences across two connected towers: the 25-story Icon Southbank and the eight-story Manor Southbank. The development is anchored by a 4,500-square-foot waterfront restaurant activating the Riverwalk and Friendship Park, a 29-slip marina, a public boat ramp, and 601 structured parking spaces. Resort-style amenities include a spa and wellness center with cold plunge and saunas, a waterfront pool, speakeasy, library, golf simulator, private theater, fitness center, sky lounge, and a penthouse-reserved rooftop clubroom and terrace. Residents have direct access to the 1.25-mile Southbank Riverwalk. Rents start at $2,000/month for a studio to over $7,000 for a three-bedroom. Completion is expected in 2028–29.</description_long>
 <parameter name="floors">25</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/related-group/"><span class="nm">Related Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/carlos-ott/"><span class="nm">Carlos Ott</span></a><a class="pp-firm-chip" href="/firm/msa-architects/"><span class="nm">MSA Architects</span></a><a class="pp-firm-chip" href="/firm/id-design-international/"><span class="nm">ID &amp; Design International</span></a></div></div></div></div>
@@ -1100,7 +1179,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Southbank Residences has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/related-group-breaks-ground-on-jacksonville-s-first-luxury-riverfront-high-rise-in-over-a-decade" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b3eb943124644f7596256eb8e2778f79~mv2.jpeg')"><span class="pp-fam-status">May 22, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Related Group breaks ground on Jacksonville's first luxury riverfront high-rise in over a decade</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/phoenix-arts-innovation-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5adb4c5612454432841f9f9af1330e55~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Phoenix Arts &amp; Innovation District</div><div class="pp-near-m">Jacksonville · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/four-seasons-hotel-and-residences-jacksonville/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6f5eb44c5dd947aa98d74a0317a65de6~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Hotel and Residences Jacksonville</div><div class="pp-near-m">Jacksonville · Residences</div></div></a><a class="pp-near-card" href="/projects/jacksonville-jaguars-stadium/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b6391c15f8ba4859abdabfd897d0d6e6~mv2.webp')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Jacksonville Jaguars Stadium</div><div class="pp-near-m">Jacksonville · Stadium</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Southbank Residences located?</summary><p>Southbank Residences is located in Jacksonville.</p></details><details class="pp-faq-item"><summary>When will Southbank Residences be completed?</summary><p>Southbank Residences is under construction, with completion expected in 2028 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Southbank Residences?</summary><p>Related Group is the developer behind Southbank Residences.</p></details><details class="pp-faq-item"><summary>Who designed Southbank Residences?</summary><p>Southbank Residences was designed by Carlos Ott &amp; More.</p></details><details class="pp-faq-item"><summary>How big is Southbank Residences?</summary><p>Southbank Residences rises 25 stories with 395 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/phoenix-arts-innovation-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/phoenix-arts-innovation-district-phxjax.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Phoenix Arts &amp; Innovation District</div><div class="pp-near-m">Jacksonville · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/four-seasons-hotel-and-residences-jacksonville/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/four-seasons-hotel-and-residences-jacksonville.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Hotel and Residences Jacksonville</div><div class="pp-near-m">Jacksonville · Residences</div></div></a><a class="pp-near-card" href="/projects/jacksonville-jaguars-stadium/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/jacksonville-jaguars-stadium.webp')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Jacksonville Jaguars Stadium</div><div class="pp-near-m">Jacksonville · Stadium</div></div></a></div></div>
     </div>
   </main>
 

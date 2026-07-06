@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="City House Charleston, Charleston | Markets of Tomorrow">
   <meta property="og:description" content="City House Charleston is an intimate, four-story residential building set on Cumberland Street between Church and State streets in the heart of Charleston's French Quarter, steps from the City Market.…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/11a64533ce84-city-house-d-1920x1459.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/city-house-charleston/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="City House Charleston, Charleston | Markets of Tomorrow">
   <meta name="twitter:description" content="City House Charleston is an intimate, four-story residential building set on Cumberland Street between Church and State streets in the heart of Charleston's French Quarter, steps from the City Market.…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/11a64533ce84-city-house-d-1920x1459.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "City House Charleston",
   "description": "City House Charleston is an intimate, four-story residential building set on Cumberland Street between Church and State streets in the heart of Charleston's French Quarter, steps from the City Market.\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/11a64533ce84-city-house-d-1920x1459.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston.jpg",
   "url": "https://www.oftmw.com/projects/city-house-charleston/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Bello Garris Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "21"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "32.7800084",
+    "longitude": "-79.9288553"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is City House Charleston located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "City House Charleston is located in Charleston."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will City House Charleston be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "City House Charleston is an announced development that has not yet started construction, targeting completion in 2028 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing City House Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Landmark Partners is the developer behind City House Charleston."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed City House Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "City House Charleston was designed by Bello Garris Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is City House Charleston?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "City House Charleston rises 4 stories with 21 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="city-house-charleston" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/11a64533ce84-city-house-d-1920x1459.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9f04a065bb48-city-house-a-1920x1459.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/97f7d7e9ccf3-city-house-b-1920x1459.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/86a3939dfdc0-city-house-f-1920x1080.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="city-house-charleston" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston-4.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/11a64533ce84-city-house-d-1920x1459.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/city-house-charleston.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-waterfront-daniel-island/"><div class="pp-near-img" style="background-image:url('https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Waterfront Daniel Island</div><div class="pp-near-m">Charleston · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-hotel-residences-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9fe3bd1dfdf2-BINYAN_SPP3330_FourSeasons_Charleston_S010_EXT_MeetingSt_Final3500.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Hotel &amp; Residences Charleston</div><div class="pp-near-m">Charleston · Hotel</div></div></a><a class="pp-near-card" href="/projects/limelight-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/dcb0a211160d-aspen-one-limelight-hotel-charleston-hotels-of-tomorrow-crop.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Limelight Charleston</div><div class="pp-near-m">Charleston · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is City House Charleston located?</summary><p>City House Charleston is located in Charleston.</p></details><details class="pp-faq-item"><summary>When will City House Charleston be built?</summary><p>City House Charleston is an announced development that has not yet started construction, targeting completion in 2028 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing City House Charleston?</summary><p>Landmark Partners is the developer behind City House Charleston.</p></details><details class="pp-faq-item"><summary>Who designed City House Charleston?</summary><p>City House Charleston was designed by Bello Garris Architects.</p></details><details class="pp-faq-item"><summary>How big is City House Charleston?</summary><p>City House Charleston rises 4 stories with 21 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-waterfront-daniel-island/"><div class="pp-near-img" style="background-image:url('https://thewaterfrontdi.com/wp-content/themes/waterfront-daniel-island/assets/images/home/hero.jpg?')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Waterfront Daniel Island</div><div class="pp-near-m">Charleston · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-hotel-residences-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/four-seasons-hotel-residences-charleston.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Hotel &amp; Residences Charleston</div><div class="pp-near-m">Charleston · Hotel</div></div></a><a class="pp-near-card" href="/projects/limelight-charleston/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/charleston/limelight-charleston.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Limelight Charleston</div><div class="pp-near-m">Charleston · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

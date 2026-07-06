@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Williamsburg Wharf, Brooklyn | Markets of Tomorrow">
   <meta property="og:description" content="Williamsburg Wharf is a 3.75-acre, master-planned waterfront community on the South Williamsburg shoreline of Brooklyn, spanning roughly one million square feet across five residential towers. Develop…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/williamsburg-wharf/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Williamsburg Wharf, Brooklyn | Markets of Tomorrow">
   <meta name="twitter:description" content="Williamsburg Wharf is a 3.75-acre, master-planned waterfront community on the South Williamsburg shoreline of Brooklyn, spanning roughly one million square feet across five residential towers. Develop…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Williamsburg Wharf",
   "description": "Williamsburg Wharf is a 3.75-acre, master-planned waterfront community on the South Williamsburg shoreline of Brooklyn, spanning roughly one million square feet across five residential towers. Develop\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg",
   "url": "https://www.oftmw.com/projects/williamsburg-wharf/",
   "address": {
     "@type": "PostalAddress",
@@ -420,8 +426,56 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "Architect",
-      "value": ""
+      "name": "Floors",
+      "value": "22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "850"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "40.7070736",
+    "longitude": "-73.9685541"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Williamsburg Wharf located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Williamsburg Wharf is located in Brooklyn."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Williamsburg Wharf be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Williamsburg Wharf is under construction."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Williamsburg Wharf?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Naftali Group is the developer behind Williamsburg Wharf."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Williamsburg Wharf?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Williamsburg Wharf rises 22 stories with 850 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1104,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="williamsburg-wharf" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/aa7c541f3e43-PORTE-COCHERE.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f27e00cca191-WATERFRONT-ESPLANADE-WATER-VIEW.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="williamsburg-wharf" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf-3.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1160,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-brooklyn-tower/"><div class="pp-near-img" style="background-image:url('https://static.designboom.com/wp-content/uploads/2022/03/brooklyn-tower-9-dekalb-shop-architects-gachot-studios-designboom-06a.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Brooklyn Tower</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/the-huron/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/227e07fdf8d8-1_Huron_Street_20240719_DSC01287_crop_wide_2.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Huron</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/one-domino-square/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">One Domino Square</div><div class="pp-near-m">Brooklyn · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Williamsburg Wharf located?</summary><p>Williamsburg Wharf is located in Brooklyn.</p></details><details class="pp-faq-item"><summary>When will Williamsburg Wharf be completed?</summary><p>Williamsburg Wharf is under construction.</p></details><details class="pp-faq-item"><summary>Who is developing Williamsburg Wharf?</summary><p>Naftali Group is the developer behind Williamsburg Wharf.</p></details><details class="pp-faq-item"><summary>How big is Williamsburg Wharf?</summary><p>Williamsburg Wharf rises 22 stories with 850 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-brooklyn-tower/"><div class="pp-near-img" style="background-image:url('https://static.designboom.com/wp-content/uploads/2022/03/brooklyn-tower-9-dekalb-shop-architects-gachot-studios-designboom-06a.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Brooklyn Tower</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/the-huron/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/the-huron.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Huron</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/one-domino-square/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">One Domino Square</div><div class="pp-near-m">Brooklyn · Residences</div></div></a></div></div>
     </div>
   </main>
 

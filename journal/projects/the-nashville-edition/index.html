@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="The Nashville EDITION, Nashville | Markets of Tomorrow">
   <meta property="og:description" content="A 28-story luxury hotel and residential tower located in the Gulch, with just 84 ultra-luxury homes.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/the-nashville-edition/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="The Nashville EDITION, Nashville | Markets of Tomorrow">
   <meta name="twitter:description" content="A 28-story luxury hotel and residential tower located in the Gulch, with just 84 ultra-luxury homes.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "The Nashville EDITION",
   "description": "A 28-story luxury hotel and residential tower located in the Gulch, with just 84 ultra-luxury homes.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition.jpg",
   "url": "https://www.oftmw.com/projects/the-nashville-edition/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,77 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "ESa"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "28"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "84"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "261"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "36.1583293",
+    "longitude": "-86.787319"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is The Nashville EDITION located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Nashville EDITION is located in Nashville."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will The Nashville EDITION be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Nashville EDITION is under construction, with completion expected in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing The Nashville EDITION?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Edgewood Hospitality, Ian Schrager is the developer behind The Nashville EDITION."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed The Nashville EDITION?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Nashville EDITION was designed by ESa."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is The Nashville EDITION?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Nashville EDITION rises 28 stories with 84 residences and 261 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1027,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1127,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="the-nashville-edition" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_fc819b2416fa454b95f3350bb0cf432a~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c166aa582a964bf5bdbf2bccc47845ff~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bd0d5f6574d04ff29ff84362ebf91288~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="the-nashville-edition" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition-4.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a64dc0c034bb-the-residences-at-the-nashville-edition-gulch-tennessee-of-tomorrow-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-nashville-edition.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1183,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">The Nashville EDITION has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/a-16-story-tower-pairing-an-apartments-by-bonvoy-hotel-and-marriott-timeshares-is-rising-in-nashville-s-gulch" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/496eb82ea21e-pooldelivery_900xx4999-2812-1-0-gigapixel-standard-v2-2x.jpeg')"><span class="pp-fam-status">Jun 24, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">New luxury hotel and timeshare tower unveiled in Nashville</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/the-nashville-edition-luxury-hotel-glamour-meets-high-rise-living-in-the-gulch" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c501612f57b94ac0a648a2e0e83b4aec~mv2.png')"><span class="pp-fam-status">Mar 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">The Nashville EDITION: Luxury Hotel Glamour Meets High-Rise Living in The Gulch</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/1-iris-lane-the-residences-at-belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/cf2243b7baed-756cd4045f0b99542c73fff1a24b063fc8ad1cd9-5000x3125-crop-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">1 Iris Lane, The Residences at Belle Meade Village</div><div class="pp-near-m">Nashville · Residences</div></div></a><a class="pp-near-card" href="/projects/dolly-partons-songteller-hotel/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">Dolly Parton's SongTeller Hotel</div><div class="pp-near-m">Nashville · Hotel</div></div></a><a class="pp-near-card" href="/projects/belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Belle Meade Village</div><div class="pp-near-m">Nashville · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is The Nashville EDITION located?</summary><p>The Nashville EDITION is located in Nashville.</p></details><details class="pp-faq-item"><summary>When will The Nashville EDITION be completed?</summary><p>The Nashville EDITION is under construction, with completion expected in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing The Nashville EDITION?</summary><p>Edgewood Hospitality, Ian Schrager is the developer behind The Nashville EDITION.</p></details><details class="pp-faq-item"><summary>Who designed The Nashville EDITION?</summary><p>The Nashville EDITION was designed by ESa.</p></details><details class="pp-faq-item"><summary>How big is The Nashville EDITION?</summary><p>The Nashville EDITION rises 28 stories with 84 residences and 261 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/1-iris-lane-the-residences-at-belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/1-iris-lane-the-residences-at-belle-meade-village.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">1 Iris Lane, The Residences at Belle Meade Village</div><div class="pp-near-m">Nashville · Residences</div></div></a><a class="pp-near-card" href="/projects/dolly-partons-songteller-hotel/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Dolly Parton's SongTeller Hotel</div><div class="pp-near-m">Nashville · Hotel</div></div></a><a class="pp-near-card" href="/projects/belle-meade-village/"><div class="pp-near-img" style="background-image:url('https://cdn.sanity.io/images/ooqsuexs/production/2c923bdd022273c3e89513a979a21262414b9006-3948x2778.jpg?w=2500&amp;auto=format')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Belle Meade Village</div><div class="pp-near-m">Nashville · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

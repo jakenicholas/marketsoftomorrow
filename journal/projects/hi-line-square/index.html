@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Hi Line Square, Dallas | Markets of Tomorrow">
   <meta property="og:description" content="Hi Line Square is a landmark mixed-use development anchoring the Hi Line sub-neighborhood of the Dallas Design District at 1650 Oak Lawn Avenue. Developed by McCourt Partners with HN Capital Partners…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/hi-line-square/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Hi Line Square, Dallas | Markets of Tomorrow">
   <meta name="twitter:description" content="Hi Line Square is a landmark mixed-use development anchoring the Hi Line sub-neighborhood of the Dallas Design District at 1650 Oak Lawn Avenue. Developed by McCourt Partners with HN Capital Partners…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Hi Line Square",
   "description": "Hi Line Square is a landmark mixed-use development anchoring the Hi Line sub-neighborhood of the Dallas Design District at 1650 Oak Lawn Avenue. Developed by McCourt Partners with HN Capital Partners\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg",
   "url": "https://www.oftmw.com/projects/hi-line-square/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Perkins&Will"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "30"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "300"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2030"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "32.7970777",
+    "longitude": "-96.81983"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Hi Line Square located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hi Line Square is located in Dallas."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Hi Line Square be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hi Line Square is an announced development that has not yet started construction, targeting completion in 2030."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Hi Line Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "McCourt Partners, HN Capital Partners is the developer behind Hi Line Square."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Hi Line Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hi Line Square was designed by Perkins&Will."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Hi Line Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hi Line Square rises 30 stories with 300 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="hi-line-square" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/22da2ca7cc27-McCourt_HNCapital_HiLineSquare-2-970.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4941ca577d79-McCourt_HNCapital_HiLineSquare-3-970.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="hi-line-square" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square-3.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/f4289d83c190-McCourt_HNCapital_HiLineSquare-1-970.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1143,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=hilinesquare">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="hi-line-square" data-title="Hi Line Square"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">4.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1074,7 +1153,7 @@
       <div class="pm-tl-stages"><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Announced</span><span class="pm-tl-stage ">Breaking Ground</span><span class="pm-tl-stage ">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
           
-          <div class="pp-minis"><div class="pp-mini"><div class="v">2027</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">300</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">30</div><div class="k">Floors</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">2026</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2030</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">300</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">30</div><div class="k">Floors</div></div></div>
         </div>
       </div>
 
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Dec 11, 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">McCourt Partners &amp; HN Capital introduce Hi Line Square — two-tower mixed-use landmark (30-story residential + 17-story office + retail) for the Dallas Design District.</span></span></div><a class="dos-src" href="https://www.prnewswire.com/news-releases/mccourt-partners-and-hn-capital-partners-introduce-hi-line-square-a-landmark-for-the-dallas-design-district-302329307.html" target="_blank" rel="noopener">prnewswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected groundbreaking</span> <span class="dos-date">2027</span></div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2030</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">Dec 11, 2024</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">McCourt Partners &amp; HN Capital introduce Hi Line Square — two-tower mixed-use landmark (30-story residential + 17-story office + retail) for the Dallas Design District.</span></span></div><a class="dos-src" href="https://www.prnewswire.com/news-releases/mccourt-partners-and-hn-capital-partners-introduce-hi-line-square-a-landmark-for-the-dallas-design-district-302329307.html" target="_blank" rel="noopener">prnewswire.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected groundbreaking</span> <span class="dos-date">2026</span></div></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2030</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Hi Line Square is a landmark mixed-use development anchoring the Hi Line sub-neighborhood of the Dallas Design District at 1650 Oak Lawn Avenue. Developed by McCourt Partners with HN Capital Partners and designed by Perkins & Will, the project pairs a 30-story residential tower of 300 units — including penthouses, townhomes, and what backers call Dallas's highest swimming pool — with a 17-story office tower and roughly 45,000 square feet of curated retail and dining. The architecture blends the district's industrial heritage in brick and concrete with sleek glass-and-metal stepped terraces, organized around a pedestrian plaza centered on a preserved heirloom tree. The development is positioned as a dynamic urban gateway uniting luxury residential living, hospitality-inspired workspace, showrooms, and dining.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/mccourt-partners/"><span class="nm">McCourt Partners</span></a><a class="pp-firm-chip" href="/firm/hn-capital-partners/"><span class="nm">HN Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/perkins-will/"><span class="nm">Perkins&amp;Will</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/711-north-pearl/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/75473b89edac-C04-1.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">711 North Pearl</div><div class="pp-near-m">Dallas · Residences</div></div></a><a class="pp-near-card" href="/projects/the-knox/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7ef855d179a3-knox-street-development.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">The Knox</div><div class="pp-near-m">Dallas · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/the-dallas-edition-hotel-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/da7ed1b4d7ca-01_BINYAN_HNC3358_S040_Crown_Night_Final3500-copy.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Dallas EDITION Hotel &amp; Residences</div><div class="pp-near-m">Dallas · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Hi Line Square located?</summary><p>Hi Line Square is located in Dallas.</p></details><details class="pp-faq-item"><summary>When will Hi Line Square be built?</summary><p>Hi Line Square is an announced development that has not yet started construction, targeting completion in 2030.</p></details><details class="pp-faq-item"><summary>Who is developing Hi Line Square?</summary><p>McCourt Partners, HN Capital Partners is the developer behind Hi Line Square.</p></details><details class="pp-faq-item"><summary>Who designed Hi Line Square?</summary><p>Hi Line Square was designed by Perkins&amp;Will.</p></details><details class="pp-faq-item"><summary>How big is Hi Line Square?</summary><p>Hi Line Square rises 30 stories with 300 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/711-north-pearl/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/711-north-pearl.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">711 North Pearl</div><div class="pp-near-m">Dallas · Residences</div></div></a><a class="pp-near-card" href="/projects/the-knox/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/the-knox.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">The Knox</div><div class="pp-near-m">Dallas · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/the-dallas-edition-hotel-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/the-dallas-edition-hotel-residences.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Dallas EDITION Hotel &amp; Residences</div><div class="pp-near-m">Dallas · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

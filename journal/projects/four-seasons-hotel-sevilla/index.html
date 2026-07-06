@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Four Seasons Hotel Sevilla, Sevilla | Markets of Tomorrow">
   <meta property="og:description" content="Four Seasons Hotel Sevilla marks the luxury brand's debut in Seville, Spain, rising on Plaza Nueva in the historic Arenal Quarter. Developed by Spanish real-estate group Blasson with architecture by M…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/four-seasons-hotel-sevilla/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Four Seasons Hotel Sevilla, Sevilla | Markets of Tomorrow">
   <meta name="twitter:description" content="Four Seasons Hotel Sevilla marks the luxury brand's debut in Seville, Spain, rising on Plaza Nueva in the historic Arenal Quarter. Developed by Spanish real-estate group Blasson with architecture by M…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Four Seasons Hotel Sevilla",
   "description": "Four Seasons Hotel Sevilla marks the luxury brand's debut in Seville, Spain, rising on Plaza Nueva in the historic Arenal Quarter. Developed by Spanish real-estate group Blasson with architecture by M\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg",
   "url": "https://www.oftmw.com/projects/four-seasons-hotel-sevilla/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,77 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Estudio Lamela"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "55"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "55"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "37.3886108",
+    "longitude": "-5.9951145"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Four Seasons Hotel Sevilla located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel Sevilla is located in Sevilla."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Four Seasons Hotel Sevilla be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel Sevilla is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Four Seasons Hotel Sevilla?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Blasson is the developer behind Four Seasons Hotel Sevilla."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Four Seasons Hotel Sevilla?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel Sevilla was designed by Estudio Lamela."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Four Seasons Hotel Sevilla?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Hotel Sevilla rises 5 stories with 55 residences and 55 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1027,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1127,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="four-seasons-hotel-sevilla" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/af102df379f3-pexels-javierbalseiro-22191978.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/16ed54d1b8fc-emilio-sanchez-hernandez.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/33575feb58d0-SEV_002_aspect16x9-gigapixel.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="four-seasons-hotel-sevilla" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla-4.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1148,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=fourseasonshotelsevilla">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="four-seasons-hotel-sevilla" data-title="Four Seasons Hotel Sevilla"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 6, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1098,7 +1182,8 @@
     </a></div>
       
       
-      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Four Seasons Hotel Sevilla has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-announces-a-new-hotel-in-sevilla-opening-2028-on-plaza-nueva" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg')"><span class="pp-fam-status">Jun 5, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons announces a new hotel in Sevilla, opening 2028 on Plaza Nueva</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-announces-a-new-hotel-in-sevilla-opening-2028-on-plaza-nueva/" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg')"><span class="pp-fam-status">Jun 5, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons Announces A New Hotel In Sevilla Opening 2028 On Plaza Nueva</div></div></a></div></div>
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Four Seasons Hotel Sevilla has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-announces-a-new-hotel-in-sevilla-opening-2028-on-plaza-nueva" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/473adf21196b-SEV_001_aspect16x9-gigapixel.jpeg')"><span class="pp-fam-status">Jun 5, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons announces a new hotel in Sevilla, opening 2028 on Plaza Nueva</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-announces-a-new-hotel-in-sevilla-opening-2028-on-plaza-nueva/" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sevilla/four-seasons-hotel-sevilla.jpeg')"><span class="pp-fam-status">Jun 5, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons Announces A New Hotel In Sevilla Opening 2028 On Plaza Nueva</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Four Seasons Hotel Sevilla located?</summary><p>Four Seasons Hotel Sevilla is located in Sevilla.</p></details><details class="pp-faq-item"><summary>When will Four Seasons Hotel Sevilla be built?</summary><p>Four Seasons Hotel Sevilla is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing Four Seasons Hotel Sevilla?</summary><p>Blasson is the developer behind Four Seasons Hotel Sevilla.</p></details><details class="pp-faq-item"><summary>Who designed Four Seasons Hotel Sevilla?</summary><p>Four Seasons Hotel Sevilla was designed by Estudio Lamela.</p></details><details class="pp-faq-item"><summary>How big is Four Seasons Hotel Sevilla?</summary><p>Four Seasons Hotel Sevilla rises 5 stories with 55 residences and 55 hotel keys.</p></details></div>
       
     </div>
   </main>

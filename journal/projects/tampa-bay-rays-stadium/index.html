@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Tampa Bay Rays Stadium, Tampa | Markets of Tomorrow">
   <meta property="og:description" content="The Tampa Bay Rays Stadium is a proposed indoor ballpark on the Hillsborough Community College Dale Mabry campus in West Tampa, envisioned as the most intimate stadium in Major League Baseball with ro…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp">
   <meta property="og:url" content="https://www.oftmw.com/projects/tampa-bay-rays-stadium/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Tampa Bay Rays Stadium, Tampa | Markets of Tomorrow">
   <meta name="twitter:description" content="The Tampa Bay Rays Stadium is a proposed indoor ballpark on the Hillsborough Community College Dale Mabry campus in West Tampa, envisioned as the most intimate stadium in Major League Baseball with ro…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Tampa Bay Rays Stadium",
   "description": "The Tampa Bay Rays Stadium is a proposed indoor ballpark on the Hillsborough Community College Dale Mabry campus in West Tampa, envisioned as the most intimate stadium in Major League Baseball with ro\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp",
   "url": "https://www.oftmw.com/projects/tampa-bay-rays-stadium/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,54 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Populous"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "March 2029"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "27.9762768",
+    "longitude": "-82.5087049"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Tampa Bay Rays Stadium located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tampa Bay Rays Stadium is located in Tampa."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Tampa Bay Rays Stadium be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tampa Bay Rays Stadium is an announced development that has not yet started construction, targeting completion in March 2029 (a TMW estimate)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Tampa Bay Rays Stadium?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tampa Bay Rays, Hines is the developer behind Tampa Bay Rays Stadium."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Tampa Bay Rays Stadium?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tampa Bay Rays Stadium was designed by Populous."
+      }
     }
   ]
 }</script>
@@ -950,6 +1004,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1104,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="tampa-bay-rays-stadium" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="tampa-bay-rays-stadium" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_516a557b5c684f30a7439ddfee65072c~mv2.webp')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1160,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/water-street-tampa-entertainment-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4bcdea1811f74330b5673feea32e6145~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Water Street Tampa Entertainment District</div><div class="pp-near-m">Tampa · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/marina-pointe-luna/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_6071df22550d410196247a55ba475930~mv2.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Marina Pointe: Luna</div><div class="pp-near-m">Tampa · Residences</div></div></a><a class="pp-near-card" href="/projects/the-pendry-tampa-and-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bcfbc7ae06d643f1a59e408b6464e6cd~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Pendry Tampa and Residences</div><div class="pp-near-m">Tampa · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Tampa Bay Rays Stadium located?</summary><p>Tampa Bay Rays Stadium is located in Tampa.</p></details><details class="pp-faq-item"><summary>When will Tampa Bay Rays Stadium be built?</summary><p>Tampa Bay Rays Stadium is an announced development that has not yet started construction, targeting completion in March 2029 (a TMW estimate).</p></details><details class="pp-faq-item"><summary>Who is developing Tampa Bay Rays Stadium?</summary><p>Tampa Bay Rays, Hines is the developer behind Tampa Bay Rays Stadium.</p></details><details class="pp-faq-item"><summary>Who designed Tampa Bay Rays Stadium?</summary><p>Tampa Bay Rays Stadium was designed by Populous.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/water-street-tampa-entertainment-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/water-street-tampa-entertainment-district.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Water Street Tampa Entertainment District</div><div class="pp-near-m">Tampa · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/marina-pointe-luna/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/marina-pointe.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Marina Pointe: Luna</div><div class="pp-near-m">Tampa · Residences</div></div></a><a class="pp-near-card" href="/projects/the-pendry-tampa-and-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/the-pendry-tampa-and-residences.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Pendry Tampa and Residences</div><div class="pp-near-m">Tampa · Residences</div></div></a></div></div>
     </div>
   </main>
 

@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Forté Luxe, Jupiter | Markets of Tomorrow">
   <meta property="og:description" content="Boutique waterfront villa and condo enclave with marina slips, resort pool, and contemporary coastal design in Jupiter.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jupiter/fort-luxe.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/fort-luxe/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Forté Luxe, Jupiter | Markets of Tomorrow">
   <meta name="twitter:description" content="Boutique waterfront villa and condo enclave with marina slips, resort pool, and contemporary coastal design in Jupiter.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jupiter/fort-luxe.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Fort\u00e9 Luxe",
   "description": "Boutique waterfront villa and condo enclave with marina slips, resort pool, and contemporary coastal design in Jupiter.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jupiter/fort-luxe.jpg",
   "url": "https://www.oftmw.com/projects/fort-luxe/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Alfonso Jurado"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "17"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "Summer 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.9720698",
+    "longitude": "-80.086644"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Fort\u00e9 Luxe located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fort\u00e9 Luxe is located in Jupiter."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Fort\u00e9 Luxe open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fort\u00e9 Luxe is opening soon, with completion expected in Summer 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Fort\u00e9 Luxe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fort\u00e9 Development is the developer behind Fort\u00e9 Luxe."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Fort\u00e9 Luxe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fort\u00e9 Luxe was designed by Alfonso Jurado."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Fort\u00e9 Luxe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fort\u00e9 Luxe features 17 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="fort-luxe" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="fort-luxe" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jupiter/fort-luxe.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1db56fe92f2444ba811bb7ae12e3ef8b~mv2.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jupiter/fort-luxe.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1138,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=fortluxe">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="fort-luxe" data-title="Forté Luxe"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 1, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">8 weeks to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1083,7 +1157,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2023 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 28, 2023</span></div><a class="dos-src" href="https://www.oftmw.com/post/boutique-waterfront-community-forté-luxe-breaks-ground-today-expecting-march-2025-completion" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Vertical construction commenced at Forté Luxe, Jupiter</span></span></div><a class="dos-src" href="https://www.mannpublications.com/mannreport/2025/06/05/forte-development-commences-vertical-construction-at-its-forte-luxe-luxury-boutique-waterfront-community-in-jupiter-florida/" target="_blank" rel="noopener">mannpublications.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Sep 26, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Topped off Sept 26, 2025; 17-unit waterfront community tracking to summer 2026 completion per citybiz / RealtyTimes</span></span></div><a class="dos-src" href="https://www.citybiz.co/article/751724/forte-luxe-luxury-waterfront-community-in-jupiter-tops-off" target="_blank" rel="noopener">citybiz.co<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">Jun 5, 2026 <span class="dos-est">est.</span></span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Topped off; completion summer 2026 (~3mo out) → construction→coming-soon</span></span></div><a class="dos-src" href="https://www.citybiz.co/article/751724/forte-luxe-luxury-waterfront-community-in-jupiter-tops-off" target="_blank" rel="noopener">citybiz.co<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Summer 2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">2023 <span class="dos-est">est.</span></span></div></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Jun 28, 2023</span></div><a class="dos-src" href="https://www.oftmw.com/post/boutique-waterfront-community-forté-luxe-breaks-ground-today-expecting-march-2025-completion" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jun 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Vertical construction commenced at Forté Luxe, Jupiter</span></span></div><a class="dos-src" href="https://www.mannpublications.com/mannreport/2025/06/05/forte-development-commences-vertical-construction-at-its-forte-luxe-luxury-boutique-waterfront-community-in-jupiter-florida/" target="_blank" rel="noopener">mannpublications.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Topped out</span> <span class="dos-date">Sep 26, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Forté Luxe topped off (150+ attended); 17 waterfront residences on a private Intracoastal peninsula in Jupiter, completion Summer 2026.</span></span></div><a class="dos-src" href="https://www.mannpublications.com/mannreport/2025/09/30/forte-luxe-luxury-waterfront-community-in-jupiter-tops-off/" target="_blank" rel="noopener">mannpublications.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Coming soon</span> <span class="dos-date">Jun 5, 2026 <span class="dos-est">est.</span></span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Topped off; completion summer 2026 (~3mo out) → construction→coming-soon</span></span></div><a class="dos-src" href="https://www.citybiz.co/article/751724/forte-luxe-luxury-waterfront-community-in-jupiter-tops-off" target="_blank" rel="noopener">citybiz.co<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">Summer 2026</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/fort-development/"><span class="nm">Forté Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/alfonso-jurado/"><span class="nm">Alfonso Jurado</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,6 +1173,7 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Forté Luxe has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/forté-development-secures-47-5-million-construction-loan-for-forté-luxe-a-boutique-community-on-un" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a4b68428765a44b8a2a9242a95dda2a0~mv2.jpg')"><span class="pp-fam-status">Jul 11, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Forté Development secures $47.5 million construction loan for Forté Luxe, a boutique community on unique Intracoastal peninsula in Jupiter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/boutique-waterfront-community-forté-luxe-breaks-ground-today-expecting-march-2025-completion" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_54da6d7e764b4f36b50f3245668f2d24~mv2.webp')"><span class="pp-fam-status">Jun 29, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">Boutique waterfront community Forté Luxe breaks ground today, expecting March 2025 completion</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Forté Luxe located?</summary><p>Forté Luxe is located in Jupiter.</p></details><details class="pp-faq-item"><summary>When will Forté Luxe open?</summary><p>Forté Luxe is opening soon, with completion expected in Summer 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Forté Luxe?</summary><p>Forté Development is the developer behind Forté Luxe.</p></details><details class="pp-faq-item"><summary>Who designed Forté Luxe?</summary><p>Forté Luxe was designed by Alfonso Jurado.</p></details><details class="pp-faq-item"><summary>How big is Forté Luxe?</summary><p>Forté Luxe features 17 residences.</p></details></div>
       
     </div>
   </main>

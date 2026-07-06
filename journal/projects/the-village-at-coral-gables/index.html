@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="The Village at Coral Gables, Coral Gables | Markets of Tomorrow">
   <meta property="og:description" content="Low‑rise master‑planned residential village in Coral Gables with Mediterranean architecture, courtyards, and clubhouse amenities.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d027095b0d134715b9d6ca28e9161694~mv2.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/the-village-at-coral-gables.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/the-village-at-coral-gables/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="The Village at Coral Gables, Coral Gables | Markets of Tomorrow">
   <meta name="twitter:description" content="Low‑rise master‑planned residential village in Coral Gables with Mediterranean architecture, courtyards, and clubhouse amenities.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d027095b0d134715b9d6ca28e9161694~mv2.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/the-village-at-coral-gables.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "The Village at Coral Gables",
   "description": "Low\u2011rise master\u2011planned residential village in Coral Gables with Mediterranean architecture, courtyards, and clubhouse amenities.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d027095b0d134715b9d6ca28e9161694~mv2.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/the-village-at-coral-gables.jpg",
   "url": "https://www.oftmw.com/projects/the-village-at-coral-gables/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "De La Guardia Victoria Architects & Urbanists"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "48"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2025"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.74334",
+    "longitude": "-80.26488"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is The Village at Coral Gables located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Village at Coral Gables is located in Coral Gables."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is The Village at Coral Gables open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Village at Coral Gables is now open. It was completed in 2025."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing The Village at Coral Gables?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "MG Developer is the developer behind The Village at Coral Gables."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed The Village at Coral Gables?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Village at Coral Gables was designed by De La Guardia Victoria Architects & Urbanists."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is The Village at Coral Gables?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The Village at Coral Gables rises 3 stories with 48 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="the-village-at-coral-gables" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d027095b0d134715b9d6ca28e9161694~mv2.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="the-village-at-coral-gables" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/the-village-at-coral-gables.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d027095b0d134715b9d6ca28e9161694~mv2.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/the-village-at-coral-gables.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/ponce-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/630ef1dd7c4b-Ponce-Park-Coral-Gables_South-Arches.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Ponce Park</div><div class="pp-near-m">Coral Gables · Residences</div></div></a><a class="pp-near-card" href="/projects/alhambra-parc/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_964bf94a301f4297bc6522236ef67ca6~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Alhambra Parc</div><div class="pp-near-m">Coral Gables · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/ponce-8/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a068080dc1c248faab5284fb57b07898~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ponce 8</div><div class="pp-near-m">Coral Gables · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is The Village at Coral Gables located?</summary><p>The Village at Coral Gables is located in Coral Gables.</p></details><details class="pp-faq-item"><summary>Is The Village at Coral Gables open?</summary><p>The Village at Coral Gables is now open. It was completed in 2025.</p></details><details class="pp-faq-item"><summary>Who is developing The Village at Coral Gables?</summary><p>MG Developer is the developer behind The Village at Coral Gables.</p></details><details class="pp-faq-item"><summary>Who designed The Village at Coral Gables?</summary><p>The Village at Coral Gables was designed by De La Guardia Victoria Architects &amp; Urbanists.</p></details><details class="pp-faq-item"><summary>How big is The Village at Coral Gables?</summary><p>The Village at Coral Gables rises 3 stories with 48 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/ponce-park/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/ponce-park.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Ponce Park</div><div class="pp-near-m">Coral Gables · Residences</div></div></a><a class="pp-near-card" href="/projects/alhambra-parc/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/alhambra-parc.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Alhambra Parc</div><div class="pp-near-m">Coral Gables · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/ponce-8/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/ponce-8.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Ponce 8</div><div class="pp-near-m">Coral Gables · Residences</div></div></a></div></div>
     </div>
   </main>
 

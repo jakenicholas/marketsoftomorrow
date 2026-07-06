@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Four Seasons Private Residences Coconut Grove, Miami | Markets of Tomorrow">
   <meta property="og:description" content="Standing in the front row on Biscayne Bay in Coconut Grove, Four Seasons Private Residences Coconut Grove is the first standalone Four Seasons–branded residence in Florida — a purely residential tower…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/four-seasons-private-residences-coconut-grove/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Four Seasons Private Residences Coconut Grove, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Standing in the front row on Biscayne Bay in Coconut Grove, Four Seasons Private Residences Coconut Grove is the first standalone Four Seasons–branded residence in Florida — a purely residential tower…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Four Seasons Private Residences Coconut Grove",
   "description": "Standing in the front row on Biscayne Bay in Coconut Grove, Four Seasons Private Residences Coconut Grove is the first standalone Four Seasons\u2013branded residence in Florida \u2014 a purely residential tower\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg",
   "url": "https://www.oftmw.com/projects/four-seasons-private-residences-coconut-grove/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Revuelta Architecture International & More"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "70"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7282",
+    "longitude": "-80.2362"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Four Seasons Private Residences Coconut Grove located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Private Residences Coconut Grove is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Four Seasons Private Residences Coconut Grove be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Private Residences Coconut Grove is under construction, with completion expected in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Four Seasons Private Residences Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CMC Group, Fort Partners is the developer behind Four Seasons Private Residences Coconut Grove."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Four Seasons Private Residences Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Private Residences Coconut Grove was designed by Revuelta Architecture International & More."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Four Seasons Private Residences Coconut Grove?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four Seasons Private Residences Coconut Grove rises 20 stories with 70 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="four-seasons-private-residences-coconut-grove" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fcf95aeddd50-66b221e07627a94f9b4e5acb_TU1329_VP13_Exterior_General_cropped_Rev08-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_475d6c2c4db941d9bf20edc23044177c~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_730fd3c47bb648ce904e8fe1963f599e~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1cbb7e2d3fc14b40b15b9d3aee7bfaf2~mv2.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="four-seasons-private-residences-coconut-grove" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove-5.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1143,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=fourseasonsprivateresidencescoconutgrove">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="four-seasons-private-residences-coconut-grove" data-title="Four Seasons Private Residences Coconut Grove"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 3, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 4, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1074,7 +1153,7 @@
       <div class="pm-tl-stages"><span class="pm-tl-stage done">Announced</span><span class="pm-tl-stage done">Breaking Ground</span><span class="pm-tl-stage on" style="color:#B9A6FF;font-weight:800;text-shadow:0 0 12px rgba(167,139,250,.5)">Construction</span><span class="pm-tl-stage ">Opening Soon</span><span class="pm-tl-stage ">Now Open</span></div>
     </div>
           
-          <div class="pp-minis"><div class="pp-mini"><div class="v">11.25</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">70</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">20</div><div class="k">Floors</div></div></div>
+          <div class="pp-minis"><div class="pp-mini"><div class="v">10.25</div><div class="k">Start</div></div><div class="pp-mini"><div class="v">2028</div><div class="k">Completion</div></div><div class="pp-mini"><div class="v">70</div><div class="k">Units</div></div><div class="pp-mini"><div class="v">20</div><div class="k">Floors</div></div></div>
         </div>
       </div>
 
@@ -1083,7 +1162,7 @@
 
     <div class="pp-below" id="ppBelow">
       <div class="watching-card" id="watchingCard" hidden><div class="watching-card-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> You're watching</div><div class="watching-card-body" id="watchingCardBody"></div></div>
-      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">May 14, 2025</span></div><a class="dos-src" href="https://www.oftmw.com/post/four-seasons-philadelphia-at-comcast-center-debuts-the-sky-garden-floor" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Nov 6, 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Groundbreaking Nov 6, 2025; completion targeted 2028 — Florida YIMBY/Commercial Observer</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/florida-s-first-standalone-four-seasons-residences-officially-breaks-ground-in-coconut-grove" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Financing secured</span> <span class="dos-date">Jan 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">$323.8M construction loan from Bank OZK closed Jan 2026 — Commercial Observer/Multi-Housing News</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/four-seasons-unveils-new-beachfront-hotel-in-rio-de-janeiro" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jul 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Vertical construction commenced (columns/shear walls/core rising) July 2026 — PROFILEmiami/Florida YIMBY</span></span></div><a class="dos-src" href="https://floridayimby.com/2026/07/construction-goes-vertical-on-20-story-four-seasons-private-residences-coconut-grove.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
+      <div class="pp-sec pp-dossier"><div class="pp-sec-h"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span> The story so far</div><div class="dos-tl"><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Announced</span> <span class="dos-date">May 14, 2025</span></div><a class="dos-src" href="https://www.oftmw.com/post/four-seasons-philadelphia-at-comcast-center-debuts-the-sky-garden-floor" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Broke ground</span> <span class="dos-date">Nov 2025</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Broke ground Nov 2025 on FL's first standalone Four Seasons branded residences (PROFILEmiami + Florida YIMBY); completion ~2028</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/florida-s-first-standalone-four-seasons-residences-officially-breaks-ground-in-coconut-grove" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-past"><span class="dos-dot dos-past"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Financing secured</span> <span class="dos-date">Jan 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">$323.8M construction loan closed Jan 2026 per Commercial Observer</span></span></div><a class="dos-src" href="https://www.oftmw.com/post/four-seasons-unveils-new-beachfront-hotel-in-rio-de-janeiro" target="_blank" rel="noopener">oftmw.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-now"><span class="dos-dot dos-now"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Going vertical</span> <span class="dos-date">Jul 2026</span><span class="dos-info" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span class="dos-tip">Vertical construction commenced above Biscayne Bay, foundation complete, per Florida YIMBY</span></span></div><a class="dos-src" href="https://floridayimby.com/2026/07/construction-goes-vertical-on-20-story-four-seasons-private-residences-coconut-grove.html" target="_blank" rel="noopener">floridayimby.com<svg class="dos-arr" viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="dos-row dos-row-future"><span class="dos-dot dos-future"></span><div class="dos-body"><div class="dos-line"><span class="dos-label">Expected opening</span> <span class="dos-date">2028</span></div></div></div></div><div class="dos-note">Milestones are dated to when they actually happened and linked to their source. This record fills in over time as TMW tracks the project.</div></div>
       <div class="pp-sec"><div class="pp-sec-h">About the project</div><p class="pp-about">Standing in the front row on Biscayne Bay in Coconut Grove, Four Seasons Private Residences Coconut Grove is the first standalone Four Seasons–branded residence in Florida — a purely residential tower with no hotel component, a rarity in the global Four Seasons portfolio. The 20-story building holds only 70 waterfront homes of generous proportions, with two- to four-bedroom layouts reaching nearly 4,000 square feet, 11-foot ceilings, expansive curved balconies, private secured elevators and foyers, and walls of floor-to-ceiling glass framing the bay. Interiors by Florentine designer Michele Bönan pair tropical nonchalance with European craftsmanship — bespoke Molteni&C kitchens, Calacatta and Carrara marble baths over Italian travertine — while the architecture's soft curves follow the coastal silhouette. Residents draw on full Four Seasons service and a deep amenity package: a serviced pool deck and bar lounge, an intimate library, a spa with a Roman-thermae-inspired Caesar Experience moving through five contrast-therapy rooms, an indoor pool, Finnish saunas, and a fitness center and yoga studio, with a signature restaurant offering in-residence dining and a private landscaped setting by Raymond Jungles among the neighborhood's banyan canopy.</p></div>
       <div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/cmc-group/"><span class="nm">CMC Group</span></a><a class="pp-firm-chip" href="/firm/fort-partners/"><span class="nm">Fort Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips"><a class="pp-firm-chip" href="/firm/revuelta-architecture-international/"><span class="nm">Revuelta Architecture International</span></a><a class="pp-firm-chip" href="/firm/michele-bonan/"><span class="nm">Michele Bönan</span></a><a class="pp-firm-chip" href="/firm/raymond-jungles/"><span class="nm">Raymond Jungles</span></a></div></div></div></div>
       <div class="pp-sec"><div class="pp-sec-h">Location</div>
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Four Seasons Private Residences Coconut Grove has been covered in 6 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-resort-mauritius-at-anahita-unveils-transformation" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_0564ef79b75c49eebf0ceea42fa180b6~mv2.jpg')"><span class="pp-fam-status">Feb 11, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons Resort Mauritius at Anahita unveils transformation</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-unveils-new-beachfront-hotel-in-rio-de-janeiro" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_65a4f0f7dfae477eb7a13c2dfbe43199~mv2.jpg')"><span class="pp-fam-status">Jan 6, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons unveils new beachfront hotel in Rio de Janeiro</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naples-beach-club-a-four-seasons-resort-makes-its-debut" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3085512003864b19ac166f9509fb1d03~mv2.jpeg')"><span class="pp-fam-status">Nov 19, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naples Beach Club, A Four Seasons Resort, makes its debut</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/florida-s-first-standalone-four-seasons-residences-officially-breaks-ground-in-coconut-grove" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_42eb49ed7d8544c0a22fde403daa17ff~mv2.jpeg')"><span class="pp-fam-status">Nov 12, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Florida’s first standalone Four Seasons Residences officially breaks ground in Coconut Grove</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/south-carolina-s-first-four-seasons-hotel-just-unveiled-in-charleston" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f22aa04fd7fb40bca0106fad5b78d854~mv2.jpg')"><span class="pp-fam-status">Jun 4, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">South Carolina's first Four Seasons Hotel just unveiled in Charleston</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/four-seasons-philadelphia-at-comcast-center-debuts-the-sky-garden-floor" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_1c84cc4db85f46aba174dfb2c2a67edc~mv2.jpg')"><span class="pp-fam-status">May 14, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Four Seasons Philadelphia at Comcast Center debuts the Sky Garden Floor</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/atelier-residences-miami/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/c566323ac694-Atelier-Residences-Miami.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Atelier Residences Miami</div><div class="pp-near-m">Miami · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Four Seasons Private Residences Coconut Grove located?</summary><p>Four Seasons Private Residences Coconut Grove is located in Miami.</p></details><details class="pp-faq-item"><summary>When will Four Seasons Private Residences Coconut Grove be completed?</summary><p>Four Seasons Private Residences Coconut Grove is under construction, with completion expected in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing Four Seasons Private Residences Coconut Grove?</summary><p>CMC Group, Fort Partners is the developer behind Four Seasons Private Residences Coconut Grove.</p></details><details class="pp-faq-item"><summary>Who designed Four Seasons Private Residences Coconut Grove?</summary><p>Four Seasons Private Residences Coconut Grove was designed by Revuelta Architecture International &amp; More.</p></details><details class="pp-faq-item"><summary>How big is Four Seasons Private Residences Coconut Grove?</summary><p>Four Seasons Private Residences Coconut Grove rises 20 stories with 70 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/atelier-residences-miami/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/atelier-residences-miami.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Atelier Residences Miami</div><div class="pp-near-m">Miami · Residences</div></div></a></div></div>
     </div>
   </main>
 

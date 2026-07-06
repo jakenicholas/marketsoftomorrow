@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Ombelle, Fort Lauderdale | Markets of Tomorrow">
   <meta property="og:description" content="Design‑forward residential tower with sculptural architecture, curated amenities, and ground‑floor activation.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/ombelle/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Ombelle, Fort Lauderdale | Markets of Tomorrow">
   <meta name="twitter:description" content="Design‑forward residential tower with sculptural architecture, curated amenities, and ground‑floor activation.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Ombelle",
   "description": "Design\u2011forward residential tower with sculptural architecture, curated amenities, and ground\u2011floor activation.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle.jpeg",
   "url": "https://www.oftmw.com/projects/ombelle/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "ODA Architecture"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "43"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "775"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.1254379",
+    "longitude": "-80.140344"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Ombelle located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ombelle is located in Fort Lauderdale."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Ombelle be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ombelle is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Ombelle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Dependable Equities is the developer behind Ombelle."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Ombelle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ombelle was designed by ODA Architecture."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Ombelle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ombelle rises 43 stories with 775 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="ombelle" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_09d33001ea664ecc8474c514a17b578f~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_36e3e11022be417b876b17932d234864~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a55ca27038654e71866fc9c809b1a302~mv2.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="ombelle" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle-4.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e6db71646c974187b7523c3d1a798ecb~mv2.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/ombelle.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Ombelle has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/equinox-to-debut-first-ever-broward-location-at-ombelle-fort-lauderdale" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_b7d88580ec5d4e26ab2ccc415e5a66a1~mv2.jpg')"><span class="pp-fam-status">Apr 10, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Equinox to debut first-ever Broward location at Ombelle Fort Lauderdale</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/dependable-equities-debut-ombelle-fort-lauderdale-turn-key-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_cf82a8ed355946d8b65453f4b53e9665~mv2.jpg')"><span class="pp-fam-status">Oct 30, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Dependable Equities debut Ombelle Fort Lauderdale turn-key residences</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-galleria-at-fort-lauderdale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bd805d0adf604dcbbe0b20758acf1038~mv2.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Galleria at Fort Lauderdale</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/sereno/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0ecd054f6656463daa85a049627ab83a~mv2.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Sereno</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fat-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a84661c05b445edbdf9256361890cdc~mv2.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">FAT Village</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Ombelle located?</summary><p>Ombelle is located in Fort Lauderdale.</p></details><details class="pp-faq-item"><summary>When will Ombelle be built?</summary><p>Ombelle is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing Ombelle?</summary><p>Dependable Equities is the developer behind Ombelle.</p></details><details class="pp-faq-item"><summary>Who designed Ombelle?</summary><p>Ombelle was designed by ODA Architecture.</p></details><details class="pp-faq-item"><summary>How big is Ombelle?</summary><p>Ombelle rises 43 stories with 775 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-galleria-at-fort-lauderdale/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/the-galleria-at-fort-lauderdale-redevelopment.jpg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">The Galleria at Fort Lauderdale</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/sereno/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/sereno.jpeg')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Sereno</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fat-village/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/fat-village.webp')"><span class="pp-near-status">Opening Soon</span></div><div class="pp-near-b"><div class="pp-near-t">FAT Village</div><div class="pp-near-m">Fort Lauderdale · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

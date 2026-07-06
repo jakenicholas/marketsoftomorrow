@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Olde Naples Hotel, Naples | Markets of Tomorrow">
   <meta property="og:description" content="The Olde Naples Hotel is a 109-room luxury boutique hotel in the heart of Olde Naples, a block from the Gulf beaches and steps from the boutiques and cafés of the Third Street South district. Part of…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/41fceaaf2301-Lobby-of-the-Olde-Naples-Hotel.-OPAL-COLLECTION-COURTESY-PHOTOS-2048x1152.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/olde-naples-hotel/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Olde Naples Hotel, Naples | Markets of Tomorrow">
   <meta name="twitter:description" content="The Olde Naples Hotel is a 109-room luxury boutique hotel in the heart of Olde Naples, a block from the Gulf beaches and steps from the boutiques and cafés of the Third Street South district. Part of…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/41fceaaf2301-Lobby-of-the-Olde-Naples-Hotel.-OPAL-COLLECTION-COURTESY-PHOTOS-2048x1152.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Olde Naples Hotel",
   "description": "The Olde Naples Hotel is a 109-room luxury boutique hotel in the heart of Olde Naples, a block from the Gulf beaches and steps from the boutiques and caf\u00e9s of the Third Street South district. Part of\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/41fceaaf2301-Lobby-of-the-Olde-Naples-Hotel.-OPAL-COLLECTION-COURTESY-PHOTOS-2048x1152.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel.jpg",
   "url": "https://www.oftmw.com/projects/olde-naples-hotel/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Hart Howerton, Nichols Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "109"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.132994",
+    "longitude": "-81.803271"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Olde Naples Hotel located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Olde Naples Hotel is located in Naples."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Olde Naples Hotel open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Olde Naples Hotel is now open. It was completed in 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Olde Naples Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Opal Collection is the developer behind Olde Naples Hotel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Olde Naples Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Olde Naples Hotel was designed by Hart Howerton, Nichols Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Olde Naples Hotel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Olde Naples Hotel features 109 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="olde-naples-hotel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/41fceaaf2301-Lobby-of-the-Olde-Naples-Hotel.-OPAL-COLLECTION-COURTESY-PHOTOS-2048x1152.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/afbe15884b51-Olde-Naples-Hotels-dining-room-2048x1152.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/e20ee55ab83c-Olde-Naples-Model-Room_Living-Room_03-copy-2048x1365.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/f039f1a4c707-Spa-Hallway_Olde-Naples-Hotel.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="olde-naples-hotel" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel-4.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/41fceaaf2301-Lobby-of-the-Olde-Naples-Hotel.-OPAL-COLLECTION-COURTESY-PHOTOS-2048x1152.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/olde-naples-hotel.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1173,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-carnelian/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_3b4e0d69f31349db87e3ef881f155d7c~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Carnelian</div><div class="pp-near-m">Naples · Hotel</div></div></a><a class="pp-near-card" href="/projects/the-avenue-naples/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d6361f34ce404a81a2607981b664da3a~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Avenue Naples</div><div class="pp-near-m">Naples · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fiori/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_52b6d43374c441b699a1871b2476eaa2~mv2.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Fiori</div><div class="pp-near-m">Naples · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Olde Naples Hotel located?</summary><p>Olde Naples Hotel is located in Naples.</p></details><details class="pp-faq-item"><summary>Is Olde Naples Hotel open?</summary><p>Olde Naples Hotel is now open. It was completed in 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Olde Naples Hotel?</summary><p>Opal Collection is the developer behind Olde Naples Hotel.</p></details><details class="pp-faq-item"><summary>Who designed Olde Naples Hotel?</summary><p>Olde Naples Hotel was designed by Hart Howerton, Nichols Architects.</p></details><details class="pp-faq-item"><summary>How big is Olde Naples Hotel?</summary><p>Olde Naples Hotel features 109 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-carnelian/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/the-carnelian.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Carnelian</div><div class="pp-near-m">Naples · Hotel</div></div></a><a class="pp-near-card" href="/projects/the-avenue-naples/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/the-avenue-naples.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">The Avenue Naples</div><div class="pp-near-m">Naples · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/fiori/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/fiori.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Fiori</div><div class="pp-near-m">Naples · Residences</div></div></a></div></div>
     </div>
   </main>
 

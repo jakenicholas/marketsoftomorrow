@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="JEM Private Residences, Miami | Markets of Tomorrow">
   <meta property="og:description" content="Proposed super‑tall mixed‑use tower envisioned to blend luxury residences, hotel, offices, and retail in a skyline‑defining form.">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences.webp">
   <meta property="og:url" content="https://www.oftmw.com/projects/jem-private-residences/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="JEM Private Residences, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Proposed super‑tall mixed‑use tower envisioned to blend luxury residences, hotel, offices, and retail in a skyline‑defining form.">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences.webp">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "JEM Private Residences",
   "description": "Proposed super\u2011tall mixed\u2011use tower envisioned to blend luxury residences, hotel, offices, and retail in a skyline\u2011defining form.",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences.webp",
   "url": "https://www.oftmw.com/projects/jem-private-residences/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Arquitectonica"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "67"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "273"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "Q4 2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7840192",
+    "longitude": "-80.19173"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is JEM Private Residences located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JEM Private Residences is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will JEM Private Residences be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JEM Private Residences is under construction, with completion expected in Q4 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing JEM Private Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Naftali Group is the developer behind JEM Private Residences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed JEM Private Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JEM Private Residences was designed by Arquitectonica."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is JEM Private Residences?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JEM Private Residences rises 67 stories with 273 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="jem-private-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7b8ea5db3a44436ab92058389fac2abc~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a6eeb22a55a24b12b538432a7e352bfb~mv2.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_230e2499c9194577abd6d7da7746d241~mv2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f67986e87f2a42dc8d587cfe213c62c5~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="jem-private-residences" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences-3.webp&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences-5.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_a58dc0666d8d4c48b5504f2a22db7341~mv2.webp')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jem-private-residences.webp')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">JEM Private Residences has been covered in 6 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/miami-lands-two-new-dining-and-wellness-concepts-at-jem-private-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7b8ea5db3a44436ab92058389fac2abc~mv2.jpeg')"><span class="pp-fam-status">Apr 13, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Miami lands two new dining and wellness concepts at JEM Private Residences</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/jem-residences-unveils-exclusive-museum-and-yacht-partnerships" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Mar 26, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">JEM Residences unveils exclusive museum and yacht partnerships</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naftali-group-tops-off-podium-level-at-jem-private-residences" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Feb 18, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naftali Group tops off podium level at JEM Private Residences</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/jem-captivates-miami-worldcenter-with-fendi-casa-sky-villa-sale" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_764e0bfc40cf4f12b0d3de28b94b4119~mv2.jpeg')"><span class="pp-fam-status">Nov 20, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">JEM captivates Miami Worldcenter with FENDI Casa Sky Villa sale</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/villa-one-tequila-gardens-co-founded-by-nick-jonas-and-john-varvatos-is-coming-to-the-rooftop-of-t" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2c3e2f6a6047474ba4e018b581d85af6~mv2.webp')"><span class="pp-fam-status">Feb 15, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Villa One Tequila Gardens, co-founded by Nick Jonas and John Varvatos, is coming to the rooftop of theJewel Box building at the Miami Worldcenter</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/naftali-group-continues-sales-at-luxury-67-story-jem-private-residences-at-miami-world-center-marki" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c8636da394834ac3b8362a422de38142~mv2.webp')"><span class="pp-fam-status">Jan 27, 2024</span></div><div class="pp-fam-b"><div class="pp-fam-t">Naftali Group continues sales at luxury 67-story JEM Private Residences at Miami World Center, marking their first venture in Miami</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is JEM Private Residences located?</summary><p>JEM Private Residences is located in Miami.</p></details><details class="pp-faq-item"><summary>When will JEM Private Residences be completed?</summary><p>JEM Private Residences is under construction, with completion expected in Q4 2027.</p></details><details class="pp-faq-item"><summary>Who is developing JEM Private Residences?</summary><p>Naftali Group is the developer behind JEM Private Residences.</p></details><details class="pp-faq-item"><summary>Who designed JEM Private Residences?</summary><p>JEM Private Residences was designed by Arquitectonica.</p></details><details class="pp-faq-item"><summary>How big is JEM Private Residences?</summary><p>JEM Private Residences rises 67 stories with 273 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 

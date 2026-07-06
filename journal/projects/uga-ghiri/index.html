@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Uga Ghiri, Ella | Markets of Tomorrow">
   <meta property="og:description" content="Uga Ghiri is an all-inclusive luxury boutique retreat set across a ten-acre tea estate on the historic Sutherland Estate in Ella, deep in Sri Lanka's hill country overlooking the iconic Nine Arch Brid…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/99ae987cd13f-Aerial-Uga-Ghiri.jpeg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri.jpeg">
   <meta property="og:url" content="https://www.oftmw.com/projects/uga-ghiri/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Uga Ghiri, Ella | Markets of Tomorrow">
   <meta name="twitter:description" content="Uga Ghiri is an all-inclusive luxury boutique retreat set across a ten-acre tea estate on the historic Sutherland Estate in Ella, deep in Sri Lanka's hill country overlooking the iconic Nine Arch Brid…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/99ae987cd13f-Aerial-Uga-Ghiri.jpeg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri.jpeg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Uga Ghiri",
   "description": "Uga Ghiri is an all-inclusive luxury boutique retreat set across a ten-acre tea estate on the historic Sutherland Estate in Ella, deep in Sri Lanka's hill country overlooking the iconic Nine Arch Brid\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/99ae987cd13f-Aerial-Uga-Ghiri.jpeg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri.jpeg",
   "url": "https://www.oftmw.com/projects/uga-ghiri/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Philip Weeraratne & More"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "15"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "July 11, 2026"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "6.8736058",
+    "longitude": "81.0489927"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Uga Ghiri located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uga Ghiri is located in Ella."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Uga Ghiri open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uga Ghiri is opening soon, with completion expected on July 11, 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Uga Ghiri?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uga Resorts is the developer behind Uga Ghiri."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Uga Ghiri?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uga Ghiri was designed by Philip Weeraratne & More."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Uga Ghiri?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uga Ghiri features 15 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="uga-ghiri" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/99ae987cd13f-Aerial-Uga-Ghiri.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/894eb3524d49-Pool-Uga-Ghiri.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/97de50ad1458-Spa-Exterior.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1dcd1709f03d-Uga-Ghiri-Villa-Exterior.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/aa24c93ed6ae-Villa-Exterior-Night.jpeg&quot;]">
+  <main class="pp" id="pp" data-slug="uga-ghiri" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri-2.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri-3.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri-4.jpeg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri-5.jpeg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/99ae987cd13f-Aerial-Uga-Ghiri.jpeg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ella/uga-ghiri.jpeg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,9 +1138,9 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=ugaghiri">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="uga-ghiri" data-title="Uga Ghiri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 1, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 5, 2026</span></div>
           
-    <div class="pm-tl"><div class="pm-tl-date">7 days to delivery</div>
+    <div class="pm-tl"><div class="pm-tl-date">5 days to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
         <div class="pm-tl-empty" style="left:78%"></div>
         <div class="pm-tl-knob" style="left:78%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 2px rgba(167,139,250,.42),0 0 12px rgba(167,139,250,.55)">78%</div>
@@ -1099,6 +1173,7 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Uga Ghiri has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/uga-ghiri-to-open-in-ella-as-uga-resorts-eighth-sri-lankan-property" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e26370cb04b7-Pool-Uga-Ghiri.jpeg')"><span class="pp-fam-status">Jun 23, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Uga Ghiri to open in Ella as Uga Resorts' eighth Sri Lankan property</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Uga Ghiri located?</summary><p>Uga Ghiri is located in Ella.</p></details><details class="pp-faq-item"><summary>When will Uga Ghiri open?</summary><p>Uga Ghiri is opening soon, with completion expected on July 11, 2026.</p></details><details class="pp-faq-item"><summary>Who is developing Uga Ghiri?</summary><p>Uga Resorts is the developer behind Uga Ghiri.</p></details><details class="pp-faq-item"><summary>Who designed Uga Ghiri?</summary><p>Uga Ghiri was designed by Philip Weeraratne &amp; More.</p></details><details class="pp-faq-item"><summary>How big is Uga Ghiri?</summary><p>Uga Ghiri features 15 hotel keys.</p></details></div>
       
     </div>
   </main>

@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Rosewood Mandarina, Riviera Nayarit | Markets of Tomorrow">
   <meta property="og:description" content="Rosewood Mandarina is an ultra-luxury, all-suite jungle-and-beach resort on the shores of Mexico's Riviera Nayarit, set within the Mandarina master-planned development north of Punta de Mita. Owned an…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/rosewood-mandarina/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Rosewood Mandarina, Riviera Nayarit | Markets of Tomorrow">
   <meta name="twitter:description" content="Rosewood Mandarina is an ultra-luxury, all-suite jungle-and-beach resort on the shores of Mexico's Riviera Nayarit, set within the Mandarina master-planned development north of Punta de Mita. Owned an…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Rosewood Mandarina",
   "description": "Rosewood Mandarina is an ultra-luxury, all-suite jungle-and-beach resort on the shores of Mexico's Riviera Nayarit, set within the Mandarina master-planned development north of Punta de Mita. Owned an\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg",
   "url": "https://www.oftmw.com/projects/rosewood-mandarina/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Greg Norman, Rosewood"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "134"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2025"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "20.9940311",
+    "longitude": "-105.3260386"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Rosewood Mandarina located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rosewood Mandarina is located in Riviera Nayarit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Rosewood Mandarina open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rosewood Mandarina is now open. It was completed in 2025."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Rosewood Mandarina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Grupo RLH, Rosewood is the developer behind Rosewood Mandarina."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Rosewood Mandarina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rosewood Mandarina was designed by Greg Norman, Rosewood."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Rosewood Mandarina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Rosewood Mandarina features 134 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="rosewood-mandarina" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/7f05c86ff008-rosewood-mandarina-beachfront-walkway.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0bd20016b5f6-ROSEWOOD-FEATURE-2-Picsart-AiImageEnhancer-scaled.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ef8ace83f12e-rosewood-mandarina-suite-sunset.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/feb866c45ef7-rosewood-mandarina-toppu.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="rosewood-mandarina" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina-4.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina-5.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/rosewood-mandarina.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1173,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Rosewood Mandarina has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/rosewood-mandarina-is-a-wild-jungle-meets-sea-escape-on-mexico-s-riviera-nayarit" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/124863ee25ae-ROSEWOOD-FEATURE.jpg')"><span class="pp-fam-status">Jun 27, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">Rosewood Mandarina is a wild jungle-meets-sea escape on Mexico's Riviera Nayarit</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/siari-a-ritz-carlton-reserve/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_742cc54924654f5b8a235289414205de~mv2.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Siari, a Ritz-Carlton Reserve</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a><a class="pp-near-card" href="/projects/nauka/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c9c20958241640a9a983e6e8773ad0ec~mv2.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Nauka</div><div class="pp-near-m">Riviera Nayarit · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Rosewood Mandarina located?</summary><p>Rosewood Mandarina is located in Riviera Nayarit.</p></details><details class="pp-faq-item"><summary>Is Rosewood Mandarina open?</summary><p>Rosewood Mandarina is now open. It was completed in 2025.</p></details><details class="pp-faq-item"><summary>Who is developing Rosewood Mandarina?</summary><p>Grupo RLH, Rosewood is the developer behind Rosewood Mandarina.</p></details><details class="pp-faq-item"><summary>Who designed Rosewood Mandarina?</summary><p>Rosewood Mandarina was designed by Greg Norman, Rosewood.</p></details><details class="pp-faq-item"><summary>How big is Rosewood Mandarina?</summary><p>Rosewood Mandarina features 134 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/siari-a-ritz-carlton-reserve/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/siari-a-ritz-carlton-reserve.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Siari, a Ritz-Carlton Reserve</div><div class="pp-near-m">Riviera Nayarit · Hotel</div></div></a><a class="pp-near-card" href="/projects/nauka/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Nauka</div><div class="pp-near-m">Riviera Nayarit · Residences</div></div></a></div></div>
     </div>
   </main>
 

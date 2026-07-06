@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Chalet Alpina, Aspen | Markets of Tomorrow">
   <meta property="og:description" content="Chalet Alpina is a landmark ski-in, ski-out luxury development rising at the original Lift One base of Aspen Mountain, reactivating a long-dormant corner of the corridor with a new second base area fo…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c45c94ab5fe-AspenLiftOne_View_A.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/chalet-alpina/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Chalet Alpina, Aspen | Markets of Tomorrow">
   <meta name="twitter:description" content="Chalet Alpina is a landmark ski-in, ski-out luxury development rising at the original Lift One base of Aspen Mountain, reactivating a long-dormant corner of the corridor with a new second base area fo…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c45c94ab5fe-AspenLiftOne_View_A.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Chalet Alpina",
   "description": "Chalet Alpina is a landmark ski-in, ski-out luxury development rising at the original Lift One base of Aspen Mountain, reactivating a long-dormant corner of the corridor with a new second base area fo\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c45c94ab5fe-AspenLiftOne_View_A.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina.jpg",
   "url": "https://www.oftmw.com/projects/chalet-alpina/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Guerin Glass Architects, Martin Brudnizki Design Studio"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "32"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2029"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "39.1870023",
+    "longitude": "-106.8230622"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Chalet Alpina located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chalet Alpina is located in Aspen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Chalet Alpina be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chalet Alpina is under construction, with completion expected in 2029."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Chalet Alpina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Irongate Group, HayMax Capital is the developer behind Chalet Alpina."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Chalet Alpina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chalet Alpina was designed by Guerin Glass Architects, Martin Brudnizki Design Studio."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Chalet Alpina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Chalet Alpina features 32 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="chalet-alpina" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c45c94ab5fe-AspenLiftOne_View_A.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3c776dce93f8-AspenLiftOne_View_C.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/136644af61b4-AspenLiftOne_View_B.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/5470f0c58b38-AspenLiftOne_View_F.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="chalet-alpina" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina-4.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1c45c94ab5fe-AspenLiftOne_View_A.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/chalet-alpina.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1173,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/white-elephant-aspen/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/68dd32_fab1119c688a4cb9b8bb75c625176d24~mv2.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">White Elephant Aspen</div><div class="pp-near-m">Aspen · Hotel</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Chalet Alpina located?</summary><p>Chalet Alpina is located in Aspen.</p></details><details class="pp-faq-item"><summary>When will Chalet Alpina be completed?</summary><p>Chalet Alpina is under construction, with completion expected in 2029.</p></details><details class="pp-faq-item"><summary>Who is developing Chalet Alpina?</summary><p>Irongate Group, HayMax Capital is the developer behind Chalet Alpina.</p></details><details class="pp-faq-item"><summary>Who designed Chalet Alpina?</summary><p>Chalet Alpina was designed by Guerin Glass Architects, Martin Brudnizki Design Studio.</p></details><details class="pp-faq-item"><summary>How big is Chalet Alpina?</summary><p>Chalet Alpina features 32 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/white-elephant-aspen/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/aspen/white-elephant-aspen.jpeg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">White Elephant Aspen</div><div class="pp-near-m">Aspen · Hotel</div></div></a></div></div>
     </div>
   </main>
 

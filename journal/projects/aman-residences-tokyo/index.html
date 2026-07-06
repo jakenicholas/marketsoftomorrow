@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Aman Residences Tokyo, Tokyo | Markets of Tomorrow">
   <meta property="og:description" content="Aman Residences, Tokyo is the brand's first-ever standalone branded residential project, occupying the top eleven floors of the Mori JP Tower — Japan's tallest building — at the heart of Mori Building…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/aman-residences-tokyo/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Aman Residences Tokyo, Tokyo | Markets of Tomorrow">
   <meta name="twitter:description" content="Aman Residences, Tokyo is the brand's first-ever standalone branded residential project, occupying the top eleven floors of the Mori JP Tower — Japan's tallest building — at the heart of Mori Building…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Aman Residences Tokyo",
   "description": "Aman Residences, Tokyo is the brand's first-ever standalone branded residential project, occupying the top eleven floors of the Mori JP Tower \u2014 Japan's tallest building \u2014 at the heart of Mori Building\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo.jpg",
   "url": "https://www.oftmw.com/projects/aman-residences-tokyo/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Yabu Pushelberg, Pelli Clarke & Partners"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "91"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "November 2023"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "35.6612155",
+    "longitude": "139.740616"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Aman Residences Tokyo located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aman Residences Tokyo is located in Tokyo, part of Mori JP Tower."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Aman Residences Tokyo open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aman Residences Tokyo is now open. It was completed in November 2023."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Aman Residences Tokyo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aman, Mori Building is the developer behind Aman Residences Tokyo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Aman Residences Tokyo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aman Residences Tokyo was designed by Yabu Pushelberg, Pelli Clarke & Partners."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Aman Residences Tokyo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aman Residences Tokyo rises 10 stories with 91 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="aman-residences-tokyo" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ff88638b52c3-aman-residences.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/07b73ab61de1-ptnVw2n5ZSd4cwQWBn2nJQ.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/18e64894945d-Panoramic_View-Day-2-crop.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/967196a4b35c-Panoramic_View-Night-crop.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="aman-residences-tokyo" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo-2.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo-3.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo-4.jpg&quot;, &quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo-5.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/0f7e07320cc4-UmqrLW292vtEdAcvWyhqTQ.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/aman-residences-tokyo.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1178,8 @@
       
       <div class="pp-sec pp-fam"><div class="pp-sec-h">Part of <a class="pp-fam-h-link" href="/projects/mori-jp-tower/">Mori JP Tower</a></div><div class="pp-fam-lead">Aman Residences Tokyo is one of 1 connected project in this development.</div><div class="pp-fam-grid"><a class="pp-fam-card pp-fam-card--umbrella" href="/projects/mori-jp-tower/"><div class="pp-fam-img" style="background-image:url('https://mms.businesswire.com/media/20210217006076/en/859592/5/Panoramic_View%28Night%29.jpg')"><span class="pp-fam-status">Completed</span><span class="pp-fam-umbrella-pill">Umbrella</span></div><div class="pp-fam-b"><div class="pp-fam-t">Mori JP Tower</div><div class="pp-fam-m">Tokyo · Mixed-Use</div></div></a></div></div>
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/tokyo-station-city-redevelopment/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b42c002d3f16-1506_JAHN-GranRoof_05.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Tokyo Station City Redevelopment</div><div class="pp-near-m">Tokyo · Travel</div></div></a><a class="pp-near-card" href="/projects/shibuya-upper-west-project/"><div class="pp-near-img" style="background-image:url('https://static.dezeen.com/uploads/2022/08/snohetta-shibuya-upper-west-project-tokyo_hero_dezeen_2364_col_0.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Shibuya Upper West Project</div><div class="pp-near-m">Tokyo · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/toranomon-hills-station-tower/"><div class="pp-near-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Toranomon Hills Station Tower</div><div class="pp-near-m">Tokyo · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Aman Residences Tokyo located?</summary><p>Aman Residences Tokyo is located in Tokyo, part of Mori JP Tower.</p></details><details class="pp-faq-item"><summary>Is Aman Residences Tokyo open?</summary><p>Aman Residences Tokyo is now open. It was completed in November 2023.</p></details><details class="pp-faq-item"><summary>Who is developing Aman Residences Tokyo?</summary><p>Aman, Mori Building is the developer behind Aman Residences Tokyo.</p></details><details class="pp-faq-item"><summary>Who designed Aman Residences Tokyo?</summary><p>Aman Residences Tokyo was designed by Yabu Pushelberg, Pelli Clarke &amp; Partners.</p></details><details class="pp-faq-item"><summary>How big is Aman Residences Tokyo?</summary><p>Aman Residences Tokyo rises 10 stories with 91 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/tokyo-station-city-redevelopment/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/tokyo-station-city-redevelopment.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Tokyo Station City Redevelopment</div><div class="pp-near-m">Tokyo · Travel</div></div></a><a class="pp-near-card" href="/projects/shibuya-upper-west-project/"><div class="pp-near-img" style="background-image:url('https://static.dezeen.com/uploads/2022/08/snohetta-shibuya-upper-west-project-tokyo_hero_dezeen_2364_col_0.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Shibuya Upper West Project</div><div class="pp-near-m">Tokyo · Mixed-Use</div></div></a><a class="pp-near-card" href="/projects/toranomon-hills-station-tower/"><div class="pp-near-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Toranomon Hills Station Tower</div><div class="pp-near-m">Tokyo · Residences</div></div></a></div></div>
     </div>
   </main>
 

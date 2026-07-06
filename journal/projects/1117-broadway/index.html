@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="1117 Broadway, Riviera Beach | Markets of Tomorrow">
   <meta property="og:description" content="1117 Broadway is a waterfront mixed-use condominium development planned by Boca Raton-based SobelCo in downtown Riviera Beach, Florida, rising on a 4.27-acre former boat-yard site steps from the Port…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c78f4b04be654e279edf6bcae1e7c8c4~mv2.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/1117-broadway.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/1117-broadway/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="1117 Broadway, Riviera Beach | Markets of Tomorrow">
   <meta name="twitter:description" content="1117 Broadway is a waterfront mixed-use condominium development planned by Boca Raton-based SobelCo in downtown Riviera Beach, Florida, rising on a 4.27-acre former boat-yard site steps from the Port…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c78f4b04be654e279edf6bcae1e7c8c4~mv2.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/1117-broadway.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "1117 Broadway",
   "description": "1117 Broadway is a waterfront mixed-use condominium development planned by Boca Raton-based SobelCo in downtown Riviera Beach, Florida, rising on a 4.27-acre former boat-yard site steps from the Port\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c78f4b04be654e279edf6bcae1e7c8c4~mv2.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/1117-broadway.jpg",
   "url": "https://www.oftmw.com/projects/1117-broadway/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,72 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "REG Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "508"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2028"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "26.7726656",
+    "longitude": "-80.055217"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is 1117 Broadway located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "1117 Broadway is located in Riviera Beach."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will 1117 Broadway be built?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "1117 Broadway is an announced development that has not yet started construction, targeting completion in 2028."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing 1117 Broadway?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Various is the developer behind 1117 Broadway."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed 1117 Broadway?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "1117 Broadway was designed by REG Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is 1117 Broadway?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "1117 Broadway rises 20 stories with 508 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1022,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1122,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="1117-broadway" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c78f4b04be654e279edf6bcae1e7c8c4~mv2.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="1117-broadway" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/1117-broadway.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_c78f4b04be654e279edf6bcae1e7c8c4~mv2.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/1117-broadway.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1064,7 +1143,7 @@
           <div class="cta-row"><a class="btn-dive" href="https://www.oftmw.com/map/?project=1117broadway">Dive Deeper <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a><button class="btn-share" type="button" aria-label="Share project" onclick="window.shareProject &amp;&amp; window.shareProject(this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span class="btn-share-tooltip" aria-live="polite"></span></button><button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" data-slug="1117-broadway" data-title="1117 Broadway"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span class="btn-watch-label" id="watchBtnLabel">Watch</span><span class="btn-watch-dot" aria-hidden="true"></span></button></div>
         </div>
         <div class="pp-panel">
-          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 2, 2026</span></div>
+          <div class="pp-updated"><span class="tmw-upd-ico" aria-hidden="true"><svg viewBox="0 0 100 100"><polygon class="tmw-upd-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-upd-spin"><polygon class="tmw-upd-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span><span class="pp-updated-t">Last verified Jul 6, 2026</span></div>
           
     <div class="pm-tl"><div class="pm-tl-date">2.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1099,7 +1178,8 @@
       
       
       
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/soleste-on-the-trail/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_65cd7b0d4af547c38b2973fd999efe33~mv2.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Soleste on the Trail</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/oculina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_5f13a849a7304a4990d733fe9404e232~mv2.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Oculina</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/singer-island-gateway/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_17b207ad3c1740328bc801963fda7c82~mv2.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Singer Island Gateway</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is 1117 Broadway located?</summary><p>1117 Broadway is located in Riviera Beach.</p></details><details class="pp-faq-item"><summary>When will 1117 Broadway be built?</summary><p>1117 Broadway is an announced development that has not yet started construction, targeting completion in 2028.</p></details><details class="pp-faq-item"><summary>Who is developing 1117 Broadway?</summary><p>Various is the developer behind 1117 Broadway.</p></details><details class="pp-faq-item"><summary>Who designed 1117 Broadway?</summary><p>1117 Broadway was designed by REG Architects.</p></details><details class="pp-faq-item"><summary>How big is 1117 Broadway?</summary><p>1117 Broadway rises 20 stories with 508 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/soleste-on-the-trail/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/soleste-on-the-trail.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Soleste on the Trail</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/oculina/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/oculina.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Oculina</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a><a class="pp-near-card" href="/projects/singer-island-gateway/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/singer-island-gateway.webp')"><span class="pp-near-status">Announced</span></div><div class="pp-near-b"><div class="pp-near-t">Singer Island Gateway</div><div class="pp-near-m">Riviera Beach · Residences</div></div></a></div></div>
     </div>
   </main>
 

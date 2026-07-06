@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="One Domino Square, Brooklyn | Markets of Tomorrow">
   <meta property="og:description" content="One Domino Square is a porcelain-clad residential development on the Williamsburg waterfront in Brooklyn, rising at the foot of the Williamsburg Bridge on the historic Domino Sugar Refinery site. Deve…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg">
   <meta property="og:url" content="https://www.oftmw.com/projects/one-domino-square/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="One Domino Square, Brooklyn | Markets of Tomorrow">
   <meta name="twitter:description" content="One Domino Square is a porcelain-clad residential development on the Williamsburg waterfront in Brooklyn, rising at the foot of the Williamsburg Bridge on the historic Domino Sugar Refinery site. Deve…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "One Domino Square",
   "description": "One Domino Square is a porcelain-clad residential development on the Williamsburg waterfront in Brooklyn, rising at the foot of the Williamsburg Bridge on the historic Domino Sugar Refinery site. Deve\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg",
   "url": "https://www.oftmw.com/projects/one-domino-square/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,67 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Selldorf Architects"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "39"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "160"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "40.7131399",
+    "longitude": "-73.9671457"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is One Domino Square located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Domino Square is located in Brooklyn."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is One Domino Square open?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Domino Square is now open."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing One Domino Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Two Trees Management is the developer behind One Domino Square."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed One Domino Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Domino Square was designed by Selldorf Architects."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is One Domino Square?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One Domino Square rises 39 stories with 160 residences."
+      }
     }
   ]
 }</script>
@@ -950,6 +1017,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1117,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="one-domino-square" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg&quot;]">
+  <main class="pp" id="pp" data-slug="one-domino-square" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/a76876fea29a-One-Domino-Square-e1732821147593.jpg')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1098,8 +1172,9 @@
     </a></div>
       
       
-      
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-brooklyn-tower/"><div class="pp-near-img" style="background-image:url('https://static.designboom.com/wp-content/uploads/2022/03/brooklyn-tower-9-dekalb-shop-architects-gachot-studios-designboom-06a.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Brooklyn Tower</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/williamsburg-wharf/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e552a2964767-MASTERPLAN-VIEW.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Williamsburg Wharf</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/the-huron/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/227e07fdf8d8-1_Huron_Street_20240719_DSC01287_crop_wide_2.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Huron</div><div class="pp-near-m">Brooklyn · Residences</div></div></a></div></div>
+      <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">One Domino Square has been covered in 1 article on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/one-montague-place-breaks-ground-a-550-million-tower-to-rise-among-brooklyn-s-tallest" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2cdab3912172-IMG_4226-gigapixel-low-resolution-v2-4x-crop.jpg')"><span class="pp-fam-status">Jul 6, 2026</span></div><div class="pp-fam-b"><div class="pp-fam-t">One Montague Place breaks ground, a $550 million tower to rise among Brooklyn's tallest</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is One Domino Square located?</summary><p>One Domino Square is located in Brooklyn.</p></details><details class="pp-faq-item"><summary>Is One Domino Square open?</summary><p>One Domino Square is now open.</p></details><details class="pp-faq-item"><summary>Who is developing One Domino Square?</summary><p>Two Trees Management is the developer behind One Domino Square.</p></details><details class="pp-faq-item"><summary>Who designed One Domino Square?</summary><p>One Domino Square was designed by Selldorf Architects.</p></details><details class="pp-faq-item"><summary>How big is One Domino Square?</summary><p>One Domino Square rises 39 stories with 160 residences.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/the-brooklyn-tower/"><div class="pp-near-img" style="background-image:url('https://static.designboom.com/wp-content/uploads/2022/03/brooklyn-tower-9-dekalb-shop-architects-gachot-studios-designboom-06a.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Brooklyn Tower</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/williamsburg-wharf/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Williamsburg Wharf</div><div class="pp-near-m">Brooklyn · Residences</div></div></a><a class="pp-near-card" href="/projects/the-huron/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/the-huron.png')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">The Huron</div><div class="pp-near-m">Brooklyn · Residences</div></div></a></div></div>
     </div>
   </main>
 

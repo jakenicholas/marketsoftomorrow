@@ -26,7 +26,13 @@
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
        bottom of the page polls for window.$memberstackDom before wiring up
-       the button so initial render works even on slow connections. -->
+       the button so initial render works even on slow connections.
+       useCookies + setCookieOnRootDomain (set BEFORE the script loads) put the
+       session in a .oftmw.com cookie instead of per-origin localStorage — so a
+       login here is the SAME session as the map / every subdomain, and it
+       survives Safari ITP (which purges localStorage). Must match the config
+       the map + journal-auth already set, or the session splits and Safari
+       Pro users get wrongly paywalled. -->
   <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
@@ -382,7 +388,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Okan Tower, Miami | Markets of Tomorrow">
   <meta property="og:description" content="Okan Tower is a 902-foot, 72-story mixed-use supertall rising at 555 North Miami Avenue in the Park West district of downtown Miami, developed by Turkish-owned Okan Group and designed by Behar Font &…">
-  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp">
+  <meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp">
   <meta property="og:url" content="https://www.oftmw.com/projects/okan-tower/">
 
   <!-- Twitter -->
@@ -390,7 +396,7 @@
   <meta name="twitter:site" content="@floridaoftomorrow">
   <meta name="twitter:title" content="Okan Tower, Miami | Markets of Tomorrow">
   <meta name="twitter:description" content="Okan Tower is a 902-foot, 72-story mixed-use supertall rising at 555 North Miami Avenue in the Park West district of downtown Miami, developed by Turkish-owned Okan Group and designed by Behar Font &…">
-  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp">
+  <meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
@@ -401,7 +407,7 @@
   "@type": "Place",
   "name": "Okan Tower",
   "description": "Okan Tower is a 902-foot, 72-story mixed-use supertall rising at 555 North Miami Avenue in the Park West district of downtown Miami, developed by Turkish-owned Okan Group and designed by Behar Font &\u2026",
-  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp",
+  "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp",
   "url": "https://www.oftmw.com/projects/okan-tower/",
   "address": {
     "@type": "PostalAddress",
@@ -422,6 +428,77 @@
       "@type": "PropertyValue",
       "name": "Architect",
       "value": "Behar Font & Partners"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Floors",
+      "value": "72"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Residences",
+      "value": "399"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Hotel keys",
+      "value": "316"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Expected completion",
+      "value": "2027"
+    }
+  ],
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "25.7800157",
+    "longitude": "-80.193704"
+  }
+}</script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where is Okan Tower located?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Okan Tower is located in Miami."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When will Okan Tower be completed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Okan Tower is under construction, with completion expected in 2027."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is developing Okan Tower?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Okan Group is the developer behind Okan Tower."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who designed Okan Tower?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Okan Tower was designed by Behar Font & Partners."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Okan Tower?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Okan Tower rises 72 stories with 399 residences and 316 hotel keys."
+      }
     }
   ]
 }</script>
@@ -950,6 +1027,13 @@
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item { border-bottom: 1px solid var(--hair); }
+    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pp-faq-item summary::-webkit-details-marker { display: none; }
+    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
+    .pp-faq-item[open] summary::after { content: '\2013'; }
+    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
     .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
@@ -1043,9 +1127,9 @@
        DOM order is the MOBILE order (phase/title/location, then the gallery
        scroller, then description, then the rest). On desktop CSS lifts the head
        group + gallery + panel into the bottom overlay grid. -->
-  <main class="pp" id="pp" data-slug="okan-tower" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp&quot;]">
+  <main class="pp" id="pp" data-slug="okan-tower" data-images="[&quot;https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp&quot;]">
     <section class="pp-hero" id="ppHero">
-      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f0ba3df6f8b64f0f9c19010f0fba3f04~mv2.webp')"></div>
+      <div class="pp-bg" data-l="0" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp')"></div>
       <div class="pp-bg" data-l="1" style="opacity:0"></div>
 
       <div class="pp-hero-inner" id="ppHeroInner">
@@ -1099,7 +1183,8 @@
       
       
       <div class="pp-sec pp-fam pp-cov"><div class="pp-sec-h">Journal Coverage</div><div class="pp-fam-lead">Okan Tower has been covered in 2 articles on Markets of Tomorrow.</div><div class="pp-fam-grid pp-cov-grid"><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/construction-worker-count-reaches-an-all-time-high-in-miami-dade" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f4e78e3fecbb4e569d6cc0497e25ac55~mv2.jpg')"><span class="pp-fam-status">Jul 28, 2025</span></div><div class="pp-fam-b"><div class="pp-fam-t">Construction worker count reaches an all-time high in Miami-Dade</div></div></a><a class="pp-fam-card pp-cov-card" href="https://www.oftmw.com/post/70-story-okan-tower-offering-the-tallest-pool-in-the-us-unveils-first-look-at-their-hilton-hotel" target="_blank" rel="noopener"><div class="pp-fam-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_21a0a67d5e5c4ca992b922f4ecbbf4e9~mv2.jpg')"><span class="pp-fam-status">Dec 2, 2023</span></div><div class="pp-fam-b"><div class="pp-fam-t">70-story Okan Tower, offering the tallest pool in the US, unveils first look at their Hilton hotel</div></div></a></div></div>
-      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/bc43e1a391f9-EDENrendering1-e1780492992125-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/ce4fee4804e4-2-Four-Seasons-Coconut-Grove-Exterior-crop.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/fe1b1058f272-MIRAI_View3_0301_Cam2aSun2_PS_Logo.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
+      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Okan Tower located?</summary><p>Okan Tower is located in Miami.</p></details><details class="pp-faq-item"><summary>When will Okan Tower be completed?</summary><p>Okan Tower is under construction, with completion expected in 2027.</p></details><details class="pp-faq-item"><summary>Who is developing Okan Tower?</summary><p>Okan Group is the developer behind Okan Tower.</p></details><details class="pp-faq-item"><summary>Who designed Okan Tower?</summary><p>Okan Tower was designed by Behar Font &amp; Partners.</p></details><details class="pp-faq-item"><summary>How big is Okan Tower?</summary><p>Okan Tower rises 72 stories with 399 residences and 316 hotel keys.</p></details></div>
+      <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/eden-residences/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Eden Residences</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/four-seasons-private-residences-coconut-grove/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Four Seasons Private Residences Coconut Grove</div><div class="pp-near-m">Miami · Residences</div></div></a><a class="pp-near-card" href="/projects/mirai-design-district/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">MIRAI Design District</div><div class="pp-near-m">Miami · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
 
