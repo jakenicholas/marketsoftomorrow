@@ -16,9 +16,9 @@
   /* ── the library — one entry per client. Canonical fields below. ───────── */
   var STUDIES = [
     {
-      badge:'NG', name:'Naftali Group', sub:'St. Petersburg, FL · Tampa Bay · Luxury Condo',
-      tags:['florida','west-coast','gulf-coast','tampa-bay','st-petersburg','st-pete','luxury-condo','condo','waterfront'],
-      pills:['Luxury Condo','St. Petersburg'],
+      badge:'NG', name:'Naftali Group', sub:'Miami, FL · South Florida · Luxury Condo',
+      tags:['florida','south-florida','miami','luxury-condo','condo','waterfront'],
+      pills:['Luxury Condo','Miami'],
       status:'complete', months:12,
       impressions:'6.4M', mediaValue:'$196K', ctr:'1.57%', spend:'$25K',
       quote:'Across a completed 12-month program, Naftali Group amassed <b>6.4M impressions</b> and earned <b>~$196K in media value</b> &mdash; the network&rsquo;s top-performing tower campaign, at a 1.57% newsletter CTR that carried it through sell-out.'
