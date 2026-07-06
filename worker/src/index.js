@@ -2282,13 +2282,21 @@ async function handleIntelJourneys(env, origin, url) {
     ).bind(sinceTs).all();
     searchRows = sr.results || [];
   } catch (e) {}
+  // Queries the editor explicitly ignored from the Live Feed (typos / junk) —
+  // dropped here and excluded from discovery.
+  let ignored = new Set();
+  try {
+    const ig = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='query_ignored'`).all();
+    for (const r of (ig.results || [])) { let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch {} const k = nrm(p.q); if (k) ignored.add(k); }
+  } catch (e) {}
+
   const byQ = new Map();
   for (const r of searchRows) {
     let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
     const q = String(p.q || p.search_term || '').trim();
     if (!q || p.partner) continue;
     if (looksMalformed(q)) continue;
-    const key = nrm(q); if (!key) continue;
+    const key = nrm(q); if (!key || ignored.has(key)) continue;
     let a = byQ.get(key);
     if (!a) {
       const loc = [p.city, p.regionCode || p.region].filter(Boolean).join(', ');
@@ -2415,6 +2423,39 @@ async function handleIntelJourneys(env, origin, url) {
   const summary = { resolved: 0, in_discovery: 0, researched: 0, draft_ready: 0, live: 0, already_live: 0 };
   journeys.forEach(j => { if (summary[j.stage] != null) summary[j.stage]++; });
   return json({ journeys: journeys.slice(0, limit), total: journeys.length, summary, days }, {}, env, origin);
+}
+
+// POST /intel-journeys/action — editor controls from the Live Feed:
+//   { query, action:'ignore'|'discover', note? }
+//   • ignore   → log a query_ignored event: the query drops from the feed and is
+//     excluded from the discovery queue (typos / weird one-offs).
+//   • discover → log a search_feedback DOWN-vote carrying the editor's note, so
+//     the tmw-project-discovery routine picks it up on its next run (e.g.
+//     "add 5 more projects in Nashville"). Same lane as editor /intel-feedback.
+async function handleIntelJourneyAction(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const query = String((b && b.query) || '').trim().slice(0, 200);
+  const action = String((b && b.action) || '').trim();
+  const note = String((b && b.note) || '').trim().slice(0, 400);
+  if (!query || (action !== 'ignore' && action !== 'discover')) {
+    return json({ error: 'query and action (ignore|discover) required' }, { status: 400 }, env, origin);
+  }
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    if (action === 'ignore') {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(now, 'system:intel-feed', 'query_ignored', JSON.stringify({ q: query })).run();
+      return json({ ok: true, action, message: 'Ignored — removed from the feed and won’t queue for discovery.' }, {}, env, origin);
+    }
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(now, 'system:intel-feed', 'search_feedback',
+            JSON.stringify({ q: query, rating: 'down', results: 0, result_kind: 'empty', priority: true, editor_note: note || ('Add on-brand projects for “' + query + '”.') })).run();
+    return json({ ok: true, action, message: 'Queued for project-discovery — it runs 9am & 9pm and will research this next.' }, {}, env, origin);
+  } catch (e) {
+    return json({ error: 'write failed: ' + e.message }, { status: 500 }, env, origin);
+  }
 }
 
 // GET /search-feedback — rolls up the thumbs up/down votes the lightbox
@@ -2566,6 +2607,14 @@ async function handleDiscoveryQueue(env, origin, url) {
   for (const r of (proc.results || [])) {
     if (r.q) processed.add(r.q);
   }
+  // Editor-ignored queries (typos / junk, flagged from the Live Feed) are
+  // excluded exactly like processed ones — never research them.
+  try {
+    const ig = await env.DB.prepare(
+      `SELECT LOWER(TRIM(json_extract(props_json,'$.q'))) AS q FROM events WHERE event_name='query_ignored'`
+    ).all();
+    for (const r of (ig.results || [])) { if (r.q) processed.add(r.q); }
+  } catch (e) {}
 
   // Aggregate by query, same logic as /search-feedback rollup but tighter:
   // we only care about queries flagged needs_discovery.
@@ -11457,6 +11506,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/intel-journeys') {
         return await handleIntelJourneys(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/intel-journeys/action') {
+        return await handleIntelJourneyAction(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/search-gaps') {
         return await handleSearchGaps(env, origin, url);
