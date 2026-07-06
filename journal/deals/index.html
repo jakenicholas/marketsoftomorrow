@@ -159,13 +159,18 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   }
 
   // ── render tiles ──
+  // Display-only entry boost per giveaway id: the tile shows boost + real
+  // entries (so real entries still tick the number up live). Display only —
+  // the worker's true counts and winner draws are untouched.
+  var ENTRY_BOOST = { 'gv-locos-100': 211, 'gv-field-of-greens-50': 97 };
   function tileHTML(g){
     var isDeal = g.type==='deal';
     var done = !isDeal && enteredSet().indexOf(g.id) >= 0;   // deals never "enter"
     var img = g.image ? '<img class="gv-img" src="'+esc(g.image)+'" loading="lazy" alt="'+esc(g.title)+'">' : '';
+    var shown = (g.entries>0 ? g.entries : 0) + (ENTRY_BOOST[g.id] || 0);
     var count = isDeal
       ? 'Be the first to redeem'
-      : (g.entries>0 ? (g.entries===1?'1 entry so far':(g.entries+' entries so far')) : 'Be the first to enter');
+      : (shown>0 ? (shown===1?'1 entry so far':(shown+' entries so far')) : 'Be the first to enter');
     var label = isDeal ? (esc(g.button_text)||'Redeem deal')
       : (done ? '✓ You’re entered' : (esc(g.button_text)||'Enter to win'));
     return '<article class="gv-card" data-id="'+esc(g.id)+'" data-type="'+(isDeal?'deal':'giveaway')+'"'+(isDeal&&g.redirect_url?' data-url="'+esc(g.redirect_url)+'"':'')+'>'
