@@ -5368,6 +5368,72 @@ async function handleSocialFollowersPull(req, env, origin) {
   } catch (_) {}
   return json({ ok: true, accounts, misses, pages_seen: pages.length, threads_pulled: threadsPulled, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
+// Live Instagram INSIGHTS (views / reach / total interactions / accounts
+// engaged / profile views) for every brand over a trailing window (default 28
+// days, Instagram's own "last 28 days"). Same META_SYSTEM_TOKEN as the
+// follower pull; insights additionally require the instagram_manage_insights
+// permission on the system user — when it's missing, Graph's exact error is
+// returned per-account so the admin page can say precisely what to fix.
+// Read-only; the accounts page stamps the results into its own snapshot file.
+async function handleSocialInsightsPull(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
+  const token = env.META_SYSTEM_TOKEN;
+  const u = new URL(req.url);
+  const days = Math.min(30, Math.max(1, parseInt(u.searchParams.get('days') || '28', 10) || 28));
+  const until = Math.floor(Date.now() / 1000);
+  const since = until - days * 86400;
+  let accts = [];
+  try {
+    if (env.DB) {
+      await ensureSocialAccountsTable(env);
+      const { results } = await env.DB.prepare(`SELECT key, ig_handle, page_id, ig_user_id FROM social_accounts ORDER BY sort_order ASC`).all();
+      accts = results || [];
+    }
+  } catch (_) {}
+  // Resolve each brand's IG user id: the stored ig_user_id wins; otherwise match
+  // the handle against the system user's managed Pages (same as the follower pull).
+  const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
+  const byIg = {}, byPage = {};
+  try {
+    const resp = await graphGet('me/accounts', {
+      fields: 'name,instagram_business_account{id,username,followers_count}',
+      limit: '200', access_token: token,
+    });
+    for (const p of ((resp && resp.data) || [])) {
+      if (p.id) byPage[String(p.id)] = p;
+      const ig = p.instagram_business_account;
+      if (ig && ig.username) byIg[norm(ig.username)] = p;
+    }
+  } catch (_) {}
+  const METRICS = 'views,reach,total_interactions,accounts_engaged,profile_views';
+  const NAME_MAP = { views: 'views', reach: 'reach', total_interactions: 'interactions', accounts_engaged: 'engaged', profile_views: 'profile_views' };
+  const accounts = {};
+  for (const a of accts) {
+    const page = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
+    const igb = page && page.instagram_business_account;
+    const igid = String(a.ig_user_id || (igb && igb.id) || '').trim();
+    if (!igid) { accounts[a.key] = { error: 'no IG user id (save it on the account row, or link the Page)' }; continue; }
+    let ins;
+    try {
+      ins = await graphGet(igid + '/insights', {
+        metric: METRICS, period: 'day', metric_type: 'total_value',
+        since: String(since), until: String(until), access_token: token,
+      });
+    } catch (e) { accounts[a.key] = { error: 'fetch failed: ' + (e && e.message || e) }; continue; }
+    if (ins && ins.error) { accounts[a.key] = { error: metaErr(ins) }; continue; }
+    const out = {};
+    for (const m of ((ins && ins.data) || [])) {
+      const v = (m.total_value && m.total_value.value != null)
+        ? m.total_value.value
+        : (m.values && m.values.length ? m.values.reduce((s, x) => s + (Number(x && x.value) || 0), 0) : null);
+      if (v != null) out[NAME_MAP[m.name] || m.name] = Number(v) || 0;
+    }
+    if (igb && igb.followers_count != null) out.followers = Number(igb.followers_count) || 0;
+    accounts[a.key] = out;
+  }
+  return json({ ok: true, accounts, window: { days, since: new Date(since * 1000).toISOString().slice(0, 10), until: new Date(until * 1000).toISOString().slice(0, 10) }, pulled_at: new Date().toISOString() }, {}, env, origin);
+}
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
@@ -11017,6 +11083,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/linkedin/orgs')         return await handleLinkedinOrgs(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/linkedin/disconnect')   return await handleLinkedinDisconnect(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/social-insights/pull') return await handleSocialInsightsPull(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/followers') return await handleFollowersGet(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/followers') return await handleFollowersPost(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
