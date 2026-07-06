@@ -736,7 +736,11 @@
 
     /* ‚îÄ‚îÄ‚îÄ CSS VARIABLES ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
     :root {
-      --app-height: 100vh;
+      /* Default to dvh (dynamic viewport) so the shell isn't briefly sized to the
+         TALL 100vh before setAppHeight() runs — that tall flash is what pushed the
+         bottom bar off-frame on navigation. JS then refines this to the exact
+         visualViewport.height on load/resize/visualViewport events. */
+      --app-height: 100dvh;
       --viewport-height: 100vh;
       /* Height of the injected journal chrome header (.tmw-chrome-head):
          nav.main .wrap has 14px top + 14px bottom padding around a 34px-tall
@@ -816,7 +820,11 @@
         pointer-events: auto !important; touch-action: auto !important;
       }
     }
-    .ios-device body { position: fixed; width: 100%; height: 100%; }
+    /* iOS: anchor the fixed shell to the JS-tracked visible height (--app-height,
+       = visualViewport.height) like Android already does — NOT height:100%, which
+       follows the html's dvh and lags iOS's toolbar transition on navigation,
+       briefly pushing the bottom bar below the visible edge. dvh is the fallback. */
+    .ios-device body { position: fixed; width: 100%; height: 100dvh; height: var(--app-height); }
     .android-device body { position: fixed; width: 100vw; height: calc(var(--app-height)); }
 
     /* ‚îÄ‚îÄ‚îÄ HEADER ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ */
