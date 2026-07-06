@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-05.1';
+export const ONTOLOGY_VERSION = '2026-07-05.2';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -42,6 +42,8 @@ export const ONTOLOGY = {
       'A daily cron auto-promotes past-due projects: Opening Soon flips to Now Open once the stated opening date has passed.',
       'Editorial display priority (how result sets are ranked for readers) is a DIFFERENT axis from lifecycle order: Featured (our pick) → Coming Soon → Recently Opened (last ~6 months) → Under Construction → Breaking Ground → Announced. A far-off announcement is the weakest lead, never the headline.',
       'STATUS HONESTY in prose: announced/proposed/future-dated projects are "planned"/"proposed", never present-tense "is remaking/building/opening". Active language is reserved for under-construction or open projects.',
+      'DEMOTION DIRECTION: a project wrongly marked construction with no real construction evidence (no groundbreaking, a future start date, sales/marketing language only) demotes BACKWARD to announced — or breaking-ground if ground actually broke — NEVER to coming-soon, which would falsely claim it is about to open. Set coming-soon ONLY when construction is complete/topping-out done and an opening is imminent. Backward fixes use correction:true; at low confidence route to a human instead of writing.',
+      '"announced" is the ORIGINAL reveal, never "now": a backward correction records when the fix happened, not when the project was announced (usually long before). Never leave a timeline where announced post-dates a later milestone — anchor announced to the earliest sourced coverage, or leave it dateless and let the dossier anchor it.',
     ],
     gotchas: [
       'MILESTONE-REVERT: a same-project milestone call can revert a status advance applied moments earlier. When advancing status AND logging milestones across separate calls, set (or re-assert) the status LAST.',
@@ -56,6 +58,8 @@ export const ONTOLOGY = {
       'Milestones log dated, sourced events to the dossier timeline WITHOUT changing the coarse lifecycle status. The coarse transitions (announced, broke ground, grand opening) go via new_status, never as milestones.',
       '"bookings" is the reservations/sales-launch slot: the dossier auto-labels it "Bookings open" for hotels and "Sales launched" for residential, by building type. Pick it by what happened, not by the label.',
       'Always pass effective_date (when the event actually happened, not when we discovered it) plus source_url.',
+      'Date milestones by the EVENT, never the publication: match the date grain to the source (a precise day only when the source states one, else YYYY-MM or YYYY) and never date a milestone AFTER the article that reports it.',
+      'Re-logging a phase with a better date/source is the correction mechanism — the dossier renders the most-recently-recorded entry per phase, so a fresh log supersedes the old automatically. Never re-log identical data.',
     ],
   },
 
