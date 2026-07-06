@@ -2442,6 +2442,14 @@ async function handleDiscoveryQueue(env, origin, url) {
     return toks.length === 1 && !NAMED_STOP.has(toks[0]);    // a lone non-generic token (a brand/name like "olara")
   }
 
+  // Two separate queries fused with no space — a rare client thread/handoff
+  // concat artifact (e.g. "...united statesOne Park Sarasota", which then returns
+  // junk and pollutes the queue as a false miss). Signature: a 4+ char lowercase
+  // run butting straight into a Capitalized word. Legit internal-caps place names
+  // (SoHo, LaSalle, DeSoto, McGregor) have only 1-2 lowercase before the cap, so
+  // the {4,} run skips them. Keeps malformed strings out of the routine's worklist.
+  function looksMalformed(q) { return /[a-z]{4,}[A-Z][a-z]/.test(String(q || '')); }
+
   function _autoAdd(rawQ, ts, source, meta) {
     let q = String(rawQ || '').trim();
     if (!q || q.length < 4 || q.length > 160) return;   // skip junk / overlong
@@ -2516,6 +2524,7 @@ async function handleDiscoveryQueue(env, origin, url) {
   // needs_discovery flag.
   const items = [];
   byQuery.forEach(function (a) {
+    if (looksMalformed(a.query)) return;   // drop fused/garbage queries before they reach the routine
     let dom = '', domN = 0;
     for (const k in a.kinds) { if (a.kinds[k] > domN) { dom = k; domN = a.kinds[k]; } }
     const avg = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
