@@ -5927,7 +5927,11 @@ async function handleDesignFromPost(req, env, origin) {
     voiceGuide = all.filter(n => !isCar(n) && /voice|tone|headline|identity|audience/i.test((n.category || '') + ' ' + n.kind + ' ' + (n.note || ''))).map(n => '- ' + n.note).join('\n').slice(0, 2500);
   } catch (_) {}
 
-  const nSlides = Math.max(1, photos.length);
+  // A real carousel even when the article is text-only: with fewer than 4
+  // photos, still write a 5-slide story and CYCLE the available photos (the
+  // cover repeats; swap images in the editor). Previously a text-first draft
+  // produced a single-slide "carousel", which read as a bug from the editor.
+  const nSlides = photos.length >= 4 ? photos.length : 5;
   const articleText = String(bodyR2).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000);
 
   // Generate carousel copy that OBEYS TMW's carousel rules. Falls back to the
@@ -5997,14 +6001,17 @@ async function handleDesignFromPost(req, env, origin) {
   const slides = [];
   for (let i = 0; i < nSlides; i++) {
     const headline = String(genLines[i] || (i === 0 ? (post.title || '') : '')).slice(0, 160);
+    // Cycle photos when the article has fewer than the slide count (cover
+    // repeats) — an image-less slide still renders with Replace media open.
+    const img = photos.length ? photos[i % photos.length] : null;
     if (i === 0) {
       const _seed = { headline };
       if (location) _seed.location = location;
-      if (photos[0]) _seed.image = photos[0];
+      if (img) _seed.image = img;
       slides.push({ template: 'first_bottom_center', _seed });
     } else {
       const _seed = { headline };
-      if (photos[i]) _seed.image = photos[i];
+      if (img) _seed.image = img;
       slides.push({ template: 'centered_bottom', _seed });
     }
   }
