@@ -1459,10 +1459,18 @@
         var _fl = floorsOf(p);
         if (_fl > 0 && _fl < s.floorsMin) return false;
         if (_fl > 0 && s.floorsMax != null && _fl > s.floorsMax) return false;
-        // Unknown height on a high-rise query (12+): a high-rise is a tower —
-        // residential / office / hotel / condo / mixed-use. With no floors data,
-        // keep ONLY tower-eligible types (allow-list) so museums, universities,
-        // parks, sports/padel, civic, retail-only, etc. don't leniently pass.
+        // SUPERTALL (40+ stories) is exceptional and rare, so leniency backfires:
+        // every unknown-floors resort/hotel in the world passed the tower-type
+        // allow-list below, burying the 2 real supertalls under 60+ junk ("supertall
+        // towers coming soon" → golf resorts in Gstaad). Require a RECORDED height
+        // that meets the bar — an accurate short list beats a long wrong one, and it
+        // surfaces where Floors data needs backfilling. (57% of projects have floors;
+        // 25 are 70+.) The answer prose still covers the broader pipeline.
+        if (_fl === 0 && s.floorsMin >= 40) return false;
+        // High-rise / mid-rise (12–39): a high-rise is a tower — residential /
+        // office / hotel / condo / mixed-use, and floors are often just unrecorded,
+        // so keep ONLY tower-eligible types (allow-list) — museums, universities,
+        // parks, sports/padel, civic, retail-only, golf, etc. don't leniently pass.
         // Known floors >= min always passed above regardless of type.
         if (_fl === 0 && s.floorsMin >= 12) {
           var _ty = norm((p.ProjectType || '') + ' ' + (p.PreferredType || ''));

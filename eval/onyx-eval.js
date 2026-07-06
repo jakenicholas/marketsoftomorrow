@@ -129,6 +129,15 @@ function main() {
     t.eq(s && s.floorsMin, 5, 'floorsMin = 5');
     t.eq(s && s.floorsMax, 11, 'floorsMax = 11');
   });
+  run('floors: "supertall" requires a recorded 70+ height (no unknown-floors resort/golf leak)', (t) => {
+    // Regression: "supertall towers coming soon" used to leniently pass every
+    // unknown-floors hotel/residence, burying the real supertalls under golf
+    // resorts. A 70+ query must only return projects with a recorded 70+ height.
+    const s = Core.parseSmartQuery('supertall towers coming soon', opt);
+    const rows = Core.smartFilter(s, PROJECTS);
+    const leaked = rows.filter((p) => Core.floorsOf(p) < 70);
+    t.eq(leaked.length, 0, 'every supertall result has recorded 70+ floors (' + rows.length + ' rows)');
+  });
   run('floors: high-rise smartFilter drops non-tower types w/ unknown floors', (t) => {
     const s = Core.parseSmartQuery('high rises in west palm beach', opt);
     const rows = Core.smartFilter(s, PROJECTS);
