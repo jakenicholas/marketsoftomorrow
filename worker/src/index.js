@@ -1048,6 +1048,47 @@ async function handleMapUsage(req, env, origin, url) {
   return json({ pro: false, cap: st.cap, used: st.used + 1, remaining: Math.max(0, st.remaining - 1), allowed: true }, {}, env, origin);
 }
 
+// POST /design/captions { current, mode, title, slides:[] } → 5 alternative
+// carousel SLIDE-HEADLINE options for the Studio design editor. mode 'new' = 5
+// fresh fact-based headlines for this slide; 'similar' = 5 rewordings of `current`
+// (same meaning, unique phrasing). Fast + cheap (Haiku) for an interactive click.
+// Called from the Access-gated Studio; light origin allowlist as a second guard.
+async function handleDesignCaptions(req, env, origin) {
+  // The Studio calls this through its /api proxy, which may strip Origin/Referer,
+  // so allow an empty source; only block a request that arrives WITH a non-admin
+  // browser origin (obvious cross-site abuse). Cheap Haiku call, not linked anywhere.
+  const src = String(req.headers.get('origin') || req.headers.get('referer') || '');
+  if (src && !/(tmw-admin\.pages\.dev|oftmw\.com|localhost|127\.0\.0\.1)/.test(src)) return json({ error: 'forbidden' }, { status: 403 }, env, origin);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const mode = b.mode === 'similar' ? 'similar' : 'new';
+  const current = String(b.current || '').slice(0, 400);
+  const title = String(b.title || '').slice(0, 300);
+  const slides = Array.isArray(b.slides) ? b.slides.map(s => String(s || '').slice(0, 400)).filter(Boolean).slice(0, 12) : [];
+  const ctx = 'POST: ' + (title || '(untitled)')
+    + '\nSLIDE HEADLINES SO FAR:\n' + (slides.length ? slides.map((s, i) => (i + 1) + '. ' + s).join('\n') : '(none)')
+    + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)');
+  const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand. Voice: confident, specific, hype-but-credible; lead with a concrete FACT (a number, a name, a superlative) whenever possible; no hashtags, no emojis, no clickbait fluff. Each headline is ONE punchy line (~6–16 words) that sits large over a photo. '
+    + (mode === 'similar'
+        ? 'REWORD the CURRENT SLIDE TEXT: keep the same meaning and core fact, but make each of the 5 options a genuinely DIFFERENT phrasing (different structure / word order) — clearly the same idea said fresh.'
+        : 'Generate 5 NEW headline ideas for THIS slide, each surfacing a DIFFERENT concrete fact or angle drawn from the post above (do not merely reword the current text).')
+    + ' Return ONLY a JSON array of exactly 5 strings, nothing else.';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 700, system: sys, messages: [{ role: 'user', content: ctx }] }),
+    });
+    if (!r.ok) return json({ error: 'AI error ' + r.status }, { status: 502 }, env, origin);
+    const d = await r.json();
+    const txt = ((d.content || []).find(x => x && x.type === 'text') || {}).text || '';
+    const m = txt.match(/\[[\s\S]*\]/);
+    let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch (_) {} }
+    arr = (Array.isArray(arr) ? arr : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 5);
+    return json({ options: arr }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+
 // GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
 // POST /admin/deep-credits { member_id, credits?, unlimited? } → grant extra deep
 // credits and/or flip the unlimited flag (owner + testers). Admin-gated. Mirrors
@@ -10995,6 +11036,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-usage') return await handleIntelUsage(request, env, origin, url);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/map-usage') return await handleMapUsage(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/design/captions') return await handleDesignCaptions(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }
