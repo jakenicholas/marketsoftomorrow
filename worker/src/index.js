@@ -10837,6 +10837,11 @@ async function ensureGiveawayTables(env) {
     id TEXT PRIMARY KEY, title TEXT NOT NULL, prize TEXT, sponsor TEXT, image TEXT,
     status TEXT NOT NULL DEFAULT 'active', sort INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)`).run();
+  // A listing is a GIVEAWAY (enter with a free account) or a DEAL (instant
+  // redirect to a URL, no signup). button_text overrides the CTA label.
+  for (const col of ["type TEXT NOT NULL DEFAULT 'giveaway'", 'redirect_url TEXT', 'button_text TEXT']) {
+    try { await env.DB.prepare('ALTER TABLE giveaways ADD COLUMN ' + col).run(); } catch (_) { /* already exists */ }
+  }
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS giveaway_entries (
     id TEXT PRIMARY KEY, giveaway_id TEXT NOT NULL, member_id TEXT, email TEXT NOT NULL,
     name TEXT, created_at INTEGER NOT NULL)`).run();
@@ -10869,7 +10874,8 @@ async function addToResendAudience(env, email, name) {
 }
 
 function giveawayRow(g, entries) {
-  return { id: g.id, title: g.title, prize: g.prize || '', sponsor: g.sponsor || '', image: g.image || '', status: g.status, sort: g.sort, entries: entries || 0 };
+  return { id: g.id, title: g.title, prize: g.prize || '', sponsor: g.sponsor || '', image: g.image || '', status: g.status, sort: g.sort, entries: entries || 0,
+    type: g.type || 'giveaway', redirect_url: g.redirect_url || '', button_text: g.button_text || '' };
 }
 
 // GET /giveaways — public list of ACTIVE giveaways (with live entry counts).
@@ -10912,6 +10918,23 @@ async function handleGiveawayEnter(request, env, origin) {
     }
     return json({ ok: true, already, title: gv.title }, {}, env, origin);
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+
+// POST /giveaway-track { id, kind } — first-party view/click tracking for the
+// Deals & Giveaways page. kind: 'view' (card impression, deduped per session on
+// the client) | 'click' (CTA press). Enters already log 'giveaway_entry'. Cheap
+// best-effort event insert; the Studio reads per-listing aggregates from these.
+async function handleGiveawayTrack(request, env, origin) {
+  if (!env.DB) return json({ ok: false }, {}, env, origin);
+  let b; try { b = await request.json(); } catch { return json({ ok: false }, {}, env, origin); }
+  const id = String((b && b.id) || '').slice(0, 120);
+  const kind = (b && b.kind) === 'click' ? 'giveaway_click' : 'giveaway_view';
+  if (!id) return json({ ok: false }, {}, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, event_name, path, props_json) VALUES (?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), kind, '/deals', JSON.stringify({ giveaway_id: id })).run();
+  } catch (_) {}
+  return json({ ok: true }, {}, env, origin);
 }
 
 // ── Admin giveaway management (token-gated) ──
@@ -11212,6 +11235,9 @@ export default {
       // ── Giveaways: public list + enter ──
       if (request.method === 'GET' && url.pathname === '/giveaways') {
         return await handleGiveawaysList(env, origin);
+      }
+      if (request.method === 'POST' && url.pathname === '/giveaway-track') {
+        return await handleGiveawayTrack(request, env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/giveaway-enter') {
         return await handleGiveawayEnter(request, env, origin);
