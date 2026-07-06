@@ -10141,8 +10141,8 @@
     "Keys": "",
     "Units": "152",
     "Floors": "50",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "1000000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -10151,7 +10151,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:15:49.333Z",
+    "UpdatedAt": "2026-07-06T15:19:12.478Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:30:07.590Z",
@@ -10217,6 +10217,33 @@
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "Mid 2025"
+      },
+      {
+        "at": "2026-07-06T15:18:46.513Z",
+        "source_url": "https://floridayimby.com/2024/11/the-st-regis-residences-miami-now-under-construction-at-1809-brickell-avenue.html",
+        "note": "50-story South Brickell tower, Related/Integra, 50k sf amenities (Florida YIMBY); GFA est. from 50 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 1000000
+      },
+      {
+        "at": "2026-07-06T15:18:46.513Z",
+        "source_url": "https://floridayimby.com/2024/11/the-st-regis-residences-miami-now-under-construction-at-1809-brickell-avenue.html",
+        "note": "50-story South Brickell tower, Related/Integra, 50k sf amenities (Florida YIMBY); GFA est. from 50 floors",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "South Brickell",
+        "to": "Brickell"
+      },
+      {
+        "at": "2026-07-06T15:19:12.478Z",
+        "source_url": "https://floridayimby.com/2024/11/the-st-regis-residences-miami-now-under-construction-at-1809-brickell-avenue.html",
+        "note": "Restore more-specific curated neighborhood South Brickell (1809 Brickell Ave)",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Brickell",
+        "to": "South Brickell"
       }
     ],
     "County": "Miami-Dade County",
@@ -15132,8 +15159,8 @@
     "Keys": "",
     "Units": "32",
     "Floors": "5",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "100000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -15142,7 +15169,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:22:29.557Z",
+    "UpdatedAt": "2026-07-06T15:17:29.300Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:27:18.372Z",
@@ -15216,6 +15243,25 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2026-01-23"
+      },
+      {
+        "at": "2026-07-06T15:17:29.300Z",
+        "source_url": "https://commercialobserver.com/2026/01/oko-group-cain-international-palm-beach-aman-bdt-msd/",
+        "source_published": "2026-01-15",
+        "note": "OKO Group/Cain secured $55M loan Jan 2026 (Commercial Observer); GFA est. from 5 floors. NOTE: source cites 41 units vs recorded 32 — flagged for manual review",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 100000
+      },
+      {
+        "at": "2026-07-06T15:17:29.300Z",
+        "source_url": "https://commercialobserver.com/2026/01/oko-group-cain-international-palm-beach-aman-bdt-msd/",
+        "source_published": "2026-01-15",
+        "note": "OKO Group/Cain secured $55M loan Jan 2026 (Commercial Observer); GFA est. from 5 floors. NOTE: source cites 41 units vs recorded 32 — flagged for manual review",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-01"
       }
     ],
     "County": "Palm Beach County",
@@ -16320,8 +16366,8 @@
     "Keys": "",
     "Units": "73",
     "Floors": "17",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "340000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -16330,7 +16376,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:16.672Z",
+    "UpdatedAt": "2026-07-06T15:17:03.057Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:43:11.457Z",
@@ -16423,6 +16469,25 @@
         "source_url": "https://floridayimby.com/2026/03/the-perigon-miami-beach-tops-out-at-5333-collins-avenue-in-mid-beach.html",
         "source_published": "2026-03-06",
         "note": "Topped out at full 17-story height at 5333 Collins Ave; first new oceanfront resi tower this cycle in Miami Beach to top out per Florida YIMBY",
+        "type": "milestone",
+        "phase": "topping-out",
+        "effective_date": "2026-03-06"
+      },
+      {
+        "at": "2026-07-06T15:17:03.057Z",
+        "source_url": "https://floridayimby.com/2026/03/the-perigon-miami-beach-tops-out-at-5333-collins-avenue-in-mid-beach.html",
+        "source_published": "2026-03-16",
+        "note": "Topped out March 6 2026 (Florida YIMBY, PROFILEmiami); Mid-Beach; GFA est. from 17 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 340000
+      },
+      {
+        "at": "2026-07-06T15:17:03.057Z",
+        "source_url": "https://floridayimby.com/2026/03/the-perigon-miami-beach-tops-out-at-5333-collins-avenue-in-mid-beach.html",
+        "source_published": "2026-03-16",
+        "note": "Topped out March 6 2026 (Florida YIMBY, PROFILEmiami); Mid-Beach; GFA est. from 17 floors",
         "type": "milestone",
         "phase": "topping-out",
         "effective_date": "2026-03-06"
@@ -17005,8 +17070,8 @@
     "Keys": "",
     "Units": "236",
     "Floors": "36",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "720000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -17015,7 +17080,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:21.122Z",
+    "UpdatedAt": "2026-07-06T15:16:48.656Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T18:57:08.477Z",
@@ -17121,6 +17186,25 @@
         "type": "milestone",
         "phase": "financing",
         "effective_date": "2026-04"
+      },
+      {
+        "at": "2026-07-06T15:16:48.656Z",
+        "source_url": "https://therealdeal.com/miami/2026/04/30/eichners-score-350m-loan-for-continuum-north-bay-village/",
+        "source_published": "2026-04-30",
+        "note": "Closed $350M financing incl. $261M phase-1 construction loan per The Real Deal (2026-04-30); GFA estimated from 36 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 720000
+      },
+      {
+        "at": "2026-07-06T15:16:48.656Z",
+        "source_url": "https://therealdeal.com/miami/2026/04/30/eichners-score-350m-loan-for-continuum-north-bay-village/",
+        "source_published": "2026-04-30",
+        "note": "Closed $350M financing incl. $261M phase-1 construction loan per The Real Deal (2026-04-30); GFA estimated from 36 floors",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-04-30"
       }
     ],
     "County": "Miami-Dade County",
@@ -20630,8 +20714,8 @@
     "Keys": "",
     "Units": "78",
     "Floors": "8",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "160000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -20640,7 +20724,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:25.193Z",
+    "UpdatedAt": "2026-07-06T15:16:53.176Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T01:55:20.485Z",
@@ -20780,6 +20864,25 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-02"
+      },
+      {
+        "at": "2026-07-06T15:16:53.176Z",
+        "source_url": "https://commercialobserver.com/2026/06/mg-vertical-alhambra-parc-florida/",
+        "source_published": "2026-06-05",
+        "note": "$100M construction loan closed June 2026 (Commercial Observer, TRD, Florida YIMBY); GFA estimated from 8 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 160000
+      },
+      {
+        "at": "2026-07-06T15:16:53.176Z",
+        "source_url": "https://commercialobserver.com/2026/06/mg-vertical-alhambra-parc-florida/",
+        "source_published": "2026-06-05",
+        "note": "$100M construction loan closed June 2026 (Commercial Observer, TRD, Florida YIMBY); GFA estimated from 8 floors",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-06"
       }
     ],
     "County": "Miami-Dade County",
@@ -22820,7 +22923,7 @@
     "DescriptionLong": "The William is a luxury condominium tower rising on NE 163rd Street in North Miami Beach, bringing 374 for-sale residences — from studios to three-bedroom homes — to the Intracoastal corridor near the Mall at 163rd Street. Developed by Blue Road and Ilia Development Group, the building is designed by internationally acclaimed architect Carlos Ott with Coral Gables-based Behar Font & Partners, with interiors by Miami studio Urban Robot. Residents share more than 40,000 square feet of amenities across a ninth-floor pool and club deck and a rooftop Coral Lounge, including a fitness studio, co-working space, pet spa, cafe, and pickleball court, above roughly 4,500 square feet of ground-floor retail. Blending refined design with a walkable North Miami Beach location, The William positions attainable-luxury ownership in one of Miami-Dade's fastest-changing submarkets.",
     "Delivery": "Announced",
     "DeliveryDate": "2029",
-    "StartDate": "2027",
+    "StartDate": "2026",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "Carlos Ott",
@@ -22837,8 +22940,8 @@
     "Keys": "",
     "Units": "374",
     "Floors": "26",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "520000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -22847,7 +22950,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:21:34.614Z",
+    "UpdatedAt": "2026-07-06T15:18:01.056Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:27:09.019Z",
@@ -22922,6 +23025,24 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-09"
+      },
+      {
+        "at": "2026-07-06T15:18:01.056Z",
+        "source_url": "https://floridayimby.com/2025/09/26-story-the-william-set-for-2026-groundbreaking-at-2040-ne-163rd-street-north-miami-beach-florida.html",
+        "note": "Mid-2026 groundbreaking planned (Florida YIMBY), correcting recorded 2027 start; move-in targeted summer 2029; GFA est. from 26 floors",
+        "type": "date",
+        "field": "start_date",
+        "from": "2027",
+        "to": "2026"
+      },
+      {
+        "at": "2026-07-06T15:18:01.056Z",
+        "source_url": "https://floridayimby.com/2025/09/26-story-the-william-set-for-2026-groundbreaking-at-2040-ne-163rd-street-north-miami-beach-florida.html",
+        "note": "Mid-2026 groundbreaking planned (Florida YIMBY), correcting recorded 2027 start; move-in targeted summer 2029; GFA est. from 26 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 520000
       }
     ],
     "County": "Miami-Dade County",
@@ -25287,7 +25408,7 @@
     "DescriptionLong": "The Lincoln is a boutique luxury condominium in Miami's historic Coconut Grove, where Lore Development Group and Element Development are delivering just 48 residences across an eight-story mid-rise at 2650 Lincoln Avenue. Designed by Paredes Architects with interiors by Design Philosophy, the building pairs one-to-four-bedroom layouts with an amenity program that includes a rooftop pool and cabana deck, a wellness spa with sauna and plunge tubs, a fitness center and golf simulator, and a resident co-working lounge. The intimate scale and Grove-village setting position The Lincoln as a design-forward alternative to Miami's high-rise towers, with 24/7 concierge, valet, and EV-ready parking. Its walkable location places residents steps from the neighborhood's marinas, dining, and tree-lined streets.",
     "Delivery": "Under Construction",
     "DeliveryDate": "2028",
-    "StartDate": "2025",
+    "StartDate": "2026-06",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
     "Architect": "Paredes Architects",
@@ -25304,8 +25425,8 @@
     "Keys": "",
     "Units": "48",
     "Floors": "8",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "160000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -25314,7 +25435,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:21:40.305Z",
+    "UpdatedAt": "2026-07-06T15:18:06.249Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T00:59:09.202Z",
@@ -25358,6 +25479,26 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-01"
+      },
+      {
+        "at": "2026-07-06T15:18:06.249Z",
+        "source_url": "https://floridayimby.com/2026/06/construction-starts-on-the-lincoln-coconut-grove-at-3151-sw-27th-ave-miami-fl.html",
+        "source_published": "2026-06-15",
+        "note": "Construction started June 2026 (Florida YIMBY), correcting recorded 2025 start; Coconut Grove; GFA est. from 8 floors",
+        "type": "date",
+        "field": "start_date",
+        "from": "2025",
+        "to": "2026-06"
+      },
+      {
+        "at": "2026-07-06T15:18:06.249Z",
+        "source_url": "https://floridayimby.com/2026/06/construction-starts-on-the-lincoln-coconut-grove-at-3151-sw-27th-ave-miami-fl.html",
+        "source_published": "2026-06-15",
+        "note": "Construction started June 2026 (Florida YIMBY), correcting recorded 2025 start; Coconut Grove; GFA est. from 8 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 160000
       }
     ],
     "County": "Miami-Dade County",
@@ -26322,7 +26463,7 @@
     "Description": "A 4,300-capacity Live Nation music venue planned for Tampa's Gasworx district in historic Ybor City.",
     "DescriptionLong": "Live Nation Gasworx is a 4,300-capacity live music venue planned for the Gasworx district in Tampa's historic Ybor City, developed by KETTLER alongside Darryl Shaw and PPF Real Estate and operated by Live Nation. Designed by Live Nation's Blueprint Studio with TVS Architecture, the venue draws on Ybor's heritage with a vintage exposed-bulb marquee, brick facade, and second-level balcony, while its theater-inspired interior features a stage proscenium and rich green tones. Positioned on N. 15th Street steps from the 7th Avenue entertainment corridor and a future TECO Streetcar stop, it is designed to fill a gap in Tampa's mid-size music market and anchor the Gasworx neighborhood's cultural core. The project is projected to generate roughly $80 million in economic impact and support more than 400 jobs.",
     "Delivery": "Announced",
-    "DeliveryDate": "2028",
+    "DeliveryDate": "Late 2028",
     "StartDate": "",
     "ProjectType": "Entertainment",
     "PreferredType": "Entertainment",
@@ -26350,7 +26491,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:21:56.340Z",
+    "UpdatedAt": "2026-07-06T15:18:10.635Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:27:47.735Z",
@@ -26379,6 +26520,16 @@
         "type": "backfill",
         "to": "announced",
         "effective_date": "2026-04"
+      },
+      {
+        "at": "2026-07-06T15:18:10.635Z",
+        "source_url": "https://newsroom.livenation.com/news/gasworx-district-plans-new-4300-capacity-music-venue/",
+        "source_published": "2026-04-07",
+        "note": "4,300-cap venue operated by Live Nation, opening late 2028 (Live Nation, Business Observer). Barrio Latino Commission delayed approval over a protected oak (June 2026) — flagged for review",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2028",
+        "to": "Late 2028"
       }
     ],
     "County": "Hillsborough County",
@@ -26957,7 +27108,7 @@
     "Description": "A boutique 27-residence oceanfront condominium on Ocean Avenue in Palm Beach Shores.",
     "DescriptionLong": "123 Ocean is a boutique oceanfront condominium in Palm Beach Shores, Florida, where Lionstone Development is building just 27 residences in a six-story building directly on Ocean Avenue along Singer Island's Atlantic shoreline. Designed by Arquitectonica with interiors by Asthetique and landscape by Naturalficial, the low-density building offers one-to-three-bedroom layouts oriented to sweeping ocean and Intracoastal views. Its intimate scale and beachfront position make it one of the few new-construction luxury addresses in the historically low-rise Palm Beach Shores enclave. Residents are minutes from Palm Beach's dining and cultural corridor while enjoying a quieter, resort-style island setting.",
     "Delivery": "Announced",
-    "DeliveryDate": "2028",
+    "DeliveryDate": "Summer 2028",
     "StartDate": "2026",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -26975,8 +27126,8 @@
     "Keys": "",
     "Units": "27",
     "Floors": "6",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "120000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -26985,7 +27136,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:22:39.366Z",
+    "UpdatedAt": "2026-07-06T15:17:34.511Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:27:15.969Z",
@@ -27061,6 +27212,32 @@
         "field": "neighborhood",
         "from": "Palm Beach Shores",
         "to": "Singer Island"
+      },
+      {
+        "at": "2026-07-06T15:17:34.511Z",
+        "source_url": "https://www.svnwaterfront.com/blog/sales-are-open-for-new-waterfront-luxury-condominiums-in-palm-beach-shores/",
+        "note": "Sales launched Dec 2025 by Lionbright (SVN, CondoBlackBook); completion Summer 2028; GFA est. from 6 floors",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2028",
+        "to": "Summer 2028"
+      },
+      {
+        "at": "2026-07-06T15:17:34.511Z",
+        "source_url": "https://www.svnwaterfront.com/blog/sales-are-open-for-new-waterfront-luxury-condominiums-in-palm-beach-shores/",
+        "note": "Sales launched Dec 2025 by Lionbright (SVN, CondoBlackBook); completion Summer 2028; GFA est. from 6 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 120000
+      },
+      {
+        "at": "2026-07-06T15:17:34.511Z",
+        "source_url": "https://www.svnwaterfront.com/blog/sales-are-open-for-new-waterfront-luxury-condominiums-in-palm-beach-shores/",
+        "note": "Sales launched Dec 2025 by Lionbright (SVN, CondoBlackBook); completion Summer 2028; GFA est. from 6 floors",
+        "type": "milestone",
+        "phase": "bookings",
+        "effective_date": "2025-12"
       }
     ],
     "County": "Palm Beach County",
@@ -27517,8 +27694,8 @@
     "Keys": "",
     "Units": "229",
     "Floors": "35",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "700000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -27527,7 +27704,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:24:47.675Z",
+    "UpdatedAt": "2026-07-06T15:18:35.804Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T04:47:40.917Z",
@@ -27603,6 +27780,15 @@
         "field": "delivery_date",
         "from": "2028",
         "to": "2029"
+      },
+      {
+        "at": "2026-07-06T15:18:35.804Z",
+        "source_url": "https://floridayimby.com/2026/02/hq-residences-miami-unveils-interior-renderings-for-35-story-edgewater-condominium-tower.html",
+        "note": "35-story Edgewater tower, Q3 2026 groundbreaking planned (Florida YIMBY); GFA est. from 35 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 700000
       }
     ],
     "County": "Miami-Dade County",
@@ -31075,7 +31261,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:23:33.527Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-08T10:25:11.976Z",
@@ -42231,7 +42417,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:49.808Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T02:51:46.283Z",
@@ -46459,7 +46645,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:15:42.156Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T18:55:27.600Z",
@@ -47438,8 +47624,8 @@
     "Keys": "",
     "Units": "124",
     "Floors": "8",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "160000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -47448,7 +47634,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:53.884Z",
+    "UpdatedAt": "2026-07-06T15:18:53.649Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T18:57:00.979Z",
@@ -47495,6 +47681,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-11"
+      },
+      {
+        "at": "2026-07-06T15:18:53.649Z",
+        "source_url": "https://floridayimby.com/2025/11/seven-park-residences-breaks-ground-at-218-to-220-se-seventh-street-in-hallandale-beach.html",
+        "note": "124-unit LEED Gold building by Kadima, broke ground Nov 2025 (Florida YIMBY); GFA est. from 8 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 160000
       }
     ],
     "County": "Broward County",
@@ -47647,8 +47842,8 @@
     "Keys": "",
     "Units": "62",
     "Floors": "36",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "170481",
+    "GfaSource": "stated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -47657,7 +47852,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:23:28.381Z",
+    "UpdatedAt": "2026-07-06T15:18:15.258Z",
     "StatusHistory": [
       {
         "at": "2026-06-05T18:56:40.718Z",
@@ -47737,6 +47932,15 @@
         "field": "delivery_date",
         "from": "2026",
         "to": "Fall 2026"
+      },
+      {
+        "at": "2026-07-06T15:18:15.258Z",
+        "source_url": "https://newyorkyimby.com/2025/10/ramsas-255-east-77th-street-nears-completion-on-manhattans-upper-east-side.html",
+        "note": "Stated 170,481 sq ft, 36-story RAMSA tower in Lenox Hill (NY YIMBY); topped out 2025, completion Fall 2026",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 170481
       }
     ],
     "County": "New York County",
@@ -51434,8 +51638,8 @@
     "Keys": "",
     "Units": "399",
     "Floors": "40",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "800000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -51444,7 +51648,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:58.508Z",
+    "UpdatedAt": "2026-07-06T15:19:17.639Z",
     "StatusHistory": [
       {
         "at": "2026-06-16T20:56:19.065Z",
@@ -51524,6 +51728,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025"
+      },
+      {
+        "at": "2026-07-06T15:19:17.639Z",
+        "source_url": "https://www.sdbj.com/real-estate/residential/new-downtown-condo-tower-coming-from-bosa-development/",
+        "note": "40-story, 399-unit East Village tower, completion spring 2027 (SDBJ); GFA est. from 40 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 800000
       }
     ],
     "County": "San Diego County",
@@ -56078,7 +56291,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:46.915Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-18T03:36:51.954Z",
@@ -56152,8 +56365,8 @@
     "Keys": "",
     "Units": "1785",
     "Floors": "",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "3376000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -56162,7 +56375,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:02.573Z",
+    "UpdatedAt": "2026-07-06T15:19:22.813Z",
     "StatusHistory": [
       {
         "at": "2026-06-18T03:36:32.587Z",
@@ -56190,6 +56403,16 @@
         "field": "start_date",
         "from": "2026-03",
         "to": "2026-03-05"
+      },
+      {
+        "at": "2026-07-06T15:19:22.813Z",
+        "source_url": "https://fortworthreport.org/2026/03/05/transformative-1-7b-westside-village-mixed-use-project-officially-breaks-ground/",
+        "source_published": "2026-03-05",
+        "note": "37-acre $1.7B mixed-use: 1,785 units + 880k sf office + 238k sf retail + hotel (Fort Worth Report); broke ground Mar 5 2026; reclassified Mixed-Use; GFA est.",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 3376000
       }
     ],
     "County": "Tarrant County",
@@ -64782,7 +65005,7 @@
     "Slug": "palazzo-at-bayfront",
     "City": "Naples",
     "Borough": "",
-    "Neighborhood": "Old Naples",
+    "Neighborhood": "Bayfront",
     "Latitude": "26.1446845",
     "Longitude": "-81.7894481",
     "Description": "An intimate enclave of 35 luxury residences completing the Bayfront mixed-use community on the Gordon River in downtown Naples.",
@@ -64816,7 +65039,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:06.705Z",
+    "UpdatedAt": "2026-07-06T15:19:27.647Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:17:48.340Z",
@@ -64854,6 +65077,15 @@
         "field": "neighborhood",
         "from": "Downtown Naples",
         "to": "Old Naples"
+      },
+      {
+        "at": "2026-07-06T15:19:27.647Z",
+        "source_url": "https://naples.floridaweekly.com/articles/bcbe-named-general-contractor-for-palazzo-at-bayfront-3/",
+        "note": "35-residence final phase of the Bayfront mixed-use community, BCBE GC (Naples Florida Weekly); broke ground Jan 23 2026",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Old Naples",
+        "to": "Bayfront"
       }
     ],
     "County": "Collier County",
@@ -64888,8 +65120,8 @@
     "Keys": "",
     "Units": "34",
     "Floors": "21",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "420000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -64898,7 +65130,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:28.254Z",
+    "UpdatedAt": "2026-07-06T15:20:09.212Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:17:53.246Z",
@@ -64947,6 +65179,33 @@
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "2026-03"
+      },
+      {
+        "at": "2026-07-06T15:19:32.696Z",
+        "source_url": "https://www.gulfshorebusiness.com/construction-development/fort-myers-riverfront-condo-one-breaks-ground/article_75f49124-376d-5895-8c78-334afe12d3c0.html",
+        "note": "21-story, 34-residence riverfront tower by JAXI/Astor (Gulfshore Business); GFA est. from 21 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 420000
+      },
+      {
+        "at": "2026-07-06T15:19:32.696Z",
+        "source_url": "https://www.gulfshorebusiness.com/construction-development/fort-myers-riverfront-condo-one-breaks-ground/article_75f49124-376d-5895-8c78-334afe12d3c0.html",
+        "note": "21-story, 34-residence riverfront tower by JAXI/Astor (Gulfshore Business); GFA est. from 21 floors",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "River District",
+        "to": "Downtown Fort Myers"
+      },
+      {
+        "at": "2026-07-06T15:20:09.212Z",
+        "source_url": "https://www.gulfshorebusiness.com/construction-development/fort-myers-riverfront-condo-one-breaks-ground/article_75f49124-376d-5895-8c78-334afe12d3c0.html",
+        "note": "Restore more-specific curated neighborhood River District (downtown Fort Myers riverfront)",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown Fort Myers",
+        "to": "River District"
       }
     ],
     "County": "Lee County",
@@ -64981,8 +65240,8 @@
     "Keys": "",
     "Units": "86",
     "Floors": "18",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "360000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -64991,7 +65250,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:32.669Z",
+    "UpdatedAt": "2026-07-06T15:17:07.823Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:19:56.487Z",
@@ -65046,6 +65305,25 @@
         "type": "milestone",
         "phase": "going-vertical",
         "effective_date": "2026-02"
+      },
+      {
+        "at": "2026-07-06T15:17:07.823Z",
+        "source_url": "https://www.yourobserver.com/news/2026/feb/26/one-park-tower-topping-off/",
+        "source_published": "2026-02-26",
+        "note": "Topped off Feb 2026 with 75% sold (Your Observer, BD+C); The Quay; GFA est. from 18 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 360000
+      },
+      {
+        "at": "2026-07-06T15:17:07.823Z",
+        "source_url": "https://www.yourobserver.com/news/2026/feb/26/one-park-tower-topping-off/",
+        "source_published": "2026-02-26",
+        "note": "Topped off Feb 2026 with 75% sold (Your Observer, BD+C); The Quay; GFA est. from 18 floors",
+        "type": "milestone",
+        "phase": "topping-out",
+        "effective_date": "2026-02"
       }
     ],
     "County": "Sarasota County",
@@ -65056,13 +65334,13 @@
     "Slug": "the-palm-625-sarasota",
     "City": "Sarasota",
     "Borough": "",
-    "Neighborhood": "Downtown",
+    "Neighborhood": "Downtown Sarasota",
     "Latitude": "27.3306359",
     "Longitude": "-82.539898",
     "Description": "A boutique 12-residence luxury condominium on South Palm Avenue in downtown Sarasota.",
     "DescriptionLong": "The Palm at 625 Sarasota is a boutique luxury condominium in the heart of downtown Sarasota, Florida, where LV7 Investment Group is building just 12 residences in an intimate five-story building at 625 South Palm Avenue. Designed by Gary Hoyt of Hoyt Architects, the project places three expansive residences on each floor above a ground-level parking podium, with two-to-three-bedroom layouts ranging up to roughly 4,400 square feet and finishes including Italian cabinetry, Wolf and Sub-Zero appliances, and hurricane-rated glazing. Amenities center on a rooftop gathering space with fire pits alongside a zero-edge heated saltwater pool with cabanas, a whirlpool spa, and a fitness center. Its walkable Palm Avenue address puts residents steps from Sarasota's bayfront park, marina, galleries, and theater district.",
     "Delivery": "Under Construction",
-    "DeliveryDate": "2026",
+    "DeliveryDate": "Q3 2026",
     "StartDate": "2025-01",
     "ProjectType": "Residences",
     "PreferredType": "Residences",
@@ -65080,8 +65358,8 @@
     "Keys": "",
     "Units": "12",
     "Floors": "5",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "100000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -65090,7 +65368,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:24:36.706Z",
+    "UpdatedAt": "2026-07-06T15:18:30.111Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:18:01.068Z",
@@ -65162,6 +65440,33 @@
         "field": "neighborhood",
         "from": "Downtown Sarasota",
         "to": "Downtown"
+      },
+      {
+        "at": "2026-07-06T15:18:30.111Z",
+        "source_url": "https://www.sarasotamagazine.com/home-and-real-estate/2024/11/625-sarasota-at-the-palm-new-condos",
+        "note": "Completion Q3 2026 (Sarasota Magazine); downtown Sarasota; GFA est. from 5 floors",
+        "type": "date",
+        "field": "delivery_date",
+        "from": "2026",
+        "to": "Q3 2026"
+      },
+      {
+        "at": "2026-07-06T15:18:30.111Z",
+        "source_url": "https://www.sarasotamagazine.com/home-and-real-estate/2024/11/625-sarasota-at-the-palm-new-condos",
+        "note": "Completion Q3 2026 (Sarasota Magazine); downtown Sarasota; GFA est. from 5 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 100000
+      },
+      {
+        "at": "2026-07-06T15:18:30.111Z",
+        "source_url": "https://www.sarasotamagazine.com/home-and-real-estate/2024/11/625-sarasota-at-the-palm-new-condos",
+        "note": "Completion Q3 2026 (Sarasota Magazine); downtown Sarasota; GFA est. from 5 floors",
+        "type": "field",
+        "field": "neighborhood",
+        "from": "Downtown",
+        "to": "Downtown Sarasota"
       }
     ],
     "County": "Sarasota County",
@@ -65193,11 +65498,11 @@
     "Image3": "",
     "Image4": "",
     "Image5": "",
-    "Keys": "",
+    "Keys": "165",
     "Units": "400",
     "Floors": "",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "706000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -65206,7 +65511,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:36.760Z",
+    "UpdatedAt": "2026-07-06T15:17:39.218Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:18:04.564Z",
@@ -65309,6 +65614,35 @@
         "type": "milestone",
         "phase": "tenant",
         "effective_date": "2026-02"
+      },
+      {
+        "at": "2026-07-06T15:17:39.218Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/feb/26/midtown-bonita-two-national-tenants/",
+        "source_published": "2026-02-26",
+        "note": "TJ Maxx & Ulta anchor tenants signed Feb 2026 (Business Observer); 68-acre mixed-use with 400 apts, 200k sf retail, 165-key hotel, offices; reclassified Mixed-Use; GFA est.",
+        "type": "field",
+        "field": "keys",
+        "from": null,
+        "to": 165
+      },
+      {
+        "at": "2026-07-06T15:17:39.218Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/feb/26/midtown-bonita-two-national-tenants/",
+        "source_published": "2026-02-26",
+        "note": "TJ Maxx & Ulta anchor tenants signed Feb 2026 (Business Observer); 68-acre mixed-use with 400 apts, 200k sf retail, 165-key hotel, offices; reclassified Mixed-Use; GFA est.",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 706000
+      },
+      {
+        "at": "2026-07-06T15:17:39.218Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/feb/26/midtown-bonita-two-national-tenants/",
+        "source_published": "2026-02-26",
+        "note": "TJ Maxx & Ulta anchor tenants signed Feb 2026 (Business Observer); 68-acre mixed-use with 400 apts, 200k sf retail, 165-key hotel, offices; reclassified Mixed-Use; GFA est.",
+        "type": "milestone",
+        "phase": "tenant",
+        "effective_date": "2026-02"
       }
     ],
     "County": "Lee County",
@@ -65343,8 +65677,8 @@
     "Keys": "",
     "Units": "51",
     "Floors": "8",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "160000",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -65353,7 +65687,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:17:40.384Z",
+    "UpdatedAt": "2026-07-06T15:19:38.047Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:18:08.253Z",
@@ -65412,6 +65746,15 @@
         "type": "milestone",
         "phase": "bookings",
         "effective_date": "2025-09"
+      },
+      {
+        "at": "2026-07-06T15:19:38.047Z",
+        "source_url": "https://www.kolter.com/51-unit-twin-tower-development-3300-gulf-shore-slated-to-break-ground-in-naples-this-fall/",
+        "note": "51-unit twin-tower bayfront, Kolter Urban/BCBE; construction commenced Jan 2026, completion Q4 2027; GFA est. from 8 floors",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 160000
       }
     ],
     "County": "Collier County",
@@ -65446,8 +65789,8 @@
     "Keys": "",
     "Units": "355",
     "Floors": "6",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "449075",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -65456,7 +65799,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:24:40.891Z",
+    "UpdatedAt": "2026-07-06T15:16:57.880Z",
     "StatusHistory": [
       {
         "at": "2026-06-26T23:18:11.698Z",
@@ -65530,6 +65873,25 @@
         "field": "neighborhood",
         "from": "Sarasota Square",
         "to": "Palmer Ranch"
+      },
+      {
+        "at": "2026-07-06T15:16:57.880Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/jun/29/sarasota-square-apartments-financing/",
+        "source_published": "2026-06-29",
+        "note": "PNC construction financing secured June 2026 (Business Observer, Florida YIMBY); groundbreaking imminent; GFA est. from 355 units",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 449075
+      },
+      {
+        "at": "2026-07-06T15:16:57.880Z",
+        "source_url": "https://www.businessobserverfl.com/news/2026/jun/29/sarasota-square-apartments-financing/",
+        "source_published": "2026-06-29",
+        "note": "PNC construction financing secured June 2026 (Business Observer, Florida YIMBY); groundbreaking imminent; GFA est. from 355 units",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2026-06"
       }
     ],
     "County": "Sarasota County",
@@ -67638,7 +68000,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:09:46.894Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-30T13:19:35.756Z",
@@ -67782,10 +68144,10 @@
     "Image4": "",
     "Image5": "",
     "Keys": "",
-    "Units": "500",
+    "Units": "484",
     "Floors": "",
-    "GfaSqFt": "",
-    "GfaSource": "",
+    "GfaSqFt": "612260",
+    "GfaSource": "estimated",
     "ConfigSummary": "",
     "DeliveryPhases": "",
     "IsDistrict": "",
@@ -67794,7 +68156,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:27:14.998Z",
+    "UpdatedAt": "2026-07-06T15:18:41.146Z",
     "StatusHistory": [
       {
         "at": "2026-06-30T13:19:45.499Z",
@@ -67837,6 +68199,24 @@
         "field": "neighborhood",
         "from": "Benbrook",
         "to": "Veale Ranch"
+      },
+      {
+        "at": "2026-07-06T15:18:41.146Z",
+        "source_url": "https://www.papercitymag.com/real-estate/maverick-golf-and-ranch-club-fort-worth/",
+        "note": "484 residences per PaperCity/WBAP (correcting 500); Tom Fazio 18-hole course opens fall 2026, par-3 Pinkerton 9 already open; GFA est. from units",
+        "type": "field",
+        "field": "units",
+        "from": 500,
+        "to": 484
+      },
+      {
+        "at": "2026-07-06T15:18:41.146Z",
+        "source_url": "https://www.papercitymag.com/real-estate/maverick-golf-and-ranch-club-fort-worth/",
+        "note": "484 residences per PaperCity/WBAP (correcting 500); Tom Fazio 18-hole course opens fall 2026, par-3 Pinkerton 9 already open; GFA est. from units",
+        "type": "field",
+        "field": "gfa_sqft",
+        "from": null,
+        "to": 612260
       }
     ],
     "County": "Tarrant County",
@@ -68229,7 +68609,7 @@
     "DeliverySpeculative": "1",
     "DatesSpeculative": "1",
     "Price": "",
-    "UpdatedAt": "2026-07-03T13:22:21.434Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-06-30T13:20:12.682Z",
@@ -69774,7 +70154,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:15:53.113Z",
+    "UpdatedAt": "2026-07-06T15:09:50.816Z",
     "StatusHistory": [
       {
         "at": "2026-07-03T15:12:13.816Z",
@@ -69846,7 +70226,7 @@
     "DeliverySpeculative": "",
     "DatesSpeculative": "",
     "Price": "",
-    "UpdatedAt": "2026-07-03T15:16:08.524Z",
+    "UpdatedAt": "2026-07-06T15:17:23.380Z",
     "StatusHistory": [
       {
         "at": "2026-07-03T15:12:18.142Z",
@@ -69874,6 +70254,15 @@
         "field": "start_date",
         "from": "2026",
         "to": "2025-10"
+      },
+      {
+        "at": "2026-07-06T15:17:23.380Z",
+        "source_url": "https://www.mountainroserealty.co/blog/breaking-ground-four-seasons-telluride-secures-417m-for-landmark-resort-residences/",
+        "source_published": "2025-10-08",
+        "note": "$417M financing secured around Oct 2025 groundbreaking (CanAm, Hospitality Design); 52 hotel keys + 43 hotel residences + 26 private residences",
+        "type": "milestone",
+        "phase": "financing",
+        "effective_date": "2025-10"
       }
     ],
     "County": "San Miguel County",
