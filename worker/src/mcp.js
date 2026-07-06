@@ -21,6 +21,7 @@
 */
 
 import { isAuthorized } from './oauth.js';
+import { ONTOLOGY } from './ontology.js';
 import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
@@ -45,17 +46,15 @@ const DEFAULT_PROTOCOL = '2025-06-18';
 const PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
 const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 
-// Project lifecycle order — status only ever advances along this path. Used by
-// the construction-update automation (list_projects_due / update_project_status).
-// "coming-soon" sits just before "open" = under construction and opening within
-// ~6–7 months (TMW's definition of "soon"), NOT a pre-construction sales phase.
-const STATUS_ORDER = ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'];
+// Project lifecycle order + milestone phases — inherited from THE ONTOLOGY
+// (ontology.js, the single source for structural rules). "coming-soon" sits
+// just before "open" = under construction and opening within ~6–7 months
+// (TMW's definition of "soon"), NOT a pre-construction sales phase. A
+// hand-written copy of this order in a tool description once drifted from the
+// enforced order — never restate it; render from ONTOLOGY.
+const STATUS_ORDER = ONTOLOGY.statuses.order;
 function statusRank(s) { const i = STATUS_ORDER.indexOf(String(s || '').toLowerCase()); return i < 0 ? 0 : i; }
-// Finer construction-phase milestones — logged to status_history as dated,
-// sourced events (type:'milestone') that enrich the dossier WITHOUT changing the
-// coarse lifecycle `status`. (announced / breaking-ground / open are captured as
-// status transitions via new_status, so they're not repeated here.)
-const MILESTONE_PHASES = ['financing', 'going-vertical', 'halfway', 'topping-out', 'tenant', 'tco', 'move-in', 'bookings'];
+const MILESTONE_PHASES = ONTOLOGY.milestones.phases;
 
 // ── Tool catalog ────────────────────────────────────────────────────────────
 const TOOLS = [
@@ -714,7 +713,7 @@ const TOOLS = [
   },
   {
     name: 'update_project_status',
-    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is announced → coming-soon → breaking-ground → construction → open; status normally moves FORWARD only — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), keys (hotel rooms), and gfa_sqft (GROSS FLOOR AREA / total built sq ft — the "how big" number that powers biggest-projects ranking; capture a stated figure or estimate it) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update. IMPOSSIBLE DATES: when a recorded date is logically impossible for the project\'s own status/scale (e.g. a 47-story tower still pre-construction recorded as delivering next year, or a past construction-start on a project that has not broken ground), FIX it with date_correction:true — clear_start_date/clear_delivery_date to blank it, start_speculative/delivery_speculative (on their own) to flag an existing date as a TMW estimate, or a new start_date/delivery_date + *_speculative to replace it with a realistic estimate. With date_correction:true a `note` explaining WHY stands in for source_url (the project\'s own state is the proof). Use it only for logically-impossible dates, never to overwrite a plausible one without a source.',
+    description: 'Update a Map of Tomorrow project from a credible web source — advance its lifecycle status AND/OR update its construction-start / completion dates. Status order is ' + STATUS_ORDER.join(' → ') + ' (coming-soon = under construction and opening within ~6-7 months, NOT a pre-construction phase); status normally moves FORWARD only. When advancing status AND logging milestones across separate calls, set or re-assert the status LAST — a same-project milestone call can revert a just-applied advance — the ONE exception is correction:true, which walks an OVER-STATED status back when credible current sources show the recorded phase is wrong (e.g. wrongly marked under-construction but it has not broken ground → set new_status "announced" + correction:true). Dates can change in either direction (delays are common) and auto-apply when a source states a new one — even with NO status change (e.g. a project still "construction" whose opening slips a year). mode "apply" writes to the LIVE map (rebuilds within ~1h) and records the source in status_history (git history = audit trail). ALWAYS pass effective_date when a source states WHEN a milestone happened (e.g. "broke ground Sept 3 2025") — it dates the dossier timeline to the real event, not our discovery date. For FINER phases between the coarse statuses (financing/loan closed, going vertical, halfway, topped out, tenant announced, TCO, resident move-in, hotel bookings open) pass `milestone` (with effective_date + source_url) to log them to the dossier WITHOUT changing status. mode "propose" queues a STATUS change for one-tap human review (ambiguous/thin/multi-step) — dates always auto-apply regardless of mode. It also fills/corrects factual SPEC fields — units (residential count), floors (stories), keys (hotel rooms), and gfa_sqft (GROSS FLOOR AREA / total built sq ft — the "how big" number that powers biggest-projects ranking; capture a stated figure or estimate it) — which auto-apply like dates (many projects are missing these). Always pass source_url. Pass new_status only when the status actually advances; omit it for a date-only or spec-only update. IMPOSSIBLE DATES: when a recorded date is logically impossible for the project\'s own status/scale (e.g. a 47-story tower still pre-construction recorded as delivering next year, or a past construction-start on a project that has not broken ground), FIX it with date_correction:true — clear_start_date/clear_delivery_date to blank it, start_speculative/delivery_speculative (on their own) to flag an existing date as a TMW estimate, or a new start_date/delivery_date + *_speculative to replace it with a realistic estimate. With date_correction:true a `note` explaining WHY stands in for source_url (the project\'s own state is the proof). Use it only for logically-impossible dates, never to overwrite a plausible one without a source.',
     inputSchema: {
       type: 'object',
       properties: {

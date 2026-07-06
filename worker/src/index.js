@@ -1100,7 +1100,10 @@ async function handleDesignCaptions(req, env, origin) {
 // approved carousel headlines (fired when a design is pushed to Carousels or
 // downloaded). Extracts generalizable house-voice lessons and routes them into
 // the SHARED brain, so future caption ideas track the team's real taste.
-async function handleDesignLearn(req, env, origin) {
+// (Named *Final* to distinguish it from handleDesignLearn further down — the
+// /admin/design-learn diff-based learner comparing the AI original against the
+// human-edited doc; the two coexist and feed the same brain.)
+async function handleDesignFinalLearn(req, env, origin) {
   const src = String(req.headers.get('origin') || req.headers.get('referer') || '');
   if (src && !/(tmw-admin\.pages\.dev|oftmw\.com|localhost|127\.0\.0\.1)/.test(src)) return json({ error: 'forbidden' }, { status: 403 }, env, origin);
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
@@ -11075,7 +11078,7 @@ export default {
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-usage') return await handleIntelUsage(request, env, origin, url);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/map-usage') return await handleMapUsage(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/design/captions') return await handleDesignCaptions(request, env, origin);
-      if (request.method === 'POST' && url.pathname === '/design/learn') return await handleDesignLearn(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/design/learn') return await handleDesignFinalLearn(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }
