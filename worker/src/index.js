@@ -5847,7 +5847,10 @@ function rowToDesignSummary(r) {
   let doc = {};
   try { doc = JSON.parse(r.doc_json || '{}'); if (!doc || typeof doc !== 'object') doc = {}; } catch { doc = {}; }
   const slides = Array.isArray(doc.slides) ? doc.slides : [];
-  const cover = (slides.find(s => s && s.image) || {}).image || '';
+  // A slide's photo is an object { url, x, y, scale } (or image:null) — the cover
+  // is the first slide that actually has an image.url.
+  const withImg = slides.find(s => s && s.image && s.image.url);
+  const cover = withImg ? withImg.image.url : '';
   return {
     id: r.id,
     slug: r.slug,
