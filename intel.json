@@ -11713,57 +11713,21 @@
       "delivery_speculative": true
     },
     "miakka-golf-club": {
-      "estimate_years": 2.1,
-      "estimate_label": "~2.1 years",
-      "range_low": 1.0,
-      "range_high": 3.8,
-      "confidence": "low",
-      "comparable_count": 4,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.4,
-      "avg_distance_km": 155.6,
-      "avg_distance_mi": 96.7,
-      "scale_used": false,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.4,
+      "estimate_label": "~4 months",
+      "days_out": 132,
+      "delivery_date": "2026-11-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Golf",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "High Grove Golf Club",
-          "slug": "high-grove-golf-club",
-          "location": "Central Florida",
-          "years": 1.0,
-          "score": 0.4,
-          "distance_km": 86.6,
-          "distance_mi": 53.8
-        },
-        {
-          "name": "Apogee Golf Club",
-          "slug": "apogee-golf-club",
-          "location": "Hobe Sound",
-          "years": 1.2,
-          "score": 0.4,
-          "distance_km": 187.3,
-          "distance_mi": 116.4
-        },
-        {
-          "name": "Cabot Citrus Farms",
-          "slug": "cabot-citrus-farms",
-          "location": "Brooksville",
-          "years": 3.1,
-          "score": 0.4,
-          "distance_km": 151.6,
-          "distance_mi": 94.2
-        }
-      ],
-      "pattern_summary": "Among 4 regional golf projects in TMW's data, the median build time is 2.1 years (range 1–3.8).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~4 months based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "grand-hyatt-los-cabos-at-oleada": {
       "estimate_years": 0.4,
@@ -12544,13 +12508,13 @@
   "stats": {
     "high": 7,
     "medium": 22,
-    "low": 51,
-    "known_date": 425,
+    "low": 50,
+    "known_date": 426,
     "completed": 65,
     "skipped": 72,
     "no_type": 0,
     "firm_boosted": 34,
-    "speculative_softened": 144,
+    "speculative_softened": 145,
     "district": 11,
     "mixed_use_adjusted": 15
   }
