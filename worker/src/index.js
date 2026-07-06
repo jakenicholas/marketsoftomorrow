@@ -2238,6 +2238,181 @@ async function handleSearchGaps(env, origin, url) {
   return json({ items }, {}, env, origin);
 }
 
+// GET /intel-journeys — the connected "did it actually work?" feed for the
+// Studio Intelligence tab. For each recent search it assembles the full
+// lifecycle as an ordered list of steps, so an editor can expand one row and
+// watch the loop fire: searched -> answered (N hits) -> [if a miss/weak match:
+// flagged as a gap -> sent to project-discovery -> draft staged -> live in the
+// database]. Every step is DERIVED from existing events + the live project set;
+// this endpoint writes nothing.
+//   • searched/answered — intel_query|search events (results, top_score) plus the
+//     intel_answer digest (answer text + hit count) for the same query.
+//   • gap — results===0 (miss), or top_score below the match bar on a named query (weak).
+//   • discovery — a discovery_processed event for the query (routine ran): its
+//     `result` string + `drafts_created` slugs; none yet = still queued.
+//   • draft/live — a drafted slug present in the live projects-flat set = LIVE;
+//     absent = a pending draft awaiting human promotion.
+// Admin-gated via ADMIN_READ_PATHS.
+async function handleIntelJourneys(env, origin, url) {
+  const days = clampInt(url.searchParams.get('days'), 7, 1, 60);
+  const limit = clampInt(url.searchParams.get('limit'), 40, 1, 120);
+  const filter = String(url.searchParams.get('filter') || 'all');   // all | gaps
+  const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
+  const WEAK_SCORE = 24;
+  const nrm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const slugify = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const looksMalformed = q => /[a-z]{4,}[A-Z][a-z]/.test(String(q || ''));
+  const NAMED_STOP = new Set(['hotel','hotels','condo','condos','project','projects','development','developments','building','buildings','tower','towers','home','homes','house','houses','apartment','apartments','residence','residences','golf','museum','museums','restaurant','restaurants','airport','airports','resort','resorts','district','news','update','updates','map']);
+  const looksNamed = q => {
+    const s = nrm(q);
+    if (s.length < 4 || s.length > 80 || s.indexOf('?') >= 0) return false;
+    if (/^(what|why|how|when|where|who|which|whose|is|are|do|does|can|should|will)\b/.test(s)) return false;
+    const toks = s.split(/\s+/).filter(Boolean);
+    return toks.length >= 2 || (toks.length === 1 && !NAMED_STOP.has(toks[0]));
+  };
+
+  // 1) Recent searches, grouped by normalized query (latest occurrence wins).
+  let searchRows = [];
+  try {
+    const sr = await env.DB.prepare(
+      `SELECT ts, plan, props_json FROM events
+       WHERE event_name IN ('intel_query','search') AND ts >= ?
+       ORDER BY ts DESC LIMIT 800`
+    ).bind(sinceTs).all();
+    searchRows = sr.results || [];
+  } catch (e) {}
+  const byQ = new Map();
+  for (const r of searchRows) {
+    let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+    const q = String(p.q || p.search_term || '').trim();
+    if (!q || p.partner) continue;
+    if (looksMalformed(q)) continue;
+    const key = nrm(q); if (!key) continue;
+    let a = byQ.get(key);
+    if (!a) {
+      const loc = [p.city, p.regionCode || p.region].filter(Boolean).join(', ');
+      a = { query: q, key, last_ts: r.ts, count: 0, results: null, top_score: null, plan: r.plan || p.plan || null, location: loc || null };
+      byQ.set(key, a);
+    }
+    a.count++;
+    const res = (p.results != null && !isNaN(+p.results)) ? +p.results : null;
+    const tsc = (p.top_score != null && !isNaN(+p.top_score)) ? +p.top_score : null;
+    if (r.ts >= a.last_ts) { a.last_ts = r.ts; a.results = res; a.top_score = tsc; }   // latest state wins
+  }
+
+  // 2) Answers (text + hit count) by query — latest per query.
+  const ansByQ = new Map();
+  try {
+    const ar = await env.DB.prepare(
+      `SELECT props_json FROM events WHERE event_name='intel_answer' AND ts >= ? ORDER BY ts DESC`
+    ).bind(sinceTs).all();
+    for (const r of (ar.results || [])) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      const k = nrm(p.q); if (!k || ansByQ.has(k)) continue;
+      ansByQ.set(k, { answer: String(p.answer || '').slice(0, 600), count: (p.count != null ? +p.count : null) });
+    }
+  } catch (e) {}
+
+  // 3) Discovery-processed outcomes by query (the routine ran) — latest per query.
+  const procByQ = new Map();
+  try {
+    const pr = await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name='discovery_processed' ORDER BY ts DESC LIMIT 2000`
+    ).all();
+    for (const r of (pr.results || [])) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      const k = nrm(p.q); if (!k || procByQ.has(k)) continue;
+      procByQ.set(k, { ts: r.ts, result: String(p.result || '').slice(0, 300), drafts: Array.isArray(p.drafts_created) ? p.drafts_created.filter(Boolean) : [] });
+    }
+  } catch (e) {}
+
+  // 4) Live project set — to tell a promoted draft from a pending one.
+  let liveSlugs = new Set();
+  try {
+    const pf = await fetch('https://www.oftmw.com/map/projects-flat.json', { cf: { cacheTtl: 300 } });
+    if (pf.ok) {
+      const arr = await pf.json();
+      const rows = Array.isArray(arr) ? arr : (arr.projects || []);
+      for (const p of rows) {
+        if (p && p.slug) liveSlugs.add(nrm(p.slug));
+        if (p && p.Slug) liveSlugs.add(nrm(p.Slug));
+        if (p && p.Title) liveSlugs.add(slugify(p.Title));
+      }
+    }
+  } catch (e) {}
+  const isLive = slug => liveSlugs.has(nrm(slug)) || liveSlugs.has(slugify(slug));
+
+  const journeys = [];
+  byQ.forEach(function (a) {
+    const proc = procByQ.get(a.key) || null;
+    const ans = ansByQ.get(a.key) || null;
+    const hits = (a.results != null) ? a.results : (ans && ans.count != null ? ans.count : null);
+    const isMiss = (hits === 0);
+    const isWeak = !isMiss && (a.top_score != null && a.top_score < WEAK_SCORE) && looksNamed(a.query);
+    const isGap = isMiss || isWeak;
+
+    let drafts = [];
+    if (proc && proc.drafts.length) {
+      drafts = proc.drafts.map(function (d) {
+        const slug = (typeof d === 'string') ? d : (d && (d.slug || d.title) || '');
+        const title = (d && typeof d === 'object' && d.title) ? d.title : null;
+        return { slug: slug, title: title, live: isLive(slug) };
+      });
+    }
+    const anyLive = drafts.some(d => d.live);
+    const alreadyLive = !!(proc && /already in (the )?database|search.?index|relevance/i.test(proc.result || ''));
+
+    let stage;
+    if (!isGap) stage = 'resolved';
+    else if (anyLive) stage = 'live';
+    else if (drafts.length) stage = 'draft_ready';
+    else if (alreadyLive) stage = 'already_live';
+    else if (proc) stage = 'researched';       // routine ran, nothing staged
+    else stage = 'in_discovery';               // queued, awaiting the routine
+
+    const steps = [];
+    steps.push({ key: 'searched', state: 'done', label: 'Searched',
+      detail: (a.count > 1 ? (a.count + '× · ') : '') + (a.location || 'location unknown') + (a.plan ? (' · ' + a.plan) : '') });
+    steps.push({ key: 'answered', state: 'done', ok: !isGap,
+      label: (hits == null ? 'Answered' : (hits + ' hit' + (hits === 1 ? '' : 's'))),
+      detail: isWeak ? ('returned results but weak match (relevance ' + a.top_score + ')') : (isMiss ? 'nothing in the database' : 'answered from the database') });
+    if (isGap) {
+      steps.push({ key: 'gap', state: 'done', label: 'Flagged as a gap',
+        detail: isMiss ? '0 hits — a coverage gap' : 'weak match — likely missing the exact project' });
+      if (alreadyLive) {
+        steps.push({ key: 'discovery', state: 'done', ok: false, label: 'Discovery checked',
+          detail: proc.result || 'Already in the database — a search-relevance issue, not a coverage gap.' });
+      } else {
+        steps.push({ key: 'discovery', state: proc ? 'done' : 'active',
+          label: proc ? 'Researched by discovery' : 'Sent to project-discovery',
+          detail: proc ? (proc.result || 'Researched.') : 'Queued — the discovery routine runs 9am & 9pm.' });
+        if (drafts.length) {
+          steps.push({ key: 'draft', state: 'done', label: 'Draft staged',
+            detail: drafts.map(d => (d.title || d.slug)).join(', ') + ' — in the Drafts tab for review', drafts: drafts });
+          steps.push({ key: 'live', state: anyLive ? 'done' : 'pending',
+            label: anyLive ? 'Live in the database' : 'Awaiting promotion',
+            detail: anyLive ? 'Promoted to the live map — re-run the search to confirm.' : 'Approve it in the map admin Drafts tab to go live.' });
+        } else if (proc) {
+          steps.push({ key: 'draft', state: 'pending', label: 'No candidate staged',
+            detail: 'Discovery found nothing on-brand to add (or flagged it for a human).' });
+        }
+      }
+    }
+
+    if (filter === 'gaps' && !isGap) return;
+    journeys.push({
+      query: a.query, last_ts: a.last_ts, count: a.count, plan: a.plan, location: a.location,
+      hits: hits, top_score: a.top_score, kind: isMiss ? 'miss' : (isWeak ? 'weak' : 'hit'),
+      answer: ans ? ans.answer : null, stage: stage, steps: steps, drafts: drafts,
+    });
+  });
+
+  journeys.sort((x, y) => (y.last_ts || 0) - (x.last_ts || 0));
+  const summary = { resolved: 0, in_discovery: 0, researched: 0, draft_ready: 0, live: 0, already_live: 0 };
+  journeys.forEach(j => { if (summary[j.stage] != null) summary[j.stage]++; });
+  return json({ journeys: journeys.slice(0, limit), total: journeys.length, summary, days }, {}, env, origin);
+}
+
 // GET /search-feedback — rolls up the thumbs up/down votes the lightbox
 // overlay collects (event_name = 'search_feedback'). Returns three things
 // the admin tile needs:
@@ -11142,6 +11317,7 @@ export default {
         '/intel-selftest',
         '/funnel-stats',
         '/intel-answers', '/intel-rules', '/intel-exemplars',
+        '/intel-journeys',
       ]);
       if (request.method === 'GET' && ADMIN_READ_PATHS.has(url.pathname)) {
         const denied = await requireAdminToken(request, env, origin);
@@ -11273,6 +11449,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/journal-event-trend') {
         return await handleJournalEventTrend(env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/intel-journeys') {
+        return await handleIntelJourneys(env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/search-gaps') {
         return await handleSearchGaps(env, origin, url);
