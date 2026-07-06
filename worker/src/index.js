@@ -10956,17 +10956,21 @@ async function handleAdminGiveawaySave(request, env, origin) {
   const image = String((b && b.image) || '').trim().slice(0, 600);
   const status = ((b && b.status) === 'archived') ? 'archived' : 'active';
   const sort = Number.isFinite(+(b && b.sort)) ? Math.round(+b.sort) : 0;
+  const type = ((b && b.type) === 'deal') ? 'deal' : 'giveaway';
+  const redirect_url = String((b && b.redirect_url) || '').trim().slice(0, 600);
+  const button_text = String((b && b.button_text) || '').trim().slice(0, 60);
+  if (type === 'deal' && !redirect_url) return json({ error: 'a deal needs a redirect URL' }, { status: 400 }, env, origin);
   const now = Math.floor(Date.now() / 1000);
   try {
     await ensureGiveawayTables(env);
     let id = String((b && b.id) || '').slice(0, 120);
     if (id) {
-      await env.DB.prepare(`UPDATE giveaways SET title=?, prize=?, sponsor=?, image=?, status=?, sort=?, updated_at=? WHERE id=?`)
-        .bind(title, prize, sponsor, image, status, sort, now, id).run();
+      await env.DB.prepare(`UPDATE giveaways SET title=?, prize=?, sponsor=?, image=?, status=?, sort=?, type=?, redirect_url=?, button_text=?, updated_at=? WHERE id=?`)
+        .bind(title, prize, sponsor, image, status, sort, type, redirect_url, button_text, now, id).run();
     } else {
       id = 'gv-' + crypto.randomUUID();
-      await env.DB.prepare(`INSERT INTO giveaways (id,title,prize,sponsor,image,status,sort,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)`)
-        .bind(id, title, prize, sponsor, image, status, sort, now, now).run();
+      await env.DB.prepare(`INSERT INTO giveaways (id,title,prize,sponsor,image,status,sort,type,redirect_url,button_text,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, title, prize, sponsor, image, status, sort, type, redirect_url, button_text, now, now).run();
     }
     return json({ ok: true, id }, {}, env, origin);
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
@@ -10984,6 +10988,28 @@ async function handleAdminGiveawayEntries(env, origin, id) {
     await ensureGiveawayTables(env);
     const rs = await env.DB.prepare(`SELECT email, name, member_id, created_at FROM giveaway_entries WHERE giveaway_id = ? ORDER BY created_at DESC LIMIT 5000`).bind(id).all();
     return json({ entries: rs.results || [] }, {}, env, origin);
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+}
+async function handleAdminGiveawayStats(env, origin, id) {
+  try {
+    await ensureGiveawayTables(env);
+    const one = async (evt) => {
+      try {
+        const r = await env.DB.prepare(
+          `SELECT COUNT(*) AS n FROM events WHERE event_name = ? AND json_extract(props_json,'$.giveaway_id') = ?`
+        ).bind(evt, id).first();
+        return (r && +r.n) || 0;
+      } catch (_) { return 0; }
+    };
+    const views = await one('giveaway_view');
+    const clicks = await one('giveaway_click');
+    let enters = 0;
+    try {
+      const e = await env.DB.prepare(`SELECT COUNT(*) AS n FROM giveaway_entries WHERE giveaway_id = ?`).bind(id).first();
+      enters = (e && +e.n) || 0;
+    } catch (_) {}
+    const ctr = views > 0 ? Math.round((clicks / views) * 1000) / 10 : 0;
+    return json({ id, views, clicks, enters, ctr }, {}, env, origin);
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 
@@ -11250,12 +11276,13 @@ export default {
         if (request.method === 'POST') return await handleAdminGiveawaySave(request, env, origin);
       }
       {
-        const gm = url.pathname.match(/^\/admin\/giveaways\/([^/]+)(\/entries)?$/);
+        const gm = url.pathname.match(/^\/admin\/giveaways\/([^/]+)(\/entries|\/stats)?$/);
         if (gm) {
           const denied = await requireAdminToken(request, env, origin);
           if (denied) return denied;
-          if (gm[2] && request.method === 'GET')    return await handleAdminGiveawayEntries(env, origin, decodeURIComponent(gm[1]));
-          if (!gm[2] && request.method === 'DELETE') return await handleAdminGiveawayDelete(env, origin, decodeURIComponent(gm[1]));
+          if (gm[2] === '/stats' && request.method === 'GET')   return await handleAdminGiveawayStats(env, origin, decodeURIComponent(gm[1]));
+          if (gm[2] === '/entries' && request.method === 'GET') return await handleAdminGiveawayEntries(env, origin, decodeURIComponent(gm[1]));
+          if (!gm[2] && request.method === 'DELETE')            return await handleAdminGiveawayDelete(env, origin, decodeURIComponent(gm[1]));
         }
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
