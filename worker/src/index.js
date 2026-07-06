@@ -5838,6 +5838,28 @@ function rowToDesign(r) {
   };
 }
 
+// Lightweight list row for the design gallery: the first slide's image as the
+// cover thumbnail + a slide count, WITHOUT shipping the whole doc_json (which is
+// heavy across 100 designs). Keeps slug/title so the editor's project dropdown
+// still works off the same endpoint.
+function rowToDesignSummary(r) {
+  if (!r) return null;
+  let doc = {};
+  try { doc = JSON.parse(r.doc_json || '{}'); if (!doc || typeof doc !== 'object') doc = {}; } catch { doc = {}; }
+  const slides = Array.isArray(doc.slides) ? doc.slides : [];
+  const cover = (slides.find(s => s && s.image) || {}).image || '';
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title || 'Untitled design',
+    status: r.status || 'draft',
+    market: doc.market || '',
+    cover,
+    slides: slides.length,
+    updated_at: r.updated_at,
+  };
+}
+
 export async function ensureUniqueDesignSlug(env, base, ignoreId) {
   let slug = (slugify(base || 'design') || 'design').slice(0, 100);
   let n = 0;
@@ -5861,7 +5883,10 @@ async function handleDesignsList(req, env, origin, url) {
     ? env.DB.prepare(`SELECT * FROM designs WHERE status = ?1 ORDER BY updated_at DESC LIMIT ?2`).bind(status, limit)
     : env.DB.prepare(`SELECT * FROM designs ORDER BY updated_at DESC LIMIT ?1`).bind(limit);
   const { results } = await stmt.all();
-  return json({ items: (results || []).map(rowToDesign), count: (results || []).length }, {}, env, origin);
+  // Lightweight summaries (cover thumbnail + counts, no full doc_json) so the
+  // gallery + dropdown load fast. A single design's full doc still comes from
+  // GET /designs/by-slug/<slug>.
+  return json({ items: (results || []).map(rowToDesignSummary), count: (results || []).length }, {}, env, origin);
 }
 
 async function handleDesignsCreate(req, env, origin) {
