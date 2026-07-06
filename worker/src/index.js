@@ -2450,8 +2450,8 @@ async function handleIntelJourneyAction(req, env, origin) {
       return json({ ok: true, action, message: 'Ignored — removed from the feed and won’t queue for discovery.' }, {}, env, origin);
     }
     await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-      .bind(now, 'system:intel-feed', 'search_feedback',
-            JSON.stringify({ q: query, rating: 'down', results: 0, result_kind: 'empty', priority: true, editor_note: note || ('Add on-brand projects for “' + query + '”.') })).run();
+      .bind(now, 'system:intel-feed', 'discovery_request',
+            JSON.stringify({ q: query, note: note || ('Add on-brand projects for “' + query + '”.') })).run();
     return json({ ok: true, action, message: 'Queued for project-discovery — it runs 9am & 9pm and will research this next.' }, {}, env, origin);
   } catch (e) {
     return json({ error: 'write failed: ' + e.message }, { status: 500 }, env, origin);
@@ -2747,6 +2747,25 @@ async function handleDiscoveryQueue(env, origin, url) {
       for (const e of rep) { if (e && (e.n === 0 || e.n === '0')) _autoAdd(e.q, st.ts, 'daily_audit'); }
     }
   } catch (e) { /* tolerate */ }
+  // (4) editor_request — an explicit "Send to discovery" from the Studio Live
+  // Feed (e.g. "add 5 more projects in Nashville"). Highest-priority lane: it
+  // BYPASSES the processed filter (asking again means "add MORE, even though
+  // we've run this query before") and always qualifies. The note is the brief.
+  try {
+    const er = await env.DB.prepare(
+      `SELECT ts, props_json FROM events WHERE event_name='discovery_request' AND ts >= ? ORDER BY ts DESC`
+    ).bind(sinceTs).all();
+    for (const r of (er.results || [])) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      const q = String(p.q || '').trim(); if (!q || q.length < 4 || q.length > 160) continue;
+      const key = q.toLowerCase();
+      let a = byQuery.get(key);
+      if (!a) { a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, searches: 0, weak: 0, weak_results: 0, weak_score: null, fromAudit: false, requested: false, source: 'editor_request' }; byQuery.set(key, a); }
+      a.requested = true;
+      if (p.note && !a.editor_note) a.editor_note = String(p.note).slice(0, 300);
+      if (r.ts > a.last_ts) a.last_ts = r.ts;
+    }
+  } catch (e) { /* tolerate */ }
 
   // Discovery candidates: at least one thumbs-down AND avg results == 0
   // OR dominant kind == 'empty'. Same heuristic as the rollup endpoint's
@@ -2768,25 +2787,32 @@ async function handleDiscoveryQueue(env, origin, url) {
     const zeroQualifies = a.down >= 1 || a.fromAudit || (a.searches || 0) >= 2 || (named && (a.searches || 0) >= 1);
     const needsZero = zeroQualifies && (avg === 0 || dom === 'empty');
     const weakQualifies = (a.weak || 0) >= 1 && named;
-    const needs = needsZero || weakQualifies;
+    const needs = a.requested || needsZero || weakQualifies;   // an explicit editor request always qualifies
     if (!needs) return;
-    const isWeak = !needsZero && weakQualifies;   // weak-only signal (returned junk, not nothing)
-    // Hint: a plain-English brief the discovery routine drops into its prompt.
-    // Names the signal source so the LLM has context without re-deriving it.
-    const who = a.down >= 1 ? 'A reader flagged'
-      : a.fromAudit ? 'The daily search audit ran'
-      : 'Readers searched';
-    const outcome = isWeak
-      ? ('returned ' + (a.weak_results || 'a few') + ' result' + (a.weak_results === 1 ? '' : 's')
-         + ' but none actually matched (top relevance ' + (a.weak_score != null ? a.weak_score : ('<' + WEAK_SCORE))
-         + ', under the ' + WEAK_SCORE + ' match bar) — tangential rows, not the project searched for')
-      : (avg === 0 ? 'returned zero results' : ('returned only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')));
-    const hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
-      + who + ' "' + a.query + '" and the database ' + outcome
-      + (a.auto > 1 ? (' (' + a.auto + '×)') : '')
-      + '. ' + (a.editor_note ? 'Act on the editor request above. ' : '')
-      + 'First confirm the gap is real: search_projects on the place + type — a live match means a SEARCH-INDEX/relevance bug to report (create nothing), not missing coverage. '
-      + 'Otherwise identify the place + project type and research on-brand candidate projects to stage there as map drafts.';
+    const isWeak = !a.requested && !needsZero && weakQualifies;   // weak-only signal (returned junk, not nothing)
+    let hint, source;
+    if (a.requested) {
+      source = 'editor_request';
+      hint = 'EDITOR REQUEST: ' + (a.editor_note || ('Add on-brand projects for "' + a.query + '".'))
+        + ' Act on this directly: identify the place + project type from the request, check what is already in the database (search_projects), then research and stage NEW on-brand candidates as map drafts — the editor wants MORE coverage here, so add net-new projects even if some already exist.';
+    } else {
+      // Hint: a plain-English brief the discovery routine drops into its prompt.
+      const who = a.down >= 1 ? 'A reader flagged'
+        : a.fromAudit ? 'The daily search audit ran'
+        : 'Readers searched';
+      const outcome = isWeak
+        ? ('returned ' + (a.weak_results || 'a few') + ' result' + (a.weak_results === 1 ? '' : 's')
+           + ' but none actually matched (top relevance ' + (a.weak_score != null ? a.weak_score : ('<' + WEAK_SCORE))
+           + ', under the ' + WEAK_SCORE + ' match bar) — tangential rows, not the project searched for')
+        : (avg === 0 ? 'returned zero results' : ('returned only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')));
+      hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
+        + who + ' "' + a.query + '" and the database ' + outcome
+        + (a.auto > 1 ? (' (' + a.auto + '×)') : '')
+        + '. ' + (a.editor_note ? 'Act on the editor request above. ' : '')
+        + 'First confirm the gap is real: search_projects on the place + type — a live match means a SEARCH-INDEX/relevance bug to report (create nothing), not missing coverage. '
+        + 'Otherwise identify the place + project type and research on-brand candidate projects to stage there as map drafts.';
+      source = (a.down >= 1 ? 'reader_flag' : a.fromAudit ? 'daily_audit' : isWeak ? 'reader_weak' : 'reader_search');
+    }
     items.push({
       query: a.query,
       up: a.up,
@@ -2794,12 +2820,15 @@ async function handleDiscoveryQueue(env, origin, url) {
       last_ts: a.last_ts,
       avg_results: isWeak ? (a.weak_results || 0) : avg,
       dominant_kind: dom,
-      source: (a.down >= 1 ? 'reader_flag' : a.fromAudit ? 'daily_audit' : isWeak ? 'reader_weak' : 'reader_search'),
+      source: source,
+      requested: !!a.requested,
       hint: hint,
     });
   });
-  // Strongest signal first: human down-votes, then most-recent.
+  // Strongest signal first: explicit editor requests, then human down-votes,
+  // then most-recent.
   items.sort(function (a, b) {
+    if (!!b.requested !== !!a.requested) return (b.requested ? 1 : 0) - (a.requested ? 1 : 0);
     if ((b.down || 0) !== (a.down || 0)) return (b.down || 0) - (a.down || 0);
     return (b.last_ts || 0) - (a.last_ts || 0);
   });
