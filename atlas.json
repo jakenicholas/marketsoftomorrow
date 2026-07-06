@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 336
+      "count": 337
     },
     {
       "type": "Hotel",
@@ -15,7 +15,7 @@
     },
     {
       "type": "Entertainment",
-      "count": 33
+      "count": 32
     },
     {
       "type": "Office",
@@ -42,12 +42,12 @@
       "count": 8
     },
     {
-      "type": "Retail",
+      "type": "Park",
       "count": 7
     },
     {
-      "type": "Park",
-      "count": 6
+      "type": "Retail",
+      "count": 7
     },
     {
       "type": "Cultural",
@@ -494,7 +494,7 @@
       "yr": 2028,
       "sm": "2025-10",
       "ci": "Nashville",
-      "u": 388,
+      "u": 92,
       "k": 78,
       "fl": 8,
       "dv": [
@@ -1093,7 +1093,7 @@
       "yr": 2027,
       "sm": "2026-08",
       "ci": "Chicago",
-      "u": 149,
+      "u": 180,
       "k": 0,
       "fl": 33,
       "dv": [
@@ -2612,7 +2612,7 @@
     },
     {
       "st": "FL",
-      "ty": "Entertainment",
+      "ty": "Park",
       "sl": "Construction",
       "yr": 2027,
       "sm": "2025-05",
@@ -2986,7 +2986,7 @@
     },
     {
       "st": "FL",
-      "ty": "Office",
+      "ty": "Residences",
       "sl": "Announced",
       "yr": 2027,
       "sm": null,
@@ -3035,12 +3035,12 @@
       ]
     },
     {
-      "st": "FL",
+      "st": "Other",
       "ty": "Entertainment",
       "sl": "Announced",
       "yr": 2027,
       "sm": null,
-      "ci": "Orlando",
+      "ci": "Ocoee",
       "u": 0,
       "k": 0,
       "fl": 0,
@@ -8288,7 +8288,7 @@
       "yr": 2032,
       "sm": "2021-10",
       "ci": "Chicago",
-      "u": 3300,
+      "u": 3737,
       "k": 0,
       "fl": 0,
       "dv": [
@@ -9821,7 +9821,7 @@
     {
       "st": "Other",
       "ty": "Stadium",
-      "sl": "Announced",
+      "sl": "Breaking Ground",
       "yr": 2032,
       "sm": null,
       "ci": "Milan",
@@ -10663,7 +10663,7 @@
     {
       "st": "FL",
       "ty": "Retail",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2027,
       "sm": "2026-12",
       "ci": "Miami Beach",
@@ -16965,7 +16965,7 @@
     },
     {
       "st": "FL",
-      "ty": "Residences",
+      "ty": "",
       "sl": "Announced",
       "yr": 2029,
       "sm": "2027-12",
@@ -17650,14 +17650,14 @@
     },
     {
       "st": "NY",
-      "ty": "Residences",
+      "ty": "Office",
       "sl": "Construction",
       "yr": 2029,
       "sm": "2026-12",
       "ci": "New York",
       "u": 101,
       "k": 0,
-      "fl": 66,
+      "fl": 52,
       "dv": [
         [
           "Related Companies",
@@ -17810,19 +17810,64 @@
           "mhk-architecture"
         ]
       ]
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": null,
+      "ci": "Park City",
+      "u": 49,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Aspen Group",
+          "aspen-group"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "FL",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2028,
+      "sm": null,
+      "ci": "Miami",
+      "u": 32,
+      "k": 0,
+      "fl": 10,
+      "dv": [
+        [
+          "Growin Group",
+          "growin-group"
+        ],
+        [
+          "Property Pro Partners",
+          "property-pro-partners"
+        ]
+      ],
+      "ar": [
+        [
+          "Gaviria Architects",
+          "gaviria-architects"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 700,
+    "total_projects": 702,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 263,
+    "under_construction": 264,
     "opening_this_year": 98
   },
   "scale": {
-    "units": 256796,
+    "units": 257049,
     "keys": 47635,
-    "floors": 10637
+    "floors": 10633
   },
   "leaderboards": {
     "developers": [
@@ -18229,7 +18274,8 @@
         "sub": "Miami",
         "count": 8,
         "states": [
-          "FL"
+          "FL",
+          "Other"
         ]
       },
       {
@@ -18425,8 +18471,8 @@
     "cities": [
       {
         "name": "Miami",
-        "sub": "89 developments \u00b7 115 developers",
-        "count": 89,
+        "sub": "90 developments \u00b7 116 developers",
+        "count": 90,
         "states": [
           "FL"
         ]
@@ -18592,14 +18638,6 @@
         ]
       },
       {
-        "name": "Orlando",
-        "sub": "6 developments \u00b7 8 developers",
-        "count": 6,
-        "states": [
-          "FL"
-        ]
-      },
-      {
         "name": "Wellington",
         "sub": "6 developments \u00b7 7 developers",
         "count": 6,
@@ -18648,19 +18686,27 @@
         ]
       },
       {
+        "name": "Orlando",
+        "sub": "5 developments \u00b7 6 developers",
+        "count": 5,
+        "states": [
+          "FL"
+        ]
+      },
+      {
+        "name": "Park City",
+        "sub": "5 developments \u00b7 4 developers",
+        "count": 5,
+        "states": [
+          "Other"
+        ]
+      },
+      {
         "name": "Houston",
         "sub": "5 developments \u00b7 6 developers",
         "count": 5,
         "states": [
           "TX"
-        ]
-      },
-      {
-        "name": "Honolulu",
-        "sub": "5 developments \u00b7 9 developers",
-        "count": 5,
-        "states": [
-          "Other"
         ]
       }
     ],
@@ -18668,7 +18714,7 @@
       {
         "name": "Residences",
         "sub": "48% of pipeline",
-        "count": 336,
+        "count": 337,
         "states": [
           "FL",
           "Other",
@@ -18714,7 +18760,7 @@
       {
         "name": "Entertainment",
         "sub": "5% of pipeline",
-        "count": 33,
+        "count": 32,
         "states": [
           "FL",
           "Other",
@@ -18794,21 +18840,21 @@
         ]
       },
       {
+        "name": "Park",
+        "sub": "1% of pipeline",
+        "count": 7,
+        "states": [
+          "FL",
+          "Other"
+        ]
+      },
+      {
         "name": "Retail",
         "sub": "1% of pipeline",
         "count": 7,
         "states": [
           "FL",
           "FR",
-          "Other"
-        ]
-      },
-      {
-        "name": "Park",
-        "sub": "1% of pipeline",
-        "count": 6,
-        "states": [
-          "FL",
           "Other"
         ]
       },
@@ -19104,8 +19150,8 @@
           ]
         },
         {
-          "name": "CMC Group",
-          "slug": "cmc-group",
+          "name": "Growin Group",
+          "slug": "growin-group",
           "sub": "Miami",
           "count": 2,
           "states": [
@@ -19113,13 +19159,12 @@
           ]
         },
         {
-          "name": "Fort Partners",
-          "slug": "fort-partners",
+          "name": "CMC Group",
+          "slug": "cmc-group",
           "sub": "Miami",
           "count": 2,
           "states": [
-            "FL",
-            "Other"
+            "FL"
           ]
         }
       ],
@@ -19153,15 +19198,6 @@
           ]
         },
         {
-          "name": "Behar Font & Partners",
-          "slug": "behar-font-partners",
-          "sub": "Miami",
-          "count": 8,
-          "states": [
-            "FL"
-          ]
-        },
-        {
           "name": "REG Architects",
           "slug": "reg-architects",
           "sub": "West Palm Beach",
@@ -19186,6 +19222,16 @@
           "count": 7,
           "states": [
             "FL"
+          ]
+        },
+        {
+          "name": "Behar Font & Partners",
+          "slug": "behar-font-partners",
+          "sub": "Miami",
+          "count": 7,
+          "states": [
+            "FL",
+            "Other"
           ]
         },
         {
@@ -19401,18 +19447,18 @@
           ]
         },
         {
-          "name": "Susurrus",
-          "slug": "susurrus",
-          "sub": "Palm Beach Gardens",
+          "name": "Gaviria Architects",
+          "slug": "gaviria-architects",
+          "sub": "Miami",
           "count": 2,
           "states": [
             "FL"
           ]
         },
         {
-          "name": "MSA Architects",
-          "slug": "msa-architects",
-          "sub": "Boynton Beach",
+          "name": "Susurrus",
+          "slug": "susurrus",
+          "sub": "Palm Beach Gardens",
           "count": 2,
           "states": [
             "FL"
@@ -19422,8 +19468,8 @@
       "cities": [
         {
           "name": "Miami",
-          "sub": "89 developments \u00b7 115 developers",
-          "count": 89,
+          "sub": "90 developments \u00b7 116 developers",
+          "count": 90,
           "states": [
             "FL"
           ]
@@ -19509,14 +19555,6 @@
           ]
         },
         {
-          "name": "Orlando",
-          "sub": "6 developments \u00b7 8 developers",
-          "count": 6,
-          "states": [
-            "FL"
-          ]
-        },
-        {
           "name": "Wellington",
           "sub": "6 developments \u00b7 7 developers",
           "count": 6,
@@ -19527,6 +19565,14 @@
         {
           "name": "St. Petersburg",
           "sub": "5 developments \u00b7 10 developers",
+          "count": 5,
+          "states": [
+            "FL"
+          ]
+        },
+        {
+          "name": "Orlando",
+          "sub": "5 developments \u00b7 6 developers",
           "count": 5,
           "states": [
             "FL"
@@ -19664,8 +19710,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "68% of pipeline",
-          "count": 223,
+          "sub": "69% of pipeline",
+          "count": 224,
           "states": [
             "FL",
             "Other",
@@ -19681,7 +19727,7 @@
         {
           "name": "Entertainment",
           "sub": "6% of pipeline",
-          "count": 21,
+          "count": 19,
           "states": [
             "FL",
             "Other",
@@ -19723,7 +19769,7 @@
         {
           "name": "Office",
           "sub": "4% of pipeline",
-          "count": 14,
+          "count": 13,
           "states": [
             "FL",
             "NY",
@@ -19743,6 +19789,15 @@
           ]
         },
         {
+          "name": "Park",
+          "sub": "2% of pipeline",
+          "count": 6,
+          "states": [
+            "FL",
+            "Other"
+          ]
+        },
+        {
           "name": "Golf",
           "sub": "2% of pipeline",
           "count": 5,
@@ -19752,15 +19807,6 @@
             "TN",
             "SC",
             "TX"
-          ]
-        },
-        {
-          "name": "Park",
-          "sub": "2% of pipeline",
-          "count": 5,
-          "states": [
-            "FL",
-            "Other"
           ]
         },
         {
@@ -20449,8 +20495,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "64% of pipeline",
-          "count": 23,
+          "sub": "61% of pipeline",
+          "count": 22,
           "states": [
             "FL",
             "Other",
@@ -20465,8 +20511,8 @@
         },
         {
           "name": "Office",
-          "sub": "17% of pipeline",
-          "count": 6,
+          "sub": "19% of pipeline",
+          "count": 7,
           "states": [
             "FL",
             "NY",
@@ -23311,9 +23357,9 @@
         "under_construction": 118
       },
       "scale": {
-        "units": 79805,
+        "units": 79837,
         "keys": 11209,
-        "floors": 5909
+        "floors": 5919
       },
       "status_distribution": [
         {
@@ -23408,7 +23454,7 @@
       "scale": {
         "units": 9442,
         "keys": 666,
-        "floors": 1196
+        "floors": 1182
       },
       "status_distribution": [
         {
@@ -23501,7 +23547,7 @@
         "under_construction": 13
       },
       "scale": {
-        "units": 4212,
+        "units": 3916,
         "keys": 1991,
         "floors": 309
       },
@@ -24256,6 +24302,7 @@
     "Juno Beach": "Other",
     "Wellington": "FL",
     "Sarasota": "FL",
+    "Ocoee": "Other",
     "Hollywood": "FL",
     "Pompano Beach": "FL",
     "Hillsboro Beach": "Other",
@@ -24451,11 +24498,11 @@
     },
     {
       "label": "Breaking Ground",
-      "count": 29
+      "count": 30
     },
     {
       "label": "Construction",
-      "count": 263
+      "count": 264
     },
     {
       "label": "Opening Soon",
@@ -24535,11 +24582,11 @@
     },
     {
       "year": 2027,
-      "count": 143
+      "count": 144
     },
     {
       "year": 2028,
-      "count": 129
+      "count": 130
     },
     {
       "year": 2029,
@@ -24603,6 +24650,16 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260706T1816-3",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 3 more projects",
+      "city": "Foundry Park, Sommet Blanc +1 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/chicago/lincoln-yards.jpg",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-07-06T18:16:43.080409+00:00"
+    },
     {
       "id": "ms-colette-residences-by-meta-development-financing-2026-07-06",
       "type": "status_change",
@@ -25282,20 +25339,6 @@
       "source_url": "https://therealdeal.com/miami/2026/04/23/sales-start-for-fouquets-managed-design-district-condos/",
       "link": "https://www.oftmw.com/map/?project=fouquetshotelandresidencesmiamidesigndistrict",
       "timestamp": "2026-07-03T23:04:43.642Z"
-    },
-    {
-      "id": "ms-566-west-van-buren-going-vertical-2026-07-03",
-      "type": "status_change",
-      "tag": "Going vertical",
-      "title": "566 West Van Buren  Going vertical",
-      "project_slug": "566-west-van-buren",
-      "project_title": "566 West Van Buren",
-      "city": "Chicago",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/chicago/566-west-van-buren.jpeg",
-      "event_date": "2026-06",
-      "source_url": "https://chicagoyimby.com/2026/06/with-caissons-foundation-complete-566-west-van-buren-plants-its-tower-crane.html",
-      "link": "https://www.oftmw.com/map/?project=566westvanburen",
-      "timestamp": "2026-07-03T22:41:00.313Z"
     }
   ],
   "most_covered": [
@@ -25304,7 +25347,7 @@
       "title": "The Modern",
       "city": "Palm Beach Gardens",
       "count": 50,
-      "latest_date": "2026-07-06T16:17:33.000Z"
+      "latest_date": "2026-07-06T17:54:29.000Z"
     },
     {
       "slug": "the-sound",
