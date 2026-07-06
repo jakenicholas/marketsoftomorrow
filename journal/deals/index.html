@@ -44,7 +44,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .gv-img{width:100%;height:100%;object-fit:cover;display:block}
 .gv-prizebar{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a3708;background:linear-gradient(135deg,var(--gold-soft),var(--gold));padding:9px 18px;text-align:center;box-shadow:0 6px 18px rgba(230,197,116,.22)}
 .gv-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
-.gv-spon{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft)}
 .gv-title{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.2;color:#fff}
 .gv-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--mute);margin-top:2px}
 .gv-actions{margin-top:auto;padding-top:14px}
@@ -173,7 +172,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       + '<div class="gv-imgwrap">'+img+'</div>'
       + '<div class="gv-prizebar">'+esc(g.prize||'Prize')+'</div>'
       + '<div class="gv-body">'
-      +   '<div class="gv-spon">'+esc(g.sponsor||'')+'</div>'
       +   '<div class="gv-title">'+esc(g.title)+'</div>'
       +   '<div class="gv-meta">'+esc(count)+'</div>'
       +   '<div class="gv-actions">'
