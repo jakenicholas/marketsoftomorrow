@@ -1294,6 +1294,20 @@
       if (statusLabels.indexOf('In the pipeline') < 0) statusLabels.push('In the pipeline');
     }
 
+    // "coming soon" = the full forward FLOW, not a 2-status snapshot. A "…soon"
+    // forward query (rolling) routes to the whole development pipeline instead of
+    // the narrow {Opening Soon, Now Open} + next-12-months window. rankByStatus
+    // already orders it exactly as intended: Opening Soon → recently opened (≤6mo)
+    // → Under Construction → Breaking Ground → Announced (long-open dropped by the
+    // pipeline flag). So "supertall towers coming soon" shows every coming supertall,
+    // not just the two opening this year.
+    if (rolling) {
+      statuses.clear(); statusLabels.length = 0;
+      rolling = false; rollMin = null; rollMax = null;
+      pipeline = true;
+      statusLabels.push('In the pipeline');
+    }
+
     // ICONIC LISTS. A curation ask ("best hotels", "good golf in california",
     // "iconic restaurants in miami") should surface our editorial iconic list
     // for that category, place-filtered. Fires on a quality cue + a category

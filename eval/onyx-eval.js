@@ -138,6 +138,16 @@ function main() {
     const leaked = rows.filter((p) => Core.floorsOf(p) < 70);
     t.eq(leaked.length, 0, 'every supertall result has recorded 70+ floors (' + rows.length + ' rows)');
   });
+  run('pipeline: "coming soon" broadens to the full forward flow (not a 2-status snapshot)', (t) => {
+    // "…soon" forward queries route to the whole pipeline (Opening Soon → recently
+    // opened → Under Construction → Breaking Ground → Announced), not just the two
+    // opening-soon supertalls, so the answer shows every coming supertall.
+    const s = Core.parseSmartQuery('supertall towers coming soon', opt);
+    t.ok(s && s.pipeline, 'routed to the forward pipeline');
+    t.eq(s && s.statuses ? s.statuses.size : 0, 0, 'no narrow status snapshot filter');
+    const rows = Core.smartFilter(s, PROJECTS);
+    t.gte(rows.length, 10, 'returns the full supertall pipeline, not just opening-soon (' + rows.length + ')');
+  });
   run('floors: high-rise smartFilter drops non-tower types w/ unknown floors', (t) => {
     const s = Core.parseSmartQuery('high rises in west palm beach', opt);
     const rows = Core.smartFilter(s, PROJECTS);
