@@ -1220,8 +1220,18 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         '</button>'
     )
 
-    # JSON-LD structured data
-    jsonld = json.dumps({
+    # JSON-LD structured data — Place with geo + every spec we actually hold
+    # (empty values are omitted, never emitted blank).
+    _ld_props = [(k, v) for k, v in [
+        ("Status", delivery),
+        ("Developer", developer),
+        ("Architect", architect),
+        ("Floors", (row.get('Floors', '') or '').strip()),
+        ("Residences", (row.get('Units', '') or '').strip()),
+        ("Hotel keys", (row.get('Keys', '') or '').strip()),
+        ("Expected completion", format_delivery_display(eff_delivery_date or delivery_date)),
+    ] if v]
+    _ld = {
         "@context": "https://schema.org",
         "@type": "Place",
         "name": title,
@@ -1230,11 +1240,12 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         "url": page_url,
         "address": { "@type": "PostalAddress", "addressLocality": city },
         "additionalProperty": [
-            {"@type": "PropertyValue", "name": "Status", "value": delivery},
-            {"@type": "PropertyValue", "name": "Developer", "value": developer},
-            {"@type": "PropertyValue", "name": "Architect", "value": architect},
-        ]
-    }, indent=2)
+            {"@type": "PropertyValue", "name": k, "value": v} for k, v in _ld_props
+        ],
+    }
+    if lat and lng:
+        _ld["geo"] = {"@type": "GeoCoordinates", "latitude": lat, "longitude": lng}
+    jsonld = json.dumps(_ld, indent=2)
 
     # ── Cinematic layout fragments ──────────────────────────────────────────
     # Status eyebrow (colored dot + raw status word, e.g. "Now Open").
@@ -1403,6 +1414,94 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     # never depends on a rolling feed window.
     dossier_html = dossier_section_html(row, articles)
 
+    # ── Quick answers (FAQ) ──────────────────────────────────────────────────
+    # Dossier/spec-derived Q&As targeting the questions people actually Google
+    # ("When does X open?", "Who is building X?"). STATUS-HONEST per the TMW
+    # ontology: announced = planned, never present-tense; TMW-estimated dates
+    # say so. A question only exists where the data does — nothing is invented.
+    # Rendered as a visible section AND mirrored as FAQPage JSON-LD.
+    faq_items = []
+    _faq_date_raw = eff_delivery_date or delivery_date
+    _faq_disp = format_delivery_display(_faq_date_raw)
+    # "on June 15, 2027" for a full date; "in June 2027" / "in 2027" otherwise.
+    _faq_prep = 'on' if (_faq_disp and ',' in _faq_disp) else 'in'
+    _faq_est = ' (a TMW estimate)' if (_delivery_spec and not is_district_view and _faq_disp) else ''
+    if city:
+        _a = f"{title} is located in {city}"
+        if parent_title:
+            _a += f", part of {parent_title}"
+        faq_items.append((f"Where is {title} located?", _a + "."))
+    _dstat = (delivery or '').strip().lower()
+    if _dstat == 'now open':
+        _a = f"{title} is now open"
+        if _faq_disp:
+            _a += f". It was completed {_faq_prep} {_faq_disp}"
+        faq_items.append((f"Is {title} open?", _a + "."))
+    elif _dstat == 'opening soon':
+        _a = f"{title} is opening soon"
+        if _faq_disp:
+            _a += f", with completion expected {_faq_prep} {_faq_disp}{_faq_est}"
+        faq_items.append((f"When will {title} open?", _a + "."))
+    elif _dstat == 'under construction':
+        _a = f"{title} is under construction"
+        if _faq_disp:
+            _a += f", with completion expected {_faq_prep} {_faq_disp}{_faq_est}"
+        faq_items.append((f"When will {title} be completed?", _a + "."))
+    elif _dstat == 'breaking ground':
+        _a = f"{title} is breaking ground"
+        if _faq_disp:
+            _a += f", with completion targeted {_faq_prep} {_faq_disp}{_faq_est}"
+        faq_items.append((f"When will {title} be completed?", _a + "."))
+    elif _dstat == 'announced':
+        _a = f"{title} is an announced development that has not yet started construction"
+        if _faq_disp:
+            _a += f", targeting completion {_faq_prep} {_faq_disp}{_faq_est}"
+        faq_items.append((f"When will {title} be built?", _a + "."))
+    if is_district_view and eff_component_count:
+        _a = (f"{title} is a phased, multi-component development with {eff_component_count} tracked "
+              f"component{'s' if eff_component_count != 1 else ''} delivering on a rolling schedule")
+        if _faq_disp:
+            _a += f". Full build-out is expected {_faq_prep} {_faq_disp}"
+        faq_items.append((f"How will {title} be built out?", _a + "."))
+    if developer:
+        faq_items.append((f"Who is developing {title}?", f"{developer} is the developer behind {title}."))
+    if architect:
+        faq_items.append((f"Who designed {title}?", f"{title} was designed by {architect}."))
+    _scale_bits = []
+    _floors = (row.get('Floors', '') or '').strip()
+    _units  = (row.get('Units', '') or '').strip()
+    _keys   = (row.get('Keys', '') or '').strip()
+    if _units: _scale_bits.append(f"{_units} residences")
+    if _keys:  _scale_bits.append(f"{_keys} hotel keys")
+    if _floors or _scale_bits:
+        _a = title
+        if _floors:
+            _a += f" rises {_floors} stories"
+            if _scale_bits:
+                _a += " with " + " and ".join(_scale_bits)
+        else:
+            _a += " features " + " and ".join(_scale_bits)
+        faq_items.append((f"How big is {title}?", _a + "."))
+    faq_section = ''
+    faq_jsonld_script = ''
+    if len(faq_items) >= 2:
+        faq_items = faq_items[:5]
+        _faq_rows = ''.join(
+            f'<details class="pp-faq-item"><summary>{_escape_text(q)}</summary>'
+            f'<p>{_escape_text(a)}</p></details>'
+            for q, a in faq_items)
+        faq_section = (f'<div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div>{_faq_rows}</div>')
+        _faq_ld = json.dumps({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": a}}
+                for q, a in faq_items
+            ],
+        }, indent=2)
+        faq_jsonld_script = f'<script type="application/ld+json">{_faq_ld}</script>'
+
     proj_type_sep = f' · {proj_type}' if proj_type else ''
 
     # Part-of-district chip — rendered in the hero just under the city line
@@ -1557,7 +1656,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
        survives Safari ITP (which purges localStorage). Must match the config
        the map + journal-auth already set, or the session splits and Safari
        Pro users get wrongly paywalled. -->
-  <script>window.memberstackConfig = window.memberstackConfig || { useCookies: true, setCookieOnRootDomain: true };</script>
+  <script>window.memberstackConfig = window.memberstackConfig || {{ useCookies: true, setCookieOnRootDomain: true }};</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
           type="text/javascript"></script>
@@ -1927,6 +2026,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
 
   <!-- JSON-LD -->
   <script type="application/ld+json">{jsonld}</script>
+  {faq_jsonld_script}
 
   <style>
     /* Design tokens the shared chrome (header/dock/auth) expects. */
@@ -2452,6 +2552,13 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     .pp-sec {{ margin-top: 30px; }}
     .pp-sec:first-child {{ margin-top: 0; }}
     .pp-sec-h {{ font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }}
+    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
+    .pp-faq-item {{ border-bottom: 1px solid var(--hair); }}
+    .pp-faq-item summary {{ cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }}
+    .pp-faq-item summary::-webkit-details-marker {{ display: none; }}
+    .pp-faq-item summary::after {{ content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }}
+    .pp-faq-item[open] summary::after {{ content: '\\2013'; }}
+    .pp-faq-item p {{ padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }}
     .pp-about {{ font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }}
     .pp-firms {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }}
     .pp-firms.pp-firms-stack {{ grid-template-columns: 1fr; }}
@@ -2585,6 +2692,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
       {updates_section_html}
       {family_section}
       {coverage_section_html(articles or [], title, image)}
+      {faq_section}
       {nearby_section}
     </div>
   </main>
