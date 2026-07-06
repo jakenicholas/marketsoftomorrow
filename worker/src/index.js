@@ -10930,9 +10930,12 @@ async function handleGiveawayTrack(request, env, origin) {
   const id = String((b && b.id) || '').slice(0, 120);
   const kind = (b && b.kind) === 'click' ? 'giveaway_click' : 'giveaway_view';
   if (!id) return json({ ok: false }, {}, env, origin);
+  // events.member_id is NOT NULL — deals tracking is anonymous, so stamp a
+  // sentinel (real member_id if the beacon carries one).
+  const member = String((b && b.member_id) || 'anon').slice(0, 120);
   try {
-    await env.DB.prepare(`INSERT INTO events (ts, event_name, path, props_json) VALUES (?,?,?,?)`)
-      .bind(Math.floor(Date.now() / 1000), kind, '/deals', JSON.stringify({ giveaway_id: id })).run();
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, path, props_json) VALUES (?,?,?,?,?)`)
+      .bind(Math.floor(Date.now() / 1000), member, kind, '/deals', JSON.stringify({ giveaway_id: id })).run();
   } catch (_) {}
   return json({ ok: true }, {}, env, origin);
 }
