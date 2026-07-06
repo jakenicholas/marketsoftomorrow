@@ -5434,19 +5434,25 @@ async function handleSocialInsightsPull(req, env, origin) {
   }
   return json({ ok: true, accounts, window: { days, since: new Date(since * 1000).toISOString().slice(0, 10), until: new Date(until * 1000).toISOString().slice(0, 10) }, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
-// Top Instagram POSTS across every brand: each account's recent media with
-// per-post insights (views / reach / total interactions / saves / shares —
-// likes + comments ride along on the media object for free), flattened and
-// ranked by views. Read-only and ephemeral — the accounts page renders the
-// leaderboard live; nothing is persisted. `per` bounds media per account
-// (default 12) to stay well inside the worker's subrequest budget:
-// 1 (me/accounts) + N accounts × (1 media list + `per` insight calls).
+// Top Instagram POSTS across every brand: recent media with per-post insights
+// (views / reach / total interactions / saves / shares — likes + comments ride
+// along on the media object for free), flattened and ranked by views. Read-only
+// and ephemeral — the accounts page renders the leaderboard live; nothing is
+// persisted. Params: `days` bounds the window by post date (0 = all-time),
+// `key` limits to one brand (the page pulls all brands as parallel single-brand
+// requests so each stays inside the worker's subrequest budget), `max` caps
+// media scanned per brand. All-time is honestly "the newest `max` posts" — the
+// media edge has no ranked access, so a deeper archive needs a D1 cache.
 async function handleSocialTopPostsPull(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
   const token = env.META_SYSTEM_TOKEN;
   const u = new URL(req.url);
-  const per = Math.min(25, Math.max(3, parseInt(u.searchParams.get('per') || '12', 10) || 12));
+  const days = Math.max(0, parseInt(u.searchParams.get('days') || '30', 10) || 0);
+  const sinceTs = days > 0 ? Math.floor(Date.now() / 1000) - days * 86400 : 0;
+  const defMax = days === 0 ? 300 : (days > 40 ? 250 : (days > 10 ? 60 : 25));
+  const maxPer = Math.min(300, Math.max(5, parseInt(u.searchParams.get('max') || String(defMax), 10) || defMax));
+  const onlyKey = String(u.searchParams.get('key') || '').trim();
   let accts = [];
   try {
     if (env.DB) {
@@ -5455,6 +5461,7 @@ async function handleSocialTopPostsPull(req, env, origin) {
       accts = results || [];
     }
   } catch (_) {}
+  if (onlyKey) accts = accts.filter(a => a.key === onlyKey);
   const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
   const byIg = {}, byPage = {};
   try {
@@ -5476,12 +5483,27 @@ async function handleSocialTopPostsPull(req, env, origin) {
     const page = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
     const igid = String(a.ig_user_id || (page && page.instagram_business_account && page.instagram_business_account.id) || '').trim();
     if (!igid) { errors[a.key] = 'no IG user id'; continue; }
-    const media = await graphGet(igid + '/media', {
-      fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count',
-      limit: String(per), access_token: token,
-    });
-    if (media && media.error) { errors[a.key] = metaErr(media); continue; }
-    const items = (media && media.data) || [];
+    // Walk the media edge newest-first until the window ends, the per-brand
+    // cap is hit, or the archive runs out (8 pages × 50 hard stop).
+    const items = [];
+    let after = null, windowDone = false;
+    for (let page = 0; page < 8 && !windowDone && items.length < maxPer; page++) {
+      const params = {
+        fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count',
+        limit: '50', access_token: token,
+      };
+      if (after) params.after = after;
+      const media = await graphGet(igid + '/media', params);
+      if (media && media.error) { errors[a.key] = metaErr(media); break; }
+      for (const m of ((media && media.data) || [])) {
+        const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0;
+        if (sinceTs && ts && ts < sinceTs) { windowDone = true; break; }
+        items.push(m);
+        if (items.length >= maxPer) break;
+      }
+      after = media && media.paging && media.paging.cursors && media.paging.cursors.after;
+      if (!after) break;
+    }
     const enriched = await Promise.all(items.map(async (m) => {
       const met = {};
       // Full metric set first; one reduced retry covers media types that
@@ -5508,7 +5530,7 @@ async function handleSocialTopPostsPull(req, env, origin) {
     posts.push(...enriched);
   }
   posts.sort((x, y) => (y.views || 0) - (x.views || 0));
-  return json({ ok: true, posts, per_account: per, errors, pulled_at: new Date().toISOString() }, {}, env, origin);
+  return json({ ok: true, posts, days, max_per: maxPer, errors, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
