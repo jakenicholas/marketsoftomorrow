@@ -17,6 +17,10 @@ BASE   = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
 BUCKET = "tmw-media"
 CT = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
       'webp': 'image/webp', 'avif': 'image/avif', 'gif': 'image/gif'}
+# Long immutable cache so browsers/CDN keep images (matches the originals). WITHOUT
+# this the copies had no Cache-Control, so mobile re-downloaded every image on
+# every view → black blanks. Keyword keys are content-unique, so immutable is safe.
+CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 
 def slugify(s: str) -> str:
@@ -46,6 +50,7 @@ def main():
     ap.add_argument('--execute', action='store_true', help='actually copy (default: dry run)')
     ap.add_argument('--limit', type=int)
     ap.add_argument('--workers', type=int, default=10, help='parallel copies (default 10)')
+    ap.add_argument('--force', action='store_true', help='re-put even if the new key already exists (e.g. to set Cache-Control)')
     a = ap.parse_args()
 
     m = json.load(open('image-rename-map.json', encoding='utf-8'))
@@ -65,8 +70,9 @@ def main():
           + (f" · {a.workers} workers" if a.execute else ""), flush=True)
 
     def handle(e):
-        # Idempotent: skip anything already live at the new key.
-        if url_ok(e['new_url']):
+        # Idempotent: skip anything already live at the new key (unless --force,
+        # used to re-put existing objects with the Cache-Control header).
+        if not a.force and url_ok(e['new_url']):
             return ('skip_exists', e, None)
         if not a.execute:
             return ('would_copy', e, None)
@@ -78,7 +84,7 @@ def main():
             if os.path.getsize(tf) == 0:
                 return ('get_fail', e, (g.stderr or g.stdout)[-160:])
             p = wr(['r2', 'object', 'put', f"{BUCKET}/{e['new_key']}", '--file', tf,
-                    '--content-type', ct, '--remote'])
+                    '--content-type', ct, '--cache-control', CACHE_CONTROL, '--remote'])
             if 'Upload complete' in (p.stdout + p.stderr):
                 return ('copied', e, None)
             return ('put_fail', e, (p.stderr or p.stdout)[-160:])
