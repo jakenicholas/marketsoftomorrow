@@ -2415,28 +2415,54 @@ async function handleDiscoveryQueue(env, origin, url) {
     a.kinds[kind] = (a.kinds[kind] || 0) + 1;
   }
 
-  // AUTO signals — zero-result queries that did NOT need a human thumbs-down.
-  // This is the automatic coverage-gap lane: every query that returned nothing
-  // flows to discovery on its own. Two sources, both deduped against the
-  // feedback rows above AND the processed set:
-  //   (2) reader_search — any reader/intel search that came back with 0 results.
-  //   (3) daily_audit   — the latest twice-daily search audit's 0-result queries.
-  // The routine still DB-checks each (a live match = search-index bug, not a
-  // missing-coverage gap), so feeding it more candidates is safe.
-  function _autoAdd(rawQ, ts, source) {
+  // AUTO signals — coverage-gap queries that did NOT need a human thumbs-down.
+  // Three automatic lanes, all deduped against the feedback rows above AND the
+  // processed set. The routine still DB-checks each (a live match = search-index
+  // bug, not a missing-coverage gap), so feeding it more candidates is safe:
+  //   (2)  reader_search — a reader/intel search that returned ZERO results.
+  //   (2w) reader_weak   — a search that returned results but whose BEST row
+  //        scored below WEAK_SCORE: we showed tangential junk, not a real match
+  //        (e.g. "Rosewood Shenzhen" → a few unrelated Rosewood rows). The client
+  //        logs props.top_score (max keyword score over the shown rows) so we can
+  //        tell "5 good hits" from "5 junk hits."
+  //   (3)  daily_audit   — the latest twice-daily search audit's 0-result queries.
+  const WEAK_SCORE = 24;   // below this, the full query never landed in a title/city/neighborhood
+
+  // Does the query read like a SPECIFIC named project or place (worth chasing on
+  // its FIRST occurrence) vs a generic category browse ("hotels", "condos") or a
+  // natural-language question (that's the answer layer's job, not discovery)?
+  const NAMED_STOP = new Set(['hotel','hotels','condo','condos','condominium','condominiums','project','projects','development','developments','building','buildings','tower','towers','home','homes','house','houses','apartment','apartments','residence','residences','golf','museum','museums','restaurant','restaurants','airport','airports','resort','resorts','district','news','update','updates','map']);
+  function looksNamed(q) {
+    const s = String(q || '').trim().toLowerCase();
+    if (s.length < 4 || s.length > 80) return false;
+    if (s.indexOf('?') >= 0) return false;
+    if (/^(what|why|how|when|where|who|which|whose|is|are|do|does|can|should|will)\b/.test(s)) return false;
+    const toks = s.split(/\s+/).filter(Boolean);
+    if (toks.length >= 2) return true;                       // multi-word → specific enough
+    return toks.length === 1 && !NAMED_STOP.has(toks[0]);    // a lone non-generic token (a brand/name like "olara")
+  }
+
+  function _autoAdd(rawQ, ts, source, meta) {
     let q = String(rawQ || '').trim();
     if (!q || q.length < 4 || q.length > 160) return;   // skip junk / overlong
     const key = q.toLowerCase();
     if (processed.has(key)) return;
     let a = byQuery.get(key);
     if (!a) {
-      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, searches: 0, fromAudit: false, source: source };
+      a = { query: q, up: 0, down: 0, last_ts: 0, result_sum: 0, result_n: 0, kinds: {}, editor_note: null, auto: 0, searches: 0, weak: 0, weak_results: 0, weak_score: null, fromAudit: false, source: source };
       byQuery.set(key, a);
     }
     a.auto = (a.auto || 0) + 1;
-    if (source === 'reader_search') a.searches = (a.searches || 0) + 1;
-    if (source === 'daily_audit') a.fromAudit = true;
-    a.result_n++;   // result_sum += 0 → average stays 0 (it's a zero-result query)
+    if (source === 'reader_search') { a.searches = (a.searches || 0) + 1; a.result_n++; }   // result_sum += 0 → avg stays 0
+    else if (source === 'reader_weak') {
+      a.weak = (a.weak || 0) + 1;
+      if (meta) {
+        a.weak_results = Math.max(a.weak_results || 0, +meta.results || 0);
+        const sc = +meta.top_score || 0;
+        if (a.weak_score == null || sc < a.weak_score) a.weak_score = sc;   // keep the WEAKEST (worst) hit
+      }
+    }
+    else if (source === 'daily_audit') { a.fromAudit = true; a.result_n++; }
     if (ts > a.last_ts) a.last_ts = ts;
   }
   try {
@@ -2452,6 +2478,27 @@ async function handleDiscoveryQueue(env, origin, url) {
       _autoAdd(p.q || p.search_term, r.ts, 'reader_search');
     }
   } catch (e) { /* tolerate a missing column / shape and keep the other lanes */ }
+  // Weak-hit lane: the search returned SOMETHING but the best row scored below
+  // WEAK_SCORE. Requires props.top_score to be present + numeric, so events from
+  // before the client started logging it are simply never treated as weak (they
+  // just don't feed this lane). Gated to named/place queries so category browses
+  // and questions don't flood discovery.
+  try {
+    const wr = await env.DB.prepare(
+      `SELECT ts, props_json FROM events
+       WHERE event_name IN ('intel_query','search') AND ts >= ?
+         AND CAST(json_extract(props_json,'$.results') AS INTEGER) > 0
+         AND json_extract(props_json,'$.top_score') IS NOT NULL
+         AND CAST(json_extract(props_json,'$.top_score') AS INTEGER) < ?
+       ORDER BY ts DESC LIMIT 3000`
+    ).bind(sinceTs, WEAK_SCORE).all();
+    for (const r of (wr.results || [])) {
+      let p = {}; try { if (r.props_json) p = JSON.parse(r.props_json); } catch {}
+      if (p.partner) continue;
+      if (!looksNamed(p.q || p.search_term)) continue;   // skip generic categories & questions
+      _autoAdd(p.q || p.search_term, r.ts, 'reader_weak', { results: p.results, top_score: p.top_score });
+    }
+  } catch (e) { /* tolerate — pre-top_score events simply don't feed this lane */ }
   try {
     const st = await env.DB.prepare(
       `SELECT ts, props_json FROM events WHERE event_name = 'intel_selftest'
@@ -2472,22 +2519,32 @@ async function handleDiscoveryQueue(env, origin, url) {
     let dom = '', domN = 0;
     for (const k in a.kinds) { if (a.kinds[k] > domN) { dom = k; domN = a.kinds[k]; } }
     const avg = a.result_n ? Math.round(a.result_sum / a.result_n) : 0;
-    // Qualify a zero/empty-result query when the signal is deliberate enough:
+    const named = looksNamed(a.query);
+    // Qualify when the signal is deliberate enough:
     //   • a reader thumbs-DOWN (a.down) — one is enough, it's an explicit flag;
     //   • the daily audit flagged it (a.fromAudit) — curated, not random;
-    //   • a reader SEARCH that recurred 2+ times (a.searches >= 2) — real demand,
-    //     not a one-off typo/fat-finger. A single ad-hoc search is ignored.
-    const qualifies = a.down >= 1 || a.fromAudit || (a.searches || 0) >= 2;
-    const needs = qualifies && (avg === 0 || dom === 'empty');
+    //   • a zero-result reader search that recurred 2+ times — real demand;
+    //   • a SPECIFIC named project/place miss — ONE occurrence is enough (chase
+    //     single high-intent named misses, don't wait for a repeat);
+    //   • a WEAK hit on a named query — we returned junk for a real-looking name.
+    const zeroQualifies = a.down >= 1 || a.fromAudit || (a.searches || 0) >= 2 || (named && (a.searches || 0) >= 1);
+    const needsZero = zeroQualifies && (avg === 0 || dom === 'empty');
+    const weakQualifies = (a.weak || 0) >= 1 && named;
+    const needs = needsZero || weakQualifies;
     if (!needs) return;
+    const isWeak = !needsZero && weakQualifies;   // weak-only signal (returned junk, not nothing)
     // Hint: a plain-English brief the discovery routine drops into its prompt.
     // Names the signal source so the LLM has context without re-deriving it.
     const who = a.down >= 1 ? 'A reader flagged'
       : a.fromAudit ? 'The daily search audit ran'
       : 'Readers searched';
+    const outcome = isWeak
+      ? ('returned ' + (a.weak_results || 'a few') + ' result' + (a.weak_results === 1 ? '' : 's')
+         + ' but none actually matched (top relevance ' + (a.weak_score != null ? a.weak_score : ('<' + WEAK_SCORE))
+         + ', under the ' + WEAK_SCORE + ' match bar) — tangential rows, not the project searched for')
+      : (avg === 0 ? 'returned zero results' : ('returned only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')));
     const hint = (a.editor_note ? ('EDITOR REQUEST: ' + a.editor_note + ' ') : '')
-      + who + ' "' + a.query + '" and the database returned '
-      + (avg === 0 ? 'zero results' : ('only ' + avg + ' marginal result' + (avg === 1 ? '' : 's')))
+      + who + ' "' + a.query + '" and the database ' + outcome
       + (a.auto > 1 ? (' (' + a.auto + '×)') : '')
       + '. ' + (a.editor_note ? 'Act on the editor request above. ' : '')
       + 'First confirm the gap is real: search_projects on the place + type — a live match means a SEARCH-INDEX/relevance bug to report (create nothing), not missing coverage. '
@@ -2497,9 +2554,9 @@ async function handleDiscoveryQueue(env, origin, url) {
       up: a.up,
       down: a.down,
       last_ts: a.last_ts,
-      avg_results: avg,
+      avg_results: isWeak ? (a.weak_results || 0) : avg,
       dominant_kind: dom,
-      source: (a.down >= 1 ? 'reader_flag' : a.fromAudit ? 'daily_audit' : 'reader_search'),
+      source: (a.down >= 1 ? 'reader_flag' : a.fromAudit ? 'daily_audit' : isWeak ? 'reader_weak' : 'reader_search'),
       hint: hint,
     });
   });

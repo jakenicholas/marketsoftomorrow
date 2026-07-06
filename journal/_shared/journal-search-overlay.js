@@ -4031,12 +4031,31 @@
     // Count this query against the user's free quota (window.tmwIntel.FREE)
     try {
       if (!_replaying && window.tmwIntel && window.tmwIntel.count) window.tmwIntel.count(q);
-      if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, sort: s.sort ? s.sort.label : null, source: 'overlay' });
+      if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { results: rows.length, top_score: _relTopScore(q, rows), sort: s.sort ? s.sort.label : null, source: 'overlay' });
     } catch(_){}
 
     _lastResultsTotal = rows.length + iconicHits.length;
     _lastResultKind = 'smart';
     setState('results');
+  }
+
+  // Top project-relevance score among the displayed rows (0 if none), using the
+  // SAME keyword scorer the ranker uses. Powers the weak-hit signal: a query that
+  // returned rows but whose best row scores low (< ~24 — the full query never
+  // landed in a title/city/neighborhood) means we showed tangential junk, not a
+  // real match. Logged with each search so the discovery routine can auto-queue
+  // weak hits, not just zero-result misses. Pure + defensive: any failure → 0.
+  function _relTopScore(q, rows){
+    try {
+      var Core = window.TmwSearchCore;
+      if (!Core || !Core.scoreProjectKw || !Core.norm || !rows || !rows.length) return 0;
+      var full = Core.norm(q || '');
+      var toks = full.split(/\s+/).filter(Boolean);
+      if (Core.filterMeaningfulTokens) { var mt = Core.filterMeaningfulTokens(toks); if (mt && mt.length) toks = mt; }
+      var top = 0, n = Math.min(rows.length, 6);
+      for (var i = 0; i < n; i++){ var p = rows[i]; if (!p || !p.Title) continue; var sc = Core.scoreProjectKw(p, toks, full); if (sc > top) top = sc; }
+      return top;
+    } catch(_){ return 0; }
   }
 
   // Debounced LLM rewrite of the structured-smart sentence. Same 700ms
@@ -4972,7 +4991,8 @@
     // every typed query that didn't trigger Intelligence.
     try {
       if (!_replaying && !question && window.tmwIntel && window.tmwIntel.trackSearch) {
-        window.tmwIntel.trackSearch(q, { source: 'overlay', results: totalHits });
+        var _txtRows = (heroProject ? [heroProject] : []).concat(restProjects || []);
+        window.tmwIntel.trackSearch(q, { source: 'overlay', results: totalHits, top_score: _relTopScore(q, _txtRows) });
       }
     } catch(_){}
   }
