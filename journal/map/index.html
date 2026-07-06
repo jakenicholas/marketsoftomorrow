@@ -814,6 +814,17 @@
         right: 0 !important; bottom: 0 !important; width: 100% !important;
         height: 100vh !important; height: 100dvh !important; overflow: hidden !important;
       }
+      /* EDGE-TO-EDGE MAP: the canvas fills the LARGE viewport (100lvh) so it bleeds
+         behind the browser's translucent toolbar and kills the black bar — while the
+         fixed controls stay in the visible area (--app-height/safe-area). position:
+         fixed escapes #app-container's dvh + overflow:hidden clip (body has no
+         transform, so fixed is viewport-relative); z-index:0 keeps it BEHIND every
+         control. Isolated + reversible — revert this block if any control hides. */
+      #map {
+        position: fixed !important; top: 0 !important; left: 0 !important;
+        right: 0 !important; bottom: auto !important;
+        height: 100lvh !important; z-index: 0 !important;
+      }
       #mobileDrawer.expanded { overflow: visible !important; }
       #mobileDrawer.expanded #mobileDrawerContent {
         overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important;
