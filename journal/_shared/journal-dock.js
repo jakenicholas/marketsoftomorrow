@@ -19,6 +19,10 @@
     if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
     return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
   }
+  // Exposed on window so sibling IIFEs in this file (e.g. the Pulse component
+  // below) can share the same memoized fetch — a bare reference from another
+  // IIFE is a ReferenceError since this is scoped to the current closure.
+  window.__tmwSharedJson = window.__tmwSharedJson || __tmwSharedJson;
 
   if (window.__tmwDock) return;
   window.__tmwDock = true;
@@ -1769,7 +1773,7 @@
         setTimeout(go, 250);
       })();
     });
-    var pFlat = __tmwSharedJson('https://www.oftmw.com/map/projects-flat.json').then(function(v){ return v || []; });
+    var pFlat = window.__tmwSharedJson('https://www.oftmw.com/map/projects-flat.json').then(function(v){ return v || []; });
     var pCity = fetch('https://www.oftmw.com/map/cityStateMap.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var pSmart = id ? fetch(WORKER + '/watch/smart?member=' + encodeURIComponent(id),{cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }) : Promise.resolve(null);
     _mineP = Promise.all([pJson, pFlat, pCity, pSmart]).then(function(o){
@@ -2098,7 +2102,9 @@
       if (sc === 'me') loadMine().then(repaint); else repaint();
     }
     updateScopeUI();
-    if (scope === 'me') loadMine().then(repaint);
+    // Guarded: a throw in loadMine() must never abort attach() before the scope
+    // toggle is wired below — that once left "Me" stuck and "All" unclickable.
+    if (scope === 'me') try { loadMine().then(repaint); } catch(e){}
     setTimeout(updateScopeUI, 1200); setTimeout(updateScopeUI, 3000);
     if (scopeEl) scopeEl.addEventListener('click', function(ev){
       var b = ev.target.closest ? ev.target.closest('.tps-btn') : null; if (!b) return;
