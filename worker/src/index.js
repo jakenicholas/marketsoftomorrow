@@ -2259,6 +2259,7 @@ async function handleIntelJourneys(env, origin, url) {
   const filter = String(url.searchParams.get('filter') || 'all');   // all | gaps
   const sinceTs = Math.floor(Date.now() / 1000) - days * 86400;
   const WEAK_SCORE = 24;
+  const WEAK_MAX_HITS = 6;   // a weak hit is a few marginal rows, not a big concept browse
   const nrm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
   const slugify = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   const looksMalformed = q => /[a-z]{4,}[A-Z][a-z]/.test(String(q || ''));
@@ -2348,7 +2349,10 @@ async function handleIntelJourneys(env, origin, url) {
     const ans = ansByQ.get(a.key) || null;
     const hits = (a.results != null) ? a.results : (ans && ans.count != null ? ans.count : null);
     const isMiss = (hits === 0);
-    const isWeak = !isMiss && (a.top_score != null && a.top_score < WEAK_SCORE) && looksNamed(a.query);
+    // Weak = a NAMED query that returned only a FEW marginal rows, none a real
+    // match (the "5 junk rows" case). A big result set (a concept browse like
+    // "supertall towers coming soon") is a healthy answer, not a gap — exclude it.
+    const isWeak = !isMiss && hits != null && hits <= WEAK_MAX_HITS && a.top_score != null && a.top_score < WEAK_SCORE && looksNamed(a.query);
     const isGap = isMiss || isWeak;
 
     let drafts = [];
@@ -2375,7 +2379,7 @@ async function handleIntelJourneys(env, origin, url) {
       detail: (a.count > 1 ? (a.count + '× · ') : '') + (a.location || 'location unknown') + (a.plan ? (' · ' + a.plan) : '') });
     steps.push({ key: 'answered', state: 'done', ok: !isGap,
       label: (hits == null ? 'Answered' : (hits + ' hit' + (hits === 1 ? '' : 's'))),
-      detail: isWeak ? ('returned results but weak match (relevance ' + a.top_score + ')') : (isMiss ? 'nothing in the database' : 'answered from the database') });
+      detail: isWeak ? ('returned results but weak match (relevance ' + a.top_score + ')') : (isMiss ? 'nothing in the database' : (hits == null ? 'result count not recorded' : 'answered from the database')) });
     if (isGap) {
       steps.push({ key: 'gap', state: 'done', label: 'Flagged as a gap',
         detail: isMiss ? '0 hits — a coverage gap' : 'weak match — likely missing the exact project' });
@@ -2671,6 +2675,7 @@ async function handleDiscoveryQueue(env, origin, url) {
       `SELECT ts, props_json FROM events
        WHERE event_name IN ('intel_query','search') AND ts >= ?
          AND CAST(json_extract(props_json,'$.results') AS INTEGER) > 0
+         AND CAST(json_extract(props_json,'$.results') AS INTEGER) <= 6
          AND json_extract(props_json,'$.top_score') IS NOT NULL
          AND CAST(json_extract(props_json,'$.top_score') AS INTEGER) < ?
        ORDER BY ts DESC LIMIT 3000`
