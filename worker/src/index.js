@@ -2383,7 +2383,7 @@ async function handleIntelJourneys(env, origin, url) {
     if (isGap) {
       steps.push({ key: 'gap', state: 'done', label: 'Flagged as a gap',
         detail: isMiss ? '0 hits — a coverage gap' : 'weak match — likely missing the exact project' });
-      if (alreadyLive) {
+      if (alreadyLive && !drafts.length) {
         steps.push({ key: 'discovery', state: 'done', ok: false, label: 'Discovery checked',
           detail: proc.result || 'Already in the database — a search-relevance issue, not a coverage gap.' });
       } else {
