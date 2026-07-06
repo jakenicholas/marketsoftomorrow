@@ -5434,6 +5434,82 @@ async function handleSocialInsightsPull(req, env, origin) {
   }
   return json({ ok: true, accounts, window: { days, since: new Date(since * 1000).toISOString().slice(0, 10), until: new Date(until * 1000).toISOString().slice(0, 10) }, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
+// Top Instagram POSTS across every brand: each account's recent media with
+// per-post insights (views / reach / total interactions / saves / shares —
+// likes + comments ride along on the media object for free), flattened and
+// ranked by views. Read-only and ephemeral — the accounts page renders the
+// leaderboard live; nothing is persisted. `per` bounds media per account
+// (default 12) to stay well inside the worker's subrequest budget:
+// 1 (me/accounts) + N accounts × (1 media list + `per` insight calls).
+async function handleSocialTopPostsPull(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
+  const token = env.META_SYSTEM_TOKEN;
+  const u = new URL(req.url);
+  const per = Math.min(25, Math.max(3, parseInt(u.searchParams.get('per') || '12', 10) || 12));
+  let accts = [];
+  try {
+    if (env.DB) {
+      await ensureSocialAccountsTable(env);
+      const { results } = await env.DB.prepare(`SELECT key, ig_handle, page_id, ig_user_id FROM social_accounts ORDER BY sort_order ASC`).all();
+      accts = results || [];
+    }
+  } catch (_) {}
+  const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
+  const byIg = {}, byPage = {};
+  try {
+    const resp = await graphGet('me/accounts', { fields: 'name,instagram_business_account{id,username}', limit: '200', access_token: token });
+    for (const p of ((resp && resp.data) || [])) {
+      if (p.id) byPage[String(p.id)] = p;
+      const ig = p.instagram_business_account;
+      if (ig && ig.username) byIg[norm(ig.username)] = p;
+    }
+  } catch (_) {}
+  const metricValue = (row) => {
+    if (!row) return null;
+    if (row.total_value && row.total_value.value != null) return Number(row.total_value.value) || 0;
+    if (row.values && row.values.length && row.values[0] && row.values[0].value != null) return Number(row.values[0].value) || 0;
+    return null;
+  };
+  const posts = []; const errors = {};
+  for (const a of accts) {
+    const page = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
+    const igid = String(a.ig_user_id || (page && page.instagram_business_account && page.instagram_business_account.id) || '').trim();
+    if (!igid) { errors[a.key] = 'no IG user id'; continue; }
+    const media = await graphGet(igid + '/media', {
+      fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count',
+      limit: String(per), access_token: token,
+    });
+    if (media && media.error) { errors[a.key] = metaErr(media); continue; }
+    const items = (media && media.data) || [];
+    const enriched = await Promise.all(items.map(async (m) => {
+      const met = {};
+      // Full metric set first; one reduced retry covers media types that
+      // reject a metric (Graph fails the WHOLE call on any unsupported name).
+      for (const set of ['views,reach,total_interactions,saved,shares', 'views,reach']) {
+        let ins = null;
+        try { ins = await graphGet(m.id + '/insights', { metric: set, access_token: token }); } catch (_) {}
+        if (ins && !ins.error) { for (const row of (ins.data || [])) met[row.name] = metricValue(row); break; }
+      }
+      return {
+        account: a.key, id: m.id,
+        caption: String(m.caption || '').replace(/\s+/g, ' ').slice(0, 160),
+        permalink: m.permalink || '', type: m.media_product_type || m.media_type || '',
+        thumb: m.thumbnail_url || m.media_url || '', ts: m.timestamp || '',
+        likes: (m.like_count != null) ? Number(m.like_count) : null,
+        comments: (m.comments_count != null) ? Number(m.comments_count) : null,
+        views: met.views != null ? met.views : null,
+        reach: met.reach != null ? met.reach : null,
+        interactions: met.total_interactions != null ? met.total_interactions : null,
+        saved: met.saved != null ? met.saved : null,
+        shares: met.shares != null ? met.shares : null,
+      };
+    }));
+    posts.push(...enriched);
+  }
+  posts.sort((x, y) => (y.views || 0) - (x.views || 0));
+  return json({ ok: true, posts, per_account: per, errors, pulled_at: new Date().toISOString() }, {}, env, origin);
+}
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
@@ -11084,6 +11160,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/linkedin/disconnect')   return await handleLinkedinDisconnect(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-insights/pull') return await handleSocialInsightsPull(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/social-top-posts/pull') return await handleSocialTopPostsPull(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/followers') return await handleFollowersGet(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/followers') return await handleFollowersPost(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
