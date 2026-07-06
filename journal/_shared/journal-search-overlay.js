@@ -1954,11 +1954,20 @@
   // timelineHtml so the overlay's hero matches the search page's hero
   // pixel-close (construction progress bar with start/end labels).
   function parseYM(s){
-    var m = String(s||'').match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
-    if (!m) return null;
-    return new Date(+m[1], (+m[2])-1, m[3] ? +m[3] : 1);
+    s = String(s||'');
+    var m = s.match(/(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
+    if (m) return new Date(+m[1], (+m[2])-1, m[3] ? +m[3] : 1);
+    // Year-only (e.g. "2028") — a common delivery/completion target. Without this
+    // it returned null and the timeline showed "TBA" even though a year was set.
+    var y = s.match(/\b(19|20)\d{2}\b/);
+    if (y) { var dy = new Date(+y[0], 0, 1); dy._yearOnly = true; return dy; }
+    return null;
   }
-  function fmtMon(d){ return d ? d.toLocaleString('en-US',{month:'short',year:'numeric'}) : ''; }
+  function fmtMon(d){
+    if (!d) return '';
+    if (d._yearOnly) return String(d.getFullYear());   // year-only → just "2028"
+    return d.toLocaleString('en-US',{month:'short',year:'numeric'});
+  }
 
   function heroTimelineHtml(p){
     var start = parseYM(p.StartDate);
