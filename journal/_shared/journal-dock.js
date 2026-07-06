@@ -10,6 +10,16 @@
 -------------------------------------------------------------------*/
 (function () {
   'use strict';
+  /* Shared cross-script JSON loader: one network fetch per URL per pageview
+     (memoized promise on window), but each caller parses its OWN copy so no
+     consumer can mutate another's data. projects-flat.json is 563KB — before
+     this, four scripts each fetched it independently with cache:'no-cache'. */
+  function __tmwSharedJson(url){
+    var store = window.__tmwJsonMemo = window.__tmwJsonMemo || {};
+    if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
+    return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
+  }
+
   if (window.__tmwDock) return;
   window.__tmwDock = true;
 
@@ -394,8 +404,8 @@
   function loadDockData(){
     if (_dockDataPromise) return _dockDataPromise;
     _dockDataPromise = Promise.all([
-      fetch('https://www.oftmw.com/map/projects-flat.json', { cache: 'no-cache' }).then(function (r){ return r.ok ? r.json() : []; }).catch(function (){ return []; }),
-      fetch('https://www.oftmw.com/map/firms-flat.json',    { cache: 'no-cache' }).then(function (r){ return r.ok ? r.json() : null; }).catch(function (){ return null; })
+      __tmwSharedJson('https://www.oftmw.com/map/projects-flat.json').then(function(v){ return v || []; }),
+      __tmwSharedJson('https://www.oftmw.com/map/firms-flat.json')
     ]).then(function (res){
       var p = res[0], f = res[1];
       var projects = Array.isArray(p) ? p : (p.projects || p.items || []);
@@ -1759,7 +1769,7 @@
         setTimeout(go, 250);
       })();
     });
-    var pFlat = fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+    var pFlat = __tmwSharedJson('https://www.oftmw.com/map/projects-flat.json').then(function(v){ return v || []; });
     var pCity = fetch('https://www.oftmw.com/map/cityStateMap.json').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; });
     var pSmart = id ? fetch(WORKER + '/watch/smart?member=' + encodeURIComponent(id),{cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }) : Promise.resolve(null);
     _mineP = Promise.all([pJson, pFlat, pCity, pSmart]).then(function(o){

@@ -391,6 +391,16 @@
     } else if (_eb) { _eb.classList.add('in'); }
 
     var PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
+  /* Shared cross-script JSON loader: one network fetch per URL per pageview
+     (memoized promise on window), but each caller parses its OWN copy so no
+     consumer can mutate another's data. projects-flat.json is 563KB — before
+     this, four scripts each fetched it independently with cache:'no-cache'. */
+  function __tmwSharedJson(url){
+    var store = window.__tmwJsonMemo = window.__tmwJsonMemo || {};
+    if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
+    return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
+  }
+
     var PULSE_URL    = 'https://www.oftmw.com/map/pulse.json';
     var PIN_CITY = { waldorf:'St. Petersburg', melia:'Miami', greene:'West Palm Beach', nashville:'Nashville', ftl:'Fort Lauderdale' };
 
@@ -528,7 +538,7 @@
       try{ var t=new Date(iso).getTime(); if(isNaN(t)) return ''; var h=Math.max(0,Math.round((Date.now()-t)/3600000));
         return h<1?'now':h<24?h+'h':Math.round(h/24)+'d'; }catch(e){ return ''; }
     }
-    fetch(PROJECTS_URL, {cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(rows){
+    __tmwSharedJson(PROJECTS_URL).then(function(rows){
       if(!Array.isArray(rows) || !rows.length) return;
       DATA.cities.rows = tally(rows,'cities');
       DATA.developers.rows = tally(rows,'developers');

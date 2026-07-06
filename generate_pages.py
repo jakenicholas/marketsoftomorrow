@@ -1659,7 +1659,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
   <script>window.memberstackConfig = window.memberstackConfig || {{ useCookies: true, setCookieOnRootDomain: true }};</script>
   <script data-memberstack-app="app_cmoq79nvv002d0syef7wpel3c"
           src="https://static.memberstack.com/scripts/v2/memberstack.js"
-          type="text/javascript"></script>
+          type="text/javascript" async></script>
 
   <!-- Memberstack modal dark theme: tagger script + targeted CSS.
        See index.html for the full rationale. Identical strategy here. -->

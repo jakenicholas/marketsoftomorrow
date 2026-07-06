@@ -19,6 +19,16 @@
 -------------------------------------------------------------------*/
 (function () {
   'use strict';
+  /* Shared cross-script JSON loader: one network fetch per URL per pageview
+     (memoized promise on window), but each caller parses its OWN copy so no
+     consumer can mutate another's data. projects-flat.json is 563KB — before
+     this, four scripts each fetched it independently with cache:'no-cache'. */
+  function __tmwSharedJson(url){
+    var store = window.__tmwJsonMemo = window.__tmwJsonMemo || {};
+    if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
+    return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
+  }
+
   if (window.__tmwOverlay) return;
   window.__tmwOverlay = true;
 
@@ -1572,8 +1582,8 @@
   function loadData(){
     if (_loading) return _loading;
     _loading = Promise.all([
-      fetch('https://www.oftmw.com/map/projects-flat.json', { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
-      fetch('https://www.oftmw.com/map/firms-flat.json',     { cache:'no-cache' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+      __tmwSharedJson('https://www.oftmw.com/map/projects-flat.json').then(function(v){ return v || []; }),
+      __tmwSharedJson('https://www.oftmw.com/map/firms-flat.json').then(function(v){ return v || []; }),
       loadArticles(),
       _loadIconicList('golf'), _loadIconicList('hotels'), _loadIconicList('restaurants')
     ]).then(function(res){
