@@ -21,7 +21,7 @@
        general <style> block. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Memberstack 2.0 - for Watch button + watching card hydration. Loads
        async so it doesn't block page render; the hydration script at the
@@ -500,6 +500,9 @@
       --hair: rgba(255,255,255,.08); --hair-2: rgba(255,255,255,.14);
       --white: #fff; --cream: #ECEAE5; --mute: #9AA39C; --mute-2: #C2C9C3;
       --green: #1FDF67; --gold: #e6c574; --gold-soft: #f0d68a;
+      --purple: #A78BFA; --purple-bright: #C4B5FD;
+      --serif: 'Fraunces', Georgia, serif;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1013,18 +1016,22 @@
     @media (prefers-reduced-motion: reduce) { .pp-scrollcue { animation: none; } }
 
     /* below-the-fold */
-    .pp-below { max-width: 620px; margin: 0 auto; padding: 50px 20px 70px; transition: opacity .34s ease; }
+    .pp-below { max-width: 860px; margin: 0 auto; padding: 50px 24px 70px; transition: opacity .34s ease; }
     .pp-sec { margin-top: 30px; }
     .pp-sec:first-child { margin-top: 0; }
     .pp-sec-h { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
-    /* Quick answers (FAQ) — native disclosure rows on hairline dividers */
-    .pp-faq-item { border-bottom: 1px solid var(--hair); }
-    .pp-faq-item summary { cursor: pointer; padding: 13px 0; font-weight: 600; font-size: 14.5px; color: var(--cream); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    /* Quick answers (FAQ) — market-page card design (mirror of .faq-q in generate_market_pages.py) */
+    .pp-faq-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--purple-bright); margin-bottom: 8px; font-weight: 600; }
+    .pp-faq-title { font-family: var(--serif); font-size: 28px; line-height: 1.15; font-weight: 500; letter-spacing: -.018em; color: var(--white); margin-bottom: 22px; }
+    .pp-faq-item { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; transition: border-color .15s; }
+    .pp-faq-item + .pp-faq-item { margin-top: 8px; }
+    .pp-faq-item[open] { border-color: rgba(167,139,250,.32); background: rgba(167,139,250,.04); }
+    .pp-faq-item summary { list-style: none; padding: 18px 22px; cursor: pointer; font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing: -.01em; color: var(--white); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
     .pp-faq-item summary::-webkit-details-marker { display: none; }
-    .pp-faq-item summary::after { content: '+'; color: var(--mute); font-weight: 400; font-size: 18px; flex: none; }
-    .pp-faq-item[open] summary::after { content: '\2013'; }
-    .pp-faq-item p { padding: 0 0 15px; color: var(--mute-2); font-size: 14px; line-height: 1.65; max-width: 720px; }
-    .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; }
+    .pp-faq-item summary::after { content: '+'; font-family: var(--sans); font-size: 22px; color: var(--purple-bright); flex: 0 0 auto; line-height: 1; }
+    .pp-faq-item[open] summary::after { content: '\2212'; }
+    .pp-faq-item p { padding: 0 22px 22px; color: var(--mute-2); font-size: 14.5px; line-height: 1.6; }
+    .pp-about { font-size: 15px; color: rgba(255,255,255,.66); line-height: 1.75; max-width: 78ch; }
     .pp-firms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .pp-firms.pp-firms-stack { grid-template-columns: 1fr; }
     .pp-firm-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 14px; }
@@ -1173,7 +1180,7 @@
       
       
       
-      <div class="pp-sec pp-faq"><div class="pp-sec-h">Quick answers</div><details class="pp-faq-item"><summary>Where is Shibuya Upper West Project located?</summary><p>Shibuya Upper West Project is located in Tokyo.</p></details><details class="pp-faq-item"><summary>When will Shibuya Upper West Project be completed?</summary><p>Shibuya Upper West Project is under construction, with completion expected in 2029.</p></details><details class="pp-faq-item"><summary>Who is developing Shibuya Upper West Project?</summary><p>Tokyu Corporation is the developer behind Shibuya Upper West Project.</p></details><details class="pp-faq-item"><summary>Who designed Shibuya Upper West Project?</summary><p>Shibuya Upper West Project was designed by Nikken Sekkei.</p></details><details class="pp-faq-item"><summary>How big is Shibuya Upper West Project?</summary><p>Shibuya Upper West Project rises 34 stories.</p></details></div>
+      <div class="pp-sec pp-faq"><div class="pp-faq-eyebrow">Common questions</div><h2 class="pp-faq-title">Frequently asked</h2><details class="pp-faq-item"><summary>Where is Shibuya Upper West Project located?</summary><p>Shibuya Upper West Project is located in Tokyo.</p></details><details class="pp-faq-item"><summary>When will Shibuya Upper West Project be completed?</summary><p>Shibuya Upper West Project is under construction, with completion expected in 2029.</p></details><details class="pp-faq-item"><summary>Who is developing Shibuya Upper West Project?</summary><p>Tokyu Corporation is the developer behind Shibuya Upper West Project.</p></details><details class="pp-faq-item"><summary>Who designed Shibuya Upper West Project?</summary><p>Shibuya Upper West Project was designed by Nikken Sekkei.</p></details><details class="pp-faq-item"><summary>How big is Shibuya Upper West Project?</summary><p>Shibuya Upper West Project rises 34 stories.</p></details></div>
       <div class="pp-sec pp-near"><div class="pp-sec-h">Nearby Projects</div><div class="pp-near-grid"><a class="pp-near-card" href="/projects/tokyo-station-city-redevelopment/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/tokyo-station-city-redevelopment.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Tokyo Station City Redevelopment</div><div class="pp-near-m">Tokyo · Travel</div></div></a><a class="pp-near-card" href="/projects/toranomon-hills-station-tower/"><div class="pp-near-img" style="background-image:url('https://images.squarespace-cdn.com/content/v1/61dccd84d99e8076c39231bd/b8372199-25d0-42fc-97c5-6eda943bf8cb/journal-web-mori-cities-on-the-hill.jpg')"><span class="pp-near-status">Now Open</span></div><div class="pp-near-b"><div class="pp-near-t">Toranomon Hills Station Tower</div><div class="pp-near-m">Tokyo · Residences</div></div></a><a class="pp-near-card" href="/projects/torch-tower/"><div class="pp-near-img" style="background-image:url('https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/torch-tower.jpg')"><span class="pp-near-status">Under Construction</span></div><div class="pp-near-b"><div class="pp-near-t">Torch Tower</div><div class="pp-near-m">Tokyo · Mixed-Use</div></div></a></div></div>
     </div>
   </main>
