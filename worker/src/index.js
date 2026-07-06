@@ -18,6 +18,7 @@
 import { handleMcp, autoPromoteOpenedProjects } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
+import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
 
 // ---------------------------------------------------------------------------
 // CORS helpers
@@ -1065,13 +1066,17 @@ async function handleDesignCaptions(req, env, origin) {
   const current = String(b.current || '').slice(0, 400);
   const title = String(b.title || '').slice(0, 300);
   const slides = Array.isArray(b.slides) ? b.slides.map(s => String(s || '').slice(0, 400)).filter(Boolean).slice(0, 12) : [];
+  const exclude = Array.isArray(b.exclude) ? b.exclude.map(s => String(s || '').slice(0, 200)).filter(Boolean).slice(0, 25) : [];
   // SHARED BRAIN — same house voice + learned carousel rules the connector/Fable
   // use everywhere else, so captions match the machine's taste and stay unified.
   let brainText = '';
   try { const brain = await assembleBrain(env, { topic: title || current, voice: true, maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
+  // exclude goes in the USER message (not the cached system block) so "regenerate"
+  // gives genuinely fresh options without busting the brain cache.
   const ctx = 'POST: ' + (title || '(untitled)')
     + '\nSLIDE HEADLINES SO FAR:\n' + (slides.length ? slides.map((s, i) => (i + 1) + '. ' + s).join('\n') : '(none)')
-    + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)');
+    + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)')
+    + (exclude.length ? '\n\nALREADY SHOWN — do NOT repeat or closely echo any of these; give genuinely DIFFERENT options:\n' + exclude.map(s => '- ' + s).join('\n') : '');
   const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand.\n\n'
     + (brainText ? ('HOUSE BRAIN — voice + learned rules, FOLLOW THESE:\n' + brainText + '\n\n') : '')
     + 'HARD RULES:\n'
@@ -1089,6 +1094,37 @@ async function handleDesignCaptions(req, env, origin) {
   arr = (Array.isArray(arr) ? arr : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 5);
   if (!arr.length) return json({ error: 'no options' }, { status: 502 }, env, origin);
   return json({ options: arr }, {}, env, origin);
+}
+
+// POST /design/learn { title, slug, slides:[] } → learn from the FINAL, human-
+// approved carousel headlines (fired when a design is pushed to Carousels or
+// downloaded). Extracts generalizable house-voice lessons and routes them into
+// the SHARED brain, so future caption ideas track the team's real taste.
+async function handleDesignLearn(req, env, origin) {
+  const src = String(req.headers.get('origin') || req.headers.get('referer') || '');
+  if (src && !/(tmw-admin\.pages\.dev|oftmw\.com|localhost|127\.0\.0\.1)/.test(src)) return json({ error: 'forbidden' }, { status: 403 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const title = String(b.title || '').slice(0, 300);
+  const slug = String(b.slug || '').slice(0, 200);
+  const slides = Array.isArray(b.slides) ? b.slides.map(s => String(s || '').slice(0, 400)).filter(Boolean).slice(0, 15) : [];
+  if (!env.ANTHROPIC_API_KEY || !env.DB || slides.length < 2) return json({ ok: true, skipped: true }, {}, env, origin);
+  try {
+    const sys = 'You improve an AI system that writes Instagram CAROUSEL slide headlines for Markets of Tomorrow, a real-estate development media brand. Below are the FINAL, human-approved headlines for one carousel. Extract up to 3 GENERALIZABLE lessons about our caption VOICE, phrasing, length, punctuation, or structure that would make FUTURE AI headlines better — patterns to emulate, NOT one-off facts (ignore specific project names / numbers). If nothing generalizable stands out, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"voice"|"structure"|"rule","note":"<short imperative lesson>"}].';
+    const usr = 'POST: ' + (title || slug || '(untitled)') + '\n\nFINAL HEADLINES:\n' + slides.map((s, i) => (i + 1) + '. ' + s).join('\n');
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 500, system: sys, messages: [{ role: 'user', content: usr }] }),
+    });
+    if (!r.ok) return json({ ok: false }, {}, env, origin);
+    const d = await r.json();
+    const txt = ((d.content || []).find(x => x && x.type === 'text') || {}).text || '';
+    const m = txt.match(/\[[\s\S]*\]/); if (!m) return json({ ok: true, learned: 0 }, {}, env, origin);
+    let arr; try { arr = JSON.parse(m[0]); } catch { return json({ ok: true, learned: 0 }, {}, env, origin); }
+    if (!Array.isArray(arr) || !arr.length) return json({ ok: true, learned: 0 }, {}, env, origin);
+    await routeLessons(env, arr, { source: 'design-final:' + String(slug || title).slice(0, 80), evidence: 'Learned from the FINAL approved captions of "' + String(title || slug).slice(0, 80) + '"', injected_ids: [] });
+    return json({ ok: true, learned: arr.length }, {}, env, origin);
+  } catch (e) { return json({ ok: false, error: String(e.message || e) }, {}, env, origin); }
 }
 
 // GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
@@ -11039,6 +11075,7 @@ export default {
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-usage') return await handleIntelUsage(request, env, origin, url);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/map-usage') return await handleMapUsage(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/design/captions') return await handleDesignCaptions(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/design/learn') return await handleDesignLearn(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
       }
@@ -11227,6 +11264,21 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/social-followers/pull') return await handleSocialFollowersPull(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-insights/pull') return await handleSocialInsightsPull(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/social-top-posts/pull') return await handleSocialTopPostsPull(request, env, origin);
+      // THE ONTOLOGY — the versioned structural rulebook (lifecycle, hierarchy,
+      // metrics, category law, place logic, write routing). Public read: it
+      // holds no secrets, and the Claude routines + admin pages + any agent
+      // surface should all inherit from the same source. ?format=text renders
+      // the prompt-ready version; ?sections=statuses,writes slices it.
+      if (request.method === 'GET' && url.pathname === '/ontology') {
+        const fmt = url.searchParams.get('format') || 'json';
+        const sections = (url.searchParams.get('sections') || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (fmt === 'text') {
+          return new Response(ontologyText(sections), {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=300', ...corsHeaders(env, origin) },
+          });
+        }
+        return json({ ok: true, version: ONTOLOGY_VERSION, ontology: ONTOLOGY }, { headers: { 'Cache-Control': 'public, max-age=300' } }, env, origin);
+      }
       if (request.method === 'GET'  && url.pathname === '/followers') return await handleFollowersGet(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/followers') return await handleFollowersPost(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/publish') return await handlePublish(request, env, origin);
