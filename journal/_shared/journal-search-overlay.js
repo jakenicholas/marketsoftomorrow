@@ -661,6 +661,18 @@
     + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
     + '.tmw-ov-watch-btn.on{background:rgba(230,197,116,.14);border-color:rgba(230,197,116,.62);color:#f0d68a;box-shadow:0 0 16px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.4)}'
     + '.tmw-ov-watch-btn.on:hover{background:rgba(230,197,116,.2);border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.7)}'
+    /* Grounding byline relocated into the feedback row (by relocateBylines): the
+       receipts line sits LEFT, Watch/thumbs group RIGHT, on one line (desktop).
+       The byline is display:block so it wraps as normal TEXT (not the broken
+       flex-grid it did on mobile). On mobile it takes the full width + wraps, and
+       the actions drop to the next line. */
+    + '.tmw-ov-feedback{width:100%;flex-wrap:wrap;gap:10px 16px}'
+    + '.tmw-ov-feedback > .tmw-ov-intel-foot{flex:1 1 auto;min-width:0;margin:0;padding:0;border-top:0;display:block;line-height:1.55;font-size:13px;color:#C2C9C3;text-align:left}'
+    + '.tmw-ov-feedback > .tmw-ov-intel-foot .ai{color:#B9A6FF;font-weight:600}'
+    + '.tmw-ov-feedback > .tmw-ov-intel-foot b{color:#ECEAE5;font-weight:600}'
+    /* margin-left:auto keeps the actions right even when there is NO byline
+       (error / no-grounding answers), preserving the old right-alignment. */
+    + '.tmw-ov-fb-actions{flex:0 0 auto;margin-left:auto}'
     /* Absolutely positioned below the buttons, centered on the feedback
        row's center axis. Out of the flex flow so the two thumb buttons
        stay perfectly centered both before AND after voting. */
@@ -672,7 +684,10 @@
     /* Mobile: bump the dock padding-bottom + gap so the thumbs sit higher
        above the search bar (was visually too low / close to the bar). */
     +   '.tmw-ov-dock{padding:0 0 22px;gap:14px}'
-    +   '.tmw-ov-feedback{gap:8px}'
+    +   '.tmw-ov-feedback{gap:10px}'
+    /* Byline takes the full width and wraps to a 2nd line if long; the actions
+       drop below it (they won't fit on the same line on mobile). */
+    +   '.tmw-ov-feedback > .tmw-ov-intel-foot{flex-basis:100%;font-size:12.5px}'
     +   '.tmw-ov-fb-btn{width:34px;height:34px}'
     +   '.tmw-ov-fb-btn svg{width:16px;height:16px}'
     /* Mobile: anchor "Noted" inline to the RIGHT of the buttons rather
@@ -1352,6 +1367,30 @@
     else document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(root); });
   }
   mountRoot();
+
+  // Relocate the grounding byline ("Onyx 4.1 · Grounded in …") OUT of the intel
+  // panel and DOWN into that turn's feedback row, so it sits on the same bottom
+  // line as Watch / thumbs (below the hero card + project/article grids) on
+  // desktop, and wraps to its own line(s) above the actions on mobile. The intel
+  // panel re-renders async as the answer arrives, so a MutationObserver keeps the
+  // byline relocated across every re-render (it settles: once moved out of the
+  // panel it no longer matches, so no loop).
+  function relocateBylines(){
+    try {
+      var foots = root.querySelectorAll('.tmw-ov-intel-panel .tmw-ov-intel-foot.has-ground');
+      for (var i = 0; i < foots.length; i++) {
+        var foot = foots[i];
+        var turn = foot.closest && foot.closest('.tmw-ov-turn'); if (!turn) continue;
+        var fb = turn.querySelector('.tmw-ov-feedback'); if (!fb) continue;
+        var actions = fb.querySelector('.tmw-ov-fb-actions'); if (!actions) continue;
+        var stale = fb.querySelector(':scope > .tmw-ov-intel-foot'); if (stale && stale !== foot) stale.remove();
+        fb.insertBefore(foot, actions);
+      }
+    } catch (e) {}
+  }
+  try {
+    new MutationObserver(function(){ relocateBylines(); }).observe(root, { childList: true, subtree: true });
+  } catch (e) {}
 
   var scrim  = root.querySelector('.tmw-ov-scrim');
   var input  = root.querySelector('.tmw-ov-bar input');
