@@ -694,7 +694,7 @@
   // answer with every project in that part of the world — same as a US metro.
   var CITY_REGIONS = [
     { name:'The Caribbean', triggers:['caribbean','the caribbean','west indies'],
-      cities:['Bahamas','Providenciales','Turks and Caicos','Grand Cayman','Paradise Island','Harbour Island','Freeport','The Abacos','Big Ambergris Cay','Jolly Harbour','The Valley','Indigo Bay','Miches','Belize','Caye Chapel','Half Moon Bay','Grand Harbour'] },
+      cities:['Bahamas','Providenciales','Turks and Caicos','Grand Cayman','George Town','Paradise Island','Harbour Island','Freeport','The Abacos','Big Ambergris Cay','Jolly Harbour','The Valley','Indigo Bay','Miches','Belize','Caye Chapel','Half Moon Bay','Grand Harbour','Barbados','Saint Peter','Bridgetown','Saint James'] },
     { name:'Japan', triggers:['japan','japanese'],
       cities:['Tokyo','Kyoto','Osaka','Niseko','Kutchan','Myoko','Onna','Takamatsu'] },
     { name:'United Kingdom', triggers:['united kingdom','uk','britain','great britain','england'],
@@ -706,7 +706,50 @@
     { name:'Saudi Arabia', triggers:['saudi arabia','saudi','ksa'],
       cities:['Riyadh','Saudi Arabia','NEOM','AlUla','AMAALA','Shura Island'] },
     { name:'The Gulf', triggers:['the gulf','persian gulf','gcc','arabian gulf'],
-      cities:['Dubai','Abu Dhabi','Doha','Lusail','Riyadh','Saudi Arabia','NEOM','AlUla','AMAALA','Lusail','Ras Al Khaimah','Shura Island','UAE'] }
+      cities:['Dubai','Abu Dhabi','Doha','Lusail','Riyadh','Saudi Arabia','NEOM','AlUla','AMAALA','Lusail','Ras Al Khaimah','Shura Island','UAE'] },
+    // City→country tagging below is guarded to INTERNATIONAL rows only (blank
+    // CountyState) in placeTokensOf + inArea, so US city-name twins (Venice FL,
+    // Rome GA, Florence SC, Paris TX, Melbourne FL) never resolve to these.
+    { name:'China', triggers:['china','chinese','mainland china'],
+      cities:['Shenzhen','Shanghai','Suzhou','Beijing','Guangzhou','Chengdu','Hangzhou','Hong Kong','Macau','Sanya','Qingdao','Chongqing','Wuhan','Nanjing','Tianjin','Xiamen'] },
+    { name:'Thailand', triggers:['thailand','thai'],
+      cities:['Bangkok','Hua Hin','Phuket','Chiang Mai','Koh Samui','Pattaya'] },
+    { name:'Singapore', triggers:['singapore'],
+      cities:['Singapore'] },
+    { name:'South Korea', triggers:['south korea','korea','korean'],
+      cities:['Seoul','Busan','Incheon','Jeju'] },
+    { name:'Malaysia', triggers:['malaysia','malaysian'],
+      cities:['Desaru Coast','Desaru','Kuala Lumpur','Langkawi','Penang'] },
+    { name:'Maldives', triggers:['maldives','the maldives'],
+      cities:['Raa Atoll','Baa Atoll','North Malé Atoll','Malé','Male'] },
+    { name:'Sri Lanka', triggers:['sri lanka'],
+      cities:['Ella','Colombo','Galle'] },
+    { name:'Italy', triggers:['italy','italian'],
+      cities:['Milan','Venice','Rome','Florence','Fiesole','Perugia','Cortina d\'Ampezzo','Cortina','Como','Lake Como','Portofino','Positano','Amalfi','Bologna','Turin','Sardinia','Sicily'] },
+    { name:'France', triggers:['france','french','french riviera','cote d\'azur','côte d\'azur'],
+      cities:['Paris','Bandol','Sainte-Maxime','Nice','Cannes','Saint-Tropez','St-Tropez','Bordeaux','Lyon','Courchevel','Megève','Megeve','Antibes','Cap Ferrat','Marseille'] },
+    { name:'Spain', triggers:['spain','spanish','costa del sol'],
+      cities:['Madrid','Barcelona','Calvià','Calvia','Sevilla','Seville','Marbella','Ibiza','Palma','Mallorca','Valencia','Málaga','Malaga','San Sebastián'] },
+    { name:'Portugal', triggers:['portugal','portuguese','the algarve'],
+      cities:['Lisbon','Porto','Comporta','Algarve','Madeira','Cascais'] },
+    { name:'Greece', triggers:['greece','greek'],
+      cities:['Athens','Mykonos','Santorini','Crete','Corfu','Paros','Elounda','Hersonissos','Agios Nikolaos','Agia Pelagia'] },
+    { name:'Switzerland', triggers:['switzerland','swiss','the alps'],
+      cities:['Gstaad','Zurich','Zürich','St. Moritz','Verbier','Geneva','Zermatt','Andermatt','Crans-Montana'] },
+    { name:'Montenegro', triggers:['montenegro'],
+      cities:['Sveti Stefan','Tivat','Kotor','Porto Montenegro'] },
+    { name:'Norway', triggers:['norway','norwegian'],
+      cities:['Andenes','Oslo','Bergen','Tromsø'] },
+    { name:'Egypt', triggers:['egypt','egyptian'],
+      cities:['Ain Sokhna','Cairo','New Cairo','El Gouna'] },
+    { name:'Australia', triggers:['australia','australian'],
+      cities:['Brisbane','Sydney','Melbourne','Gold Coast','Perth','Byron Bay'] },
+    { name:'Canada', triggers:['canada','canadian'],
+      cities:['Toronto','Vancouver','Montreal','Revelstoke','Whistler','Calgary','Banff'] },
+    { name:'Costa Rica', triggers:['costa rica'],
+      cities:['Nicoya Peninsula','Nicoya','Guanacaste','Papagayo','Tamarindo'] },
+    { name:'Guatemala', triggers:['guatemala'],
+      cities:['Guatemala City','Antigua Guatemala'] }
   ];
   // norm(city) set per region, built once.
   var _cityRegionSets = null;
@@ -813,8 +856,10 @@
     // country (US data; international rows carry no US state code)
     if (st && STATE_NAMES[st]) { add('usa'); add('united states'); add('america'); }
     // international / city-grouped regions — a Bahamas project answers to
-    // "caribbean", a Tokyo project to "japan", etc.
-    if (city) {
+    // "caribbean", a Tokyo project to "japan", etc. INTERNATIONAL rows only
+    // (blank CountyState): a US project in Venice FL / Rome GA must never inherit
+    // "italy", nor Paris TX "france".
+    if (city && !st) {
       var cn = norm(city.split(',')[0].trim());
       cityRegionSets().forEach(function (r) { if (r.set[cn]) r.triggers.forEach(add); });
     }
@@ -929,7 +974,7 @@
   }
   function inArea(p, area) {
     if (!area) return false;
-    if (area.cityNorms) return !!area.cityNorms[_projCityNorm(p)];   // international region → by city
+    if (area.cityNorms) return !String(p.CountyState || '').trim() && !!area.cityNorms[_projCityNorm(p)];   // international region → by city (int'l rows only)
     if (!area.state) return false;
     if (String(p.CountyState || '') !== area.state) return false;
     if (!area.counties) return true;  // whole state
