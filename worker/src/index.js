@@ -1061,32 +1061,34 @@ async function handleDesignCaptions(req, env, origin) {
   if (src && !/(tmw-admin\.pages\.dev|oftmw\.com|localhost|127\.0\.0\.1)/.test(src)) return json({ error: 'forbidden' }, { status: 403 }, env, origin);
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 500 }, env, origin);
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
-  const mode = b.mode === 'similar' ? 'similar' : 'new';
+  const mode = b.mode === 'new' ? 'new' : 'similar';   // default: rework the current line
   const current = String(b.current || '').slice(0, 400);
   const title = String(b.title || '').slice(0, 300);
   const slides = Array.isArray(b.slides) ? b.slides.map(s => String(s || '').slice(0, 400)).filter(Boolean).slice(0, 12) : [];
+  // SHARED BRAIN — same house voice + learned carousel rules the connector/Fable
+  // use everywhere else, so captions match the machine's taste and stay unified.
+  let brainText = '';
+  try { const brain = await assembleBrain(env, { topic: title || current, voice: true, maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
   const ctx = 'POST: ' + (title || '(untitled)')
     + '\nSLIDE HEADLINES SO FAR:\n' + (slides.length ? slides.map((s, i) => (i + 1) + '. ' + s).join('\n') : '(none)')
     + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)');
-  const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand. Voice: confident, specific, hype-but-credible; lead with a concrete FACT (a number, a name, a superlative) whenever possible; no hashtags, no emojis, no clickbait fluff. Each headline is ONE punchy line (~6–16 words) that sits large over a photo. '
+  const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand.\n\n'
+    + (brainText ? ('HOUSE BRAIN — voice + learned rules, FOLLOW THESE:\n' + brainText + '\n\n') : '')
+    + 'HARD RULES:\n'
+    + '- ONE punchy line per option; lead with a concrete FACT (a number, a name, a superlative) when possible.\n'
+    + '- LENGTH: keep each headline TIGHT — roughly 40–80 characters (2–3 short lines in a NARROW slide box). Longer wraps to 5+ lines and crowds the layout.\n'
+    + '- PUNCTUATION + CASE: match the CURRENT SLIDE TEXT and the house voice above — no hashtags, no emojis, no clickbait, no trailing period on a headline unless the house style uses one. Use en/em dashes the way the house does.\n'
+    + '- Preserve exact spellings + diacritics from the post (e.g. "Eudēmonia").\n\n'
     + (mode === 'similar'
-        ? 'REWORD the CURRENT SLIDE TEXT: keep the same meaning and core fact, but make each of the 5 options a genuinely DIFFERENT phrasing (different structure / word order) — clearly the same idea said fresh.'
-        : 'Generate 5 NEW headline ideas for THIS slide, each surfacing a DIFFERENT concrete fact or angle drawn from the post above (do not merely reword the current text).')
-    + ' Return ONLY a JSON array of exactly 5 strings, nothing else.';
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 700, system: sys, messages: [{ role: 'user', content: ctx }] }),
-    });
-    if (!r.ok) return json({ error: 'AI error ' + r.status }, { status: 502 }, env, origin);
-    const d = await r.json();
-    const txt = ((d.content || []).find(x => x && x.type === 'text') || {}).text || '';
-    const m = txt.match(/\[[\s\S]*\]/);
-    let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch (_) {} }
-    arr = (Array.isArray(arr) ? arr : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 5);
-    return json({ options: arr }, {}, env, origin);
-  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+        ? 'TASK: REWORD the CURRENT SLIDE TEXT into 5 options — keep the same meaning + core fact, but each option is a genuinely DIFFERENT phrasing (different structure / word order), clearly the same idea said fresh.'
+        : 'TASK: Generate 5 NEW headline ideas for THIS slide, each surfacing a DIFFERENT concrete fact or angle drawn from the post above (do not merely reword the current text).')
+    + '\n\nReturn ONLY a JSON array of exactly 5 strings, nothing else.';
+  const txt = await fableGenerate(env, { system: sys, user: ctx, maxTokens: 1200 });   // Fable 5 (brain-cached)
+  const m = String(txt || '').match(/\[[\s\S]*\]/);
+  let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch (_) {} }
+  arr = (Array.isArray(arr) ? arr : []).map(s => String(s || '').trim()).filter(Boolean).slice(0, 5);
+  if (!arr.length) return json({ error: 'no options' }, { status: 502 }, env, origin);
+  return json({ options: arr }, {}, env, origin);
 }
 
 // GET  /admin/deep-credits?member_id=  → that member's deep allowance status.
