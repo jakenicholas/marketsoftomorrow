@@ -299,8 +299,12 @@ def main():
     # run (full AND --only, since all existing dirs are on disk), so it always
     # reflects reality and ships in the SAME commit/deploy as the pages.
     try:
+        import unicodedata
+        # NFC-normalize: macOS stores filenames as NFD (decomposed accents), but
+        # the D1 slug / API is NFC (composed), so an accented slug ("niño-gordo")
+        # would mismatch and be wrongly gated. Normalize to NFC to match the API.
         live = sorted(
-            d for d in os.listdir(OUT_ROOT)
+            unicodedata.normalize("NFC", d) for d in os.listdir(OUT_ROOT)
             if os.path.isfile(os.path.join(OUT_ROOT, d, "index.html"))
         )
         with open(os.path.join("journal", "posts-live.json"), "w", encoding="utf-8") as f:

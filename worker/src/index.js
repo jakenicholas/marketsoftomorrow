@@ -3318,7 +3318,7 @@ async function handlePostsList(req, env, origin, url) {
     const liveSet = await getLivePostSlugs();
     if (liveSet && liveSet.size) {
       const before = items.length;
-      items = items.filter((it) => liveSet.has(it.slug));
+      items = items.filter((it) => liveSet.has(String(it.slug).normalize('NFC')));
       totalCount = Math.max(0, totalCount - (before - items.length));
     }
   }
@@ -3342,7 +3342,9 @@ async function getLivePostSlugs() {
     if (!r.ok) return null;
     const arr = await r.json();
     if (!Array.isArray(arr) || !arr.length) return null;
-    const set = new Set(arr.map((s) => String(s)));
+    // NFC-normalize so an accented slug matches regardless of how the manifest
+    // filesystem stored it (macOS NFD vs the D1/API NFC).
+    const set = new Set(arr.map((s) => String(s).normalize('NFC')));
     _livePostsCache = set; _livePostsAt = now;
     return set;
   } catch (e) { return null; }
