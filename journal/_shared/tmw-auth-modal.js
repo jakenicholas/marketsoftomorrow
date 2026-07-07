@@ -134,6 +134,7 @@
     var msg = (e && (e.message || (e.error && e.error.message))) || 'Something went wrong. Try again.';
     if (/password/i.test(msg) && /incorrect|wrong|invalid/i.test(msg)) return 'Incorrect email or password.';
     if (/not found|no member|does not exist/i.test(msg)) return "We couldn't find an account with that email.";
+    if (/token|code/i.test(msg) && /invalid|expired|incorrect|wrong/i.test(msg)) return 'That reset code is invalid or expired — tap “Resend code” for a new one.';
     if (/exist|already|registered|in use/i.test(msg)) return 'That email already has an account — log in instead.';
     return msg;
   }
@@ -177,11 +178,7 @@
     host.querySelector('[data-act="forgot"]').addEventListener('click', function (e) {
       e.preventDefault();
       var email = (host.querySelector('input[name="email"]').value || '').trim();
-      if (!email) { setMsg(host, 'err', 'Enter your email above first, then tap Forgot Password.'); return; }
-      var m = ms(); if (!m) return;
-      m.sendMemberResetPasswordEmail({ email: email }).then(function () {
-        setMsg(host, 'ok', '✓ Check your inbox for a reset link.');
-      }).catch(function (err) { setMsg(host, 'err', niceError(err)); });
+      viewForgot(host, { email: email, priceId: priceId });
     });
     host.querySelector('[data-act="google"]').addEventListener('click', function () {
       var m = ms(); if (!m) return;
@@ -197,6 +194,65 @@
         try { if (window.gtag) window.gtag('event', 'login', { method: 'email' }); } catch (_) {}
         afterAuth(host, priceId);
       }).catch(function (err) { setMsg(host, 'err', niceError(err)); btn.disabled = false; btn.textContent = 'Log in'; });
+    });
+  }
+
+  // ── forgot / reset password ───────────────────────────────────────────────
+  // Memberstack e-mails a reset CODE (not a magic link), so completing a reset
+  // needs a second step: enter that code + a new password → resetMemberPassword.
+  // Previously we only sent the email and told the user to "check for a link" —
+  // there was nowhere to enter the code, so resets could never finish.
+  function viewForgot(host, opts) {
+    opts = opts || {};
+    var emailVal = String(opts.email || '').replace(/"/g, '&quot;');
+    host.innerHTML =
+      LOGO +
+      '<h2>Reset your password</h2>' +
+      '<p class="tmw-am-alt" style="margin-top:-4px;text-align:left">We’ll email you a reset code. Enter it below with your new password.</p>' +
+      '<form class="tmw-am-form" novalidate>' +
+        '<div class="tmw-am-field"><label>Email Address</label><div class="tmw-am-inp"><input name="email" type="email" autocomplete="email" placeholder="you@example.com" value="' + emailVal + '" required></div></div>' +
+        '<button type="button" class="tmw-am-primary" data-act="send">Send reset code</button>' +
+        '<div class="tmw-am-reset2" hidden>' +
+          '<div class="tmw-am-field"><label>Reset code</label><div class="tmw-am-inp"><input name="code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Code from your email" required></div></div>' +
+          '<div class="tmw-am-field"><label>New password</label><div class="tmw-am-inp"><input name="newpw" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="tmw-am-eye" aria-label="Show password">' + EYE + '</button></div></div>' +
+          '<button type="submit" class="tmw-am-primary" data-act="reset">Set new password</button>' +
+        '</div>' +
+      '</form>' +
+      '<div class="tmw-am-msg" aria-live="polite"></div>' +
+      '<div class="tmw-am-alt">Remembered it? <a data-act="to-login">Back to log in</a></div>';
+    wireEye(host);
+    var step2 = host.querySelector('.tmw-am-reset2');
+    host.querySelector('[data-act="to-login"]').addEventListener('click', function () { viewLogin(host, opts); });
+
+    // Step 1 — send the reset code
+    host.querySelector('[data-act="send"]').addEventListener('click', function () {
+      var email = (host.querySelector('input[name="email"]').value || '').trim();
+      if (!email) { setMsg(host, 'err', 'Enter your email first.'); return; }
+      var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); return; }
+      var b = host.querySelector('[data-act="send"]'); b.disabled = true; b.textContent = 'Sending…'; setMsg(host, '', '');
+      m.sendMemberResetPasswordEmail({ email: email }).then(function () {
+        setMsg(host, 'ok', '✓ Code sent — check your inbox, then enter it below.');
+        step2.hidden = false;
+        b.disabled = false; b.textContent = 'Resend code';
+        var c = host.querySelector('input[name="code"]'); if (c) c.focus();
+      }).catch(function (err) { setMsg(host, 'err', niceError(err)); b.disabled = false; b.textContent = 'Send reset code'; });
+    });
+
+    // Step 2 — code + new password → complete the reset
+    host.querySelector('.tmw-am-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (step2.hidden) return; // code step not revealed yet
+      var code = (host.querySelector('input[name="code"]').value || '').trim();
+      var npw = host.querySelector('input[name="newpw"]').value || '';
+      if (!code) { setMsg(host, 'err', 'Enter the reset code from your email.'); return; }
+      if (npw.length < 8) { setMsg(host, 'err', 'New password must be at least 8 characters.'); return; }
+      var m = ms(); if (!m) { setMsg(host, 'err', 'Still loading — try again in a moment.'); return; }
+      var btn = host.querySelector('[data-act="reset"]'); btn.disabled = true; btn.textContent = 'Resetting…'; setMsg(host, '', '');
+      m.resetMemberPassword({ token: code, newPassword: npw }).then(function () {
+        var email = (host.querySelector('input[name="email"]').value || '').trim();
+        setMsg(host, 'ok', '✓ Password updated. Log in with your new password.');
+        setTimeout(function () { viewLogin(host, opts); var el = host.querySelector('input[name="email"]'); if (el) el.value = email; }, 1300);
+      }).catch(function (err) { setMsg(host, 'err', niceError(err)); btn.disabled = false; btn.textContent = 'Set new password'; });
     });
   }
 
