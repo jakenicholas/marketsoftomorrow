@@ -1,4 +1,12 @@
 # Cloudflare Pages headers.
+
+# Self-hosted fonts — cache hard (a year, immutable). The filename is the version;
+# bump it if the font file ever changes. CORS-open so the crossorigin preload (and
+# any subdomain) can use it.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
 # The map's data JSONs (served at /map/*.json) are read cross-origin by the
 # Studio (admin.oftmw.com) and, during the cutover, by the legacy map.oftmw.com.
 # Same-origin journal pages don't need this, but cross-origin readers do.
