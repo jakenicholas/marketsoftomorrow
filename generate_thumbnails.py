@@ -134,7 +134,9 @@ def main():
             done = set()
 
     sources = collect_sources()
-    todo = [(k, u) for k, u in sources.items() if k not in done]
+    # Sorted so runs are DETERMINISTIC (collect_sources builds from a set, whose
+    # iteration order is randomized per process) — same batch every time, resumable.
+    todo = sorted(((k, u) for k, u in sources.items() if k not in done), key=lambda x: x[0])
     if args.limit:
         todo = todo[:args.limit]
     print(f"sources={len(sources)}  already-done={len(done)}  to-process={len(todo)}")
