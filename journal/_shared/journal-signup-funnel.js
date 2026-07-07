@@ -85,7 +85,13 @@
   // Mono), which is what made the box look different there. Inject the font link
   // once — same "bring-your-own" model the toast system uses — so the boxes are
   // identical everywhere. Skipped if the page already loaded Fraunces.
-  if (!document.getElementById('tmw-funnel-fonts') && !/family=Fraunces/.test(document.head.innerHTML)) {
+  // Skip if the page already provides Fraunces — either a Google Fonts link
+  // (family=Fraunces) OR a self-hosted @font-face (font-family:'Fraunces', e.g.
+  // the homepage). Without the self-hosted check this re-added the Google font on
+  // pages that self-host, undoing the point of self-hosting.
+  var _headHtml = document.head.innerHTML;
+  var _hasFraunces = /family=Fraunces/.test(_headHtml) || /font-family:\s*['"]?Fraunces/i.test(_headHtml);
+  if (!document.getElementById('tmw-funnel-fonts') && !_hasFraunces) {
     var fontLink = document.createElement('link');
     fontLink.id = 'tmw-funnel-fonts';
     fontLink.rel = 'stylesheet';
