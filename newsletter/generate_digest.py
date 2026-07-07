@@ -836,22 +836,38 @@ def main():
     #  • ARCHIVE (archive=True) — the web copy we send clients; pinned to the
     #    polished LIGHT/branded design so it looks identical on every device
     #    (the partial dark-mode flip rendered broken in a browser).
-    # EMAIL build with an auto-fit size budget. Gmail CLIPS any message over
-    # ~102KB ("[Message clipped] View entire message"), hiding the bottom of the
-    # digest (app-update cards + Open TMW Pro + footer). The sent source must stay
-    # comfortably under that because Resend link-rewriting + quoted-printable
-    # encoding inflate it further. Start at 6 article cards per section and shrink
-    # the cap until the rendered email fits; the trimmed articles fold into a
-    # "+N more in the journal" link. The archive/web copy is never trimmed.
-    EMAIL_BYTE_BUDGET = 92000
+    def minify_email(h):
+        """Email-safe minify: strip non-conditional HTML comments and collapse
+        whitespace runs to a SINGLE space (keeps meaningful inline spacing; clients
+        ignore indentation). <style> blocks are preserved verbatim then whitespace-
+        collapsed so @media / dark-mode / MSO rules stay intact. ~14% smaller."""
+        styles = []
+        h = re.sub(r'<style[^>]*>.*?</style>',
+                   lambda m: styles.append(m.group(0)) or f"\x00S{len(styles)-1}\x00",
+                   h, flags=re.S | re.I)
+        h = re.sub(r'<!--(?!\[if)(?!<!\[endif)(?:(?!-->).)*?-->', '', h, flags=re.S)   # keep MSO conditionals
+        h = re.sub(r'[ \t\r\n]+', ' ', h)
+        for i, s in enumerate(styles):
+            s2 = re.sub(r'\s*([{};:,])\s*', r'\1', re.sub(r'[ \t\r\n]+', ' ', s))
+            h = h.replace(f"\x00S{i}\x00", s2)
+        return h.strip()
+
+    # EMAIL build — MINIFIED + auto-fit under Gmail's ~102KB clip limit. Gmail CLIPS
+    # any message over ~102KB ("[Message clipped] View entire message"), hiding the
+    # bottom of the digest (app-update cards + Open TMW Pro + footer). Resend link-
+    # rewriting + quoted-printable encoding inflate the sent size, so we (1) minify
+    # the HTML and (2) if it's still over an ~80KB source budget, shrink the per-
+    # section article cap (rest fold into "+N more in the journal") until it fits.
+    # The archive/web copy is neither minified nor trimmed.
+    EMAIL_BYTE_BUDGET = 80000
     _art_cap = 6
-    email_html = render_inlined(archive=False, art_cap=_art_cap)
+    email_html = minify_email(render_inlined(archive=False, art_cap=_art_cap))
     while len(email_html.encode("utf-8")) > EMAIL_BYTE_BUDGET and _art_cap > 2:
         _art_cap -= 1
-        email_html = render_inlined(archive=False, art_cap=_art_cap)
-    _email_bytes = len(email_html.encode("utf-8"))
-    print(f"[info] email html: {_email_bytes} bytes, article cap {_art_cap} "
-          f"({'OK' if _email_bytes <= EMAIL_BYTE_BUDGET else 'STILL OVER — check content weight'})")
+        email_html = minify_email(render_inlined(archive=False, art_cap=_art_cap))
+    _eb = len(email_html.encode("utf-8"))
+    print(f"[info] email html: {_eb} bytes (minified), article cap {_art_cap} "
+          f"({'OK' if _eb <= EMAIL_BYTE_BUDGET else 'STILL OVER — trim content'})")
     archive_html = render_inlined(archive=True)
 
     os.makedirs(os.path.dirname(OUT_HTML), exist_ok=True)
