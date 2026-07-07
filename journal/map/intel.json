@@ -3282,67 +3282,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "good-samaritan-medical-district": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 2.8,
-      "range_high": 8.1,
-      "confidence": "medium",
-      "comparable_count": 3,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.8,
-      "avg_distance_km": 64.2,
-      "avg_distance_mi": 39.9,
-      "scale_used": false,
-      "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 13,
-        "median_years": 3.13,
-        "stddev_years": 1.68,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.65
-      },
-      "source": "comparables",
-      "project_type": "Hotel",
-      "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 1.0,
-          "distance_km": 3.5,
-          "distance_mi": 2.2
-        },
-        {
-          "name": "The Vineta Hotel",
-          "slug": "the-vineta-hotel",
-          "location": "Palm Beach",
-          "years": 2.8,
-          "score": 1.0,
-          "distance_km": 2.6,
-          "distance_mi": 1.6
-        },
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.4,
-          "distance_km": 186.5,
-          "distance_mi": 115.9
-        }
-      ],
-      "pattern_summary": "Among 3 same-metro hotel projects in TMW's data, the median build time is 3 years (range 2.8–8.1). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 13 prior projects).",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
-    },
     "court-club": {
       "estimate_years": 0.4,
       "estimate_label": "~4 months",
@@ -9633,7 +9572,7 @@
       "firm_signal": null,
       "source": "comparables",
       "project_type": "Mixed-Use",
-      "metro": "South Florida",
+      "metro": "Other",
       "comparables": [
         {
           "name": "520 Fifth Avenue",
@@ -12486,7 +12425,7 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "the-harriman-a-viceroy-resort": {
+    "the-observatory-sun-valley-a-viceroy-resort": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
       "days_out": 147,
@@ -12546,7 +12485,7 @@
       "precision": "year",
       "confidence": "high",
       "project_type": "Hotel",
-      "metro": "Unknown",
+      "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
       "pattern_summary": "Targeted for opening in ~2.5 years.",
@@ -12648,17 +12587,34 @@
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
+    },
+    "brescia-hospital-of-the-future": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 908,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Healthcare",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
     }
   },
   "stats": {
     "high": 7,
-    "medium": 22,
+    "medium": 21,
     "low": 50,
-    "known_date": 433,
+    "known_date": 434,
     "completed": 66,
-    "skipped": 74,
+    "skipped": 76,
     "no_type": 0,
-    "firm_boosted": 35,
+    "firm_boosted": 34,
     "speculative_softened": 151,
     "district": 11,
     "mixed_use_adjusted": 15

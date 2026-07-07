@@ -58,6 +58,10 @@
       "count": 3
     },
     {
+      "type": "Healthcare",
+      "count": 2
+    },
+    {
       "type": "Hospital",
       "count": 1
     }
@@ -3330,9 +3334,9 @@
       "yr": 2028,
       "sm": null,
       "ci": "Fort Lauderdale",
-      "u": 370,
+      "u": 824,
       "k": 0,
-      "fl": 45,
+      "fl": 47,
       "dv": [
         [
           "Naftali Group",
@@ -3850,7 +3854,7 @@
       "sm": "2025-04",
       "ci": "Bahamas",
       "u": 97,
-      "k": 110,
+      "k": 115,
       "fl": 0,
       "dv": [
         [
@@ -4698,7 +4702,7 @@
     },
     {
       "st": "FL",
-      "ty": "Hotel",
+      "ty": "Healthcare",
       "sl": "Announced",
       "yr": 2030,
       "sm": "2027-12",
@@ -14069,12 +14073,12 @@
       ]
     },
     {
-      "st": "FL",
+      "st": "Other",
       "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": null,
       "sm": null,
-      "ci": "Miami",
+      "ci": "Biscayne Gardens",
       "u": 110,
       "k": 0,
       "fl": 9,
@@ -14145,7 +14149,7 @@
       "ty": "Hotel",
       "sl": "Construction",
       "yr": 2029,
-      "sm": null,
+      "sm": "2025-12",
       "ci": "Aspen",
       "u": 32,
       "k": 0,
@@ -18045,10 +18049,10 @@
     {
       "st": "Other",
       "ty": "Hotel",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2028,
       "sm": null,
-      "ci": "",
+      "ci": "Comporta",
       "u": 64,
       "k": 34,
       "fl": 0,
@@ -18150,19 +18154,72 @@
           "hda-architects"
         ]
       ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Announced",
+      "yr": 2032,
+      "sm": null,
+      "ci": "Brisbane",
+      "u": 0,
+      "k": 0,
+      "fl": 47,
+      "dv": [
+        [
+          "DOMA Group",
+          "doma-group"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Healthcare",
+      "sl": "Announced",
+      "yr": 2028,
+      "sm": null,
+      "ci": "Brescia",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "ASST Spedali Civili di Brescia",
+          "asst-spedali-civili-di-brescia"
+        ],
+        [
+          "Regione Lombardia",
+          "regione-lombardia"
+        ]
+      ],
+      "ar": [
+        [
+          "Carlo Ratti Associati",
+          "carlo-ratti-associati"
+        ],
+        [
+          "Park Associati",
+          "park-associati"
+        ],
+        [
+          "Politecnica",
+          "politecnica"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 716,
+    "total_projects": 718,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 273,
+    "under_construction": 272,
     "opening_this_year": 104
   },
   "scale": {
-    "units": 257507,
-    "keys": 49380,
-    "floors": 11004
+    "units": 257961,
+    "keys": 49385,
+    "floors": 11053
   },
   "leaderboards": {
     "developers": [
@@ -18766,8 +18823,8 @@
     "cities": [
       {
         "name": "Miami",
-        "sub": "90 developments \u00b7 116 developers",
-        "count": 90,
+        "sub": "89 developments \u00b7 115 developers",
+        "count": 89,
         "states": [
           "FL"
         ]
@@ -19167,6 +19224,15 @@
         "name": "Marina",
         "sub": "0% of pipeline",
         "count": 3,
+        "states": [
+          "FL",
+          "Other"
+        ]
+      },
+      {
+        "name": "Healthcare",
+        "sub": "0% of pipeline",
+        "count": 2,
         "states": [
           "FL",
           "Other"
@@ -19763,8 +19829,8 @@
       "cities": [
         {
           "name": "Miami",
-          "sub": "90 developments \u00b7 116 developers",
-          "count": 90,
+          "sub": "89 developments \u00b7 115 developers",
+          "count": 89,
           "states": [
             "FL"
           ]
@@ -20034,7 +20100,7 @@
         {
           "name": "Hotel",
           "sub": "6% of pipeline",
-          "count": 19,
+          "count": 18,
           "states": [
             "Other",
             "FL",
@@ -20051,7 +20117,7 @@
         {
           "name": "Mixed-Use",
           "sub": "5% of pipeline",
-          "count": 16,
+          "count": 15,
           "states": [
             "FL",
             "Other",
@@ -20175,6 +20241,15 @@
             "NY",
             "UK",
             "TN"
+          ]
+        },
+        {
+          "name": "Healthcare",
+          "sub": "0% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "Other"
           ]
         }
       ]
@@ -23648,18 +23723,18 @@
   "by_state": {
     "FL": {
       "hero_stats": {
-        "total_projects": 328,
+        "total_projects": 327,
         "under_construction": 119
       },
       "scale": {
-        "units": 79842,
+        "units": 80186,
         "keys": 11209,
-        "floors": 5940
+        "floors": 5933
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 129
+          "count": 128
         },
         {
           "label": "Breaking Ground",
@@ -24741,6 +24816,7 @@
     "Caye Chapel": "Other",
     "Saint Peter": "Other",
     "Myoko": "Other",
+    "Biscayne Gardens": "Other",
     "San Antonio": "TX",
     "Telluride": "Other",
     "Roggen": "Other",
@@ -24792,12 +24868,14 @@
     "Nanjing": "Other",
     "Haikou": "Other",
     "Tianjin": "Other",
-    "Hangzhou": "Other"
+    "Comporta": "Other",
+    "Hangzhou": "Other",
+    "Brescia": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 205
+      "count": 208
     },
     {
       "label": "Breaking Ground",
@@ -24805,7 +24883,7 @@
     },
     {
       "label": "Construction",
-      "count": 273
+      "count": 272
     },
     {
       "label": "Opening Soon",
@@ -24840,7 +24918,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 27
+      "count": 28
     },
     {
       "month": "Jan",
@@ -24889,7 +24967,7 @@
     },
     {
       "year": 2028,
-      "count": 131
+      "count": 132
     },
     {
       "year": 2029,
@@ -24904,7 +24982,7 @@
     {
       "code": "FL",
       "label": "Florida",
-      "count": 328
+      "count": 327
     },
     {
       "code": "NY",
@@ -24953,6 +25031,44 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "track-group-20260707T1846-3",
+      "type": "tracking",
+      "tag": "Tracking",
+      "title": "Tracking 3 more projects",
+      "city": "The Observatory Sun Valley, a Viceroy Resort +2 more",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7c86760f97b9-the_observatory_sv_drone_1_final.1500x0.jpg",
+      "link": "https://www.oftmw.com/map/",
+      "timestamp": "2026-07-07T18:46:07.011076+00:00"
+    },
+    {
+      "id": "ms-port-32-palm-beach-gardens-topping-out-2026-07-07",
+      "type": "status_change",
+      "tag": "Topped out",
+      "title": "PORT 32 Palm Beach Gardens  Topped out",
+      "project_slug": "port-32-palm-beach-gardens",
+      "project_title": "PORT 32 Palm Beach Gardens",
+      "city": "Palm Beach Gardens",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/port-32-palm-beach-gardens.webp",
+      "event_date": "2026-06-04",
+      "source_url": "https://southernboating.com/life/news/port-32-palm-beach-gardens-marina/",
+      "link": "https://www.oftmw.com/map/?project=port32palmbeachgardens",
+      "timestamp": "2026-07-07T18:34:31.595Z"
+    },
+    {
+      "id": "ms-currie-park-towers-financing-2026-07-07",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Currie Park Towers  Financing secured",
+      "project_slug": "currie-park-towers",
+      "project_title": "Currie Park Towers",
+      "city": "West Palm Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/currie-park-towers.jpg",
+      "event_date": "2026-06-18",
+      "source_url": "https://therealdeal.com/miami/2026/06/18/terra-bh-group-plan-condo-towers-in-west-palm-beach/",
+      "link": "https://www.oftmw.com/map/?project=currieparktowers",
+      "timestamp": "2026-07-07T18:32:18.663Z"
+    },
     {
       "id": "ms-pendry-barbados-topping-out-2026-07-07",
       "type": "status_change",
@@ -25596,48 +25712,6 @@
       "source_url": "https://floridayimby.com/2026/07/construction-goes-vertical-on-20-story-four-seasons-private-residences-coconut-grove.html",
       "link": "https://www.oftmw.com/map/?project=fourseasonsprivateresidencescoconutgrove",
       "timestamp": "2026-07-04T23:11:58.795Z"
-    },
-    {
-      "id": "ms-eden-residences-breaking-ground-2026-07-04",
-      "type": "status_change",
-      "tag": "Broke ground",
-      "title": "Eden Residences  Broke ground",
-      "project_slug": "eden-residences",
-      "project_title": "Eden Residences",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/eden-residences.jpg",
-      "event_date": "2026-06-08",
-      "source_url": "https://www.einpresswire.com/article/918227271/developers-break-ground-on-eden-a-new-boutique-luxury-condominium-near-aventura-mall",
-      "link": "https://www.oftmw.com/map/?project=edenresidences",
-      "timestamp": "2026-07-04T23:11:51.269Z"
-    },
-    {
-      "id": "ms-royal-caribbean-hq-topping-out-2026-07-04",
-      "type": "status_change",
-      "tag": "Topped out",
-      "title": "Royal Caribbean HQ  Topped out",
-      "project_slug": "royal-caribbean-hq",
-      "project_title": "Royal Caribbean HQ",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/royal-caribbean-hq.webp",
-      "event_date": "2026-06",
-      "source_url": "https://www.hok.com/news/2026-06/construction-tops-out-on-hok-designed-new-royal-caribbean-group-campus-headquarters-expansion-in-miami/",
-      "link": "https://www.oftmw.com/map/?project=royalcaribbeanhq",
-      "timestamp": "2026-07-04T21:11:32.332Z"
-    },
-    {
-      "id": "ms-the-ritz-carlton-residences-palm-beach-gardens-financing-2026-07-04",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "The Ritz-Carlton Residences, Palm Beach Gardens  Financing secured",
-      "project_slug": "the-ritz-carlton-residences-palm-beach-gardens",
-      "project_title": "The Ritz-Carlton Residences, Palm Beach Gardens",
-      "city": "Palm Beach Gardens",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/the-ritz-carlton-residences-palm-beach-gardens.jpeg",
-      "event_date": "2026-05",
-      "source_url": "https://therealdeal.com/miami/2026/05/07/catalfumo-lands-401-million-loan-for-ritz-carlton-condos/",
-      "link": "https://www.oftmw.com/map/?project=theritzcarltonresidencespalmbeachgardens",
-      "timestamp": "2026-07-04T19:22:36.479Z"
     }
   ],
   "most_covered": [
