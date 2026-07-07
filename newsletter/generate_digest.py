@@ -816,7 +816,7 @@ def main():
 
     template = env.get_template(os.path.basename(TEMPLATE_PATH))
 
-    def render_inlined(archive):
+    def render_inlined(archive, art_cap=6):
         raw = template.render(
             subject=subject, preheader=preheader, week_label=week_label,
             map_items=map_items,
@@ -826,7 +826,7 @@ def main():
             app_updates=app_updates, ads=ads,
             site_url=SITE_URL, tmw_url=TMW_URL, logo_url=LOGO_URL,
             app_image_url=cache_bust_image,
-            archive=archive,
+            archive=archive, art_cap=art_cap,
         )
         return Premailer(raw, keep_style_tags=True, remove_classes=False, strip_important=False).transform()
 
@@ -836,7 +836,22 @@ def main():
     #  • ARCHIVE (archive=True) — the web copy we send clients; pinned to the
     #    polished LIGHT/branded design so it looks identical on every device
     #    (the partial dark-mode flip rendered broken in a browser).
-    email_html   = render_inlined(archive=False)
+    # EMAIL build with an auto-fit size budget. Gmail CLIPS any message over
+    # ~102KB ("[Message clipped] View entire message"), hiding the bottom of the
+    # digest (app-update cards + Open TMW Pro + footer). The sent source must stay
+    # comfortably under that because Resend link-rewriting + quoted-printable
+    # encoding inflate it further. Start at 6 article cards per section and shrink
+    # the cap until the rendered email fits; the trimmed articles fold into a
+    # "+N more in the journal" link. The archive/web copy is never trimmed.
+    EMAIL_BYTE_BUDGET = 92000
+    _art_cap = 6
+    email_html = render_inlined(archive=False, art_cap=_art_cap)
+    while len(email_html.encode("utf-8")) > EMAIL_BYTE_BUDGET and _art_cap > 2:
+        _art_cap -= 1
+        email_html = render_inlined(archive=False, art_cap=_art_cap)
+    _email_bytes = len(email_html.encode("utf-8"))
+    print(f"[info] email html: {_email_bytes} bytes, article cap {_art_cap} "
+          f"({'OK' if _email_bytes <= EMAIL_BYTE_BUDGET else 'STILL OVER — check content weight'})")
     archive_html = render_inlined(archive=True)
 
     os.makedirs(os.path.dirname(OUT_HTML), exist_ok=True)

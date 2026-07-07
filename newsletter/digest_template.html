@@ -460,9 +460,16 @@
       {%- if florida_articles %}
       <tr><td>
         <div class="section-header force-accent-text">From the journal · Florida ({{ florida_articles|length }})</div>
-        {%- for a in florida_articles %}
+        {#- Cap the EMAIL at a few cards so a heavy week stays under Gmail's ~102KB
+            clip limit (the rest fold into a "+N more" link); the ARCHIVE web copy
+            shows every article. -#}
+        {%- set fa_cap = florida_articles|length if archive else (art_cap|default(6)) %}
+        {%- for a in florida_articles[:fa_cap] %}
         {{ render_article(a) }}
         {%- endfor %}
+        {%- if not archive and florida_articles|length > fa_cap %}
+        <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ florida_articles|length - fa_cap }} more in the journal →</a>
+        {%- endif %}
       </td></tr>
       {%- endif %}
 
@@ -474,9 +481,14 @@
       {%- if more_markets_articles %}
       <tr><td>
         <div class="section-header force-accent-text">More markets ({{ more_markets_articles|length }})</div>
-        {%- for a in more_markets_articles %}
+        {#- Capped for the email (see Florida note above); archive shows all. -#}
+        {%- set mm_cap = more_markets_articles|length if archive else (art_cap|default(6)) %}
+        {%- for a in more_markets_articles[:mm_cap] %}
         {{ render_article(a) }}
         {%- endfor %}
+        {%- if not archive and more_markets_articles|length > mm_cap %}
+        <a href="{{ site_url }}" class="read-more force-accent-text">+ {{ more_markets_articles|length - mm_cap }} more in the journal →</a>
+        {%- endif %}
       </td></tr>
       {%- endif %}
 
