@@ -1,0 +1,58 @@
+# Pre-generate small WEBP thumbnails (_400 / _800) for every project + article
+# image in R2, so homepage tiles + map popups load ~30KB instead of the full
+# 300KB-2MB original. Incremental + idempotent via thumbs-manifest.json (committed):
+# each run only processes images not yet done, so it's safe to re-run — and if a
+# run times out, the commit step (if: always) saves the partial manifest so the
+# next run resumes.
+#
+# REQUIRED SECRETS:
+#   CLOUDFLARE_API_TOKEN  - R2 read+write on `tmw-media`
+#   CLOUDFLARE_ACCOUNT_ID - account id
+name: Generate image thumbnails
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Max new images this run (0 = all remaining)'
+        required: false
+        default: '0'
+  schedule:
+    - cron: '30 6 * * *'     # nightly — catches images added since the last run
+
+concurrency:
+  group: generate-thumbnails
+  cancel-in-progress: false
+
+jobs:
+  thumbs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm i -g wrangler@4
+      - run: pip install --quiet Pillow
+
+      - name: Generate thumbnails
+        run: python3 generate_thumbnails.py --limit "${{ github.event.inputs.limit || 0 }}" --workers 8
+
+      - name: Commit manifest (even on partial/timeout runs)
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add thumbs-manifest.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No manifest change"
+          else
+            git commit -m "Thumbnails: update generated manifest"
+            git pull --rebase --autostash origin main || true
+            git push
+          fi
