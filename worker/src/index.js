@@ -8886,6 +8886,36 @@ function constantTimeEqual(a, b) {
 const POST_SLUG_RE = /^[a-z0-9][a-z0-9-]{1,160}$/;
 const VIEW_BOT_RE  = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview|preview|headless|lighthouse|pingdom|monitor|curl|wget|python-requests|axios|node-fetch/i;
 
+// Email link-security scanners (Microsoft Safe Links, Proofpoint URLDefense,
+// Mimecast, Barracuda, Cisco IronPort, etc.) pre-click every URL in a newsletter
+// within seconds of send — that's the ~170-clicks-per-banner burst. They spoof
+// real browser user-agents, so the reliable tells are the originating NETWORK
+// (cf.asOrganization — scanners fire from datacenters, never a subscriber's ISP),
+// scanner-specific UA tokens, and prefetch/preview headers. Flagged clicks are
+// LOGGED to placement_stats.clicks_bot (audit trail) but kept OUT of the human
+// clicks advertisers see.
+const SCANNER_UA_RE  = /safelinks|urldefense|proofpoint|barracuda|mimecast|messagelabs|forcepoint|mailcontrol|trustwave|fireeye|ironport|skypeuripreview|googleimageproxy|google-safety|microsoft office|ms-office|scan(?:ner)?\b|prefetch/i;
+const SCANNER_ORG_RE = /microsoft|proofpoint|barracuda|mimecast|messagelabs|symantec|broadcom|forcepoint|fortinet|\bcisco\b|ironport|trustwave|sophos|mailchannels|\bgoogle\b|amazon|\baws\b|azure|digitalocean|linode|\bovh\b|hetzner|\boracle\b|contabo|leaseweb|scaleway|vultr|m247|choopa|colocrossing|datacamp/i;
+
+// includeNetwork: apply the datacenter/ASN filter (safe for the newsletter
+// surface — humans there arrive from consumer ISPs). Left off for the journal
+// web beacon, which is JS-fired and already clean, to avoid flagging the rare
+// legit visitor egressing through a cloud/VPN network.
+function isScannerHit(req, includeNetwork){
+  try {
+    const ua = req.headers.get('User-Agent') || '';
+    if (!ua) return true;
+    if (VIEW_BOT_RE.test(ua) || SCANNER_UA_RE.test(ua)) return true;
+    const purpose = (req.headers.get('Purpose') || req.headers.get('X-Purpose') || req.headers.get('X-Moz') || '').toLowerCase();
+    if (purpose.indexOf('prefetch') >= 0 || purpose.indexOf('preview') >= 0) return true;
+    if (includeNetwork) {
+      const org = (req.cf && req.cf.asOrganization) ? String(req.cf.asOrganization) : '';
+      if (org && SCANNER_ORG_RE.test(org)) return true;
+    }
+  } catch (_) {}
+  return false;
+}
+
 async function ensurePostViewsTable(env) {
   await env.DB.prepare(
     'CREATE TABLE IF NOT EXISTS post_views (slug TEXT PRIMARY KEY, views INTEGER NOT NULL DEFAULT 0, wix_views INTEGER NOT NULL DEFAULT 0, updated_at INTEGER)'
@@ -9053,6 +9083,7 @@ const PLACEMENT_NEW_TABLE =
   "id TEXT NOT NULL, day TEXT NOT NULL, surface TEXT NOT NULL DEFAULT 'journal', " +
   "type TEXT NOT NULL DEFAULT 'ad', label TEXT, " +
   "views INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, " +
+  "clicks_bot INTEGER NOT NULL DEFAULT 0, " +
   "updated_at INTEGER, PRIMARY KEY (id, day, surface))";
 let _plcTableReady = false;
 
@@ -9074,6 +9105,12 @@ async function ensurePlacementStatsTable(env) {
           "SELECT id, day, 'journal', type, label, views, clicks, updated_at FROM placement_stats_old"),
         env.DB.prepare('DROP TABLE placement_stats_old'),
       ]);
+    }
+    // clicks_bot column added later — logs scanner/bot clicks separately from
+    // the human clicks advertisers see. Add it to pre-existing tables.
+    const cols = (info.results || []).map(c => c.name);
+    if (!cols.includes('clicks_bot')) {
+      try { await env.DB.prepare('ALTER TABLE placement_stats ADD COLUMN clicks_bot INTEGER NOT NULL DEFAULT 0').run(); } catch (_) {}
     }
   } catch (_) {}
   _plcTableReady = true;
@@ -9102,17 +9139,19 @@ async function resolvePlacementMap(env) {
 
 // Increment one (id, day, surface) counter by a view or a click. Shared by the
 // beacon (/track), the newsletter redirect (/r) and the newsletter pixel (/px).
-async function bumpPlacement(env, id, surface, kind, type, label) {
+async function bumpPlacement(env, id, surface, kind, type, label, isBot) {
   const now = Math.floor(Date.now() / 1000);
   const day = new Date(now * 1000).toISOString().slice(0, 10);
-  const dv = kind === 'view' ? 1 : 0, dc = kind === 'click' ? 1 : 0;
+  const dv = kind === 'view' ? 1 : 0;
+  const dc = (kind === 'click' && !isBot) ? 1 : 0;   // human click
+  const db = (kind === 'click' && isBot) ? 1 : 0;    // scanner/bot click (logged, not shown)
   await ensurePlacementStatsTable(env);
   await env.DB.prepare(
-    'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, updated_at) ' +
-    'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ' +
-    'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, ' +
-    'label = COALESCE(?5, label), type = ?4, updated_at = ?8'
-  ).bind(id, day, surface, type || 'ad', label || null, dv, dc, now).run();
+    'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, clicks_bot, updated_at) ' +
+    'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ' +
+    'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, clicks_bot = clicks_bot + ?8, ' +
+    'label = COALESCE(?5, label), type = ?4, updated_at = ?9'
+  ).bind(id, day, surface, type || 'ad', label || null, dv, dc, db, now).run();
 }
 
 async function handleTrack(req, env, origin) {
@@ -9122,7 +9161,11 @@ async function handleTrack(req, env, origin) {
   if (!env.DB) return ok();
 
   const ua = (req.headers.get('User-Agent') || '');
-  if (!ua || VIEW_BOT_RE.test(ua)) return ok();
+  if (!ua) return ok();
+  // UA + prefetch-header filter (no datacenter/ASN filter here — the journal
+  // beacon is JS-fired and clean; the network filter is reserved for /r). Bot
+  // clicks are logged to clicks_bot; bot views are dropped as before.
+  const isBot = isScannerHit(req, false);
 
   let body = null;
   try { const txt = await req.text(); if (txt) body = JSON.parse(txt); } catch (_) { return ok(); }
@@ -9149,10 +9192,11 @@ async function handleTrack(req, env, origin) {
     const surface = e.surface === 'newsletter' ? 'newsletter' : 'journal';
     const label = (e.label != null && String(e.label).trim()) ? String(e.label).slice(0, 160) : null;
     const k = id + ' ' + surface;
-    const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, clicks: 0 };
+    const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, clicks: 0, clicks_bot: 0 };
     cur.type = type;
     if (label) cur.label = label;
-    if (ev === 'view') cur.views += 1; else cur.clicks += 1;
+    if (ev === 'view') { if (!isBot) cur.views += 1; }          // drop bot views
+    else if (isBot) cur.clicks_bot += 1; else cur.clicks += 1;  // split human/bot clicks
     agg.set(k, cur);
   }
   if (!agg.size) return ok();
@@ -9160,13 +9204,13 @@ async function handleTrack(req, env, origin) {
   try {
     await ensurePlacementStatsTable(env);
     const stmt = env.DB.prepare(
-      'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, updated_at) ' +
-      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ' +
-      'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, ' +
-      'label = COALESCE(?5, label), type = ?4, updated_at = ?8'
+      'INSERT INTO placement_stats (id, day, surface, type, label, views, clicks, clicks_bot, updated_at) ' +
+      'VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) ' +
+      'ON CONFLICT(id, day, surface) DO UPDATE SET views = views + ?6, clicks = clicks + ?7, clicks_bot = clicks_bot + ?8, ' +
+      'label = COALESCE(?5, label), type = ?4, updated_at = ?9'
     );
     const batch = [];
-    for (const v of agg.values()) batch.push(stmt.bind(v.id, day, v.surface, v.type, v.label, v.views, v.clicks, now));
+    for (const v of agg.values()) batch.push(stmt.bind(v.id, day, v.surface, v.type, v.label, v.views, v.clicks, v.clicks_bot, now));
     await env.DB.batch(batch);
   } catch (_) {}
   return ok();
@@ -9185,9 +9229,12 @@ async function handlePlacementRedirect(req, env, origin, url) {
     const map = await resolvePlacementMap(env);
     const info = (id && map[id]) || null;
     if (info && info.url) dest = info.url;
-    const ua = (req.headers.get('User-Agent') || '');
-    if (env.DB && info && PLACEMENT_ID_RE.test(id) && ua && !VIEW_BOT_RE.test(ua)) {
-      try { await bumpPlacement(env, id, surface, 'click', info.type, info.label); } catch (_) {}
+    if (env.DB && info && PLACEMENT_ID_RE.test(id)) {
+      // Newsletter links get pre-clicked by mail-security scanners the instant
+      // the send lands. Log those to clicks_bot (kept out of human clicks) but
+      // still redirect everyone — the click itself must never break.
+      const isBot = isScannerHit(req, true);   // full network filter on the newsletter surface
+      try { await bumpPlacement(env, id, surface, 'click', info.type, info.label, isBot); } catch (_) {}
     }
   } catch (_) {}
   return Response.redirect(dest, 302);
@@ -9324,7 +9371,7 @@ async function handlePlacementStats(req, env, origin) {
     // Group by (id, surface) so each placement carries a per-surface split
     // (journal vs newsletter) alongside its combined total.
     const totRows = await env.DB.prepare(
-      'SELECT id, surface, type, label, SUM(views) AS views, SUM(clicks) AS clicks ' +
+      'SELECT id, surface, type, label, SUM(views) AS views, SUM(clicks) AS clicks, SUM(clicks_bot) AS clicks_bot ' +
       'FROM placement_stats WHERE day >= ?1 GROUP BY id, surface'
     ).bind(sinceDay).all();
     const serRows = await env.DB.prepare(
@@ -9333,12 +9380,12 @@ async function handlePlacementStats(req, env, origin) {
     ).bind(sinceDay).all();
     const byId = {};
     for (const r of (totRows.results || [])) {
-      const e = byId[r.id] || (byId[r.id] = { id: r.id, type: r.type, label: r.label, views: 0, clicks: 0, surfaces: {} });
-      const v = r.views || 0, c = r.clicks || 0;
-      e.views += v; e.clicks += c;
+      const e = byId[r.id] || (byId[r.id] = { id: r.id, type: r.type, label: r.label, views: 0, clicks: 0, clicks_bot: 0, surfaces: {} });
+      const v = r.views || 0, c = r.clicks || 0, cb = r.clicks_bot || 0;
+      e.views += v; e.clicks += c; e.clicks_bot += cb;
       if (r.label) e.label = r.label;
       if (r.type) e.type = r.type;
-      e.surfaces[r.surface || 'journal'] = { views: v, clicks: c, ctr: v > 0 ? c / v : 0 };
+      e.surfaces[r.surface || 'journal'] = { views: v, clicks: c, clicks_bot: cb, ctr: v > 0 ? c / v : 0 };
     }
     const series = {};
     for (const r of (serRows.results || [])) {
@@ -9354,7 +9401,7 @@ async function handlePlacementStats(req, env, origin) {
     const advertisers = [];
     ids.forEach(id => {
       const a = roster[id] || null;
-      const t = byId[id] || { views: 0, clicks: 0, surfaces: {}, label: null, type: null };
+      const t = byId[id] || { views: 0, clicks: 0, clicks_bot: 0, surfaces: {}, label: null, type: null };
       advertisers.push({
         id,
         name: (a && a.name) || t.label || id,
@@ -9364,6 +9411,7 @@ async function handlePlacementStats(req, env, origin) {
         linkly_30d: (a && a.linkly_30d) || 0,
         views: t.views || 0,
         clicks: t.clicks || 0,
+        clicks_bot: t.clicks_bot || 0,   // scanner/bot clicks filtered out of `clicks`
         ctr: (t.views > 0) ? (t.clicks / t.views) : 0,
         surfaces: t.surfaces || {},
       });
