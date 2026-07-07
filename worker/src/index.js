@@ -3315,7 +3315,10 @@ async function handlePostsList(req, env, origin, url) {
 export function previewSecret(env) { return env.SESSION_SECRET || env.ADMIN_TOKEN || 'tmw-preview-fallback'; }
 
 // GET /preview-token?slug=<slug> (admin) → a signed, 60-day, slug-scoped token
-// the Studio embeds in the client preview link (/post/?slug=…&pt=<token>).
+// the Studio embeds in the client preview link. The link points at the worker's
+// /post-preview shim (below), which serves correct OG (title + hero) so the link
+// unfurls in iMessage/Slack/email like a live article, then bounces humans to
+// the /post/?slug=…&pt=… viewer.
 async function handlePreviewToken(req, env, origin, url) {
   const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
@@ -3323,7 +3326,101 @@ async function handlePreviewToken(req, env, origin, url) {
     { slug, t: 'preview', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
     previewSecret(env),
   );
-  return json({ token, url: 'https://www.oftmw.com/post/?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(token) }, {}, env, origin);
+  const workerHost = new URL(req.url).origin;
+  return json({ token, url: workerHost + '/post-preview?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(token) }, {}, env, origin);
+}
+
+// GET /post-preview?slug=<slug>&pt=<token> — social-share shim for an article
+// draft's "copy client link". Article drafts render client-side (post.js), so
+// scrapers hitting the /post/ shell froze on the empty "Loading article" head.
+// This page bakes the real title + hero image + description into the OG/Twitter
+// tags server-side (exactly what generate_articles.py does for live posts), so
+// the unfurl is correct; then JS bounces real browsers to the working viewer.
+// Scrapers don't run JS, so they keep the OG. noindex — private client link.
+async function handleArticlePreview(req, env, origin, url) {
+  if (!env.DB) return new Response('not configured', { status: 500 });
+  const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
+  const pt = url.searchParams.get('pt') || '';
+  if (!slug || slug.length > 250 || /[<>"'`\s]/.test(slug)) {
+    return new Response('invalid slug', { status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  }
+  const row = await env.DB.prepare('SELECT * FROM posts WHERE slug = ?1 LIMIT 1').bind(slug).first();
+  if (!row) return new Response('not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  // Published is open; a draft needs a valid slug-scoped preview token (the
+  // "copy client link" token) or an admin — same gate as /posts/by-slug.
+  if (row.status !== 'published') {
+    let ok = false;
+    try { if (pt) { const obj = await verifyPayload(pt, previewSecret(env)); ok = !!(obj && obj.t === 'preview' && obj.slug === slug); } } catch (_) {}
+    if (!ok) {
+      const denied = await requireAdminToken(req, env, origin);
+      if (denied) return new Response('This preview link is private. Re-open it from the Studio "Copy client link" button.', { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    }
+  }
+  return new Response(renderArticlePreviewShim(rowToPostFull(row), slug, pt), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    },
+  });
+}
+
+function renderArticlePreviewShim(post, slug, pt) {
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  const title    = post.title || 'Markets of Tomorrow';
+  const seoTitle = post.seo_title || post.title || 'Markets of Tomorrow';
+  const desc     = post.seo_description || post.excerpt || '';
+  const image    = post.cover_image || '';
+  const dest = 'https://www.oftmw.com/post/?slug=' + encodeURIComponent(slug) + (pt ? '&pt=' + encodeURIComponent(pt) : '');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>${esc(seoTitle)} — Markets of Tomorrow</title>
+<meta name="description" content="${esc(desc)}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Markets of Tomorrow">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(desc)}">
+${image ? `<meta property="og:image" content="${esc(image)}">\n<meta property="og:image:alt" content="${esc(post.cover_image_alt || title)}">` : ''}
+<meta property="og:url" content="${esc(dest)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(desc)}">
+${image ? `<meta name="twitter:image" content="${esc(image)}">` : ''}
+<link rel="icon" type="image/svg+xml" href="https://www.oftmw.com/media/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:#0b0d0c;color:#ECEAE5;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px}
+  .card{max-width:560px;width:100%;text-align:center}
+  .hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:#111;margin-bottom:26px;display:block}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#e6c574;margin-bottom:16px;font-weight:600}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:#e6c574;box-shadow:0 0 9px #e6c574}
+  h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:28px;line-height:1.22;color:#fff;margin-bottom:14px}
+  p{color:#9AA39C;font-size:15px;line-height:1.55;margin-bottom:24px}
+  a.btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;font-size:14px;color:#0a0a0a;background:linear-gradient(135deg,#B9A6FF,#A78BFA);padding:12px 22px;border-radius:11px}
+  .spin{margin-top:18px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b736c}
+</style>
+</head>
+<body>
+  <div class="card">
+    ${image ? `<img class="hero" src="${esc(image)}" alt="${esc(post.cover_image_alt || title)}">` : ''}
+    <div class="pill"><span class="dot"></span> Private preview</div>
+    <h1>${esc(title)}</h1>
+    ${desc ? `<p>${esc(desc)}</p>` : ''}
+    <a class="btn" href="${esc(dest)}">Open the preview →</a>
+    <div class="spin">Opening…</div>
+  </div>
+  <script>location.replace(${JSON.stringify(dest)});</script>
+</body>
+</html>`;
 }
 
 async function handlePostsBySlug(req, env, origin, slug) {
@@ -11710,6 +11807,11 @@ export default {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
         return await handlePreviewToken(request, env, origin, url);
+      }
+      // /post-preview — public OG shim for the client-share link (gated INSIDE
+      // the handler: published, or a valid preview token, or admin).
+      if (request.method === 'GET' && url.pathname === '/post-preview') {
+        return await handleArticlePreview(request, env, origin, url);
       }
       // ── Social carousels ─────────────────────────────────────────────
       // Admin CRUD (gated), token-minting endpoint, and the public
