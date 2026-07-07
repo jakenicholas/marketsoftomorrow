@@ -210,6 +210,12 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # match_project / propose_project_edit reference the exact live record.
         'Slug':            record.get('slug', '') or '',
         'City':            record.get('city', '') or '',
+        # Structured street address — street line + zip + country (city above; US
+        # state is derived from lat/lng in geocode_counties). Backfilled by the
+        # construction-sweep routine; powers full-address answers + country search.
+        'Street':          record.get('street', '') or record.get('address', '') or '',
+        'PostalCode':      record.get('postal_code', '') or record.get('zip', '') or '',
+        'Country':         record.get('country', '') or '',
         # Borough / sub-locality — a manual value from the editor wins; otherwise
         # it's derived from County below (NYC boroughs). City is left untouched so
         # the /markets/new-york-city/ hub + aggregations stay intact.
@@ -418,6 +424,20 @@ def main():
         enrich(flat)
     except Exception as e:
         print(f"  ⚠ county enrich skipped: {e}")
+
+    # US projects → Country "United States" for free: CountyState is a 2-letter US
+    # code stamped from lat/lng above, so every US row can be back-filled here with
+    # no research. International rows get Country from the construction-sweep
+    # backfill. A manual Country value from the source always wins.
+    import re as _re_country
+    _country_us = 0
+    for _p in flat:
+        if (_p.get('Country') or '').strip():
+            continue
+        if _re_country.fullmatch(r'[A-Za-z]{2}', (_p.get('CountyState') or '').strip()):
+            _p['Country'] = 'United States'
+            _country_us += 1
+    print(f"  ✓ Stamped Country=United States on {_country_us} US rows")
 
     # Derive Borough from County for NYC (a manual editor value wins). City is
     # left as "New York City"; Borough is the displayed sub-locality so the

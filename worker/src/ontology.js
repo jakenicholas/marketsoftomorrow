@@ -104,13 +104,14 @@ export const ONTOLOGY = {
       'A bare neighborhood ("brickell", "wynwood") resolves to its parent city\'s pipeline.',
       'Geography beats words: an article\'s linked project city or main_category outranks a place name appearing in its title/excerpt (origin-qualifier mentions like "London\'s Gymkhana debuts NYC concept" belong to the destination).',
       'A place query\'s project set is AUTHORITATIVE scope — never compare its size against loose keyword matches.',
+      'Every project carries a STRUCTURED ADDRESS: street (street line), city, postal_code (zip), country (spelled-out nation), plus US state (auto-derived from lat/lng). US rows get country="United States" automatically; international rows are backfilled by the construction sweep. Answer "what is the address of X" from these fields, and country resolves country-level searches.',
     ],
   },
 
   // ── Write routing (which tool writes where) ───────────────────────────────
   writes: {
     rules: [
-      'update_project_status → LIVE map writes: dates and spec fields (units/floors/keys/gfa_sqft) always auto-apply; status changes apply directly (mode "apply") or queue for one-tap review (mode "propose") for ambiguous/thin/multi-step cases.',
+      'update_project_status → LIVE map writes: dates and spec fields (units/floors/keys/gfa_sqft, neighborhood, and the address fields street/postal_code/country) always auto-apply; status changes apply directly (mode "apply") or queue for one-tap review (mode "propose") for ambiguous/thin/multi-step cases.',
       'propose_project_edit → REVIEW QUEUE, never live (param target_slug). match_project resolves by name first.',
       'The construction sweep must NOT overwrite a specific curated neighborhood tag with a vaguer one — fill blanks or refine to MORE specific only.',
       'Map drafts (create_map_draft) land in the Studio map admin Drafts tab for human promotion; nothing publishes to the live map, journal, or socials without a human.',

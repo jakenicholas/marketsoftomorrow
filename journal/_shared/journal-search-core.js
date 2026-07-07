@@ -855,6 +855,12 @@
     if (st) { add(st); (STATE_NAMES[st] || []).forEach(add); }
     // country (US data; international rows carry no US state code)
     if (st && STATE_NAMES[st]) { add('usa'); add('united states'); add('america'); }
+    // explicit Country field (structured address) — a project answers to its
+    // country name once the construction sweep backfills it. Data-driven, and
+    // complements the hardcoded CITY_REGIONS below (belt + suspenders); inert
+    // until Country is populated.
+    var ctry = String(p.Country || '').trim();
+    if (ctry) { add(ctry); if (/^(united states|usa|u\.?s\.?a?)$/i.test(ctry)) { add('usa'); add('america'); } }
     // international / city-grouped regions — a Bahamas project answers to
     // "caribbean", a Tokyo project to "japan", etc. INTERNATIONAL rows only
     // (blank CountyState): a US project in Venice FL / Rome GA must never inherit
@@ -898,6 +904,9 @@
     REGIONS.forEach(function (r) { r.triggers.concat([r.name]).forEach(function (t) { put(t, 2, r.name); }); });
     CITY_REGIONS.forEach(function (r) { r.triggers.concat([r.name]).forEach(function (t) { put(t, 2, r.name); }); });
     STATES.forEach(function (s) { s.triggers.forEach(function (t) { put(t, 1, s.name); }); });
+    // Structured Country field → a resolvable place, so ANY country the sweep
+    // backfills works data-driven even if it isn't in the hardcoded CITY_REGIONS.
+    (projects || []).forEach(function (p) { var c = String(p.Country || '').trim(); if (c && norm(c).length >= 4) put(norm(c), 2, c); });
     _placeVocabCache = vocab; _placeVocabFor = projects;
     return vocab;
   }

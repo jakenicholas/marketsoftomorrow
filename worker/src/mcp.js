@@ -608,7 +608,9 @@ const TOOLS = [
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'], description: 'Project status (default "announced")' },
         city: { type: 'string' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell", "Wynwood"). Powers neighborhood-level search & filtering — set it whenever the source names one.' },
-        address: { type: 'string', description: 'Street address — captured in source_note to help geocoding' },
+        address: { type: 'string', description: 'STREET address line — street number + street name only (e.g. "1428 Brickell Avenue"), NOT the city/zip/country. Stored as the project\'s structured street field AND used to help geocoding. Put the town/city in `city`, the zip in `postal_code`, the nation in `country`.' },
+        postal_code: { type: 'string', description: 'ZIP / postal code (e.g. "33131", "518000", "SW1A 1AA"). Structured address field.' },
+        country: { type: 'string', description: 'Country name, spelled out (e.g. "United States", "China", "Italy"). Structured address field — set it on EVERY project, US and international, so country-level search & full addresses work.' },
         latitude: { type: 'number' },
         longitude: { type: 'number' },
         description: { type: 'string', description: 'Short 1–2 sentence summary' },
@@ -649,6 +651,9 @@ const TOOLS = [
         status: { type: 'string', enum: ['announced', 'breaking-ground', 'construction', 'coming-soon', 'open'] },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district (e.g. "Design District", "Northwood", "Brickell"). Powers neighborhood search & filtering.' },
         borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan", "Queens"). NYC boroughs auto-derive from coordinates; set this only to override or for a non-NYC sub-locality. The City field is unchanged.' },
+        street: { type: 'string', description: 'STREET address line only — street number + name (e.g. "1428 Brickell Avenue"). Structured address field.' },
+        postal_code: { type: 'string', description: 'ZIP / postal code. Structured address field.' },
+        country: { type: 'string', description: 'Country name, spelled out (e.g. "United States", "China"). Structured address field.' },
         start_date: { type: 'string', description: 'Construction-start / groundbreaking year or date' },
         start_speculative: { type: 'boolean', description: 'True if start_date is an estimate' },
         delivery_date: { type: 'string', description: 'Completion / OPENING year or date' },
@@ -677,7 +682,7 @@ const TOOLS = [
         target_name: { type: 'string', description: 'The current name of that project, for display' },
         changes: {
           type: 'object',
-          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, latitude, longitude, website, units, floors, keys, gfa_sqft (GROSS FLOOR AREA — total BUILT square feet; the "how big is this development" number that powers "biggest projects" ranking — capture a STATED figure when a source gives one, else ESTIMATE max(units×1265, floors×20000, acres×43560×0.1)), gfa_source ("stated" or "estimated"), start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
+          description: 'Map of field → NEW value. Only include fields that should change. Allowed keys: name, status, city, neighborhood, street (street address line), postal_code (zip), country (spelled-out nation), latitude, longitude, website, units, floors, keys, gfa_sqft (GROSS FLOOR AREA — total BUILT square feet; the "how big is this development" number that powers "biggest projects" ranking — capture a STATED figure when a source gives one, else ESTIMATE max(units×1265, floors×20000, acres×43560×0.1)), gfa_source ("stated" or "estimated"), start_date, delivery_date, description, description_long, types (array — FULL replacement list of type tags, normalized against the canonical vocabulary), preferred_type (single canonical tag — most often "Mixed-Use" when re-classifying multi-use projects).',
         },
         proposal_note: { type: 'string', description: 'Human-readable rationale, e.g. \'"name" needs to be changed per this article I found\'' },
         source_note: { type: 'string', description: 'Source URL / where this came from' },
@@ -740,6 +745,9 @@ const TOOLS = [
         gfa_source: { type: 'string', enum: ['stated', 'estimated'], description: '"stated" if gfa_sqft came from a source, "estimated" if you derived it from floors/units/acreage. Defaults to "stated" when gfa_sqft is provided without it.' },
         neighborhood: { type: 'string', description: 'Neighborhood / submarket / district the project sits in (e.g. "Design District", "Northwood", "Brickell", "Wynwood", "Edgewater"). Auto-applies like specs. Fill it whenever you can identify it from the source/address — it powers neighborhood-level search & filtering. Use the canonical local name, not a street.' },
         borough: { type: 'string', description: 'Borough / sub-locality shown as the displayed location instead of the city (e.g. "Brooklyn", "Manhattan"). NYC boroughs auto-derive from coordinates; set this only to override. City is unchanged.' },
+        street: { type: 'string', description: 'STREET address line — street number + street name only (e.g. "1428 Brickell Avenue"), NOT the city/zip/country. Auto-applies like specs. Backfill it whenever a credible source gives the address — most projects are missing it, and it powers full-address answers. Put the town/city in the record\'s existing city, the zip in postal_code, the nation in country.' },
+        postal_code: { type: 'string', description: 'ZIP / postal code (e.g. "33131", "518000", "SW1A 1AA"). Auto-applies like specs. Backfill from a credible source.' },
+        country: { type: 'string', description: 'Country name, spelled out (e.g. "United States", "China", "Italy"). Auto-applies like specs. Backfill on EVERY project, US and international — it powers country-level search and full addresses.' },
         types: { type: 'array', items: { type: 'string' }, description: 'FULL replacement list of project type tags (auto-applies). Use to re-classify — most commonly to promote a multi-use project to Mixed-Use, or to add a Retail tag to a project that had Eateries. Pass the WHOLE list (not a diff); pre-existing tags not in this array are removed. Tags are normalized against the existing vocabulary and unrecognized tags are dropped — never coin new ones. CLASSIFICATION RULE: Resort always wins (preferred_type=Resort, no Mixed-Use). Otherwise, if 2+ types from {Residences, Office, Hotel, Retail, Cultural, Education, Entertainment, Stadium, Hospital, Travel} are present, the project IS Mixed-Use (add "Mixed-Use" to types AND set preferred_type="Mixed-Use"). Hospitality with amenities only (Hotel + Eateries/Park/Marina) stays Hotel — restaurants are amenities, not separate primary uses.' },
         preferred_type: { type: 'string', description: 'Single primary type the dossier should treat as canonical. Auto-applies. Use alongside `types` when promoting to Mixed-Use (set preferred_type:"Mixed-Use"). Falls through if unrecognized.' },
         correction: { type: 'boolean', description: 'Set TRUE only to CORRECT an over-stated status BACKWARD — i.e. the project is recorded at a LATER phase than reality and credible, current sources show it has not reached it (e.g. marked "construction" or "breaking-ground" but it has NOT broken ground → set new_status "announced", correction:true). This is the ONLY case status may move backward. Requires a credible source_url and a note explaining why. Omit/false for all normal forward sweeps.' },
@@ -2829,6 +2837,11 @@ const IMPL = {
       city: String(args.city || ''),
       neighborhood: String(args.neighborhood || ''),
       borough: String(args.borough || ''),
+      // Structured street address — street line + zip + country (city lives above,
+      // US state auto-derives from lat/lng). Powers full-address answers + country search.
+      street: String(args.address || args.street || ''),
+      postal_code: String(args.postal_code || args.zip || ''),
+      country: String(args.country || ''),
       lat: num(args.latitude),
       lng: num(args.longitude),
       types,
@@ -2948,6 +2961,9 @@ const IMPL = {
       if (args.status) { data.status = String(args.status); changed.push('status'); }
       if (args.neighborhood != null && String(args.neighborhood).trim() !== '') { data.neighborhood = String(args.neighborhood).trim(); changed.push('neighborhood'); }
       if (args.borough != null) { data.borough = String(args.borough).trim(); changed.push('borough'); }
+      if (args.street != null && String(args.street).trim() !== '') { data.street = String(args.street).trim(); changed.push('street'); }
+      if (args.postal_code != null && String(args.postal_code).trim() !== '') { data.postal_code = String(args.postal_code).trim(); changed.push('postal_code'); }
+      if (args.country != null && String(args.country).trim() !== '') { data.country = String(args.country).trim(); changed.push('country'); }
       if (args.start_date != null && String(args.start_date) !== '') { data.start_date = String(args.start_date); changed.push('start_date'); }
       if (args.start_speculative != null) data.start_speculative = !!args.start_speculative;
       if (args.delivery_date != null && String(args.delivery_date) !== '') { data.delivery_date = String(args.delivery_date); changed.push('delivery_date'); }
@@ -2980,7 +2996,7 @@ const IMPL = {
 
     // MCP-facing names → canonical project.json field names.
     const KEYMAP = { latitude: 'lat', longitude: 'lng', website: 'official_website' };
-    const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'lat', 'lng', 'official_website',
+    const ALLOWED = new Set(['name', 'status', 'city', 'neighborhood', 'street', 'postal_code', 'country', 'lat', 'lng', 'official_website',
       'units', 'floors', 'keys', 'gfa_sqft', 'gfa_source', 'start_date', 'delivery_date', 'description', 'description_long',
       'types', 'preferred_type']);
     // Types / preferred_type need vocabulary normalization (drop unrecognized
@@ -2998,7 +3014,8 @@ const IMPL = {
       if (!live) return null;
       const m = {
         name: live.Title, status: live.Status || live.Delivery || '', city: live.City,
-        neighborhood: live.Neighborhood, lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
+        neighborhood: live.Neighborhood, street: live.Street, postal_code: live.PostalCode, country: live.Country,
+        lat: live.Latitude, lng: live.Longitude, official_website: live.OfficialWebsite,
         units: live.Units, floors: live.Floors, keys: live.Keys, gfa_sqft: live.GfaSqFt, start_date: live.StartDate,
         delivery_date: live.DeliveryDate, description: live.Description, description_long: live.DescriptionLong,
         types: splitList(live.ProjectType), preferred_type: live.PreferredType,
@@ -3147,6 +3164,17 @@ const IMPL = {
     // Neighborhood / submarket — a free-text spec field that auto-applies like
     // units/floors (many projects are missing it; it powers neighborhood search).
     const nbhdWanted = (args.neighborhood != null && String(args.neighborhood).trim() !== '') ? String(args.neighborhood).trim() : null;
+    // Structured street-address fields — street line, zip, country. Free-text spec
+    // fields that auto-apply like neighborhood (most projects are missing them;
+    // they power full-address answers + country-level search).
+    const STR_FIELDS = [
+      { arg: 'street',      field: 'street' },
+      { arg: 'postal_code', field: 'postal_code' },
+      { arg: 'country',     field: 'country' },
+    ];
+    const strWanted = STR_FIELDS
+      .map((f) => ({ ...f, val: (args[f.arg] != null && String(args[f.arg]).trim() !== '') ? String(args[f.arg]).trim() : null }))
+      .filter((f) => f.val != null);
     // Project types + preferred_type — re-classification (e.g. promoting
     // multi-use hotels to Mixed-Use, or auto-tagging Mixed-Use when the sweep
     // sees both Residences + Office on a record). Auto-applies like specs.
@@ -3199,6 +3227,7 @@ const IMPL = {
       const deliverySpecOnly = !newDelivery && !clearDelivery && args.delivery_speculative === true && !p.delivery_speculative && !!clean(p.delivery_date);
       const numChanged = numWanted.filter((u) => u.val !== numOrNull(p[u.field]));
       const nbhdChanged = nbhdWanted != null && nbhdWanted !== String(p.neighborhood || '');
+      const strChanged = strWanted.filter((u) => u.val !== String(p[u.field] || ''));
       // Types / preferred_type re-classification (e.g. promoting Hotel + Residences
       // to Mixed-Use). Compare current vs requested as sets; only mark changed when
       // the actual set differs so an idempotent re-call doesn't churn the timeline.
@@ -3212,7 +3241,7 @@ const IMPL = {
       // enforced — the same phase can legitimately recur with a corrected date;
       // humans can prune dupes in the Studio milestones editor).
       const milestoneAdded = !!milestone;
-      const anyExtra = startChanged || deliveryChanged || startCleared || deliveryCleared || startSpecOnly || deliverySpecOnly || numChanged.length > 0 || nbhdChanged || typesChanged || preferredChanged || milestoneAdded || isBackfill;
+      const anyExtra = startChanged || deliveryChanged || startCleared || deliveryCleared || startSpecOnly || deliverySpecOnly || numChanged.length > 0 || nbhdChanged || strChanged.length > 0 || typesChanged || preferredChanged || milestoneAdded || isBackfill;
 
       // A backward status WITHOUT the correction flag is refused — guards against
       // accidental regressions during a normal forward sweep. Backfill bypasses
@@ -3316,6 +3345,12 @@ const IMPL = {
         p.neighborhood = nbhdWanted;
         p.status_history.push({ ...base, type: 'field', field: 'neighborhood', from: old, to: nbhdWanted });
         changes.push(`neighborhood ${old || '—'}→${nbhdWanted}`);
+      }
+      for (const u of strChanged) {
+        const old = String(p[u.field] || '') || null;
+        p[u.field] = u.val;
+        p.status_history.push({ ...base, type: 'field', field: u.field, from: old, to: u.val });
+        changes.push(`${u.field} ${old || '—'}→${u.val}`);
       }
       if (typesChanged) {
         const old = currentTypes;
