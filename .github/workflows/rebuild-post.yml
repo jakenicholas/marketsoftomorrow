@@ -42,11 +42,14 @@ jobs:
       - name: Regenerate the post page
         run: python3 generate_articles.py --only "${{ steps.s.outputs.slug }}"
 
+      - name: Bake the homepage hero (instant featured story, no placeholder)
+        run: python3 bake_hero.py
+
       - name: Commit + push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add journal/post/ journal/posts-live.json 2>/dev/null || true
+          git add journal/post/ journal/posts-live.json journal/index.html 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "No change for ${{ steps.s.outputs.slug }}"
           else

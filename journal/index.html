@@ -774,13 +774,13 @@ footer .ft-logo .tmw-wordmark{width:118px}
 <section class="story-section" id="featured">
   <article class="story-card">
     <div class="sc-clip">
-      <div class="sc-bg"><img id="hero-img" alt=""></div>
+      <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq.jpg" alt="Fifth Avenue&#x27;s tallest residential tower reveals its gold crown and rooftop infinity pool in NoMad" fetchpriority="high" decoding="async"></div>
     </div>
     <div class="sc-content">
       <div class="sc-eyebrow">Featured</div>
-      <h1><a id="hero-link" href="#">Loading the latest story&hellip;</a></h1>
-      <p class="sc-desc" id="hero-summary"></p>
-      <a href="#" class="sc-more" id="hero-cta">Read more
+      <h1><a id="hero-link" href="/post/fifth-avenue-s-tallest-residential-tower-reveals-its-gold-crown-and-rooftop-infinity-pool-in-nomad/">Fifth Avenue&#x27;s tallest residential tower reveals its gold crown and rooftop infinity pool in NoMad</a></h1>
+      <p class="sc-desc" id="hero-summary">New renderings unveil 262 Fifth Avenue, the 860-foot NoMad tower poised to become Fifth Avenue&#x27;s tallest all-residential address, crowned by a rooftop infinity pool.</p>
+      <a href="/post/fifth-avenue-s-tallest-residential-tower-reveals-its-gold-crown-and-rooftop-infinity-pool-in-nomad/" class="sc-more" id="hero-cta">Read more
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
     </div>
@@ -1690,6 +1690,12 @@ window.logAdClick = function(id) {
 // Featured + grid
 // ---------------------------------------------------------------
 function renderFeatured(item) {
+  // If the hero was BAKED into the HTML at build time (bake_hero.py), it already
+  // shows the real story with a real href — leave it. Re-filling would swap the
+  // content (flicker + layout shift) and re-hide the preloaded LCP image. A build
+  // where the bake didn't run still has the "#" placeholder, so we fill it.
+  const heroLink = document.getElementById('hero-link');
+  if (heroLink && heroLink.getAttribute('href') && heroLink.getAttribute('href') !== '#') return;
   const link = item.link || '#';
   document.getElementById('hero-link').href = link;
   document.getElementById('hero-link').textContent = item.title;
