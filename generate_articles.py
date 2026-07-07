@@ -61,7 +61,10 @@ def sh(cmd):
 
 
 def fetch_slugs():
-    raw = sh(["curl", "-s", f"{WORKER}/posts?limit=1500&status=published"])
+    # ungated=1: the BUILDER must see just-published posts whose page isn't built
+    # yet. The public /posts hides those (page-ready gate) so tiles never 404;
+    # here we need the full list precisely to BUILD them.
+    raw = sh(["curl", "-s", f"{WORKER}/posts?limit=1500&status=published&ungated=1"])
     return [it["slug"] for it in json.loads(raw).get("items", []) if it.get("slug")]
 
 
@@ -288,6 +291,23 @@ def main():
         print(f"⚠ skipped {len(skipped)}:")
         for slug, why in skipped[:20]:
             print(f"   • {slug}: {why}")
+
+    # PAGE-READY MANIFEST — every slug that HAS a built /post/<slug>/index.html on
+    # disk right now. The public /posts endpoint reads the DEPLOYED copy of this to
+    # gate journal tiles, so a freshly-published article's tile only appears once
+    # its page has actually deployed (closing the 404 window). Regenerated every
+    # run (full AND --only, since all existing dirs are on disk), so it always
+    # reflects reality and ships in the SAME commit/deploy as the pages.
+    try:
+        live = sorted(
+            d for d in os.listdir(OUT_ROOT)
+            if os.path.isfile(os.path.join(OUT_ROOT, d, "index.html"))
+        )
+        with open(os.path.join("journal", "posts-live.json"), "w", encoding="utf-8") as f:
+            json.dump(live, f, separators=(",", ":"))
+        print(f"✓ wrote journal/posts-live.json ({len(live)} live slugs)")
+    except Exception as e:
+        print(f"⚠ posts-live manifest skipped: {e}")
 
 
 if __name__ == "__main__":

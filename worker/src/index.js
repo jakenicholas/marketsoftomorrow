@@ -3302,12 +3302,50 @@ async function handlePostsList(req, env, origin, url) {
     LIMIT ${limit} OFFSET ${offset}
   `).bind(...params).all();
 
-  const items = (rows.results || []).map(rowToPostSummary);
+  let items = (rows.results || []).map(rowToPostSummary);
+  let totalCount = total ? total.c : 0;
+
+  // PAGE-READY GATE — hide published posts whose static /post/<slug>/ page isn't
+  // deployed yet, so a freshly-published tile never links to a 404 (the page
+  // builds + deploys a few minutes after publish). posts-live.json (deployed WITH
+  // the pages) lists every slug that HAS a built page; because we read the
+  // DEPLOYED copy, a slug appears only once the deploy that built its page lands,
+  // so the tile shows exactly when the page is live. `ungated=1` bypasses this for
+  // the article BUILDER (generate_articles.py must see not-yet-built posts to
+  // build them). Fails OPEN: a missing/broken manifest → no gating (prior
+  // behavior), never an empty grid.
+  if (status === 'published' && url.searchParams.get('ungated') !== '1') {
+    const liveSet = await getLivePostSlugs();
+    if (liveSet && liveSet.size) {
+      const before = items.length;
+      items = items.filter((it) => liveSet.has(it.slug));
+      totalCount = Math.max(0, totalCount - (before - items.length));
+    }
+  }
   return json(
-    { items, total: total ? total.c : 0, limit, offset, hasMore: offset + items.length < (total ? total.c : 0) },
+    { items, total: totalCount, limit, offset, hasMore: offset + items.length < totalCount },
     { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } },
     env, origin,
   );
+}
+
+// Slugs of articles whose static /post/<slug>/ page is DEPLOYED, from the
+// journal's posts-live.json manifest (written by generate_articles.py, shipped
+// atomically with the pages). Cached per-isolate ~60s + at the edge. Returns
+// null on ANY failure so callers fail open (never hide the whole grid).
+let _livePostsCache = null, _livePostsAt = 0;
+async function getLivePostSlugs() {
+  const now = Date.now();
+  if (_livePostsCache && (now - _livePostsAt) < 60000) return _livePostsCache;
+  try {
+    const r = await fetch('https://www.oftmw.com/posts-live.json', { cf: { cacheTtl: 60, cacheEverything: true } });
+    if (!r.ok) return null;
+    const arr = await r.json();
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const set = new Set(arr.map((s) => String(s)));
+    _livePostsCache = set; _livePostsAt = now;
+    return set;
+  } catch (e) { return null; }
 }
 
 // Secret for signing draft-preview tokens (reuses the gallery/session secret).
