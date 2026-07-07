@@ -21,7 +21,12 @@
 <!-- Warm the connection to the map so the Map toggle switches with less lag. -->
 <link rel="preconnect" href="https://map.oftmw.com">
 <link rel="dns-prefetch" href="https://map.oftmw.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Serif (Fraunces) loads display=optional so it NEVER swaps after first paint —
+     a late swap reflows the big serif headings (esp. the narrow-column mobile hero
+     H1) and was the residual mobile CLS. Body/mono stay swap (metric-close to their
+     system fallbacks, so no meaningful shift). -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&display=optional" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- GAM removed — the top banner is a curated featured-slide carousel reading from /ads.json, not programmatic ad units. -->
 
@@ -392,7 +397,8 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   font-size:clamp(28px, 3.8vw, 52px);
   line-height:1.08; letter-spacing:-.015em;
   color:var(--white);
-  text-wrap:balance;
+  /* text-wrap:balance removed — it re-balances lines after first layout, which
+     can nudge the hero height (a CLS source on the big multi-line mobile H1). */
 }
 .story-card h1 a{color:var(--white); transition:color .2s}
 .story-card h1 a:hover{color:var(--gold-soft)}
