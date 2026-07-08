@@ -4820,7 +4820,11 @@ async function captureEditLesson(env, post) {
   if (!orig || !final || orig === final) return;
   // Skip trivial edits — only learn from a real revision.
   if (orig.slice(0, 4000) === final.slice(0, 4000) && Math.abs(final.length - orig.length) < 40) return;
-  const sys = 'You improve an AI writing system for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written article before publishing. Compare the ORIGINAL (AI) and PUBLISHED (human-edited) versions and extract up to 3 GENERALIZABLE lessons about our house voice, style, structure, or accuracy that would make FUTURE AI drafts better. Ignore one-off article-specific facts (a specific price, a specific project name). Focus on patterns: tone, phrasing, length, structure, what to avoid. If the changes are trivial or purely cosmetic, return an empty array. Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short imperative lesson>"}].';
+  const sys = 'You improve an AI writing system for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written article before publishing. Compare the ORIGINAL (AI) and PUBLISHED (human-edited) versions and extract AT MOST 2 lessons — usually 0 or 1 — that are WIDE-SCOPED house-voice patterns applying to MANY future articles across any subject. '
+    + 'This is a compounding brain, so be conservative: a lesson must be a durable stylistic RULE (tone, structure, length, phrasing habits to keep or avoid), NOT a fix specific to this article. '
+    + 'HARD FILTERS — return an empty array unless a change clearly generalizes. Ignore: any article-specific fact (a price, a name, a date, a project detail); a one-off rewording; anything that only makes sense for this subject; cosmetic/whitespace edits. If several edits all express ONE underlying pattern, output that ONE pattern, not several. Prefer 0 lessons over a narrow one. '
+    + 'Each note must be a short, general imperative that a writer could apply to a totally different article (e.g. "Cut closing paragraphs that editorialize significance", "Open on the concrete fact, not a metaphor"). '
+    + 'Output ONLY a JSON array: [{"type":"voice"|"rule","kind":"like"|"dislike"|"voice"|"structure"|"avoid"|"rule","note":"<short GENERAL imperative>"}].';
   const usr = 'ORIGINAL (AI):\n' + orig.slice(0, 6000) + '\n\n---\n\nPUBLISHED (human-edited):\n' + final.slice(0, 6000);
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -7196,33 +7200,69 @@ async function matchLessonToExisting(env, noteText) {
     return best ? { id: String(best.id || '').replace(/^brandnote:/, ''), score: best.score, text: String(best.metadata.text || '') } : null;
   } catch (_) { return null; }
 }
+// Route lessons from a human edit into the shared brain. Editor lessons now
+// AUTO-APPLY (no review queue) so a change you make shows up in the very next
+// article — but into a size-capped, always-on "editor" band, and never more than
+// 2 per article, so no single piece can distort future writing. A lesson that
+// RECURS across articles is reinforced (and a legacy pool note graduates into the
+// always-on band) — recurrence, not one article's quirks, is what compounds.
 export async function routeLessons(env, lessons, { source, evidence, injected_ids = [] } = {}) {
   const now = Math.floor(Date.now() / 1000);
-  for (const l of (lessons || []).slice(0, 3)) {
+  await ensureBrandNotes(env);
+  for (const l of (lessons || []).slice(0, 2)) {
     if (!l || !l.note) continue;
-    const existing = await matchLessonToExisting(env, l.note);
+    const note = String(l.note).slice(0, 2000);
+    const kind = l.kind || (l.type === 'rule' ? 'rule' : 'voice');
+    const existing = await matchLessonToExisting(env, note);
     if (existing && existing.id) {
-      // The rule already exists — the draft violated it. Count, don't duplicate.
+      // Recurred — REINFORCE (bump the recurrence count + refresh freshness so it
+      // outlives the band cap), log telemetry, and graduate a pool/legacy voice
+      // note into the always-on editor band on its 2nd sighting across articles.
       try {
-        await env.DB.prepare('UPDATE brand_notes SET violations = COALESCE(violations,0)+1, last_violated_at = ?1 WHERE id = ?2').bind(now, existing.id).run();
+        await env.DB.prepare('UPDATE brand_notes SET violations = COALESCE(violations,0)+1, last_violated_at=?1, created_at=?1 WHERE id=?2').bind(now, existing.id).run();
         await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-          .bind(now, source || 'system', 'brain_violation', JSON.stringify({ note_id: existing.id, lesson: String(l.note).slice(0, 300), source, injected: injected_ids.includes(existing.id) })).run();
-        const row = await env.DB.prepare('SELECT violations, note, kind, tier FROM brand_notes WHERE id = ?1 AND active = 1').bind(existing.id).first();
-        if (row && row.tier !== 'canon' && (row.violations || 0) >= 3) {
-          const pending = await pendingGardenIds(env);
-          if (!pending.has(existing.id)) {
-            await brainWrite(env, {
-              type: 'promote', kind: row.kind, note: row.note, retire_ids: [existing.id],
-              source: 'repeat-offender',
-              evidence: 'Violated ' + row.violations + '× despite existing — drafts keep breaking this rule; promote it to the always-on canon.',
-            });
-          }
+          .bind(now, source || 'system', 'brain_violation', JSON.stringify({ note_id: existing.id, lesson: note.slice(0, 300), source, injected: injected_ids.includes(existing.id) })).run();
+        const row = await env.DB.prepare("SELECT violations, tier, scope FROM brand_notes WHERE id=?1 AND active=1").bind(existing.id).first();
+        if (row && (row.scope === 'voice' || row.scope == null) && row.tier !== 'canon' && row.tier !== 'editor' && (row.violations || 0) >= 1) {
+          await env.DB.prepare("UPDATE brand_notes SET tier='editor', scope='voice' WHERE id=?1").bind(existing.id).run();
         }
       } catch (_) {}
       continue;
     }
-    await brainWrite(env, { type: l.type === 'rule' ? 'rule' : 'voice', kind: l.kind, note: String(l.note), source, evidence }, { review: true });
+    // New wide-scope lesson → auto-apply straight into the always-on editor band.
+    await addEditorNote(env, { kind, note, source, evidence, now });
   }
+  await capEditorBand(env, 15);
+}
+
+// Insert an always-on editor-band brand note (auto-applied from a human edit) and
+// vectorize it so recurrence-matching + relevance recall both see it.
+async function addEditorNote(env, { kind, note, source, evidence, now }) {
+  try {
+    await ensureBrandNotes(env);
+    const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+    const k = ALLOWED.includes(kind) ? kind : 'voice';
+    const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,'editor',?3,?4,?5,?6,1,'voice','editor',0)`)
+      .bind(id, k, note.slice(0, 2000), (evidence ? String(evidence) : ('via ' + (source || 'edit'))).slice(0, 300), source || 'studio-edit', now).run();
+    try { await brainNoteVectors(env, [{ id, kind: k, note: note.slice(0, 2000), scope: 'voice' }]); } catch (_) {}
+    return id;
+  } catch (_) { return null; }
+}
+
+// Keep the always-on editor band tight (default 15): demote the lowest-priority
+// overflow back to pool (still recallable by relevance, just not always-on) so the
+// band stays wide-scoped + current. Priority = recurrence (violations) then recency,
+// so a pattern seen across many articles outranks a one-off from a single piece.
+async function capEditorBand(env, cap = 15) {
+  try {
+    const rows = (await env.DB.prepare(
+      "SELECT id FROM brand_notes WHERE active=1 AND tier='editor' ORDER BY COALESCE(violations,0) DESC, created_at DESC"
+    ).all()).results || [];
+    for (const r of rows.slice(cap)) {
+      try { await env.DB.prepare("UPDATE brand_notes SET tier='pool' WHERE id=?1").bind(r.id).run(); } catch (_) {}
+    }
+  } catch (_) {}
 }
 
 // GET /semantic-search?q=&k=&kind= — top matches by meaning. Public (origin-gated).
@@ -8951,6 +8991,70 @@ async function handleBrainResolve(req, env, origin) {
   return json({ ok: true, id, action, applied: action === 'approve' }, {}, env, origin);
 }
 
+// POST /admin/brain/dial-in — one-shot maintenance to make the brain "catch on"
+// faster: (1) flush the backlog of pending edit-learnings straight into the
+// always-on EDITOR band (the auto-apply that used to sit in review), and (2)
+// retire long-stale POOL notes that have never once been retrieved — dead weight
+// diluting relevance recall. Deactivation is reversible (active=0) and preserves
+// explicit like/dislike preferences. Body: { retire_days?: number (default 30) }.
+async function handleBrainDialIn(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureBrandNotes(env);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const retireDays = Math.max(0, Number(body && body.retire_days) || 30);
+  const now = Math.floor(Date.now() / 1000);
+  const out = { queue_flushed: 0, band_added: 0, band_reinforced: 0, retired: 0 };
+
+  // (1) Flush the pending edit-learning queue → editor band.
+  const evs = (await env.DB.prepare(
+    `SELECT props_json FROM events WHERE event_name IN ('brain_proposed','brain_resolved') ORDER BY ts ASC`
+  ).all()).results || [];
+  const resolved = new Set(); const proposed = new Map();
+  for (const r of evs) {
+    let p; try { p = JSON.parse(r.props_json); } catch { continue; }
+    if (!p) continue;
+    if (p.ref_id) { resolved.add(String(p.ref_id)); continue; }
+    if (p.id) proposed.set(String(p.id), p);
+  }
+  for (const [id, p] of proposed) {
+    if (resolved.has(id)) continue;
+    if (!['voice', 'rule'].includes(p.type) || !p.note) continue;   // skip gardener merge/retire/promote
+    const existing = await matchLessonToExisting(env, p.note);
+    if (existing && existing.id) {
+      try {
+        await env.DB.prepare("UPDATE brand_notes SET violations=COALESCE(violations,0)+1, scope='voice', tier=CASE WHEN tier IN ('canon','editor') THEN tier ELSE 'editor' END, created_at=?1 WHERE id=?2").bind(now, existing.id).run();
+        out.band_reinforced++;
+      } catch (_) {}
+    } else if (await addEditorNote(env, { kind: p.kind, note: p.note, source: p.source, evidence: p.evidence, now })) {
+      out.band_added++;
+    }
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(now, 'brain-dialin', 'brain_resolved', JSON.stringify({ ref_id: id, action: 'approve' })).run();
+    } catch (_) {}
+    out.queue_flushed++;
+  }
+  await capEditorBand(env, 15);
+
+  // (2) Retire dead-weight pool notes — never retrieved + long-stale voice notes.
+  // Preserve explicit like/dislike prefs, canon, and the editor band.
+  if (retireDays > 0) {
+    const dead = (await env.DB.prepare(
+      "SELECT id FROM brand_notes WHERE active=1 AND tier='pool' AND COALESCE(scope,'voice')='voice' AND COALESCE(retrievals,0)=0 AND kind NOT IN ('like','dislike') AND created_at < ?1"
+    ).bind(now - retireDays * 86400).all()).results || [];
+    const ids = dead.map((r) => String(r.id));
+    for (let i = 0; i < ids.length; i += 20) {
+      const chunk = ids.slice(i, i + 20);
+      try { await env.DB.prepare(`UPDATE brand_notes SET active=0 WHERE id IN (${chunk.map(() => '?').join(',')})`).bind(...chunk).run(); } catch (_) {}
+      try { if (env.VECTORIZE) await env.VECTORIZE.deleteByIds(chunk.map((id) => vecId('brandnote', id))); } catch (_) {}
+      out.retired += chunk.length;
+    }
+  }
+  return json({ ok: true, ...out }, {}, env, origin);
+}
+
 // GET /admin/model-check — one tiny call per model to confirm the Anthropic key
 // + retention config actually allow Fable 5 (vs silently falling back to Opus).
 // The definitive "is Fable live?" check.
@@ -9784,14 +9888,20 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
   const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '', injected_ids: [] };
   if (!env || !env.DB) return out;
   if (voice) {
-    // Two tiers: the small curated CANON always loads; pool notes come in by
-    // relevance to the topic (or the latest few when there's no topic). This
-    // replaced the old dump-all-233-notes behavior — see canon-20 for hygiene.
+    // Always-on tiers load into EVERY writing prompt: the small curated CANON (the
+    // constitution) plus the auto-learned EDITOR band (recent, size-capped lessons
+    // from the editor's own article edits — this is what makes edits dial in fast).
+    // POOL notes still come in by relevance below. Replaced the old dump-all behavior.
     try {
       const canon = (await env.DB.prepare(
         `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='canon' ORDER BY id ASC`
       ).all()).results || [];
       if (canon.length) out.voice = canon.map(r => `- [${r.kind}] ${r.note}`).join('\n');
+      // Editor band — newest/most-reinforced first, capped so it can't bloat.
+      const editor = (await env.DB.prepare(
+        `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='editor' ORDER BY COALESCE(violations,0) DESC, created_at DESC LIMIT 15`
+      ).all()).results || [];
+      if (editor.length) out.voice += (out.voice ? '\n' : '') + 'FROM THE EDITOR (recent lessons from human edits — apply these):\n' + editor.map(r => `- [${r.kind}] ${r.note}`).join('\n');
     } catch (_) {}
     try {
       let pool = await brainRelevantNotes(env, [topic, place].filter(Boolean).join(' '), 6);
@@ -12110,6 +12220,7 @@ export default {
       if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
       if (url.pathname === '/admin/brain/garden' && request.method === 'POST') return await handleBrainGarden(request, env, origin);
+      if (url.pathname === '/admin/brain/dial-in' && request.method === 'POST') return await handleBrainDialIn(request, env, origin);
       if (url.pathname === '/brain/feed'     && request.method === 'GET')  return await handleBrainFeed(request, env, origin);
       if (url.pathname === '/brain/resolve'  && request.method === 'POST') return await handleBrainResolve(request, env, origin);
       if (url.pathname === '/brain' || url.pathname === '/brain/') {
