@@ -2677,7 +2677,7 @@
     var cached = cachedAnswer(q);
     var showNow = !!cached || !!immediate;
     var ansCls = showNow ? '' : 'loading';
-    var ansHtml = cached ? esc(cached)
+    var ansHtml = cached ? linkifyAnswer(esc(cached))
       : (immediate ? (ans.html || '')
       : '<span class="tmw-ov-intel-loader" aria-hidden="true"><span></span><span></span><span></span></span>Looking through the pipeline for an answer…');
     return '<section class="tmw-ov-intel-panel">'
