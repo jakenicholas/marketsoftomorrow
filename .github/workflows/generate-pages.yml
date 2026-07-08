@@ -42,6 +42,11 @@ jobs:
     # full rebuild (pulse, articles, hero, all pages).
     env:
       PROJECT_ONLY: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'rebuild-map' }}
+      # TMW_INCREMENTAL: the page generators diff projects-flat.json against the
+      # last commit and only re-render what changed. Only the generators that
+      # import _incremental (generate_pages, and the firm/market gens) act on it;
+      # the rest ignore it. Same condition as PROJECT_ONLY.
+      TMW_INCREMENTAL: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'rebuild-map' }}
 
     steps:
       - name: Checkout repository

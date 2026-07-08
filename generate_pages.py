@@ -5,7 +5,8 @@ Reads Google Sheet CSV → generates /projects/{slug}/index.html for each projec
 Run: python3 generate_pages.py
 """
 
-import csv, io, os, re, json, time, urllib.request, urllib.parse, sys
+import csv, io, os, re, json, time, urllib.request, urllib.parse, sys, shutil
+from _incremental import changed_and_removed, expand_families
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1qwU7ykIDUrtPlIQu-qk2FIJwiz-WWg5caq02ja30sgM/export?format=csv&gid=0"
 OUTPUT_DIR = "journal/projects"
@@ -3955,8 +3956,32 @@ def main():
     index_items = []
     generated = 0
     skipped = 0
+    skipped_incr = 0  # unchanged pages skipped in incremental mode
     pages_with_coverage = 0  # diagnostic: how many pages got a Coverage section
     dossiers = {}  # slug -> precomputed dossier rows HTML (for the map, identical to the page)
+
+    # INCREMENTAL: on a project-save rebuild (TMW_INCREMENTAL=true), only render
+    # the project pages that actually changed vs the last commit — plus each
+    # changed project's family (parent/children/siblings), which cross-reference
+    # each other. dossiers.json / atlas.json / sitemap / the /projects index are
+    # still built from ALL rows below (they're cheap, single-file, and must stay
+    # complete). A full run (hourly/manual) leaves target_page_slugs = None.
+    target_page_slugs = None
+    _changed, _removed = changed_and_removed(rows)
+    if _changed is not None:
+        _by_slug = {(r.get('Slug') or '').strip(): r for r in rows if (r.get('Slug') or '').strip()}
+        _seed = set((r.get('Slug') or '').strip() for r in _changed if (r.get('Slug') or '').strip())
+        target_page_slugs = set(slugify(r.get('Title', '')) for r in _changed if r.get('Title', '').strip())
+        for _hs in expand_families(_seed, rows):
+            _r = _by_slug.get(_hs)
+            if _r:
+                target_page_slugs.add(slugify(_r.get('Title', '')))
+        for _r in _removed:
+            _d = os.path.join(OUTPUT_DIR, slugify(_r.get('Title', '')))
+            if os.path.isdir(_d):
+                shutil.rmtree(_d, ignore_errors=True)
+                print(f"  Incremental: removed stale page {_d}")
+        print(f"  Incremental mode: rendering {len(target_page_slugs)} changed page(s) of {len(rows)} (+{len(_removed)} removed)")
 
     for row in rows:
         title = row.get('Title','').strip()
@@ -4063,21 +4088,30 @@ def main():
                 _own_slug_here = (row.get('Slug', '') or '').strip()
                 _components = list(children_by_parent.get(_own_slug_here, []))
                 _all_desc = get_all_descendants(_own_slug_here) if _components else []
-            html, slug = build_page(row, articles=page_articles, nearby=nearby_rows,
-                                    parent_title=_parent_title, siblings=_siblings,
-                                    components=_components, all_descendants=_all_desc)
-            # Stash the SAME rows HTML the page just rendered for the map sidecar,
-            # keyed by the MAP slug (no hyphens, strip non-alnum) — the map computes
-            # this identically from the title, so unicode titles (e.g. "Kōloa") match.
+            # Map dossier + /projects index entry are needed for EVERY project
+            # (they feed dossiers.json + the sitemap/index), so compute them for
+            # all rows regardless of incremental mode. The MAP slug (no hyphens,
+            # strip non-alnum) is computed identically to the map at runtime, so
+            # unicode titles (e.g. "Kōloa") match.
             _drows = dossier_rows_html(row.get('Milestones') or [])
             if _drows:
                 dossiers[map_slug(title)] = _drows
-            page_dir = os.path.join(OUTPUT_DIR, slug)
-            os.makedirs(page_dir, exist_ok=True)
-            with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
-                f.write(html)
-            generated += 1
-            index_items.append((slug, title, row.get('City',''), row.get('Delivery',''), row.get('ImageURL','')))
+            index_items.append((slug_for_lookup, title, row.get('City',''), row.get('Delivery',''), row.get('ImageURL','')))
+
+            # Heavy part — render + write the full project page. In incremental
+            # mode only the changed projects (and their families) get re-rendered;
+            # unchanged pages already on disk are left untouched.
+            if target_page_slugs is None or slug_for_lookup in target_page_slugs:
+                html, slug = build_page(row, articles=page_articles, nearby=nearby_rows,
+                                        parent_title=_parent_title, siblings=_siblings,
+                                        components=_components, all_descendants=_all_desc)
+                page_dir = os.path.join(OUTPUT_DIR, slug)
+                os.makedirs(page_dir, exist_ok=True)
+                with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
+                    f.write(html)
+                generated += 1
+            else:
+                skipped_incr += 1
         except Exception as e:
             print(f"  Error on '{title}': {e}")
             skipped += 1
@@ -4116,7 +4150,8 @@ def main():
     # Generate sitemap.xml + robots.txt at repo root
     write_sitemap_and_robots(index_items)
 
-    print(f"\n✅ Done! Generated {generated} pages, skipped {skipped}")
+    print(f"\n✅ Done! Generated {generated} pages, skipped {skipped}" +
+          (f", left {skipped_incr} unchanged (incremental)" if skipped_incr else ""))
     print(f"   Output: ./{OUTPUT_DIR}/")
     print(f"   Sitemap: ./sitemap.xml ({generated + 2} URLs)")
 
