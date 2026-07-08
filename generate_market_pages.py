@@ -73,6 +73,48 @@ STATUS_CSS_CLASS = {
     'Announced':          'pill-an',
 }
 
+# ── Recency window ── Market + firm pages only surface projects that OPENED in
+# the last 12 months; once a 'Now Open' project is 12+ months past its opening
+# date it ages off both pages. Non-open projects and opens we can't date (or that
+# are dated in the future) are always kept.
+def project_open_date(p):
+    """Best-effort LATEST-plausible opening date from DeliveryDate (bare year →
+    Dec 31, YYYY-MM → month end). Returns a datetime.date, or None if undatable."""
+    import calendar
+    s = str(p.get('DeliveryDate') or '').strip()
+    m = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', s)
+    if m:
+        try: return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError: pass
+    m = re.match(r'^(\d{4})-(\d{2})$', s)
+    if m:
+        y, mo = int(m.group(1)), int(m.group(2))
+        if 1 <= mo <= 12:
+            return datetime.date(y, mo, calendar.monthrange(y, mo)[1])
+    m = re.search(r'(19|20)\d{2}', s)
+    if m:
+        try: return datetime.date(int(m.group(0)), 12, 31)
+        except ValueError: pass
+    return None
+
+def drop_stale_open_projects(projects, months=12, today=None):
+    """Remove 'Now Open' projects that opened MORE than `months` ago. Applied once
+    at load in the market + firm generators so it propagates to every count, the
+    grid, the intro, and the JSON."""
+    today = today or datetime.date.today()
+    try:
+        cutoff = today.replace(year=today.year - (months // 12) - (1 if months % 12 else 0))
+    except ValueError:
+        cutoff = today.replace(year=today.year - 1, day=28)
+    out = []
+    for p in projects:
+        if (p.get('Delivery') or '').strip() == 'Now Open':
+            d = project_open_date(p)
+            if d is not None and d < cutoff:
+                continue  # opened 12+ months ago → age it off
+        out.append(p)
+    return out
+
 CITY_TYPE_MIN = 3
 
 # Module-level lookup populated once at the start of each consuming script's
@@ -415,7 +457,8 @@ def short_architect(p: dict) -> str:
 def status_pill(p: dict) -> str:
     d = (p.get('Delivery') or 'Announced').strip()
     cls = STATUS_CSS_CLASS.get(d, 'pill-an')
-    return f'<span class="card-status-pill {cls}">{esc(d)}</span>'
+    label = 'Recently Opened' if d == 'Now Open' else d
+    return f'<span class="card-status-pill {cls}">{esc(label)}</span>'
 
 # ─── Sorting (Featured-first, then status, then title) ──────────────
 def sort_projects(projects: list[dict]) -> list[dict]:
@@ -632,8 +675,15 @@ def card_html(p: dict) -> str:
 def stats_strip_html(projects: list[dict]) -> str:
     counts = collections.Counter((p.get('Delivery') or 'Unknown').strip() for p in projects)
     cells = [('Tracked', len(projects), '')]
-    for s in ['Under Construction', 'Breaking Ground', 'Opening Soon', 'Now Open']:
-        cells.append((s, counts.get(s, 0), {'Under Construction':'uc','Breaking Ground':'bg','Opening Soon':'os','Now Open':'no'}[s]))
+    # Lifecycle order left→right: Announced → Under Construction → Opening Soon →
+    # Recently Opened (the 'Now Open' bucket, already filtered to the last 12 months).
+    for label, key, cls in [
+        ('Announced',          'Announced',          'an'),
+        ('Under Construction', 'Under Construction', 'uc'),
+        ('Opening Soon',       'Opening Soon',       'os'),
+        ('Recently Opened',    'Now Open',           'no'),
+    ]:
+        cells.append((label, counts.get(key, 0), cls))
     return '\n'.join(
         f'<div class="stat {cls}"><div class="n">{n}</div><div class="l">{label}</div></div>'
         for label, n, cls in cells
@@ -1024,6 +1074,7 @@ def render_page(
     .stat .l {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }}
     .stat.uc .n {{ color: var(--amber); }}
     .stat.bg .n {{ color: var(--gold); }}
+    .stat.an .n {{ color: #9AA39C; }}
     .stat.os .n {{ color: var(--purple-bright); }}
     .stat.no .n {{ color: var(--green); }}
 
@@ -2696,7 +2747,9 @@ def main():
     except FileNotFoundError:
         print("  ✗ projects-flat.json not found. Run fetch_projects.py first.")
         sys.exit(1)
-    print(f"  ✓ Loaded {len(projects)} projects")
+    _n_before = len(projects)
+    projects = drop_stale_open_projects(projects)
+    print(f"  ✓ Loaded {_n_before} projects ({_n_before - len(projects)} aged off — opened 12+ months ago)")
 
     # Populate the slug -> title lookup card_html uses for the
     # "Part of <District>" chip on child-component cards.

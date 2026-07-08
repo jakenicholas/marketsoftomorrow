@@ -47,6 +47,7 @@ from generate_market_pages import (
     set_parent_title_lookup as market_set_parent_title_lookup,
     paywall_grid,
     PAYWALL_CSS, PAYWALL_HEAD, PAYWALL_BODY_JS, PAYWALL_JSONLD,
+    drop_stale_open_projects,
     _exclude_completed,
     _status_breakdown,
     _count_firms,
@@ -328,6 +329,7 @@ FIRM_CSS = """
     .stat .l { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }
     .stat.uc .n { color: var(--amber); }
     .stat.bg .n { color: var(--gold); }
+    .stat.an .n { color: #9AA39C; }
     .stat.os .n { color: var(--purple-bright); }
     .stat.no .n { color: var(--green); }
 
@@ -764,13 +766,14 @@ def render_page(firm, firm_projects, stats, coverage_items):
       })();
       </script>""") if show_tabs else ''
 
-    # Stats strip — 5 cards (tracked / UC / BG / OS / NO), gold/amber tint as in market pages
+    # Stats strip — 5 cards, lifecycle order: Announced → UC → Opening Soon →
+    # Recently Opened (the 'Now Open' bucket, already filtered to the last 12 months).
     stats_cells = [
         ('', stats['total'], 'Tracked'),
+        ('an', sb['an'],     'Announced'),
         ('uc', sb['uc'],     'Under Construction'),
-        ('bg', sb['bg'],     'Breaking Ground'),
         ('os', sb['os'],     'Opening Soon'),
-        ('no', sb['no'],     'Now Open'),
+        ('no', sb['no'],     'Recently Opened'),
     ]
     stats_html = '\n'.join(
         f'<div class="stat {cls}"><div class="n">{n}</div><div class="l">{lbl}</div></div>'
@@ -1515,7 +1518,7 @@ def render_featured_firms_json(summaries, path):
 
 def main():
     print("Loading inputs...")
-    projects = load_json(PROJECTS_FLAT)
+    projects = drop_stale_open_projects(load_json(PROJECTS_FLAT))
     firms = load_json(FIRMS_FLAT)
     # articles.json is project_slug -> [article_obj]. Missing file is non-fatal
     # — pages just render with no coverage section content.
