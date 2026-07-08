@@ -3835,16 +3835,14 @@
         var sortedCities = Object.keys(cityCounts).sort(function(a, b){
           return cityCounts[b] - cityCounts[a];
         });
-        var dominantCity = sortedCities[0] || '';
-        // Name the top city whenever it holds ≥ 25 % of the firm's tracked
-        // footprint OR has the plurality of projects — matches the user's
-        // expected "no X here, but N in <city>" copy pattern. A firm whose
-        // top city is below 25 % is genuinely scattered → mention no city.
-        var dominantShare = dominantCity ? cityCounts[dominantCity] / altRows.length : 0;
+        // List the ACTUAL places the firm's tracked projects span (most-populous
+        // first), not just the single dominant city — a firm's footprint is usually
+        // scattered across several markets ("across West Palm Beach, Miami and Cabo
+        // Rojo"), so naming one city misrepresents it.
         s._firmCityFallback = {
           requestedPlace: s.cities[0] || s.region,
           altCount: altRows.length,
-          altCity: dominantShare >= 0.25 ? dominantCity : '',
+          altCities: sortedCities.slice(0, 8),
         };
         rows = altRows;
       }
@@ -3861,7 +3859,19 @@
     // hit on the place they actually asked about.
     if (s._firmCityFallback && s.firm) {
       var fb = s._firmCityFallback;
-      var altLoc = fb.altCity ? ' in <b>' + esc(fb.altCity) + '</b>' : '';
+      var places = fb.altCities || (fb.altCity ? [fb.altCity] : []);
+      var altLoc = '';
+      if (places.length === 1) {
+        altLoc = ' in <b>' + esc(places[0]) + '</b>';
+      } else if (places.length >= 2) {
+        var shown = places.slice(0, 3).map(function (p) { return '<b>' + esc(p) + '</b>'; });
+        var extra = places.length - shown.length;
+        var joined;
+        if (extra > 0) joined = shown.join(', ') + ' and ' + extra + ' other market' + (extra === 1 ? '' : 's');
+        else if (shown.length === 2) joined = shown[0] + ' and ' + shown[1];
+        else joined = shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1];   // "A, B and C"
+        altLoc = ' across ' + joined;
+      }
       var n2 = fb.altCount;
       ans.html = 'No tracked <b>' + esc(s.firm.name) + '</b> developments in <b>'
         + esc(fb.requestedPlace) + '</b> — but <b>' + n2 + ' '
