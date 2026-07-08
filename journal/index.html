@@ -790,7 +790,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
 <section class="story-section" id="featured">
   <article class="story-card">
     <div class="sc-clip">
-      <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq_800.webp" srcset="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq_400.webp 400w, https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq_800.webp 800w" sizes="(max-width:900px) 100vw, 1100px" onerror="this.onerror=null;this.srcset='';this.src='https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq.jpg'" alt="Fifth Avenue&#x27;s tallest residential tower reveals its gold crown and rooftop infinity pool in NoMad" fetchpriority="high" decoding="async"></div>
+      <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/4c6570735b40-262-fifth-avenue-skyscraper-new-york-city_dezeen-sq.jpg" alt="Fifth Avenue&#x27;s tallest residential tower reveals its gold crown and rooftop infinity pool in NoMad" fetchpriority="high" decoding="async"></div>
     </div>
     <div class="sc-content">
       <div class="sc-eyebrow">Featured</div>
@@ -1811,7 +1811,7 @@ function cardHtml(item) {
   // Read on the in-repo article page (all posts live in D1 now — no Wix).
   const href = item.slug ? ('./post/' + encodeURIComponent(item.slug) + '/') : item.link;
   const imgBlock = item.image
-    ? `<div class="card-img">${tmwThumbImg(item.image, 'alt="" loading="lazy" decoding="async" sizes="(max-width:700px) 92vw, 360px"')}</div>`
+    ? `<div class="card-img"><img src="${escapeAttr(item.image)}" alt="" loading="lazy"></div>`
     : `<div class="card-img empty">Markets of Tomorrow</div>`;
   return `<article class="card">
     <a href="${escapeAttr(href)}" aria-label="${escapeAttr(item.title)}">${imgBlock}</a>
@@ -1875,29 +1875,6 @@ function formatDate(s) {
 function trunc(s, n) { return s.length > n ? s.slice(0, n).trimEnd() + '…' : s; }
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
-
-// ── Thumbnails ── R2 images have pre-generated small WEBP derivatives
-// (<key>_400.webp / _800.webp; see generate_thumbnails.py) that are ~10-18x
-// smaller than the full original. Serve those and fall back to the original if
-// a thumb is missing (a handful of images plus anything added since the last
-// nightly thumbnail run). Non-R2 / non-image URLs pass through untouched.
-function tmwThumb(url, w) {
-  try {
-    if (!url || url.indexOf('pub-7da0281887564d10a10107987c7c6c0c.r2.dev') < 0) return url;
-    const clean = url.split('?')[0];
-    if (!/\.(jpe?g|png|webp)$/i.test(clean)) return url;
-    return clean.replace(/\.[A-Za-z0-9]+$/, '_' + w + '.webp');
-  } catch (_) { return url; }
-}
-// <img> markup that serves the _400/_800 thumbs via srcset, with an onerror that
-// restores the full original once if the thumb 404s. `extra` = trailing attrs.
-function tmwThumbImg(url, extra) {
-  const t4 = tmwThumb(url, 400);
-  if (t4 === url) return `<img src="${escapeAttr(url)}" ${extra || ''}>`;   // not a thumb-able R2 image
-  const t8 = tmwThumb(url, 800);
-  return `<img src="${escapeAttr(t4)}" srcset="${escapeAttr(t4)} 400w, ${escapeAttr(t8)} 800w" `
-       + `onerror="this.onerror=null;this.srcset='';this.src='${escapeAttr(url)}'" ${extra || ''}>`;
-}
 
 // ---------------------------------------------------------------
 // FEATURED LISTS slider — reads featured-lists.json, renders cards,
@@ -2050,7 +2027,7 @@ function featuredListCardHtml(l, i) {
   // eagerly (high priority) instead of waiting for a scroll — the rest stay lazy.
   const eager = (i || 0) < 4;
   return `<a class="flist-card" href="${escapeAttr(l.url)}">
-    ${l.image ? tmwThumbImg(l.image, `alt="" loading="${eager ? 'eager' : 'lazy'}" ${eager ? 'fetchpriority="high" ' : ''}decoding="async" sizes="(max-width:700px) 80vw, 300px"`) : ''}
+    ${l.image ? `<img src="${escapeAttr(l.image)}" alt="" loading="${eager ? 'eager' : 'lazy'}" ${eager ? 'fetchpriority="high" ' : ''}decoding="async">` : ''}
     <div class="flist-card-content">
       <div class="top">
         <h3>${escapeHtml(l.title)}</h3>
