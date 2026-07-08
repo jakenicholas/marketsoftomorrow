@@ -1706,13 +1706,27 @@ window.logAdClick = function(id) {
 // Featured + grid
 // ---------------------------------------------------------------
 function renderFeatured(item) {
-  // If the hero was BAKED into the HTML at build time (bake_hero.py), it already
-  // shows the real story with a real href — leave it. Re-filling would swap the
-  // content (flicker + layout shift) and re-hide the preloaded LCP image. A build
-  // where the bake didn't run still has the "#" placeholder, so we fill it.
+  // The hero is BAKED into the HTML at build time (bake_hero.py) for an instant,
+  // no-flicker, preloadable-LCP first paint. But baking only refreshes when the
+  // homepage redeploys (minutes). So RECONCILE against the live pick here:
+  //   • baked hero already points at the current featured story  → leave it
+  //     (no flicker, keeps the preloaded LCP image);
+  //   • baked hero is STALE (a newly-featured story whose page is now live) → swap
+  //     it in now, so the hero updates within seconds of publishing instead of
+  //     waiting for the homepage to redeploy.
+  // `item` comes from the PUBLIC /posts feed, which is page-ready-gated, so we can
+  // only ever swap to a story whose /post/<slug>/ page is already live (no 404).
   const heroLink = document.getElementById('hero-link');
-  if (heroLink && heroLink.getAttribute('href') && heroLink.getAttribute('href') !== '#') return;
   const link = item.link || '#';
+  if (link === '#') return;                                         // nothing live to show
+  // Compare RESOLVED hrefs, not raw strings: bake_hero writes the slug raw while
+  // the client encodeURIComponent()s it, so a unicode slug (é, ō, …) differs as a
+  // string but resolves identically. Setting .href on a probe <a> normalizes both
+  // the same way the browser normalizes the baked link's .href property.
+  if (heroLink) {
+    const probe = document.createElement('a'); probe.href = link;
+    if (heroLink.href === probe.href) return;                       // baked hero already current
+  }
   document.getElementById('hero-link').href = link;
   document.getElementById('hero-link').textContent = item.title;
   document.getElementById('hero-cta').href = link;
