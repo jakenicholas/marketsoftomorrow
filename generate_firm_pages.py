@@ -37,8 +37,10 @@ import json
 import os
 import re
 import statistics
+from tmw_search_bar import MC_SEARCH_CSS, mc_search_html_for, mc_search_js_for
 import sys
 from collections import defaultdict
+from _incremental import changed_and_removed
 
 # Borrow the market-page renderers so firm pages and market pages share
 # typography, cards, timeline boxes, firm bubbles, and Pro CTA verbatim.
@@ -1279,6 +1281,20 @@ def render_firm_hub(summaries, out_path):
         for s in summaries
     ], ensure_ascii=False)
 
+    # Typeahead search bar scoped to firms (plain strings interpolated into the
+    # page f-string — no brace-doubling needed).
+    mc_search_css = MC_SEARCH_CSS
+    mc_search_html = mc_search_html_for('fcs', 'Search firms — architect or developer…')
+    mc_search_js = mc_search_js_for('fcs', """
+      var firms = JSON.parse(document.getElementById('fc-data').textContent);
+      var ROLE_LABEL = { architect: 'Architect', developer: 'Developer', both: 'Arch + Dev' };
+      var ITEMS = firms.map(function(f){
+        return { name: f.name, url: '/firm/' + f.slug + '/', n: f.count,
+                 meta: (ROLE_LABEL[f.role] || 'Firm') + ' · ' + f.count };
+      });
+      function goItem(it){ location.href = it.url; }
+    """)
+
     total_firms = len(summaries)
     total_arch  = len([s for s in summaries if s['role'] in ('architect', 'both')])
     total_dev   = len([s for s in summaries if s['role'] in ('developer', 'both')])
@@ -1353,6 +1369,7 @@ def render_firm_hub(summaries, out_path):
     .mc-field select, .mc-field input {{ width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 14px 16px; font-family: var(--sans); font-size: 15px; color: var(--white); appearance: none; cursor: pointer; }}
     .mc-field select:focus, .mc-field input:focus {{ outline: 0; border-color: var(--purple-bright); }}
     .mc-go {{ font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 14px 22px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }}
+{mc_search_css}
     .mc-result {{ margin-top: 22px; padding: 22px 24px; background: rgba(0,0,0,.35); border: 1px solid var(--hair); border-radius: 12px; display: none; }}
     .mc-result.show {{ display: block; }}
     .mc-result .head {{ font-family: var(--mono); font-size: 10px; letter-spacing:.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 8px; }}
@@ -1390,6 +1407,7 @@ def render_firm_hub(summaries, out_path):
       <div class="section-eyebrow">Firm calculator</div>
       <h2>Find the firm shaping your market.</h2>
       <div class="mc-box">
+        {mc_search_html}
         <form id="fc-form" class="mc-row">
           <div class="mc-field">
             <label for="fc-role">Role</label>
@@ -1432,6 +1450,7 @@ def render_firm_hub(summaries, out_path):
   </div>
 
   <script id="fc-data" type="application/json">{lookups_json}</script>
+  <script>{mc_search_js}</script>
   <script>
     (function() {{
       var firms = JSON.parse(document.getElementById('fc-data').textContent);
@@ -1536,8 +1555,22 @@ def main():
     dual = [s for s, e in merged.items() if len(e['roles']) > 1]
     print(f"  ✓ {len(merged)} unique firms ({len(dual)} are both architect + developer)")
 
+    # INCREMENTAL: on a project-save rebuild, only re-render firms that actually
+    # have a changed project — the rest keep their existing page. A firm is
+    # "affected" when any of its projects is in the changed set (add/edit). The
+    # /firm/ hub + featured-firms.json below still aggregate ALL firms, so those
+    # stay complete. Full runs (TMW_INCREMENTAL unset) leave changed_keys None.
+    _changed, _removed = changed_and_removed(projects)
+    changed_keys = None
+    if _changed is not None:
+        def _pk(r):
+            return (r.get('Slug') or '').strip() or (r.get('Title') or '').strip()
+        changed_keys = set(_pk(r) for r in _changed)
+        print(f"  Incremental: {len(changed_keys)} changed project(s) → re-rendering only affected firms")
+
     written = 0
     skipped = 0
+    skipped_incr = 0
     dual_written = 0
     print("\nGenerating firm pages → journal/firm/<slug>/ ...")
     for slug, entry in merged.items():
@@ -1545,6 +1578,11 @@ def main():
         if not firm_projects:
             skipped += 1
             continue
+        if changed_keys is not None:
+            _fp = set((p.get('Slug') or '').strip() or (p.get('Title') or '').strip() for p in firm_projects)
+            if _fp.isdisjoint(changed_keys):
+                skipped_incr += 1
+                continue
         agg = aggregate_stats(firm_projects)
         coverage = coverage_for_firm(firm_projects, articles_archive)
         page_html = render_page(entry, firm_projects, agg, coverage)
@@ -1557,7 +1595,8 @@ def main():
         if len(entry['roles']) > 1:
             dual_written += 1
 
-    print(f"  ✓ Wrote {written} firm pages ({dual_written} unified dual-role)")
+    print(f"  ✓ Wrote {written} firm pages ({dual_written} unified dual-role)" +
+          (f", left {skipped_incr} unchanged (incremental)" if skipped_incr else ""))
     print(f"Skipped {skipped} firms with zero referenced projects.")
 
     # /firm/ index hub — leaderboards + calculator (mirrors /markets/ hub)
