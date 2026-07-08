@@ -600,7 +600,7 @@ const TOOLS = [
   // ── Map drafts ─────────────────────────────────────────────────────────────
   {
     name: 'create_map_draft',
-    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. The draft is queued for human review in the TMW Studio map admin at https://admin.oftmw.com/map/ → "Drafts" tab, where it appears immediately as a "CLAUDE DRAFT". It is NOT on the live map until someone reviews and promotes it from that Drafts tab. (Implementation detail, not a separate system: that admin reads its queue directly from tmw-data/data/drafts.json — this is the CURRENT review queue, not a legacy path. Never tell the user the draft went somewhere the admin cannot see it.) Provide what you know; lat/lng are needed before it can be placed (you can geocode on review).',
+    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. The draft is queued for human review in the TMW Studio map admin at https://admin.oftmw.com/map/ → "Drafts" tab, where it appears immediately as a "CLAUDE DRAFT". It is NOT on the live map until someone reviews and promotes it from that Drafts tab. (Implementation detail, not a separate system: that admin reads its queue directly from tmw-data/data/drafts.json — this is the CURRENT review queue, not a legacy path. Never tell the user the draft went somewhere the admin cannot see it.) Provide what you know; lat/lng are needed before it can be placed (you can geocode on review). PHOTOS: pass image URLs in `images` and they are auto-saved to R2 in the media folder "Projects / <name>" AND attached to this draft in one step (no separate upload_photo). If you already ran scrape_website_images for this project, you can omit `images` and it auto-pulls the newest photos from that folder. The response\'s `images` field reports how many landed.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -629,7 +629,7 @@ const TOOLS = [
         delivery_date: { type: 'string', description: 'Completion / OPENING date (when it delivers or opens) — year or ISO. Capture it whenever a source gives it (e.g. "opening 2027", "completed 2026"). Set delivery_speculative when it is a TMW estimate.' },
         start_speculative: { type: 'boolean', description: 'True if start_date is a TMW estimate (not developer-committed) — checks the "TMW estimate" box on the start date.' },
         delivery_speculative: { type: 'boolean', description: 'True if delivery_date is a TMW estimate — checks the "TMW estimate" box on the delivery date.' },
-        images: { type: 'array', items: { type: 'string' }, description: 'Image URLs (hero / renders)' },
+        images: { type: 'array', items: { type: 'string' }, description: 'Image URLs (hero / renders). These are AUTO-SAVED to R2 in the project media folder "Projects / <name>" AND attached to the draft — one call does both, no separate upload_photo needed (hi-res only; low-res is skipped). If you already ran scrape_website_images for this project, you can OMIT images and the draft auto-pulls the newest photos from that same folder.' },
         source_note: { type: 'string', description: 'Where this came from — e.g. the TMW article URL or press source' },
       },
       required: ['title'],
@@ -1440,6 +1440,42 @@ async function storeScrapedImage(env, src, folder, project, minBytes) {
     ).bind(key, fname, ct, buf.byteLength, project, null, 'studio-mcp', ts, purl, folder).run();
     return { url: purl, filename: fname, size_bytes: buf.byteLength };
   } catch (e) { return { skip: (e && e.message) || 'error' }; }
+}
+
+// Resolve a map draft's images so create_map_draft reliably does BOTH jobs at
+// once — file the photos in the project's media folder AND attach them to the
+// draft. For each passed URL: one already in our R2 is kept (and re-filed under
+// the project folder if it was loose); an external URL is fetched + stored in R2
+// under "Projects / <name>" (permanent, shows in the Studio picker). When NO
+// images are passed, auto-pull a prior scrape from that same folder so a
+// scrape_website_images run isn't left orphaned. Returns { urls, folder, added,
+// pulled, skipped }.
+async function ingestDraftImages(env, name, images) {
+  const folder = ('Projects / ' + String(name || '').trim()).slice(0, 160);
+  const passed = (Array.isArray(images) ? images : []).map((s) => String(s || '').trim()).filter(Boolean).slice(0, 8);
+  if (!env || !env.MEDIA || !env.DB) return { urls: passed.slice(0, 6), folder, added: 0, pulled: 0, skipped: [] };
+  const base = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
+  const ts = Math.floor(Date.now() / 1000);
+  try { await ensureMediaFoldersTable(env); await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1,0,?2)').bind(folder, ts).run(); } catch (_) {}
+  const urls = []; const skipped = []; let added = 0, pulled = 0;
+  for (const u of passed) {
+    if (base && u.indexOf(base + '/') === 0) {
+      // already in R2 — make sure it's filed under this project's folder, keep it.
+      try { await env.DB.prepare("UPDATE media SET folder=?1 WHERE url=?2 AND (folder IS NULL OR folder='' OR folder='Unfiled')").bind(folder, u).run(); } catch (_) {}
+      urls.push(u); continue;
+    }
+    const res = await storeScrapedImage(env, u, folder, name, 0);   // caller chose these; honor only the hi-res gate
+    if (res && res.url) { urls.push(res.url); added++; }
+    else skipped.push({ url: u, reason: (res && res.skip) || 'error' });
+  }
+  // Nothing usable passed → auto-pull whatever a prior scrape already put in the folder.
+  if (!urls.length) {
+    try {
+      const rows = (await env.DB.prepare("SELECT url FROM media WHERE folder=?1 AND url IS NOT NULL AND url<>'' ORDER BY uploaded_at DESC LIMIT 6").bind(folder).all()).results || [];
+      for (const r of rows) { urls.push(String(r.url)); pulled++; }
+    } catch (_) {}
+  }
+  return { urls: urls.slice(0, 6), folder, added, pulled, skipped };
 }
 async function ensureBrandNotesTable(env) {
   await env.DB.prepare(
@@ -2911,7 +2947,7 @@ const IMPL = {
       gfa_sqft: num(args.gfa_sqft),
       gfa_source: args.gfa_source ? String(args.gfa_source) : (num(args.gfa_sqft) != null ? 'stated' : null),
     };
-    if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
+    // (images are ingested into the project media folder after the dedup gate below)
     // Dates (optional). The admin reads start_date/delivery_date + their
     // *_speculative flags — set the flag when it's a TMW estimate vs a
     // developer-committed date.
@@ -2937,6 +2973,17 @@ const IMPL = {
         `Already on the live map as "${ex.Title}" (slug ${ex.Slug || slugify(String(ex.Title || ''))}${ex.City ? ', ' + ex.City : ''}) — ${dup.reason}. `
         + `Not creating a duplicate draft. If a source corrects a field on the existing project, use propose_project_edit against that slug; otherwise skip it.`,
       );
+    }
+
+    // Images — file them in the project's media folder AND attach to the draft in
+    // one step (external URLs are fetched into R2 under "Projects / <name>"; ones
+    // already in R2 are kept; if none were passed, auto-pull a prior scrape).
+    let imgReport = { urls: [], folder: null, added: 0, pulled: 0, skipped: [] };
+    try {
+      imgReport = await ingestDraftImages(env, title, args.images);
+      if (imgReport.urls.length) data.images = imgReport.urls;
+    } catch (_) {
+      if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
     }
 
     const isoNow = new Date().toISOString();
@@ -2972,6 +3019,12 @@ const IMPL = {
 
     const needsCoords = data.lat == null || data.lng == null;
     const createdFirms = [...createdArch, ...createdDev];
+    const imgCount = (data.images || []).length;
+    const imgNote = imgCount
+      ? ' Photos: ' + imgCount + ' attached to the draft and filed in media folder "' + imgReport.folder + '"'
+        + (imgReport.added ? ' (' + imgReport.added + ' newly saved to R2' + (imgReport.pulled ? ', ' + imgReport.pulled + ' pulled from a prior scrape' : '') + ')' : (imgReport.pulled ? ' (pulled from a prior scrape)' : ''))
+        + (imgReport.skipped && imgReport.skipped.length ? '. Skipped ' + imgReport.skipped.length + ' (low-res/unfetchable): ' + imgReport.skipped.map((s) => s.reason).join(', ') : '') + '.'
+      : ' No photos attached yet — scrape_website_images with project:"' + data.name + '" (or pass images:[...]) and they auto-file into "' + imgReport.folder + '" and attach here.';
     return {
       ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
       admin_url: MAP_ADMIN_URL,
@@ -2979,7 +3032,9 @@ const IMPL = {
       firms_created: createdFirms,
       types: data.types,
       types_dropped: typeRes.dropped,
+      images: { count: imgCount, folder: imgReport.folder, added: imgReport.added, pulled: imgReport.pulled, skipped: imgReport.skipped },
       note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly.)'
+        + imgNote
         + (typeRes.dropped.length
             ? ' Note: dropped unrecognized type tag(s) [' + typeRes.dropped.join(', ') + '] — only existing TMW tags are kept (e.g. use "Hotel" not "Resort"). Recorded types: ' + (data.types.join(', ') || '(none)') + '.'
             : '')
