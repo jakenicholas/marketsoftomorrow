@@ -30,6 +30,18 @@ import subprocess
 WORKER = "https://tmw.jake-ab7.workers.dev"
 INDEX = "journal/index.html"
 POST_DIR = "journal/post"
+R2_HOST = "pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
+
+
+def thumb(url, w):
+    """Pre-generated small WEBP for an R2 image (see generate_thumbnails.py);
+    else the url unchanged."""
+    if not url or R2_HOST not in url:
+        return url
+    clean = url.split("?", 1)[0]
+    if not re.search(r"\.(jpe?g|png|webp)$", clean, re.I):
+        return url
+    return re.sub(r"\.[A-Za-z0-9]+$", f"_{w}.webp", clean)
 
 
 def sh(cmd):
@@ -61,9 +73,19 @@ def bake(post):
 
     out = src
     # Hero image — eager + high fetch priority so it's the discoverable LCP image.
-    out = re.sub(r'<img id="hero-img"[^>]*>',
-                 f'<img id="hero-img" src="{ia}" alt="{ta}" fetchpriority="high" decoding="async">',
-                 out, count=1)
+    # Serve the small WEBP thumbs (_800 as src, _400/_800 srcset) so the LCP is a
+    # ~60KB image instead of the full ~700KB original; onerror restores the full
+    # original once if a thumb is missing.
+    t4, t8 = thumb(image, 400), thumb(image, 800)
+    if t8 != image:
+        t4a, t8a = html.escape(t4, quote=True), html.escape(t8, quote=True)
+        hero_img = (f'<img id="hero-img" src="{t8a}" srcset="{t4a} 400w, {t8a} 800w" '
+                    f'sizes="(max-width:900px) 100vw, 1100px" '
+                    f'''onerror="this.onerror=null;this.srcset='';this.src='{ia}'" '''
+                    f'alt="{ta}" fetchpriority="high" decoding="async">')
+    else:
+        hero_img = f'<img id="hero-img" src="{ia}" alt="{ta}" fetchpriority="high" decoding="async">'
+    out = re.sub(r'<img id="hero-img"[^>]*>', hero_img, out, count=1)
     # Headline link (href + text).
     out = re.sub(r'<a id="hero-link" href="[^"]*">.*?</a>',
                  f'<a id="hero-link" href="{la}">{te}</a>',

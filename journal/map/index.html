@@ -13362,14 +13362,29 @@
     // confirming the lag is CPU/layout, not image bytes. Re-enable via Cloudflare
     // /cdn-cgi/image after the 2026-07-31 Wix cutover (own infra, proper quality,
     // no 3rd-party hop). Signature kept so the ~12 call sites need no change.
-    window.tmwImg = function (url, w) { return url; };
-    // Resilience: if a resized image ever fails (proxy hiccup), fall back to the
-    // original once. img error doesn't bubble, so listen in the capture phase.
+    // Serve the pre-generated small WEBP thumbnail (<key>_400.webp / _800.webp;
+    // see generate_thumbnails.py) instead of the full R2 original — popup/card
+    // images are ~10-18x smaller. w<=500 → the 400 thumb (popups, atlas rows,
+    // watchlist), larger requests → the 800 thumb (cards, modal slides). The
+    // thumb URL loses the original's extension, so remember it for the fallback.
+    window.__tmwThumbOrig = window.__tmwThumbOrig || {};
+    window.tmwImg = function (url, w) {
+      try {
+        if (!url || url.indexOf('pub-7da0281887564d10a10107987c7c6c0c.r2.dev') < 0) return url;
+        var clean = url.split('?')[0];
+        if (!/\.(jpe?g|png|webp)$/i.test(clean)) return url;
+        var t = clean.replace(/\.[A-Za-z0-9]+$/, '_' + ((w || 0) > 500 ? 800 : 400) + '.webp');
+        window.__tmwThumbOrig[t] = url;
+        return t;
+      } catch (_) { return url; }
+    };
+    // Resilience: if a thumb is missing (404), fall back to the full original
+    // once. img error doesn't bubble, so listen in the capture phase.
     document.addEventListener('error', function (e) {
       var t = e.target;
-      if (!t || t.tagName !== 'IMG' || t.dataset.imgFb || !/images\.weserv\.nl/.test(t.src || '')) return;
-      t.dataset.imgFb = '1';
-      try { var m = t.src.match(/[?&]url=([^&]+)/); if (m) t.src = 'https://' + decodeURIComponent(m[1]); } catch (_) {}
+      if (!t || t.tagName !== 'IMG' || t.dataset.imgFb) return;
+      var orig = window.__tmwThumbOrig[t.src];
+      if (orig) { t.dataset.imgFb = '1'; t.src = orig; }
     }, true);
 
     // ‚îÄ‚îÄ‚îÄ MAP SETUP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
