@@ -11,7 +11,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 46
+      "count": 48
     },
     {
       "type": "Entertainment",
@@ -14903,7 +14903,7 @@
     {
       "st": "SC",
       "ty": "Golf",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": null,
       "sm": null,
       "ci": "Bluffton",
@@ -18602,19 +18602,69 @@
           ""
         ]
       ]
+    },
+    {
+      "st": "TN",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Nashville",
+      "u": 50,
+      "k": 175,
+      "fl": 14,
+      "dv": [
+        [
+          "RPM Development Partners",
+          "rpm-development-partners"
+        ]
+      ],
+      "ar": [
+        [
+          "SHoP Architects",
+          "shop-architects"
+        ],
+        [
+          "Dryden Architecture + Design",
+          "dryden-architecture-design"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": 2030,
+      "sm": null,
+      "ci": "Goodlettsville",
+      "u": 710,
+      "k": 120,
+      "fl": 0,
+      "dv": [
+        [
+          "Merus",
+          "merus"
+        ]
+      ],
+      "ar": [
+        [
+          "Smith Gee Studio",
+          "smith-gee-studio"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 734,
+    "total_projects": 736,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 275,
     "opening_this_year": 106
   },
   "scale": {
-    "units": 261307,
-    "keys": 50346,
-    "floors": 11237
+    "units": 262067,
+    "keys": 50641,
+    "floors": 11251
   },
   "leaderboards": {
     "developers": [
@@ -19244,8 +19294,8 @@
       },
       {
         "name": "Nashville",
-        "sub": "26 developments \u00b7 30 developers",
-        "count": 26,
+        "sub": "27 developments \u00b7 31 developers",
+        "count": 27,
         "states": [
           "TN"
         ]
@@ -19495,8 +19545,8 @@
       },
       {
         "name": "Mixed-Use",
-        "sub": "6% of pipeline",
-        "count": 46,
+        "sub": "7% of pipeline",
+        "count": 48,
         "states": [
           "Other",
           "FL",
@@ -21135,7 +21185,8 @@
           "states": [
             "FL",
             "NY",
-            "Other"
+            "Other",
+            "TN"
           ]
         },
         {
@@ -21896,13 +21947,34 @@
             "FL",
             "TN"
           ]
+        },
+        {
+          "name": "SHoP Architects",
+          "slug": "shop-architects",
+          "sub": "Miami",
+          "count": 1,
+          "states": [
+            "FL",
+            "NY",
+            "Other",
+            "TN"
+          ]
+        },
+        {
+          "name": "Dryden Architecture + Design",
+          "slug": "dryden-architecture-design",
+          "sub": "Nashville",
+          "count": 1,
+          "states": [
+            "TN"
+          ]
         }
       ],
       "cities": [
         {
           "name": "Nashville",
-          "sub": "26 developments \u00b7 30 developers",
-          "count": 26,
+          "sub": "27 developments \u00b7 31 developers",
+          "count": 27,
           "states": [
             "TN"
           ]
@@ -21927,7 +21999,7 @@
       "types": [
         {
           "name": "Hotel",
-          "sub": "34% of pipeline",
+          "sub": "33% of pipeline",
           "count": 10,
           "states": [
             "Other",
@@ -21944,7 +22016,7 @@
         },
         {
           "name": "Residences",
-          "sub": "28% of pipeline",
+          "sub": "27% of pipeline",
           "count": 8,
           "states": [
             "FL",
@@ -21960,8 +22032,8 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "10% of pipeline",
-          "count": 3,
+          "sub": "13% of pipeline",
+          "count": 4,
           "states": [
             "Other",
             "FL",
@@ -24448,18 +24520,18 @@
     },
     "TN": {
       "hero_stats": {
-        "total_projects": 29,
+        "total_projects": 30,
         "under_construction": 14
       },
       "scale": {
-        "units": 4316,
-        "keys": 1991,
-        "floors": 309
+        "units": 4366,
+        "keys": 2166,
+        "floors": 323
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 8
+          "count": 9
         },
         {
           "label": "Breaking Ground",
@@ -24912,7 +24984,7 @@
     "SC": {
       "hero_stats": {
         "total_projects": 9,
-        "under_construction": 3
+        "under_construction": 2
       },
       "scale": {
         "units": 373,
@@ -24922,11 +24994,11 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 4
+          "count": 5
         },
         {
           "label": "Construction",
-          "count": 3
+          "count": 2
         },
         {
           "label": "Opening Soon",
@@ -25504,12 +25576,13 @@
     "Bodden Town": "Other",
     "Raleigh": "NC",
     "Phoenix": "Other",
-    "San Francisco": "Other"
+    "San Francisco": "Other",
+    "Goodlettsville": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 219
+      "count": 221
     },
     {
       "label": "Breaking Ground",
@@ -25609,7 +25682,7 @@
     },
     {
       "year": 2030,
-      "count": 45
+      "count": 46
     }
   ],
   "available_states": [
@@ -25626,7 +25699,7 @@
     {
       "code": "TN",
       "label": "Tennessee",
-      "count": 29
+      "count": 30
     },
     {
       "code": "TX",
