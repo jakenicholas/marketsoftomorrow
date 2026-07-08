@@ -846,6 +846,8 @@
     + '.tmw-ov-intel-ans{font-family:"Inter",-apple-system,system-ui,sans-serif;font-size:15px;line-height:1.6;color:#E9E7E1;font-weight:400;letter-spacing:.005em;max-width:none}'
     + '.tmw-ov-intel-ans.loading{color:#9AA39C;font-style:italic}'
     + '.tmw-ov-intel-ans .hl{color:#B9A6FF;font-weight:600}'
+    + '.tmw-ov-ans-link{color:#B9A6FF;text-decoration:none;border-bottom:1px solid rgba(185,166,255,.35);transition:border-color .15s,color .15s}'
+    + '.tmw-ov-ans-link:hover{color:#D4C7FF;border-bottom-color:rgba(185,166,255,.85)}'
     + '.tmw-ov-intel-foot{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(167,139,250,.18);'
     + 'font-size:11px;color:#9AA39C}'
     + '.tmw-ov-intel-foot .ai{color:#B9A6FF;font-weight:600}'
@@ -1541,6 +1543,7 @@
 
   // ── data loading (mirrors /search/) ────────────────────────────────
   var PROJECTS = [], FIRMS = [], ARTICLES = [], DATA_READY = false, _loading = null;
+  var MARKET_SLUGS = {};   // "City Name" -> market-page slug, for answer auto-linking (best-effort; see markets-index.json)
   // Iconic editorial lists (golf / hotels / restaurants), loaded once from the
   // worker alongside the projects so "best hotels", "good golf in california",
   // etc. can blend curated picks into the results.
@@ -1604,6 +1607,13 @@
       ARTICLES = a || [];
       DATA_READY = true;
     });
+    // Best-effort: the market-page slug set for answer auto-linking. Non-blocking
+    // and safe if the manifest isn't built yet (firm links still work).
+    try {
+      __tmwSharedJson('https://www.oftmw.com/markets-index.json')
+        .then(function(mi){ if (mi && typeof mi === 'object' && !Array.isArray(mi)) MARKET_SLUGS = mi; })
+        .catch(function(){});
+    } catch (_) {}
     return _loading;
   }
 
@@ -2229,6 +2239,40 @@
   // Replaces the previous link-to-/search/ CTA with a real, in-overlay
   // panel that renders the LLM answer. Three states share the same shell
   // so the swap from loading → answer doesn't shift layout.
+  // ── Answer auto-linking ── wrap firm + market names in the Onyx prose with a
+  // link to their page (/firm/<slug>/, /markets/<slug>/). Operates on the already-
+  // ESCAPED answer text: collects only the entities actually PRESENT (cheap indexOf
+  // scan so the regex stays tiny), matches longest-name-first in a single left-to-
+  // right pass, and links each distinct entity once (so no nested links, no
+  // over-linking). Only entities with a KNOWN page are linked — never a 404.
+  function _reEsc(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function linkifyAnswer(text){
+    if (!text) return text;
+    try {
+      var map = {}, names = [];
+      function add(escName, href){
+        if (!escName || escName.length < 4 || map[escName]) return;
+        if (text.indexOf(escName) < 0) return;   // only link names present in the prose
+        map[escName] = href; names.push(escName);
+      }
+      (FIRMS || []).forEach(function(f){
+        if (f && f.slug && f.name) add(esc(String(f.name).trim()), 'https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/');
+      });
+      Object.keys(MARKET_SLUGS || {}).forEach(function(city){
+        add(esc(String(city).trim()), 'https://www.oftmw.com/markets/' + MARKET_SLUGS[city] + '/');
+      });
+      if (!names.length) return text;
+      names.sort(function(a, b){ return b.length - a.length; });   // longest first so "Mack Real Estate Group" beats "Mack"
+      var rx = new RegExp('(?<![\\w>&/-])(' + names.map(_reEsc).join('|') + ')(?![\\w<;/-])', 'g');
+      var used = {};
+      return text.replace(rx, function(m0, m1){
+        if (used[m1] || !map[m1]) return m0;
+        used[m1] = 1;
+        return '<a class="tmw-ov-ans-link" href="' + map[m1] + '">' + m1 + '</a>';
+      });
+    } catch (_) { return text; }
+  }
+
   function intelPanelHtml(state, q, answer, deep, grounding){
     var live, ansClass, ansHtml;
     if (state === 'loading'){
@@ -2240,9 +2284,9 @@
       live = '<i></i>Live answer';
       // Deep answers keep their \n\n paragraph breaks (CSS white-space:pre-line).
       ansClass = deep ? 'deep' : '';
-      // LLM responses are plain text; render as textContent equivalent
-      // (escaped) so a stray "<" can't break the panel.
-      ansHtml = esc(answer || '');
+      // LLM responses are plain text; escape (so a stray "<" can't break the
+      // panel) then auto-link known firms + markets to their pages.
+      ansHtml = linkifyAnswer(esc(answer || ''));
     } else if (state === 'no-answer'){
       live = '<span class="live dim"><i></i></span>No verified answer';
       ansClass = '';

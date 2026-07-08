@@ -2759,6 +2759,15 @@ def main():
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    # markets-index.json — { "City": "slug" } for every city that gets a page
+    # (>= CITY_MIN projects). Served at /markets-index.json; the Onyx search
+    # overlay loads it to hyperlink market names inside an answer without ever
+    # linking to a city page that doesn't exist.
+    market_index = {city: slugify(city) for city, b in by_city.items() if len(b) >= CITY_MIN}
+    with open(os.path.join('journal', 'markets-index.json'), 'w', encoding='utf-8') as f:
+        json.dump(market_index, f, ensure_ascii=False)
+    print(f"  ✓ markets-index.json: {len(market_index)} linkable city pages")
+
     pages_written = []
     generated_paths: list[str] = []        # for sitemap
 
