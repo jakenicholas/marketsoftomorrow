@@ -1298,7 +1298,7 @@
     + '</div>'
     + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
     +   '<h3>Nothing matched in the database</h3>'
-    +   '<p>Try a firm name, city, or project. Or ask TMW Intelligence below — it can synthesize answers from the journal.</p>'
+    +   '<p>We’re on it — check back in about 48 hours and we’ll have more added to that area. In the meantime, try a firm name, city, or project, or ask TMW Intelligence below.</p>'
     + '</div>';
 
   var root = document.createElement('div');
