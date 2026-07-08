@@ -2120,15 +2120,15 @@ async function handleIntelFeedback(req, env, origin) {
   const query = String((b && b.query) || '').trim().slice(0, 200);
   if (!feedback) return json({ error: 'feedback required' }, { status: 400 }, env, origin);
 
-  let verdict = { type: 'note', rule: null, note: feedback };
+  let verdict = { type: 'note', rule: null, hint: null, note: feedback };
   if (env.ANTHROPIC_API_KEY) {
     try {
       const sys = 'You triage an editor\'s feedback about TMW Intelligence (a real-estate development search). Respond with ONLY JSON: '
-        + '{"type":"rule"|"data"|"logic","rule":"<one imperative sentence, ≤25 words, ONLY when type=rule>","note":"<concise restatement>"}. '
+        + '{"type":"rule"|"data"|"logic","rule":"<one imperative sentence, ≤25 words, ONLY when type=rule>","hint":"<concise search phrase for the missing scope, ONLY when type=data>","note":"<concise restatement>"}. '
         + 'type=rule = editorial voice/ranking/framing guidance applicable to the answer prompt (e.g. "Lead with the soonest opening date", "Never feature a project that opened over a year ago"). '
-        + 'type=data = a specific project/place is missing or mis-tagged in the database. '
-        + 'type=logic = the search returned wrong/incomplete results or mis-parsed a query (a code bug). '
-        + 'The rule must be concrete, non-contradictory, and must never make the model invent facts.';
+        + 'type=data = the answer OMITTED a place, region, project type, or item the query explicitly asked for, or a specific project is missing / mis-tagged — i.e. the database lacks coverage the reader wanted. This is the common case for "you didn\'t show <place>" / "where are the <type> in <place>" feedback. When type=data, set "hint" to a tight search phrase for EXACTLY what is missing, reconstructing it from the query when the feedback is terse (e.g. query "hotels in construction or planned in florida and the caribbean and new york" + feedback "you didn\'t show new york and florida" → hint "hotels in construction or planned in Florida and New York"). '
+        + 'type=logic = the results are wrong or mis-parsed even though the data exists (a code bug: e.g. a multi-place query collapsed to one place, or a filter matched the wrong field). '
+        + 'Prefer type=data over type=logic when the fix is "go find and add those projects"; prefer type=logic only when existing data was retrieved incorrectly. The rule must be concrete, non-contradictory, and must never make the model invent facts.';
       const usr = (query ? ('Query under review: "' + query + '"\n') : '') + 'Editor feedback: "' + feedback + '"';
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -2139,7 +2139,7 @@ async function handleIntelFeedback(req, env, origin) {
         const d = await r.json();
         const txt = (d.content && d.content[0] && d.content[0].text) || '';
         const m = txt.match(/\{[\s\S]*\}/);
-        if (m) { const p = JSON.parse(m[0]); if (p && p.type) verdict = { type: p.type, rule: p.rule || null, note: p.note || feedback }; }
+        if (m) { const p = JSON.parse(m[0]); if (p && p.type) verdict = { type: p.type, rule: p.rule || null, hint: p.hint || null, note: p.note || feedback }; }
       }
     } catch (e) { /* fall through to a plain logged note */ }
   }
@@ -2162,11 +2162,16 @@ async function handleIntelFeedback(req, env, origin) {
   // the tmw-project-discovery routine actually looks: a `search_feedback` event
   // flagged needs_discovery (down vote + 0 results + 'empty'), carrying the
   // editor's note so the discovery hint reflects exactly what was asked.
+  let discoveryHint = null;
   if (verdict.type === 'data') {
     try {
+      // Target discovery at the MISSING scope (the classifier's hint), not the
+      // whole original query — so it researches exactly what the editor flagged
+      // as absent (e.g. "hotels in construction or planned in Florida and New York").
+      discoveryHint = (verdict.hint || query || feedback).slice(0, 160);
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
         .bind(Math.floor(Date.now() / 1000), 'system:intel-feedback', 'search_feedback',
-              JSON.stringify({ q: (query || feedback).slice(0, 160), rating: 'down', results: 0, result_kind: 'empty', editor_note: feedback })).run();
+              JSON.stringify({ q: discoveryHint, rating: 'down', results: 0, result_kind: 'empty', editor_note: feedback })).run();
       applied = 'discovery';
     } catch (e) {}
   }
@@ -2179,11 +2184,11 @@ async function handleIntelFeedback(req, env, origin) {
   const message = (applied === 'rule')
     ? ('Applied as a live house rule — every answer follows it now: “' + liveRule + '”')
     : (applied === 'discovery')
-      ? 'Queued for the project-discovery routine — it will research projects to add (runs 9am & 9pm).'
+      ? ('Queued for project-discovery — it will research ' + (discoveryHint ? ('“' + discoveryHint + '”') : 'projects to add') + ' (runs 9am & 9pm).')
       : (verdict.type === 'logic')
         ? 'Logged as a search-logic bug for an engineer to fix.'
         : 'Noted — saved for the next review pass.';
-  return json({ ok: true, type: verdict.type, applied, rule: liveRule, message }, {}, env, origin);
+  return json({ ok: true, type: verdict.type, applied, rule: liveRule, hint: discoveryHint, message }, {}, env, origin);
 }
 
 async function handleSearchGaps(env, origin, url) {
