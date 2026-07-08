@@ -931,16 +931,39 @@
     // primary place = the most specific level (tiebreak: longest token)
     var primary = kept.slice().sort(function (a, b) { return b.level - a.level || b.token.length - a.token.length; })[0];
     var tokens = kept.map(function (m) { return m.token; });
+    // SIBLING PLACES vs a NESTED hierarchy. Normally the kept tokens nest —
+    // "midtown" + "manhattan" both sit on one Midtown project, so a project must
+    // carry EVERY token (AND) to scope precisely. But a query can also name
+    // several DISTINCT places at once ("hotels in florida AND the caribbean AND
+    // new york"): no single project carries all three, so AND returns nothing and
+    // the whole multi-region ask collapses. Detect that — AND matches zero
+    // projects while there are ≥2 tokens — and fan OUT with OR so each named place
+    // returns its own projects (the union). Data-driven, so it can't misfire on a
+    // genuine hierarchy (where AND already has hits).
+    var orMode = false;
+    if (tokens.length > 1) {
+      var andHasAny = (projects || []).some(function (p) {
+        var pt = placeTokensOf(p);
+        for (var j = 0; j < tokens.length; j++) if (!pt.has(tokens[j])) return false;
+        return true;
+      });
+      orMode = !andHasAny;
+    }
     return {
-      name: primary.display,
+      // multi-place → a combined label ("Florida, the Caribbean & New York");
+      // single/nested → the most specific place name.
+      name: orMode ? kept.map(function (m) { return m.display; }).join(' & ') : primary.display,
       level: primary.level,
       tokens: tokens,
-      // a project matches when it carries EVERY place token the query named —
-      // hierarchical tokens auto-scope ("midtown" + "manhattan" → NYC Midtown),
-      // while a single token fans out to everything below it ("florida").
+      orMode: orMode,
+      // AND (nested): carry every token. OR (sibling places): carry any one.
       match: function (p) {
         var pt = placeTokensOf(p);
-        for (var i = 0; i < tokens.length; i++) if (!pt.has(tokens[i])) return false;
+        if (orMode) {
+          for (var i = 0; i < tokens.length; i++) if (pt.has(tokens[i])) return true;
+          return false;
+        }
+        for (var k = 0; k < tokens.length; k++) if (!pt.has(tokens[k])) return false;
         return true;
       }
     };
