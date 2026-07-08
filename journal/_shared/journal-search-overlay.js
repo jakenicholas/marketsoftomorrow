@@ -4138,7 +4138,7 @@
         var ansEl = _intelSlot.querySelector('.tmw-ov-intel-ans');
         if (!ansEl) return;
         if (res && res.ok && res.answer){
-          ansEl.textContent = res.answer; ansEl.classList.remove('loading'); setLive();
+          ansEl.innerHTML = linkifyAnswer(esc(res.answer)); ansEl.classList.remove('loading'); setLive();
           // Deep answers are multi-paragraph — render the preserved breaks; sync the
           // header badge to the answer's actual mode (downgrades if it was capped).
           if (res.deep) ansEl.classList.add('deep'); else ansEl.classList.remove('deep');
