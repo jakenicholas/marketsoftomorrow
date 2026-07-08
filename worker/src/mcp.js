@@ -1254,6 +1254,57 @@ function scoreMatch(cand, p) {
   return { score, verdict, reasons };
 }
 
+// Deterministic DUPLICATE gate for create_map_draft. Returns the live project a
+// candidate draft would duplicate (with a reason), else null. Deliberately
+// STRICTER than match_project's "strong" verdict: blocking a draft is cheap (the
+// discovery routine just skips it and reports), whereas a duplicate draft is a
+// manual chore the editor must catch by hand. Three ways to be a duplicate:
+//   1. Exact slug collision — same slugified name (near-certain dup; the signal
+//      scoreMatch never checked, which let "One Park Sarasota" / "Palazzo at
+//      Bayfront" slip through).
+//   2. Same city AND (brand-core containment OR name closely matches) — catches
+//      "Park Place Nashville" vs an existing "Park Place" in Nashville when the
+//      draft carried no website/coords for scoreMatch to anchor on.
+//   3. scoreMatch's own "strong" verdict (decisive website host / geo proximity).
+// The same-city clause keeps common names apart across markets ("Park Place"
+// Nashville vs Miami never collide).
+function findLiveDuplicate(cand, candSlug, projects) {
+  if (candSlug) {
+    for (const p of projects) {
+      const pSlug = String(p.Slug || '').trim() || slugify(String(p.Title || ''));
+      if (pSlug && pSlug === candSlug) return { project: p, reason: `same slug "${candSlug}"` };
+    }
+  }
+  let best = null;
+  for (const p of projects) {
+    const m = scoreMatch(cand, p);
+    let sameCity = false;
+    if (cand.city && p.City) {
+      const cc = normName(cand.city), pc = normName(p.City);
+      sameCity = !!(cc && pc && (cc === pc || cc.includes(pc) || pc.includes(cc)));
+    }
+    // Name similarity with the CITY name stripped from both titles first — a
+    // draft that embeds its city ("Park Place Nashville") must compare on "park
+    // place", not let the shared "nashville" token match every Nashville project
+    // ("Nobu Hotel Nashville"). Jaccard, not brand-subset: brand cores can reduce
+    // to just a city token (park+place are both generic stopwords), which is
+    // exactly what over-matched before.
+    const cityStrip = new Set([...nameTokens(cand.city || ''), ...nameTokens(p.City || '')]);
+    const cTok = nameTokens(cand.name).filter((t) => !cityStrip.has(t));
+    const pTok = nameTokens(p.Title).filter((t) => !cityStrip.has(t));
+    const jac = jaccard(cTok, pTok);
+    const isDup = m.verdict === 'strong' || (sameCity && cTok.length && pTok.length && jac >= 0.6);
+    if (isDup && (!best || m.score > best.score)) {
+      best = {
+        project: p,
+        score: m.score,
+        reason: m.verdict === 'strong' ? (m.reasons.join('; ') || 'strong match') : 'same city + name closely matches',
+      };
+    }
+  }
+  return best;
+}
+
 // Must match index.js's list-slug guard so MCP writes hit the same rows the
 // page editors do (clients, hotels, restaurants, golf, …).
 const LIST_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
@@ -2868,6 +2919,25 @@ const IMPL = {
     if (args.delivery_date) data.delivery_date = String(args.delivery_date);
     if (args.start_speculative) data.start_speculative = true;
     if (args.delivery_speculative) data.delivery_speculative = true;
+
+    // DEDUP GATE — never draft a project that's already on the live map. The
+    // editor should not have to vet every discovery draft for duplicates, and the
+    // routine's own match_project pre-check is easy to skip or under-match. Block
+    // an exact-slug collision or a confident name/geo match; the caller should use
+    // propose_project_edit against the existing slug instead.
+    const liveProjects = await loadProjects();
+    const dupDeveloper = Array.isArray(args.developers) ? args.developers.join(', ') : String(args.developers || '');
+    const dup = findLiveDuplicate(
+      { name: title, website: data.official_website, city: data.city, developer: dupDeveloper, lat: data.lat, lng: data.lng },
+      data.slug, liveProjects,
+    );
+    if (dup) {
+      const ex = dup.project;
+      throw new Error(
+        `Already on the live map as "${ex.Title}" (slug ${ex.Slug || slugify(String(ex.Title || ''))}${ex.City ? ', ' + ex.City : ''}) — ${dup.reason}. `
+        + `Not creating a duplicate draft. If a source corrects a field on the existing project, use propose_project_edit against that slug; otherwise skip it.`,
+      );
+    }
 
     const isoNow = new Date().toISOString();
     const stamp = isoNow.slice(0, 10);
