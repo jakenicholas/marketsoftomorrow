@@ -36,6 +36,12 @@ jobs:
     # re-publishing an identical site on the hourly no-op runs.
     outputs:
       changed: ${{ steps.changes.outputs.changed }}
+    # PROJECT_ONLY = true when this run was fired by the Map admin saving a
+    # project (repository_dispatch: rebuild-map). In that mode we do the LEAN,
+    # project-scoped rebuild; the hourly/manual runs leave it false and do the
+    # full rebuild (pulse, articles, hero, all pages).
+    env:
+      PROJECT_ONLY: ${{ github.event_name == 'repository_dispatch' && github.event.action == 'rebuild-map' }}
 
     steps:
       - name: Checkout repository
@@ -88,7 +94,12 @@ jobs:
       # Pulse pipeline: rebuild pulse.json (recent site activity feed) and
       # articles.json (per-project article archive used by Coverage section).
       # Reads RSS + the sheet, diffs against prior state, writes both JSONs.
+      # Skipped on a project-save (rebuild-map) run — pulse/RSS + the article
+      # archive don't change when a PROJECT is added, and the hourly run
+      # refreshes them. This removes the per-article network fetch storm (the
+      # single biggest cost) from every project save.
       - name: Generate pulse + articles archive
+        if: ${{ env.PROJECT_ONLY != 'true' }}
         env:
           WIX_API_KEY: ${{ secrets.WIX_API_KEY }}
           WIX_SITE_ID: ${{ secrets.WIX_SITE_ID }}
@@ -135,9 +146,11 @@ jobs:
       # (someone edited the post template) should fail loud, not silently
       # ship blank article pages.
       - name: Pre-render journal article pages
+        if: ${{ env.PROJECT_ONLY != 'true' }}
         run: python3 generate_articles.py
 
       - name: Bake the homepage hero (instant featured story, no placeholder)
+        if: ${{ env.PROJECT_ONLY != 'true' }}
         run: python3 bake_hero.py
 
       # Journal sitemap + robots for the www.oftmw.com root (served from
