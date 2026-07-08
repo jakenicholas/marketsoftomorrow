@@ -35,6 +35,7 @@ Run locally:  python3 generate_market_pages.py
 """
 from __future__ import annotations
 import json, os, re, html, collections, datetime, sys
+from tmw_search_bar import MC_SEARCH_CSS, mc_search_html_for, mc_search_js_for
 
 # Reuse the project page's timeline + delivery formatters so every card on a
 # market page mirrors the project page's hero panel exactly. generate_pages.py
@@ -2362,12 +2363,32 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
     )
     total_links = len(city_type_pairs) + len(city_pages) + len(type_pages)
 
+    # Market search-bar index — one entry per market landing page.
+    places_index = (
+        [{'name': c, 'url': f'/markets/{slugify(c)}/', 'n': n, 'kind': 'City'} for (c, n) in city_pages]
+        + [{'name': st, 'url': f'/markets/{slugify(st)}/', 'n': n, 'kind': 'State'} for (st, n) in state_pages]
+        + [{'name': c, 'url': f'/markets/{slugify(c)}/', 'n': n, 'kind': 'Country'} for (c, n) in country_pages]
+    )
+
     # Serialize lookups for the client-side filter
     lookups_json = json.dumps({
         'cityType': ct_lookup,
         'city':     city_lookup,
         'type':     type_lookup,
+        'places':   places_index,
     }, ensure_ascii=False)
+
+    # Typeahead search bar (plain strings — interpolated into the page f-string
+    # so the CSS/JS braces never need doubling; see the Jul-4 f-string outage).
+    mc_search_css = MC_SEARCH_CSS
+    mc_search_html = mc_search_html_for('mcs', 'Search markets — city, state, or country…')
+    mc_search_js = mc_search_js_for('mcs', """
+      var data = JSON.parse(document.getElementById('mc-data').textContent);
+      var ITEMS = (data.places || []).map(function(p){
+        return { name: p.name, url: p.url, n: p.n, meta: p.kind + ' · ' + p.n };
+      });
+      function goItem(it){ location.href = it.url; }
+    """)
 
     # Hub-level FAQs — broader questions about the database itself.
     hub_faqs = [
@@ -2436,6 +2457,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
     .mc-field select:focus, .mc-field input:focus {{ outline: 0; border-color: var(--purple-bright); }}
     .mc-go {{ font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 14px 22px; border-radius: 10px; background: var(--purple); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }}
     .mc-go[disabled] {{ background: rgba(255,255,255,.1); color: var(--mute); cursor: not-allowed; }}
+{mc_search_css}
     .mc-result {{ margin-top: 22px; padding: 22px 24px; background: rgba(0,0,0,.35); border: 1px solid var(--hair); border-radius: 12px; display: none; }}
     .mc-result.show {{ display: block; }}
     .mc-result .head {{ font-family: var(--mono); font-size: 10px; letter-spacing:.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 8px; }}
@@ -2470,6 +2492,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
       <div class="section-eyebrow">Market calculator</div>
       <h2>Build your own market view.</h2>
       <div class="mc-box">
+        {mc_search_html}
         <form id="mc-form" class="mc-row">
           <div class="mc-field">
             <label for="mc-city">City</label>
@@ -2515,6 +2538,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
 {hub_faq_section}
   </div>
   <script id="mc-data" type="application/json">{lookups_json}</script>
+  <script>{mc_search_js}</script>
   <script>
     (function() {{
       var data = JSON.parse(document.getElementById('mc-data').textContent);
