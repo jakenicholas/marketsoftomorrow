@@ -2120,16 +2120,22 @@ async function handleIntelFeedback(req, env, origin) {
   const query = String((b && b.query) || '').trim().slice(0, 200);
   if (!feedback) return json({ error: 'feedback required' }, { status: 400 }, env, origin);
 
+  // intent='correct' → the editor is fixing how an answer READS using data we
+  // already have (from the Live Feed "Correct answer" button). Never route that
+  // to discovery — it becomes a live house rule (or, for a real engine bug, a
+  // logged logic issue). intent='' (default) allows the data→discovery route.
+  const intent = String((b && b.intent) || '').trim();
   let verdict = { type: 'note', rule: null, hint: null, note: feedback };
   if (env.ANTHROPIC_API_KEY) {
     try {
       const sys = 'You triage an editor\'s feedback about TMW Intelligence (a real-estate development search). Respond with ONLY JSON: '
-        + '{"type":"rule"|"data"|"logic","rule":"<one imperative sentence, ≤25 words, ONLY when type=rule>","hint":"<concise search phrase for the missing scope, ONLY when type=data>","note":"<concise restatement>"}. '
-        + 'type=rule = editorial voice/ranking/framing guidance applicable to the answer prompt (e.g. "Lead with the soonest opening date", "Never feature a project that opened over a year ago"). '
-        + 'type=data = the answer OMITTED a place, region, project type, or item the reader asked for, or a specific project is missing / mis-tagged — i.e. the database lacks coverage the reader wanted. ANY "you didn\'t show/include/list <place or type>" feedback is type=data, EVEN when the query named several places and only some came back (assume the missing ones simply aren\'t covered yet — the fix is to go find and add them). When type=data, set "hint" to a tight search phrase for EXACTLY what is missing, reconstructing it from the query when the feedback is terse (e.g. query "hotels in construction or planned in florida and the caribbean and new york" + feedback "you didn\'t show new york and florida" → hint "hotels in construction or planned in Florida and New York"). '
-        + 'type=logic = a clear mechanical bug in an answer that otherwise had the data: a number or date mis-parsed, a filter matched the wrong field, duplicate/broken entries, a link that 404s. Do NOT use logic for "something is missing" — that is always data. '
-        + 'When unsure between data and logic, choose data. The rule must be concrete, non-contradictory, and must never make the model invent facts.';
-      const usr = (query ? ('Query under review: "' + query + '"\n') : '') + 'Editor feedback: "' + feedback + '"';
+        + '{"type":"rule"|"logic"|"data","rule":"<one imperative sentence, ≤25 words, ONLY when type=rule>","hint":"<concise search phrase, ONLY when type=data>","note":"<concise restatement>"}. '
+        + 'type=rule = answer-shaping guidance that should apply GOING FORWARD: voice, ranking, framing, or WHAT TO INCLUDE — e.g. "Lead with the soonest opening", "When a query names several regions or states, cover EACH named one — never answer with only one". Prefer a GENERAL rule over one hard-coded to a single query. '
+        + 'type=logic = the search returned wrong or INCOMPLETE results from data that EXISTS (a retrieval/parse bug): e.g. a multi-region query that returned only one of the named regions, a filter that matched the wrong field, a mis-parsed number, a broken link. '
+        + 'type=data = a specific project or place is genuinely ABSENT from the database and must be researched and added — use ONLY when the thing truly is not covered yet, not merely missing from one answer. When type=data, set "hint" to a tight search phrase for what to add. '
+        + 'The database is BROAD — hundreds of projects across many US states and international regions (e.g. dozens of Florida hotels, New York hotels) — so if the reader asked for something we plausibly cover, it is rule or logic, NOT data. The rule must be concrete, non-contradictory, and must never make the model invent facts.';
+      const usr = (query ? ('Query under review: "' + query + '"\n') : '') + 'Editor feedback: "' + feedback + '"'
+        + (intent === 'correct' ? '\nThis is a CORRECTION to how the answer should READ using data we already have. Respond with type "rule" (preferred) or "logic" only — never "data".' : '');
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
@@ -2142,6 +2148,11 @@ async function handleIntelFeedback(req, env, origin) {
         if (m) { const p = JSON.parse(m[0]); if (p && p.type) verdict = { type: p.type, rule: p.rule || null, hint: p.hint || null, note: p.note || feedback }; }
       }
     } catch (e) { /* fall through to a plain logged note */ }
+  }
+  // A correction must never queue discovery: if the model still tagged it data,
+  // convert to a rule (when it gave one) or a logged logic issue.
+  if (intent === 'correct' && verdict.type === 'data') {
+    verdict.type = verdict.rule ? 'rule' : 'logic';
   }
 
   let applied = 'logged', liveRule = null;
