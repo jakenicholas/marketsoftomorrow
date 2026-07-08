@@ -3328,9 +3328,12 @@ async function handlePostsList(req, env, origin, url) {
   // DEPLOYED copy, a slug appears only once the deploy that built its page lands,
   // so the tile shows exactly when the page is live. `ungated=1` bypasses this for
   // the article BUILDER (generate_articles.py must see not-yet-built posts to
-  // build them). Fails OPEN: a missing/broken manifest → no gating (prior
-  // behavior), never an empty grid.
-  if (status === 'published' && url.searchParams.get('ungated') !== '1') {
+  // build them) AND for ADMIN requests (valid Bearer token) — the Studio must
+  // ALWAYS see published posts immediately; gating is a PUBLIC-journal concern
+  // only. Fails OPEN: a missing/broken manifest → no gating, never an empty grid.
+  const hasAuth = (req.headers.get('Authorization') || '').startsWith('Bearer ');
+  const isAdminReq = hasAuth ? !(await requireAdminToken(req, env, origin)) : false;
+  if (status === 'published' && url.searchParams.get('ungated') !== '1' && !isAdminReq) {
     const liveSet = await getLivePostSlugs();
     if (liveSet && liveSet.size) {
       const before = items.length;
@@ -3340,7 +3343,9 @@ async function handlePostsList(req, env, origin, url) {
   }
   return json(
     { items, total: totalCount, limit, offset, hasMore: offset + items.length < totalCount },
-    { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } },
+    // Admin responses are ungated → mark private so an edge/shared cache can never
+    // serve the ungated list to a public visitor (or a stale gated list to admin).
+    { headers: { 'Cache-Control': isAdminReq ? 'private, no-store' : 'public, max-age=30, s-maxage=60' } },
     env, origin,
   );
 }
