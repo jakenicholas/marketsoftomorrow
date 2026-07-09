@@ -6080,9 +6080,9 @@
         }
       ],
       "pattern_summary": "Among 6 residences projects in TMW's data, the median build time is 3.5 years (range 2.5–6). Adjusted to ~4.5 years for Herzog & de Meuron's own track record (~6-year typical pace across 1 prior project).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
       "is_mixed_use": false
     },
     "amaala": {
@@ -12855,6 +12855,49 @@
       "delivery_speculative": false,
       "is_mixed_use": false
     },
+    "530-sansome": {
+      "estimate_years": 7.3,
+      "estimate_label": "~7.3 years",
+      "range_low": 4.3,
+      "range_high": 9.7,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 4127.9,
+      "avg_distance_mi": 2565.0,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Skidmore",
+        "count": 2,
+        "median_years": 7.78,
+        "stddev_years": 1.04,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 4127.9,
+          "distance_mi": 2565.0
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–9.7 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": true
+    },
     "legacy-golf-club-at-diamante": {
       "estimate_years": 1.5,
       "estimate_label": "~1.5 years",
@@ -12876,14 +12919,14 @@
   "stats": {
     "high": 7,
     "medium": 20,
-    "low": 53,
+    "low": 54,
     "known_date": 445,
     "completed": 66,
-    "skipped": 80,
+    "skipped": 79,
     "no_type": 0,
-    "firm_boosted": 33,
+    "firm_boosted": 34,
     "speculative_softened": 159,
     "district": 11,
-    "mixed_use_adjusted": 15
+    "mixed_use_adjusted": 16
   }
 }
