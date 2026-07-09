@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 345
+      "count": 348
     },
     {
       "type": "Hotel",
@@ -11,7 +11,7 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 54
+      "count": 55
     },
     {
       "type": "Golf",
@@ -19251,19 +19251,122 @@
           ""
         ]
       ]
+    },
+    {
+      "st": "AE",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": null,
+      "ci": "Dubai",
+      "u": 0,
+      "k": 0,
+      "fl": 71,
+      "dv": [
+        [
+          "ALTA Real Estate Development",
+          "alta-real-estate-development"
+        ]
+      ],
+      "ar": [
+        [
+          "Arquitectonica",
+          "arquitectonica"
+        ],
+        [
+          "1508 London",
+          "1508-london"
+        ]
+      ]
+    },
+    {
+      "st": "NY",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2027,
+      "sm": "2025-01",
+      "ci": "New York City",
+      "u": 38,
+      "k": 0,
+      "fl": 22,
+      "dv": [
+        [
+          "The Brodsky Organization",
+          "the-brodsky-organization"
+        ],
+        [
+          "Sorgente Group",
+          "sorgente-group"
+        ]
+      ],
+      "ar": [
+        [
+          "SLCE Architects",
+          "slce-architects"
+        ],
+        [
+          "Studio Sofield",
+          "studio-sofield"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Breaking Ground",
+      "yr": 2028,
+      "sm": "2026-06",
+      "ci": "",
+      "u": 179,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Austin Capital Partners",
+          "austin-capital-partners"
+        ],
+        [
+          "Lincoln Property Company",
+          "lincoln-property-company-kairoi-residential"
+        ]
+      ],
+      "ar": [
+        [
+          "Lissoni & Partners",
+          "lissoni-partners"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Fort Pierce",
+      "u": 913,
+      "k": 0,
+      "fl": 17,
+      "dv": [
+        [
+          "G Flash G.P. Inc.",
+          "g-flash-g-p-inc"
+        ]
+      ],
+      "ar": []
     }
   ],
   "hero_stats": {
-    "total_projects": 761,
+    "total_projects": 765,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 294,
+    "under_construction": 296,
     "opening_this_year": 116
   },
   "scale": {
-    "units": 266129,
+    "units": 267259,
     "keys": 51697,
-    "floors": 11993
+    "floors": 12103
   },
   "leaderboards": {
     "developers": [
@@ -19515,6 +19618,16 @@
         ]
       },
       {
+        "name": "Lincoln Property Company",
+        "slug": "lincoln-property-company-kairoi-residential",
+        "sub": "Austin",
+        "count": 4,
+        "states": [
+          "TX",
+          "Other"
+        ]
+      },
+      {
         "name": "IHG Hotels & Resorts",
         "slug": "ihg-hotels-resorts",
         "sub": "New York City",
@@ -19544,16 +19657,6 @@
           "FL",
           "Other"
         ]
-      },
-      {
-        "name": "Fort Partners",
-        "slug": "fort-partners",
-        "sub": "Miami",
-        "count": 3,
-        "states": [
-          "FL",
-          "Other"
-        ]
       }
     ],
     "architects": [
@@ -19561,10 +19664,11 @@
         "name": "Arquitectonica",
         "slug": "arquitectonica",
         "sub": "Miami",
-        "count": 65,
+        "count": 66,
         "states": [
           "FL",
-          "Other"
+          "Other",
+          "AE"
         ]
       },
       {
@@ -19887,8 +19991,8 @@
       },
       {
         "name": "New York City",
-        "sub": "27 developments \u00b7 42 developers",
-        "count": 27,
+        "sub": "28 developments \u00b7 44 developers",
+        "count": 28,
         "states": [
           "NY"
         ]
@@ -19950,19 +20054,19 @@
         ]
       },
       {
+        "name": "Dubai",
+        "sub": "12 developments \u00b7 12 developers",
+        "count": 12,
+        "states": [
+          "AE"
+        ]
+      },
+      {
         "name": "Tokyo",
         "sub": "11 developments \u00b7 14 developers",
         "count": 11,
         "states": [
           "JP"
-        ]
-      },
-      {
-        "name": "Dubai",
-        "sub": "11 developments \u00b7 11 developers",
-        "count": 11,
-        "states": [
-          "AE"
         ]
       },
       {
@@ -20114,7 +20218,7 @@
       {
         "name": "Residences",
         "sub": "45% of pipeline",
-        "count": 345,
+        "count": 348,
         "states": [
           "FL",
           "Other",
@@ -20147,7 +20251,7 @@
       {
         "name": "Mixed-Use",
         "sub": "7% of pipeline",
-        "count": 54,
+        "count": 55,
         "states": [
           "Other",
           "FL",
@@ -20589,7 +20693,8 @@
           "count": 61,
           "states": [
             "FL",
-            "Other"
+            "Other",
+            "AE"
           ]
         },
         {
@@ -21635,6 +21740,15 @@
           ]
         },
         {
+          "name": "SLCE Architects",
+          "slug": "slce-architects",
+          "sub": "New York City",
+          "count": 3,
+          "states": [
+            "NY"
+          ]
+        },
+        {
           "name": "Gensler",
           "slug": "gensler",
           "sub": "Tampa",
@@ -21648,15 +21762,6 @@
         {
           "name": "Rockwell Group",
           "slug": "rockwell-group",
-          "sub": "New York City",
-          "count": 2,
-          "states": [
-            "NY"
-          ]
-        },
-        {
-          "name": "SLCE Architects",
-          "slug": "slce-architects",
           "sub": "New York City",
           "count": 2,
           "states": [
@@ -21882,13 +21987,23 @@
           "states": [
             "NY"
           ]
+        },
+        {
+          "name": "Studio Sofield",
+          "slug": "studio-sofield",
+          "sub": "Miami",
+          "count": 1,
+          "states": [
+            "FL",
+            "NY"
+          ]
         }
       ],
       "cities": [
         {
           "name": "New York City",
-          "sub": "27 developments \u00b7 42 developers",
-          "count": 27,
+          "sub": "28 developments \u00b7 44 developers",
+          "count": 28,
           "states": [
             "NY"
           ]
@@ -21921,8 +22036,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "61% of pipeline",
-          "count": 22,
+          "sub": "62% of pipeline",
+          "count": 23,
           "states": [
             "FL",
             "Other",
@@ -21968,7 +22083,7 @@
         },
         {
           "name": "Travel",
-          "sub": "6% of pipeline",
+          "sub": "5% of pipeline",
           "count": 2,
           "states": [
             "Other",
@@ -22719,7 +22834,8 @@
           "sub": "Austin",
           "count": 3,
           "states": [
-            "TX"
+            "TX",
+            "Other"
           ]
         },
         {
@@ -23938,6 +24054,15 @@
           "states": [
             "AE"
           ]
+        },
+        {
+          "name": "ALTA Real Estate Development",
+          "slug": "alta-real-estate-development",
+          "sub": "Dubai",
+          "count": 1,
+          "states": [
+            "AE"
+          ]
         }
       ],
       "architects": [
@@ -24067,13 +24192,33 @@
           "states": [
             "AE"
           ]
+        },
+        {
+          "name": "Arquitectonica",
+          "slug": "arquitectonica",
+          "sub": "Miami",
+          "count": 1,
+          "states": [
+            "FL",
+            "Other",
+            "AE"
+          ]
+        },
+        {
+          "name": "1508 London",
+          "slug": "1508-london",
+          "sub": "Dubai",
+          "count": 1,
+          "states": [
+            "AE"
+          ]
         }
       ],
       "cities": [
         {
           "name": "Dubai",
-          "sub": "11 developments \u00b7 11 developers",
-          "count": 11,
+          "sub": "12 developments \u00b7 12 developers",
+          "count": 12,
           "states": [
             "AE"
           ]
@@ -24090,8 +24235,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "38% of pipeline",
-          "count": 5,
+          "sub": "43% of pipeline",
+          "count": 6,
           "states": [
             "FL",
             "Other",
@@ -24106,7 +24251,7 @@
         },
         {
           "name": "Hotel",
-          "sub": "31% of pipeline",
+          "sub": "29% of pipeline",
           "count": 4,
           "states": [
             "Other",
@@ -24123,7 +24268,7 @@
         },
         {
           "name": "Museum",
-          "sub": "15% of pipeline",
+          "sub": "14% of pipeline",
           "count": 2,
           "states": [
             "Other",
@@ -24136,7 +24281,7 @@
         },
         {
           "name": "Office",
-          "sub": "8% of pipeline",
+          "sub": "7% of pipeline",
           "count": 1,
           "states": [
             "FL",
@@ -24150,7 +24295,7 @@
         },
         {
           "name": "Entertainment",
-          "sub": "8% of pipeline",
+          "sub": "7% of pipeline",
           "count": 1,
           "states": [
             "FL",
@@ -25102,13 +25247,13 @@
     },
     "NY": {
       "hero_stats": {
-        "total_projects": 36,
-        "under_construction": 10
+        "total_projects": 37,
+        "under_construction": 11
       },
       "scale": {
-        "units": 9442,
+        "units": 9480,
         "keys": 666,
-        "floors": 1191
+        "floors": 1213
       },
       "status_distribution": [
         {
@@ -25121,7 +25266,7 @@
         },
         {
           "label": "Construction",
-          "count": 10
+          "count": 11
         },
         {
           "label": "Opening Soon",
@@ -25478,13 +25623,13 @@
     },
     "AE": {
       "hero_stats": {
-        "total_projects": 13,
-        "under_construction": 6
+        "total_projects": 14,
+        "under_construction": 7
       },
       "scale": {
         "units": 3586,
         "keys": 370,
-        "floors": 546
+        "floors": 617
       },
       "status_distribution": [
         {
@@ -25493,7 +25638,7 @@
         },
         {
           "label": "Construction",
-          "count": 6
+          "count": 7
         },
         {
           "label": "Opening Soon",
@@ -26260,20 +26405,21 @@
     "Monterrey": "Other",
     "Gold Coast": "Other",
     "Ho Chi Minh City": "Other",
-    "Hong Kong": "Other"
+    "Hong Kong": "Other",
+    "Fort Pierce": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 220
+      "count": 221
     },
     {
       "label": "Breaking Ground",
-      "count": 31
+      "count": 32
     },
     {
       "label": "Construction",
-      "count": 294
+      "count": 296
     },
     {
       "label": "Opening Soon",
@@ -26338,7 +26484,7 @@
     {
       "month": "Jun",
       "year": 2026,
-      "count": 18
+      "count": 19
     },
     {
       "month": "Jul",
@@ -26353,11 +26499,11 @@
     },
     {
       "year": 2027,
-      "count": 158
+      "count": 160
     },
     {
       "year": 2028,
-      "count": 140
+      "count": 141
     },
     {
       "year": 2029,
@@ -26377,7 +26523,7 @@
     {
       "code": "NY",
       "label": "New York",
-      "count": 36
+      "count": 37
     },
     {
       "code": "TN",
@@ -26397,7 +26543,7 @@
     {
       "code": "AE",
       "label": "UAE",
-      "count": 13
+      "count": 14
     },
     {
       "code": "JP",
