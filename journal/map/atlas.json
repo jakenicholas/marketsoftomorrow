@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09",
+  "generated_at": "2026-07-10",
   "available_types": [
     {
       "type": "Residences",
@@ -23,7 +23,7 @@
     },
     {
       "type": "Entertainment",
-      "count": 32
+      "count": 31
     },
     {
       "type": "Travel",
@@ -35,7 +35,7 @@
     },
     {
       "type": "Stadium",
-      "count": 11
+      "count": 12
     },
     {
       "type": "Education",
@@ -153,7 +153,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2028,
-      "sm": "2025-11",
+      "sm": "2025-10",
       "ci": "Miami",
       "u": 70,
       "k": 0,
@@ -846,7 +846,7 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Construction",
-      "yr": 2028,
+      "yr": 2029,
       "sm": "2026-05",
       "ci": "Jacksonville",
       "u": 395,
@@ -905,7 +905,7 @@
       "ty": "Cultural",
       "sl": "Construction",
       "yr": 2027,
-      "sm": "2026-12",
+      "sm": "2026-05",
       "ci": "Palm Beach",
       "u": 0,
       "k": 0,
@@ -1024,7 +1024,7 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Construction",
-      "yr": 2028,
+      "yr": 2029,
       "sm": "2026-12",
       "ci": "Miami",
       "u": 329,
@@ -1354,7 +1354,7 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Breaking Ground",
+      "sl": "Construction",
       "yr": 2029,
       "sm": "2026-07",
       "ci": "West Palm Beach",
@@ -1572,7 +1572,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2028,
-      "sm": "2024-02",
+      "sm": "2024-10",
       "ci": "Miami",
       "u": 397,
       "k": 0,
@@ -1899,7 +1899,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
-      "sm": "2025-04",
+      "sm": "2025-06",
       "ci": "Boca Raton",
       "u": 28,
       "k": 0,
@@ -5937,7 +5937,7 @@
     },
     {
       "st": "TN",
-      "ty": "Entertainment",
+      "ty": "Stadium",
       "sl": "Construction",
       "yr": 2027,
       "sm": "2024-02",
@@ -19387,7 +19387,7 @@
     "total_projects": 766,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 296,
+    "under_construction": 297,
     "opening_this_year": 116
   },
   "scale": {
@@ -20319,7 +20319,7 @@
       {
         "name": "Entertainment",
         "sub": "4% of pipeline",
-        "count": 32,
+        "count": 31,
         "states": [
           "FL",
           "Other",
@@ -20357,11 +20357,12 @@
       },
       {
         "name": "Stadium",
-        "sub": "1% of pipeline",
-        "count": 11,
+        "sub": "2% of pipeline",
+        "count": 12,
         "states": [
           "Other",
-          "FL"
+          "FL",
+          "TN"
         ]
       },
       {
@@ -21387,7 +21388,8 @@
           "count": 3,
           "states": [
             "Other",
-            "FL"
+            "FL",
+            "TN"
           ]
         },
         {
@@ -22803,15 +22805,13 @@
           ]
         },
         {
-          "name": "Entertainment",
-          "sub": "7% of pipeline",
-          "count": 2,
+          "name": "Stadium",
+          "sub": "3% of pipeline",
+          "count": 1,
           "states": [
-            "FL",
             "Other",
-            "TN",
-            "AE",
-            "SC"
+            "FL",
+            "TN"
           ]
         },
         {
@@ -22836,6 +22836,18 @@
             "FR",
             "UK",
             "JP"
+          ]
+        },
+        {
+          "name": "Entertainment",
+          "sub": "3% of pipeline",
+          "count": 1,
+          "states": [
+            "FL",
+            "Other",
+            "TN",
+            "AE",
+            "SC"
           ]
         },
         {
@@ -25180,7 +25192,7 @@
     "FL": {
       "hero_stats": {
         "total_projects": 330,
-        "under_construction": 119
+        "under_construction": 120
       },
       "scale": {
         "units": 80801,
@@ -25194,11 +25206,11 @@
         },
         {
           "label": "Breaking Ground",
-          "count": 16
+          "count": 15
         },
         {
           "label": "Construction",
-          "count": 119
+          "count": 120
         },
         {
           "label": "Opening Soon",
@@ -25223,12 +25235,12 @@
         {
           "month": "Oct",
           "year": 2025,
-          "count": 6
+          "count": 7
         },
         {
           "month": "Nov",
           "year": 2025,
-          "count": 5
+          "count": 4
         },
         {
           "month": "Dec",
@@ -25258,7 +25270,7 @@
         {
           "month": "May",
           "year": 2026,
-          "count": 6
+          "count": 7
         },
         {
           "month": "Jun",
@@ -26442,11 +26454,11 @@
     },
     {
       "label": "Breaking Ground",
-      "count": 32
+      "count": 31
     },
     {
       "label": "Construction",
-      "count": 296
+      "count": 297
     },
     {
       "label": "Opening Soon",
@@ -26471,12 +26483,12 @@
     {
       "month": "Oct",
       "year": 2025,
-      "count": 11
+      "count": 12
     },
     {
       "month": "Nov",
       "year": 2025,
-      "count": 8
+      "count": 7
     },
     {
       "month": "Dec",
@@ -26506,7 +26518,7 @@
     {
       "month": "May",
       "year": 2026,
-      "count": 11
+      "count": 12
     },
     {
       "month": "Jun",
@@ -26530,11 +26542,11 @@
     },
     {
       "year": 2028,
-      "count": 141
+      "count": 139
     },
     {
       "year": 2029,
-      "count": 56
+      "count": 58
     },
     {
       "year": 2030,
@@ -26600,6 +26612,118 @@
   ],
   "recent_activity": [
     {
+      "id": "ms-the-berkeley-construction-2026-07-09",
+      "type": "status_change",
+      "tag": "Under construction",
+      "title": "The Berkeley  Under construction",
+      "project_slug": "the-berkeley",
+      "project_title": "The Berkeley",
+      "city": "West Palm Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-berkeley.webp",
+      "event_date": "2026-07-06",
+      "source_url": "https://floridayimby.com/2026/07/the-berkeley-palm-beach-breaks-ground-at-550-south-australian-avenue-in-west-palm-beach.html",
+      "link": "https://www.oftmw.com/map/?project=theberkeley",
+      "timestamp": "2026-07-09T23:43:52.237Z"
+    },
+    {
+      "id": "ms-566-west-van-buren-going-vertical-2026-07-09",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "566 West Van Buren  Going vertical",
+      "project_slug": "566-west-van-buren",
+      "project_title": "566 West Van Buren",
+      "city": "Chicago",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/chicago/566-west-van-buren.jpeg",
+      "event_date": "2026-06-16",
+      "source_url": "https://chicago.urbanize.city/post/566-w-van-buren-celebrates-groundbreaking",
+      "link": "https://www.oftmw.com/map/?project=566westvanburen",
+      "timestamp": "2026-07-09T23:42:49.924Z"
+    },
+    {
+      "id": "ms-southbank-residences-breaking-ground-2026-07-09",
+      "type": "status_change",
+      "tag": "Broke ground",
+      "title": "Southbank Residences  Broke ground",
+      "project_slug": "southbank-residences",
+      "project_title": "Southbank Residences",
+      "city": "Jacksonville",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg",
+      "event_date": "2026-05-20",
+      "source_url": "https://www.jaxdailyrecord.com/news/2026/may/20/here-we-are-after-nearly-six-years-related-group-launches-work-on-downtown-jacksonville-high-rise/",
+      "link": "https://www.oftmw.com/map/?project=southbankresidences",
+      "timestamp": "2026-07-09T23:42:08.599Z"
+    },
+    {
+      "id": "ms-the-ritz-carlton-residences-palm-beach-gardens-financing-2026-07-09",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "The Ritz-Carlton Residences, Palm Beach Gardens  Financing secured",
+      "project_slug": "the-ritz-carlton-residences-palm-beach-gardens",
+      "project_title": "The Ritz-Carlton Residences, Palm Beach Gardens",
+      "city": "Palm Beach Gardens",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/the-ritz-carlton-residences-palm-beach-gardens.jpeg",
+      "event_date": "2026-05-06",
+      "source_url": "https://commercialobserver.com/2026/05/catalfumo-ritz-carlton-palm-beach-gardens-florida/",
+      "link": "https://www.oftmw.com/map/?project=theritzcarltonresidencespalmbeachgardens",
+      "timestamp": "2026-07-09T23:40:33.998Z"
+    },
+    {
+      "id": "ms-four-seasons-private-residences-coconut-grove-going-vertical-2026-07-09",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Four Seasons Private Residences Coconut Grove  Going vertical",
+      "project_slug": "four-seasons-private-residences-coconut-grove",
+      "project_title": "Four Seasons Private Residences Coconut Grove",
+      "city": "Miami",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg",
+      "event_date": "2026-07-01",
+      "source_url": "https://floridayimby.com/2026/07/construction-goes-vertical-on-20-story-four-seasons-private-residences-coconut-grove.html",
+      "link": "https://www.oftmw.com/map/?project=fourseasonsprivateresidencescoconutgrove",
+      "timestamp": "2026-07-09T23:40:12.826Z"
+    },
+    {
+      "id": "ms-mira-mar-residences-going-vertical-2026-07-09",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Mira Mar Residences  Going vertical",
+      "project_slug": "mira-mar-residences",
+      "project_title": "Mira Mar Residences",
+      "city": "Sarasota",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sarasota/mira-mar-residences.jpg",
+      "event_date": "2026-05-20",
+      "source_url": "https://www.yourobserver.com/news/2026/apr/07/mira-mar-construction-permit-historic-restoration/",
+      "link": "https://www.oftmw.com/map/?project=miramarresidences",
+      "timestamp": "2026-07-09T23:36:56.079Z"
+    },
+    {
+      "id": "ms-phoenix-arts-innovation-district-tenant-2026-07-09",
+      "type": "status_change",
+      "tag": "Tenant announced",
+      "title": "Phoenix Arts & Innovation District  Tenant announced",
+      "project_slug": "phoenix-arts-innovation-district",
+      "project_title": "Phoenix Arts & Innovation District",
+      "city": "Jacksonville",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/phoenix-arts-innovation-district-phxjax.jpeg",
+      "event_date": "2026-05-20",
+      "source_url": "https://www.jaxdailyrecord.com/news/2026/apr/27/phoenix-arts-innovation-district-preparing-to-rise/",
+      "link": "https://www.oftmw.com/map/?project=phoenixartsinnovationdistrict",
+      "timestamp": "2026-07-09T23:36:42.976Z"
+    },
+    {
+      "id": "ms-ymca-of-the-palm-beaches-going-vertical-2026-07-09",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "YMCA of the Palm Beaches  Going vertical",
+      "project_slug": "ymca-of-the-palm-beaches",
+      "project_title": "YMCA of the Palm Beaches",
+      "city": "West Palm Beach",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ymca-of-the-palm-beaches-flagship-community-center.avif",
+      "event_date": "2026-05",
+      "source_url": "https://www.einpresswire.com/article/906112127/a-new-landmark-takes-shape-construction-advances-on-the-future-ymca-of-the-palm-beaches-flagship-facility",
+      "link": "https://www.oftmw.com/map/?project=ymcaofthepalmbeaches",
+      "timestamp": "2026-07-09T23:36:38.333Z"
+    },
+    {
       "id": "track-group-20260709T2212-5",
       "type": "tracking",
       "tag": "Tracking",
@@ -26622,20 +26746,6 @@
       "source_url": "https://commercialobserver.com/2026/05/fox-rothschild-west-palm-beach-15-cityplace-related-ross/",
       "link": "https://www.oftmw.com/map/?project=15cityplace",
       "timestamp": "2026-07-09T21:13:17.764Z"
-    },
-    {
-      "id": "ms-ymca-of-the-palm-beaches-going-vertical-2026-07-09",
-      "type": "status_change",
-      "tag": "Going vertical",
-      "title": "YMCA of the Palm Beaches  Going vertical",
-      "project_slug": "ymca-of-the-palm-beaches",
-      "project_title": "YMCA of the Palm Beaches",
-      "city": "West Palm Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ymca-of-the-palm-beaches-flagship-community-center.avif",
-      "event_date": "2026-06",
-      "source_url": "https://www.citybiz.co/article/832685/a-new-landmark-takes-shape-construction-advances-on-the-future-ymca-of-the-palm-beaches-flagship-facility/",
-      "link": "https://www.oftmw.com/map/?project=ymcaofthepalmbeaches",
-      "timestamp": "2026-07-09T21:11:58.553Z"
     },
     {
       "id": "ms-meli-residences-miami-topping-out-2026-07-09",
@@ -27174,102 +27284,6 @@
       "source_url": "https://www.citybiz.co/article/832685/a-new-landmark-takes-shape-construction-advances-on-the-future-ymca-of-the-palm-beaches-flagship-facility/",
       "link": "https://www.oftmw.com/map/?project=ymcaofthepalmbeaches",
       "timestamp": "2026-07-07T23:20:46.801Z"
-    },
-    {
-      "id": "ms-the-galleria-at-fort-lauderdale-tenant-2026-07-07",
-      "type": "status_change",
-      "tag": "Tenant announced",
-      "title": "The Galleria at Fort Lauderdale  Tenant announced",
-      "project_slug": "the-galleria-at-fort-lauderdale",
-      "project_title": "The Galleria at Fort Lauderdale",
-      "city": "Fort Lauderdale",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/the-galleria-at-fort-lauderdale-redevelopment.jpg",
-      "event_date": "2026-05",
-      "source_url": "https://floridayimby.com/2026/05/faa-determinations-issued-for-eight-342-foot-tall-towers-at-the-galleria-redevelopment-in-fort-lauderdale.html",
-      "link": "https://www.oftmw.com/map/?project=thegalleriaatfortlauderdale",
-      "timestamp": "2026-07-07T23:20:08.735Z"
-    },
-    {
-      "id": "ms-meli-residences-miami-topping-out-2026-07-07",
-      "type": "status_change",
-      "tag": "Topped out",
-      "title": "Meli\u00e1 Residences Miami  Topped out",
-      "project_slug": "meli-residences-miami",
-      "project_title": "Meli\u00e1 Residences Miami",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/meli-residences-miami.jpeg",
-      "event_date": "2026-05",
-      "source_url": "https://profilemiamire.com/miamirealestate/2026/6/12/urban-network-capital-group-meli-hotels-amp-resorts-and-concepto-capital-group-top-off-meli-residences-miami",
-      "link": "https://www.oftmw.com/map/?project=meliresidencesmiami",
-      "timestamp": "2026-07-07T23:19:49.557Z"
-    },
-    {
-      "id": "ms-nobe-parc-miami-beach-bookings-2026-07-07",
-      "type": "status_change",
-      "tag": "Bookings open",
-      "title": "NoBe PARC Miami Beach  Bookings open",
-      "project_slug": "nobe-parc-miami-beach",
-      "project_title": "NoBe PARC Miami Beach",
-      "city": "Miami Beach",
-      "image": "https://tmw.jake-ab7.workers.dev/media/2026/06/0c9489f37946-NoBe-PARC_Pool_legal.jpeg",
-      "event_date": "2026-05-27",
-      "source_url": "https://therealdeal.com/miami/2026/05/27/finvarb-launches-short-term-rental-condo-in-north-beach/",
-      "link": "https://www.oftmw.com/map/?project=nobeparcmiamibeach",
-      "timestamp": "2026-07-07T23:19:13.077Z"
-    },
-    {
-      "id": "ms-mirai-design-district-financing-2026-07-07",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "MIRAI Design District  Financing secured",
-      "project_slug": "mirai-design-district",
-      "project_title": "MIRAI Design District",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg",
-      "event_date": "2026-06",
-      "source_url": "https://therealdeal.com/miami/2026/06/02/kengo-kuma-designed-miami-project-starts-construction/",
-      "link": "https://www.oftmw.com/map/?project=miraidesigndistrict",
-      "timestamp": "2026-07-07T23:18:23.978Z"
-    },
-    {
-      "id": "ms-four-seasons-private-residences-coconut-grove-going-vertical-2026-07-07",
-      "type": "status_change",
-      "tag": "Going vertical",
-      "title": "Four Seasons Private Residences Coconut Grove  Going vertical",
-      "project_slug": "four-seasons-private-residences-coconut-grove",
-      "project_title": "Four Seasons Private Residences Coconut Grove",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/four-seasons-private-residences-coconut-grove.jpg",
-      "event_date": "2026-07",
-      "source_url": "https://profilemiamire.com/miamirealestate/2026/7/1/cmc-group-and-fort-partners-commence-vertical-construction-on-four-seasons-private-residences-coconut-grove",
-      "link": "https://www.oftmw.com/map/?project=fourseasonsprivateresidencescoconutgrove",
-      "timestamp": "2026-07-07T23:18:08.376Z"
-    },
-    {
-      "id": "track-7200-collins",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking 7200 Collins",
-      "project_slug": "7200-collins",
-      "project_title": "7200 Collins",
-      "city": "Miami Beach",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ee746bce6fc4-7200_Collins_Hero2-scaled.jpeg",
-      "link": "https://www.oftmw.com/map/?project=7200collins",
-      "timestamp": "2026-07-07T22:53:56.066121+00:00"
-    },
-    {
-      "id": "ms-the-ritz-carlton-residences-palm-beach-gardens-financing-2026-07-07",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "The Ritz-Carlton Residences, Palm Beach Gardens  Financing secured",
-      "project_slug": "the-ritz-carlton-residences-palm-beach-gardens",
-      "project_title": "The Ritz-Carlton Residences, Palm Beach Gardens",
-      "city": "Palm Beach Gardens",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/the-ritz-carlton-residences-palm-beach-gardens.jpeg",
-      "event_date": "2026-05",
-      "source_url": "https://commercialobserver.com/2026/05/catalfumo-ritz-carlton-palm-beach-gardens-florida/",
-      "link": "https://www.oftmw.com/map/?project=theritzcarltonresidencespalmbeachgardens",
-      "timestamp": "2026-07-07T21:19:47.843Z"
     }
   ],
   "most_covered": [
@@ -27385,10 +27399,10 @@
       "title": "Uga Ghiri",
       "city": "Ella",
       "delivery_date": "2026-07-11",
-      "days_out": 2,
+      "days_out": 1,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "2d",
+      "display_label": "1d",
       "display_precision": "day"
     },
     {
@@ -27396,7 +27410,7 @@
       "title": "The Lowline Hotel",
       "city": "Charleston",
       "delivery_date": "2026-07-15",
-      "days_out": 6,
+      "days_out": 5,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Jul",
@@ -27407,10 +27421,10 @@
       "title": "Amanvari",
       "city": "Los Cabos",
       "delivery_date": "2026-08-01",
-      "days_out": 23,
+      "days_out": 22,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "23d",
+      "display_label": "22d",
       "display_precision": "day"
     },
     {
@@ -27418,10 +27432,10 @@
       "title": "Aman Residences, Amanvari",
       "city": "La Ribera",
       "delivery_date": "2026-08-01",
-      "days_out": 23,
+      "days_out": 22,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "23d",
+      "display_label": "22d",
       "display_precision": "day"
     },
     {
@@ -27429,7 +27443,7 @@
       "title": "Malabar Residences",
       "city": "New York City",
       "delivery_date": "2026-08-15",
-      "days_out": 37,
+      "days_out": 36,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -27440,7 +27454,7 @@
       "title": "1 Hotel Austin",
       "city": "Austin",
       "delivery_date": "2026-08-15",
-      "days_out": 37,
+      "days_out": 36,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -27451,7 +27465,7 @@
       "title": "Faraway Jackson Hole",
       "city": "Teton Village",
       "delivery_date": "2026-08-15",
-      "days_out": 37,
+      "days_out": 36,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -27462,10 +27476,10 @@
       "title": "Four Seasons Hotel Danieli",
       "city": "Venice",
       "delivery_date": "2026-08-26",
-      "days_out": 48,
+      "days_out": 47,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "48d",
+      "display_label": "47d",
       "display_precision": "day"
     },
     {
@@ -27473,7 +27487,7 @@
       "title": "Fort\u00e9 Luxe",
       "city": "Jupiter",
       "delivery_date": "2026-09-01",
-      "days_out": 54,
+      "days_out": 53,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -27484,7 +27498,7 @@
       "title": "Coral Cay Adventure Park",
       "city": "Florida Keys",
       "delivery_date": "2026-09-01",
-      "days_out": 54,
+      "days_out": 53,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -27495,7 +27509,7 @@
       "title": "The Shepherd Mayfair",
       "city": "London",
       "delivery_date": "2026-09-01",
-      "days_out": 54,
+      "days_out": 53,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -27506,10 +27520,10 @@
       "title": "Nobu Hotel Madrid",
       "city": "Madrid",
       "delivery_date": "2026-09-01",
-      "days_out": 54,
+      "days_out": 53,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "54d",
+      "display_label": "53d",
       "display_precision": "day"
     },
     {
@@ -27517,10 +27531,10 @@
       "title": "Wild Spring Dunes",
       "city": "Mount Enterprise",
       "delivery_date": "2026-09-08",
-      "days_out": 61,
+      "days_out": 60,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "61d",
+      "display_label": "60d",
       "display_precision": "day"
     },
     {
@@ -27528,7 +27542,7 @@
       "title": "The Brook Tennis and Pickleball",
       "city": "Boynton Beach",
       "delivery_date": "2026-09-15",
-      "days_out": 68,
+      "days_out": 67,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -27539,7 +27553,7 @@
       "title": "2200 Brickell",
       "city": "Miami",
       "delivery_date": "2026-09-15",
-      "days_out": 68,
+      "days_out": 67,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
