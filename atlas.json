@@ -3,27 +3,27 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 349
+      "count": 350
     },
     {
       "type": "Hotel",
-      "count": 185
+      "count": 183
     },
     {
       "type": "Mixed-Use",
-      "count": 52
+      "count": 53
+    },
+    {
+      "type": "Golf",
+      "count": 34
     },
     {
       "type": "Office",
       "count": 34
     },
     {
-      "type": "Golf",
-      "count": 32
-    },
-    {
       "type": "Entertainment",
-      "count": 31
+      "count": 30
     },
     {
       "type": "Travel",
@@ -51,7 +51,7 @@
     },
     {
       "type": "Retail",
-      "count": 7
+      "count": 6
     },
     {
       "type": "Marina",
@@ -9200,7 +9200,7 @@
       "ci": "Paris",
       "u": 0,
       "k": 130,
-      "fl": 42,
+      "fl": 44,
       "dv": [
         [
           "Unibail-Rodamco-Westfield",
@@ -9986,9 +9986,9 @@
     },
     {
       "st": "Other",
-      "ty": "Hotel",
+      "ty": "Golf",
       "sl": "Opening Soon",
-      "yr": 2027,
+      "yr": null,
       "sm": "2026-12",
       "ci": "Revelstoke",
       "u": 79,
@@ -10214,7 +10214,7 @@
     },
     {
       "st": "Other",
-      "ty": "Hotel",
+      "ty": "Mixed-Use",
       "sl": "Opening Soon",
       "yr": 2027,
       "sm": "2017-12",
@@ -10298,11 +10298,11 @@
       "ty": "Entertainment",
       "sl": "Announced",
       "yr": null,
-      "sm": "2019-01",
+      "sm": null,
       "ci": "Dubai",
       "u": 0,
       "k": 0,
-      "fl": 0,
+      "fl": 112,
       "dv": [
         [
           "Dubai Holding",
@@ -10413,7 +10413,7 @@
     },
     {
       "st": "SC",
-      "ty": "Entertainment",
+      "ty": "Golf",
       "sl": "Construction",
       "yr": 2027,
       "sm": "2025-04",
@@ -10651,7 +10651,7 @@
       "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": 2030,
-      "sm": "2026-11",
+      "sm": "2026-12",
       "ci": "Wellington",
       "u": 0,
       "k": 180,
@@ -11245,7 +11245,7 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Construction",
-      "yr": 2026,
+      "yr": null,
       "sm": "2025-05",
       "ci": "Delray Beach",
       "u": 26,
@@ -12512,7 +12512,7 @@
       "st": "Other",
       "ty": "Hotel",
       "sl": "Construction",
-      "yr": 2026,
+      "yr": null,
       "sm": "2023-12",
       "ci": "Singapore",
       "u": 0,
@@ -13412,9 +13412,9 @@
       "yr": 2028,
       "sm": "2026-06",
       "ci": "South Miami",
-      "u": 390,
+      "u": 700,
       "k": 0,
-      "fl": 11,
+      "fl": 15,
       "dv": [
         [
           "Related Urban",
@@ -15649,7 +15649,7 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
       "sm": "2025-01",
@@ -17352,8 +17352,8 @@
     },
     {
       "st": "Other",
-      "ty": "Retail",
-      "sl": "Announced",
+      "ty": "Mixed-Use",
+      "sl": "Breaking Ground",
       "yr": 2027,
       "sm": "2026-06",
       "ci": "Hanahan",
@@ -19411,12 +19411,12 @@
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 292,
-    "opening_this_year": 117
+    "opening_this_year": 115
   },
   "scale": {
-    "units": 267412,
+    "units": 267722,
     "keys": 52106,
-    "floors": 12194
+    "floors": 12312
   },
   "leaderboards": {
     "developers": [
@@ -20268,7 +20268,7 @@
       {
         "name": "Residences",
         "sub": "46% of pipeline",
-        "count": 349,
+        "count": 350,
         "states": [
           "FL",
           "Other",
@@ -20284,7 +20284,7 @@
       {
         "name": "Hotel",
         "sub": "24% of pipeline",
-        "count": 185,
+        "count": 183,
         "states": [
           "Other",
           "FL",
@@ -20301,7 +20301,7 @@
       {
         "name": "Mixed-Use",
         "sub": "7% of pipeline",
-        "count": 52,
+        "count": 53,
         "states": [
           "Other",
           "FL",
@@ -20311,6 +20311,18 @@
           "TX",
           "GA",
           "NC"
+        ]
+      },
+      {
+        "name": "Golf",
+        "sub": "4% of pipeline",
+        "count": 34,
+        "states": [
+          "Other",
+          "FL",
+          "SC",
+          "TN",
+          "TX"
         ]
       },
       {
@@ -20328,27 +20340,14 @@
         ]
       },
       {
-        "name": "Golf",
-        "sub": "4% of pipeline",
-        "count": 32,
-        "states": [
-          "Other",
-          "FL",
-          "TN",
-          "SC",
-          "TX"
-        ]
-      },
-      {
         "name": "Entertainment",
         "sub": "4% of pipeline",
-        "count": 31,
+        "count": 30,
         "states": [
           "FL",
           "Other",
           "TN",
-          "AE",
-          "SC"
+          "AE"
         ]
       },
       {
@@ -20419,11 +20418,10 @@
       {
         "name": "Retail",
         "sub": "1% of pipeline",
-        "count": 7,
+        "count": 6,
         "states": [
           "FL",
-          "FR",
-          "Other"
+          "FR"
         ]
       },
       {
@@ -21301,8 +21299,7 @@
             "FL",
             "Other",
             "TN",
-            "AE",
-            "SC"
+            "AE"
           ]
         },
         {
@@ -21376,8 +21373,8 @@
           "states": [
             "Other",
             "FL",
-            "TN",
             "SC",
+            "TN",
             "TX"
           ]
         },
@@ -21387,8 +21384,7 @@
           "count": 5,
           "states": [
             "FL",
-            "FR",
-            "Other"
+            "FR"
           ]
         },
         {
@@ -22822,8 +22818,8 @@
           "states": [
             "Other",
             "FL",
-            "TN",
             "SC",
+            "TN",
             "TX"
           ]
         },
@@ -22869,8 +22865,7 @@
             "FL",
             "Other",
             "TN",
-            "AE",
-            "SC"
+            "AE"
           ]
         },
         {
@@ -23492,8 +23487,8 @@
           "states": [
             "Other",
             "FL",
-            "TN",
             "SC",
+            "TN",
             "TX"
           ]
         },
@@ -24363,8 +24358,7 @@
             "FL",
             "Other",
             "TN",
-            "AE",
-            "SC"
+            "AE"
           ]
         }
       ]
@@ -24890,26 +24884,14 @@
         },
         {
           "name": "Golf",
-          "sub": "22% of pipeline",
-          "count": 2,
+          "sub": "33% of pipeline",
+          "count": 3,
           "states": [
             "Other",
             "FL",
-            "TN",
             "SC",
-            "TX"
-          ]
-        },
-        {
-          "name": "Entertainment",
-          "sub": "11% of pipeline",
-          "count": 1,
-          "states": [
-            "FL",
-            "Other",
             "TN",
-            "AE",
-            "SC"
+            "TX"
           ]
         },
         {
@@ -25047,8 +25029,7 @@
           "count": 1,
           "states": [
             "FL",
-            "FR",
-            "Other"
+            "FR"
           ]
         }
       ]
@@ -25691,7 +25672,7 @@
       "scale": {
         "units": 3748,
         "keys": 370,
-        "floors": 617
+        "floors": 729
       },
       "status_distribution": [
         {
@@ -25964,7 +25945,7 @@
       "scale": {
         "units": 0,
         "keys": 140,
-        "floors": 42
+        "floors": 44
       },
       "status_distribution": [
         {
@@ -26474,11 +26455,11 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 221
+      "count": 220
     },
     {
       "label": "Breaking Ground",
-      "count": 31
+      "count": 32
     },
     {
       "label": "Construction",
@@ -26558,11 +26539,11 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 117
+      "count": 115
     },
     {
       "year": 2027,
-      "count": 158
+      "count": 157
     },
     {
       "year": 2028,
@@ -26635,6 +26616,78 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-cabot-revelstoke-bookings-2026-07-11",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Cabot Revelstoke  Bookings open",
+      "project_slug": "cabot-revelstoke",
+      "project_title": "Cabot Revelstoke",
+      "city": "Revelstoke",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/revelstoke/cabot-revelstoke.jpeg",
+      "event_date": "2026-05",
+      "source_url": "https://www.prnewswire.com/news-releases/cabot-revelstoke-announces-expansion-plans-and-updates-ahead-of-its-highly-anticipated-british-columbia-debut-302763690.html",
+      "link": "https://www.oftmw.com/map/?project=cabotrevelstoke",
+      "timestamp": "2026-07-11T22:16:30.515Z"
+    },
+    {
+      "id": "ms-capella-residences-bangkok-bookings-2026-07-11",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Capella Residences Bangkok  Bookings open",
+      "project_slug": "capella-residences-bangkok",
+      "project_title": "Capella Residences Bangkok",
+      "city": "Bangkok",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bangkok/capella-residences-bangkok.jpeg",
+      "event_date": "2026-06",
+      "source_url": "https://insights.ehotelier.com/global-news/2026/06/23/capella-hotel-group-brings-wellness-integrated-branded-residences-to-southeast-asias-first-wellness-complex/",
+      "link": "https://www.oftmw.com/map/?project=capellaresidencesbangkok",
+      "timestamp": "2026-07-11T22:15:50.945Z",
+      "parent_slug": "wellera",
+      "parent_title": "WellEra"
+    },
+    {
+      "id": "ms-malabar-residences-financing-2026-07-11",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Malabar Residences  Financing secured",
+      "project_slug": "malabar-residences",
+      "project_title": "Malabar Residences",
+      "city": "New York City",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/malabar-residences.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://therealdeal.com/new-york/2026/06/02/rotem-rosen-snags-200m-loan-for-malabar-residences/",
+      "link": "https://www.oftmw.com/map/?project=malabarresidences",
+      "timestamp": "2026-07-11T22:15:20.279Z"
+    },
+    {
+      "id": "ms-blackwells-corner-breaking-ground-2026-07-11",
+      "type": "status_change",
+      "tag": "Broke ground",
+      "title": "Blackwells Corner  Broke ground",
+      "project_slug": "blackwells-corner",
+      "project_title": "Blackwells Corner",
+      "city": "Hanahan",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/97f299f7a9a7-blackwells.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://www.postandcourier.com/business/real_estate/blackwells-corner-hanahan-sc-town-center-restaurants-shops/article_55ccef69-645b-4434-b7c2-b5347c66ca11.html",
+      "link": "https://www.oftmw.com/map/?project=blackwellscorner",
+      "timestamp": "2026-07-11T22:14:44.611Z"
+    },
+    {
+      "id": "ms-athletics-las-vegas-ballpark-going-vertical-2026-07-11",
+      "type": "status_change",
+      "tag": "Going vertical",
+      "title": "Athletics Las Vegas Ballpark  Going vertical",
+      "project_slug": "athletics-las-vegas-ballpark",
+      "project_title": "Athletics Las Vegas Ballpark",
+      "city": "Las Vegas",
+      "image": "https://www.designboom.com/wp-content/uploads/2024/03/bjarke-ingels-group-las-vegas-ballpark-hntb-oakland-athletics-baseball-designboom-1200.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://ballparkdigest.com/2026/05/23/after-400m-new-athletics-ballpark-is-on-time-on-budget/",
+      "link": "https://www.oftmw.com/map/?project=athleticslasvegasballpark",
+      "timestamp": "2026-07-11T22:13:13.282Z"
+    },
     {
       "id": "ms-wellera-bookings-2026-07-11",
       "type": "status_change",
@@ -27254,70 +27307,6 @@
       "source_url": "https://commercialobserver.com/2026/05/sl-green-346-madison-mori-new-tower/",
       "link": "https://www.oftmw.com/map/?project=346madisonavenue",
       "timestamp": "2026-07-08T21:15:59.887Z"
-    },
-    {
-      "id": "track-legacy-golf-club-at-diamante",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking Legacy Golf Club at Diamante",
-      "project_slug": "legacy-golf-club-at-diamante",
-      "project_title": "Legacy Golf Club at Diamante",
-      "city": "Cabo San Lucas",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/9a3834090f48-DJI_0681-Edit.jpeg",
-      "link": "https://www.oftmw.com/map/?project=legacygolfclubatdiamante",
-      "timestamp": "2026-07-08T20:54:04.009351+00:00"
-    },
-    {
-      "id": "track-rivergate-redevelopment",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking RiverGate Redevelopment",
-      "project_slug": "rivergate-redevelopment",
-      "project_title": "RiverGate Redevelopment",
-      "city": "Goodlettsville",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/c36986558781-image-15-gigapixel-low-resolution-v2-2x.jpeg",
-      "link": "https://www.oftmw.com/map/?project=rivergateredevelopment",
-      "timestamp": "2026-07-08T19:02:55.489773+00:00"
-    },
-    {
-      "id": "track-chestnut-street-campus",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Now tracking Chestnut Street Campus",
-      "project_slug": "chestnut-street-campus",
-      "project_title": "Chestnut Street Campus",
-      "city": "Nashville",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/63e3eb37fb58-image-gigapixel-low-resolution-v2-2x.jpeg",
-      "link": "https://www.oftmw.com/map/?project=chestnutstreetcampus",
-      "timestamp": "2026-07-08T19:02:55.489749+00:00"
-    },
-    {
-      "id": "ms-kindred-resort-at-keystone-open-2026-07-08",
-      "type": "status_change",
-      "tag": "Now Open",
-      "title": "Kindred Resort at Keystone  Now Open",
-      "project_slug": "kindred-resort-at-keystone",
-      "project_title": "Kindred Resort at Keystone",
-      "city": "Keystone",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/81f45ea571b9-01-Rendering_River-Run-Gondola-and-Goodz-Tavern-copy.jpg",
-      "event_date": "2026-05-07",
-      "source_url": "https://news.vailresorts.com/kindred",
-      "link": "https://www.oftmw.com/map/?project=kindredresortatkeystone",
-      "timestamp": "2026-07-08T18:16:53.446Z"
-    },
-    {
-      "id": "ms-canada-water-masterplan-tenant-2026-07-08",
-      "type": "status_change",
-      "tag": "Tenant announced",
-      "title": "Canada Water Masterplan  Tenant announced",
-      "project_slug": "canada-water-masterplan",
-      "project_title": "Canada Water Masterplan",
-      "city": "London",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/canada-water-masterplan.jpg",
-      "event_date": "2026-06-09",
-      "source_url": "https://www.britishland.com/news/three-deal-porters-workspaces-launch-at-canada-water-with-first-pre-let/",
-      "link": "https://www.oftmw.com/map/?project=canadawatermasterplan",
-      "timestamp": "2026-07-08T18:14:36.379Z"
     }
   ],
   "most_covered": [
@@ -27473,17 +27462,6 @@
       "display_precision": "day"
     },
     {
-      "slug": "malabar-residences",
-      "title": "Malabar Residences",
-      "city": "New York City",
-      "delivery_date": "2026-08-15",
-      "days_out": 35,
-      "bucket": "90d",
-      "status": "Opening Soon",
-      "display_label": "Aug",
-      "display_precision": "month"
-    },
-    {
       "slug": "1-hotel-austin",
       "title": "1 Hotel Austin",
       "city": "Austin",
@@ -27586,6 +27564,17 @@
       "slug": "the-brook-tennis-and-pickleball",
       "title": "The Brook Tennis and Pickleball",
       "city": "Boynton Beach",
+      "delivery_date": "2026-09-15",
+      "days_out": 66,
+      "bucket": "90d",
+      "status": "Opening Soon",
+      "display_label": "Sep",
+      "display_precision": "month"
+    },
+    {
+      "slug": "2200-brickell",
+      "title": "2200 Brickell",
+      "city": "Miami",
       "delivery_date": "2026-09-15",
       "days_out": 66,
       "bucket": "90d",
