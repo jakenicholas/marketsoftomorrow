@@ -103,7 +103,7 @@
 .tmw-money--full .tmw-m-statrow .s{border:1px solid rgba(31,223,103,.22);border-radius:14px;padding:16px 18px;background:linear-gradient(180deg,rgba(31,223,103,.05),rgba(31,223,103,.012))}
 .tmw-money--full .tmw-m-statrow .s b{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:30px;color:var(--gs);line-height:1;letter-spacing:-.02em;display:block}
 .tmw-money--full .tmw-m-statrow .s span{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:9px;display:block}
-.tmw-money--full .tmw-m-grid{display:grid;grid-template-columns:1.3fr .95fr .95fr;gap:14px}
+.tmw-money--full .tmw-m-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media(max-width:980px){.tmw-money--full .tmw-m-grid{grid-template-columns:1fr}}
 .tmw-money--full .col{border:1px solid var(--hair2);border-radius:16px;padding:18px 20px;background:rgba(255,255,255,.02)}
 .tmw-money--full .col .h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);margin-bottom:12px}
@@ -132,7 +132,7 @@
 
   function dealRow(d, cls) {
     var amt = d.amt ? '<span class="amt">' + fmtM(d.amt) + '</span>' : '<span class="amt na">—</span>';
-    var meta = [d.city, d.lender || d.dev].filter(Boolean).join(' · ');
+    var meta = [d.city, d.lender || d.dev, d.when ? ago(d.when) : ''].filter(Boolean).join(' · ');
     return '<a class="' + cls + '" href="' + esc(d.href) + '" target="_blank" rel="noopener"><div class="' + (cls === 'tmw-m-deal' ? 'dn' : 'rn') + '"><div class="nm">' + esc(d.title) + '</div><div class="mt">' + esc(meta) + '</div></div>' + amt + '</a>';
   }
 
@@ -162,8 +162,7 @@
     var lend = {}; deals.forEach(function (d) { if (!d.lender) return; if (!lend[d.lender]) lend[d.lender] = { n: 0, amt: 0 }; lend[d.lender].n++; lend[d.lender].amt += (d.amt || 0); });
     var lenders = Object.keys(lend).map(function (k) { return { name: k, n: lend[k].n, amt: lend[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 6);
     var mc = {}; deals.forEach(function (d) { var c = d.city || '—'; if (!mc[c]) mc[c] = { n: 0, amt: 0 }; mc[c].n++; mc[c].amt += (d.amt || 0); });
-    var cities = Object.keys(mc).map(function (k) { return { city: k, n: mc[k].n, amt: mc[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 6);
-    var cmax = Math.max.apply(null, cities.map(function (c) { return c.n; }).concat([1]));
+    var cities = Object.keys(mc).map(function (k) { return { city: k, n: mc[k].n, amt: mc[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 7);
     el.className = 'tmw-money tmw-money--full';
     el.innerHTML = ''
       + '<div class="tmw-m-statrow">'
@@ -174,7 +173,7 @@
       + '<div class="tmw-m-grid">'
       + '<div class="col"><div class="h">Recent financings</div>' + recent.map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
       + '<div class="col"><div class="h">Most active lenders</div>' + (lenders.length ? lenders.map(function (l) { return '<div class="r"><div class="rn"><div class="nm">' + esc(l.name) + '</div><div class="mt">' + l.n + (l.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (l.amt ? '' : ' na') + '">' + (l.amt ? fmtM(l.amt) : '—') + '</span></div>'; }).join('') : '<div class="note">No lenders yet.</div>') + '<div class="note">From deal notes — approximate until fully structured.</div></div>'
-      + '<div class="col"><div class="h">Where capital is landing</div>' + cities.map(function (c) { var w = Math.round((c.n / cmax) * 100); return '<div class="fl"><span class="nm">' + esc(c.city) + '</span><span class="tk"><i style="width:' + w + '%"></i></span><span class="v">' + (c.amt ? fmtM(c.amt) : c.n + 'd') + '</span></div>'; }).join('') + '</div>'
+      + '<div class="col"><div class="h">Where capital is landing</div>' + cities.map(function (c) { return '<div class="r"><div class="rn"><div class="nm">' + esc(c.city) + '</div><div class="mt">' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (c.amt ? '' : ' na') + '">' + (c.amt ? fmtM(c.amt) : '—') + '</span></div>'; }).join('') + '</div>'
       + '</div>';
   }
 
