@@ -197,6 +197,25 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .emailinput{font-family:var(--sans);font-size:14px;color:#fff;background:var(--card);border:1px solid var(--hair2);border-radius:8px;padding:7px 10px;min-width:230px;max-width:60vw}
 .emailinput:focus{outline:none;border-color:var(--gold)}
 .ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}.ftr .tmwlogo{height:30px}.ftr .cp{font-size:12px;color:var(--mute)}
+
+/* ── Weekly brief tab ── */
+.brief-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.brief-item{display:flex;gap:13px;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:13px;text-decoration:none;color:inherit;transition:border-color .2s,background .2s}
+.brief-item:hover{border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.05)}
+.bi-img{width:56px;height:56px;border-radius:10px;object-fit:cover;flex:none;background:rgba(255,255,255,.06)}
+.bi-b{min-width:0;flex:1}
+.bi-tag{font:700 9.5px/1 'Inter',-apple-system,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#C4B5FD;margin-bottom:4px}
+.bi-t{font-size:14.5px;font-weight:600;color:#ECEAE5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bi-m{font-size:11.5px;color:#9AA39C;margin-top:2px}
+.brief-lock{max-width:460px;margin:18px auto;text-align:center;padding:30px 26px;border:1px solid rgba(167,139,250,.42);border-radius:16px;background:linear-gradient(180deg,rgba(167,139,250,.07),rgba(167,139,250,.02));animation:blGlow 2.6s ease-in-out infinite}
+@keyframes blGlow{0%,100%{box-shadow:0 0 0 1px rgba(167,139,250,.08) inset,0 0 20px -6px rgba(167,139,250,.25)}50%{box-shadow:0 0 0 1px rgba(167,139,250,.14) inset,0 0 30px -4px rgba(167,139,250,.45)}}
+@media(prefers-reduced-motion:reduce){.brief-lock{animation:none}}
+.brief-lock .bl-n{font-family:Georgia,serif;font-size:52px;line-height:1;color:#C4B5FD;text-shadow:0 0 22px rgba(167,139,250,.5)}
+.brief-lock .bl-t{font-size:15px;font-weight:600;color:#ECEAE5;margin-top:6px}
+.brief-lock .bl-s{font-size:13px;color:#9AA39C;line-height:1.55;margin-top:10px}
+.brief-lock .bl-cta{display:inline-flex;margin-top:18px;padding:11px 20px;border-radius:999px;border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.12);color:#C4B5FD;font:600 12.5px/1 'Inter',-apple-system,sans-serif;cursor:pointer;text-shadow:0 0 12px rgba(167,139,250,.5)}
+.brief-lock .bl-cta:hover{background:rgba(167,139,250,.18)}
+
 @media(max-width:820px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.badges,.earn,.frm{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.tabs .wrap{overflow-x:auto}}
 </style>
 </head>
@@ -208,6 +227,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-tab="overview">Overview</button>
+  <button class="tab" data-tab="brief">Brief</button>
   <button class="tab" data-tab="saved">Articles</button>
   <button class="tab" data-tab="account">Account</button>
 </div></nav>
@@ -250,6 +270,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="ecard"><div class="ev">+400</div><div class="et">Add to the map</div><div class="es">Suggest a project or firm. Verified additions earn the most of any contribution.</div></div>
       <div class="ecard"><div class="ev">+10</div><div class="et">Comment</div><div class="es">Join the conversation on any article &mdash; your comments are public.</div></div>
     </div>
+  </section>
+
+  <section data-tab-panel="brief" hidden>
+    <div class="sechead"><h2>Your weekly brief</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
+    <div id="briefBody"><div class="empty">Loading&hellip;</div></div>
   </section>
 
   <section data-tab-panel="saved" hidden>
@@ -446,16 +471,113 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function gcard(href,img,kicker,title){return '<a class="gc" href="'+esc(href)+'">'+(img?'<img class="gc-img" src="'+esc(img)+'" loading="lazy" alt="">':'<div class="gc-img gc-ph"></div>')+'<div class="gc-b">'+(kicker?'<div class="gc-cat">'+esc(kicker)+'</div>':'')+'<div class="gc-t">'+esc(title)+'</div></div></a>';}
 
+  // ── Weekly brief — the in-app watch report. Assembled client-side:
+  //    /watch/feed (eye watches + smart watches, matched server-side) merged
+  //    with the member's follows (favorites / markets_followed / firms_followed
+  //    from member JSON) matched against pulse.json, filtered to the week
+  //    ending the most recent Friday. Pro sees the moves; free sees the count
+  //    behind the upgrade panel (the teaser).
+  var _briefDone=false;
+  function briefWeekOf(){
+    var d=new Date(); var day=d.getDay(); var diff=(day>=5)?(day-5):(day+2);
+    d.setDate(d.getDate()-diff);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function briefIsPro(){ try{ return window._isPaidMember===true || (window.__tmwMember&&window.__tmwMember.plan==='paid'); }catch(e){ return false; } }
+  function evDate(ev){
+    if(ev && ev.timestamp) return String(ev.timestamp).slice(0,10);
+    var m=/(\d{4}-\d{2}-\d{2})$/.exec(String((ev&&ev.id)||'')); return m?m[1]:'';
+  }
+  function loadBrief(){
+    if(_briefDone) return; _briefDone=true;
+    var wk=briefWeekOf();
+    try{ localStorage.setItem('tmw_brief_seen', wk); }catch(e){}
+    var sub=document.getElementById('briefSub'), body=document.getElementById('briefBody');
+    var dt=new Date(wk+'T00:00:00');
+    sub.textContent='Week of '+dt.toLocaleDateString('en-US',{month:'long',day:'numeric'})+' \u00b7 the moves on your watchlist';
+    var from=new Date(dt); from.setDate(from.getDate()-7);
+    var fromKey=from.getFullYear()+'-'+String(from.getMonth()+1).padStart(2,'0')+'-'+String(from.getDate()).padStart(2,'0');
+    Promise.all([
+      getMember(), getMJ(),
+      fetch('https://www.oftmw.com/map/pulse.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+      fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];})
+    ]).then(function(o){
+      var mem=o[0], mj=o[1]||{}, pulseD=o[2], flat=o[3]||[];
+      if(!mem){ body.innerHTML='<div class="empty">Sign in to see your brief.</div>'; return; }
+      try{ var payload=JSON.stringify({member_id:mem.id,event_name:'brief_viewed',props:{week:wk}}); navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'})); }catch(e){}
+      var pulse=Array.isArray(pulseD)?pulseD:((pulseD&&(pulseD.events||pulseD.recent_activity))||[]);
+      // follow sets
+      var favs={}, mkts={}, firms={};
+      (mj.favorites||[]).forEach(function(x){ if(x) favs[projectSlugify(x)]=1; });
+      (mj.markets_followed||[]).forEach(function(x){ if(x) mkts[String(x).toLowerCase()]=1; });
+      (mj.firms_followed||[]).forEach(function(x){ if(x) firms[String(x).toLowerCase()]=1; });
+      // project slug -> firm slugs (for firm follows)
+      var projFirms={};
+      flat.forEach(function(p){
+        var k=projectSlugify(p.Title); if(!k) return; var out=[];
+        ['Developer','Developers','Architect','Architects','Firm','Builder'].forEach(function(f){
+          if(p[f]) String(p[f]).split(/[,;\/]|&amp;|\band\b/).forEach(function(x){ var fs=projectSlugify(String(x).replace(/&amp;/g,'&')); if(fs) out.push(fs); });
+        });
+        if(out.length) projFirms[k]=out;
+      });
+      var feedP=fetch(WORKER+'/watch/feed?member='+encodeURIComponent(mem.id),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
+      feedP.then(function(feed){
+        var moves={}, order=[];
+        function add(ev,label){
+          var d=evDate(ev); if(!d||d<=fromKey||d>wk) return;
+          var id=ev.id||((ev.project_slug||'')+d); if(moves[id]) return;
+          moves[id]={ev:ev,date:d,label:label}; order.push(id);
+        }
+        ((feed&&feed.moves)||[]).forEach(function(mv){ add(mv,'Watched'); });
+        pulse.forEach(function(ev){
+          if(!ev||!ev.project_slug) return;
+          var k=projectSlugify(ev.project_slug);
+          if(favs[k]){ add(ev,'Saved project'); return; }
+          if(ev.city&&mkts[String(ev.city).toLowerCase()]){ add(ev,String(ev.city)); return; }
+          var pf=projFirms[k]||[];
+          for(var i=0;i<pf.length;i++){ if(firms[pf[i]]){ add(ev,humanize(pf[i])); return; } }
+        });
+        order.sort(function(a,b){ return moves[b].date.localeCompare(moves[a].date); });
+        var n=order.length;
+        if(!briefIsPro()){
+          body.innerHTML='<div class="brief-lock">'
+            + '<div class="bl-n">'+n+'</div>'
+            + '<div class="bl-t">move'+(n===1?'':'s')+' on your watchlist this week</div>'
+            + '<div class="bl-s">Pro members get the full brief \u2014 what moved, when, and what it means \u2014 here and in their inbox.</div>'
+            + '<button class="bl-cta" type="button" id="briefGoPro">Unlock the weekly brief \u2192</button>'
+            + '</div>';
+          var bp=document.getElementById('briefGoPro'); if(bp) bp.addEventListener('click',function(){ goPro(); });
+          return;
+        }
+        if(!n){ body.innerHTML='<div class="empty">No moves on your watchlist this week \u2014 Onyx keeps watch.</div>'; return; }
+        body.innerHTML='<div class="brief-list">'+order.map(function(id){
+          var x=moves[id], ev=x.ev;
+          var title=ev.project_title||ev.title||'';
+          var href='https://www.oftmw.com/map/?project='+mapSlug(ev.project_title||ev.project_slug||'');
+          var d2=new Date(x.date+'T00:00:00');
+          return '<a class="brief-item" href="'+esc(href)+'">'
+            + (ev.image?'<img class="bi-img" src="'+esc(ev.image)+'" loading="lazy" alt="">':'<div class="bi-img bi-ph"></div>')
+            + '<div class="bi-b">'
+            +   '<div class="bi-tag">'+esc(ev.tag||ev.type||'Move')+' \u00b7 '+esc(x.label)+'</div>'
+            +   '<div class="bi-t">'+esc(title)+'</div>'
+            +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+d2.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>'
+            + '</div></a>';
+        }).join('')+'</div>';
+      });
+    });
+  }
+
   var _svDone=false;
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});
     var id=b.getAttribute('data-tab');
     document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
     if(id==='saved') loadSaved();
+    if(id==='brief') loadBrief();
   })});
   // Deep-link a tab via the hash (e.g. /account#saved), on load + change.
   // 'watchlist' now resolves to Overview (the unified "Your watches" surface).
-  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(['overview','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
+  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(['overview','brief','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
   tabFromHash(); window.addEventListener('hashchange',tabFromHash);
 
   // ── project watches (Memberstack `favorites` × projects-flat.json) ──

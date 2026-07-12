@@ -1926,18 +1926,42 @@
     var d = getDismissed();
     return events.filter(function(e){ return !d.has(eid(e)); }).slice(0, 5);
   }
+  // ── Weekly brief card — pinned atop the Me feed from each Friday until
+  //    clicked. One slot only: a new Friday's card automatically replaces an
+  //    unclicked previous one (the week key changes, the old seen-flag is moot).
+  function briefWeekOf(){
+    var d = new Date();
+    var day = d.getDay();                       // 0 Sun … 5 Fri, 6 Sat
+    var diff = (day >= 5) ? (day - 5) : (day + 2);
+    d.setDate(d.getDate() - diff);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function briefSeen(wk){ try { return localStorage.getItem('tmw_brief_seen') === wk; } catch(_) { return true; } }
+  function briefCardHtml(){
+    if (!(window.__tmwMember && window.__tmwMember.id)) return '';
+    var wk = briefWeekOf();
+    if (briefSeen(wk)) return '';
+    var dt = new Date(wk + 'T00:00:00');
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '<a class="tmw-pulse-brief" href="https://www.oftmw.com/account/#brief" data-brief-week="' + wk + '">'
+      + '<span class="pb-eye"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/><path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/></svg>Your weekly brief</span>'
+      + '<span class="pb-t">The moves on your watchlist &mdash; week of ' + MON[dt.getMonth()] + ' ' + dt.getDate() + '</span>'
+      + '<span class="pb-cta">Read it &rarr;</span>'
+      + '</a>';
+  }
   function feedHtml(){
+    var brief = (scope === 'me') ? briefCardHtml() : '';
     var recs = (scope === 'me') ? recsHtml() : '';
     var list = active();
     if (!list.length){
       if (scope === 'me'){
-        return recs + '<div class="tmw-pulse-empty">No moves on your watches yet.<br>Onyx keeps watch — switch to <b>All</b> for the network.</div>';
+        return brief + recs + '<div class="tmw-pulse-empty">No moves on your watches yet.<br>Onyx keeps watch — switch to <b>All</b> for the network.</div>';
       }
       var fb = recentFallback();
       if (!fb.length) return '<div class="tmw-pulse-empty">You’re all caught up</div>';
       return '<div class="tmw-pulse-note">Nothing new lately — here’s the latest</div>' + fb.map(itemHtml).join('');
     }
-    return recs + list.map(itemHtml).join('');
+    return brief + recs + list.map(itemHtml).join('');
   }
   function paintCircle(){
     if (!circleEl) return;
@@ -1950,6 +1974,17 @@
   function repaint(){ paintCircle(); if (feedEl) feedEl.innerHTML = feedHtml(); }
   // Freeze the current scope's last-seen for NEW dots, then mark it seen NOW so
   // the badge clears — the feed still shows what was new via _displaySeen.
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('.tmw-pulse-brief') : null;
+    if (!b) return;
+    try { localStorage.setItem('tmw_brief_seen', b.getAttribute('data-brief-week') || ''); } catch(_){}
+    try {
+      var m = window.__tmwMember || null;
+      var payload = JSON.stringify({ member_id: (m && m.id) || 'anon', member_name: (m && m.name) || null,
+        event_name: 'brief_open_pulse', props: { week: b.getAttribute('data-brief-week') || '' } });
+      navigator.sendBeacon('https://tmw.jake-ab7.workers.dev/event', new Blob([payload], { type: 'text/plain' }));
+    } catch(_){}
+  });
   function markScopeSeen(){ _displaySeen = seenFor(scope); setSeen(scope, Date.now()); repaint(); }
 
   function injectCss(){
@@ -1986,6 +2021,13 @@
       '.tmw-pulse-scope.is-pro .tps-pro{display:none}',
       '.tps-btn.on .tps-pro{color:#160b2e;border-color:rgba(22,11,46,.35)}',
       '.tmw-pulse-feed{overflow-y:auto;padding:6px}',
+      '.tmw-pulse-brief{display:flex;flex-direction:column;gap:4px;margin:2px 0 10px;padding:13px 15px;border-radius:13px;text-decoration:none;cursor:pointer;border:1px solid rgba(167,139,250,.42);background:linear-gradient(180deg,rgba(167,139,250,.08),rgba(167,139,250,.02));animation:tmwPbGlow 2.6s ease-in-out infinite}',
+      '@keyframes tmwPbGlow{0%,100%{box-shadow:0 0 0 1px rgba(167,139,250,.08) inset,0 0 18px -6px rgba(167,139,250,.25)}50%{box-shadow:0 0 0 1px rgba(167,139,250,.14) inset,0 0 28px -4px rgba(167,139,250,.45)}}',
+      '@media(prefers-reduced-motion:reduce){.tmw-pulse-brief{animation:none}}',
+      '.tmw-pulse-brief .pb-eye{display:flex;align-items:center;gap:6px;font:700 10px/1 "Inter",-apple-system,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#C4B5FD;text-shadow:0 0 12px rgba(167,139,250,.5)}',
+      '.tmw-pulse-brief .pb-eye svg{width:12px;height:12px}',
+      '.tmw-pulse-brief .pb-t{font-size:12.5px;color:#ECEAE5;line-height:1.4}',
+      '.tmw-pulse-brief .pb-cta{font:600 11px/1 "Inter",-apple-system,sans-serif;color:#C4B5FD;margin-top:2px}',
       '.tmw-pulse-item{position:relative;display:flex;gap:11px;padding:9px 32px 9px 10px;border-radius:11px;text-decoration:none;cursor:pointer;transition:background .12s}',
       '.tmw-pulse-item:hover{background:rgba(255,255,255,.05)}',
       '.tmw-pulse-item .pi-img{width:52px;height:52px;border-radius:9px;flex:0 0 auto;object-fit:cover;background:rgba(255,255,255,.06)}',
