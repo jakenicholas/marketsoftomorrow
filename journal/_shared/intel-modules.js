@@ -10,6 +10,7 @@
 (function () {
   'use strict';
   var PROJECTS = 'https://www.oftmw.com/map/projects-flat.json';
+  var LENDER_MAP = 'https://tmw.jake-ab7.workers.dev/lender-map';
   var ATLAS = 'https://www.oftmw.com/atlas';
 
   function sharedJson(url) {
@@ -49,7 +50,15 @@
     });
     return best;
   }
-  function financeDeals(projects) {
+  // Apply the admin canonicalization map: hide false-positives, merge variants.
+  function normLender(name, lmap) {
+    if (!name) return '';
+    var low = String(name).toLowerCase().trim();
+    if (lmap && lmap.hidden && lmap.hidden.indexOf(low) >= 0) return '';
+    if (lmap && lmap.overrides && lmap.overrides[low]) return lmap.overrides[low];
+    return name;
+  }
+  function financeDeals(projects, lmap) {
     var out = [];
     projects.forEach(function (p) {
       var amt = num(p.FinancingAmountM), lender = p.FinancingLender || '', date = p.FinancingDate || '';
@@ -59,7 +68,7 @@
         amt = f.amt; lender = f.lender; date = f.date;
       }
       if (amt == null && !lender && !date) return;
-      out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: lender, when: parseWhen(date) });
+      out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date) });
     });
     return out;
   }
@@ -183,9 +192,10 @@
       pending.push(el);
     });
     if (!pending.length) return;
-    sharedJson(PROJECTS).then(function (projects) {
+    Promise.all([sharedJson(PROJECTS), sharedJson(LENDER_MAP).catch(function () { return null; })]).then(function (o) {
+      var projects = o[0], lmap = o[1] || { overrides: {}, hidden: [] };
       if (!Array.isArray(projects) || !projects.length) return;
-      var deals = financeDeals(projects);
+      var deals = financeDeals(projects, lmap);
       pending.forEach(function (el) {
         try { (el.__mode === 'full' ? renderFull : renderTeaser)(el, deals); el.setAttribute('data-tmw-money-done', '1'); } catch (e) {}
       });

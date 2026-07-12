@@ -11107,6 +11107,43 @@ async function handleIntelRules(request, env, origin) {
   return json({ rules }, {}, env, origin);
 }
 
+// /lender-map — canonicalization for financing lenders (merge variants like
+// "TYKO Capital"/"Tyko Capital", hide false-positives like project names that
+// got parsed as a lender). GET is PUBLIC (the Follow-the-Money surfaces apply it);
+// POST { overrides:{variantLower:Canonical}, hidden:[nameLower] } replaces it and
+// is admin-gated here. Stored latest-wins as an events row (like intel_rules).
+async function handleLenderMap(request, env, origin) {
+  if (request.method === 'POST') {
+    const denied = await requireAdminToken(request, env, origin);
+    if (denied) return denied;
+    let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+    const overrides = {};
+    if (body && body.overrides && typeof body.overrides === 'object') {
+      for (const k of Object.keys(body.overrides)) {
+        if (Object.keys(overrides).length >= 800) break;
+        const key = String(k).toLowerCase().trim().slice(0, 80);
+        const val = String(body.overrides[k] || '').trim().slice(0, 80);
+        if (key && val) overrides[key] = val;
+      }
+    }
+    const hidden = Array.isArray(body && body.hidden)
+      ? Array.from(new Set(body.hidden.map(h => String(h || '').toLowerCase().trim().slice(0, 80)).filter(Boolean))).slice(0, 800)
+      : [];
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?, ?, ?, ?)`)
+        .bind(Math.floor(Date.now() / 1000), 'admin:lenders', 'lender_map',
+              JSON.stringify({ overrides, hidden })).run();
+    } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+    return json({ ok: true, overrides: Object.keys(overrides).length, hidden: hidden.length }, {}, env, origin);
+  }
+  let overrides = {}, hidden = [];
+  try {
+    const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name = 'lender_map' ORDER BY ts DESC LIMIT 1`).first();
+    if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (pj.overrides && typeof pj.overrides === 'object') overrides = pj.overrides; if (Array.isArray(pj.hidden)) hidden = pj.hidden; }
+  } catch {}
+  return json({ overrides, hidden }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
+}
+
 // /intel-exemplars — GET the golden-answer exemplars fed as few-shot style
 // guides into the smart-answer prompt; POST { exemplars:[{query,answer}], note }
 // replaces them (the intel-review routine writes here). GET admin-gated via
@@ -11937,6 +11974,9 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/funnel-stats') {
         return await handleFunnelStats(env, origin, url);
+      }
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/lender-map') {
+        return await handleLenderMap(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/subscriptions') {
         return await handleSubscriptions(env, origin, url);
