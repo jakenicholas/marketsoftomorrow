@@ -442,3 +442,33 @@ footer .tmw-wordmark{width:118px}
   .article-intel .ai-expand{position:relative; z-index:2; order:0; align-self:flex-end; width:30px; height:30px; margin:-26px 0 0}
   .article-intel .ai-expand svg{width:17px; height:17px}
 }
+
+/* ── Post-follow nudge — one line pointing at the Pro payoff ── */
+.ai-follow-nudge{display:inline-flex; align-items:center; gap:7px; width:100%; margin-top:8px; padding:0; border:0; background:none; cursor:pointer; text-align:left;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:#C4B5FD; text-shadow:0 0 12px rgba(167,139,250,.4)}
+.ai-follow-nudge svg{width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s}
+.ai-follow-nudge:hover svg{transform:translateX(2px)}
+
+/* ── Onyx Deep tease under Ask-Onyx answers (compact purple, collapsed) ── */
+.ai-dt{margin-top:10px; border:1px solid rgba(167,139,250,.38); border-radius:12px; padding:9px 14px; position:relative; overflow:hidden;
+  background:linear-gradient(180deg,rgba(167,139,250,.06),rgba(167,139,250,.015));
+  animation:aiDtGlow 2.6s ease-in-out infinite}
+.ai-dt.open{padding:12px 16px 14px}
+@keyframes aiDtGlow{0%,100%{box-shadow:0 0 0 1px rgba(167,139,250,.08) inset,0 0 18px -6px rgba(167,139,250,.22)}
+  50%{box-shadow:0 0 0 1px rgba(167,139,250,.14) inset,0 0 26px -4px rgba(167,139,250,.4)}}
+@media(prefers-reduced-motion:reduce){.ai-dt{animation:none}.ai-dt-bar{animation:none}}
+.ai-dt-toggle{width:100%; background:none; border:0; padding:0; cursor:pointer; font:inherit; color:inherit; text-align:left; display:flex; align-items:center; gap:10px}
+.ai-dt-eye{font:700 10.5px/1 "Inter",-apple-system,system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase; color:#C4B5FD; text-shadow:0 0 12px rgba(167,139,250,.5); display:flex; align-items:center; gap:6px; flex:none}
+.ai-dt-eye svg{width:12px; height:12px; flex:none}
+.ai-dt-pro{font-size:7.5px; letter-spacing:.12em; background:#B9A6FF; color:#120a24; border-radius:4px; padding:2px 5px; font-weight:800}
+.ai-dt-peek{font-size:11.5px; color:rgba(236,234,229,.6); flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ai-dt-chev{color:#C4B5FD; font-size:11px; flex:none; transition:transform .2s}
+.ai-dt.open .ai-dt-chev{transform:rotate(180deg)}
+.ai-dt-body{margin-top:9px}
+.ai-dt-sec{font-size:12px; font-weight:600; color:#ECEAE5; display:flex; align-items:center; gap:7px; padding-top:9px; border-top:1px solid rgba(255,255,255,.06); margin-bottom:6px}
+.ai-dt-sec .k{font-family:var(--mono); font-size:8px; color:#C4B5FD; letter-spacing:.14em}
+.ai-dt-bar{height:6px; border-radius:3px; margin:4px 0; background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(167,139,250,.13) 50%,rgba(255,255,255,.05) 75%); background-size:200% 100%; animation:aiDtShimmer 1.8s linear infinite}
+@keyframes aiDtShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.ai-dt-cta{display:inline-flex; align-items:center; gap:7px; margin-top:10px; padding:8px 14px; border-radius:999px; border:1px solid rgba(167,139,250,.5); background:rgba(167,139,250,.12); color:#C4B5FD;
+  font:600 11.5px/1 "Inter",-apple-system,system-ui,sans-serif; letter-spacing:.03em; cursor:pointer; text-shadow:0 0 12px rgba(167,139,250,.5)}
+.ai-dt-cta:hover{background:rgba(167,139,250,.18)}

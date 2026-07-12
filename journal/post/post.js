@@ -1374,6 +1374,43 @@ function initComments(slug, post) {
       return subj;
     }
     function moreLink() { return '<button class="ai-ask-more" type="button">Explore in Onyx <svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></button>'; }
+    // Onyx Deep tease under each article answer (non-Pro): the SHAPE of what
+    // Deep would have added, never the content — mirrors the overlay tease.
+    var DEEP_STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/><path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/></svg>';
+    function deepTeaseHtml() {
+      if (isPro()) return '';
+      return '<div class="ai-dt" data-ai-dt>'
+        + '<button type="button" class="ai-dt-toggle" aria-expanded="false">'
+        +   '<span class="ai-dt-eye">' + DEEP_STAR + ' Onyx Deep <span class="ai-dt-pro">PRO</span></span>'
+        +   '<span class="ai-dt-peek">See what the deep read would have added</span>'
+        +   '<span class="ai-dt-chev" aria-hidden="true">\u25be</span>'
+        + '</button>'
+        + '<div class="ai-dt-body" hidden>'
+        +   '<div class="ai-dt-sec"><span class="k">01</span>Comparable projects &mdash; how this stacks against the pipeline</div>'
+        +   '<div class="ai-dt-bar" style="width:88%"></div><div class="ai-dt-bar" style="width:64%"></div>'
+        +   '<div class="ai-dt-sec"><span class="k">02</span>The firm\'s delivery record behind this story</div>'
+        +   '<div class="ai-dt-bar" style="width:78%"></div><div class="ai-dt-bar" style="width:52%"></div>'
+        +   '<button type="button" class="ai-dt-cta">Go deeper with Onyx Deep \u2192</button>'
+        + '</div>'
+        + '</div>';
+    }
+    function wireTease(q) {
+      var box = ans.querySelector('[data-ai-dt]'); if (!box) return;
+      var tog = box.querySelector('.ai-dt-toggle'), body = box.querySelector('.ai-dt-body');
+      tog.addEventListener('click', function () {
+        var open = body.hidden;
+        body.hidden = !open;
+        box.classList.toggle('open', open);
+        tog.setAttribute('aria-expanded', String(open));
+        if (open && !box.getAttribute('data-seen')) { box.setAttribute('data-seen', '1'); beacon('deep_tease_expand', { q: q, surface: 'article', slug: slug }); }
+      });
+      var cta = box.querySelector('.ai-dt-cta');
+      if (cta) cta.addEventListener('click', function () {
+        beacon('deep_tease_click', { q: q, surface: 'article', slug: slug });
+        try { if (typeof window.tmwShowPaywall === 'function') { window.tmwShowPaywall('feature:deep'); return; } } catch (e) {}
+        goPro();
+      });
+    }
     var _asking = false;
     function ask() {
       var q = (ain ? ain.value : '').trim();
@@ -1384,9 +1421,9 @@ function initComments(slug, post) {
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           _asking = false;
-          if (d && d.ok && d.answer) ans.innerHTML = '<div class="ai-ask-a">' + esc(d.answer) + '</div><div class="ai-ask-foot">' + moreLink() + '</div>';
+          if (d && d.ok && d.answer) ans.innerHTML = '<div class="ai-ask-a">' + esc(d.answer) + '</div>' + deepTeaseHtml() + '<div class="ai-ask-foot">' + moreLink() + '</div>';
           else ans.innerHTML = '<div class="ai-ask-a">Couldn\'t answer that from the article.</div><div class="ai-ask-foot">' + moreLink() + '</div>';
-          wireMore(q);
+          wireMore(q); wireTease(q);
         })
         .catch(function () { _asking = false; ans.innerHTML = '<div class="ai-ask-a">Something went wrong.</div><div class="ai-ask-foot">' + moreLink() + '</div>'; wireMore(q); });
     }
@@ -1396,17 +1433,45 @@ function initComments(slug, post) {
     }
     if (ago) ago.addEventListener('click', ask);
     if (ain) ain.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ask(); } });
+    var FOLLOW_STORES = ['firms_followed', 'markets_followed', 'favorites'];
+    var FREE_FOLLOW_CAP = 3;
+    function flipAndToggle(f, btn){
+      var on = btn.classList.contains('on');
+      toggleFollow(f, btn);
+      var ic = btn.querySelector('.ai-f-ic');
+      if (ic) ic.outerHTML = (on
+        ? '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
+        : '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>');
+      if (!on && !isPro()) showFollowNudge();
+    }
+    // Post-follow nudge — the moment of highest interest: one line under the
+    // chips pointing at the Pro payoff (the weekly brief when this moves).
+    function showFollowNudge(){
+      var fw = host.querySelector('.ai-follows');
+      if (!fw || fw.querySelector('.ai-follow-nudge')) return;
+      var n = document.createElement('button');
+      n.type = 'button'; n.className = 'ai-follow-nudge';
+      n.innerHTML = 'Added &mdash; Pro members get the weekly brief when this moves <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+      n.addEventListener('click', function(){ beacon('follow_nudge_click', { slug: slug }); goPro(); });
+      fw.appendChild(n);
+    }
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var f = follows[+btn.getAttribute('data-fi')]; if (!f) return;
-        if (!isPro()) { goPro(); return; }         // Pro-gate: no flip, no write for non-Pro
-        var on = btn.classList.contains('on');
-        // swap icon optimistically
-        toggleFollow(f, btn);
-        var ic = btn.querySelector('.ai-f-ic');
-        if (ic) ic.outerHTML = (on
-          ? '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
-          : '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>');
+        // Free members can build a small watchlist (the on-ramp); the 4th
+        // follow is the Pro moment. Unfollowing is always allowed. Anonymous
+        // readers land in the free-signup flow inside toggleFollow.
+        var unfollow = btn.classList.contains('on');
+        if (unfollow || isPro()) { flipAndToggle(f, btn); return; }
+        var m = ms();
+        if (!m || !m.getMemberJSON) { flipAndToggle(f, btn); return; }   // anon -> signup path
+        m.getMemberJSON().then(function (g) {
+          var j = (g && g.data && typeof g.data === 'object') ? g.data : {};
+          var total = 0;
+          FOLLOW_STORES.forEach(function (k) { if (Array.isArray(j[k])) total += j[k].length; });
+          if (total >= FREE_FOLLOW_CAP) { beacon('follow_cap_hit', { slug: slug, total: total }); goPro(); return; }
+          flipAndToggle(f, btn);
+        }).catch(function () { flipAndToggle(f, btn); });   // fail-open
       });
     });
   }

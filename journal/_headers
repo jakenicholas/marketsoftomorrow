@@ -21,6 +21,13 @@
 /_shared/*
   Cache-Control: public, max-age=0, must-revalidate
 
+# The article runtime (intel box, follows, Ask Onyx) — same revalidation rule
+# as /_shared so every article always runs the current version.
+/post/post.js
+  Cache-Control: public, max-age=0, must-revalidate
+/post/post.css
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Bot-filtered Linkly click history — read cross-origin by the Studio's
 # Placements tab (admin.oftmw.com) as the baseline behind our first-party numbers.
 /_shared/placement-baseline.json
