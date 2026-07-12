@@ -2989,15 +2989,15 @@
       "delivery_date": "2026-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Hotel",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~6 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~6 months based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "summit-brickell": {
       "estimate_years": 1.5,
@@ -3103,10 +3103,10 @@
       "delivery_speculative": false
     },
     "domus-brickell-center": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 903,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 537,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
@@ -3114,7 +3114,7 @@
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -3963,8 +3963,8 @@
       "is_mixed_use": false
     },
     "continuum-12000-sport-wellness-residences": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
       "range_low": 1.7,
       "range_high": 4.8,
       "confidence": "medium",
@@ -3976,7 +3976,15 @@
       "avg_distance_km": 1010.7,
       "avg_distance_mi": 628.0,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kobi Karp",
+        "count": 1,
+        "median_years": 2.83,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -4009,7 +4017,7 @@
           "distance_mi": 109.6
         }
       ],
-      "pattern_summary": "Among 18 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8).",
+      "pattern_summary": "Among 18 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Adjusted to ~2.9 years for Kobi Karp's own track record (~2.8-year typical pace across 1 prior project).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -5273,9 +5281,9 @@
       "is_mixed_use": false
     },
     "hb-capital-group-tower": {
-      "estimate_years": 4.3,
-      "estimate_label": "~4.3 years",
-      "range_low": 4.3,
+      "estimate_years": 4.0,
+      "estimate_label": "~4 years",
+      "range_low": 3.5,
       "range_high": 4.3,
       "confidence": "low",
       "comparable_count": 1,
@@ -5286,7 +5294,15 @@
       "avg_distance_km": 1515.6,
       "avg_distance_mi": 941.7,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kobi Karp",
+        "count": 1,
+        "median_years": 2.83,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Mixed-Use",
       "metro": "Orlando",
@@ -5301,7 +5317,7 @@
           "distance_mi": 941.7
         }
       ],
-      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 3.5–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -11117,8 +11133,8 @@
       "delivery_speculative": true
     },
     "adagio-sarasota": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
       "range_low": 1.7,
       "range_high": 4.3,
       "confidence": "medium",
@@ -11130,7 +11146,15 @@
       "avg_distance_km": 1350.9,
       "avg_distance_mi": 839.4,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Kobi Karp",
+        "count": 1,
+        "median_years": 2.83,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Residences",
       "metro": "Tampa Bay",
@@ -11163,7 +11187,7 @@
           "distance_mi": 657.0
         }
       ],
-      "pattern_summary": "Among 16 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.3).",
+      "pattern_summary": "Among 16 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.3). Adjusted to ~2.9 years for Kobi Karp's own track record (~2.8-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -13704,8 +13728,8 @@
     "completed": 66,
     "skipped": 87,
     "no_type": 0,
-    "firm_boosted": 37,
-    "speculative_softened": 163,
+    "firm_boosted": 40,
+    "speculative_softened": 164,
     "district": 11,
     "mixed_use_adjusted": 20
   }
