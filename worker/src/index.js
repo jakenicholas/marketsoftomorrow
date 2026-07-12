@@ -5777,7 +5777,12 @@ function computeFollowers(stored) {
   const sorted = history.filter(h => h && h.date && h.total != null).sort((a, b) => a.date < b.date ? -1 : 1);
   if (sorted.length) {
     const cutoff = new Date(Date.now() - 40 * 86400 * 1000).toISOString().slice(0, 10);
-    const base = sorted.find(h => h.date >= cutoff) || sorted[0];
+    let base = sorted.find(h => h.date >= cutoff) || sorted[0];
+    // A fresh stamp equals the live counts (delta 0), which would hide the
+    // growth pill on every media page — step back one snapshot so the pill
+    // keeps reading as real since-last-snapshot growth.
+    const bi = sorted.indexOf(base);
+    if (umbrella - (Number(base.total) || 0) === 0 && bi > 0) base = sorted[bi - 1];
     const delta = umbrella - (Number(base.total) || 0);
     const pct = base.total ? (delta / base.total) * 100 : 0;
     growth = { delta, pct: Math.round(pct * 10) / 10, since: base.date, from: Number(base.total) || 0, current: umbrella };

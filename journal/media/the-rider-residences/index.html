@@ -352,6 +352,13 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 .alt-tier ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:11px; position:relative}
 .alt-tier li{display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--cream); line-height:1.45}
 .alt-tier li .at-dot{width:6px; height:6px; border-radius:50%; background:var(--gold); margin-top:7px; flex:none; box-shadow:0 0 8px rgba(230,197,116,.55)}
+/* market pills — where the campaign runs (gold glow, linked to each IG) */
+.mkt-pills{display:flex; align-items:center; flex-wrap:wrap; gap:10px 12px; margin-top:22px}
+.mkt-lab{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute)}
+.mkt-pill{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); background:rgba(230,197,116,.10); border:1px solid rgba(230,197,116,.34); padding:8px 15px; border-radius:999px; text-decoration:none; text-shadow:0 0 14px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16); transition:all .2s}
+.mkt-pill:hover{background:rgba(230,197,116,.16); border-color:rgba(230,197,116,.5); transform:translateY(-1px)}
+.mkt-pill.primary{font-size:13px; padding:10px 18px; background:rgba(230,197,116,.14); border-color:rgba(230,197,116,.5); box-shadow:0 0 26px rgba(230,197,116,.28)}
+
 
 /* products / three lenses */
 .lens-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
@@ -1029,7 +1036,8 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
     <div class="shead">
       <div class="eyebrow reveal">Your Campaign</div>
       <h2 class="reveal d1">What we'll provide</h2>
-      <p class="lede reveal d2">A 10-month custom campaign for <span class="hl-gold">The Rider Residences</span>, beginning Aug 1, 2026.</p>
+      <p class="lede reveal d2">Custom campaign options for <span class="hl-gold">The Rider Residences</span>, beginning Aug 1, 2026.</p>
+      <div class="mkt-pills reveal d2"><span class="mkt-lab">Running on</span><a class="mkt-pill primary" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener">Florida of Tomorrow</a><span class="mkt-lab">+ additional focus-market push from</span><a class="mkt-pill" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">Hotels of Tomorrow</a><a class="mkt-pill" href="https://www.instagram.com/newyorkoftomorrow" target="_blank" rel="noopener">New York of Tomorrow</a></div>
     </div>
     <div class="alt-eyebrow reveal">Option A</div>
     <div class="deliver">
@@ -1366,7 +1374,7 @@ addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>3
 </script>
 <script src="/_shared/member-track.js" defer></script>
 
-<script type="application/json" id="tmw-proposal-config">{"project": "The Rider Residences", "prepared": "2026", "subtitle": "A custom media campaign by Markets of Tomorrow, prepared for The Rider Residences.", "campaign": {"intro": "A 10-month custom campaign for The Rider Residences, beginning Aug 1, 2026.", "deliverables": [{"q": "5×", "t": "Original website articles"}, {"q": "5×", "t": "Florida of Tomorrow collab social posts"}, {"q": "5×", "t": "Featured Stories in our newsletter"}, {"q": "1×", "t": "Solo Newsletter"}, {"q": "10×", "t": "Meta stories"}, {"t": "Extra focus market push"}, {"t": "Daily website banner"}, {"t": "Weekly newsletter banner"}, {"t": "Featured spotlight in our Database — Map, Atlas & TMW Intelligence"}, {"t": "Official Partner of Tomorrow — visible on every webpage"}], "price": "$30,000", "priceNote": "Full 10-month campaign", "term": "Aug 1, 2026 – May 31, 2027", "termNote": "Invoiced ahead of start"}, "cta": "Ready to put The Rider Residences in front of buyers and millions of readers.", "contactName": "Jake Nicholas", "contactLine": "Founder & CEO · jake@oftmw.com"}</script>
+<script type="application/json" id="tmw-proposal-config">{"project": "The Rider Residences", "prepared": "2026", "subtitle": "A custom media campaign by Markets of Tomorrow, prepared for The Rider Residences.", "campaign": {"intro": "Custom campaign options for The Rider Residences, beginning Aug 1, 2026 — running on Florida of Tomorrow, with an additional focus-market push from Hotels of Tomorrow and New York of Tomorrow.", "deliverables": [{"q": "5×", "t": "Original website articles"}, {"q": "5×", "t": "Florida of Tomorrow collab social posts"}, {"q": "5×", "t": "Featured Stories in our newsletter"}, {"q": "1×", "t": "Solo Newsletter"}, {"q": "10×", "t": "Meta stories"}, {"t": "Extra focus market push"}, {"t": "Daily website banner"}, {"t": "Weekly newsletter banner"}, {"t": "Featured spotlight in our Database — Map, Atlas & TMW Intelligence"}, {"t": "Official Partner of Tomorrow — visible on every webpage"}], "price": "$30,000", "priceNote": "Full 10-month campaign", "term": "Aug 1, 2026 – May 31, 2027", "termNote": "Invoiced ahead of start"}, "cta": "Ready to put The Rider Residences in front of buyers and millions of readers.", "contactName": "Jake Nicholas", "contactLine": "Founder & CEO · jake@oftmw.com"}</script>
 <script src="/_shared/proposal-pdf.js" defer></script>
 <script src="/_shared/tmw-followers.js" defer></script>
 </body>

@@ -16,8 +16,8 @@
     'markets of tomorrow': 'markets'
   };
   function fmtK(n) { n = Number(n) || 0; if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'; if (n >= 1e4) return Math.round(n / 1e3) + 'K'; if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'; return String(n); }
-  // Keep the element's existing style: abbreviated (has K/M) → K/M, else full w/ commas.
-  function styled(existing, n) { return /[km]/i.test(existing || '') ? fmtK(n) : (Number(n) || 0).toLocaleString(); }
+  // Always abbreviated (146,228 → 146K) — full comma numbers read as clutter on decks.
+  function styled(existing, n) { return fmtK(n); }
   function set(el, n) { if (el && n != null) el.textContent = styled(el.textContent, n); }
   function injectCss() {
     if (document.getElementById('tmw-fc-css')) return;
