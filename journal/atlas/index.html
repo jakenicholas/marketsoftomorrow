@@ -1354,25 +1354,90 @@
       }).join('');
     }
 
+    // Styled to match the homepage Live Board (.tlb cards + ▲/▼/NEW rank deltas).
+    // Reads atlas.json leaderboards (state-aware) and pulls the movement deltas
+    // from leaderboards.json (the same source the homepage board uses).
+    const _TLB_CSS = `
+      .tlb-board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+      @media(max-width:900px){.tlb-board{grid-template-columns:1fr}}
+      .tlb-card{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:17px 17px 7px}
+      .tlb-ct{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+      .tlb-ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+      .tlb-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+      .tlb-ch{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em}
+      .tlb-card.dev .tlb-ico{background:rgba(167,139,250,.16);color:#B9A6FF}
+      .tlb-card.arch .tlb-ico{background:rgba(240,214,138,.14);color:#f0d68a}
+      .tlb-card.mkt .tlb-ico{background:rgba(255,255,255,.06);color:#ECEAE5}
+      .tlb-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08);text-decoration:none}
+      .tlb-card .tlb-row:first-of-type{border-top:0}
+      a.tlb-row:hover .tlb-name{color:#f0d68a}
+      .tlb-rank{font-size:12px;font-weight:600;color:#8b958d;width:14px;text-align:center;flex:0 0 auto;font-variant-numeric:tabular-nums}
+      .tlb-row.top .tlb-rank{color:#f0d68a}
+      .tlb-main{min-width:0;flex:1}
+      .tlb-name{display:block;font-size:13.5px;font-weight:600;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+      .tlb-sub{display:block;font-size:10.5px;letter-spacing:.02em;text-transform:uppercase;color:#8b958d;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .tlb-met{text-align:right;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+      .tlb-val{font-size:12.5px;font-weight:700;color:#ECEAE5;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+      .tlb-val .u{color:#8b958d;font-weight:400;font-size:11px}
+      .tlb-mv{font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:5px;white-space:nowrap}
+      .tlb-mv.up{color:#42EB81;background:rgba(31,223,103,.14)}
+      .tlb-mv.down{color:#ff8a8a;background:rgba(255,138,138,.12)}
+      .tlb-mv.new{color:#B9A6FF;background:rgba(167,139,250,.16)}
+      .tlb-mv.flat{color:#8b958d;background:rgba(255,255,255,.04)}
+      .tlb-pbtop{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+      .tlb-pmkt{font-size:13px;font-weight:600;color:#fff}
+      .tlb-pnum{font-size:13px;font-weight:700;color:#42EB81;font-variant-numeric:tabular-nums}
+      .tlb-pbar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+      .tlb-pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(31,223,103,.5),#1FDF67)}`;
+    function _lbSlug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+    function _mvOf(slug) { const m = window.__atlasBoardMv; return (m && m[slug]) || 'flat'; }
+    function _mvChip(mv) {
+      mv = mv || 'flat';
+      if (mv === 'flat') return '<span class="tlb-mv flat">&mdash;</span>';
+      if (mv === 'new') return '<span class="tlb-mv new">NEW</span>';
+      const p = String(mv).split(' '), up = p[0] === 'up';
+      return `<span class="tlb-mv ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${p[1] || ''}</span>`;
+    }
+    function _firmRowsTlb(list) {
+      return (list || []).slice(0, 6).map((r, i) => {
+        const href = r.slug ? `https://www.oftmw.com/firm/${encodeURIComponent(r.slug)}/` : '#';
+        return `<a class="tlb-row${i < 3 ? ' top' : ''}" href="${href}"><span class="tlb-rank">${i + 1}</span><span class="tlb-main"><span class="tlb-name">${escapeHtml(r.name)}</span><span class="tlb-sub">${escapeHtml(r.sub || '')}</span></span><span class="tlb-met"><span class="tlb-val">${r.count} <span class="u">proj</span></span>${_mvChip(_mvOf(r.slug))}</span></a>`;
+      }).join('');
+    }
+    function _mktRowsTlb(list) {
+      const max = (list && list[0] && list[0].count) || 1;
+      return (list || []).slice(0, 6).map(r => {
+        const href = `https://www.oftmw.com/markets/${r.slug || _lbSlug(r.name)}/`;
+        const pct = Math.round((r.count / max) * 100);
+        return `<a class="tlb-row" href="${href}"><span class="tlb-main"><span class="tlb-pbtop"><span class="tlb-pmkt">${escapeHtml(r.name)}</span><span class="tlb-pnum">${r.count}</span></span><span class="tlb-pbar"><i style="width:${pct}%"></i></span></span></a>`;
+      }).join('');
+    }
     function renderLeaderboardSection() {
-      const tabs = [
-        ['developers', 'Top developers'], ['architects', 'Top architects'],
-        ['cities', 'Top cities'], ['types', 'Top product types'],
-      ];
-      const tabBtns = tabs.map(([k, label]) =>
-        `<button class="atlas-lb-tab ${currentLbKey === k ? 'active' : ''}" data-lb-tab="${k}" role="tab">${label}</button>`).join('');
+      // Lazy-load the movement deltas once (national), then re-render.
+      if (!window.__atlasBoardMvLoaded) {
+        window.__atlasBoardMvLoaded = true;
+        fetch('https://www.oftmw.com/leaderboards.json', { cache: 'no-cache' })
+          .then(r => r.ok ? r.json() : null)
+          .then(j => { if (!j) return; const mv = {}; ['developers', 'architects'].forEach(k => (j[k] || []).forEach(x => { if (x.slug) mv[x.slug] = x.mv || 'flat'; })); window.__atlasBoardMv = mv; renderAll(); })
+          .catch(() => {});
+      }
+      const ICO_DEV = '<svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4"/></svg>';
+      const ICO_ARCH = '<svg viewBox="0 0 24 24"><path d="M12 3l8 15H4z"/><path d="M12 3v15"/></svg>';
+      const ICO_MKT = '<svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+      const cardTlb = (cls, ico, title, rows) => `<div class="tlb-card ${cls}"><div class="tlb-ct"><span class="tlb-ico">${ico}</span><span class="tlb-ch">${title}</span></div>${rows}</div>`;
       return `
         <section class="atlas-section">
+          <style>${_TLB_CSS}</style>
           <div class="atlas-section-head">
             <div>
               <h2 class="atlas-section-title">Who's building what</h2>
               <p class="atlas-section-sub">The developers, architects, and cities shaping the pipeline.</p>
             </div>
           </div>
-          <div class="atlas-lb-wrap">
-            <div class="atlas-lb-tabs" role="tablist">${tabBtns}</div>
-            <div class="atlas-lb-content" id="atlasLbContent">${renderLeaderboardRows(currentLbKey)}</div>
-            <button class="atlas-load-more" id="atlasLoadMore">Load more &darr;</button>
+          <div class="tlb-board">
+            ${cardTlb('dev', ICO_DEV, 'Most active developers', _firmRowsTlb(leaderboardSource('developers')))}
+            ${cardTlb('arch', ICO_ARCH, 'Most active architects', _firmRowsTlb(leaderboardSource('architects')))}
+            ${cardTlb('mkt', ICO_MKT, 'Top cities', _mktRowsTlb(leaderboardSource('cities')))}
           </div>
         </section>`;
     }
