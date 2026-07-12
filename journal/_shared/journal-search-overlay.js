@@ -4018,6 +4018,34 @@
     var panelHtml = renderSmartIntelPanel(ans, q, !willFire, smartGrounding(s, rows, iconicHits), s);
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
+    // Firms & Places tab — CONSISTENCY with the text-match path (which builds
+    // this section from scored matches): a smart query that resolved a firm or
+    // a single place still surfaces that entity in its own tab. Without this,
+    // "allen morris co" (smart path) had no Firms & Places tab while
+    // "tampa bay rays" (text path) did.
+    var _entCount = 0;
+    (function(){
+      var ents = '';
+      if (s.firm && s.firm.name){
+        var ff = null;
+        for (var _i = 0; _i < FIRMS.length; _i++){
+          if ((s.firm.slug && FIRMS[_i].slug === s.firm.slug) || norm(FIRMS[_i].name) === norm(s.firm.name)) { ff = FIRMS[_i]; break; }
+        }
+        ents += renderFirmEntity(ff || { name: s.firm.name, slug: s.firm.slug || '', role: s.firm.role || 'firm', project_count: rows.length });
+        _entCount++;
+      }
+      if (s.cities && s.cities.length === 1){
+        ents += renderCityEntity({ name: s.cities[0], count: rows.length });
+        _entCount++;
+      }
+      if (ents){
+        slotEntities.innerHTML = '<div class="tmw-ov-sec" data-cat="firms">'
+          + '<div class="tmw-ov-sec-head"><h3>Firms &amp; places</h3><span class="count">' + _entCount + ' total</span></div>'
+          + '<div class="tmw-ov-chiprow">' + ents + '</div>'
+          + '</div>';
+      }
+    })();
+
     // Promote the top smart-filtered project to a hero card -- same rich
     // /search/-style layout the text-match path uses (timeline, specs,
     // byline, Learn more / Visit site CTAs). The smart rows section
@@ -4127,7 +4155,7 @@
     _heroArticleRef = null; // structured hero is always a project
     // Iconic editorial picks count under Journal now (they're TMW curation, not
     // pipeline projects), so the "best hotels" ask lands on the Journal tab.
-    _lastFilterCounts = { intel: true, projects: rows.length, firms: 0, iconicArticles: iconicHits.length };
+    _lastFilterCounts = { intel: true, projects: rows.length, firms: _entCount, iconicArticles: iconicHits.length };
     // Onyx 4.1 redesign: the smart path defaults to the answer-first OVERVIEW
     // too — the Intelligence answer + hero + the ranked rows (and a capped
     // taste of journal), with the counts bar to drill in. Previously pipeline
