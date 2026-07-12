@@ -1230,6 +1230,13 @@ function stripePerMonth(amount, interval, count) {
 }
 async function fetchStripeIncome(env) {
   let mrr = 0, monthly = 0, yearly = 0, other = 0, paying = 0;
+  // Recognized MRR excludes trials (they pay $0 today); trial_mrr is what the
+  // current trial cohort WOULD add if it all converts. Kept separate so the chart
+  // can add trials as upside without double-counting.
+  let mrrActive = 0, payingActive = 0, trialMrr = 0;
+  // Per-rate breakdown → auto-discovers every price a customer is on (founding
+  // $9/mo, $15/mo, annual plans, and any new Memberstack price added later).
+  const tierMap = new Map();   // key `${cents}|${interval}|${count}|${cur}` → tier
   const currencies = new Set();
   // Per-sub ledger { created, perMonth } for reconstructing historical MRR + the
   // recent growth rate straight from Stripe (no prior snapshots needed).
@@ -1249,7 +1256,8 @@ async function fetchStripeIncome(env) {
       // Skip canceled / incomplete / incomplete_expired / unpaid.
       if (sub.status !== 'active' && sub.status !== 'trialing') continue;
       paying++;
-      let subBucket = null, subAmt = 0, subCur = 'usd', subPerMonth = 0;
+      const isTrial = sub.status === 'trialing';
+      let subBucket = null, subAmt = 0, subCur = 'usd', subPerMonth = 0, subIv = null, subIvc = 1;
       for (const it of (sub.items && sub.items.data || [])) {
         const price = it.price || {};
         const amt = (price.unit_amount || 0) / 100 * (it.quantity || 1);
@@ -1257,12 +1265,22 @@ async function fetchStripeIncome(env) {
         currencies.add(subCur);
         const iv = price.recurring && price.recurring.interval;
         const ivc = (price.recurring && price.recurring.interval_count) || 1;
+        subIv = iv; subIvc = ivc;   // primary cadence (Pro plans are single-item)
         const pm = stripePerMonth(amt, iv, ivc);
         mrr += pm; subPerMonth += pm;
         if (iv === 'year') subBucket = 'yearly'; else if (iv === 'month' && subBucket !== 'yearly') subBucket = 'monthly';
       }
       if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
       subLedger.push({ created: sub.created || 0, perMonth: subPerMonth });
+      // Recognized (paying) vs trial split.
+      if (isTrial) { trialMrr += subPerMonth; }
+      else { mrrActive += subPerMonth; payingActive++; }
+      // Per-rate tier: group by the exact recurring price. active = paying at this
+      // rate, trialing = on trial at this rate, mrr = recognized monthly from it.
+      const tkey = `${Math.round(subAmt * 100)}|${subIv || '?'}|${subIvc}|${subCur}`;
+      let tier = tierMap.get(tkey);
+      if (!tier) { tier = { amount: Math.round(subAmt * 100) / 100, interval: subIv, interval_count: subIvc, currency: subCur, per_month: Math.round(subPerMonth * 100) / 100, active: 0, trialing: 0, mrr: 0 }; tierMap.set(tkey, tier); }
+      if (isTrial) tier.trialing++; else { tier.active++; tier.mrr = Math.round((tier.mrr + subPerMonth) * 100) / 100; }
       // A trial sub has no Stripe charge yet ($0), so it never reaches the
       // charge-based feed below. Capture it as a "started trial" activity item.
       if (sub.status === 'trialing') {
@@ -1353,6 +1371,10 @@ async function fetchStripeIncome(env) {
     year_net: Math.round((yearInc - yearFee) * 100) / 100,
     mrr: Math.round(mrr * 100) / 100,
     arr: Math.round(mrr * 12 * 100) / 100,
+    mrr_paying: Math.round(mrrActive * 100) / 100,        // recognized MRR, trials excluded
+    trial_mrr: Math.round(trialMrr * 100) / 100,          // upside if the current trial cohort converts
+    paying_active: payingActive,                          // truly-paying subs (trials excluded)
+    tiers: [...tierMap.values()].sort((a, b) => (b.active + b.trialing) - (a.active + a.trialing) || a.per_month - b.per_month),
     all_time_income: Math.round(allTime * 100) / 100,
     year_income: Math.round(yearInc * 100) / 100,
     paying_subscribers: paying,
@@ -1622,6 +1644,10 @@ async function handleSubscriptions(env, origin, url) {
       resp.mrr_history = s.mrr_history;
       resp.growth = s.growth;
       resp.trialing = s.trialing;
+      resp.mrr_paying = s.mrr_paying;     // recognized MRR (trials excluded)
+      resp.trial_mrr = s.trial_mrr;       // upside if the trial cohort converts
+      resp.paying_active = s.paying_active;
+      resp.tiers = s.tiers;               // per-rate breakdown (auto-discovers new prices)
       // Real weekly snapshots (churn-aware). Empty until the cron accrues them;
       // the chart prefers these over the reconstruction once ≥2 exist.
       try {
