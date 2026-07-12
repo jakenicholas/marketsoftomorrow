@@ -1422,17 +1422,51 @@ function initComments(slug, post) {
         goPro();
       });
     }
+    // Hydrate the account-bound quota (server truth) so `allowed()` is accurate
+    // before the reader's first question — otherwise a free user starts from the
+    // optimistic localStorage count.
+    try { if (window.tmwIntel && window.tmwIntel.sync) window.tmwIntel.sync(); } catch (e) {}
     var _asking = false;
     function ask() {
       var q = (ain ? ain.value : '').trim();
       if (!q || _asking) return;
+      // GATE — identical to the search page (window.tmwIntel): anon gets 2 shared
+      // preview questions (per device) then a create-account wall; a free account
+      // draws from the SAME server-backed 5/month intel pool; Pro is unlimited.
+      // Without this the ask box was ungated — anon could spam it and free
+      // questions never counted against the monthly quota.
+      var TI = window.tmwIntel;
+      if (TI && typeof TI.allowed === 'function' && !TI.allowed(q)) {
+        var anon = (typeof TI.signedIn === 'function') && !TI.signedIn();
+        var msg = anon
+          ? 'Create a free account to keep asking Onyx — <b>5 questions every month</b> across every project, firm, and milestone.'
+          : 'You’ve used your <b>5 free Onyx questions</b> this month. Upgrade to Pro for unlimited.';
+        var lbl = anon ? 'Create a free account' : 'Upgrade to Pro';
+        ans.hidden = false;
+        ans.innerHTML = '<div class="ai-ask-a" style="color:#C2C9C3">' + msg
+          + '<div style="margin-top:12px"><button type="button" class="ai-ask-gbtn" style="background:linear-gradient(135deg,#B9A6FF,#A78BFA);color:#0a0a0a;border:none;border-radius:10px;padding:9px 18px;font-weight:600;font-size:13.5px;cursor:pointer">' + lbl + '</button></div></div>';
+        var gb = ans.querySelector('.ai-ask-gbtn');
+        if (gb) gb.addEventListener('click', function () {
+          if (anon) { try { if (window.tmwAuthModal) return window.tmwAuthModal('signup'); } catch (e) {} }
+          else { try { if (typeof window.tmwShowPaywall === 'function') return window.tmwShowPaywall('feature:intel'); } catch (e) {} }
+          try { goPro(); } catch (e) {}
+        });
+        try { if (TI.track) TI.track(q, { gated: anon ? 'anon' : 'quota', source: 'article' }); } catch (e) {}
+        return;
+      }
       _asking = true; ans.hidden = false;
       ans.innerHTML = '<div class="ai-ask-loading">' + HEXSPIN + '<span>Onyx is reading the article…</span></div>';
       fetch(WORKER + '/post-ask?slug=' + encodeURIComponent(slug) + '&q=' + encodeURIComponent(q))
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           _asking = false;
-          if (d && d.ok && d.answer) ans.innerHTML = '<div class="ai-ask-a">' + esc(d.answer) + '</div>' + deepTeaseHtml() + '<div class="ai-ask-foot">' + moreLink() + '</div>';
+          if (d && d.ok && d.answer) {
+            // Consume one credit only on a real answer — repeats + Pro are no-ops
+            // inside count(), and free accounts POST /intel-usage so this question
+            // draws from the SAME monthly pool as the search page.
+            try { if (TI && TI.count) TI.count(q); } catch (e) {}
+            ans.innerHTML = '<div class="ai-ask-a">' + esc(d.answer) + '</div>' + deepTeaseHtml() + '<div class="ai-ask-foot">' + moreLink() + '</div>';
+          }
           else ans.innerHTML = '<div class="ai-ask-a">Couldn\'t answer that from the article.</div><div class="ai-ask-foot">' + moreLink() + '</div>';
           wireMore(q); wireTease(q);
         })
