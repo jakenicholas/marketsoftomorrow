@@ -338,6 +338,9 @@
     + '[data-state="results"][data-filter="intel"] [data-cat]{display:none}'
     + '[data-state="results"][data-filter="projects"] [data-cat]:not([data-cat="projects"]){display:none}'
     + '[data-state="results"][data-filter="firms"] [data-cat]:not([data-cat="firms"]){display:none}'
+    /* Firms & places live ONLY in their tab — never on the Overview (and so
+       never as secondary cards under a hero). */
+    + '[data-state="results"][data-filter="overview"] [data-cat="firms"]{display:none}'
     + '[data-state="results"][data-filter="articles"] [data-cat]:not([data-cat="articles"]){display:none}'
     /* ANSWER-ONLY — for analytical/synthesis questions (compare, why, "what\'s
        going on in X") the LLM prose IS the answer; suppress the hero card,
@@ -1086,7 +1089,8 @@
     /* Firm / place cards — proper cards in the firm-SEO style (monogram + gold
        role + serif name + count + arrow), 2-up grid. Replaces the old cramped
        icon-row .tmw-ov-entity. */
-    + '.tmw-ov-chiprow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}'
+    + '.tmw-ov-chiprow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}'
+    + '@media(max-width:860px){.tmw-ov-chiprow{grid-template-columns:repeat(2,minmax(0,1fr))}}'
     + '@media(max-width:560px){.tmw-ov-chiprow{grid-template-columns:1fr}}'
     + '.tmw-ov-firmcard{display:flex;align-items:center;gap:14px;background:#141714;'
     + 'border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 16px;'
