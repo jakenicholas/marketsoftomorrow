@@ -1231,6 +1231,9 @@ function stripePerMonth(amount, interval, count) {
 async function fetchStripeIncome(env) {
   let mrr = 0, monthly = 0, yearly = 0, other = 0, paying = 0;
   const currencies = new Set();
+  // Per-sub ledger { created, perMonth } for reconstructing historical MRR + the
+  // recent growth rate straight from Stripe (no prior snapshots needed).
+  const subLedger = [];
   // Active subscriptions → MRR + cadence split.
   const trialStarts = [];   // new trial signups → activity feed (no charge exists yet)
   let after = null, guard = 0;
@@ -1246,7 +1249,7 @@ async function fetchStripeIncome(env) {
       // Skip canceled / incomplete / incomplete_expired / unpaid.
       if (sub.status !== 'active' && sub.status !== 'trialing') continue;
       paying++;
-      let subBucket = null, subAmt = 0, subCur = 'usd';
+      let subBucket = null, subAmt = 0, subCur = 'usd', subPerMonth = 0;
       for (const it of (sub.items && sub.items.data || [])) {
         const price = it.price || {};
         const amt = (price.unit_amount || 0) / 100 * (it.quantity || 1);
@@ -1254,10 +1257,12 @@ async function fetchStripeIncome(env) {
         currencies.add(subCur);
         const iv = price.recurring && price.recurring.interval;
         const ivc = (price.recurring && price.recurring.interval_count) || 1;
-        mrr += stripePerMonth(amt, iv, ivc);
+        const pm = stripePerMonth(amt, iv, ivc);
+        mrr += pm; subPerMonth += pm;
         if (iv === 'year') subBucket = 'yearly'; else if (iv === 'month' && subBucket !== 'yearly') subBucket = 'monthly';
       }
       if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
+      subLedger.push({ created: sub.created || 0, perMonth: subPerMonth });
       // A trial sub has no Stripe charge yet ($0), so it never reaches the
       // charge-based feed below. Capture it as a "started trial" activity item.
       if (sub.status === 'trialing') {
@@ -1311,6 +1316,29 @@ async function fetchStripeIncome(env) {
   } while (after2);
   const feeRate = allTime > 0 ? allFee / allTime : 0;   // effective fee % (for netting the run-rate)
 
+  // ── Historical MRR + growth rate (reconstructed from the sub ledger) ──
+  // MRR at a past month = sum of per-month value for every currently-active sub
+  // that already existed then (their Stripe `created` date). This traces how the
+  // CURRENT book of recurring revenue built up — the honest "past" for the chart.
+  // Growth = paying subs + MRR added over the trailing window, per week.
+  const nowSec = Math.floor(Date.now() / 1000);
+  const MONTH = 2629800, WEEK = 604800, HIST_MONTHS = 6, GROW_WEEKS = 8;
+  const history = [];
+  for (let k = HIST_MONTHS; k >= 0; k--) {
+    const t = nowSec - k * MONTH;
+    let m = 0;
+    for (const s of subLedger) if (s.created && s.created <= t) m += s.perMonth;
+    history.push({ ts: t, mrr: Math.round(m * 100) / 100 });
+  }
+  const growCut = nowSec - GROW_WEEKS * WEEK;
+  let recentSubs = 0, recentMrr = 0;
+  for (const s of subLedger) if (s.created && s.created >= growCut) { recentSubs++; recentMrr += s.perMonth; }
+  const growth = {
+    window_weeks: GROW_WEEKS,
+    subs_per_week: Math.round(recentSubs / GROW_WEEKS * 100) / 100,
+    mrr_per_week: Math.round(recentMrr / GROW_WEEKS * 100) / 100,
+  };
+
   // Activity feed = succeeded charges + trial signups (which carry no charge),
   // newest first, capped — so a brand-new trial shows up immediately.
   const recentFeed = purchases.concat(trialStarts)
@@ -1334,6 +1362,8 @@ async function fetchStripeIncome(env) {
     currency: currencies.size === 1 ? [...currencies][0] : (currencies.size ? 'mixed' : 'usd'),
     income_truncated: truncated,
     recent_purchases: recentFeed,
+    mrr_history: history,   // [{ts, mrr}] — reconstructed past, oldest→newest, ends at now
+    growth,                 // { window_weeks, subs_per_week, mrr_per_week }
   };
 }
 
