@@ -122,6 +122,10 @@
       '.tmwc-toast .em{font-size:22px;line-height:1}',
       '.tmwc-toast .tt{font-size:13.5px;font-weight:800;letter-spacing:.01em}',
       '.tmwc-toast .ts{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px}',
+      '.tmwc-toast.link{cursor:pointer}',
+      '.tmwc-toast.link:hover{border-color:rgba(167,139,250,.7);box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 32px rgba(167,139,250,.45)}',
+      '.tmwc-toast .arr{flex:none;width:16px;height:16px;color:#C4B5FD;transition:transform .2s}',
+      '.tmwc-toast.link:hover .arr{transform:translateX(3px)}',
       '@media(max-width:480px){.tmwc-card{padding:26px 18px 20px} .tmwc-title{font-size:19px}}'
     ].join('\n');
     document.head.appendChild(s);
@@ -196,9 +200,11 @@
     css();
     var prev = document.querySelector('.tmwc-toast'); if (prev) prev.remove();
     var t = document.createElement('div');
-    t.className = 'tmwc-toast';
+    t.className = 'tmwc-toast' + (o.href ? ' link' : '');
     t.innerHTML = '<span class="em">' + (o.emoji || '🎉') + '</span><div><div class="tt">' +
-      (o.title || 'Welcome to TMW Pro') + '</div>' + (o.sub ? '<div class="ts">' + o.sub + '</div>' : '') + '</div>';
+      (o.title || 'Welcome to TMW Pro') + '</div>' + (o.sub ? '<div class="ts">' + o.sub + '</div>' : '') + '</div>'
+      + (o.href ? '<svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>' : '');
+    if (o.href) { t.setAttribute('role', 'link'); t.tabIndex = 0; t.addEventListener('click', function () { location.href = o.href; }); }
     document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('show'); });
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { try { t.remove(); } catch (e) {} }, 600); }, o.hold || 5200);

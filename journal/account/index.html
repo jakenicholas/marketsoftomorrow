@@ -567,7 +567,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
             var fireToast=function(tries){
               if(typeof window.tmwCelebrateToast==='function'){
                 window.tmwCelebrateToast({ emoji:'\u2726', title:'Your weekly brief is ready',
-                  sub:(n?n+' move'+(n===1?'':'s')+' on your watchlist this week':'Onyx kept watch this week'), hold:5200 });
+                  sub:(n?n+' move'+(n===1?'':'s')+' on your watchlist this week':'Onyx kept watch this week'), href:'/account/#brief', hold:5200 });
               } else if((tries||0)<25){ setTimeout(function(){ fireToast((tries||0)+1); }, 400); }
             };
             fireToast(0);

@@ -1935,6 +1935,22 @@
     d.setDate(d.getDate() - diff);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
+  // Site-wide weekly toast — first visit of each brief week (any page), links
+  // to the report. Same localStorage key the account page sets, so whichever
+  // surface the member hits first wins and there's never a double.
+  (function weeklyBriefToast(){
+    var tries = 0;
+    (function go(){
+      var m = window.__tmwMember;
+      if (!m || !m.id){ if (++tries < 30) setTimeout(go, 500); return; }
+      var wk = briefWeekOf();
+      try { if (localStorage.getItem('tmw_brief_toast') === wk) return; } catch(_){ return; }
+      if (typeof window.tmwCelebrateToast !== 'function'){ if (++tries < 30) setTimeout(go, 500); return; }
+      try { localStorage.setItem('tmw_brief_toast', wk); } catch(_){}
+      window.tmwCelebrateToast({ emoji: '\u2726', title: 'Your weekly brief is ready',
+        sub: 'The moves on your watchlist this week', href: 'https://www.oftmw.com/account/#brief', hold: 7000 });
+    })();
+  })();
   function briefCardHtml(){
     if (!(window.__tmwMember && window.__tmwMember.id)) return '';
     var wk = briefWeekOf();
