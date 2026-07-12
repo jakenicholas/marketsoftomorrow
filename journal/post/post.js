@@ -1301,6 +1301,17 @@ function initComments(slug, post) {
     if (f.kind === 'market') return [added ? 'market_followed' : 'market_unfollowed', { market: f.slug }];
     return [added ? 'favorite_added' : 'favorite_removed', { project_slug: f.slug }];
   }
+  // Post-follow nudge — only after a follow ACTUALLY lands (anon clicks bounce
+  // to signup and must never see it).
+  function showFollowNudge() {
+    var fw = host && host.querySelector('.ai-follows');
+    if (!fw || fw.querySelector('.ai-follow-nudge')) return;
+    var n = document.createElement('button');
+    n.type = 'button'; n.className = 'ai-follow-nudge';
+    n.innerHTML = 'Added &mdash; Pro members get the weekly brief when this moves <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+    n.addEventListener('click', function () { beacon('follow_nudge_click', { slug: slug }); goPro(); });
+    fw.appendChild(n);
+  }
   function toggleFollow(f, btn) {
     var m = ms();
     if (!m || !m.getCurrentMember) { if (typeof window.tmwArticleSignup === 'function') window.tmwArticleSignup(); return; }
@@ -1315,7 +1326,7 @@ function initComments(slug, post) {
         j[f.store] = list;
         btn.classList.toggle('on', added);
         _mjP = Promise.resolve(j);
-        m.updateMemberJSON({ json: j }).then(function () { var ev = eventFor(f, added); beacon(ev[0], ev[1]); }).catch(function () { btn.classList.toggle('on', !added); });
+        m.updateMemberJSON({ json: j }).then(function () { var ev = eventFor(f, added); beacon(ev[0], ev[1]); if (added && !isPro()) showFollowNudge(); }).catch(function () { btn.classList.toggle('on', !added); });
       });
     });
   }
@@ -1442,18 +1453,6 @@ function initComments(slug, post) {
       if (ic) ic.outerHTML = (on
         ? '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>'
         : '<svg class="ai-f-ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>');
-      if (!on && !isPro()) showFollowNudge();
-    }
-    // Post-follow nudge — the moment of highest interest: one line under the
-    // chips pointing at the Pro payoff (the weekly brief when this moves).
-    function showFollowNudge(){
-      var fw = host.querySelector('.ai-follows');
-      if (!fw || fw.querySelector('.ai-follow-nudge')) return;
-      var n = document.createElement('button');
-      n.type = 'button'; n.className = 'ai-follow-nudge';
-      n.innerHTML = 'Added &mdash; Pro members get the weekly brief when this moves <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-      n.addEventListener('click', function(){ beacon('follow_nudge_click', { slug: slug }); goPro(); });
-      fw.appendChild(n);
     }
     host.querySelectorAll('.ai-follow').forEach(function (btn) {
       btn.addEventListener('click', function () {
