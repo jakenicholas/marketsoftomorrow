@@ -11,19 +11,19 @@
     },
     {
       "type": "Mixed-Use",
-      "count": 55
+      "count": 54
+    },
+    {
+      "type": "Office",
+      "count": 36
     },
     {
       "type": "Golf",
       "count": 35
     },
     {
-      "type": "Office",
-      "count": 35
-    },
-    {
       "type": "Entertainment",
-      "count": 30
+      "count": 29
     },
     {
       "type": "Travel",
@@ -35,7 +35,7 @@
     },
     {
       "type": "Stadium",
-      "count": 13
+      "count": 14
     },
     {
       "type": "Education",
@@ -6521,7 +6521,7 @@
     },
     {
       "st": "FL",
-      "ty": "Entertainment",
+      "ty": "Stadium",
       "sl": "Announced",
       "yr": 2029,
       "sm": null,
@@ -17444,7 +17444,7 @@
       "ci": "Telluride",
       "u": 69,
       "k": 52,
-      "fl": 0,
+      "fl": 8,
       "dv": [
         [
           "Four Seasons",
@@ -19408,7 +19408,7 @@
     {
       "st": "FL",
       "ty": "Stadium",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2028,
       "sm": null,
       "ci": "Port St. Lucie",
@@ -19463,7 +19463,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": null,
-      "sm": null,
+      "sm": "2026-02",
       "ci": "Colombo",
       "u": 231,
       "k": 0,
@@ -19478,10 +19478,10 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Office",
       "sl": "Construction",
       "yr": 2030,
-      "sm": "2023-12",
+      "sm": "2023-03",
       "ci": "Shanghai",
       "u": 0,
       "k": 0,
@@ -19563,8 +19563,8 @@
     {
       "st": "AE",
       "ty": "Mixed-Use",
-      "sl": "Construction",
-      "yr": 2026,
+      "sl": "Now Open",
+      "yr": 2023,
       "sm": null,
       "ci": "Dubai",
       "u": 227,
@@ -19615,13 +19615,13 @@
     "total_projects": 775,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 298,
-    "opening_this_year": 116
+    "under_construction": 296,
+    "opening_this_year": 115
   },
   "scale": {
     "units": 268345,
     "keys": 52509,
-    "floors": 12518
+    "floors": 12526
   },
   "leaderboards": {
     "developers": [
@@ -20506,7 +20506,7 @@
       {
         "name": "Mixed-Use",
         "sub": "7% of pipeline",
-        "count": 55,
+        "count": 54,
         "states": [
           "Other",
           "FL",
@@ -20517,6 +20517,20 @@
           "GA",
           "NC",
           "AE"
+        ]
+      },
+      {
+        "name": "Office",
+        "sub": "5% of pipeline",
+        "count": 36,
+        "states": [
+          "FL",
+          "Other",
+          "NY",
+          "FR",
+          "JP",
+          "AE",
+          "UK"
         ]
       },
       {
@@ -20532,23 +20546,9 @@
         ]
       },
       {
-        "name": "Office",
-        "sub": "5% of pipeline",
-        "count": 35,
-        "states": [
-          "FL",
-          "Other",
-          "NY",
-          "FR",
-          "JP",
-          "AE",
-          "UK"
-        ]
-      },
-      {
         "name": "Entertainment",
         "sub": "4% of pipeline",
-        "count": 30,
+        "count": 29,
         "states": [
           "FL",
           "Other",
@@ -20586,7 +20586,7 @@
       {
         "name": "Stadium",
         "sub": "2% of pipeline",
-        "count": 13,
+        "count": 14,
         "states": [
           "Other",
           "FL",
@@ -21500,8 +21500,8 @@
         },
         {
           "name": "Entertainment",
-          "sub": "6% of pipeline",
-          "count": 19,
+          "sub": "5% of pipeline",
+          "count": 18,
           "states": [
             "FL",
             "Other",
@@ -21598,8 +21598,8 @@
         },
         {
           "name": "Stadium",
-          "sub": "1% of pipeline",
-          "count": 4,
+          "sub": "2% of pipeline",
+          "count": 5,
           "states": [
             "Other",
             "FL",
@@ -25477,7 +25477,7 @@
     "FL": {
       "hero_stats": {
         "total_projects": 332,
-        "under_construction": 121
+        "under_construction": 120
       },
       "scale": {
         "units": 80795,
@@ -25487,7 +25487,7 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 130
+          "count": 131
         },
         {
           "label": "Breaking Ground",
@@ -25495,7 +25495,7 @@
         },
         {
           "label": "Construction",
-          "count": 121
+          "count": 120
         },
         {
           "label": "Opening Soon",
@@ -25857,7 +25857,7 @@
     "AE": {
       "hero_stats": {
         "total_projects": 16,
-        "under_construction": 9
+        "under_construction": 8
       },
       "scale": {
         "units": 4140,
@@ -25871,7 +25871,7 @@
         },
         {
           "label": "Construction",
-          "count": 9
+          "count": 8
         },
         {
           "label": "Opening Soon",
@@ -25879,7 +25879,7 @@
         },
         {
           "label": "Now Open",
-          "count": 4
+          "count": 5
         }
       ],
       "momentum": [
@@ -26738,7 +26738,7 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 221
+      "count": 222
     },
     {
       "label": "Breaking Ground",
@@ -26746,7 +26746,7 @@
     },
     {
       "label": "Construction",
-      "count": 298
+      "count": 296
     },
     {
       "label": "Opening Soon",
@@ -26754,7 +26754,7 @@
     },
     {
       "label": "Now Open",
-      "count": 127
+      "count": 128
     }
   ],
   "momentum": [
@@ -26791,7 +26791,7 @@
     {
       "month": "Feb",
       "year": 2026,
-      "count": 4
+      "count": 5
     },
     {
       "month": "Mar",
@@ -26822,7 +26822,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 116
+      "count": 115
     },
     {
       "year": 2027,
@@ -26899,6 +26899,34 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-continuum-waterfront-district-financing-2026-07-12",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Continuum Waterfront District  Financing secured",
+      "project_slug": "continuum-waterfront-district",
+      "project_title": "Continuum Waterfront District",
+      "city": "Miami",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/continuum-waterfront-district.jpg",
+      "event_date": "2026-04-30",
+      "source_url": "https://therealdeal.com/miami/2026/04/30/eichners-score-350m-loan-for-continuum-north-bay-village/",
+      "link": "https://www.oftmw.com/map/?project=continuumwaterfrontdistrict",
+      "timestamp": "2026-07-12T15:18:16.765Z"
+    },
+    {
+      "id": "ms-alhambra-parc-financing-2026-07-12",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "Alhambra Parc  Financing secured",
+      "project_slug": "alhambra-parc",
+      "project_title": "Alhambra Parc",
+      "city": "Coral Gables",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/alhambra-parc.jpeg",
+      "event_date": "2026-06-05",
+      "source_url": "https://therealdeal.com/miami/2026/06/05/mg-developer-vertical-developments-nab-alhambra-parc-loan/",
+      "link": "https://www.oftmw.com/map/?project=alhambraparc",
+      "timestamp": "2026-07-12T15:17:48.393Z"
+    },
     {
       "id": "track-group-20260712T0122-8",
       "type": "tracking",
@@ -27558,34 +27586,6 @@
       "source_url": "https://www.globenewswire.com/news-release/2026/06/03/3306091/30865/en/Greystone-Arranges-141-Million-Construction-Loan-for-245-Unit-Luxury-Rental-Tower-in-Scottsdale-AZ.html",
       "link": "https://www.oftmw.com/map/?project=ikonicscottsdale",
       "timestamp": "2026-07-09T13:42:40.668Z"
-    },
-    {
-      "id": "ms-southbank-residences-breaking-ground-2026-07-08",
-      "type": "status_change",
-      "tag": "Broke ground",
-      "title": "Southbank Residences  Broke ground",
-      "project_slug": "southbank-residences",
-      "project_title": "Southbank Residences",
-      "city": "Jacksonville",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg",
-      "event_date": "2026-05-20",
-      "source_url": "https://www.jaxdailyrecord.com/news/2026/may/20/here-we-are-after-nearly-six-years-related-group-launches-work-on-downtown-jacksonville-high-rise/",
-      "link": "https://www.oftmw.com/map/?project=southbankresidences",
-      "timestamp": "2026-07-08T21:58:00.377Z"
-    },
-    {
-      "id": "ms-westcourt-orlando-financing-2026-07-08",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "Westcourt Orlando  Financing secured",
-      "project_slug": "westcourt-orlando",
-      "project_title": "Westcourt Orlando",
-      "city": "Orlando",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/orlando/westcourt-orlando.webp",
-      "event_date": "2026-05-28",
-      "source_url": "https://www.businesswire.com/news/home/20260528112026/en/",
-      "link": "https://www.oftmw.com/map/?project=westcourtorlando",
-      "timestamp": "2026-07-08T21:57:55.708Z"
     }
   ],
   "most_covered": [
