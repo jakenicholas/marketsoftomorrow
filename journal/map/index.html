@@ -15752,7 +15752,7 @@
           );
 
           const source = entry.source || 'comparables';
-          const estimateLabel = entry.estimate_label || `~${entry.estimate_years} years`;
+          const estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' year' + (entry.estimate_years === 1 ? '' : 's'));
 
           // District anchor line — when this project is a component of a
           // district, surface that relationship inside the Intelligence card
@@ -17059,7 +17059,7 @@
             //                  precisions get "Targeted opening" to avoid
             //                  overclaiming certainty.
             //   comparables -> statistical estimate from similar projects
-            const valueText = entry.estimate_label || ('~' + entry.estimate_years + ' yrs');
+            const valueText = entry.estimate_label || ('~' + entry.estimate_years + (entry.estimate_years === 1 ? ' yr' : ' yrs'));
             let tailText = ' to completion';
             // Same logic as project modal: completed uses past tense.
             if (entry.source === 'completed') {

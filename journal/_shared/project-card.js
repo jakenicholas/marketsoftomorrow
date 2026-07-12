@@ -103,7 +103,7 @@
     var HEX = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.75L6 16V8l6-3.5z"/></svg>';
     var badge = '<span class="pm-intel-badge">' + HEX + ' TMW Intelligence</span>';
     var source = entry.source || 'comparables';
-    var estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' years');
+    var estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' year' + (entry.estimate_years === 1 ? '' : 's'));
     // District-anchor CTA — when this card is for a component of an umbrella
     // district, append "Part of <District> — see master plan →" linking to
     // the district's project page. Mirrors the map modal's TMW Intelligence

@@ -10630,6 +10630,13 @@ async function handleSmartAnswer(request, env, origin) {
     'contrast what you kept vs. dropped (NEVER write "the projects here are Florida and New York" or "nothing on ' +
     'X"). Just write the answer as a confident analyst — open directly on the relevant projects by name, ' +
     'location, and status as if they were self-evidently the answer (they are). No meta-commentary, ever.\n' +
+    'OPENERS — factual, varied, never formulaic: do NOT default to grand significance framing as the first ' +
+    'sentence ("the most consequential real-estate story in the region right now", "the most competitive race ' +
+    'in the hemisphere", "X is remaking the skyline"). Open on the lead project or fact itself — its name, ' +
+    'status, and the concrete thing happening. A superlative is allowed ONLY when the data in front of you ' +
+    'actually supports it (tallest by floors, biggest by built square feet, first of its kind in this set), ' +
+    'and at most one per answer. If every answer you wrote today could open with the same sentence shape, ' +
+    'the shape is wrong.\n' +
     'PRE-RANKED LIST — when `top` IS on-topic: it is ALREADY ordered by our editorial priority — Featured ' +
     '(our pick) → Coming Soon → Recently Opened (last ~6 months) → Under Construction → Breaking Ground → ' +
     'Announced. `top[0]` is the intended LEAD and is the hero card the reader sees beside your answer — OPEN ' +

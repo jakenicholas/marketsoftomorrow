@@ -619,6 +619,11 @@ def is_complete(delivery_raw):
 # Format helpers
 # ---------------------------------------------------------------------------
 
+def unit_label(n_str, unit):
+    """'1' + 'year' -> '1 year'; anything else pluralizes ('1.5 years')."""
+    return f"{n_str} {unit}" + ('' if str(n_str) == '1' else 's')
+
+
 def format_years(years):
     """Round to one decimal but trim trailing .0 -> '3' instead of '3.0'."""
     rounded = round(years, 1)
@@ -710,11 +715,11 @@ def known_date_estimate(delivery_raw, today):
         estimate_years = round(days_out / 365.25, 2)
     elif days_out <= 365:
         months = round(days_out / 30.44)
-        estimate_label = f"~{months} months"
+        estimate_label = "~" + unit_label(months, "month")
         estimate_years = round(days_out / 365.25, 1)
     else:
         years_rounded = round(days_out / 365.25 * 2) / 2  # nearest 0.5
-        estimate_label = f"~{format_years(years_rounded)} years"
+        estimate_label = "~" + unit_label(format_years(years_rounded), "year")
         estimate_years = years_rounded
 
     return {
@@ -1060,7 +1065,7 @@ def build_pattern_summary(target, pool_count, comp_median, estimate, low, high,
 
     base = (
         f"Among {pool_count} {prox_adj}{type_label} project{'s' if pool_count != 1 else ''}"
-        f" in TMW's data, the median build time is {comp_str} years"
+        f" in TMW's data, the median build time is {unit_label(comp_str, 'year')}"
     )
     if low_str != high_str:
         base += f" (range {low_str}\u2013{high_str})."
@@ -1076,11 +1081,11 @@ def build_pattern_summary(target, pool_count, comp_median, estimate, low, high,
             base += (
                 f" {firm_signal['firm']} delivers a consistent ~{fm}-year pace "
                 f"across {n} project{plural}, adjusting this estimate to "
-                f"~{est_str} years."
+                f"~{unit_label(est_str, 'year')}."
             )
         else:
             base += (
-                f" Adjusted to ~{est_str} years for {firm_signal['firm']}'s own "
+                f" Adjusted to ~{unit_label(est_str, 'year')} for {firm_signal['firm']}'s own "
                 f"track record (~{fm}-year typical pace across {n} prior "
                 f"project{plural})."
             )
@@ -1266,7 +1271,7 @@ def main():
                     _mo = max(1, round(days_out / 30.44))
                     label = f"{_mo} month" + ('s' if _mo != 1 else '')
                 else:
-                    label = f"{format_years(round(yrs * 2) / 2)} years"
+                    label = unit_label(format_years(round(yrs * 2) / 2), "year")
                 # When in-flight components have no firm date, the "latest known"
                 # horizon UNDERSTATES the true build-out — be honest about it.
                 undated_tail = ''
@@ -1317,10 +1322,10 @@ def main():
                     # phrased as "Took X" instead of "~X to completion"
                     if duration_days <= 365:
                         months = round(duration_days / 30.44)
-                        estimate_label = f"{months} months"
+                        estimate_label = unit_label(months, "month")
                     else:
                         years_rounded = round(duration_years * 2) / 2
-                        estimate_label = f"{format_years(years_rounded)} years"
+                        estimate_label = unit_label(format_years(years_rounded), "year")
                     # Completed-path needs both dates to compute the duration,
                     # so if EITHER is speculative the result is uncertain.
                     # Drop confidence to 'medium' and rephrase. We don't
@@ -1579,7 +1584,7 @@ def main():
 
         intel[target['slug']] = {
             'estimate_years':    round(estimate, 1),
-            'estimate_label':    f"~{format_years(round(estimate, 1))} years",
+            'estimate_label':    "~" + unit_label(format_years(round(estimate, 1)), "year"),
             'range_low':         round(low, 1),
             'range_high':        round(high, 1),
             'confidence':        tier,

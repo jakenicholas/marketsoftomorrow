@@ -242,7 +242,7 @@
     var countStr = String(entry.comparable_count);
     var pattern = esc(entry.pattern_summary || '');
     try { pattern = pattern.replace(new RegExp('\\b' + countStr + '\\b'), '<span class="pm-intel-highlight">' + countStr + '</span>'); } catch (e) {}
-    var estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' years');
+    var estimateLabel = entry.estimate_label || ('~' + entry.estimate_years + ' year' + (entry.estimate_years === 1 ? '' : 's'));
     var source = entry.source || 'comparables';
     var inner;
 

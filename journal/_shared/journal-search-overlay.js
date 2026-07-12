@@ -1097,6 +1097,8 @@
     + 'font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:25px;color:#e6c574;line-height:1}'
     + '.tmw-ov-firmcard .fc-mark svg{width:21px;height:21px;color:#e6c574}'
     + '.tmw-ov-firmcard .fc-body{flex:1 1 auto;min-width:0}'
+    + '.tmw-ov-firmcard-slim{padding:15px 18px}'
+    + '.tmw-ov-firmcard-slim .fc-meta{margin-top:3px}'
     + '.tmw-ov-firmcard .fc-role{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#e6c574;font-weight:600}'
     + '.tmw-ov-firmcard .fc-name{font-family:"Fraunces",Georgia,serif;font-size:17px;color:#fff;font-weight:600;line-height:1.2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
     + '.tmw-ov-firmcard .fc-meta{font-size:11px;color:#9AA39C;margin-top:3px}'
@@ -2155,35 +2157,6 @@
       + '</div></a>';
   }
 
-  // Firm hero — gradient-panel media (no cover image) with the firm
-  // initial as a soft mark. Same body geometry + CTA row as the project
-  // and article heroes.
-  function renderFirmHero(f){
-    var roleLbl = f.role === 'architect' ? 'Architect of Tomorrow'
-               : f.role === 'developer' ? 'Developer of Tomorrow'
-               : 'Firm of Tomorrow';
-    var pc = +f.project_count || 0;
-    var initial = (f.name || '?').trim().charAt(0).toUpperCase();
-    var href = f.slug
-      ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
-      : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
-    return '<article class="tmw-ov-hero">'
-      + '<div class="media"><div class="tmw-ov-firmmark">'+esc(initial)+'</div><div class="scrim"></div><span class="besttag">Top firm</span></div>'
-      + '<div class="body">'
-      +   '<div class="tmw-ov-hero-chips"><span class="tmw-ov-hero-chip type">'+esc(roleLbl)+'</span></div>'
-      +   '<h2>'+esc(f.name)+'</h2>'
-      +   (f.hq ? '<div class="loc">'+esc(f.hq)+'</div>' : '')
-      +   (pc > 0 ? '<p class="desc">'+pc+' project'+(pc===1?'':'s')+' tracked in the Markets of Tomorrow network.</p>' : '')
-      +   '<div class="tmw-ov-hero-cta">'
-      +     '<a class="tmw-ov-btn gold" href="'+esc(href)+'">'
-      +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
-      +       'View profile'
-      +     '</a>'
-      +   '</div>'
-      + '</div>'
-      + '</article>';
-  }
-
   function renderProjectRow(p, rank, lead, scorePct){
     var city = _locOf(p);
     var type = firstField(p,['ProjectType','PreferredType']);
@@ -2570,27 +2543,22 @@
   function renderFirmEntity(f){
     var roleLbl = f.role === 'architect' ? 'Architect' : (f.role === 'developer' ? 'Developer' : 'Firm');
     var pc = +f.project_count || 0;
-    var initial = (f.name || '?').trim().charAt(0).toUpperCase();
     var href = f.slug
       ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
       : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
-    return '<a class="tmw-ov-firmcard" href="'+esc(href)+'">'
-      + '<div class="fc-mark">'+esc(initial)+'</div>'
+    return '<a class="tmw-ov-firmcard tmw-ov-firmcard-slim" href="'+esc(href)+'">'
       + '<div class="fc-body">'
-      +   '<span class="fc-role">'+esc(roleLbl)+'</span>'
       +   '<div class="fc-name">'+esc(f.name)+'</div>'
-      +   (pc > 0 ? '<div class="fc-meta">'+pc+' project'+(pc===1?'':'s')+'</div>' : '')
+      +   '<div class="fc-meta">'+esc(roleLbl)+(pc > 0 ? ' · '+pc+' project'+(pc===1?'':'s') : '')+'</div>'
       + '</div>'
       + '<span class="fc-arrow">'+ICON_ARROW+'</span>'
       + '</a>';
   }
   function renderCityEntity(c){
-    return '<a class="tmw-ov-firmcard" href="'+MAP_URL+'/?city='+encodeURIComponent(c.name)+'">'
-      + '<div class="fc-mark">'+ICON_PIN+'</div>'
+    return '<a class="tmw-ov-firmcard tmw-ov-firmcard-slim" href="'+MAP_URL+'/?city='+encodeURIComponent(c.name)+'">'
       + '<div class="fc-body">'
-      +   '<span class="fc-role">Place</span>'
       +   '<div class="fc-name">'+esc(c.name)+'</div>'
-      +   '<div class="fc-meta">'+c.count+' project'+(c.count === 1 ? '' : 's')+'</div>'
+      +   '<div class="fc-meta">Place · '+c.count+' project'+(c.count === 1 ? '' : 's')+'</div>'
       + '</div>'
       + '<span class="fc-arrow">'+ICON_ARROW+'</span>'
       + '</a>';
@@ -4833,7 +4801,18 @@
         heroCandidates.push({ kind:'article', s: foodIntent ? 1e6 : aScored[0].s, item: heroArt });
       }
     }
-    if (fScored.length && heroFirmEligible(fScored[0].f, full))          heroCandidates.push({ kind:'firm',    s: fScored[0].s,        item: fScored[0].f });
+    // Firms never take the hero slot (2026-07-12): an exact firm-name query
+    // heroes that firm's flagship PROJECT instead (e.g. "tampa bay rays" ->
+    // the Rays ballpark) when the firm has exactly one tracked project. The
+    // firm itself stays in the Firms & Places tab. Multi-project firms get
+    // the normal answer + project grid (no single flagship to crown).
+    if (!heroCandidates.length && fScored.length && heroFirmEligible(fScored[0].f, full)) {
+      var _fw = norm(fScored[0].f.name || '');
+      var _byFirm = _fw ? PROJECTS.filter(function(_fp){
+        return norm(((_fp.Developer || '') + ' ' + (_fp.Architect || ''))).indexOf(_fw) >= 0;
+      }) : [];
+      if (_byFirm.length === 1) { _exactName = true; heroCandidates.push({ kind:'project', s: 9e4, item: _byFirm[0] }); }
+    }
     heroCandidates.sort(function(a,b){ return b.s - a.s; });
     var hero = heroCandidates[0] || null;
     if (hero){
@@ -4841,7 +4820,6 @@
       var heroCat = 'projects';
       if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
       else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); heroCat = 'articles'; }
-      else if (hero.kind === 'firm')    { heroFirm    = hero.item; heroHtml = renderFirmHero(heroFirm);       heroCat = 'firms'; }
       // Perfect database match (exact project name) → render the FULL hero card,
       // not the compacted overview row. A journal hero is ALWAYS the full card
       // (Jake: one big full-width story tile like the project hero; the rest of
