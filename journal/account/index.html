@@ -198,6 +198,26 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .emailinput:focus{outline:none;border-color:var(--gold)}
 .ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}.ftr .tmwlogo{height:30px}.ftr .cp{font-size:12px;color:var(--mute)}
 
+
+/* ── Onyx Brief report hero ── */
+.brief-hero{border:1px solid rgba(167,139,250,.42);border-radius:18px;padding:24px 26px;margin:6px 0 22px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(167,139,250,.09),rgba(167,139,250,.02) 55%),radial-gradient(600px 220px at 85% -20%,rgba(167,139,250,.16),transparent 60%);
+  animation:bhGlow 2.6s ease-in-out infinite}
+@keyframes bhGlow{0%,100%{box-shadow:0 0 0 1px rgba(167,139,250,.08) inset,0 0 26px -8px rgba(167,139,250,.3)}50%{box-shadow:0 0 0 1px rgba(167,139,250,.15) inset,0 0 38px -6px rgba(167,139,250,.5)}}
+@media(prefers-reduced-motion:reduce){.brief-hero{animation:none}}
+.bh-eye{display:flex;align-items:center;gap:8px;font:700 11px/1 'Inter',-apple-system,sans-serif;letter-spacing:.16em;color:#C4B5FD;text-shadow:0 0 14px rgba(167,139,250,.55)}
+.bh-eye svg{width:14px;height:14px}
+.bh-eye .bh-wk{margin-left:auto;font-weight:600;font-size:9.5px;letter-spacing:.18em;color:#9AA39C;text-shadow:none}
+.bh-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 4px}
+.bh-stat .v{font-family:Georgia,serif;font-size:34px;line-height:1;color:#fff;text-shadow:0 0 20px rgba(167,139,250,.35)}
+.bh-stat .k{font:600 9.5px/1 'Inter',-apple-system,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9AA39C;margin-top:6px}
+.bh-narr{margin-top:16px;font-size:14.5px;line-height:1.65;color:#ECEAE5;display:flex;flex-direction:column;gap:8px}
+.bh-narr.on{display:block}
+.bh-shimmer{display:block;height:9px;border-radius:5px;width:96%;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(167,139,250,.14) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:bhSh 1.8s linear infinite}
+@keyframes bhSh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.bh-foot{margin-top:16px;padding-top:13px;border-top:1px solid rgba(255,255,255,.07);font:500 10px/1.5 'Inter',-apple-system,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C}
+.brief-sec-h{font:700 10.5px/1 'Inter',-apple-system,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#C4B5FD;margin:0 0 10px;text-shadow:0 0 12px rgba(167,139,250,.4)}
+
 /* ── Weekly brief tab ── */
 .brief-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .brief-item{display:flex;gap:13px;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:13px;text-decoration:none;color:inherit;transition:border-color .2s,background .2s}
@@ -366,6 +386,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 })();
 </script>
 <script src="/_shared/journal-auth.js" defer></script>
+<script src="/_shared/tmw-celebrate.js" defer></script>
 <script>
 (function(){
   var WORKER='https://tmw.jake-ab7.workers.dev';
@@ -539,6 +560,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         });
         order.sort(function(a,b){ return moves[b].date.localeCompare(moves[a].date); });
         var n=order.length;
+        // once-per-week celebration toast on first view
+        try {
+          if(localStorage.getItem('tmw_brief_toast')!==wk){
+            localStorage.setItem('tmw_brief_toast', wk);
+            var fireToast=function(tries){
+              if(typeof window.tmwCelebrateToast==='function'){
+                window.tmwCelebrateToast({ emoji:'\u2726', title:'Your weekly brief is ready',
+                  sub:(n?n+' move'+(n===1?'':'s')+' on your watchlist this week':'Onyx kept watch this week'), hold:5200 });
+              } else if((tries||0)<10){ setTimeout(function(){ fireToast((tries||0)+1); }, 400); }
+            };
+            fireToast(0);
+          }
+        } catch(e){}
         if(!briefIsPro()){
           body.innerHTML='<div class="brief-lock">'
             + '<div class="bl-n">'+n+'</div>'
@@ -549,8 +583,28 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           var bp=document.getElementById('briefGoPro'); if(bp) bp.addEventListener('click',function(){ goPro(); });
           return;
         }
-        if(!n){ body.innerHTML='<div class="empty">No moves on your watchlist this week \u2014 Onyx keeps watch.</div>'; return; }
-        body.innerHTML='<div class="brief-list">'+order.map(function(id){
+        // stat chips: distinct projects + markets
+        var projSet={}, mktSet={};
+        order.forEach(function(id){ var ev=moves[id].ev; if(ev.project_slug) projSet[ev.project_slug]=1; if(ev.city) mktSet[ev.city]=1; });
+        var np=Object.keys(projSet).length, nm=Object.keys(mktSet).length;
+        var dtl=new Date(wk+'T00:00:00');
+        var hero='<div class="brief-hero">'
+          + '<div class="bh-eye"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/><path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/></svg>ONYX BRIEF <span class="bh-wk">WEEK OF '+dtl.toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase()+'</span></div>'
+          + '<div class="bh-stats">'
+          +   '<div class="bh-stat"><div class="v">'+n+'</div><div class="k">Moves</div></div>'
+          +   '<div class="bh-stat"><div class="v">'+np+'</div><div class="k">Projects</div></div>'
+          +   '<div class="bh-stat"><div class="v">'+nm+'</div><div class="k">Markets</div></div>'
+          + '</div>'
+          + '<div class="bh-narr" id="briefNarr"><span class="bh-shimmer"></span><span class="bh-shimmer" style="width:82%"></span></div>'
+          + '<div class="bh-foot">Generated by Onyx 4.1 \u00b7 grounded in your watchlist \u00b7 updates live as it moves</div>'
+          + '</div>';
+        if(!n){
+          body.innerHTML='<div class="empty">No moves on your watchlist this week \u2014 Onyx keeps watch.</div>';
+          return;
+        }
+        body.innerHTML=hero
+          + '<div class="brief-sec-h">The moves</div>'
+          + '<div class="brief-list">'+order.map(function(id){
           var x=moves[id], ev=x.ev;
           var title=ev.project_title||ev.title||'';
           var href='https://www.oftmw.com/map/?project='+mapSlug(ev.project_title||ev.project_slug||'');
@@ -563,6 +617,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
             +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+d2.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>'
             + '</div></a>';
         }).join('')+'</div>';
+        // Onyx narrative — server-generated once per member+week (D1-cached).
+        // Fails soft: the shimmer collapses away if the endpoint is unreachable.
+        var narr=document.getElementById('briefNarr');
+        fetch(WORKER+'/brief/summary',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({member:mem.id,week:wk,moves:order.slice(0,40).map(function(id){var x=moves[id],ev=x.ev;return{title:ev.project_title||ev.title||'',tag:ev.tag||ev.type||'',city:ev.city||'',date:x.date,label:x.label};})}) })
+          .then(function(r){return r.ok?r.json():null;})
+          .then(function(d){ if(narr){ if(d&&d.summary){ narr.classList.add('on'); narr.textContent=d.summary; } else { narr.style.display='none'; } } })
+          .catch(function(){ if(narr) narr.style.display='none'; });
       });
     });
   }

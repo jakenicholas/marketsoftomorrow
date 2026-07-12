@@ -1767,6 +1767,44 @@ async function handleWatchFeed(env, origin, url) {
     { headers: { 'Cache-Control': 'private, max-age=60' } }, env, origin
   );
 }
+// Weekly brief narrative — 2-3 analyst sentences over the member's watchlist
+// moves, generated once per member+week (D1-cached so re-opens are free).
+async function handleBriefSummary(req, env, origin) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const member = String((b && b.member) || '').trim();
+  const week = String((b && b.week) || '').trim().slice(0, 10);
+  const moves = Array.isArray(b && b.moves) ? b.moves.slice(0, 40) : [];
+  if (!member || !/^\d{4}-\d{2}-\d{2}$/.test(week)) return json({ error: 'member + week required' }, { status: 400 }, env, origin);
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS brief_summaries (k TEXT PRIMARY KEY, text TEXT, created_at INTEGER)`).run();
+  const k = member + '|' + week;
+  const hit = await env.DB.prepare(`SELECT text FROM brief_summaries WHERE k = ?`).bind(k).first();
+  if (hit && hit.text) return json({ ok: true, summary: hit.text, cached: true }, {}, env, origin);
+  if (!moves.length) return json({ ok: true, summary: '' }, {}, env, origin);
+  const lines = moves.map(m => '- ' + String(m.title || '').slice(0, 90) + (m.city ? ' (' + String(m.city).slice(0, 40) + ')' : '')
+    + ': ' + String(m.tag || 'moved').slice(0, 50) + (m.date ? ' on ' + String(m.date).slice(0, 10) : '')
+    + (m.label ? ' — on their list via ' + String(m.label).slice(0, 40) : '')).join('\n');
+  const sys = 'You are Onyx, Markets of Tomorrow\'s development intelligence, writing a member\'s private weekly watchlist brief. '
+    + 'Write 2-3 tight sentences: what moved on their watchlist this week and which move matters most, in a confident analyst voice. '
+    + 'Concrete facts ONLY from the list provided — never invent numbers, dates, or names. No greeting, no "this week", no markdown, '
+    + 'no superlative opener — start on the most significant move itself.';
+  let summary = '';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 260,
+        system: sys, messages: [{ role: 'user', content: 'The member\'s watchlist moves for the week ending ' + week + ':\n' + lines }] }),
+    });
+    if (r.ok) { const d = await r.json(); summary = ((d.content && d.content[0] && d.content[0].text) || '').trim(); }
+  } catch (_) {}
+  if (summary) {
+    const now = Math.floor(Date.now() / 1000);
+    await env.DB.prepare(`INSERT INTO brief_summaries (k, text, created_at) VALUES (?1, ?2, ?3)
+      ON CONFLICT(k) DO UPDATE SET text = ?2, created_at = ?3`).bind(k, summary, now).run();
+  }
+  return json({ ok: true, summary }, {}, env, origin);
+}
 // Onyx Watch Phase 2 — create a "smart watch" (a query/firm/area a member watches).
 // Stored per member; matched against pulse moves via the retriever in a later pass.
 async function handleWatchCreate(req, env, origin) {
@@ -11915,6 +11953,9 @@ export default {
       if (request.method === 'POST' && url.pathname === '/design/learn') return await handleDesignFinalLearn(request, env, origin);
       if (request.method === 'GET' && url.pathname === '/watch/feed') {
         return await handleWatchFeed(env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/brief/summary') {
+        return await handleBriefSummary(request, env, origin);
       }
       if (request.method === 'POST' && url.pathname === '/watch/create') {
         return await handleWatchCreate(request, env, origin);

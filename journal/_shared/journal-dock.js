@@ -1926,9 +1926,8 @@
     var d = getDismissed();
     return events.filter(function(e){ return !d.has(eid(e)); }).slice(0, 5);
   }
-  // ── Weekly brief card — pinned atop the Me feed from each Friday until
-  //    clicked. One slot only: a new Friday's card automatically replaces an
-  //    unclicked previous one (the week key changes, the old seen-flag is moot).
+  // ── Weekly brief card — ALWAYS pinned atop the Me feed (Jake 2026-07-12:
+  //    no seen/dismiss). The week label rolls forward each Friday.
   function briefWeekOf(){
     var d = new Date();
     var day = d.getDay();                       // 0 Sun … 5 Fri, 6 Sat
@@ -1936,11 +1935,9 @@
     d.setDate(d.getDate() - diff);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
-  function briefSeen(wk){ try { return localStorage.getItem('tmw_brief_seen') === wk; } catch(_) { return true; } }
   function briefCardHtml(){
     if (!(window.__tmwMember && window.__tmwMember.id)) return '';
     var wk = briefWeekOf();
-    if (briefSeen(wk)) return '';
     var dt = new Date(wk + 'T00:00:00');
     var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return '<a class="tmw-pulse-brief" href="https://www.oftmw.com/account/#brief" data-brief-week="' + wk + '">'
@@ -1977,7 +1974,6 @@
   document.addEventListener('click', function(e){
     var b = e.target && e.target.closest ? e.target.closest('.tmw-pulse-brief') : null;
     if (!b) return;
-    try { localStorage.setItem('tmw_brief_seen', b.getAttribute('data-brief-week') || ''); } catch(_){}
     try {
       var m = window.__tmwMember || null;
       var payload = JSON.stringify({ member_id: (m && m.id) || 'anon', member_name: (m && m.name) || null,
