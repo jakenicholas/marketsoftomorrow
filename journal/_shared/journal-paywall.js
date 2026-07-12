@@ -60,7 +60,7 @@
     } catch (e) {}
   }
   function showTrialUsedBanner() {
-    var b = document.getElementById('paywallTrialUsed'); if (b) b.hidden = false;
+    var b = document.getElementById('paywallTrialUsed'); if (b) b.style.display = 'flex';
     // No free trial for returning members — drop the "14 days free" wording so the
     // plans + headline reflect they're billed immediately.
     var modal = document.getElementById('paywallModal'); if (!modal) return;
@@ -76,7 +76,7 @@
   // is actually trial-eligible, so any latched "trial used" state is undone and the
   // "14 days free" wording is restored to the default.
   function hideTrialUsedBanner() {
-    var b = document.getElementById('paywallTrialUsed'); if (b) b.hidden = true;
+    var b = document.getElementById('paywallTrialUsed'); if (b) b.style.display = 'none';
     var modal = document.getElementById('paywallModal'); if (!modal) return;
     var sub = modal.querySelector('.paywall-subtitle');
     if (sub) sub.textContent = 'Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:';
@@ -176,7 +176,7 @@
         '<div class="paywall-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
         '<h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>' +
         '<p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>' +
-        '<div class="paywall-trialused" id="paywallTrialUsed" hidden style="display:flex;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — choose a plan to subscribe now.</span></div>' +
+        '<div class="paywall-trialused" id="paywallTrialUsed" style="display:none;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — choose a plan to subscribe now.</span></div>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
             '<div class="paywall-plan-tag">BEST VALUE</div>' +
@@ -236,7 +236,7 @@
     var wrap = document.getElementById('tmwPaywallSigninWrap');
     if (wrap) wrap.style.display = window._tmwSignedIn ? 'none' : '';
     // "already used your free trial" banner — show if we already know, then re-check live
-    var tu = document.getElementById('paywallTrialUsed'); if (tu) tu.hidden = !_trialUsed;
+    var tu = document.getElementById('paywallTrialUsed'); if (tu) tu.style.display = _trialUsed ? 'flex' : 'none';
     checkTrialEligibility();
     // context-aware headline
     var titleEl = modal.querySelector('.paywall-title');
