@@ -681,6 +681,29 @@
        the actions drop to the next line. */
     + '.tmw-ov-feedback{width:100%;flex-wrap:wrap;gap:10px 16px}'
     + '.tmw-ov-feedback > .tmw-ov-intel-foot{flex:1 1 auto;min-width:0;margin:0;padding:0;border-top:0;display:block;line-height:1.55;font-size:13px;color:#C2C9C3;text-align:left}'
+    /* ── Onyx Deep tease — collapsed gold bar under every free-tier answer;
+          expands to a skeleton preview of what Deep would have covered. ── */
+    + '.tmw-dt{margin-top:14px;border:1px solid rgba(230,197,116,.38);border-radius:14px;padding:12px 18px;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.015));animation:tmwDtGlow 2.6s ease-in-out infinite}'
+    + '.tmw-dt.open{padding:16px 20px 18px}'
+    + '@keyframes tmwDtGlow{0%,100%{box-shadow:0 0 0 1px rgba(230,197,116,.08) inset,0 0 22px -6px rgba(230,197,116,.22)}50%{box-shadow:0 0 0 1px rgba(230,197,116,.14) inset,0 0 32px -4px rgba(230,197,116,.4)}}'
+    + '@media(prefers-reduced-motion:reduce){.tmw-dt{animation:none}.tmw-dt .bar{animation:none}}'
+    + '.tmw-dt .dt-toggle{width:100%;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;display:flex;align-items:center;gap:12px}'
+    + '.tmw-dt .dt-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.2em;color:#f0d68a;font-weight:700;text-shadow:0 0 14px rgba(230,197,116,.5);display:flex;align-items:center;gap:7px;flex:none}'
+    + '.tmw-dt .dt-pro{font-size:8px;letter-spacing:.12em;background:#f0d68a;color:#141005;border-radius:4px;padding:2px 5px;font-weight:800}'
+    + '.tmw-dt .dt-peek{font-size:12.5px;color:rgba(236,234,229,.62);flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '.tmw-dt .dt-quota{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:rgba(236,234,229,.42);text-transform:uppercase;flex:none}'
+    + '.tmw-dt .dt-chev{color:#f0d68a;font-size:12px;flex:none;transition:transform .2s}'
+    + '.tmw-dt.open .dt-chev{transform:rotate(180deg)}'
+    + '.tmw-dt .dt-body{display:none;margin-top:10px}'
+    + '.tmw-dt.open .dt-body{display:block}'
+    + '.tmw-dt .dt-sub{font-size:12.5px;color:rgba(236,234,229,.7);margin:0 0 10px}'
+    + '.tmw-dt .sec{padding:10px 0;border-top:1px solid rgba(255,255,255,.06)}'
+    + '.tmw-dt .sec-t{font-size:13px;font-weight:600;color:#ECEAE5;display:flex;align-items:center;gap:8px;margin-bottom:7px}'
+    + '.tmw-dt .sec-t .k{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:8.5px;color:#f0d68a;letter-spacing:.14em}'
+    + '.tmw-dt .bar{height:7px;border-radius:4px;margin:5px 0;background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(230,197,116,.13) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:tmwDtShimmer 1.8s linear infinite}'
+    + '@keyframes tmwDtShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+    + '.tmw-dt .dt-cta{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 16px;border-radius:999px;border:1px solid rgba(230,197,116,.5);background:rgba(230,197,116,.12);color:#f0d68a;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer;text-shadow:0 0 14px rgba(230,197,116,.5)}'
+    + '.tmw-dt .dt-cta:hover{background:rgba(230,197,116,.18)}'
     + '.tmw-ov-feedback > .tmw-ov-intel-foot .ai{color:#B9A6FF;font-weight:600}'
     + '.tmw-ov-feedback > .tmw-ov-intel-foot b{color:#ECEAE5;font-weight:600}'
     /* margin-left:auto keeps the actions right even when there is NO byline
@@ -2631,7 +2654,49 @@
     return { p: (rows || []).length, a: (iconicHits || []).length, place: place };
   }
 
-  function renderSmartIntelPanel(ans, q, immediate, ground){
+  // Onyx Deep tease — non-Pro only. Shows the SHAPE of what Deep would have
+  // produced for this exact query (intent-derived section titles + real
+  // grounding counts), never the content. Collapsed to one slim bar by
+  // default (same dropdown treatment as the article intelligence).
+  function renderDeepTease(q, ground, s){
+    var pro = window.tmwIntel && window.tmwIntel.isPro && window.tmwIntel.isPro();
+    if (pro) return '';
+    var pCount = (ground && ground.p) || 0;
+    var measured = pCount > 1 ? ' · ' + pCount + ' projects measured' : '';
+    var secs;
+    if (s && s.firm && s.firm.name){
+      secs = ['Portfolio delivery record — ' + s.firm.name + "'s full track record",
+              'Comparable developer pipelines' + measured,
+              'Delivery risk — slippage history & forecast confidence'];
+    } else if (s && s.cities && s.cities.length === 1){
+      secs = ['Neighborhood pipeline — ' + s.cities[0] + measured,
+              'Firm track record — developers & architects behind them',
+              'Delivery risk — slippage history & forecast confidence'];
+    } else {
+      secs = ['Comparable pipeline' + measured,
+              'Firm track record — developers & architects behind them',
+              'Delivery risk — slippage history & forecast confidence'];
+    }
+    var body = secs.map(function(t, i){
+      return '<div class="sec"><div class="sec-t"><span class="k">0'+(i+1)+'</span>'+esc(t)+'</div>'
+        + '<div class="bar" style="width:'+(92 - i*7)+'%"></div><div class="bar" style="width:'+(72 - i*8)+'%"></div></div>';
+    }).join('');
+    return '<div class="tmw-dt" data-dt data-dt-q="'+esc(String(q||'').slice(0,200))+'">'
+      + '<button type="button" class="dt-toggle" data-dt-toggle aria-expanded="false">'
+      +   '<span class="dt-eye">◆ ONYX DEEP <span class="dt-pro">PRO</span></span>'
+      +   '<span class="dt-peek">See what the deep read would have covered</span>'
+      +   '<span class="dt-quota">12 deep searches / mo</span>'
+      +   '<span class="dt-chev" aria-hidden="true">▾</span>'
+      + '</button>'
+      + '<div class="dt-body">'
+      +   '<p class="dt-sub">Deep reads every project record, firm history and article in scope for this question. It would have covered:</p>'
+      +   body
+      +   '<button type="button" class="dt-cta" data-dt-cta>Go deeper with Onyx Deep →</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function renderSmartIntelPanel(ans, q, immediate, ground, s){
     var stats = '';
     if (ans.stats && ans.stats.length){
       stats = '<div class="tmw-ov-intel-stats" style="grid-template-columns:repeat('+ans.stats.length+',1fr)">'
@@ -2664,6 +2729,7 @@
       +   '<div class="tmw-ov-intel-foot' + ((ground && (ground.p || ground.a)) ? ' has-ground' : '') + '">'
       +     '<span class="ai">Onyx 4.1</span> · ' + _groundingLine((ground && (ground.p || ground.a)) ? 'answer' : '', ground)
       +   '</div>'
+      +   renderDeepTease(q, ground, s)
       + '</section>';
   }
 
@@ -3336,6 +3402,49 @@
       else fetch(url, { method:'POST', body:payload, keepalive:true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
     } catch(_){}
   }
+  // Deep-tease funnel: expand + CTA both land in the events table so the
+  // two-step funnel (expand -> click -> upgrade) is measurable against popups.
+  function sendTeaseEvent(name, q){
+    try {
+      var m = window.__tmwMember || null;
+      var did = '';
+      try { did = localStorage.getItem('tmw_did') || ''; } catch(_){}
+      var payload = JSON.stringify({
+        member_id: (m && m.id) || ('anon:' + (did || 'unknown')),
+        member_name: (m && m.name) || null,
+        plan: m ? 'free' : 'anon',
+        event_name: name,
+        path: location.pathname,
+        referrer: document.referrer || null,
+        client_ts: Math.floor(Date.now() / 1000),
+        props: { q: String(q || '').slice(0, 200), source: 'overlay' }
+      });
+      var url = 'https://tmw.jake-ab7.workers.dev/event';
+      if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+      else fetch(url, { method:'POST', body:payload, keepalive:true, headers:{ 'Content-Type':'text/plain' } }).catch(function(){});
+    } catch(_){}
+  }
+  root.addEventListener('click', function(e){
+    var cta = e.target && e.target.closest ? e.target.closest('[data-dt-cta]') : null;
+    if (cta){
+      var boxc = cta.closest('[data-dt]');
+      sendTeaseEvent('deep_tease_click', boxc ? boxc.getAttribute('data-dt-q') : '');
+      try { if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('feature:deep'); } catch(_){}
+      return;
+    }
+    var tog = e.target && e.target.closest ? e.target.closest('[data-dt-toggle]') : null;
+    if (tog){
+      var box = tog.closest('[data-dt]');
+      var open = !box.classList.contains('open');
+      box.classList.toggle('open', open);
+      tog.setAttribute('aria-expanded', String(open));
+      if (open && !box.getAttribute('data-dt-seen')){
+        box.setAttribute('data-dt-seen', '1');
+        sendTeaseEvent('deep_tease_expand', box.getAttribute('data-dt-q'));
+      }
+    }
+  });
+
   // "Watch this" — Phase 2 Onyx Watch entry point. Non-Pro → the Go Pro paywall;
   // Pro → creates a smart watch on this query (matched against pulse moves).
   // Already-watched detection — so the button shows "Watching" for a query the
@@ -3907,7 +4016,7 @@
 
     // Header slot carries the "understood as" chips
     var chipsHtml = renderUnderstoodChips(s);
-    var panelHtml = renderSmartIntelPanel(ans, q, !willFire, smartGrounding(s, rows, iconicHits));
+    var panelHtml = renderSmartIntelPanel(ans, q, !willFire, smartGrounding(s, rows, iconicHits), s);
     slotIntel.innerHTML = chipsHtml + panelHtml;
 
     // Promote the top smart-filtered project to a hero card -- same rich
