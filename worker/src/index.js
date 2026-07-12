@@ -1364,7 +1364,28 @@ async function fetchStripeIncome(env) {
     recent_purchases: recentFeed,
     mrr_history: history,   // [{ts, mrr}] — reconstructed past, oldest→newest, ends at now
     growth,                 // { window_weeks, subs_per_week, mrr_per_week }
+    trialing: trialStarts.length,   // active free-trial subs (subset of paying)
   };
+}
+
+// Weekly snapshot of the live subscription state → `subs_snapshot` events. Unlike
+// the Stripe reconstruction (which traces only the CURRENT book, so it's blind to
+// churn), these capture the true numbers each week, so real MRR movement — new,
+// expansion, AND churn — accrues going forward. Cron fires every minute; this
+// self-throttles to ~once a week off the latest snapshot's timestamp.
+async function maybeSnapshotSubs(env) {
+  if (!env.DB || !env.STRIPE_SECRET_KEY) return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='subs_snapshot' ORDER BY ts DESC LIMIT 1").first();
+    if (last && last.ts && (now - last.ts) < 7 * 86400 - 3600) return;   // ~weekly
+    const s = await fetchStripeIncome(env);
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
+      .bind(now, 'system:subs-snapshot', 'subs_snapshot', JSON.stringify({
+        mrr: s.mrr, arr: s.arr, paying: s.paying_subscribers,
+        monthly: s.monthly_subscriptions, yearly: s.yearly_subscriptions, trialing: s.trialing || 0,
+      })).run();
+  } catch (_) {}
 }
 
 // GET /funnel-stats?weeks=12 — article-to-Pro funnel by week.
@@ -1600,6 +1621,13 @@ async function handleSubscriptions(env, origin, url) {
       resp.recent_purchases = s.recent_purchases;
       resp.mrr_history = s.mrr_history;
       resp.growth = s.growth;
+      resp.trialing = s.trialing;
+      // Real weekly snapshots (churn-aware). Empty until the cron accrues them;
+      // the chart prefers these over the reconstruction once ≥2 exist.
+      try {
+        const rows = (await env.DB.prepare("SELECT ts, props_json FROM events WHERE event_name='subs_snapshot' ORDER BY ts ASC LIMIT 80").all()).results || [];
+        resp.mrr_snapshots = rows.map(r => { let p = {}; try { p = JSON.parse(r.props_json); } catch (_) {} return { ts: r.ts, mrr: Number(p.mrr) || 0, paying: Number(p.paying) || 0, trialing: Number(p.trialing) || 0 }; });
+      } catch (_) {}
     } catch (e) {
       resp.stripe_error = String(e.message || e);   // keep Memberstack estimates as fallback
     }
@@ -12290,6 +12318,7 @@ export default {
     ctx.waitUntil(migrationTick(env));
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
+    ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
