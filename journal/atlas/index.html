@@ -1123,6 +1123,8 @@
   <!-- Native Pro paywall (window.tmwShowPaywall). Memberstack + _isPaidMember
        come from journal-auth.js, which journal-chrome.js loads on this page. -->
   <script src="/_shared/journal-paywall.js" defer></script>
+  <!-- Reusable "Follow the Money" intel module (Atlas money tile) -->
+  <script src="/_shared/intel-modules.js" defer></script>
 
   <!-- ───────────────────────────────────────────────────────────────────
        ATLAS RENDER — ported from the map (repo-root index.html, the
@@ -2385,6 +2387,17 @@
         </section>`;
     }
 
+    // Follow the Money — a native atlas-section wrapping the shared money module
+    // (/_shared/intel-modules.js), filled async after each render.
+    function renderMoneySection() {
+      return '<section class="atlas-section">'
+        + '<div class="atlas-section-head"><div>'
+        + '<h2 class="atlas-section-title">Follow the money</h2>'
+        + '<p class="atlas-section-sub">Every tracked financing — who\'s raising, where it\'s landing, and how much is disclosed.</p>'
+        + '</div></div>'
+        + '<div class="atlas-panel"><div data-tmw-money data-mode="full"><div class="tmw-m-loading" style="font:12px \'Inter\',sans-serif;color:#8b958d;padding:14px 2px">Tracing the capital…</div></div></div>'
+        + '</section>';
+    }
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
@@ -2403,6 +2416,7 @@
           renderDashGrid(),
           renderProjectCards(),
           renderLeaderboardSection(),
+          renderMoneySection(),
           renderCoverageAndComing(),
           renderFootnote()
         );
@@ -2411,6 +2425,7 @@
       root.innerHTML = sections.join('');
       wireInteractions();
       updateLoadMoreBtn(currentLbKey);
+      try { if (window.tmwMoney) window.tmwMoney.mountAll(); } catch (e) {}
       // Land the user at the "Today" boundary in timeline view. On the native
       // page the scroll container is the window (not a fixed overlay), so we
       // scroll the boundary element into view just below the sticky header.
