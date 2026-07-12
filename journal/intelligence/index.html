@@ -99,7 +99,8 @@
   .mstat .s{border:1px solid rgba(31,223,103,.22); border-radius:14px; padding:16px 18px; background:linear-gradient(180deg, rgba(31,223,103,.05), rgba(31,223,103,.012))}
   .mstat .s .n{font-family:var(--serif); font-size:30px; font-weight:600; color:var(--green-soft); line-height:1; letter-spacing:-.02em}
   .mstat .s .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:9px}
-  .money{display:grid; grid-template-columns:1.2fr 1fr; gap:14px}
+  .money{display:grid; grid-template-columns:1.3fr .95fr .95fr; gap:14px}
+  @media(max-width:980px){ .money{grid-template-columns:1fr 1fr} }
   .mcard{border:1px solid var(--hair-2); border-radius:16px; padding:20px 22px; background:rgba(255,255,255,.02)}
   .mhd{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute-2); margin-bottom:14px}
   .mrow{display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--hair); text-decoration:none}
@@ -234,6 +235,30 @@
   }
   function yearOf(s){ var y=String(s||'').match(/(\d{4})/); return y?+y[1]:null; }
   function ago(ts){ if(!ts) return ''; var d=Math.floor((Date.now()-ts)/86400000); if(d<1)return 'today'; if(d<30)return d+'d ago'; var mo=Math.round(d/30); return mo+'mo ago'; }
+  function firmSplit(v){ return String(v||'').split(/\s*[,/]\s*/).map(function(s){return s.trim();}).filter(function(s){return s && s.toLowerCase()!=='various';}); }
+
+  // Financing figures + lenders live in the milestone NOTE text captured by the
+  // construction sweep ("$323.8M construction loan from Bank OZK"). Parse both.
+  function noteAmt(note){ var m=String(note||'').match(/\$\s*([\d,]+(?:\.\d+)?)\s*(m|mm|million|b|bn|billion)\b/i); if(!m) return null; var v=parseFloat(m[1].replace(/,/g,'')); return /^b/i.test(m[2])?v*1000:v; }
+  function noteLender(note){ var m=String(note||'').match(/\bfrom\s+([A-Z][A-Za-z0-9.&' ]{2,38}?)(?=\s*(?:\(|,|;|\.|$|\bper\b|\bvia\b|\barranged\b|\band\b))/); if(!m) return null; var L=m[1].trim().replace(/\s+/g,' '); return L.length>=3 ? L : null; }
+  function financeDeals(projects){
+    var deals=[];
+    projects.forEach(function(p){
+      var sh=p.StatusHistory; if(!Array.isArray(sh)) return;
+      var best=null;
+      sh.forEach(function(h){
+        if(!h) return;
+        if(!(h.phase==='financing' || /financ|construction loan|refinanc/i.test(h.note||''))) return;
+        var a=noteAmt(h.note), when=parseWhen(h.effective_date||h.source_published||h.at);
+        var cand={amt:a, lender:noteLender(h.note), when:when, src:h.source_url||''};
+        if(!best) best=cand;
+        else if(a && (!best.amt || when>=best.when)) best=cand;   // prefer an amount, then the latest
+        else if(!best.amt && when>best.when) best=cand;
+      });
+      if(best) deals.push({title:p.Title, city:(p.City||'').trim(), dev:firmSplit(p.Developer)[0]||'', href:projHref(p), amt:best.amt, lender:best.lender, when:best.when});
+    });
+    return deals;
+  }
 
   Promise.all([ sharedJson(MAP+'projects-flat.json'), sharedJson(MAP+'pulse.json'), sharedJson(MAP+'dossiers.json') ])
     .then(function(o){
@@ -249,15 +274,15 @@
 
       document.getElementById('ih-count').textContent = projects.length.toLocaleString();
 
-      renderNoticed(projects, pulseEv, projFor);
-      renderMoney(projects, pulseEv, dossiers, byMap, projFor);
+      var deals = financeDeals(projects);
+      renderNoticed(projects, deals);
+      renderMoney(deals);
       renderForecast(projects);
     });
 
   /* ---------------- ONYX NOTICED ---------------- */
-  function firmSplit(v){ return String(v||'').split(/\s*[,/]\s*/).map(function(s){return s.trim();}).filter(function(s){return s && s.toLowerCase()!=='various';}); }
   var EARLY = {'announced':1,'breaking ground':1};
-  function renderNoticed(projects, pulseEv, projFor){
+  function renderNoticed(projects, deals){
     // insight A — top architect share
     var arch={}, total=0;
     projects.forEach(function(p){ var fs=firmSplit(p.Architect); if(fs.length) total++; fs.forEach(function(a){ arch[a]=(arch[a]||0)+1; }); });
@@ -269,10 +294,10 @@
     var er = Object.keys(early).map(function(k){return [k,early[k]];}).sort(function(a,b){return b[1]-a[1];});
     var c1=er[0]||['—',0], c2=er[1]||['—',0];
 
-    // insight C — recent financing momentum (from pulse)
-    var fin = pulseEv.filter(function(e){ return /financ/i.test((e.tag||'')+(e.title||'')); });
-    var finSum = 0, finN = fin.length;
-    fin.forEach(function(e){ var a=parseAmt(e.source_url); if(a) finSum+=a; });
+    // insight C — financing momentum (from the milestone notes)
+    var finN = deals.length;
+    var finSum = deals.reduce(function(s,d){ return s+(d.amt||0); }, 0);
+    var finMkts = Object.keys(deals.reduce(function(m,d){ if(d.city) m[d.city]=1; return m; }, {})).length;
 
     var html = ''
       + '<div class="ncard">'
@@ -291,8 +316,8 @@
         + '</div>'
         + '<div class="ncard mini">'
           + '<div class="ncat">Capital momentum</div>'
-          + '<p class="nstmt"><b>'+finN+' projects</b> secured financing in the recent feed'+(finSum?' — '+fmtM(finSum)+' in disclosed capital':'')+'.</p>'
-          + '<div class="nproof">Rolling window · tracked deals</div>'
+          + '<p class="nstmt"><b>'+finN+' projects</b> have secured financing'+(finSum?' — '+fmtM(finSum)+' in disclosed capital across '+finMkts+' markets':'')+'.</p>'
+          + '<div class="nproof">'+finMkts+' markets · tracked deals</div>'
           + '<a class="ncta" href="#money" onclick="document.getElementById(\'money\').scrollIntoView({behavior:\'smooth\'});return false;">Follow the money '+ARR+'</a>'
         + '</div>'
       + '</div>';
@@ -300,73 +325,54 @@
   }
 
   /* ---------------- FOLLOW THE MONEY ---------------- */
-  function renderMoney(projects, pulseEv, dossiers, byMap, projFor){
-    // recent financings from the pulse feed (clean, sourced, often with amounts)
-    var deals = [];
-    pulseEv.forEach(function(e){
-      if(!/financ/i.test((e.tag||'')+(e.title||''))) return;
-      var p = projFor(e.project_slug, e.project_title);
-      deals.push({
-        title: e.project_title || (p&&p.Title) || 'Project',
-        city: e.city || (p&&p.City) || '',
-        dev: p ? firmSplit(p.Developer)[0] : '',
-        amt: parseAmt(e.source_url),
-        when: parseWhen(e.event_date || e.timestamp),
-        href: e.link || (p?projHref(p):'#'),
-        src: e.source_url || ''
-      });
-    });
-    // enrich with historical financing rows from dossiers (dates only; no reliable amount)
-    var seen = {}; deals.forEach(function(d){ seen[mapSlug(d.title)]=1; });
-    for(var slug in dossiers){
-      var html = String(dossiers[slug]);
-      var m = html.match(/<span class="dos-label">Financing secured<\/span>\s*<span class="dos-date">([^<]+)<\/span>/i);
-      if(!m) continue;
-      if(seen[slug]) continue;
-      var p = byMap[slug]; if(!p) continue;
-      deals.push({ title:p.Title, city:p.City||'', dev:firmSplit(p.Developer)[0]||'', amt:null, when:parseWhen(m[1]), href:projHref(p), src:'' });
-      seen[slug]=1;
-    }
-    deals.sort(function(a,b){ return b.when-a.when; });
-
+  function renderMoney(deals){
     var disclosed = deals.reduce(function(s,d){ return s+(d.amt||0); }, 0);
-    var withAmt = deals.filter(function(d){return d.amt;}).length;
+    var mktSet = {}; deals.forEach(function(d){ if(d.city) mktSet[d.city]=1; });
 
-    // by market
-    var byCity = {};
-    deals.forEach(function(d){ var c=d.city||'—'; if(!byCity[c]) byCity[c]={n:0,amt:0}; byCity[c].n++; byCity[c].amt+=(d.amt||0); });
-    // Rank by deal activity (complete data) — amounts are partial, so ranking by
-    // $ would over-weight the few big disclosed deals. Show $ as a secondary read.
-    var cities = Object.keys(byCity).map(function(k){ return {city:k, n:byCity[k].n, amt:byCity[k].amt}; })
+    // lender league table (parsed from deal notes)
+    var lend = {}; deals.forEach(function(d){ if(!d.lender) return; if(!lend[d.lender]) lend[d.lender]={n:0,amt:0}; lend[d.lender].n++; lend[d.lender].amt+=(d.amt||0); });
+    var lenders = Object.keys(lend).map(function(k){ return {name:k, n:lend[k].n, amt:lend[k].amt}; })
+      .sort(function(a,b){ return b.n-a.n || b.amt-a.amt; }).slice(0,6);
+
+    // where capital is landing — ranked by deal activity (avoids one $12B overseas
+    // deal topping the list), $ shown as the value. A realistic 60+ market spread.
+    var mc = {}; deals.forEach(function(d){ var c=d.city||'—'; if(!mc[c]) mc[c]={n:0,amt:0}; mc[c].n++; mc[c].amt+=(d.amt||0); });
+    var cities = Object.keys(mc).map(function(k){ return {city:k, n:mc[k].n, amt:mc[k].amt}; })
       .sort(function(a,b){ return b.n-a.n || b.amt-a.amt; }).slice(0,6);
     var cmax = Math.max.apply(null, cities.map(function(c){return c.n;}).concat([1]));
 
-    var recent = deals.slice(0, 8);
+    var recent = deals.slice().sort(function(a,b){ return b.when-a.when; }).slice(0,7);
+
     var stat = ''
       + '<div class="mstat">'
         + '<div class="s"><div class="n">'+deals.length+'</div><div class="l">Financings tracked</div></div>'
         + '<div class="s"><div class="n">'+(disclosed?fmtM(disclosed):'—')+'</div><div class="l">Disclosed capital</div></div>'
-        + '<div class="s"><div class="n">'+cities.length+'</div><div class="l">Markets receiving capital</div></div>'
+        + '<div class="s"><div class="n">'+Object.keys(mktSet).length+'</div><div class="l">Markets receiving capital</div></div>'
       + '</div>';
 
     var recentHtml = recent.map(function(d){
       var amt = d.amt ? '<span class="amt">'+fmtM(d.amt)+'</span>' : '<span class="amt na">—</span>';
+      var meta = [d.city, d.lender||d.dev].filter(Boolean).join(' · ') + (d.when?' · '+ago(d.when):'');
       return '<a class="mrow" href="'+esc(d.href)+'" target="_blank" rel="noopener">'
-        + '<div class="mn"><div class="nm">'+esc(d.title)+'</div><div class="mt">'+esc([d.city,d.dev].filter(Boolean).join(' · '))+(d.when?' · '+ago(d.when):'')+'</div></div>'
+        + '<div class="mn"><div class="nm">'+esc(d.title)+'</div><div class="mt">'+esc(meta)+'</div></div>'
         + amt + '</a>';
     }).join('');
 
+    var lenderHtml = lenders.length ? lenders.map(function(l){
+      return '<div class="mrow static"><div class="mn"><div class="nm">'+esc(l.name)+'</div><div class="mt">'+l.n+(l.n===1?' deal':' deals')+'</div></div>'
+        + '<span class="amt'+(l.amt?'':' na')+'">'+(l.amt?fmtM(l.amt):'—')+'</span></div>';
+    }).join('') : '<div class="mnote">No lenders parsed yet.</div>';
+
     var flowHtml = cities.map(function(c){
-      var val = c.n + (c.n===1?' deal':' deals');
       var w = Math.round((c.n/cmax)*100);
-      return '<div class="fl"><span class="nm">'+esc(c.city)+'</span><span class="tk"><i style="width:'+w+'%"></i></span><span class="v">'+val+'</span></div>';
+      return '<div class="fl"><span class="nm">'+esc(c.city)+'</span><span class="tk"><i style="width:'+w+'%"></i></span><span class="v">'+(c.amt?fmtM(c.amt):c.n+'d')+'</span></div>';
     }).join('');
 
     document.getElementById('money').innerHTML = stat
       + '<div class="money">'
         + '<div class="mcard"><div class="mhd">Recent financings</div>'+recentHtml+'</div>'
-        + '<div class="mcard"><div class="mhd">Where capital is landing</div><div class="mflow">'+flowHtml+'</div>'
-          + '<div class="mnote">Disclosed amounts parsed from deal sources; lender-level detail isn’t structured yet.</div></div>'
+        + '<div class="mcard"><div class="mhd">Most active lenders</div>'+lenderHtml+'<div class="mnote">Parsed from deal notes — approximate until structured.</div></div>'
+        + '<div class="mcard"><div class="mhd">Where capital is landing</div><div class="mflow">'+flowHtml+'</div></div>'
       + '</div>';
   }
 
