@@ -1768,6 +1768,26 @@
     if (kind === 'structured' && smart) {
       var srows = smartFilter(smart, projects);
       smartRank(srows, smart);
+      // "Most active firm" intent: float the WINNING firm's projects to the front
+      // so the spotlight cards (the first 3 the Overview shows) actually back the
+      // prose answer — e.g. "hotel most active firm" surfaces Aman's hotels, not
+      // the generic top hotels. Developer leads for 'both'/'developer'; architect
+      // for 'architect'. Only when there's a clear winner (>=2 projects) — else the
+      // answer itself says no firm dominates, so keep the generic order. Reorder
+      // only (nothing dropped); each group keeps its smartRank order.
+      if (smart.firmRank) {
+        var _fr = rankFirms(srows);
+        var _primary = (smart.firmRank === 'architect') ? _fr.architects[0] : _fr.developers[0];
+        var _field = (smart.firmRank === 'architect') ? 'Architect' : 'Developer';
+        if (_primary && _primary.count >= 2) {
+          var _key = norm(_primary.name), _in = [], _rest = [];
+          srows.forEach(function (p) {
+            var _names = String(p[_field] || '').split(',').map(function (x) { return norm(x.trim()); });
+            (_names.indexOf(_key) >= 0 ? _in : _rest).push(p);
+          });
+          srows = _in.concat(_rest);
+        }
+      }
       return { kind: 'structured', placeDriven: true, exactName: false, semantic: false,
         rows: srows.map(function (p, i) { return { p: p, s: srows.length - i }; }) };
     }
