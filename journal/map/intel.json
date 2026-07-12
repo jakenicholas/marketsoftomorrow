@@ -11015,57 +11015,21 @@
       "delivery_speculative": false
     },
     "palazzo-at-bayfront": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 2.0,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 12,
-      "good_count": 4,
-      "exact_count": 4,
-      "used_relaxed": false,
-      "avg_match_score": 0.54,
-      "avg_distance_km": 1682.0,
-      "avg_distance_mi": 1045.2,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 537,
+      "delivery_date": "2027-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Southwest Florida",
-      "comparables": [
-        {
-          "name": "Forté on Flagler",
-          "slug": "fort-on-flagler",
-          "location": "West Palm Beach",
-          "years": 3.8,
-          "score": 0.76,
-          "distance_km": 183.9,
-          "distance_mi": 114.3
-        },
-        {
-          "name": "The Village at Coral Gables",
-          "slug": "the-village-at-coral-gables",
-          "location": "Coral Gables",
-          "years": 2.3,
-          "score": 0.76,
-          "distance_km": 158.8,
-          "distance_mi": 98.7
-        },
-        {
-          "name": "Arbor Coconut Grove",
-          "slug": "arbor-coconut-grove",
-          "location": "Miami",
-          "years": 8.4,
-          "score": 0.76,
-          "distance_km": 161.5,
-          "distance_mi": 100.3
-        }
-      ],
-      "pattern_summary": "Among 12 residences projects in TMW's data, the median build time is 3 years (range 2–4.8).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "one-fort-myers": {
       "estimate_years": 1.5,
@@ -13734,9 +13698,9 @@
   },
   "stats": {
     "high": 7,
-    "medium": 21,
+    "medium": 20,
     "low": 61,
-    "known_date": 471,
+    "known_date": 472,
     "completed": 66,
     "skipped": 87,
     "no_type": 0,
