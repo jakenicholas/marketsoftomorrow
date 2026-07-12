@@ -1598,6 +1598,8 @@ async function handleSubscriptions(env, origin, url) {
       resp.income_source = 'stripe';
       resp.income_truncated = s.income_truncated;
       resp.recent_purchases = s.recent_purchases;
+      resp.mrr_history = s.mrr_history;
+      resp.growth = s.growth;
     } catch (e) {
       resp.stripe_error = String(e.message || e);   // keep Memberstack estimates as fallback
     }
