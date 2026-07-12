@@ -3004,8 +3004,18 @@ const IMPL = {
       if (text) { try { drafts = JSON.parse(text); } catch (_) { throw new Error('drafts.json is not valid JSON — refusing to overwrite'); } }
       if (!Array.isArray(drafts)) drafts = [];
 
-      const seq = String(drafts.filter((d) => String(d && d.draft_id || '').startsWith(stamp)).length + 1).padStart(3, '0');
-      draft_id = `${stamp}-${seq}`;
+      // Sequence from the MAX existing number for today, not the COUNT. Counting is
+      // fragile: if any earlier draft was deleted, count+1 can land on an id that
+      // still exists (e.g. 10 drafts remain but the highest is 020 → count+1=011,
+      // already taken) — two drafts then share a draft_id and the admin shows one
+      // when you open the other. Max+1 is monotonic and deletion-proof; the while
+      // loop is a belt-and-suspenders guard against any residual collision.
+      const idsToday = new Set(drafts.map((d) => String(d && d.draft_id || '')).filter((id) => id.startsWith(stamp)));
+      let maxSeq = 0;
+      for (const id of idsToday) { const n = parseInt(id.slice(stamp.length + 1), 10); if (!isNaN(n) && n > maxSeq) maxSeq = n; }
+      let seqNum = maxSeq + 1;
+      while (idsToday.has(`${stamp}-${String(seqNum).padStart(3, '0')}`)) seqNum++;
+      draft_id = `${stamp}-${String(seqNum).padStart(3, '0')}`;
       entry = { draft_id, created_at: isoNow, created_by: 'claude-studio', source_note, data };
       drafts.push(entry);
       try {
