@@ -1270,11 +1270,15 @@ async function fetchStripeIncome(env) {
         mrr += pm; subPerMonth += pm;
         if (iv === 'year') subBucket = 'yearly'; else if (iv === 'month' && subBucket !== 'yearly') subBucket = 'monthly';
       }
-      if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
-      subLedger.push({ created: sub.created || 0, perMonth: subPerMonth });
-      // Recognized (paying) vs trial split.
+      // Recognized (paying) vs trial split. MRR, cadence counts, and the historical
+      // ledger are PAYING-ONLY — trials pay $0 today, so they're not recognized
+      // revenue. Their committed value lives in trial_mrr as separate upside.
       if (isTrial) { trialMrr += subPerMonth; }
-      else { mrrActive += subPerMonth; payingActive++; }
+      else {
+        mrrActive += subPerMonth; payingActive++;
+        if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
+        subLedger.push({ created: sub.created || 0, perMonth: subPerMonth });
+      }
       // Per-rate tier: group by the exact recurring price. active = paying at this
       // rate, trialing = on trial at this rate, mrr = recognized monthly from it.
       const tkey = `${Math.round(subAmt * 100)}|${subIv || '?'}|${subIvc}|${subCur}`;
@@ -1369,15 +1373,15 @@ async function fetchStripeIncome(env) {
     fee_rate: Math.round(feeRate * 10000) / 10000,
     all_time_net: Math.round((allTime - allFee) * 100) / 100,
     year_net: Math.round((yearInc - yearFee) * 100) / 100,
-    mrr: Math.round(mrr * 100) / 100,
-    arr: Math.round(mrr * 12 * 100) / 100,
-    mrr_paying: Math.round(mrrActive * 100) / 100,        // recognized MRR, trials excluded
+    mrr: Math.round(mrrActive * 100) / 100,               // recognized MRR (trials excluded)
+    arr: Math.round(mrrActive * 12 * 100) / 100,
+    mrr_paying: Math.round(mrrActive * 100) / 100,        // alias, kept for clarity
     trial_mrr: Math.round(trialMrr * 100) / 100,          // upside if the current trial cohort converts
     paying_active: payingActive,                          // truly-paying subs (trials excluded)
     tiers: [...tierMap.values()].sort((a, b) => (b.active + b.trialing) - (a.active + a.trialing) || a.per_month - b.per_month),
     all_time_income: Math.round(allTime * 100) / 100,
     year_income: Math.round(yearInc * 100) / 100,
-    paying_subscribers: paying,
+    paying_subscribers: payingActive,                     // headline "active subs" = paying only
     monthly_subscriptions: monthly,
     yearly_subscriptions: yearly,
     other_subscriptions: other,
@@ -1399,12 +1403,15 @@ async function maybeSnapshotSubs(env) {
   if (!env.DB || !env.STRIPE_SECRET_KEY) return;
   try {
     const now = Math.floor(Date.now() / 1000);
-    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='subs_snapshot' ORDER BY ts DESC LIMIT 1").first();
+    // Only consider v2 (recognized-MRR) snapshots for throttling, so the recognized
+    // series starts on the next cron instead of waiting a week off the legacy v1 row.
+    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='subs_snapshot' AND json_extract(props_json,'$.v') >= 2 ORDER BY ts DESC LIMIT 1").first();
     if (last && last.ts && (now - last.ts) < 7 * 86400 - 3600) return;   // ~weekly
     const s = await fetchStripeIncome(env);
     await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)")
       .bind(now, 'system:subs-snapshot', 'subs_snapshot', JSON.stringify({
-        mrr: s.mrr, arr: s.arr, paying: s.paying_subscribers,
+        v: 2,   // v2 = recognized MRR (trials excluded); v1 legacy snapshots are ignored on read
+        mrr: s.mrr, arr: s.arr, paying: s.paying_subscribers, trial_mrr: s.trial_mrr,
         monthly: s.monthly_subscriptions, yearly: s.yearly_subscriptions, trialing: s.trialing || 0,
       })).run();
   } catch (_) {}
@@ -1652,7 +1659,8 @@ async function handleSubscriptions(env, origin, url) {
       // the chart prefers these over the reconstruction once ≥2 exist.
       try {
         const rows = (await env.DB.prepare("SELECT ts, props_json FROM events WHERE event_name='subs_snapshot' ORDER BY ts ASC LIMIT 80").all()).results || [];
-        resp.mrr_snapshots = rows.map(r => { let p = {}; try { p = JSON.parse(r.props_json); } catch (_) {} return { ts: r.ts, mrr: Number(p.mrr) || 0, paying: Number(p.paying) || 0, trialing: Number(p.trialing) || 0 }; });
+        resp.mrr_snapshots = rows.map(r => { let p = {}; try { p = JSON.parse(r.props_json); } catch (_) {} return { v: Number(p.v) || 1, ts: r.ts, mrr: Number(p.mrr) || 0, paying: Number(p.paying) || 0, trialing: Number(p.trialing) || 0 }; })
+          .filter(p => p.v >= 2);   // drop v1 (pre-recognized-MRR) snapshots so the trend stays consistent
       } catch (_) {}
     } catch (e) {
       resp.stripe_error = String(e.message || e);   // keep Memberstack estimates as fallback
