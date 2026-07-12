@@ -25,6 +25,7 @@ Run: python3 fetch_projects.py
 
 import json
 import os
+import re
 import sys
 import urllib.request
 import urllib.error
@@ -105,6 +106,79 @@ def lookup_name(slug: str, name_map: dict) -> str:
     if not slug:
         return ''
     return name_map.get(slug) or unslug(slug)
+
+
+# --- FINANCING STRUCTURING --------------------------------------------------
+# The construction sweep captures loan figures + lenders in the free-text `note`
+# of phase:"financing" milestones ("$323.8M construction loan from Bank OZK").
+# We derive structured loan_amount ($M) + lender here so every downstream consumer
+# (Intelligence hub, home teaser, weekly brief) reads clean fields instead of
+# re-parsing prose. Prefers a structured value already on the entry (written by
+# update_project_status going forward) over parsing the note.
+_FIN_AMT_RE = re.compile(r'\$\s*([\d,]+(?:\.\d+)?)\s*(billion|bn|million|mm|m|b)\b', re.I)
+_FIN_STOP = (r'construction|bridge|senior|mezzanine|acquisition|inventory|refinanc\w*|'
+             r'loan|financing|debt|mortgage|facility|note|for|per|via|and|to|in|on|at|'
+             r'closed|secured|broke|targeted|completion|delivery|arranged|provided')
+_FIN_LENDER_RES = [
+    re.compile(r'(?:loan|financing|refinanc\w*|mortgage|debt|facility|note)\s+(?:from|with|by|provided by|led by|arranged by)\s+([A-Z][\w.&\'’ -]+?)(?=\s*[,;(]|\s+(?:%s)\b|$)' % _FIN_STOP),
+    re.compile(r'\bfrom\s+([A-Z][\w.&\'’ -]+?)(?=\s*[,;(]|\s+(?:%s)\b|$)' % _FIN_STOP),
+    re.compile(r'\$[\d.,]+\s*[MB]{1,2}\s+([A-Z][\w.&\'’ -]+?)\s+(?:construction |bridge |senior |mezzanine |acquisition |inventory )*loan\b'),
+    re.compile(r'loan\s*\(([A-Z][\w.&\'’ -]+?)\)'),
+    re.compile(r'(?:closed|secured|refinanced)\s+with\s+([A-Z][\w.&\'’ -]+?)(?=\s*[,;(]|\s+(?:%s)\b|$)' % _FIN_STOP),
+]
+_FIN_IS = re.compile(r'financ|construction loan|refinanc', re.I)
+
+
+def _fin_amount_m(note: str):
+    m = _FIN_AMT_RE.search(note or '')
+    if not m:
+        return None
+    val = float(m.group(1).replace(',', ''))
+    if m.group(2).lower() in ('b', 'bn', 'billion'):
+        val *= 1000.0
+    return round(val, 2)
+
+
+def _fin_lender(note: str):
+    n = note or ''
+    for rx in _FIN_LENDER_RES:
+        m = rx.search(n)
+        if m:
+            l = re.sub(r'\s+', ' ', m.group(1).strip()).strip(' .,;')
+            words = l.split(' ')
+            if len(words) > 5:
+                l = ' '.join(words[:5]).strip(' .,;')
+            if len(l) >= 3 and l.lower() not in ('the', 'and', 'a', 'an'):
+                return l
+    return None
+
+
+def _enrich_financing(status_history):
+    """Annotate each financing milestone with structured loan_amount + lender, and
+    return the project's PRIMARY financing (largest disclosed) as (amount_m, lender,
+    date) for the flat project-level fields. Returns (None, '', '') when none."""
+    if not isinstance(status_history, list):
+        return (None, '', '')
+    primary = None
+    for h in status_history:
+        if not isinstance(h, dict):
+            continue
+        if not (h.get('phase') == 'financing' or _FIN_IS.search(h.get('note') or '')):
+            continue
+        amt = h.get('loan_amount')
+        if amt is None:
+            amt = _fin_amount_m(h.get('note'))
+            if amt is not None:
+                h['loan_amount'] = amt
+        ldr = h.get('lender')
+        if not ldr:
+            ldr = _fin_lender(h.get('note'))
+            if ldr:
+                h['lender'] = ldr
+        date = h.get('effective_date') or h.get('source_published') or ''
+        if primary is None or (amt or 0) > (primary[0] or 0):
+            primary = (amt, ldr or '', date)
+    return primary or (None, '', '')
 
 
 # --- TRANSFORMATION ---------------------------------------------------------
@@ -200,6 +274,11 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
             return str(int(v))
         except (TypeError, ValueError):
             return ''
+
+    # Structure the financing milestones (mutates entries in place + returns the
+    # primary deal) before the record is serialized.
+    _sh = record.get('status_history') or []
+    _fin_amt, _fin_lender_v, _fin_date = _enrich_financing(_sh)
 
     return {
         'Title':           record.get('name', '') or '',
@@ -299,7 +378,13 @@ def flatten(record: dict, architect_names: dict, developer_names: dict) -> dict:
         # Full sourced change log (status + date/spec edits). Carries each
         # entry's effective_date (when the milestone actually happened) so the
         # project-page dossier timeline can show event dates, not discovery dates.
-        'StatusHistory':    record.get('status_history') or [],
+        # _enrich_financing mutates its entries in place to add loan_amount/lender.
+        'StatusHistory':    _sh,
+        # Structured PRIMARY financing (largest disclosed loan) — powers the
+        # Intelligence "Follow the Money" surfaces without re-parsing note prose.
+        'FinancingAmountM': (_fin_amt if _fin_amt is not None else ''),
+        'FinancingLender':  _fin_lender_v or '',
+        'FinancingDate':    _fin_date or '',
     }
 
 
