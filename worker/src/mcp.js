@@ -600,7 +600,7 @@ const TOOLS = [
   // ── Map drafts ─────────────────────────────────────────────────────────────
   {
     name: 'create_map_draft',
-    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. The draft is queued for human review in the TMW Studio map admin at https://admin.oftmw.com/map/ → "Drafts" tab, where it appears immediately as a "CLAUDE DRAFT". It is NOT on the live map until someone reviews and promotes it from that Drafts tab. (Implementation detail, not a separate system: that admin reads its queue directly from tmw-data/data/drafts.json — this is the CURRENT review queue, not a legacy path. Never tell the user the draft went somewhere the admin cannot see it.) Provide what you know; lat/lng are needed before it can be placed (you can geocode on review). PHOTOS: pass image URLs in `images` and they are auto-saved to R2 in the media folder "Projects / <name>" AND attached to this draft in one step (no separate upload_photo). If you already ran scrape_website_images for this project, you can omit `images` and it auto-pulls the newest photos from that folder. The response\'s `images` field reports how many landed.',
+    description: 'Propose a NEW Map of Tomorrow project as a DRAFT. The draft is queued for human review in the TMW Studio map admin at https://admin.oftmw.com/map/ → "Drafts" tab, where it appears immediately as a "CLAUDE DRAFT". It is NOT on the live map until someone reviews and promotes it from that Drafts tab. (Implementation detail, not a separate system: that admin reads its queue directly from tmw-data/data/drafts.json — this is the CURRENT review queue, not a legacy path. Never tell the user the draft went somewhere the admin cannot see it.) Provide what you know; lat/lng are needed before it can be placed (you can geocode on review). PHOTOS (one call does it all): pass image URLs in `images` and they are auto-saved to R2 in the media folder "Projects / <name>" AND attached to this draft — no separate upload_photo. If you omit `images`, the draft first auto-pulls any prior scrape_website_images run from that folder, and if there is still nothing it AUTO-SCRAPES photos itself — first from the project\'s `website`, then a web-search by name — so a lone create_map_draft call still lands renderings. Auto-scraped shots are best-effort (web sources can be wrong-building) so eyeball them in the Drafts tab. The response\'s `images` field reports how many landed and via which path (added / pulled / scraped).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1450,14 +1450,43 @@ async function storeScrapedImage(env, src, folder, project, minBytes) {
 // images are passed, auto-pull a prior scrape from that same folder so a
 // scrape_website_images run isn't left orphaned. Returns { urls, folder, added,
 // pulled, skipped }.
-async function ingestDraftImages(env, name, images) {
+// Auto-scrape a few good images for a project into its media folder — the same
+// pipeline scrape_website_images uses, so create_map_draft can do end-to-end
+// (scrape → file → attach) in ONE call like the discovery routine does across
+// steps. Website-first (the correct-project source, low pollution risk), then a
+// web-search-by-name fallback. Best-effort: returns the R2 urls it filed.
+async function autoScrapeImages(env, project, folder, website, want) {
+  if (!env || !env.MEDIA || !env.DB) return [];
+  const out = [], seen = new Set(), minBytes = 8 * 1024;
+  const ingest = async (cands) => {
+    const ranked = [...new Set(cands)].filter((u) => !seen.has(u)).map((u) => ({ u, ...scoreImageUrl(u) })).sort((a, b) => b.score - a.score);
+    for (const c of ranked) {
+      if (out.length >= want) break;
+      seen.add(c.u);
+      try { const res = await storeScrapedImage(env, c.u, folder, project, minBytes); if (res && res.url) out.push(res.url); } catch (_) {}
+    }
+  };
+  // 1) the project's OWN website (correct-project, least pollution)
+  if (website && /^https?:\/\//i.test(website)) { try { await ingest(await extractPageImages(website)); } catch (_) {} }
+  // 2) still thin → web-search by name for source pages (renderings/exterior/aerial)
+  if (out.length < want && env.ANTHROPIC_API_KEY) {
+    try {
+      const pages = await webSearchSourcePages(env, project + ' building rendering exterior facade aerial photos', 6);
+      const cands = [];
+      for (const p of pages) { if (p === website) continue; try { cands.push(...await extractPageImages(p)); } catch (_) {} }
+      await ingest(cands);
+    } catch (_) {}
+  }
+  return out;
+}
+async function ingestDraftImages(env, name, images, website) {
   const folder = ('Projects / ' + String(name || '').trim()).slice(0, 160);
   const passed = (Array.isArray(images) ? images : []).map((s) => String(s || '').trim()).filter(Boolean).slice(0, 8);
-  if (!env || !env.MEDIA || !env.DB) return { urls: passed.slice(0, 6), folder, added: 0, pulled: 0, skipped: [] };
+  if (!env || !env.MEDIA || !env.DB) return { urls: passed.slice(0, 6), folder, added: 0, pulled: 0, scraped: 0, skipped: [] };
   const base = (env.MEDIA_PUBLIC_BASE || '').replace(/\/+$/, '');
   const ts = Math.floor(Date.now() / 1000);
   try { await ensureMediaFoldersTable(env); await env.DB.prepare('INSERT OR IGNORE INTO media_folders (name, favorite, created_at) VALUES (?1,0,?2)').bind(folder, ts).run(); } catch (_) {}
-  const urls = []; const skipped = []; let added = 0, pulled = 0;
+  const urls = []; const skipped = []; let added = 0, pulled = 0, scraped = 0;
   for (const u of passed) {
     if (base && u.indexOf(base + '/') === 0) {
       // already in R2 — make sure it's filed under this project's folder, keep it.
@@ -1475,7 +1504,15 @@ async function ingestDraftImages(env, name, images) {
       for (const r of rows) { urls.push(String(r.url)); pulled++; }
     } catch (_) {}
   }
-  return { urls: urls.slice(0, 6), folder, added, pulled, skipped };
+  // STILL nothing (no urls passed, no prior scrape) → AUTO-SCRAPE now, so a single
+  // create_map_draft call ends up with photos like the discovery routine's flow.
+  if (!urls.length) {
+    try {
+      const got = await autoScrapeImages(env, name, folder, website, 5);
+      for (const u of got) { urls.push(u); scraped++; }
+    } catch (_) {}
+  }
+  return { urls: urls.slice(0, 6), folder, added, pulled, scraped, skipped };
 }
 async function ensureBrandNotesTable(env) {
   await env.DB.prepare(
@@ -2976,11 +3013,13 @@ const IMPL = {
     }
 
     // Images — file them in the project's media folder AND attach to the draft in
-    // one step (external URLs are fetched into R2 under "Projects / <name>"; ones
-    // already in R2 are kept; if none were passed, auto-pull a prior scrape).
-    let imgReport = { urls: [], folder: null, added: 0, pulled: 0, skipped: [] };
+    // one step: passed external URLs are fetched into R2 under "Projects / <name>";
+    // ones already in R2 are kept; if none were passed, auto-pull a prior scrape;
+    // if there's still nothing, AUTO-SCRAPE the project's website (then web-search
+    // by name) so a lone create_map_draft call still lands photos.
+    let imgReport = { urls: [], folder: null, added: 0, pulled: 0, scraped: 0, skipped: [] };
     try {
-      imgReport = await ingestDraftImages(env, title, args.images);
+      imgReport = await ingestDraftImages(env, title, args.images, data.official_website);
       if (imgReport.urls.length) data.images = imgReport.urls;
     } catch (_) {
       if (Array.isArray(args.images) && args.images.length) data.images = args.images.map(String);
@@ -3030,11 +3069,15 @@ const IMPL = {
     const needsCoords = data.lat == null || data.lng == null;
     const createdFirms = [...createdArch, ...createdDev];
     const imgCount = (data.images || []).length;
+    const imgSrc = imgReport.scraped ? imgReport.scraped + ' auto-scraped from the web' + (data.official_website ? ' (website first)' : '')
+      : imgReport.added ? imgReport.added + ' newly saved to R2' + (imgReport.pulled ? ', ' + imgReport.pulled + ' pulled from a prior scrape' : '')
+      : imgReport.pulled ? imgReport.pulled + ' pulled from a prior scrape' : '';
     const imgNote = imgCount
       ? ' Photos: ' + imgCount + ' attached to the draft and filed in media folder "' + imgReport.folder + '"'
-        + (imgReport.added ? ' (' + imgReport.added + ' newly saved to R2' + (imgReport.pulled ? ', ' + imgReport.pulled + ' pulled from a prior scrape' : '') + ')' : (imgReport.pulled ? ' (pulled from a prior scrape)' : ''))
+        + (imgSrc ? ' (' + imgSrc + ')' : '')
+        + (imgReport.scraped ? ' — auto-scraped, so eyeball them in the Drafts tab and swap any wrong-building shots' : '')
         + (imgReport.skipped && imgReport.skipped.length ? '. Skipped ' + imgReport.skipped.length + ' (low-res/unfetchable): ' + imgReport.skipped.map((s) => s.reason).join(', ') : '') + '.'
-      : ' No photos attached yet — scrape_website_images with project:"' + data.name + '" (or pass images:[...]) and they auto-file into "' + imgReport.folder + '" and attach here.';
+      : ' No photos found — auto-scrape came up empty (no website images + web search thin). Run scrape_website_images with project:"' + data.name + '" pointed at a known gallery/press page (or pass images:[...]) and they auto-file into "' + imgReport.folder + '" and attach here.';
     return {
       ok: true, draft_id, created_by: 'claude-studio', status: data.status, project: data, needs_coords: needsCoords,
       admin_url: MAP_ADMIN_URL,
@@ -3042,7 +3085,7 @@ const IMPL = {
       firms_created: createdFirms,
       types: data.types,
       types_dropped: typeRes.dropped,
-      images: { count: imgCount, folder: imgReport.folder, added: imgReport.added, pulled: imgReport.pulled, skipped: imgReport.skipped },
+      images: { count: imgCount, folder: imgReport.folder, added: imgReport.added, pulled: imgReport.pulled, scraped: imgReport.scraped, skipped: imgReport.skipped },
       note: 'Queued for review — open the TMW Studio map admin at ' + MAP_ADMIN_URL + ' and click the "Drafts" tab; "' + data.name + '" is there now as a CLAUDE DRAFT. Review and promote it from that tab to put it on the live map — it is NOT live yet. (Stored in ' + ghRepo(env) + '/' + GH_DRAFTS_PATH + ', which that admin reads directly.)'
         + imgNote
         + (typeRes.dropped.length
