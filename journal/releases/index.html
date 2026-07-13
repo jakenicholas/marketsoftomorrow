@@ -29,16 +29,17 @@ a{color:inherit;text-decoration:none}
 .rel-crumbs{padding:26px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .rel-crumbs a:hover{color:var(--purple-bright)}
 .rel-crumbs .sep{opacity:.4;margin:0 8px}
+.rel-crumbs .rc-cur{color:var(--purple-bright);text-shadow:0 0 14px rgba(167,139,250,.45)}
 
 /* ── Archive index ── */
 .rel-hero{padding:52px 0 30px;border-bottom:1px solid var(--hair)}
 .rel-hero h1{font-family:var(--serif);font-size:clamp(40px,6.4vw,68px);font-weight:500;letter-spacing:-.022em;line-height:1.02;color:var(--white);margin:16px 0 0;text-wrap:balance}
 .rel-hero .sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:16px;max-width:56ch}
 .rel-list{display:flex;flex-direction:column;gap:20px;padding:38px 0 90px}
-.rel-card{display:grid;grid-template-columns:200px 1fr;gap:22px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
+.rel-card{display:grid;grid-template-columns:230px 1fr;gap:22px;align-items:stretch;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
 .rel-card:hover{border-color:rgba(167,139,250,.42);transform:translateY(-2px);box-shadow:0 24px 60px -30px rgba(167,139,250,.5)}
-.rel-card .rc-media{position:relative;overflow:hidden;background:#111}
-.rel-card .rc-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.rel-card .rc-media{position:relative;overflow:hidden;background:#111;aspect-ratio:16/10;align-self:center;border-radius:12px;margin:14px 0 14px 14px}
+.rel-card .rc-media img{width:100%;height:100%;object-fit:contain;background:#0b0d10;display:block;transition:transform .5s ease}
 .rel-card:hover .rc-media img{transform:scale(1.05)}
 .rel-card .rc-body{padding:22px 24px 22px 0;display:flex;flex-direction:column;justify-content:center;min-width:0}
 .rel-card .rc-meta{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
@@ -48,7 +49,7 @@ a{color:inherit;text-decoration:none}
 .rel-card .rc-cta{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-bright);display:inline-flex;align-items:center;gap:7px}
 .rel-card .rc-cta svg{width:13px;height:13px;transition:transform .2s}
 .rel-card:hover .rc-cta svg{transform:translateX(3px)}
-@media(max-width:620px){.rel-card{grid-template-columns:1fr}.rel-card .rc-media{aspect-ratio:16/9}.rel-card .rc-body{padding:0 22px 24px}}
+@media(max-width:620px){.rel-card{grid-template-columns:1fr}.rel-card .rc-media{aspect-ratio:16/9;margin:14px 14px 0}.rel-card .rc-body{padding:0 22px 24px}}
 
 /* ── Reader ── */
 .rd-head{padding:44px 0 34px}
@@ -82,11 +83,11 @@ a{color:inherit;text-decoration:none}
 <body>
 
 <div class="wrap">
-  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span>Releases</nav>
+  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><span class="rc-cur">The Weekly:Backend</span></nav>
   <header class="rel-hero">
     <span class="rel-eyebrow">The Weekly</span>
     <h1>The build log.</h1>
-    <p class="sub">Every edition of The Weekly — what we shipped, and why it compounds. Newest on top.</p>
+    <p class="sub">Every edition of The Weekly:Backend, what we shipped, and why it compounds.</p>
   </header>
   <div class="rel-list">
     <a class="rel-card" href="/releases/edition2/">
