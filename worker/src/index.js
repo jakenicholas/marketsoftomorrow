@@ -11873,6 +11873,7 @@ async function handleTravelPartner(request, env, origin) {
   const email   = clean(b.email, 160);
   const client  = clean(b.client, 160);
   const website = clean(b.website, 200);
+  const message = String(b.message == null ? '' : b.message).replace(/\r\n/g, '\n').trim().slice(0, 2000);
   const city    = clean(b.city, 120) || 'Any city on the route';
   if (clean(b.company, 80)) return json({ ok: true }, {}, env, origin);   // honeypot → pretend success
   if (!name) return json({ error: 'Please add your name.' }, { status: 400 }, env, origin);
@@ -11884,10 +11885,14 @@ async function handleTravelPartner(request, env, origin) {
   const details = '<table style="border-collapse:collapse;font-family:Inter,Arial,sans-serif">' +
     rows.map(r => '<tr><td style="padding:7px 20px 7px 0;color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="padding:7px 0;color:#4A392B;font-size:14px;font-weight:600">' + esc(r[1]) + '</td></tr>').join('') +
     '</table>';
+  const messageBlock = message
+    ? '<div style="margin-top:18px"><div style="color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;font-family:Inter,Arial,sans-serif;margin-bottom:6px">Message</div>' +
+      '<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#4A392B;white-space:pre-wrap">' + esc(message) + '</div></div>'
+    : '';
   const shell = intro => '<div style="background:#EFE7D5;padding:34px 20px"><div style="max-width:520px;margin:0 auto;background:#F7F1E4;border:1px solid #E4D7BE;border-radius:16px;padding:30px 28px">' +
     '<div style="font-family:Inter,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:#B0603A;margin-bottom:9px">Markets of Tomorrow</div>' +
     '<div style="font-family:Georgia,serif;font-size:23px;color:#4A392B;margin-bottom:15px">Travel Partner Enquiry</div>' +
-    '<p style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.65;color:#5E4C3C;margin:0 0 20px">' + intro + '</p>' + details +
+    '<p style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.65;color:#5E4C3C;margin:0 0 20px">' + intro + '</p>' + details + messageBlock +
     '<p style="font-family:Inter,Arial,sans-serif;font-size:12px;color:#8C7862;margin:24px 0 0">Italy, The Isles &amp; The Alps · Private Itinerary</p>' +
     '</div></div>';
   const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';

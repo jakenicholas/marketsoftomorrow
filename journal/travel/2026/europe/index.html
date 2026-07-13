@@ -181,8 +181,9 @@
   .pm form{margin-top:20px;display:flex;flex-direction:column;gap:12px}
   .pm-field{display:flex;flex-direction:column;gap:5px}
   .pm-field label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
-  .pm-field input{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
-  .pm-field input:focus{border-color:var(--terra)}
+  .pm-field input,.pm-field textarea{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
+  .pm-field textarea{resize:vertical;min-height:96px;line-height:1.5}
+  .pm-field input:focus,.pm-field textarea:focus{border-color:var(--terra)}
   .pm-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
   .pm-submit{margin-top:6px;background:var(--terra);color:#FBF6EC;border:0;border-radius:12px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:filter .15s}
   .pm-submit:hover{filter:brightness(1.06)} .pm-submit:disabled{opacity:.6;cursor:default}
@@ -281,7 +282,8 @@
         <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
         <div class="pm-field"><label for="pmEmail">Email</label><input id="pmEmail" name="email" type="email" autocomplete="email" required></div>
         <div class="pm-field"><label for="pmClient">Client / property name</label><input id="pmClient" name="client" autocomplete="organization"></div>
-        <div class="pm-field"><label for="pmSite">Client website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
+        <div class="pm-field"><label for="pmSite">Property website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
+        <div class="pm-field"><label for="pmNote">Message</label><textarea id="pmNote" name="message" rows="4" placeholder="Tell us about your property or what you'd like to offer…"></textarea></div>
         <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
         <button class="pm-submit" id="pmSubmit" type="submit">Send enquiry</button>
         <div class="pm-msg" id="pmMsg" role="status" aria-live="polite"></div>
@@ -692,6 +694,7 @@ function initPartnerModal(){
     var payload = { name:name, email:email,
       client: document.getElementById('pmClient').value.trim(),
       website: document.getElementById('pmSite').value.trim(),
+      message: document.getElementById('pmNote').value.trim(),
       company: document.getElementById('pmHp').value, city: city };
     submit.disabled = true; submit.textContent = 'Sending…'; msg.className='pm-msg'; msg.textContent='';
     fetch(PARTNER_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
