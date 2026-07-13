@@ -150,7 +150,11 @@
     display: flex; justify-content: space-between; align-items: end;
     margin-bottom: 22px; gap: 16px; flex-wrap: wrap;
   }
-  .atlas-section-title { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: #B9A6FF; text-shadow: 0 0 22px rgba(167,139,250,.4); margin: 0; }
+  .atlas-section-title { display:flex; align-items:center; gap:11px; font-size: 20px; font-weight: 600; letter-spacing: -0.015em; color: #fff; margin: 0; }
+  .atlas-hico{ border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; background:rgba(167,139,250,.16); color:#B9A6FF; }
+  .atlas-hico svg{ fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .atlas-section-title .atlas-hico{ width:30px; height:30px; }
+  .atlas-section-title .atlas-hico svg{ width:16px; height:16px; }
   .atlas-section-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 4px; }
   .atlas-section-link {
     color: #1FDF67; text-decoration: none;
@@ -261,7 +265,9 @@
     border-radius: 16px;
     padding: 24px;
   }
-  .atlas-panel-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #B9A6FF; text-shadow: 0 0 16px rgba(167,139,250,.32); }
+  .atlas-panel-title { display:flex; align-items:center; gap:9px; font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .atlas-panel-title .atlas-hico{ width:26px; height:26px; }
+  .atlas-panel-title .atlas-hico svg{ width:14px; height:14px; }
   .atlas-panel-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
 
   .atlas-status-row {
@@ -296,7 +302,7 @@
   .atlas-intel-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);margin-bottom:16px}
   .atlas-intel-eyebrow svg{width:13px;height:13px}
   .atlas-panel.intel{border-color:rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c}
-  .atlas-panel.intel .atlas-panel-title{color:var(--purple-soft,#B9A6FF)}
+  .atlas-panel.intel .atlas-panel-title{color:#fff}
   /* Scale tiles */
   .atlas-scale-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   @media(max-width:640px){.atlas-scale-grid{grid-template-columns:1fr}}
@@ -1200,7 +1206,7 @@
         <section class="atlas-section">
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">Openings outlook</h2>
+              <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.cal}</span>Openings outlook</h2>
               <p class="atlas-section-sub">Projects delivering each year, ${new Date().getFullYear()} onward.</p>
             </div>
           </div>
@@ -1430,7 +1436,7 @@
           <style>${_TLB_CSS}</style>
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">Who's building what</h2>
+              <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.build}</span>Who's building what</h2>
               <p class="atlas-section-sub">The developers, architects, and cities shaping the pipeline.</p>
             </div>
           </div>
@@ -1470,7 +1476,7 @@
       }).join('');
       return `
         <div class="atlas-panel">
-          <div class="atlas-panel-title">Pipeline by status</div>
+          <div class="atlas-panel-title"><span class="atlas-hico">${ATLAS_ICO.bars}</span>Pipeline by status</div>
           <div class="atlas-panel-sub">Where every project sits in the development cycle.</div>
           ${rows}
         </div>`;
@@ -1486,7 +1492,7 @@
       const labels = m.map(b => `<span>${escapeHtml(b.month)}</span>`).join('');
       return `
         <div class="atlas-panel intel">
-          <div class="atlas-panel-title">◆ TMW Momentum Index</div>
+          <div class="atlas-panel-title"><span class="atlas-hico">${ATLAS_ICO.trend}</span>TMW Momentum Index</div>
           <div class="atlas-panel-sub">New projects entering the pipeline each month.</div>
           <div class="atlas-trend-chart">${bars}</div>
           <div class="atlas-trend-labels">${labels}</div>
@@ -1535,7 +1541,7 @@
       }).join('');
       return `
         <div class="atlas-panel intel">
-          <div class="atlas-panel-title">◆ By project type</div>
+          <div class="atlas-panel-title"><span class="atlas-hico">${ATLAS_ICO.pie}</span>By project type</div>
           <div class="atlas-panel-sub">What the pipeline is made of.</div>
           ${rows}
         </div>`;
@@ -1554,6 +1560,21 @@
     // ── Intelligence-dashboard reskin (mockup parity) ───────────────────
     // The spinning purple hexagon is the TMW intelligence marker — used
     // wherever the page surfaces autonomous / continuously-updated data.
+    // Title icons — small stroke glyphs that sit in the purple chip on every
+    // section / panel header, matching the homepage board card titles.
+    const ATLAS_ICO = {
+      cal:'<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
+      build:'<svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/></svg>',
+      pin:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+      map:'<svg viewBox="0 0 24 24"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2zM9 3v16M15 5v16"/></svg>',
+      doc:'<svg viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5zM14 3v5h5M8 13h8M8 17h6"/></svg>',
+      clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.5 2"/></svg>',
+      money:'<svg viewBox="0 0 24 24"><path d="M12 2v20M16.5 6.5A4 4 0 0013 4.5h-2.5a3 3 0 000 6h3a3 3 0 010 6H8a4 4 0 01-3.5-2"/></svg>',
+      bars:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
+      trend:'<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>',
+      pie:'<svg viewBox="0 0 24 24"><path d="M12 3v9l7.8 4.5A9 9 0 1012 3z"/><path d="M12 3a9 9 0 018 5"/></svg>'
+    };
+
     function hexMarker(size) {
       const s = size || 15;
       return `<span class="tmw-hex" aria-hidden="true" style="width:${s}px;height:${s}px">`
@@ -1906,7 +1927,7 @@
       const list = filterProjectsByCalc();
       if (list === null) {
         return `<section class="atlas-section"><div class="atlas-section-head"><div>
-            <h2 class="atlas-section-title">Tracked projects</h2>
+            <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.pin}</span>Tracked projects</h2>
             <p class="atlas-section-sub">Loading the pipeline&hellip;</p>
           </div></div><div class="atlas-tl-empty">Projects loading&hellip;</div></section>`;
       }
@@ -1918,7 +1939,7 @@
       const total = sorted.length;
       if (!total) {
         return `<section class="atlas-section"><div class="atlas-section-head"><div>
-            <h2 class="atlas-section-title">Tracked projects</h2>
+            <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.pin}</span>Tracked projects</h2>
             <p class="atlas-section-sub">No projects match the current filter.</p>
           </div></div></section>`;
       }
@@ -1929,7 +1950,7 @@
         : '';
       return `<section class="atlas-section">
         <div class="atlas-section-head"><div>
-          <h2 class="atlas-section-title">Tracked projects</h2>
+          <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.pin}</span>Tracked projects</h2>
           <p class="atlas-section-sub">Every project in the filter, with live construction status — ${total} tracked.</p>
         </div></div>
         <div class="apcards">${cards}</div>
@@ -1997,7 +2018,7 @@
         <section class="atlas-section">
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">This week on the map</h2>
+              <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.map}</span>This week on the map</h2>
               <p class="atlas-section-sub">Latest additions, status changes, and TMW coverage.</p>
             </div>
             <a href="${MAP_ORIGIN}/" class="atlas-section-link">Open the map <svg class="atlas-section-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
@@ -2031,7 +2052,7 @@
         <section class="atlas-section atlas-section-half">
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">Most covered on Tomorrow</h2>
+              <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.doc}</span>Most covered on Tomorrow</h2>
               <p class="atlas-section-sub">Projects making the most headlines.</p>
             </div>
           </div>
@@ -2091,7 +2112,7 @@
         <section class="atlas-section atlas-section-half">
           <div class="atlas-section-head">
             <div>
-              <h2 class="atlas-section-title">Coming soon</h2>
+              <h2 class="atlas-section-title"><span class="atlas-hico">${ATLAS_ICO.clock}</span>Coming soon</h2>
               <p class="atlas-section-sub">Projects delivering in the next 7 months.</p>
             </div>
           </div>
@@ -2457,7 +2478,7 @@
     function renderMoneySection() {
       return '<section class="atlas-section">'
         + '<div class="atlas-section-head"><div>'
-        + '<h2 class="atlas-section-title">Follow the money</h2>'
+        + '<h2 class="atlas-section-title"><span class="atlas-hico">' + ATLAS_ICO.money + '</span>Follow the money</h2>'
         + '<p class="atlas-section-sub">Every tracked financing — who\'s raising, where it\'s landing, and how much is disclosed.</p>'
         + '</div></div>'
         + '<div data-tmw-money data-mode="full"><div class="tmw-m-loading" style="font:12px \'Inter\',sans-serif;color:#8b958d;padding:14px 2px">Tracing the capital…</div></div>'
