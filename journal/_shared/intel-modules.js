@@ -138,7 +138,9 @@
 .tmw-money--full .note{margin-top:14px;font-size:10px;letter-spacing:.02em;color:var(--mute);line-height:1.5}
 .tmw-m-loading{font-size:12px;color:var(--mute);padding:14px 2px}
 /* ---- interactive: tabs + flow + map + lender pages ---- */
-.tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.tmw-money--full .tmw-m-shell{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),#0c0e0c;padding:8px 20px 18px}
+.tmw-money--full .tmw-m-shell .col{border:0;background:none;padding:0}
+.tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .tmw-money--full .mt{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .tmw-money--full .mt:hover{color:#ECEAE5}
 .tmw-money--full .mt.on{color:#fff;border-bottom-color:#1FDF67}
@@ -146,7 +148,7 @@
 .tmw-money--full .tmw-m-view.on{display:block}
 .tmw-money--full .tmw-m-cap{font-size:12px;color:#8b958d;margin:0 0 12px}
 .tmw-money--full .tmw-m-cap b{color:#ECEAE5;font-weight:600}
-.tmw-money--full .tmw-m-svgwrap{width:100%;overflow-x:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:#0c0e0c;padding:8px 10px}
+.tmw-money--full .tmw-m-svgwrap{width:100%;overflow-x:auto;padding:2px 0}
 .tmw-money--full .tmw-m-sankey,.tmw-money--full .tmw-m-map{width:100%;height:auto;display:block}
 .tmw-money--full .sk-band{transition:stroke-opacity .18s}
 .tmw-money--full .sk-label{font-size:11px;fill:#ECEAE5;font-family:'Inter',sans-serif}
@@ -161,25 +163,25 @@
 .tmw-money--full .mp-cap{font-size:9px;fill:#42EB81;font-family:'JetBrains Mono',monospace;pointer-events:none}
 .tmw-money--full .mp-bub{cursor:pointer}
 .tmw-money--full .mp-glow{transition:opacity .2s}
-.tmw-money--full .tmw-m-mapdetail{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c0e0c;padding:14px 16px;min-height:220px}
+.tmw-money--full .tmw-m-mapdetail{border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.022);padding:14px 16px;min-height:220px}
 .tmw-money--full .mp-city{font-family:'Fraunces',Georgia,serif;font-size:17px;color:#fff;font-weight:600;margin:0}
 .tmw-money--full .mp-sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b958d;margin:3px 0 12px}
 .tmw-money--full .mp-h{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#6d766e;margin:12px 0 6px}
 .tmw-money--full .mp-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid rgba(255,255,255,.08);font-size:12px;text-decoration:none;color:inherit}
 .tmw-money--full .mp-row:first-of-type{border-top:0}
-.tmw-money--full .mp-row .r{color:#8b958d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmw-money--full .mp-row .r{flex:1;min-width:0;color:#8b958d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tmw-money--full a.mp-row:hover .r{color:#ECEAE5}
-.tmw-money--full .mp-row .v{color:#42EB81;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap}
+.tmw-money--full .mp-row .v{flex:0 0 auto;color:#42EB81;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap}
 .tmw-money--full .mp-empty{color:#8b958d;font-size:12px;padding:30px 0;text-align:center}
 .tmw-money--full .tmw-m-lgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:14px}
 .tmw-money--full .tmw-m-chips{display:flex;flex-direction:column;gap:7px;max-height:360px;overflow-y:auto}
-.tmw-money--full .mc-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0c0e0c;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,background .15s}
+.tmw-money--full .mc-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,background .15s}
 .tmw-money--full .mc-chip:hover{border-color:rgba(167,139,250,.4)}
 .tmw-money--full .mc-chip.on{border-color:#A78BFA;background:rgba(167,139,250,.07)}
 .tmw-money--full .mc-chip .cn{font-size:12.5px;font-weight:600;color:#fff;display:block}
 .tmw-money--full .mc-chip .cd{font-size:9.5px;color:#8b958d;margin-top:2px;display:block}
 .tmw-money--full .mc-chip .cv{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;color:#42EB81;flex:0 0 auto}
-.tmw-money--full .tmw-m-lprofile{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c0e0c;padding:16px 17px;min-height:220px}
+.tmw-money--full .tmw-m-lprofile{border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.022);padding:16px 17px;min-height:220px}
 .tmw-money--full .mc-name{font-family:'Fraunces',Georgia,serif;font-size:19px;color:#fff;font-weight:600;margin:0}
 .tmw-money--full .mc-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#B9A6FF;margin:4px 0 13px}
 .tmw-money--full .mc-kpis{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
@@ -273,13 +275,17 @@
     // flows for the Sankey — the most ACTIVE lenders (by deal count, then $) into
     // their top 3 markets. Ranking by activity (not raw $) keeps the diagram
     // legible: multi-market lenders that actually "flow" beat one-off mega-deals.
-    var flows = [], fmk = {};
+    var flows0 = [], fmk = {};
     lenders.filter(function (l) { return l.amt > 0; }).slice().sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 6).forEach(function (l) {
       Object.keys(l.cities).map(function (c) { return { city: c, amt: l.cities[c] }; })
         .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; }).slice(0, 3)
-        .forEach(function (x) { flows.push({ l: l.name, m: x.city, v: x.amt }); fmk[x.city] = (fmk[x.city] || 0) + x.amt; });
+        .forEach(function (x) { flows0.push({ l: l.name, m: x.city, v: x.amt }); fmk[x.city] = (fmk[x.city] || 0) + x.amt; });
     });
-    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; });
+    // Cap to the top markets so the Sankey stays legible (no tiny colliding nodes),
+    // then recompute lender totals from the kept flows so node heights match bands.
+    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; }).slice(0, 7);
+    var keepM = {}; fmarkets.forEach(function (m) { keepM[m.name] = 1; });
+    var flows = flows0.filter(function (f) { return keepM[f.m]; });
     var flt = {}; flows.forEach(function (f) { flt[f.l] = (flt[f.l] || 0) + f.v; });
     var flenders = Object.keys(flt).map(function (k) { return { name: k, total: flt[k] }; }).sort(function (p, q) { return q.total - p.total; });
 
@@ -290,21 +296,27 @@
       + '<div class="s"><b>' + (a.disclosed ? fmtM(a.disclosed) : '—') + '</b><span>Disclosed capital</span></div>'
       + '<div class="s"><b>' + a.markets + '</b><span>Markets receiving capital</span></div>'
       + '</div>'
+      + '<div class="tmw-m-shell">'
       + '<div class="tmw-m-tabs">'
-      + '<button class="mt on" data-mt="flow">Capital flow</button>'
+      + '<button class="mt on" data-mt="overview">Overview</button>'
+      + '<button class="mt" data-mt="flow">Capital flow</button>'
       + '<button class="mt" data-mt="map">Money map</button>'
       + '<button class="mt" data-mt="lenders">Lenders</button>'
       + '</div>'
-      + '<div class="tmw-m-view on" data-v="flow"><p class="tmw-m-cap">Who\'s funding what, where — <b>hover a lender</b> to trace its capital into markets.</p>'
-      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 680 320" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
+      + '<div class="tmw-m-view on" data-v="overview"><div class="tmw-m-grid">'
+      + '<div class="col"><div class="h">Recent financings</div>' + recent.slice(0, 7).map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
+      + '<div class="col"><div class="h">Most active lenders</div>' + (lenders.length ? lenders.slice(0, 7).map(function (l) { return '<div class="r"><div class="rn"><div class="nm">' + esc(l.name) + '</div><div class="mt">' + l.n + (l.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (l.amt ? '' : ' na') + '">' + (l.amt ? fmtM(l.amt) : '—') + '</span></div>'; }).join('') : '<div class="note">No lenders yet.</div>') + '</div>'
+      + '<div class="col"><div class="h">Where capital is landing</div>' + cities.slice(0, 7).map(function (c) { return '<div class="r"><div class="rn"><div class="nm">' + esc(c.city) + '</div><div class="mt">' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (c.amt ? '' : ' na') + '">' + (c.amt ? fmtM(c.amt) : '—') + '</span></div>'; }).join('') + '</div>'
+      + '</div></div>'
+      + '<div class="tmw-m-view" data-v="flow"><p class="tmw-m-cap">Who\'s funding what, where — <b>hover a lender</b> to trace its capital into markets.</p>'
+      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 700 380" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
       + '<div class="tmw-m-flowread"></div></div>'
       + '<div class="tmw-m-view" data-v="map"><p class="tmw-m-cap">Where capital is landing — <b>click a market</b> for its deals + lenders.</p>'
-      + '<div class="tmw-m-mapgrid"><div class="tmw-m-svgwrap"><svg class="tmw-m-map" viewBox="0 0 460 320" preserveAspectRatio="xMidYMid meet" aria-label="Capital by market map"></svg></div>'
+      + '<div class="tmw-m-mapgrid"><div class="tmw-m-svgwrap"><svg class="tmw-m-map" viewBox="0 0 520 400" preserveAspectRatio="xMidYMid meet" aria-label="Capital by market map"></svg></div>'
       + '<div class="tmw-m-mapdetail"></div></div></div>'
       + '<div class="tmw-m-view" data-v="lenders"><p class="tmw-m-cap">Every lender is a page — <b>click a lender</b> to open its profile.</p>'
       + '<div class="tmw-m-lgrid"><div class="tmw-m-chips"></div><div class="tmw-m-lprofile"></div></div></div>'
-      + '<div class="tmw-m-recentbar"><div class="rbh">Latest financings</div><div class="tmw-m-recentrow">'
-      + recent.map(function (d) { return dealRow(d, 'tmw-m-deal'); }).join('') + '</div></div>';
+      + '</div>';
 
     try { buildFlow(el.querySelector('.tmw-m-sankey'), flenders, fmarkets, flows, el.querySelector('.tmw-m-flowread')); } catch (e) {}
     try { buildMap(el.querySelector('.tmw-m-map'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
@@ -325,7 +337,7 @@
 
   function buildFlow(svg, lenders, markets, flows, readEl) {
     if (!svg || !lenders.length || !markets.length) { if (readEl) readEl.textContent = 'Not enough disclosed financing to chart flows yet.'; if (svg) svg.parentNode.style.display = lenders.length ? '' : 'none'; return; }
-    var W = 680, H = 320, padT = 26, padB = 12, lx = 8, lw = 11, rx = W - 8 - lw, gap = 11;
+    var W = 700, H = 380, padT = 26, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw, gap = 13;
     var innerH = H - padT - padB;
     var Ltot = lenders.reduce(function (s, l) { return s + l.total; }, 0) || 1;
     var scale = (innerH - (lenders.length - 1) * gap) / Ltot;
@@ -348,9 +360,11 @@
       var g = svgEl('g', { class: 'sk-node' }); g.style.cursor = 'pointer';
       g.appendChild(svgEl('rect', { x: x, y: yy, width: lw, height: Math.max(2, h), rx: 2, fill: tint, 'fill-opacity': .85 }));
       var tx = anchor === 'start' ? x + lw + 7 : x - 7;
-      var t1 = svgEl('text', { x: tx, y: yy + h / 2 - 1, class: 'sk-label', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t1.textContent = label;
-      var t2 = svgEl('text', { x: tx, y: yy + h / 2 + 11, class: 'sk-val', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t2.textContent = fmtM(val);
-      g.appendChild(t1); g.appendChild(t2); g.setAttribute(isL ? 'data-l' : 'data-m', key); return g;
+      var twoLine = h >= 22;
+      var t1 = svgEl('text', { x: tx, y: yy + h / 2 + (twoLine ? -1 : 0), class: 'sk-label', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t1.textContent = label;
+      g.appendChild(t1);
+      if (twoLine) { var t2 = svgEl('text', { x: tx, y: yy + h / 2 + 11, class: 'sk-val', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t2.textContent = fmtM(val); g.appendChild(t2); }
+      g.setAttribute(isL ? 'data-l' : 'data-m', key); return g;
     }
     lenders.forEach(function (l) { svg.appendChild(node(lx, l._y, l._h, l.name, l.total, 'start', '#f0d68a', l.name, true)); });
     markets.forEach(function (m) { svg.appendChild(node(rx, m._y, m._h, m.name, m.total, 'end', '#42EB81', m.name, false)); });
@@ -369,22 +383,24 @@
 
   function buildMap(svg, detailEl, cities) {
     if (!svg) return;
-    var W = 460, H = 320;
+    var W = 520, H = 400;
     var geo = cities.filter(function (c) { return c.lat != null && c.lng != null; });
     var isUS = function (c) { return c.lat >= 20 && c.lat <= 50 && c.lng >= -130 && c.lng <= -60; };
     var rank = function (a, b) { return (b.amt || 0) - (a.amt || 0) || b.n - a.n; };
-    var us = geo.filter(isUS).sort(rank).slice(0, 13);
+    var us = geo.filter(isUS).sort(rank).slice(0, 10);
     var intl = geo.filter(function (c) { return !isUS(c); }).sort(rank).slice(0, 4);
     if (!us.length && !intl.length) { if (detailEl) detailEl.innerHTML = '<div class="mp-empty">No geolocated capital yet.</div>'; return; }
     var maxv = 1; us.concat(intl).forEach(function (c) { var v = c.amt || c.n * 60; if (v > maxv) maxv = v; });
-    var rOf = function (c) { return 6 + Math.sqrt((c.amt || c.n * 60) / maxv) * 20; };
-    var latMax = 49.5, latMin = 24, lngMin = -125, lngMax = -66.5, mapW = intl.length ? W - 92 : W - 8;
-    var pts = us.map(function (c) { return { c: c, x: 22 + (c.lng - lngMin) / (lngMax - lngMin) * (mapW - 44), y: 24 + (latMax - c.lat) / (latMax - latMin) * (H - 48), r: rOf(c) }; });
-    for (var it = 0; it < 80; it++) { for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) { var dx = pts[j].x - pts[i].x, dy = pts[j].y - pts[i].y, dd = Math.sqrt(dx * dx + dy * dy) || 0.01, mn = pts[i].r + pts[j].r + 7; if (dd < mn) { var pu = (mn - dd) / 2 / dd; pts[i].x -= dx * pu; pts[i].y -= dy * pu; pts[j].x += dx * pu; pts[j].y += dy * pu; } } }
-    pts.forEach(function (p) { p.x = Math.max(20, Math.min(mapW - 18, p.x)); p.y = Math.max(28, Math.min(H - 22, p.y)); });
+    var rOf = function (c) { return 5 + Math.sqrt((c.amt || c.n * 60) / maxv) * 15; };
+    // Zoomed-out equirectangular over the US bounds with generous margins so
+    // nothing sits on the edge; international markets go in a right-hand inset.
+    var latMax = 49.5, latMin = 24, lngMin = -125, lngMax = -66.5, mapW = intl.length ? W - 96 : W - 12;
+    var pts = us.map(function (c) { return { c: c, x: 36 + (c.lng - lngMin) / (lngMax - lngMin) * (mapW - 72), y: 44 + (latMax - c.lat) / (latMax - latMin) * (H - 84), r: rOf(c) }; });
+    for (var it = 0; it < 130; it++) { for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) { var dx = pts[j].x - pts[i].x, dy = pts[j].y - pts[i].y, dd = Math.sqrt(dx * dx + dy * dy) || 0.01, mn = pts[i].r + pts[j].r + 13; if (dd < mn) { var pu = (mn - dd) / 2 / dd; pts[i].x -= dx * pu; pts[i].y -= dy * pu; pts[j].x += dx * pu; pts[j].y += dy * pu; } } }
+    pts.forEach(function (p) { p.x = Math.max(26, Math.min(mapW - 24, p.x)); p.y = Math.max(36, Math.min(H - 30, p.y)); });
     var g0 = svgEl('g', { opacity: .5 }); svg.appendChild(g0);
-    [['WEST', 66, 28], ['MIDWEST', 205, 22], ['NORTHEAST', 350, 22], ['SOUTHEAST', 300, H - 8]].forEach(function (r) { var t = svgEl('text', { x: r[1], y: r[2], class: 'mp-region', 'text-anchor': 'middle' }); t.textContent = r[0]; g0.appendChild(t); });
-    if (intl.length) { g0.appendChild(svgEl('line', { x1: mapW + 6, y1: 28, x2: mapW + 6, y2: H - 18, stroke: 'rgba(255,255,255,.08)', 'stroke-dasharray': '3 5' })); var itx = svgEl('text', { x: W - 6, y: 22, class: 'mp-region', 'text-anchor': 'end' }); itx.textContent = 'INTL'; g0.appendChild(itx); }
+    [['WEST', 80, 30], ['MIDWEST', 240, 24], ['NORTHEAST', 388, 24], ['SOUTHEAST', 320, H - 10]].forEach(function (r) { var t = svgEl('text', { x: r[1], y: r[2], class: 'mp-region', 'text-anchor': 'middle' }); t.textContent = r[0]; g0.appendChild(t); });
+    if (intl.length) { g0.appendChild(svgEl('line', { x1: mapW + 8, y1: 30, x2: mapW + 8, y2: H - 22, stroke: 'rgba(255,255,255,.08)', 'stroke-dasharray': '3 5' })); var itx = svgEl('text', { x: W - 8, y: 24, class: 'mp-region', 'text-anchor': 'end' }); itx.textContent = 'INTL'; g0.appendChild(itx); }
     function detail(c) {
       Array.prototype.forEach.call(svg.querySelectorAll('.mp-bub'), function (b) { b.querySelector('.mp-glow').setAttribute('opacity', b.getAttribute('data-n') === c.city ? '1' : '.26'); });
       var ll = Object.keys(c.lenders).map(function (k) { return { n: k, v: c.lenders[k] }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 5)
@@ -408,7 +424,7 @@
       svg.appendChild(g);
     }
     pts.forEach(function (p) { bubble(p.c, p.x, p.y, p.r, '#1FDF67'); });
-    intl.forEach(function (c, i) { bubble(c, mapW + 46, 54 + i * 62, Math.min(rOf(c), 18), '#B9A6FF'); });
+    intl.forEach(function (c, i) { bubble(c, mapW + 48, 58 + i * 78, Math.min(rOf(c), 16), '#B9A6FF'); });
     if (detailEl) detail(us[0] || intl[0]);
   }
 
