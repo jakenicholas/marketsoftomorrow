@@ -32,30 +32,35 @@
   .wrap{max-width:920px;margin:0 auto;padding:0 22px}
 
   /* ── Header: the image IS the background; the title overlays its washed top ── */
-  .topwrap{position:relative;overflow:hidden;min-height:80vh;background:var(--ink)}
-  header.hero{position:relative;z-index:3;padding:clamp(52px,12vh,130px) 0 0;text-align:center;background:transparent}
+  .topwrap{position:relative;overflow:hidden;min-height:88vh;background:var(--ink)}
+  /* pull the content up so the first box sits over the lower edge of the hero image */
+  #tl{position:relative;z-index:5;margin-top:-6vh}
+  header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
   /* soft cream halo so the title reads over any image behind it */
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
+  /* dates + meta are small and overlap the busier photo — give them a tighter, stronger cream halo */
+  .hero-dates,.hero-meta{text-shadow:0 1px 2px rgba(243,235,220,.92),0 0 11px rgba(243,235,220,.95),0 0 22px rgba(243,235,220,.7)}
   .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
   .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
   .hero h1 em{font-style:italic;color:var(--terra)}
   .hero-dates{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:19px;color:#6E5844}
-  .hero-meta{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:#8A755E}
+  .hero-meta{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--mute2)}
   .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(74,57,43,.34)}
 
   /* Crossfading image is dropped to the lower ~60% of the taller header, leaving a
      beige upper band for the title to breathe. Its top edge melts into that beige and
      its bottom melts into the page below — cream veil, no harsh edge either end. */
-  .topshow{position:absolute;left:0;right:0;bottom:0;height:60%;overflow:hidden;background:var(--cream)}
+  .topshow{position:absolute;left:0;right:0;bottom:0;height:66%;overflow:hidden;background:var(--cream)}
   .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.95) brightness(1.02)}
   .topshow .ts-img.on{opacity:1}
   .topshow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
     background:linear-gradient(to bottom,
       var(--ink) 0%,
-      rgba(243,235,220,.60) 12%,
-      rgba(243,235,220,.24) 30%,
-      rgba(243,235,220,.08) 52%,
-      rgba(243,235,220,.20) 80%,
+      rgba(243,235,220,.72) 11%,
+      rgba(243,235,220,.5) 25%,
+      rgba(243,235,220,.18) 44%,
+      rgba(243,235,220,.06) 64%,
+      rgba(243,235,220,.16) 87%,
       var(--ink) 100%)}
 
   /* ── Client pill (J/PR) ── */
@@ -123,9 +128,6 @@
   .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
   .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft)}
   .leg-note{display:block;text-align:center;font-family:var(--sans);font-size:11px;color:var(--mute);margin-top:9px;letter-spacing:.03em}
-  .leg.start .leg-chip{border-color:rgba(230,197,116,.4);background:linear-gradient(180deg,rgba(230,197,116,.10),rgba(230,197,116,.03))}
-  .leg.start .leg-ic,.leg.start .leg-mode,.leg.start .leg-date{color:var(--gold)}
-  .leg.start .leg-wave{opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23e6c574' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
   @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
 
   /* ── Open partnerships box (above the first day) ── */
@@ -140,12 +142,18 @@
            box-shadow:0 4px 16px rgba(74,57,43,.06)}
   .pt-city{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.01em;color:var(--brown)}
   .pt-when{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--purple-soft);margin-top:3px}
-  .pt-cats{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:15px 0 17px}
+  .pt-cats{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:14px 0 2px}
   .pt-cats span{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute2);
                 border:1px solid var(--hair2);border-radius:99px;padding:5px 11px;background:rgba(176,96,58,.05)}
-  .pt-mail{display:inline-block;font-size:12.5px;font-weight:600;color:var(--terra);text-decoration:none;
-           border-top:1px solid var(--hair);padding-top:14px;line-height:1.5;width:100%}
-  .pt-mail:hover{text-decoration:underline}
+  /* full-width third box: everything we're open to across every city (no hotels here) */
+  .pt-all{margin-top:16px;background:#FCF8EF;border:1px solid var(--hair2);border-radius:14px;padding:20px 22px;
+          text-align:center;box-shadow:0 4px 16px rgba(74,57,43,.06)}
+  .pt-all-k{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2);margin-bottom:13px}
+  .pt-all .pt-cats{margin:0}
+  /* single email line, outside the three boxes */
+  .pt-foot{text-align:center;margin-top:22px;padding-top:20px;border-top:1px solid var(--hair)}
+  .pt-foot a{font-size:13px;font-weight:600;color:var(--terra);text-decoration:none;letter-spacing:.01em}
+  .pt-foot a:hover{text-decoration:underline}
 
   /* ── Pending / tentative stop states ── */
   .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
@@ -153,7 +161,6 @@
   .tag.tentative{color:var(--terra);border:1px solid rgba(176,96,58,.4);background:rgba(176,96,58,.08)}
   .tag.pending{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.04)}
   .stay-pending{color:var(--mute);font-style:italic;font-weight:500}
-  .stay-pending::before{content:"—  "}
 
   /* ── Route map (numbered locations, same colorway) ── */
   .routemap{margin-top:26px;padding-top:34px;border-top:1px solid var(--hair)}
@@ -526,14 +533,13 @@ function partnerBoxHtml(){
   var pend = STOPS.filter(function(s){ return s.pending; });
   if(!pend.length) return '';
   var tiles = pend.map(function(s){
-    var subj = encodeURIComponent('Travel partner — '+s.loc);
     return '<div class="pt-tile">'
       +   '<div class="pt-city">'+s.loc+'</div>'
       +   '<div class="pt-when">'+s.nights+'</div>'
-      +   '<div class="pt-cats"><span>Restaurants</span><span>Hotels</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
-      +   '<a class="pt-mail" href="mailto:media@oftmw.com?subject='+subj+'">Email media@oftmw.com to confirm travel partner coverage</a>'
+      +   '<div class="pt-cats"><span>Hotels</span></div>'
       + '</div>';
   }).join('');
+  var mailSubj = encodeURIComponent('Travel partner — Italy, The Isles & The Alps');
   return '<section class="partners">'
     + '<div class="pt-head">'
     +   '<div class="pt-k">Open Partnerships</div>'
@@ -541,6 +547,11 @@ function partnerBoxHtml(){
     +   '<p class="pt-sub">Beyond the hotel, we’re curating the right restaurants, golf, excursions &amp; experiences in every city on this route. If you host, guide, or represent a standout, we’d love to include you.</p>'
     + '</div>'
     + '<div class="pt-grid">'+tiles+'</div>'
+    + '<div class="pt-all">'
+    +   '<div class="pt-all-k">Seeking in every city on the route</div>'
+    +   '<div class="pt-cats"><span>Restaurants</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
+    + '</div>'
+    + '<div class="pt-foot"><a href="mailto:media@oftmw.com?subject='+mailSubj+'">Email media@oftmw.com to confirm travel partner coverage</a></div>'
     + '</section>';
 }
 function render(){
