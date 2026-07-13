@@ -126,7 +126,12 @@
 /* ---- interactive: tabs + flow + map + lender pages ---- */
 .tmw-money--full .tmw-m-shell{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),#0c0e0c;padding:8px 20px 18px}
 .tmw-money--full .tmw-m-shell .col{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);padding:15px 17px}
-.tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.tmw-money--full .tmw-m-tabs{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.tmw-money--full .tmw-m-tabgroup{display:flex;gap:6px}
+.tmw-money--full .tmw-m-range{display:flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-bottom:7px;flex:0 0 auto}
+.tmw-money--full .tmw-m-range .rg{background:none;border:0;color:#8b958d;font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:4px 9px;border-radius:6px;cursor:pointer;transition:.15s}
+.tmw-money--full .tmw-m-range .rg:hover{color:#ECEAE5}
+.tmw-money--full .tmw-m-range .rg.on{background:rgba(31,223,103,.14);color:#42EB81}
 .tmw-money--full .tmw-m-tab{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .tmw-money--full .tmw-m-tab:hover{color:#ECEAE5}
 .tmw-money--full .tmw-m-tab.on{color:#fff;border-bottom-color:#1FDF67}
@@ -243,6 +248,11 @@
   function svgEl(n, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', n); for (var k in a) e.setAttribute(k, a[k]); return e; }
 
   function renderFull(el, deals) {
+    if (deals) el.__all = deals;                         // stash the full set; the range toggle re-renders from it
+    deals = el.__all || deals || [];
+    var range = el.__range || '12';                      // months window: 3 / 6 / 12 (undated deals always shown)
+    var cutoff = Date.now() - parseInt(range, 10) * 30 * 86400000;
+    deals = deals.filter(function (d) { return !d.when || d.when >= cutoff; });
     var a = agg(deals);
     var yearAgo = Date.now() - 365 * 86400000;
     var recent = deals.filter(function (d) { return d.when && d.when >= yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 8);
@@ -295,12 +305,14 @@
       + '<div class="s"><b>' + a.markets + '</b><span>Markets receiving capital</span></div>'
       + '</div>'
       + '<div class="tmw-m-shell">'
-      + '<div class="tmw-m-tabs">'
+      + '<div class="tmw-m-tabs"><div class="tmw-m-tabgroup">'
       + '<button class="tmw-m-tab on" data-mt="overview">Overview</button>'
       + '<button class="tmw-m-tab" data-mt="flow">Capital flow</button>'
       + '<button class="tmw-m-tab" data-mt="map">Money map</button>'
       + '<button class="tmw-m-tab" data-mt="lenders">Lenders</button>'
-      + '</div>'
+      + '</div><div class="tmw-m-range">'
+      + ['3', '6', '12'].map(function (r) { return '<button class="rg' + (range === r ? ' on' : '') + '" data-rg="' + r + '">' + r + 'M</button>'; }).join('')
+      + '</div></div>'
       + '<div class="tmw-m-view on" data-v="overview"><div class="tmw-m-grid">'
       + '<div class="col"><div class="h">Recent financings</div>' + recent.slice(0, 7).map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
       + '<div class="col"><div class="h">Most active lenders</div>' + (lenders.length ? lenders.slice(0, 7).map(function (l) { return '<div class="r"><div class="rn"><div class="nm">' + esc(l.name) + '</div><div class="mt">' + l.n + (l.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (l.amt ? '' : ' na') + '">' + (l.amt ? fmtM(l.amt) : '—') + '</span></div>'; }).join('') : '<div class="note">No lenders yet.</div>') + '</div>'
@@ -320,6 +332,12 @@
     try { buildMap(el.querySelector('.tmw-m-mapbox'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
     try { buildLenders(el.querySelector('.tmw-m-chips'), el.querySelector('.tmw-m-lprofile'), lenders); } catch (e) {}
     wireTabs(el);
+    // Time-range toggle — re-render from the stashed full set with the new window,
+    // then restore whichever tab was active (so toggling doesn't jump to Overview).
+    Array.prototype.forEach.call(el.querySelectorAll('.tmw-m-range .rg'), function (b) {
+      b.addEventListener('click', function () { el.__range = b.getAttribute('data-rg'); renderFull(el); });
+    });
+    if (el.__tab && el.__tab !== 'overview') { var _tb = el.querySelector('.tmw-m-tab[data-mt="' + el.__tab + '"]'); if (_tb) _tb.click(); }
   }
 
   function wireTabs(el) {
@@ -327,7 +345,7 @@
     Array.prototype.forEach.call(tabs, function (t) {
       t.addEventListener('click', function () {
         Array.prototype.forEach.call(tabs, function (x) { x.classList.remove('on'); }); t.classList.add('on');
-        var v = t.getAttribute('data-mt');
+        var v = t.getAttribute('data-mt'); el.__tab = v;
         Array.prototype.forEach.call(views, function (vw) { vw.classList.toggle('on', vw.getAttribute('data-v') === v); });
         if (v === 'map') { var mb = el.querySelector('.tmw-m-mapbox'); if (mb && mb.__initMap) mb.__initMap(); }
       });
@@ -426,7 +444,7 @@
       detailEl.innerHTML = '<p class="mp-city">' + esc(c.city) + '</p><p class="mp-sub">' + _money(c.amt) + ' · ' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</p>'
         + '<div class="mp-h">Lenders active here</div>' + ll + '<div class="mp-h">Deals</div>' + dd;
     }
-    if (detailEl) detail(geo[0]);
+    if (detailEl) detail(geo.filter(function (c) { return /^miami$/i.test(c.city); })[0] || geo[0]);
     function fallback() {
       var box = document.createElement('div'); box.className = 'tmw-m-mapfallback';
       geo.forEach(function (c) { var b = document.createElement('button'); b.innerHTML = '<span>' + esc(c.city) + '</span><span class="v">' + _money(c.amt) + '</span>'; b.addEventListener('click', function () { detail(c); }); box.appendChild(b); });
@@ -490,7 +508,7 @@
       b.addEventListener('click', function () { show(l); });
       chipsEl.appendChild(b);
     });
-    show(top[0]);
+    show(top.filter(function (l) { return /^bank ozk$/i.test(l.name); })[0] || top[0]);
   }
 
   var SPARK = '<svg class="sp" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
