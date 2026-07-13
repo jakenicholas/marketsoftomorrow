@@ -83,6 +83,15 @@
       if (d.lender && d.amt) { var k = String(d.lender).toLowerCase() + '|' + d.amt + '|' + (d.when || ''); if (seen[k]) return; seen[k] = 1; }
       dedup.push(d);
     });
+    // Canonicalize lender casing/spacing so variants merge into one lender (e.g.
+    // "Tyko Capital" + "TYKO Capital") — front-end grouping is case-sensitive, so
+    // pick the most-common spelling as the display form across every view.
+    var lkey = function (n) { return String(n).toLowerCase().replace(/\s+/g, ' ').trim(); };
+    var casing = {};
+    dedup.forEach(function (d) { if (!d.lender) return; var k = lkey(d.lender); (casing[k] || (casing[k] = {}))[d.lender] = (casing[k][d.lender] || 0) + 1; });
+    var canon = {};
+    Object.keys(casing).forEach(function (k) { var best = '', bc = -1; Object.keys(casing[k]).forEach(function (nm) { if (casing[k][nm] > bc) { bc = casing[k][nm]; best = nm; } }); canon[k] = best; });
+    dedup.forEach(function (d) { if (d.lender) d.lender = canon[lkey(d.lender)] || d.lender; });
     return dedup;
   }
 
