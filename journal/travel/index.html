@@ -10,9 +10,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#08090a; --ink2:#0d0f10; --panel:#121517; --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
-    --text:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3; --white:#fff;
-    --purple:#A78BFA; --purple-soft:#C4B5FD; --gold:#e6c574;
+    /* warm espresso body + Mediterranean gold accent (repointed --purple → gold) */
+    --ink:#17120b; --ink2:#1f1810; --panel:#251d12; --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.15);
+    --text:#EEE6D8; --mute:#B0A491; --mute2:#D4CBB9; --white:#fff;
+    --purple:#CBA65B; --purple-soft:#E7CB86; --gold:#e6c574; --gold-soft:#f0d68a;
+    --cream:#F3EBDC; --brown:#4A392B; --terra:#B0603A;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --serif:'Fraunces',Georgia,serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -22,18 +24,18 @@
   img{display:block;max-width:100%}
 
   /* ── Password gate ── */
-  #gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 90% at 50% 0%,#161a1d 0%,#08090a 60%);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease}
+  #gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 92% at 50% 0%,#F7F0E3 0%,#E7DBC6 66%);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease}
   #gate.hide{opacity:0;pointer-events:none}
   .gate-card{width:100%;max-width:380px;text-align:center}
-  .gate-eyebrow{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:18px}
-  .gate-mark{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
-  .gate-sub{color:var(--mute);font-size:14px;margin-bottom:26px}
+  .gate-eyebrow{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);margin-bottom:18px}
+  .gate-mark{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px;color:var(--brown)}
+  .gate-sub{color:#8A755E;font-size:14px;margin-bottom:26px}
   .gate-form{display:flex;gap:8px}
-  #gatePw{flex:1;background:var(--panel);border:1px solid var(--hair2);border-radius:11px;padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:16px;letter-spacing:.3em;text-align:center;outline:none}
-  #gatePw:focus{border-color:var(--purple)}
-  #gateBtn{background:var(--purple);color:#100a1e;border:0;border-radius:11px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;transition:filter .15s}
-  #gateBtn:hover{filter:brightness(1.08)}
-  .gate-err{color:#ff8a8a;font-size:12.5px;margin-top:14px;height:16px;opacity:0;transition:opacity .2s}
+  #gatePw{flex:1;background:#FBF6EC;border:1px solid #D8C6A6;border-radius:11px;padding:14px 16px;color:var(--brown);font-family:var(--sans);font-size:16px;letter-spacing:.3em;text-align:center;outline:none}
+  #gatePw:focus{border-color:var(--terra)}
+  #gateBtn{background:var(--terra);color:#FBF6EC;border:0;border-radius:11px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;transition:filter .15s}
+  #gateBtn:hover{filter:brightness(1.06)}
+  .gate-err{color:#b23c3c;font-size:12.5px;margin-top:14px;height:16px;opacity:0;transition:opacity .2s}
   .gate-err.show{opacity:1}
 
   /* ── Layout ── */
@@ -41,19 +43,25 @@
   #doc.reveal{opacity:1}
   .wrap{max-width:920px;margin:0 auto;padding:0 22px}
 
-  /* ── Hero ── */
-  header.hero{padding:90px 0 46px;text-align:center;position:relative}
-  header.hero::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:1px;height:46px;background:linear-gradient(var(--hair2),transparent)}
-  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:22px}
-  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--white)}
-  .hero h1 em{font-style:italic;color:var(--purple-soft)}
-  .hero-dates{margin-top:20px;font-family:var(--serif);font-style:italic;font-size:19px;color:var(--mute2)}
-  .hero-meta{margin-top:16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--mute)}
-  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--hair2)}
+  /* ── Hero (Mediterranean cream) ── */
+  header.hero{padding:74px 0 40px;text-align:center;position:relative;background:var(--cream)}
+  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
+  .hero h1 em{font-style:italic;color:var(--terra)}
+  .hero-dates{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:19px;color:#6E5844}
+  .hero-meta{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:#8A755E}
+  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(74,57,43,.34)}
+
+  /* ── Top slideshow (full-bleed crossfade, cream → dark bridge) ── */
+  .topshow{position:relative;height:min(52vh,500px);overflow:hidden;background:var(--cream)}
+  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+  .topshow .ts-img.on{opacity:1}
+  .topshow::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;background:linear-gradient(transparent,var(--ink));pointer-events:none}
+  .topshow::before{content:"";position:absolute;left:0;right:0;top:0;height:80px;background:linear-gradient(var(--cream),transparent);z-index:2;pointer-events:none}
 
   /* ── Client pill (J/PR) ── */
-  .jpr{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:99px;border:1px solid rgba(167,139,250,.4);
-       background:linear-gradient(180deg,rgba(167,139,250,.14),rgba(167,139,250,.05));color:var(--purple-soft);
+  .jpr{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:99px;border:1px solid rgba(203,166,91,.4);
+       background:linear-gradient(180deg,rgba(203,166,91,.14),rgba(203,166,91,.05));color:var(--purple-soft);
        font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;line-height:1;white-space:nowrap}
   .jpr svg{width:12px;height:12px;opacity:.9}
   .jpr .jpr-k{font-size:9px;font-weight:700;letter-spacing:.14em;opacity:.62}
@@ -69,7 +77,7 @@
   .stop{position:relative;padding:0 0 40px}
   .stop-info{margin-top:18px}
   .stop-topline{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
-  .stop-num{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1px solid rgba(167,139,250,.45);background:rgba(167,139,250,.08);
+  .stop-num{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1px solid rgba(203,166,91,.45);background:rgba(203,166,91,.08);
             display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--purple-soft)}
   .stop-loc{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
   .stop-tools{margin-left:auto}
@@ -82,37 +90,34 @@
   .logi-v{flex:1;color:var(--mute2);line-height:1.6}
   .logi-v b{color:var(--text);font-weight:600}
 
-  /* ── Gallery (sits on top of each stop) ── */
-  .gallery{display:grid;gap:8px}
-  .gcell{position:relative;overflow:hidden;border-radius:12px;background:var(--panel);aspect-ratio:3/4;cursor:zoom-in;border:1px solid var(--hair)}
-  .gallery.g1 .gcell{aspect-ratio:16/9}
-  .gallery.g2 .gcell{aspect-ratio:4/3}
-  .gcell img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1);opacity:0}
-  .gcell img.loaded{opacity:1}
-  .gcell:hover img{transform:scale(1.06)}
-  .gcell::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.32));opacity:0;transition:opacity .3s}
-  .gcell:hover::after{opacity:1}
-  @media(max-width:679px){ .gallery:not(.g1){grid-template-columns:repeat(2,1fr)!important} .gcell{aspect-ratio:1/1} .gallery.g1 .gcell{aspect-ratio:16/9} }
-  .gempty{border:1px dashed var(--hair2);border-radius:12px;padding:30px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(255,255,255,.015)}
-  .gempty svg{width:18px;height:18px;opacity:.6;margin-bottom:8px}
-
-  /* ── Auto-scroll marquee (all trip images) ── */
-  .marquee{overflow:hidden;margin:8px 0 4px;padding:10px 0;
-           -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
-  .marquee-track{display:flex;gap:10px;width:max-content;animation:mq 95s linear infinite}
-  .marquee:hover .marquee-track{animation-play-state:paused}
-  .marquee img{height:128px;width:auto;max-width:none;border-radius:10px;object-fit:cover;display:block;flex:0 0 auto;opacity:.92}
-  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-  @media(max-width:679px){ .marquee img{height:94px} }
-  @media(prefers-reduced-motion:reduce){ .marquee-track{animation:none} }
+  /* ── Per-stop slideshow (sits on top of each stop) ── */
+  .slideshow{position:relative;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--hair);aspect-ratio:16/10}
+  .ss-viewport{width:100%;height:100%;overflow:hidden}
+  .ss-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+  .ss-slide{flex:0 0 100%;height:100%}
+  .ss-slide img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;cursor:zoom-in}
+  .ss-slide img.loaded{opacity:1}
+  .ss-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+            border:1px solid rgba(255,255,255,.22);background:rgba(23,18,11,.5);backdrop-filter:blur(6px);
+            color:#fff;font-family:var(--serif);font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;
+            cursor:pointer;opacity:0;transition:opacity .22s,box-shadow .22s,border-color .22s,color .22s;z-index:3}
+  .ss-arrow.ss-prev{left:12px} .ss-arrow.ss-next{right:12px}
+  .slideshow:hover .ss-arrow{opacity:1}
+  .ss-arrow:hover{border-color:var(--gold);color:var(--gold-soft);box-shadow:0 0 20px 3px rgba(230,197,116,.55)}
+  .ss-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:7px;z-index:3}
+  .ss-dot{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.42);cursor:pointer;transition:all .25s;padding:0;border:0}
+  .ss-dot.on{background:var(--gold);width:20px}
+  @media(max-width:679px){ .slideshow{aspect-ratio:4/3} .ss-arrow{width:38px;height:38px;font-size:20px;opacity:1} }
+  .gempty{border:1px dashed var(--hair2);border-radius:14px;padding:30px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(255,255,255,.02);aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gempty svg{width:20px;height:20px;opacity:.6;margin-bottom:8px}
 
   /* ── Transit divider (wavy dotted line + date + mode icon) ── */
   .leg{position:relative;padding:30px 0 26px}
   .leg-line{display:flex;align-items:center;gap:14px}
-  .leg-wave{flex:1;height:16px;opacity:.6;background-repeat:repeat-x;background-position:center;
-            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23A78BFA' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
-  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(167,139,250,.32);
-            background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.03))}
+  .leg-wave{flex:1;height:16px;opacity:.7;background-repeat:repeat-x;background-position:center;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23CBA65B' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
+  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(203,166,91,.32);
+            background:linear-gradient(180deg,rgba(203,166,91,.10),rgba(203,166,91,.03))}
   .leg-ic{display:flex;color:var(--purple-soft)}
   .leg-ic svg{width:17px;height:17px}
   .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
@@ -184,7 +189,7 @@
       </div>
     </div>
   </header>
-  <div class="marquee" id="marq" aria-hidden="true"></div>
+  <div class="topshow" id="topshow" aria-hidden="true"></div>
   <main class="wrap" id="tl"></main>
 </div>
 
@@ -205,7 +210,7 @@ const ICONS = {
 
 const STOPS = [
   // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
-  { loc:'Rome, Italy', nights:'4 Nights · Sept 3 → 7', stay:'Private Airbnb',
+  { loc:'Rome, Italy', nights:'4 Nights · Sept 3 → 7', stay:'Private Airbnb', noClient:true,
     in:{ start:true, date:'September 3', mode:'plane', note:'Touchdown — the journey begins' },
     vibe:'Four opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
@@ -213,17 +218,17 @@ const STOPS = [
       'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/a15d8dcc-53da-4329-98fb-bb9c10c8195b.jpeg?im_w=2560',
       'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/2a66eb6e-8f8e-43f2-a79c-18c135f5b74c.jpeg?im_w=2560'] },
 
-  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stayPending:'Stay to be confirmed',
+  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
     vibe:'Fair Verona on the Adige — the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
     logi:[], imgs:['https://images.trvl-media.com/lodging/36000000/35390000/35381900/35381857/fe955413.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
 
-  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true,
+  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true, noClient:true,
     in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
     vibe:'A tentative day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
-  { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Securing our hotel partner', pending:true,
+  { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Securing our hotel partner', pending:true, noClient:true,
     in:{ date:'Sept 11', mode:'plane', note:'Verona → Dubrovnik' },
     vibe:'', logi:[], imgs:[], photosLater:true },
 
@@ -313,10 +318,18 @@ const STOPS = [
 function galleryHtml(imgs){
   if(!imgs || !imgs.length)
     return '<div class="gempty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-1 11H4l3.5-4.5 2.5 3 3.5-4.5L20 16Zm-13-6a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 7 10Z"/></svg>Photography to come</div>';
-  var n = imgs.length, cols = Math.min(n, 4);
-  return '<div class="gallery g'+n+'" style="grid-template-columns:repeat('+cols+',1fr)">' + imgs.map(function(f){
-    return '<div class="gcell"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
-  }).join('') + '</div>';
+  var n = imgs.length;
+  var slides = imgs.map(function(f){
+    return '<div class="ss-slide"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
+  }).join('');
+  if(n < 2) return '<div class="slideshow" data-n="1"><div class="ss-viewport"><div class="ss-track">'+slides+'</div></div></div>';
+  var dots = imgs.map(function(_,i){ return '<button class="ss-dot'+(i===0?' on':'')+'" data-i="'+i+'" aria-label="Slide '+(i+1)+'"></button>'; }).join('');
+  return '<div class="slideshow" data-n="'+n+'">'
+    + '<div class="ss-viewport"><div class="ss-track">'+slides+'</div></div>'
+    + '<button class="ss-arrow ss-prev" aria-label="Previous">‹</button>'
+    + '<button class="ss-arrow ss-next" aria-label="Next">›</button>'
+    + '<div class="ss-dots">'+dots+'</div>'
+    + '</div>';
 }
 function legHtml(l){
   var ic = ICONS[l.mode] || ICONS.car;
@@ -351,7 +364,7 @@ function stopHtml(s, marker){
     +   '<div class="stop-topline">'
     +     '<span class="stop-num">'+marker+'</span>'
     +     '<span class="stop-loc">'+s.loc+'</span>'+tag
-    +     '<span class="stop-tools">'+jprPill()+'</span>'
+    +     (s.noClient ? '' : '<span class="stop-tools">'+jprPill()+'</span>')
     +   '</div>'
     +   '<div class="stop-stay">'+stayLine+'</div>'
     +   '<div class="stop-date">'+s.nights+'</div>'
@@ -361,18 +374,47 @@ function stopHtml(s, marker){
     + '</section>';
 }
 
-function buildMarquee(){
-  var all = [];
-  STOPS.forEach(function(s){ (s.imgs||[]).forEach(function(f){ all.push(f); }); });
-  if(!all.length) return;
-  var seq = all.concat(all);   // duplicate for a seamless loop
-  document.getElementById('marq').innerHTML = '<div class="marquee-track">'
-    + seq.map(function(f){ return '<img loading="lazy" src="'+g(f)+'" alt="" onerror="this.style.display=\'none\'">'; }).join('')
-    + '</div>';
+// Top hero slideshow — crossfade through the trip's highlight images (up to 2 per
+// stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
+function buildTopShow(){
+  var pick = [];
+  STOPS.forEach(function(s){ (s.imgs||[]).slice(0,2).forEach(function(f){ pick.push(f); }); });
+  if(!pick.length) return;
+  var el = document.getElementById('topshow');
+  el.innerHTML = pick.map(function(f,i){
+    return '<img class="ts-img'+(i===0?' on':'')+'" src="'+g(f)+'" alt="" onerror="this.remove()">';
+  }).join('');
+  var imgs = [].slice.call(el.querySelectorAll('.ts-img')), i = 0;
+  if(imgs.length < 2) return;
+  setInterval(function(){ imgs[i].classList.remove('on'); i = (i+1) % imgs.length; imgs[i].classList.add('on'); }, 3500);
+}
+
+// Each stop's slideshow: gold-glow arrows on hover, dots, and auto-advance every
+// 3s ONLY while it's within the viewport frame (IntersectionObserver).
+function initSlideshows(){
+  document.querySelectorAll('.slideshow').forEach(function(ss){
+    var n = +ss.getAttribute('data-n'); if(n < 2) return;
+    var track = ss.querySelector('.ss-track');
+    var dots = [].slice.call(ss.querySelectorAll('.ss-dot'));
+    var i = 0, timer = null, inView = false, hovering = false;
+    function go(k){ i = (k + n) % n; track.style.transform = 'translateX(-' + (i*100) + '%)';
+      dots.forEach(function(d,j){ d.classList.toggle('on', j===i); }); }
+    function tick(){ if(inView && !hovering) go(i+1); }
+    function start(){ if(!timer) timer = setInterval(tick, 3000); }
+    function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+    ss.querySelector('.ss-prev').addEventListener('click', function(e){ e.stopPropagation(); go(i-1); });
+    ss.querySelector('.ss-next').addEventListener('click', function(e){ e.stopPropagation(); go(i+1); });
+    dots.forEach(function(d,j){ d.addEventListener('click', function(e){ e.stopPropagation(); go(j); }); });
+    ss.addEventListener('mouseenter', function(){ hovering = true; });
+    ss.addEventListener('mouseleave', function(){ hovering = false; });
+    new IntersectionObserver(function(ents){ ents.forEach(function(en){ inView = en.isIntersecting; }); },
+      { threshold: 0.4 }).observe(ss);
+    start();
+  });
 }
 
 function render(){
-  buildMarquee();
+  buildTopShow();
   var html = '<div class="timeline">', num = 0;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
@@ -380,22 +422,23 @@ function render(){
     html += stopHtml(s, marker);
   });
   html += '</div>';
-  html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary · J/PR</footer>';
+  html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
   document.getElementById('tl').innerHTML = html;
 
   // Reveal images: inline onload misses images already complete (cache/fast) —
   // sweep once so none stay stuck at opacity:0, and catch the rest via load/error.
-  Array.prototype.forEach.call(document.querySelectorAll('.gcell img'), function(im){
+  Array.prototype.forEach.call(document.querySelectorAll('.ss-slide img'), function(im){
     if(im.complete && im.naturalWidth>0){ im.classList.add('loaded'); return; }
     im.addEventListener('load',  function(){ im.classList.add('loaded'); });
-    im.addEventListener('error', function(){ im.closest('.gcell').style.display='none'; });
+    im.addEventListener('error', function(){ var sl=im.closest('.ss-slide'); if(sl) sl.style.display='none'; });
   });
 
-  // Lightbox
+  initSlideshows();
+
+  // Lightbox — open on slide-image click (arrows/dots stopPropagation so they don't).
   var lb = document.getElementById('lb'), lbImg = lb.querySelector('img');
   document.getElementById('tl').addEventListener('click', function(e){
-    var c = e.target.closest('.gcell'); if(!c) return;
-    var im = c.querySelector('img'); if(!im) return;
+    var im = e.target.closest('.ss-slide img'); if(!im) return;
     lbImg.src = im.src; lb.classList.add('on');
   });
   lb.addEventListener('click', function(){ lb.classList.remove('on'); lbImg.src=''; });
@@ -408,7 +451,7 @@ function unlock(){
   document.getElementById('gate').classList.add('hide');
   var doc = document.getElementById('doc');
   if(!doc.dataset.rendered){ render(); doc.dataset.rendered='1'; }
-  requestAnimationFrame(function(){ doc.classList.add('reveal'); });
+  setTimeout(function(){ doc.classList.add('reveal'); }, 30);
 }
 try{ if(sessionStorage.getItem(KEY)==='1') unlock(); }catch(e){}
 document.getElementById('gateForm').addEventListener('submit', function(e){
