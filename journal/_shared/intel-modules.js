@@ -158,7 +158,8 @@
 
   function renderFull(el, deals) {
     var a = agg(deals);
-    var recent = deals.slice().sort(function (x, y) { return y.when - x.when; }).slice(0, 7);
+    var _yearAgo = Date.now() - 365 * 86400000;
+    var recent = deals.filter(function (d) { return d.when && d.when >= _yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 7);
     var lend = {}; deals.forEach(function (d) { if (!d.lender) return; if (!lend[d.lender]) lend[d.lender] = { n: 0, amt: 0 }; lend[d.lender].n++; lend[d.lender].amt += (d.amt || 0); });
     var lenders = Object.keys(lend).map(function (k) { return { name: k, n: lend[k].n, amt: lend[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 7);
     var mc = {}; deals.forEach(function (d) { var c = d.city || '—'; if (!mc[c]) mc[c] = { n: 0, amt: 0 }; mc[c].n++; mc[c].amt += (d.amt || 0); });
