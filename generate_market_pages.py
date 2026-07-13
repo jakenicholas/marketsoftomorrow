@@ -1021,7 +1021,10 @@ def render_page(
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <script type="application/ld+json">{ld}</script>
   {faq_ld}
@@ -1385,8 +1388,8 @@ def render_page(
        window.tmwOverlay.open(query) which the Intelligence ask box calls below. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
-  <script src="/_shared/journal-search-core.js" defer></script>
-  <script src="/_shared/journal-search-overlay.js" defer></script>
+  <!-- search core + overlay are loaded once (versioned) by journal-dock.js — dropping the
+       static include avoids a duplicate download + parse of ~530KB of JS on every page -->
   <script>
     // Wires the Intelligence ask box + suggestion chips to the universal
     // overlay loaded by /_shared/journal-search-overlay.js. Every query is
@@ -2106,7 +2109,10 @@ def render_html_sitemap(out_path: str, city_pages, type_pages, state_pages, city
   <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD;
       --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }}
@@ -2422,7 +2428,10 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
   {hub_faq_ld}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {{ --ink:#0d0d0d; --hair:rgba(255,255,255,.08); --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --purple:#A78BFA; --purple-bright:#C4B5FD; --gold:#FFD300;
       --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }}
