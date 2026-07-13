@@ -61,10 +61,10 @@ def firm_board(rows, name_key, slug_key):
 
 def _fmt_gfa(g):
     if g >= 1_000_000:
-        return f'{g / 1_000_000:.1f}M sq ft'
+        return f'{g / 1_000_000:.1f}M sqft'
     if g >= 1000:
-        return f'{round(g / 1000)}K sq ft'
-    return f'{g:,} sq ft'
+        return f'{round(g / 1000)}K sqft'
+    return f'{g:,} sqft'
 
 
 def biggest_board(rows):
@@ -89,12 +89,21 @@ def biggest_board(rows):
             lines.append(f'{ke:,} keys')
         # mapslug = the map's project param (mapSlug of the title: no separators)
         mslug = ''.join(ch for ch in (r.get('Title') or '').lower() if ch.isalnum())
+        # Type label: honor an explicit "Mixed-Use" preference, and call anything
+        # spanning 3+ uses Mixed-Use too (New Murabba is tagged "Residences" but is
+        # a mixed-use megacity). Otherwise use the curated PreferredType / first type.
+        _types = [t.strip() for t in (r.get('ProjectType') or '').split(',') if t.strip()]
+        _pref = (r.get('PreferredType') or '').strip()
+        if _pref.lower().replace(' ', '-') == 'mixed-use' or len(_types) >= 3:
+            ptype = 'Mixed-Use'
+        else:
+            ptype = _pref or (_types[0] if _types else '')
         scored.append({
             'id': r.get('Slug') or r.get('Title'),
             'name': r.get('Title') or '',
             'slug': r.get('Slug') or '',
             'mapslug': mslug,
-            'sub': ' · '.join([p for p in [(r.get('ProjectType') or '').split(',')[0].strip(), (r.get('City') or '').strip()] if p]),
+            'sub': ' · '.join([p for p in [ptype, (r.get('City') or '').strip()] if p]),
             'metric_lines': lines,
             'scale': gfa,
         })
