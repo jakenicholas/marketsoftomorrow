@@ -127,9 +127,11 @@
 .tmw-money--full .tmw-m-shell{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),#0c0e0c;padding:8px 20px 18px}
 .tmw-money--full .tmw-m-shell .col{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);padding:15px 17px}
 .tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.tmw-money--full .mt{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
-.tmw-money--full .mt:hover{color:#ECEAE5}
-.tmw-money--full .mt.on{color:#fff;border-bottom-color:#1FDF67}
+.tmw-money--full .tmw-m-tab{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.tmw-money--full .tmw-m-tab:hover{color:#ECEAE5}
+.tmw-money--full .tmw-m-tab.on{color:#fff;border-bottom-color:#1FDF67}
+.tmw-money--full .r .rn .nm{line-height:1.25}
+.tmw-money--full .r .rn .mt{line-height:1.3}
 .tmw-money--full .tmw-m-view{display:none}
 .tmw-money--full .tmw-m-view.on{display:block}
 .tmw-money--full .tmw-m-cap{font-size:12px;color:#8b958d;margin:0 0 12px}
@@ -294,10 +296,10 @@
       + '</div>'
       + '<div class="tmw-m-shell">'
       + '<div class="tmw-m-tabs">'
-      + '<button class="mt on" data-mt="overview">Overview</button>'
-      + '<button class="mt" data-mt="flow">Capital flow</button>'
-      + '<button class="mt" data-mt="map">Money map</button>'
-      + '<button class="mt" data-mt="lenders">Lenders</button>'
+      + '<button class="tmw-m-tab on" data-mt="overview">Overview</button>'
+      + '<button class="tmw-m-tab" data-mt="flow">Capital flow</button>'
+      + '<button class="tmw-m-tab" data-mt="map">Money map</button>'
+      + '<button class="tmw-m-tab" data-mt="lenders">Lenders</button>'
       + '</div>'
       + '<div class="tmw-m-view on" data-v="overview"><div class="tmw-m-grid">'
       + '<div class="col"><div class="h">Recent financings</div>' + recent.slice(0, 7).map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
@@ -305,7 +307,7 @@
       + '<div class="col"><div class="h">Where capital is landing</div>' + cities.slice(0, 7).map(function (c) { return '<div class="r"><div class="rn"><div class="nm">' + esc(c.city) + '</div><div class="mt">' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (c.amt ? '' : ' na') + '">' + (c.amt ? fmtM(c.amt) : '—') + '</span></div>'; }).join('') + '</div>'
       + '</div></div>'
       + '<div class="tmw-m-view" data-v="flow"><p class="tmw-m-cap">Who\'s funding what, where — <b>hover a lender</b> to trace its capital into markets.</p>'
-      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 720 560" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
+      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 720 500" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
       + '<div class="tmw-m-flowread"></div></div>'
       + '<div class="tmw-m-view" data-v="map"><p class="tmw-m-cap">Where capital is landing — <b>click a market</b> for its deals + lenders.</p>'
       + '<div class="tmw-m-mapgrid"><div class="tmw-m-mapbox" aria-label="Capital by market map"></div>'
@@ -321,7 +323,7 @@
   }
 
   function wireTabs(el) {
-    var tabs = el.querySelectorAll('.mt'), views = el.querySelectorAll('.tmw-m-view');
+    var tabs = el.querySelectorAll('.tmw-m-tab'), views = el.querySelectorAll('.tmw-m-view');
     Array.prototype.forEach.call(tabs, function (t) {
       t.addEventListener('click', function () {
         Array.prototype.forEach.call(tabs, function (x) { x.classList.remove('on'); }); t.classList.add('on');
@@ -334,14 +336,23 @@
 
   function buildFlow(svg, lenders, markets, flows, readEl) {
     if (!svg || !lenders.length || !markets.length) { if (readEl) readEl.textContent = 'Not enough disclosed financing to chart flows yet.'; if (svg) svg.parentNode.style.display = lenders.length ? '' : 'none'; return; }
-    var W = 720, H = 560, padT = 26, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw, gap = 11;
+    var W = 720, H = 500, padT = 24, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw;
     var innerH = H - padT - padB;
     var Ltot = lenders.reduce(function (s, l) { return s + l.total; }, 0) || 1;
-    var scale = (innerH - (Math.max(lenders.length, markets.length) - 1) * gap) / Ltot;
-    var y = padT; lenders.forEach(function (l) { l._y = y; l._h = l.total * scale; y += l._h + gap; });
-    var mh = markets.reduce(function (s, m) { return s + m.total * scale; }, 0) + (markets.length - 1) * gap;
-    var my = padT + Math.max(0, (innerH - mh) / 2), mById = {};
-    markets.forEach(function (m) { m._y = my; m._h = m.total * scale; my += m._h + gap; mById[m.name] = m; });
+    // Thickness deliberately under-fills the column (0.55×); each column is then
+    // distributed with EQUAL gaps to span the full height — so both sides are
+    // top-and-bottom aligned, every node is evenly spaced, and the flows read thin.
+    var maxN = Math.max(lenders.length, markets.length);
+    var scale = (innerH - (maxN - 1) * 7) / Ltot * 0.55;
+    var mById = {};
+    function place(nodes, isMkt) {
+      var hs = nodes.map(function (n) { return Math.max(3, n.total * scale); });
+      var sumH = hs.reduce(function (a, b) { return a + b; }, 0);
+      var gp = nodes.length > 1 ? Math.max(2, (innerH - sumH) / (nodes.length - 1)) : 0;
+      var y = padT;
+      nodes.forEach(function (n, i) { n._h = hs[i]; n._y = y; y += n._h + gp; if (isMkt) mById[n.name] = n; });
+    }
+    place(lenders, false); place(markets, true);
     var c1 = svgEl('text', { x: lx, y: 14, class: 'sk-col' }); c1.textContent = 'Lenders'; svg.appendChild(c1);
     var c2 = svgEl('text', { x: rx + lw, y: 14, class: 'sk-col', 'text-anchor': 'end' }); c2.textContent = 'Markets'; svg.appendChild(c2);
     // Fade each band's ends into the panel background so the lender/market labels
@@ -430,7 +441,7 @@
         if (!window.mapboxgl) { fallback(); return; }
         try {
           mapboxgl.accessToken = MB_TOKEN;
-          var map = new mapboxgl.Map({ container: container, style: MB_STYLE, center: [-96, 38.5], zoom: 3.3, attributionControl: false, cooperativeGestures: true, logoPosition: 'bottom-left' });
+          var map = new mapboxgl.Map({ container: container, style: MB_STYLE, center: [-94, 33.5], zoom: 3.4, attributionControl: false, cooperativeGestures: true, logoPosition: 'bottom-left' });
           container.__map = map;
           map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
           map.on('load', function () {
