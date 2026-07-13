@@ -66,37 +66,45 @@
 
   /* ── Timeline ── */
   .timeline{position:relative;padding-left:0}
-  .stop{position:relative;padding:6px 0 44px}
-  .stop-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
-  .stop-num{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:1px solid rgba(167,139,250,.45);background:rgba(167,139,250,.08);
-            display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--purple-soft)}
-  .stop-headtext{flex:1;min-width:200px}
-  .stop-loc{font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
-  .stop-nights{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--purple-soft);margin-left:2px}
-  .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,34px);line-height:1.12;letter-spacing:-.01em;color:var(--white);margin-top:4px}
-  .stop-tools{margin-left:auto;padding-top:4px}
-
-  .stop-body{padding-top:16px;padding-left:0}
-  @media(min-width:680px){ .stop-body{padding-left:62px} .stop-head{padding-right:2px} }
-  .vibe{font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
+  .stop{position:relative;padding:0 0 40px}
+  .stop-info{margin-top:18px}
+  .stop-topline{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .stop-num{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1px solid rgba(167,139,250,.45);background:rgba(167,139,250,.08);
+            display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--purple-soft)}
+  .stop-loc{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
+  .stop-tools{margin-left:auto}
+  .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,38px);line-height:1.1;letter-spacing:-.01em;color:var(--white);margin-top:10px}
+  .stop-date{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--purple-soft);margin-top:4px}
+  .vibe{margin-top:15px;font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
   .logi{margin-top:16px;display:flex;flex-direction:column;gap:9px}
   .logi-row{display:flex;gap:11px;align-items:baseline;font-size:13.5px;color:var(--mute)}
   .logi-k{flex:0 0 auto;min-width:64px;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft);padding-top:1px}
   .logi-v{flex:1;color:var(--mute2);line-height:1.6}
   .logi-v b{color:var(--text);font-weight:600}
 
-  /* ── Gallery ── */
-  .gallery{margin-top:22px;display:grid;gap:8px;grid-template-columns:repeat(4,1fr)}
-  .gallery.g3{grid-template-columns:repeat(3,1fr)}
+  /* ── Gallery (sits on top of each stop) ── */
+  .gallery{display:grid;gap:8px}
   .gcell{position:relative;overflow:hidden;border-radius:12px;background:var(--panel);aspect-ratio:3/4;cursor:zoom-in;border:1px solid var(--hair)}
+  .gallery.g1 .gcell{aspect-ratio:16/9}
+  .gallery.g2 .gcell{aspect-ratio:4/3}
   .gcell img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1);opacity:0}
   .gcell img.loaded{opacity:1}
   .gcell:hover img{transform:scale(1.06)}
   .gcell::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.32));opacity:0;transition:opacity .3s}
   .gcell:hover::after{opacity:1}
-  @media(max-width:679px){ .gallery,.gallery.g3{grid-template-columns:repeat(2,1fr)} .gcell{aspect-ratio:1/1} }
-  .gempty{margin-top:22px;border:1px dashed var(--hair2);border-radius:12px;padding:26px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(255,255,255,.015)}
+  @media(max-width:679px){ .gallery:not(.g1){grid-template-columns:repeat(2,1fr)!important} .gcell{aspect-ratio:1/1} .gallery.g1 .gcell{aspect-ratio:16/9} }
+  .gempty{border:1px dashed var(--hair2);border-radius:12px;padding:30px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(255,255,255,.015)}
   .gempty svg{width:18px;height:18px;opacity:.6;margin-bottom:8px}
+
+  /* ── Auto-scroll marquee (all trip images) ── */
+  .marquee{overflow:hidden;margin:8px 0 4px;padding:10px 0;
+           -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+  .marquee-track{display:flex;gap:10px;width:max-content;animation:mq 95s linear infinite}
+  .marquee:hover .marquee-track{animation-play-state:paused}
+  .marquee img{height:128px;width:auto;max-width:none;border-radius:10px;object-fit:cover;display:block;flex:0 0 auto;opacity:.92}
+  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(max-width:679px){ .marquee img{height:94px} }
+  @media(prefers-reduced-motion:reduce){ .marquee-track{animation:none} }
 
   /* ── Transit divider (wavy dotted line + date + mode icon) ── */
   .leg{position:relative;padding:30px 0 26px}
@@ -170,13 +178,13 @@
     <div class="wrap">
       <div class="hero-eyebrow">Private Itinerary</div>
       <h1>Italy, The Isles<br>&amp; <em>The Alps</em></h1>
-      <div class="hero-dates">September 3 — October 8</div>
+      <div class="hero-dates">September 3 — October 10</div>
       <div class="hero-meta">
-        <span>11 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
+        <span>12 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
       </div>
-      <div style="margin-top:22px"><span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span></div>
     </div>
   </header>
+  <div class="marquee" id="marq" aria-hidden="true"></div>
   <main class="wrap" id="tl"></main>
 </div>
 
@@ -185,7 +193,7 @@
 
 <script>
 const R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/';
-const g = f => R2 + f;
+const g = f => /^https?:/i.test(f) ? f : R2 + f;
 
 // Transport-mode icons for the transit dividers.
 const ICONS = {
@@ -200,17 +208,20 @@ const STOPS = [
   { loc:'Rome, Italy', nights:'4 Nights · Sept 3 → 7', stay:'Private Airbnb',
     in:{ start:true, date:'September 3', mode:'plane', note:'Touchdown — the journey begins' },
     vibe:'Four opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
-    logi:[], imgs:[], photosLater:true },
+    logi:[], imgs:[
+      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA%3D%3D/original/457ac4e1-170a-424a-859b-70a7dbd972ff.jpeg?im_w=1200',
+      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/a15d8dcc-53da-4329-98fb-bb9c10c8195b.jpeg?im_w=2560',
+      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/2a66eb6e-8f8e-43f2-a79c-18c135f5b74c.jpeg?im_w=2560'] },
 
   { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stayPending:'Stay to be confirmed',
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
     vibe:'Fair Verona on the Adige — the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
-    logi:[], imgs:[], photosLater:true },
+    logi:[], imgs:['https://images.trvl-media.com/lodging/36000000/35390000/35381900/35381857/fe955413.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
 
   { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true,
     in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
     vibe:'A tentative day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
-    logi:[], imgs:[], photosLater:true },
+    logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
   { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Securing our hotel partner', pending:true,
     in:{ date:'Sept 11', mode:'plane', note:'Verona → Dubrovnik' },
@@ -221,56 +232,89 @@ const STOPS = [
     in:{ date:'Sept 14', mode:'plane', note:'Dubrovnik → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock — an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Aegean out of Dubrovnik (DBV) the morning of Sept 14, connecting through Athens (ATH) on a swift 1h 15m layover, landing in Mykonos at <b>2:10 PM</b>.']],
-    imgs:['f1aeb1c7a565-cali-mykonos-beach.jpg.webp','cf49a3f568bc-cali-suite-terraceview_1.jpg.webp','5acfbad18cec-05cali-mykonos-hotel-01-one-bedroom-villa.jpg.webp','c9c11e34d95d-04_cali_hotel_mykonos_spa.jpg.webp'] },
+    imgs:[
+      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
+      'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
+      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/775299805.jpg?k=af00d6a610d3ec2a5fd0eb815f5e7a01d354571ca9f7e3a654aa1cd0b8f532a7&o='] },
 
   { loc:'Ios', nights:'3 Nights · Sept 17 → 20', stay:'Calilo',
     in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Ios · high-speed ferry' },
     vibe:'On remote Papas Beach, this design-forward sanctuary features massive, custom-carved marble swim-up suites and swings suspended over private pools. Praised by guests as a surreal, romantic location built entirely for deep relaxation.',
     logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Ios (approx. <b>2 hours</b>).']],
-    imgs:['d4067b067eed-calilo-resort-ios-greece-angelos-michalopoulos-14-e1696972377637.jpg','1575ca55c517-calilo-resort-ios-greece-angelos-michalopoulos-16-e1696975274422.jpg','ae50d3730139-DJI_20260601195339_0468_D.jpg'] },
+    imgs:[
+      'https://www.calilo.com/wp-content/uploads/2020/11/morten-photos-calilo-32-819x1024.jpg',
+      'https://images.squarespace-cdn.com/content/v1/56831fc39cadb697dd8c5724/2bc7d893-a6c2-4cb3-9828-58009635ea71/Calilo-Resort-Greece-Ios-Hotels-07.jpg',
+      'https://media.cntraveler.com/photos/68813b8d9c5a545974af9dcc/16:9/w_2560%2Cc_limit/072325-Calilo%2520los-PR-drz_calilo%2520II_00431.jpg'] },
 
   { loc:'Athens Riviera', nights:'3 Nights · Sept 20 → 23', stay:'Cape Sounio',
     in:{ date:'Sept 20', mode:'ferry', note:'Ios → Port of Lavrio' },
     vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
     logi:[['Transit','Northbound high-speed ferry from Ios.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
-    imgs:['58ef54deaa39-01-cape-sounio-attica-grecotel-temple-view.jpg','5a1770052238-03-cape-sounio-attica-grecotel-villa-with-pool.jpg','321c97457bf3-02-accommodation-villas-at-cape-sounio-grecotel.jpg','8a7499fc4cac-05-temple-view-from-cape-sounio-grecotel.jpg'] },
+    imgs:[
+      'https://images.trvl-media.com/lodging/1000000/980000/974000/973998/4dd45c06.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
+      'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
+      'https://media.cntraveller.com/photos/6a44feee8fad0c35774cfdd6/16:9/w_2560,c_limit/pool-view-cape-sounio-athens-riviera-greece-june-2026-pr.jpg'] },
 
   { loc:'Athens · Historic Center', nights:'3 Nights · Sept 23 → 26', stay:'The Dolli at Acropolis',
     in:{ date:'Sept 23', mode:'car', note:'Cape Sounio → Athens · private transfer' },
     vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis — an ideal base for walking the Plaka and exploring the ancient landmarks.',
     logi:[['Transit','A direct 45–60 minute private transfer up the coast from Cape Sounio into the heart of historic Athens.']],
-    imgs:['547474f08449-03-acropolis-view-grecotel-the-dolli-athens-greece.jpg','0b417bffb66c-09-metropolis-junior-suite-the-dolli-boutique-hotel-athens.jpg','6ad4902b9925-05-ancient-buildings-downtown-athens-greece-grecotel.jpg'] },
+    imgs:[
+      'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg',
+      'https://www.thehotelguru.com/_images/98/6f/986fedf825c85c605b4319783c4df931/s1654x900.jpg',
+      'https://latteluxurynews.com/wp-content/uploads/2023/11/16-acropolis-luxury-junior-suite-the-dolli-boutique-hotel-athens-1132x560-1.jpg',
+      'https://www.thedolli.com/wp-content/uploads/2026/06/05-the-dolli-fosters-magic-happenings-grecotel-1536x1046.jpg',
+      'https://www.thedolli.com/wp-content/uploads/2026/01/02-grecotel-the-dolli-hotels-resorts-wines-cocktails-768x613.jpg',
+      'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg'] },
 
   { loc:'Southeast Slovenia', nights:'3 Nights · Sept 26 → 29', stay:'Hotel Grad Otočec',
     in:{ date:'Sept 26', mode:'plane', note:'Athens → Ljubljana · then a 1h drive' },
     vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
     logi:[['Transit','Short 35-minute taxi from downtown Athens to ATH, then the non-stop morning Aegean flight to Ljubljana (LJU), approx. <b>2 hours</b>. Pick up the premium rental at the airport.'],['The Drive','A very easy, scenic <b>1-hour drive</b> southeast on the A2 highway.']],
-    imgs:['04aa2d659507-The-Grad-Otoc-ec-Otoc-ec-Slovenia_Feat.jpg','ad3f2a638677-The-Grad-Otoc-ec-Otoc-ec-Slovenia_06.jpg','64e6eeab3234-The-Grad-Otoc-ec-Otoc-ec-Slovenia_03.jpg'] },
+    imgs:[
+      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/134886518.jpg?k=4825d2170dfae86113ecbb4af5d77ac8517c8806f01a3a1f7f94d84a393b4546&o=',
+      'https://www.outthere.travel/wp-content/uploads/2021/01/The-Grad-Otoc%CC%8Cec-Otoc%CC%8Cec-Slovenia_Feat.jpg',
+      'https://images.trvl-media.com/lodging/4000000/3150000/3145300/3145268/b54731d5.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
 
   { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 29 → Oct 2', stay:'Forestis Dolomites',
     in:{ date:'Sept 29', mode:'car', note:'Slovenia → South Tyrol · ~4.5h drive' },
     vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
     logi:[['The Drive','<b>~4.5 hours</b> (~400 km / 250 mi) northwest from Slovenia — crossing into Italy on the A23 past Udine, cutting through South Tyrol up into the dense pine forests above Bressanone.']],
-    imgs:['11de5e76e461-Copy-of-FORESTIS-Villa-Exterior-3-2048x1504.jpg','e95019d6f4d6-Copy-of-FORESTIS-Villa-Living-Room-2-2048x1536.jpg','353471f235c8-Copy-of-FORESTIS-Villa-Bedroom-12-2048x1536.jpg','3e59d620a8da-Copy-of-FORESTIS-Villa-Kitchen-1-2048x1536.jpg'] },
+    imgs:[
+      'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/29/8c/6b/forestis.jpg?w=900&h=500&s=1',
+      'https://cdn.sanity.io/images/c9kbt96b/production/79a27ec8bddf790f2384d41d3bcdaa21b14fb964-640x760.jpg?w=3840&q=75&fit=clip&auto=format',
+      'https://www.forestis.it/media/1801/forestis-dolomites-luxury-hotel8385.jpg?mode=max&rnd=133778087480000000',
+      'https://i.ytimg.com/vi/vS3uy_S3pF8/maxresdefault.jpg',
+      'https://www.forestis.it/media/1791/forestis-dolomites-luxury-hotel9097.jpg?anchor=center&mode=crop&width=1480&rnd=133778087470000000'] },
 
   { loc:'St. Moritz, Switzerland', nights:'3 Nights · Oct 2 → 5', stay:'Badrutt’s Palace Hotel',
     in:{ date:'Oct 2', mode:'car', note:'Italy → Engadin · ~3.5h over the passes' },
     vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
     logi:[['The Drive','<b>~3.5 hours</b> (~200 km / 125 mi) west out of Italy, crossing the Swiss border through the majestic Müstair Valley and over the alpine passes into the Engadin valley.']],
-    imgs:['39eb857fdf1d-badrutts-palace-gallery-landscape-nature-lake-winter-010-w.jpg','ad7f713b9303-badrutts-palace-gallery-building-architecture-001-s.jpg','71effc6d7563-badrutts-palace-gallery-entrance-chauffeur-rolls-royce-001.jpg','f33a06832b23-badrutts-palace-gallery-interior-design-rooms-and-suites-serlas-wing-003.jpg'] },
+    imgs:[
+      'https://swiss-historic-hotels.ch/bilder/hotels/badrutts-palace-hotel/_AUTOxAUTO_crop_center-center_none_ns/portrait-badrutts-palace-st-moritz-swiss-historic-hotels-10.jpg',
+      'https://cdn.mos.cms.futurecdn.net/5ZzMN2nehoCLa4BdMUTnxX.jpg',
+      'https://www.engadin.ch/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fy9q53f1k%2Fproduction%2F26b0df592c1566071b17cdf46da1bf609d4d56d4-2400x1600.jpg%3Ffm%3Dwebp%26q%3D90%26w%3D2760%26h%3D1572&w=3840&q=80'] },
 
   { loc:'Gstaad, Switzerland', nights:'3 Nights · Oct 5 → 8', stay:'The Alpina Gstaad',
     in:{ date:'Oct 5', mode:'car', note:'St. Moritz → Bernese Oberland · ~4.5h' },
     vibe:'A masterfully designed, contemporary chalet-style icon. Blending weathered local woodwork with world-class modern art, it boasts Michelin-starred dining, a lavish Six Senses Spa, and sweeping valley views.',
     logi:[['The Drive','<b>~4.5 hours</b> (~330 km / 205 mi) traversing Switzerland east to west — past Lake Zurich or the central mountain route by Andermatt, tracking Lake Thun before winding into the Bernese Oberland.']],
-    imgs:['d389c2be9a0e-thealpinagstaad_exterior.jpg','ad570d715e1d-thealpinagstaad_roomssuites_0146_1920.jpg','8c875095c7bd-thealpinagstaad_roomssuites_0036_1920.jpg'] },
+    imgs:[
+      'https://www.countryclubuk.com/wp-content/uploads/2026/01/The-Alpina-Gstaad-hotel-2000.jpg',
+      'https://www.thealpinagstaad.ch/media/2964/thealpinagstaad_-6.jpg?mode=max&rnd=132602926050000000',
+      'https://www.thealpinagstaad.ch/media/2731/the-alpina-gstaad-15.jpg?mode=max&rnd=132489757030000000'] },
+
+  { loc:'Geneva, Switzerland', nights:'2 Nights · Oct 8 → 10', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Oct 8', mode:'car', note:'Gstaad → Geneva · ~2h' },
+    vibe:'', logi:[], imgs:[], photosLater:true },
 ];
 
 function galleryHtml(imgs){
   if(!imgs || !imgs.length)
     return '<div class="gempty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-1 11H4l3.5-4.5 2.5 3 3.5-4.5L20 16Zm-13-6a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 7 10Z"/></svg>Photography to come</div>';
-  const cls = imgs.length <= 3 ? 'gallery g3' : 'gallery';
-  return '<div class="'+cls+'">' + imgs.map(function(f){
+  var n = imgs.length, cols = Math.min(n, 4);
+  return '<div class="gallery g'+n+'" style="grid-template-columns:repeat('+cols+',1fr)">' + imgs.map(function(f){
     return '<div class="gcell"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
   }).join('') + '</div>';
 }
@@ -300,24 +344,35 @@ function stopHtml(s, marker){
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>'
           : (s.pending ? '<span class="tag pending">Pending</span>' : '');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
+  // Order (per request): images on top → city → hotel → date → notes.
   return '<section class="'+cls+'">'
-    + '<div class="stop-head">'
-    +   '<div class="stop-num">'+marker+'</div>'
-    +   '<div class="stop-headtext">'
-    +     '<div class="stop-loc">'+s.loc+' <span class="stop-nights">'+s.nights+'</span>'+tag+'</div>'
-    +     '<div class="stop-stay">'+stayLine+'</div>'
+    + galleryHtml(s.imgs)
+    + '<div class="stop-info">'
+    +   '<div class="stop-topline">'
+    +     '<span class="stop-num">'+marker+'</span>'
+    +     '<span class="stop-loc">'+s.loc+'</span>'+tag
+    +     '<span class="stop-tools">'+jprPill()+'</span>'
     +   '</div>'
-    +   '<div class="stop-tools">'+jprPill()+'</div>'
-    + '</div>'
-    + '<div class="stop-body">'
+    +   '<div class="stop-stay">'+stayLine+'</div>'
+    +   '<div class="stop-date">'+s.nights+'</div>'
     +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
     +   logiHtml(s.logi)
-    +   galleryHtml(s.imgs)
     + '</div>'
     + '</section>';
 }
 
+function buildMarquee(){
+  var all = [];
+  STOPS.forEach(function(s){ (s.imgs||[]).forEach(function(f){ all.push(f); }); });
+  if(!all.length) return;
+  var seq = all.concat(all);   // duplicate for a seamless loop
+  document.getElementById('marq').innerHTML = '<div class="marquee-track">'
+    + seq.map(function(f){ return '<img loading="lazy" src="'+g(f)+'" alt="" onerror="this.style.display=\'none\'">'; }).join('')
+    + '</div>';
+}
+
 function render(){
+  buildMarquee();
   var html = '<div class="timeline">', num = 0;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
@@ -325,18 +380,7 @@ function render(){
     html += stopHtml(s, marker);
   });
   html += '</div>';
-  // Final exit
-  html += '<div class="exit">'
-    + '<div class="part-k">The Final Exit · October 8</div>'
-    + '<h2>Home, seamlessly</h2>'
-    + '<p class="lede">Departure from Gstaad is highly flexible — two clean routes, zero complicated layovers.</p>'
-    + '<div class="opts">'
-    +   '<div class="opt"><div class="opt-k">Option A</div><div class="opt-t">Zurich (ZRH)</div><div class="opt-d">Drive ~2 hours north for major direct international connections.</div></div>'
-    +   '<div class="opt"><div class="opt-k">Option B</div><div class="opt-t">Geneva (GVA)</div><div class="opt-d">Drive ~2 hours southwest — excellent long-haul international routes.</div></div>'
-    + '</div>'
-    + '<div class="tip"><div class="tip-k"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7L12 2Z"/></svg>Car Logistics</div>'
-    +   '<div class="tip-d">Picking up in Slovenia and dropping in Switzerland incurs a heavy international cross-border drop fee. Confirm with a global supplier (Hertz / Avis) ahead of time that cross-border transit through Italy is fully permitted on your contract.</div></div>'
-    + '</div>';
+  html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary · J/PR</footer>';
   document.getElementById('tl').innerHTML = html;
 
   // Reveal images: inline onload misses images already complete (cache/fast) —
