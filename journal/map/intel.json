@@ -1160,18 +1160,18 @@
       "delivery_speculative": false
     },
     "the-ritz-carlton-residences-west-palm-beach": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 902,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 624,
+      "delivery_date": "2028-03-28",
       "source": "known_date",
-      "precision": "year",
+      "precision": "other",
       "confidence": "high",
       "project_type": "Residences",
       "metro": "Palm Beach",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -1632,7 +1632,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Entertainment",
+      "project_type": "Mixed-Use",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
@@ -1984,7 +1984,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
@@ -2526,18 +2526,18 @@
       "is_mixed_use": false
     },
     "waldorf-astoria-residences-st-petersburg": {
-      "estimate_years": 3.6,
-      "estimate_label": "~3.6 years",
-      "range_low": 1.7,
-      "range_high": 4.3,
-      "confidence": "medium",
-      "comparable_count": 11,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.51,
-      "avg_distance_km": 422.5,
-      "avg_distance_mi": 262.5,
+      "estimate_years": 4.7,
+      "estimate_label": "~4.7 years",
+      "range_low": 4.3,
+      "range_high": 5.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1646.4,
+      "avg_distance_mi": 1023.0,
       "scale_used": true,
       "firm_signal": {
         "firm": "Property Markets Group",
@@ -2549,42 +2549,24 @@
         "blend_weight": 0.4
       },
       "source": "comparables",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Tampa Bay",
       "comparables": [
         {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.85,
-          "distance_km": 0.5,
-          "distance_mi": 0.3
-        },
-        {
-          "name": "AQUA at Westshore Yacht Club",
-          "slug": "aqua-at-westshore-yacht-club",
-          "location": "Tampa",
-          "years": 1.9,
-          "score": 0.7,
-          "distance_km": 16.6,
-          "distance_mi": 10.3
-        },
-        {
-          "name": "DELUX WeHo",
-          "slug": "delux-weho",
-          "location": "Nashville",
-          "years": 1.7,
-          "score": 0.64,
-          "distance_km": 1008.8,
-          "distance_mi": 626.9
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 1646.4,
+          "distance_mi": 1023.0
         }
       ],
-      "pattern_summary": "Among 11 residences projects in TMW's data, the median build time is 3.1 years (range 1.7–4.3). Adjusted to ~3.6 years for Property Markets Group's own track record (~4.3-year typical pace across 1 prior project).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–5.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "tampa-international-airport-expansion": {
       "estimate_years": 3.5,
@@ -13994,8 +13976,8 @@
   },
   "stats": {
     "high": 7,
-    "medium": 19,
-    "low": 63,
+    "medium": 18,
+    "low": 64,
     "known_date": 486,
     "completed": 66,
     "skipped": 93,
@@ -14003,6 +13985,6 @@
     "firm_boosted": 41,
     "speculative_softened": 179,
     "district": 11,
-    "mixed_use_adjusted": 21
+    "mixed_use_adjusted": 22
   }
 }
