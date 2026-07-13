@@ -156,10 +156,13 @@
   .rm-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,4vw,34px);color:var(--brown)}
   .rm-frame{border:1px solid var(--hair2);border-radius:16px;padding:0;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
   .rm-map{width:100%;height:min(58vh,480px)}
-  .rm-marker{width:28px;height:28px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;color:#8a3f22;
+  /* Outer wrapper is positioned by Mapbox via transform on every zoom/pan — it must
+     carry NO transform or transition of its own, or the pin lags/drifts behind the map. */
+  .rm-marker{width:28px;height:28px}
+  .rm-dot{width:28px;height:28px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;color:#8a3f22;
              font-family:var(--serif);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;
              box-shadow:0 2px 7px rgba(74,57,43,.35);cursor:pointer;transition:transform .15s}
-  .rm-marker:hover{transform:scale(1.14);z-index:2}
+  .rm-dot:hover{transform:scale(1.14);z-index:2}
   .rm-pop{font-family:var(--sans);font-size:12.5px;color:var(--brown)}
   .rm-pop b{color:var(--terra)}
   .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
@@ -381,8 +384,9 @@ function legHtml(l){
     + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
     + '</div>';
 }
-function jprPill(){
-  return '<span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span>';
+function jprPill(label, key){
+  var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
+  return '<span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
 }
 function logiHtml(logi){
   if(!logi||!logi.length) return '';
@@ -392,8 +396,13 @@ function logiHtml(logi){
 }
 function stopHtml(s, marker){
   var cls = 'stop' + (s.pending?' pending':'') + (s.tentative?' tentative':'');
-  var tag = s.tentative ? '<span class="tag tentative">Tentative</span>'
-          : (s.pending ? '<span class="tag pending">Pending</span>' : '');
+  // Tentative keeps its own tag; the old "Pending" tag is replaced by a client pill.
+  var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
+  // Every tile carries a client bubble: J/PR for client stays, "Private" for the
+  // Italian legs, and "Looking for partner" where a hotel partner isn't locked yet.
+  var pill = s.pending ? jprPill('Looking for partner')
+           : s.noClient ? jprPill('Private')
+           : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
   // Order (per request): images on top → city → hotel → date → notes.
   return '<section class="'+cls+'">'
@@ -401,7 +410,7 @@ function stopHtml(s, marker){
     + '<div class="stop-info">'
     +   '<div class="stop-topline">'
     +     '<span class="stop-loc">'+s.loc+'</span>'+tag
-    +     (s.noClient ? '' : '<span class="stop-tools">'+jprPill()+'</span>')
+    +     '<span class="stop-tools">'+pill+'</span>'
     +   '</div>'
     +   '<div class="stop-stay">'+stayLine+'</div>'
     +   '<div class="stop-date">'+s.nights+'</div>'
@@ -491,7 +500,7 @@ function initRouteMap(tries){
   // can stall behind tile requests) — fit the view + drop the numbered markers now.
   map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 });
   pts.forEach(function(p){
-    var m = document.createElement('div'); m.className = 'rm-marker'; m.textContent = p.n;
+    var m = document.createElement('div'); m.className = 'rm-marker'; m.innerHTML = '<span class="rm-dot">'+p.n+'</span>';
     new mapboxgl.Marker({ element:m, anchor:'center' }).setLngLat([p.lng, p.lat])
       .setPopup(new mapboxgl.Popup({ offset:18, closeButton:false }).setHTML('<span class="rm-pop"><b>'+p.n+'</b> · '+p.loc+'</span>'))
       .addTo(map);
