@@ -82,8 +82,8 @@
 .tmw-m-link:hover{color:#fff}
 /* ---- teaser (homepage) ---- */
 .tmw-money--teaser{margin-top:14px}
-.tmw-m-card{border:1px solid rgba(31,223,103,.22);border-radius:16px;padding:16px 18px;
-  background:radial-gradient(130% 170% at 100% 0%,rgba(31,223,103,.08),transparent 55%),rgba(12,14,12,.6)}
+.tmw-m-card{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c}
 .tmw-m-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:13px}
 .tmw-m-stats{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:14px}
 .tmw-m-stats .s{display:flex;flex-direction:column;gap:3px}
