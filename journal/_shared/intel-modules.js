@@ -75,7 +75,15 @@
       if (amt == null && !lender && !date) return;
       out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date), lat: num(p.Latitude), lng: num(p.Longitude) });
     });
-    return out;
+    // Collapse a single SHARED loan recorded on multiple buildings of one project
+    // (identical lender + amount + date) so it isn't double-counted — e.g. the One
+    // Brickell Riverfront $513M loan sits on both LOFTY and The Standard Brickell.
+    var seen = {}, dedup = [];
+    out.forEach(function (d) {
+      if (d.lender && d.amt) { var k = String(d.lender).toLowerCase() + '|' + d.amt + '|' + (d.when || ''); if (seen[k]) return; seen[k] = 1; }
+      dedup.push(d);
+    });
+    return dedup;
   }
 
   var CSS = `
