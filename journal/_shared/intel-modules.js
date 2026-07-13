@@ -111,7 +111,7 @@
 .tmw-money--full .r:hover .nm{color:#fff}
 .tmw-money--full .r .rn{flex:1;min-width:0}
 .tmw-money--full .r .rn .nm{font-size:13px;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
-.tmw-money--full .r .rn .mt{font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--mute);margin-top:1px;text-align:left}
+.tmw-money--full .r .rn .mt{font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--mute);margin-top:2px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tmw-money--full .r .amt{font-family:'JetBrains Mono','Inter',monospace;font-size:12.5px;font-weight:700;color:var(--gs);flex:0 0 auto;font-variant-numeric:tabular-nums}
 .tmw-money--full .r .amt.na{color:var(--mute);font-weight:500}
 .tmw-money .ramt{display:inline-flex;flex-direction:column;align-items:flex-end;gap:3px;flex:0 0 auto}
@@ -272,14 +272,14 @@
     // their top 3 markets. Ranking by activity (not raw $) keeps the diagram
     // legible: multi-market lenders that actually "flow" beat one-off mega-deals.
     var flows0 = [], fmk = {};
-    lenders.filter(function (l) { return l.amt > 0; }).slice().sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 6).forEach(function (l) {
+    lenders.filter(function (l) { return l.amt > 0; }).slice().sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 9).forEach(function (l) {
       Object.keys(l.cities).map(function (c) { return { city: c, amt: l.cities[c] }; })
-        .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; }).slice(0, 3)
+        .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; })
         .forEach(function (x) { flows0.push({ l: l.name, m: x.city, v: x.amt }); fmk[x.city] = (fmk[x.city] || 0) + x.amt; });
     });
     // Cap to the top markets so the Sankey stays legible (no tiny colliding nodes),
     // then recompute lender totals from the kept flows so node heights match bands.
-    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; }).slice(0, 7);
+    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; }).slice(0, 16);
     var keepM = {}; fmarkets.forEach(function (m) { keepM[m.name] = 1; });
     var flows = flows0.filter(function (f) { return keepM[f.m]; });
     var flt = {}; flows.forEach(function (f) { flt[f.l] = (flt[f.l] || 0) + f.v; });
@@ -305,7 +305,7 @@
       + '<div class="col"><div class="h">Where capital is landing</div>' + cities.slice(0, 7).map(function (c) { return '<div class="r"><div class="rn"><div class="nm">' + esc(c.city) + '</div><div class="mt">' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (c.amt ? '' : ' na') + '">' + (c.amt ? fmtM(c.amt) : '—') + '</span></div>'; }).join('') + '</div>'
       + '</div></div>'
       + '<div class="tmw-m-view" data-v="flow"><p class="tmw-m-cap">Who\'s funding what, where — <b>hover a lender</b> to trace its capital into markets.</p>'
-      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 700 380" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
+      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 720 560" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
       + '<div class="tmw-m-flowread"></div></div>'
       + '<div class="tmw-m-view" data-v="map"><p class="tmw-m-cap">Where capital is landing — <b>click a market</b> for its deals + lenders.</p>'
       + '<div class="tmw-m-mapgrid"><div class="tmw-m-mapbox" aria-label="Capital by market map"></div>'
@@ -334,7 +334,7 @@
 
   function buildFlow(svg, lenders, markets, flows, readEl) {
     if (!svg || !lenders.length || !markets.length) { if (readEl) readEl.textContent = 'Not enough disclosed financing to chart flows yet.'; if (svg) svg.parentNode.style.display = lenders.length ? '' : 'none'; return; }
-    var W = 700, H = 380, padT = 26, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw, gap = 13;
+    var W = 720, H = 560, padT = 26, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw, gap = 11;
     var innerH = H - padT - padB;
     var Ltot = lenders.reduce(function (s, l) { return s + l.total; }, 0) || 1;
     var scale = (innerH - (Math.max(lenders.length, markets.length) - 1) * gap) / Ltot;
