@@ -139,7 +139,7 @@
 .tmw-m-loading{font-size:12px;color:var(--mute);padding:14px 2px}
 /* ---- interactive: tabs + flow + map + lender pages ---- */
 .tmw-money--full .tmw-m-shell{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent),#0c0e0c;padding:8px 20px 18px}
-.tmw-money--full .tmw-m-shell .col{border:0;background:none;padding:0}
+.tmw-money--full .tmw-m-shell .col{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025);padding:15px 17px}
 .tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .tmw-money--full .mt{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .tmw-money--full .mt:hover{color:#ECEAE5}
@@ -156,7 +156,12 @@
 .tmw-money--full .sk-col{font-size:9px;letter-spacing:.14em;fill:#6d766e;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
 .tmw-money--full .tmw-m-flowread{margin-top:10px;font-size:12px;color:#8b958d;min-height:17px}
 .tmw-money--full .tmw-m-flowread b{color:#42EB81}
-.tmw-money--full .tmw-m-mapgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.tmw-money--full .tmw-m-mapgrid{display:grid;grid-template-columns:1.35fr .65fr;gap:14px}
+.tmw-money--full .tmw-m-mapbox{width:100%;height:440px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#0c0e0c}
+.tmw-money--full .tmw-m-mapbox canvas{outline:none}
+.tmw-money--full .tmw-m-mapfallback{display:flex;flex-direction:column;gap:6px;padding:14px;max-height:440px;overflow-y:auto}
+.tmw-money--full .tmw-m-mapfallback button{display:flex;justify-content:space-between;gap:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;cursor:pointer;color:inherit;font:inherit;font-size:12.5px;text-align:left}
+.tmw-money--full .tmw-m-mapfallback button .v{color:#42EB81;font-family:'JetBrains Mono',monospace;font-weight:700}
 @media(max-width:820px){.tmw-money--full .tmw-m-mapgrid,.tmw-money--full .tmw-m-lgrid{grid-template-columns:1fr!important}}
 .tmw-money--full .mp-region{font-size:8px;letter-spacing:.16em;fill:#6d766e;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
 .tmw-money--full .mp-lab{font-size:10px;fill:#ECEAE5;font-family:'Inter',sans-serif;pointer-events:none}
@@ -174,14 +179,14 @@
 .tmw-money--full .mp-row .v{flex:0 0 auto;color:#42EB81;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap}
 .tmw-money--full .mp-empty{color:#8b958d;font-size:12px;padding:30px 0;text-align:center}
 .tmw-money--full .tmw-m-lgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:14px}
-.tmw-money--full .tmw-m-chips{display:flex;flex-direction:column;gap:7px;max-height:360px;overflow-y:auto}
+.tmw-money--full .tmw-m-chips{display:flex;flex-direction:column;gap:7px;max-height:440px;overflow-y:auto}
 .tmw-money--full .mc-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,background .15s}
 .tmw-money--full .mc-chip:hover{border-color:rgba(167,139,250,.4)}
 .tmw-money--full .mc-chip.on{border-color:#A78BFA;background:rgba(167,139,250,.07)}
 .tmw-money--full .mc-chip .cn{font-size:12.5px;font-weight:600;color:#fff;display:block}
 .tmw-money--full .mc-chip .cd{font-size:9.5px;color:#8b958d;margin-top:2px;display:block}
 .tmw-money--full .mc-chip .cv{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;color:#42EB81;flex:0 0 auto}
-.tmw-money--full .tmw-m-lprofile{border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.022);padding:16px 17px;min-height:220px}
+.tmw-money--full .tmw-m-lprofile{border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.022);padding:16px 17px;min-height:440px}
 .tmw-money--full .mc-name{font-family:'Fraunces',Georgia,serif;font-size:19px;color:#fff;font-weight:600;margin:0}
 .tmw-money--full .mc-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#B9A6FF;margin:4px 0 13px}
 .tmw-money--full .mc-kpis{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
@@ -312,14 +317,14 @@
       + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 700 380" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
       + '<div class="tmw-m-flowread"></div></div>'
       + '<div class="tmw-m-view" data-v="map"><p class="tmw-m-cap">Where capital is landing — <b>click a market</b> for its deals + lenders.</p>'
-      + '<div class="tmw-m-mapgrid"><div class="tmw-m-svgwrap"><svg class="tmw-m-map" viewBox="0 0 520 400" preserveAspectRatio="xMidYMid meet" aria-label="Capital by market map"></svg></div>'
+      + '<div class="tmw-m-mapgrid"><div class="tmw-m-mapbox" aria-label="Capital by market map"></div>'
       + '<div class="tmw-m-mapdetail"></div></div></div>'
       + '<div class="tmw-m-view" data-v="lenders"><p class="tmw-m-cap">Every lender is a page — <b>click a lender</b> to open its profile.</p>'
       + '<div class="tmw-m-lgrid"><div class="tmw-m-chips"></div><div class="tmw-m-lprofile"></div></div></div>'
       + '</div>';
 
     try { buildFlow(el.querySelector('.tmw-m-sankey'), flenders, fmarkets, flows, el.querySelector('.tmw-m-flowread')); } catch (e) {}
-    try { buildMap(el.querySelector('.tmw-m-map'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
+    try { buildMap(el.querySelector('.tmw-m-mapbox'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
     try { buildLenders(el.querySelector('.tmw-m-chips'), el.querySelector('.tmw-m-lprofile'), lenders); } catch (e) {}
     wireTabs(el);
   }
@@ -331,6 +336,7 @@
         Array.prototype.forEach.call(tabs, function (x) { x.classList.remove('on'); }); t.classList.add('on');
         var v = t.getAttribute('data-mt');
         Array.prototype.forEach.call(views, function (vw) { vw.classList.toggle('on', vw.getAttribute('data-v') === v); });
+        if (v === 'map') { var mb = el.querySelector('.tmw-m-mapbox'); if (mb && mb.__initMap) mb.__initMap(); }
       });
     });
   }
@@ -340,7 +346,7 @@
     var W = 700, H = 380, padT = 26, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw, gap = 13;
     var innerH = H - padT - padB;
     var Ltot = lenders.reduce(function (s, l) { return s + l.total; }, 0) || 1;
-    var scale = (innerH - (lenders.length - 1) * gap) / Ltot;
+    var scale = (innerH - (Math.max(lenders.length, markets.length) - 1) * gap) / Ltot;
     var y = padT; lenders.forEach(function (l) { l._y = y; l._h = l.total * scale; y += l._h + gap; });
     var mh = markets.reduce(function (s, m) { return s + m.total * scale; }, 0) + (markets.length - 1) * gap;
     var my = padT + Math.max(0, (innerH - mh) / 2), mById = {};
@@ -381,51 +387,75 @@
     reset();
   }
 
-  function buildMap(svg, detailEl, cities) {
-    if (!svg) return;
-    var W = 520, H = 400;
-    var geo = cities.filter(function (c) { return c.lat != null && c.lng != null; });
-    var isUS = function (c) { return c.lat >= 20 && c.lat <= 50 && c.lng >= -130 && c.lng <= -60; };
-    var rank = function (a, b) { return (b.amt || 0) - (a.amt || 0) || b.n - a.n; };
-    var us = geo.filter(isUS).sort(rank).slice(0, 10);
-    var intl = geo.filter(function (c) { return !isUS(c); }).sort(rank).slice(0, 4);
-    if (!us.length && !intl.length) { if (detailEl) detailEl.innerHTML = '<div class="mp-empty">No geolocated capital yet.</div>'; return; }
-    var maxv = 1; us.concat(intl).forEach(function (c) { var v = c.amt || c.n * 60; if (v > maxv) maxv = v; });
-    var rOf = function (c) { return 5 + Math.sqrt((c.amt || c.n * 60) / maxv) * 15; };
-    // Zoomed-out equirectangular over the US bounds with generous margins so
-    // nothing sits on the edge; international markets go in a right-hand inset.
-    var latMax = 49.5, latMin = 24, lngMin = -125, lngMax = -66.5, mapW = intl.length ? W - 96 : W - 12;
-    var pts = us.map(function (c) { return { c: c, x: 36 + (c.lng - lngMin) / (lngMax - lngMin) * (mapW - 72), y: 44 + (latMax - c.lat) / (latMax - latMin) * (H - 84), r: rOf(c) }; });
-    for (var it = 0; it < 130; it++) { for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) { var dx = pts[j].x - pts[i].x, dy = pts[j].y - pts[i].y, dd = Math.sqrt(dx * dx + dy * dy) || 0.01, mn = pts[i].r + pts[j].r + 13; if (dd < mn) { var pu = (mn - dd) / 2 / dd; pts[i].x -= dx * pu; pts[i].y -= dy * pu; pts[j].x += dx * pu; pts[j].y += dy * pu; } } }
-    pts.forEach(function (p) { p.x = Math.max(26, Math.min(mapW - 24, p.x)); p.y = Math.max(36, Math.min(H - 30, p.y)); });
-    var g0 = svgEl('g', { opacity: .5 }); svg.appendChild(g0);
-    [['WEST', 80, 30], ['MIDWEST', 240, 24], ['NORTHEAST', 388, 24], ['SOUTHEAST', 320, H - 10]].forEach(function (r) { var t = svgEl('text', { x: r[1], y: r[2], class: 'mp-region', 'text-anchor': 'middle' }); t.textContent = r[0]; g0.appendChild(t); });
-    if (intl.length) { g0.appendChild(svgEl('line', { x1: mapW + 8, y1: 30, x2: mapW + 8, y2: H - 22, stroke: 'rgba(255,255,255,.08)', 'stroke-dasharray': '3 5' })); var itx = svgEl('text', { x: W - 8, y: 24, class: 'mp-region', 'text-anchor': 'end' }); itx.textContent = 'INTL'; g0.appendChild(itx); }
+  // --- Mapbox GL (lazy) — the money map is a real map; GL handles projection +
+  //     label collision (no more overlap). Same token/style as the main TMW map. ---
+  var MB_TOKEN = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var MB_STYLE = 'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7';
+  var _mbQ;
+  function loadMapbox(cb) {
+    if (window.mapboxgl) return cb();
+    if (_mbQ) { _mbQ.push(cb); return; }
+    _mbQ = [cb];
+    var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css'; document.head.appendChild(css);
+    var s = document.createElement('script'); s.src = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js';
+    s.onload = s.onerror = function () { var q = _mbQ; _mbQ = null; q.forEach(function (f) { try { f(); } catch (e) {} }); };
+    document.head.appendChild(s);
+  }
+
+  function buildMap(container, detailEl, cities) {
+    if (!container) return;
+    var geo = cities.filter(function (c) { return c.lat != null && c.lng != null && isFinite(c.lat) && isFinite(c.lng); })
+      .sort(function (a, b) { return (b.amt || 0) - (a.amt || 0) || b.n - a.n; }).slice(0, 40);
+    if (!geo.length) { if (detailEl) detailEl.innerHTML = '<div class="mp-empty">No geolocated capital yet.</div>'; return; }
+    var byName = {}; geo.forEach(function (c) { byName[c.city] = c; });
+    var maxv = 1; geo.forEach(function (c) { var v = c.amt || c.n * 60; if (v > maxv) maxv = v; });
     function detail(c) {
-      Array.prototype.forEach.call(svg.querySelectorAll('.mp-bub'), function (b) { b.querySelector('.mp-glow').setAttribute('opacity', b.getAttribute('data-n') === c.city ? '1' : '.26'); });
+      if (!c) return;
       var ll = Object.keys(c.lenders).map(function (k) { return { n: k, v: c.lenders[k] }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 5)
         .map(function (x) { return '<div class="mp-row"><span class="r">' + esc(x.n) + '</span><span class="v">' + _money(x.v) + '</span></div>'; }).join('') || '<div class="mp-row"><span class="r">No named lender yet</span></div>';
-      var dd = c.deals.slice().sort(function (a, b) { return (b.amt || 0) - (a.amt || 0) || (b.when || 0) - (a.when || 0); }).slice(0, 5)
+      var dd = c.deals.slice().sort(function (a, b) { return (b.amt || 0) - (a.amt || 0) || (b.when || 0) - (a.when || 0); }).slice(0, 6)
         .map(function (d) { return '<a class="mp-row" href="' + esc(d.href) + '" target="_blank" rel="noopener"><span class="r">' + esc(d.title) + '</span><span class="v">' + _money(d.amt) + '</span></a>'; }).join('');
       detailEl.innerHTML = '<p class="mp-city">' + esc(c.city) + '</p><p class="mp-sub">' + _money(c.amt) + ' · ' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</p>'
         + '<div class="mp-h">Lenders active here</div>' + ll + '<div class="mp-h">Deals</div>' + dd;
     }
-    function bubble(c, x, y, r, col) {
-      var g = svgEl('g', { class: 'mp-bub' }); g.setAttribute('data-n', c.city); g.style.cursor = 'pointer';
-      g.appendChild(svgEl('circle', { class: 'mp-glow', cx: x, cy: y, r: r, fill: col, 'fill-opacity': .14, stroke: col, 'stroke-opacity': .55, 'stroke-width': 1.4 }));
-      g.appendChild(svgEl('circle', { cx: x, cy: y, r: 2.3, fill: col }));
-      g.appendChild(svgEl('circle', { class: 'hit', cx: x, cy: y, r: Math.max(r, 13), fill: 'transparent' }));
-      var right = x > W * 0.6;
-      var lab = svgEl('text', { class: 'mp-lab', x: right ? x - r - 6 : x + r + 6, y: y - 1, 'text-anchor': right ? 'end' : 'start' }); lab.textContent = c.city;
-      var cap = svgEl('text', { class: 'mp-cap', x: right ? x - r - 6 : x + r + 6, y: y + 10, 'text-anchor': right ? 'end' : 'start' }); cap.textContent = _money(c.amt);
-      g.appendChild(lab); g.appendChild(cap);
-      g.addEventListener('mouseenter', function () { detail(c); });
-      g.addEventListener('click', function () { detail(c); });
-      svg.appendChild(g);
+    if (detailEl) detail(geo[0]);
+    function fallback() {
+      var box = document.createElement('div'); box.className = 'tmw-m-mapfallback';
+      geo.forEach(function (c) { var b = document.createElement('button'); b.innerHTML = '<span>' + esc(c.city) + '</span><span class="v">' + _money(c.amt) + '</span>'; b.addEventListener('click', function () { detail(c); }); box.appendChild(b); });
+      container.innerHTML = ''; container.appendChild(box);
     }
-    pts.forEach(function (p) { bubble(p.c, p.x, p.y, p.r, '#1FDF67'); });
-    intl.forEach(function (c, i) { bubble(c, mapW + 48, 58 + i * 78, Math.min(rOf(c), 16), '#B9A6FF'); });
-    if (detailEl) detail(us[0] || intl[0]);
+    // A hidden / zero-size container can't init a GL map, so defer the build to
+    // the first time the Money-map tab is shown (wireTabs calls __initMap).
+    container.__initMap = function () {
+      if (container.__built) { if (container.__map) container.__map.resize(); return; }
+      container.__built = true;
+      loadMapbox(function () {
+        if (!window.mapboxgl) { fallback(); return; }
+        try {
+          mapboxgl.accessToken = MB_TOKEN;
+          var map = new mapboxgl.Map({ container: container, style: MB_STYLE, center: [-40, 30], zoom: 1.1, attributionControl: false, cooperativeGestures: true });
+          container.__map = map;
+          map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+          map.on('load', function () {
+            var feats = geo.map(function (c) { return { type: 'Feature', geometry: { type: 'Point', coordinates: [c.lng, c.lat] }, properties: { city: c.city, amt: c.amt || 0, cap: _money(c.amt) } }; });
+            map.addSource('cap', { type: 'geojson', data: { type: 'FeatureCollection', features: feats } });
+            map.addLayer({ id: 'cap-glow', type: 'circle', source: 'cap', paint: { 'circle-color': '#1FDF67', 'circle-opacity': 0.15, 'circle-blur': 0.5, 'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'amt']], 0, 7, Math.sqrt(maxv), 40] } });
+            map.addLayer({ id: 'cap-dot', type: 'circle', source: 'cap', paint: { 'circle-color': '#1FDF67', 'circle-radius': 3.4, 'circle-stroke-color': 'rgba(0,0,0,.6)', 'circle-stroke-width': 1 } });
+            map.addLayer({ id: 'cap-lab', type: 'symbol', source: 'cap', layout: { 'text-field': ['format', ['get', 'city'], {}, '\n', {}, ['get', 'cap'], { 'font-scale': 0.85 }], 'text-size': 11, 'text-offset': [0, 1.2], 'text-anchor': 'top', 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'] }, paint: { 'text-color': '#ECEAE5', 'text-halo-color': '#0a0a0a', 'text-halo-width': 1.4 } });
+            var b = new mapboxgl.LngLatBounds(); geo.forEach(function (c) { b.extend([c.lng, c.lat]); });
+            try { map.fitBounds(b, { padding: 54, maxZoom: 5.5, duration: 0 }); } catch (e) {}
+            function pick(e) { var f = e.features && e.features[0]; if (f) detail(byName[f.properties.city]); }
+            ['cap-glow', 'cap-dot'].forEach(function (L) {
+              map.on('click', L, pick);
+              map.on('mouseenter', L, function () { map.getCanvas().style.cursor = 'pointer'; });
+              map.on('mouseleave', L, function () { map.getCanvas().style.cursor = ''; });
+            });
+          });
+          map.on('error', function () {});
+          setTimeout(function () { try { map.resize(); } catch (e) {} }, 80);
+        } catch (e) { fallback(); }
+      });
+    };
   }
 
   function buildLenders(chipsEl, profileEl, lenders) {
