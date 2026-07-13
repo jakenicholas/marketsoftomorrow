@@ -56,14 +56,19 @@
   .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(74,57,43,.34)}
 
   /* ── Top slideshow (full-bleed crossfade, cream → dark bridge) ── */
-  .topshow{position:relative;height:min(56vh,540px);overflow:hidden;background:var(--cream)}
-  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}
+  .topshow{position:relative;height:min(44vh,420px);overflow:hidden;background:var(--cream)}
+  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.94) brightness(1.02)}
   .topshow .ts-img.on{opacity:1}
-  /* soft, spread-out fades so the image melts gently into the beige page top & bottom */
-  .topshow::after{content:"";position:absolute;left:0;right:0;bottom:0;height:62%;pointer-events:none;
-    background:linear-gradient(to bottom,rgba(242,233,215,0) 0%,rgba(242,233,215,.15) 42%,rgba(242,233,215,.55) 74%,var(--ink) 100%)}
-  .topshow::before{content:"";position:absolute;left:0;right:0;top:0;height:150px;z-index:2;pointer-events:none;
-    background:linear-gradient(to bottom,var(--cream) 0%,rgba(243,235,220,.4) 55%,transparent 100%)}
+  /* one full-height cream veil: image melts into the palette at top & bottom and
+     stays gently washed in the middle — soft, incorporated, not a harsh photo band */
+  .topshow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:linear-gradient(to bottom,
+      var(--cream) 0%,
+      rgba(243,235,220,.62) 15%,
+      rgba(243,235,220,.20) 34%,
+      rgba(243,235,220,.20) 60%,
+      rgba(243,235,220,.66) 84%,
+      var(--ink) 100%)}
 
   /* ── Client pill (J/PR) ── */
   .jpr{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:99px;border:1px solid rgba(176,96,58,.42);
@@ -243,6 +248,7 @@ const STOPS = [
     in:{ start:true, date:'September 3', mode:'plane', note:'Touchdown — the journey begins' },
     vibe:'Four opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
+      'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg',
       'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA%3D%3D/original/457ac4e1-170a-424a-859b-70a7dbd972ff.jpeg?im_w=1200',
       'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/a15d8dcc-53da-4329-98fb-bb9c10c8195b.jpeg?im_w=2560',
       'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/2a66eb6e-8f8e-43f2-a79c-18c135f5b74c.jpeg?im_w=2560'] },
@@ -250,7 +256,7 @@ const STOPS = [
   { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
     vibe:'Fair Verona on the Adige — the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
-    logi:[], imgs:['https://images.trvl-media.com/lodging/36000000/35390000/35381900/35381857/fe955413.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
+    logi:[], imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
 
   { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true, noClient:true,
     in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
@@ -267,25 +273,24 @@ const STOPS = [
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock — an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Aegean out of Dubrovnik (DBV) the morning of Sept 14, connecting through Athens (ATH) on a swift 1h 15m layover, landing in Mykonos at <b>2:10 PM</b>.']],
     imgs:[
-      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
       'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
+      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
       'https://cf.bstatic.com/xdata/images/hotel/max1024x768/775299805.jpg?k=af00d6a610d3ec2a5fd0eb815f5e7a01d354571ca9f7e3a654aa1cd0b8f532a7&o='] },
 
-  { loc:'Ios', nights:'3 Nights · Sept 17 → 20', stay:'Calilo',
-    in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Ios · high-speed ferry' },
-    vibe:'On remote Papas Beach, this design-forward sanctuary features massive, custom-carved marble swim-up suites and swings suspended over private pools. Praised by guests as a surreal, romantic location built entirely for deep relaxation.',
-    logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Ios (approx. <b>2 hours</b>).']],
+  { loc:'Paros', nights:'3 Nights · Sept 17 → 20', stay:'Andronis Minois',
+    in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Paros · high-speed ferry' },
+    vibe:'A serene, design-led retreat above Parasporos Bay on Paros — whitewashed Cycladic lines, an infinity pool over the Aegean, and a quieter, refined counterpoint to the busier isles.',
+    logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Paros (approx. <b>45 minutes</b>).']],
     imgs:[
-      'https://www.calilo.com/wp-content/uploads/2020/11/morten-photos-calilo-32-819x1024.jpg',
-      'https://images.squarespace-cdn.com/content/v1/56831fc39cadb697dd8c5724/2bc7d893-a6c2-4cb3-9828-58009635ea71/Calilo-Resort-Greece-Ios-Hotels-07.jpg',
-      'https://media.cntraveler.com/photos/68813b8d9c5a545974af9dcc/16:9/w_2560%2Cc_limit/072325-Calilo%2520los-PR-drz_calilo%2520II_00431.jpg'] },
+      'https://simpleferry.com/_next/image?url=%2Fblog%2Fparos%2Fpicturesque-naousa-town-on-paros-island-greece-in-2026-01-05-23-09-06-utc.webp&w=3840&q=75',
+      'https://i.redd.it/aldpqddr2zyf1.jpeg',
+      'https://www.travelandleisure.com/thmb/temuzzCcD0u5XPo1pazHY7-lxok=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-header-exterior-andronis-minois-ANRNSMINOIS0524-ed5c061d79354e60898e63126995b520.jpg'] },
 
   { loc:'Athens Riviera', nights:'3 Nights · Sept 20 → 23', stay:'Cape Sounio',
-    in:{ date:'Sept 20', mode:'ferry', note:'Ios → Port of Lavrio' },
+    in:{ date:'Sept 20', mode:'ferry', note:'Paros → Port of Lavrio' },
     vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
-    logi:[['Transit','Northbound high-speed ferry from Ios.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
+    logi:[['Transit','Northbound high-speed ferry from Paros.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
     imgs:[
-      'https://images.trvl-media.com/lodging/1000000/980000/974000/973998/4dd45c06.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
       'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
       'https://media.cntraveller.com/photos/6a44feee8fad0c35774cfdd6/16:9/w_2560,c_limit/pool-view-cape-sounio-athens-riviera-greece-june-2026-pr.jpg'] },
 
@@ -306,6 +311,7 @@ const STOPS = [
     vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
     logi:[['Transit','Short 35-minute taxi from downtown Athens to ATH, then the non-stop morning Aegean flight to Ljubljana (LJU), approx. <b>2 hours</b>. Pick up the premium rental at the airport.'],['The Drive','A very easy, scenic <b>1-hour drive</b> southeast on the A2 highway.']],
     imgs:[
+      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg',
       'https://cf.bstatic.com/xdata/images/hotel/max1024x768/134886518.jpg?k=4825d2170dfae86113ecbb4af5d77ac8517c8806f01a3a1f7f94d84a393b4546&o=',
       'https://www.outthere.travel/wp-content/uploads/2021/01/The-Grad-Otoc%CC%8Cec-Otoc%CC%8Cec-Slovenia_Feat.jpg',
       'https://images.trvl-media.com/lodging/4000000/3150000/3145300/3145268/b54731d5.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
@@ -315,8 +321,7 @@ const STOPS = [
     vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
     logi:[['The Drive','<b>~4.5 hours</b> (~400 km / 250 mi) northwest from Slovenia — crossing into Italy on the A23 past Udine, cutting through South Tyrol up into the dense pine forests above Bressanone.']],
     imgs:[
-      'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/29/8c/6b/forestis.jpg?w=900&h=500&s=1',
-      'https://cdn.sanity.io/images/c9kbt96b/production/79a27ec8bddf790f2384d41d3bcdaa21b14fb964-640x760.jpg?w=3840&q=75&fit=clip&auto=format',
+      'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
       'https://www.forestis.it/media/1801/forestis-dolomites-luxury-hotel8385.jpg?mode=max&rnd=133778087480000000',
       'https://i.ytimg.com/vi/vS3uy_S3pF8/maxresdefault.jpg',
       'https://www.forestis.it/media/1791/forestis-dolomites-luxury-hotel9097.jpg?anchor=center&mode=crop&width=1480&rnd=133778087470000000'] },
@@ -326,7 +331,7 @@ const STOPS = [
     vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
     logi:[['The Drive','<b>~3.5 hours</b> (~200 km / 125 mi) west out of Italy, crossing the Swiss border through the majestic Müstair Valley and over the alpine passes into the Engadin valley.']],
     imgs:[
-      'https://swiss-historic-hotels.ch/bilder/hotels/badrutts-palace-hotel/_AUTOxAUTO_crop_center-center_none_ns/portrait-badrutts-palace-st-moritz-swiss-historic-hotels-10.jpg',
+      'https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg',
       'https://cdn.mos.cms.futurecdn.net/5ZzMN2nehoCLa4BdMUTnxX.jpg',
       'https://www.engadin.ch/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fy9q53f1k%2Fproduction%2F26b0df592c1566071b17cdf46da1bf609d4d56d4-2400x1600.jpg%3Ffm%3Dwebp%26q%3D90%26w%3D2760%26h%3D1572&w=3840&q=80'] },
 
@@ -339,8 +344,8 @@ const STOPS = [
       'https://www.thealpinagstaad.ch/media/2964/thealpinagstaad_-6.jpg?mode=max&rnd=132602926050000000',
       'https://www.thealpinagstaad.ch/media/2731/the-alpina-gstaad-15.jpg?mode=max&rnd=132489757030000000'] },
 
-  { loc:'Geneva, Switzerland', nights:'2 Nights · Oct 8 → 10', stayPending:'Looking for a hotel partner', pending:true,
-    in:{ date:'Oct 8', mode:'car', note:'Gstaad → Geneva · ~2h' },
+  { loc:'Zurich or Geneva, Switzerland', nights:'2 Nights · Oct 8 → 10', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Oct 8', mode:'car', note:'Gstaad → Zurich / Geneva' },
     vibe:'', logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 ];
 
@@ -406,7 +411,7 @@ function stopHtml(s, marker){
 // stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
 function buildTopShow(){
   var pick = [];
-  STOPS.forEach(function(s){ (s.imgs||[]).slice(0,2).forEach(function(f){ pick.push(f); }); });
+  STOPS.forEach(function(s){ if(s.imgs && s.imgs.length) pick.push(s.imgs[0]); });   // first image of each location
   if(!pick.length) return;
   var el = document.getElementById('topshow');
   el.innerHTML = pick.map(function(f,i){
@@ -444,11 +449,11 @@ function initSlideshows(){
 // Approx lat/lng for the route map (numbered pins, geographic layout).
 var COORDS = {
   'Rome, Italy':[41.90,12.50], 'Verona, Italy':[45.44,10.99], 'Venice, Italy':[45.44,12.32],
-  'Dubrovnik, Croatia':[42.65,18.09], 'Mykonos':[37.45,25.33], 'Ios':[36.73,25.28],
+  'Dubrovnik, Croatia':[42.65,18.09], 'Mykonos':[37.45,25.33], 'Paros':[37.05,25.15],
   'Athens Riviera':[37.65,24.02], 'Athens · Historic Center':[37.98,23.73],
   'Southeast Slovenia':[45.84,15.04], 'The Dolomites, Italy':[46.72,11.66],
   'St. Moritz, Switzerland':[46.49,9.84], 'Gstaad, Switzerland':[46.48,7.29],
-  'Geneva, Switzerland':[46.20,6.14]
+  'Zurich or Geneva, Switzerland':[46.20,6.14]
 };
 function routePoints(){
   var pts = [];
@@ -503,6 +508,15 @@ function initRouteMap(tries){
     var t = setInterval(function(){ if(map.isStyleLoaded()){ addRoute(); clearInterval(t); } }, 250);
     setTimeout(function(){ clearInterval(t); }, 12000);
   }
+
+  // Keep the projection synced to the container. Without this the map can init at a
+  // stale size (it's far down the page / inside the fade-in), so its center is off
+  // and markers appear to drift as you zoom in/out. Resize once it's really sized,
+  // when it scrolls into view, and on window resize — then re-fit so pins stay put.
+  function sync(refit){ try{ map.resize(); if(refit) map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 }); }catch(e){} }
+  [150, 450, 1000].forEach(function(d){ setTimeout(function(){ sync(true); }, d); });
+  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(false); }); }, { threshold:0.15 }).observe(el); }catch(e){}
+  window.addEventListener('resize', function(){ sync(false); });
 }
 
 function render(){
