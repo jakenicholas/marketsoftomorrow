@@ -2890,9 +2890,9 @@
   </script>
 
   <!-- ───────────────────────────────────────────────────────────────────
-       ATLAS PAYWALL GATE — the Atlas is a Pro feature. Non-Pro visitors are
-       offered the free 2-week trial (soft, dismissible so they can still glance).
-       Paid members are never gated (Memberstack/_isPaidMember via journal-auth).
+       ATLAS PAYWALL GATE — the Atlas is a Pro feature. Non-Pro visitors (anon +
+       free) get a ~5-second glance, then a HARD (non-dismissible) paywall pushing
+       the free 2-week trial. Paid members are never gated (via journal-auth).
        ─────────────────────────────────────────────────────────────────── -->
   <script>
   (function () {
@@ -2906,9 +2906,12 @@
     }
     function start() {
       if (isPro()) return;                        // never gate Pro members
-      // Atlas is a Pro feature — offer the free 2-week trial (soft + dismissible
-      // so non-members can still glance, but the trial is front-and-centre).
-      if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('atlas', { hard: false });
+      // Atlas is a Pro feature. Non-Pro (anonymous + free) get a ~5s glance, then
+      // a HARD, non-dismissible paywall pushing the free 2-week trial.
+      setTimeout(function () {
+        if (isPro()) return;                      // re-check — they may have upgraded / auth flipped
+        if (typeof window.tmwShowPaywall === 'function') window.tmwShowPaywall('atlas', { hard: true });
+      }, 5000);
     }
     // Decide only once auth is actually RESOLVED (tmwAuth.ready), not merely when
     // _isPaidMember is defined — it's pre-set to false before Memberstack resolves,
