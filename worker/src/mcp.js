@@ -1411,7 +1411,9 @@ function imageDims(buf) {
   } catch (_) {}
   return null;
 }
-// Hi-res floor for scraped imagery: the longer side must be >= this many pixels.
+// Hi-res floor for scraped imagery: the SHORTER side must be >= this many pixels,
+// so BOTH dimensions are genuinely hi-res (a 2000x700 banner is rejected, not
+// squeaked through on its long edge). Print/hero quality only.
 const MIN_IMG_PX = 1200;
 async function storeScrapedImage(env, src, folder, project, minBytes) {
   const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/avif': '.avif' };
@@ -1423,10 +1425,10 @@ async function storeScrapedImage(env, src, folder, project, minBytes) {
     const buf = await r.arrayBuffer();
     if (buf.byteLength < minBytes) return { skip: 'too small' };
     if (buf.byteLength > 25 * 1024 * 1024) return { skip: 'too large' };
-    // HI-RES ONLY — the longer side must be >= 1200px (measured from the header).
-    // Unmeasurable formats fall back to the byte-size gate above.
+    // HI-RES ONLY — the SHORTER side must be >= 1200px (measured from the header),
+    // so both dimensions are hi-res. Unmeasurable formats fall back to byte-size.
     const _dim = imageDims(buf);
-    if (_dim && Math.max(_dim.w || 0, _dim.h || 0) < MIN_IMG_PX) return { skip: 'low-res ' + (_dim.w || 0) + 'x' + (_dim.h || 0) };
+    if (_dim && Math.min(_dim.w || 0, _dim.h || 0) < MIN_IMG_PX) return { skip: 'low-res ' + (_dim.w || 0) + 'x' + (_dim.h || 0) };
     let fname = ''; try { fname = decodeURIComponent(new URL(src).pathname.split('/').pop() || ''); } catch (_) {}
     fname = (fname || 'image').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'image';
     if (EXT[ct] && !/\.[a-z0-9]{2,4}$/i.test(fname)) fname += EXT[ct];
