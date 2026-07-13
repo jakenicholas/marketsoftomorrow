@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Private Itinerary — Markets of Tomorrow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#08090a; --ink2:#0d0f10; --panel:#121517; --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+    --text:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3; --white:#fff;
+    --purple:#A78BFA; --purple-soft:#C4B5FD; --gold:#e6c574;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --serif:'Fraunces',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{overflow-x:hidden}
+  a{color:inherit}
+  img{display:block;max-width:100%}
+
+  /* ── Password gate ── */
+  #gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 90% at 50% 0%,#161a1d 0%,#08090a 60%);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease}
+  #gate.hide{opacity:0;pointer-events:none}
+  .gate-card{width:100%;max-width:380px;text-align:center}
+  .gate-eyebrow{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:18px}
+  .gate-mark{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+  .gate-sub{color:var(--mute);font-size:14px;margin-bottom:26px}
+  .gate-form{display:flex;gap:8px}
+  #gatePw{flex:1;background:var(--panel);border:1px solid var(--hair2);border-radius:11px;padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:16px;letter-spacing:.3em;text-align:center;outline:none}
+  #gatePw:focus{border-color:var(--purple)}
+  #gateBtn{background:var(--purple);color:#100a1e;border:0;border-radius:11px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;transition:filter .15s}
+  #gateBtn:hover{filter:brightness(1.08)}
+  .gate-err{color:#ff8a8a;font-size:12.5px;margin-top:14px;height:16px;opacity:0;transition:opacity .2s}
+  .gate-err.show{opacity:1}
+
+  /* ── Layout ── */
+  #doc{opacity:0;transition:opacity .6s ease .1s}
+  #doc.reveal{opacity:1}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+
+  /* ── Hero ── */
+  header.hero{padding:90px 0 46px;text-align:center;position:relative}
+  header.hero::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:1px;height:46px;background:linear-gradient(var(--hair2),transparent)}
+  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:22px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--white)}
+  .hero h1 em{font-style:italic;color:var(--purple-soft)}
+  .hero-dates{margin-top:20px;font-family:var(--serif);font-style:italic;font-size:19px;color:var(--mute2)}
+  .hero-meta{margin-top:16px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--mute)}
+  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--hair2)}
+
+  /* ── Client pill (J/PR) ── */
+  .jpr{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:99px;border:1px solid rgba(167,139,250,.4);
+       background:linear-gradient(180deg,rgba(167,139,250,.14),rgba(167,139,250,.05));color:var(--purple-soft);
+       font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;line-height:1;white-space:nowrap}
+  .jpr svg{width:12px;height:12px;opacity:.9}
+  .jpr .jpr-k{font-size:9px;font-weight:700;letter-spacing:.14em;opacity:.62}
+
+  /* ── Part divider ── */
+  .part{padding:64px 0 30px;text-align:center}
+  .part-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:12px}
+  .part h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,4.4vw,38px);letter-spacing:-.01em;color:var(--white)}
+  .part-line{width:54px;height:2px;background:var(--purple);border-radius:2px;margin:20px auto 0;opacity:.7}
+
+  /* ── Timeline ── */
+  .timeline{position:relative;padding-left:0}
+  .stop{position:relative;padding:34px 0 44px;border-top:1px solid var(--hair)}
+  .stop:first-child{border-top:0}
+  .stop-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .stop-num{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:1px solid rgba(167,139,250,.45);background:rgba(167,139,250,.08);
+            display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--purple-soft)}
+  .stop-headtext{flex:1;min-width:200px}
+  .stop-loc{font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+  .stop-nights{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--purple-soft);margin-left:2px}
+  .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,34px);line-height:1.12;letter-spacing:-.01em;color:var(--white);margin-top:4px}
+  .stop-tools{margin-left:auto;padding-top:4px}
+
+  .stop-body{padding-top:16px;padding-left:0}
+  @media(min-width:680px){ .stop-body{padding-left:62px} .stop-head{padding-right:2px} }
+  .vibe{font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
+  .logi{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+  .logi-row{display:flex;gap:11px;align-items:baseline;font-size:13.5px;color:var(--mute)}
+  .logi-k{flex:0 0 auto;min-width:64px;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft);padding-top:1px}
+  .logi-v{flex:1;color:var(--mute2);line-height:1.6}
+  .logi-v b{color:var(--text);font-weight:600}
+
+  /* ── Gallery ── */
+  .gallery{margin-top:22px;display:grid;gap:8px;grid-template-columns:repeat(4,1fr)}
+  .gallery.g3{grid-template-columns:repeat(3,1fr)}
+  .gcell{position:relative;overflow:hidden;border-radius:12px;background:var(--panel);aspect-ratio:3/4;cursor:zoom-in;border:1px solid var(--hair)}
+  .gcell img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1);opacity:0}
+  .gcell img.loaded{opacity:1}
+  .gcell:hover img{transform:scale(1.06)}
+  .gcell::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.32));opacity:0;transition:opacity .3s}
+  .gcell:hover::after{opacity:1}
+  @media(max-width:679px){ .gallery,.gallery.g3{grid-template-columns:repeat(2,1fr)} .gcell{aspect-ratio:1/1} }
+
+  /* ── Final exit / tip ── */
+  .exit{margin-top:26px;padding:38px 0 20px;border-top:1px solid var(--hair);text-align:center}
+  .exit .part-k{color:var(--gold)}
+  .exit h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,4vw,34px);color:var(--white);margin-bottom:8px}
+  .exit p.lede{color:var(--mute2);max-width:60ch;margin:0 auto 26px;font-size:15px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:620px;margin:0 auto}
+  @media(max-width:600px){ .opts{grid-template-columns:1fr} }
+  .opt{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:20px 18px;text-align:left}
+  .opt-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:8px}
+  .opt-t{font-family:var(--serif);font-size:19px;color:var(--white);margin-bottom:5px}
+  .opt-d{font-size:13.5px;color:var(--mute)}
+  .tip{max-width:620px;margin:22px auto 0;background:rgba(230,197,116,.05);border:1px solid rgba(230,197,116,.22);border-radius:14px;padding:18px 20px;text-align:left}
+  .tip-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+  .tip-d{font-size:13.5px;color:var(--mute2);line-height:1.66}
+
+  footer.f{text-align:center;padding:56px 0 70px;color:var(--mute);font-size:12px;letter-spacing:.04em}
+  footer.f .fm{font-family:var(--serif);font-style:italic;color:var(--mute2);font-size:14px;margin-bottom:6px}
+
+  /* ── Lightbox ── */
+  #lb{position:fixed;inset:0;z-index:90;background:rgba(6,7,8,.94);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:28px;cursor:zoom-out}
+  #lb.on{display:flex}
+  #lb img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+  #lb .lb-x{position:absolute;top:20px;right:24px;color:var(--mute2);font-size:26px;line-height:1;cursor:pointer;font-family:var(--sans)}
+</style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-eyebrow">Markets of Tomorrow · Private</div>
+    <div class="gate-mark">The itinerary is sealed</div>
+    <div class="gate-sub">Enter the access code to view the journey.</div>
+    <form class="gate-form" id="gateForm" autocomplete="off">
+      <input id="gatePw" type="password" inputmode="numeric" placeholder="• • • •" aria-label="Access code" maxlength="12">
+      <button id="gateBtn" type="submit">Enter</button>
+    </form>
+    <div class="gate-err" id="gateErr">That code doesn't match. Try again.</div>
+  </div>
+</div>
+
+<!-- Itinerary (rendered after auth) -->
+<div id="doc">
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-eyebrow">Private Itinerary</div>
+      <h1>The Greek Isles<br>&amp; <em>The Alps</em></h1>
+      <div class="hero-dates">September 14 — October 8</div>
+      <div class="hero-meta">
+        <span>8 Stays</span><span class="dot"></span><span>2 Countries → 4</span><span class="dot"></span><span>Islands · Riviera · Alps</span>
+      </div>
+      <div style="margin-top:22px"><span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span></div>
+    </div>
+  </header>
+  <main class="wrap" id="tl"></main>
+</div>
+
+<!-- Lightbox -->
+<div id="lb"><span class="lb-x">✕</span><img alt=""></div>
+
+<script>
+const R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/';
+const g = f => R2 + f;
+
+const PARTS = [
+  { key:'Part One', title:'The Greek Isles & Mainland', stops:[0,1,2,3] },
+  { key:'Part Two', title:'The Alpine Overland Road Trip', stops:[4,5,6,7] },
+];
+
+const STOPS = [
+  { loc:'Mykonos', nights:'3 Nights · Sept 14 → 17', stay:'Cali Mykonos',
+    vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock — an ultra-exclusive escape away from the intense Mykonos crowds.',
+    logi:[['Transit','Fly Aegean out of Dubrovnik (DBV) the morning of Sept 14, connecting through Athens (ATH) on a swift 1h 15m layover, landing in Mykonos at <b>2:10 PM</b>.']],
+    imgs:['f1aeb1c7a565-cali-mykonos-beach.jpg.webp','cf49a3f568bc-cali-suite-terraceview_1.jpg.webp','5acfbad18cec-05cali-mykonos-hotel-01-one-bedroom-villa.jpg.webp','c9c11e34d95d-04_cali_hotel_mykonos_spa.jpg.webp'] },
+
+  { loc:'Ios', nights:'3 Nights · Sept 17 → 20', stay:'Calilo',
+    vibe:'On remote Papas Beach, this design-forward sanctuary features massive, custom-carved marble swim-up suites and swings suspended over private pools. Praised by guests as a surreal, romantic location built entirely for deep relaxation.',
+    logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Ios (approx. <b>2 hours</b>).']],
+    imgs:['d4067b067eed-calilo-resort-ios-greece-angelos-michalopoulos-14-e1696972377637.jpg','1575ca55c517-calilo-resort-ios-greece-angelos-michalopoulos-16-e1696975274422.jpg','ae50d3730139-DJI_20260601195339_0468_D.jpg'] },
+
+  { loc:'Athens Riviera', nights:'3 Nights · Sept 20 → 23', stay:'Cape Sounio',
+    vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
+    logi:[['Transit','Northbound high-speed ferry from Ios.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
+    imgs:['58ef54deaa39-01-cape-sounio-attica-grecotel-temple-view.jpg','5a1770052238-03-cape-sounio-attica-grecotel-villa-with-pool.jpg','321c97457bf3-02-accommodation-villas-at-cape-sounio-grecotel.jpg','8a7499fc4cac-05-temple-view-from-cape-sounio-grecotel.jpg'] },
+
+  { loc:'Athens · Historic Center', nights:'3 Nights · Sept 23 → 26', stay:'The Dolli at Acropolis',
+    vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis — an ideal base for walking the Plaka and exploring the ancient landmarks.',
+    logi:[['Transit','A direct 45–60 minute private transfer up the coast from Cape Sounio into the heart of historic Athens.']],
+    imgs:['547474f08449-03-acropolis-view-grecotel-the-dolli-athens-greece.jpg','0b417bffb66c-09-metropolis-junior-suite-the-dolli-boutique-hotel-athens.jpg','6ad4902b9925-05-ancient-buildings-downtown-athens-greece-grecotel.jpg'] },
+
+  { loc:'Southeast Slovenia', nights:'3 Nights · Sept 26 → 29', stay:'Hotel Grad Otočec',
+    vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
+    logi:[['Transit','Short 35-minute taxi from downtown Athens to ATH, then the non-stop morning Aegean flight to Ljubljana (LJU), approx. <b>2 hours</b>. Pick up the premium rental at the airport.'],['The Drive','A very easy, scenic <b>1-hour drive</b> southeast on the A2 highway.']],
+    imgs:['04aa2d659507-The-Grad-Otoc-ec-Otoc-ec-Slovenia_Feat.jpg','ad3f2a638677-The-Grad-Otoc-ec-Otoc-ec-Slovenia_06.jpg','64e6eeab3234-The-Grad-Otoc-ec-Otoc-ec-Slovenia_03.jpg'] },
+
+  { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 29 → Oct 2', stay:'Forestis Dolomites',
+    vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
+    logi:[['The Drive','<b>~4.5 hours</b> (~400 km / 250 mi) northwest from Slovenia — crossing into Italy on the A23 past Udine, cutting through South Tyrol up into the dense pine forests above Bressanone.']],
+    imgs:['11de5e76e461-Copy-of-FORESTIS-Villa-Exterior-3-2048x1504.jpg','e95019d6f4d6-Copy-of-FORESTIS-Villa-Living-Room-2-2048x1536.jpg','353471f235c8-Copy-of-FORESTIS-Villa-Bedroom-12-2048x1536.jpg','3e59d620a8da-Copy-of-FORESTIS-Villa-Kitchen-1-2048x1536.jpg'] },
+
+  { loc:'St. Moritz, Switzerland', nights:'3 Nights · Oct 2 → 5', stay:'Badrutt’s Palace Hotel',
+    vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
+    logi:[['The Drive','<b>~3.5 hours</b> (~200 km / 125 mi) west out of Italy, crossing the Swiss border through the majestic Müstair Valley and over the alpine passes into the Engadin valley.']],
+    imgs:['39eb857fdf1d-badrutts-palace-gallery-landscape-nature-lake-winter-010-w.jpg','ad7f713b9303-badrutts-palace-gallery-building-architecture-001-s.jpg','71effc6d7563-badrutts-palace-gallery-entrance-chauffeur-rolls-royce-001.jpg','f33a06832b23-badrutts-palace-gallery-interior-design-rooms-and-suites-serlas-wing-003.jpg'] },
+
+  { loc:'Gstaad, Switzerland', nights:'3 Nights · Oct 5 → 8', stay:'The Alpina Gstaad',
+    vibe:'A masterfully designed, contemporary chalet-style icon. Blending weathered local woodwork with world-class modern art, it boasts Michelin-starred dining, a lavish Six Senses Spa, and sweeping valley views.',
+    logi:[['The Drive','<b>~4.5 hours</b> (~330 km / 205 mi) traversing Switzerland east to west — past Lake Zurich or the central mountain route by Andermatt, tracking Lake Thun before winding into the Bernese Oberland.']],
+    imgs:['d389c2be9a0e-thealpinagstaad_exterior.jpg','ad570d715e1d-thealpinagstaad_roomssuites_0146_1920.jpg','8c875095c7bd-thealpinagstaad_roomssuites_0036_1920.jpg'] },
+];
+
+function galleryHtml(imgs){
+  const cls = imgs.length <= 3 ? 'gallery g3' : 'gallery';
+  return '<div class="'+cls+'">' + imgs.map(function(f){
+    return '<div class="gcell"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
+  }).join('') + '</div>';
+}
+function logiHtml(logi){
+  if(!logi||!logi.length) return '';
+  return '<div class="logi">' + logi.map(function(r){
+    return '<div class="logi-row"><div class="logi-k">'+r[0]+'</div><div class="logi-v">'+r[1]+'</div></div>';
+  }).join('') + '</div>';
+}
+function stopHtml(s, n){
+  return '<section class="stop">'
+    + '<div class="stop-head">'
+    +   '<div class="stop-num">'+n+'</div>'
+    +   '<div class="stop-headtext">'
+    +     '<div class="stop-loc">'+s.loc+' <span class="stop-nights">'+s.nights+'</span></div>'
+    +     '<div class="stop-stay">'+s.stay+'</div>'
+    +   '</div>'
+    +   '<div class="stop-tools"><span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span></div>'
+    + '</div>'
+    + '<div class="stop-body">'
+    +   '<p class="vibe">'+s.vibe+'</p>'
+    +   logiHtml(s.logi)
+    +   galleryHtml(s.imgs)
+    + '</div>'
+    + '</section>';
+}
+
+function render(){
+  var html = '';
+  PARTS.forEach(function(p){
+    html += '<div class="part"><div class="part-k">'+p.key+'</div><h2>'+p.title+'</h2><div class="part-line"></div></div>';
+    html += '<div class="timeline">';
+    p.stops.forEach(function(i){ html += stopHtml(STOPS[i], i+1); });
+    html += '</div>';
+  });
+  // Final exit
+  html += '<div class="exit">'
+    + '<div class="part-k">The Final Exit · October 8</div>'
+    + '<h2>Home, seamlessly</h2>'
+    + '<p class="lede">Departure from Gstaad is highly flexible — two clean routes, zero complicated layovers.</p>'
+    + '<div class="opts">'
+    +   '<div class="opt"><div class="opt-k">Option A</div><div class="opt-t">Zurich (ZRH)</div><div class="opt-d">Drive ~2 hours north for major direct international connections.</div></div>'
+    +   '<div class="opt"><div class="opt-k">Option B</div><div class="opt-t">Geneva (GVA)</div><div class="opt-d">Drive ~2 hours southwest — excellent long-haul international routes.</div></div>'
+    + '</div>'
+    + '<div class="tip"><div class="tip-k"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7L12 2Z"/></svg>Car Logistics</div>'
+    +   '<div class="tip-d">Picking up in Slovenia and dropping in Switzerland incurs a heavy international cross-border drop fee. Confirm with a global supplier (Hertz / Avis) ahead of time that cross-border transit through Italy is fully permitted on your contract.</div></div>'
+    + '</div>';
+  document.getElementById('tl').innerHTML = html;
+
+  // Reveal images: inline onload misses images already complete (cache/fast) —
+  // sweep once so none stay stuck at opacity:0, and catch the rest via load/error.
+  Array.prototype.forEach.call(document.querySelectorAll('.gcell img'), function(im){
+    if(im.complete && im.naturalWidth>0){ im.classList.add('loaded'); return; }
+    im.addEventListener('load',  function(){ im.classList.add('loaded'); });
+    im.addEventListener('error', function(){ im.closest('.gcell').style.display='none'; });
+  });
+
+  // Lightbox
+  var lb = document.getElementById('lb'), lbImg = lb.querySelector('img');
+  document.getElementById('tl').addEventListener('click', function(e){
+    var c = e.target.closest('.gcell'); if(!c) return;
+    var im = c.querySelector('img'); if(!im) return;
+    lbImg.src = im.src; lb.classList.add('on');
+  });
+  lb.addEventListener('click', function(){ lb.classList.remove('on'); lbImg.src=''; });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ lb.classList.remove('on'); lbImg.src=''; } });
+}
+
+// ── Gate ──
+var PW = '2332', KEY = 'tmw_travel_ok';
+function unlock(){
+  document.getElementById('gate').classList.add('hide');
+  var doc = document.getElementById('doc');
+  if(!doc.dataset.rendered){ render(); doc.dataset.rendered='1'; }
+  requestAnimationFrame(function(){ doc.classList.add('reveal'); });
+}
+try{ if(sessionStorage.getItem(KEY)==='1') unlock(); }catch(e){}
+document.getElementById('gateForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var v = document.getElementById('gatePw').value.trim();
+  if(v === PW){ try{ sessionStorage.setItem(KEY,'1'); }catch(e){} unlock(); }
+  else {
+    var err = document.getElementById('gateErr'); err.classList.add('show');
+    var inp = document.getElementById('gatePw'); inp.value=''; inp.focus();
+    setTimeout(function(){ err.classList.remove('show'); }, 2400);
+  }
+});
+document.getElementById('gatePw').focus();
+</script>
+</body>
+</html>
