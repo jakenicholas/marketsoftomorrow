@@ -506,9 +506,27 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
   function briefIsPro(){ try{ return window._isPaidMember===true || (window.__tmwMember&&window.__tmwMember.plan==='paid'); }catch(e){ return false; } }
+  // LOG date (when TMW tracked it) — used ONLY to window "what surfaced this week"
+  // (effective_date is too coarse — often YYYY / YYYY-MM — to drive a 7-day window).
   function evDate(ev){
     if(ev && ev.timestamp) return String(ev.timestamp).slice(0,10);
     var m=/(\d{4}-\d{2}-\d{2})$/.exec(String((ev&&ev.id)||'')); return m?m[1]:'';
+  }
+  // The REAL date the milestone HAPPENED (effective_date), for DISPLAY. Falls back
+  // to the log date only when the event carries no real date. This is the fix for
+  // "brief shows financing yesterday when it closed in May" — show when it happened,
+  // not when we logged it.
+  function evRealDate(ev){
+    var e=String((ev&&(ev.event_date||ev.effective_date))||'').trim();
+    return e ? e.slice(0,10) : evDate(ev);
+  }
+  // Format a possibly-coarse event date (YYYY / YYYY-MM / YYYY-MM-DD) for display.
+  function fmtEventDate(s){
+    s=String(s||'').trim(); var m;
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){ var d=new Date(s.slice(0,10)+'T00:00:00'); return isNaN(d)?s:d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    if(m=/^(\d{4})-(\d{2})/.exec(s)) return new Date(+m[1],+m[2]-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    if(/^\d{4}$/.test(s)) return s;
+    return s;
   }
   function loadBrief(){
     if(_briefDone) return; _briefDone=true;
@@ -548,7 +566,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
         function add(ev,label){
           var d=evDate(ev); if(!d||d<=fromKey||d>wk) return;
           var id=ev.id||((ev.project_slug||'')+d); if(moves[id]) return;
-          moves[id]={ev:ev,date:d,label:label}; order.push(id);
+          moves[id]={ev:ev,date:d,rdate:evRealDate(ev),label:label}; order.push(id);
         }
         ((feed&&feed.moves)||[]).forEach(function(mv){ add(mv,'Watched'); });
         pulse.forEach(function(ev){
@@ -609,20 +627,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           var x=moves[id], ev=x.ev;
           var title=ev.project_title||ev.title||'';
           var href='https://www.oftmw.com/map/?project='+mapSlug(ev.project_title||ev.project_slug||'');
-          var d2=new Date(x.date+'T00:00:00');
           return '<a class="brief-item" href="'+esc(href)+'">'
             + (ev.image?'<img class="bi-img" src="'+esc(ev.image)+'" loading="lazy" alt="">':'<div class="bi-img bi-ph"></div>')
             + '<div class="bi-b">'
             +   '<div class="bi-tag">'+esc(ev.tag||ev.type||'Move')+' \u00b7 '+esc(x.label)+'</div>'
             +   '<div class="bi-t">'+esc(title)+'</div>'
-            +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+d2.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>'
+            +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+esc(fmtEventDate(x.rdate))+'</div>'
             + '</div></a>';
         }).join('')+'</div>';
         // Onyx narrative — server-generated once per member+week (D1-cached).
         // Fails soft: the shimmer collapses away if the endpoint is unreachable.
         var narr=document.getElementById('briefNarr');
         fetch(WORKER+'/brief/summary',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({member:mem.id,week:wk,moves:order.slice(0,40).map(function(id){var x=moves[id],ev=x.ev;return{title:ev.project_title||ev.title||'',tag:ev.tag||ev.type||'',city:ev.city||'',date:x.date,label:x.label};})}) })
+          body:JSON.stringify({member:mem.id,week:wk,moves:order.slice(0,40).map(function(id){var x=moves[id],ev=x.ev;return{title:ev.project_title||ev.title||'',tag:ev.tag||ev.type||'',city:ev.city||'',date:x.rdate,label:x.label};})}) })
           .then(function(r){return r.ok?r.json():null;})
           .then(function(d){ if(narr){ if(d&&d.summary){ narr.classList.add('on'); narr.textContent=d.summary; } else { narr.style.display='none'; } } })
           .catch(function(){ if(narr) narr.style.display='none'; });

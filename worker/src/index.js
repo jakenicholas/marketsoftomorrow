@@ -1798,7 +1798,9 @@ async function handleBriefSummary(req, env, origin) {
   const moves = Array.isArray(b && b.moves) ? b.moves.slice(0, 40) : [];
   if (!member || !/^\d{4}-\d{2}-\d{2}$/.test(week)) return json({ error: 'member + week required' }, { status: 400 }, env, origin);
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS brief_summaries (k TEXT PRIMARY KEY, text TEXT, created_at INTEGER)`).run();
-  const k = member + '|' + week;
+  // Cache-key version — bump to flush stale summaries after a dating fix (v2:
+  // moves now carry the REAL event date, not the log date).
+  const k = member + '|' + week + '|v2';
   const hit = await env.DB.prepare(`SELECT text FROM brief_summaries WHERE k = ?`).bind(k).first();
   if (hit && hit.text) return json({ ok: true, summary: hit.text, cached: true }, {}, env, origin);
   if (!moves.length) return json({ ok: true, summary: '' }, {}, env, origin);

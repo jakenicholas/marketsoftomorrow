@@ -323,6 +323,10 @@ def fetch_csv_projects():
             # Sourced, event-dated change log — the Pulse now surfaces these real
             # milestones (financing, topped out, etc.) instead of bare status diffs.
             'status_history': row.get('StatusHistory') or [],
+            # Curated authoritative financing close date — preferred over a
+            # financing milestone's effective_date, which a recap-article re-log
+            # can drift (e.g. a June recap of a May close mis-dating it to June).
+            'financing_date': (row.get('FinancingDate') or '').strip(),
             # Parent district linkage (None when standalone). The pulse-event
             # builders below propagate this so the feed can tag child events
             # with "Part of <District>" inline.
@@ -949,6 +953,12 @@ def build_milestone_event(slug, project, entry):
         ekey = (entry.get('to') or '').lower()
         label = DOSSIER_STATUS_LABEL.get(ekey, ekey.replace('-', ' ').title() or 'Update')
     at = entry.get('at') or datetime.now(timezone.utc).isoformat()
+    # The REAL date the event happened. For financing, prefer the project's curated
+    # FinancingDate (authoritative, precise) over the milestone's effective_date,
+    # which recap-article re-logs can drift off the true close date.
+    event_date = (entry.get('effective_date') or '').strip()
+    if ekey == 'financing' and project.get('financing_date'):
+        event_date = project['financing_date']
     ev = {
         'id': f"ms-{slug}-{ekey}-{at[:10]}",
         'type': 'status_change',
@@ -958,7 +968,7 @@ def build_milestone_event(slug, project, entry):
         'project_title': project['title'],
         'city': project['city'],
         'image': project.get('image') or '',
-        'event_date': (entry.get('effective_date') or '').strip(),  # the REAL date (for display)
+        'event_date': event_date,  # the REAL date (for display)
         'source_url': entry.get('source_url') or '',
         'link': f"{SITE_URL}/?project=" + re.sub(r'[^a-z0-9]', '', project['title'].lower()),
         'timestamp': at,  # feed order = when TMW tracked it
