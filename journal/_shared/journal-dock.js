@@ -1927,11 +1927,12 @@
     return events.filter(function(e){ return !d.has(eid(e)); }).slice(0, 5);
   }
   // ── Weekly brief card — ALWAYS pinned atop the Me feed (Jake 2026-07-12:
-  //    no seen/dismiss). The week label rolls forward each Friday.
+  //    no seen/dismiss). The week label rolls forward each MONDAY morning
+  //    (was Friday; changed 2026-07-13) so it recaps the prior Mon–Sun week.
   function briefWeekOf(){
     var d = new Date();
-    var day = d.getDay();                       // 0 Sun … 5 Fri, 6 Sat
-    var diff = (day >= 5) ? (day - 5) : (day + 2);
+    var day = d.getDay();                       // 0 Sun … 1 Mon … 6 Sat
+    var diff = (day + 6) % 7;                    // days back to the most recent Monday
     d.setDate(d.getDate() - diff);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }

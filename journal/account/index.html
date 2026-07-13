@@ -495,12 +495,13 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   // ── Weekly brief — the in-app watch report. Assembled client-side:
   //    /watch/feed (eye watches + smart watches, matched server-side) merged
   //    with the member's follows (favorites / markets_followed / firms_followed
-  //    from member JSON) matched against pulse.json, filtered to the week
-  //    ending the most recent Friday. Pro sees the moves; free sees the count
-  //    behind the upgrade panel (the teaser).
+  //    from member JSON) matched against pulse.json, filtered to the 7-day
+  //    week ending the most recent MONDAY (was Friday; changed 2026-07-13 so the
+  //    brief lands Monday morning recapping the prior Mon–Sun). Pro sees the
+  //    moves; free sees the count behind the upgrade panel (the teaser).
   var _briefDone=false;
   function briefWeekOf(){
-    var d=new Date(); var day=d.getDay(); var diff=(day>=5)?(day-5):(day+2);
+    var d=new Date(); var day=d.getDay(); var diff=(day+6)%7;   // back to most recent Monday
     d.setDate(d.getDate()-diff);
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
