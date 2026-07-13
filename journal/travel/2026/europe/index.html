@@ -46,8 +46,11 @@
   #doc.reveal{opacity:1}
   .wrap{max-width:920px;margin:0 auto;padding:0 22px}
 
-  /* ── Hero (Mediterranean cream) ── */
-  header.hero{padding:74px 0 40px;text-align:center;position:relative;background:var(--cream)}
+  /* ── Header: the image IS the background; the title overlays its washed top ── */
+  .topwrap{position:relative;overflow:hidden}
+  header.hero{position:relative;z-index:3;padding:60px 0 250px;text-align:center;background:transparent}
+  /* soft cream halo so the title reads over any image behind it */
+  .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
   .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
   .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
   .hero h1 em{font-style:italic;color:var(--terra)}
@@ -55,19 +58,18 @@
   .hero-meta{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:#8A755E}
   .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(74,57,43,.34)}
 
-  /* ── Top slideshow (full-bleed crossfade, cream → dark bridge) ── */
-  .topshow{position:relative;height:min(44vh,420px);overflow:hidden;background:var(--cream)}
-  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.94) brightness(1.02)}
+  /* Crossfading image fills the whole header; a cream veil keeps it washed under
+     the title (readable) and melts it into the beige page below — no harsh edge. */
+  .topshow{position:absolute;inset:0;overflow:hidden;background:var(--cream)}
+  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.95) brightness(1.02)}
   .topshow .ts-img.on{opacity:1}
-  /* one full-height cream veil: image melts into the palette at top & bottom and
-     stays gently washed in the middle — soft, incorporated, not a harsh photo band */
   .topshow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
     background:linear-gradient(to bottom,
-      var(--cream) 0%,
-      rgba(243,235,220,.62) 15%,
-      rgba(243,235,220,.20) 34%,
-      rgba(243,235,220,.20) 60%,
-      rgba(243,235,220,.66) 84%,
+      rgba(243,235,220,.90) 0%,
+      rgba(243,235,220,.78) 24%,
+      rgba(243,235,220,.34) 44%,
+      rgba(243,235,220,.16) 62%,
+      rgba(243,235,220,.52) 84%,
       var(--ink) 100%)}
 
   /* ── Client pill (J/PR) ── */
@@ -213,17 +215,19 @@
 
 <!-- Itinerary (rendered after auth) -->
 <div id="doc">
-  <header class="hero">
-    <div class="wrap">
-      <div class="hero-eyebrow">Private Itinerary</div>
-      <h1>Italy, The Isles<br>&amp; <em>The Alps</em></h1>
-      <div class="hero-dates">September 3 — October 10</div>
-      <div class="hero-meta">
-        <span>12 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
+  <div class="topwrap">
+    <div class="topshow" id="topshow" aria-hidden="true"></div>
+    <header class="hero">
+      <div class="wrap">
+        <div class="hero-eyebrow">Private Itinerary</div>
+        <h1>Italy, The Isles<br>&amp; <em>The Alps</em></h1>
+        <div class="hero-dates">September 3 — October 10</div>
+        <div class="hero-meta">
+          <span>12 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
+        </div>
       </div>
-    </div>
-  </header>
-  <div class="topshow" id="topshow" aria-hidden="true"></div>
+    </header>
+  </div>
   <main class="wrap" id="tl"></main>
 </div>
 
