@@ -66,8 +66,7 @@
 
   /* ── Timeline ── */
   .timeline{position:relative;padding-left:0}
-  .stop{position:relative;padding:34px 0 44px;border-top:1px solid var(--hair)}
-  .stop:first-child{border-top:0}
+  .stop{position:relative;padding:6px 0 44px}
   .stop-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
   .stop-num{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:1px solid rgba(167,139,250,.45);background:rgba(167,139,250,.08);
             display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;color:var(--purple-soft)}
@@ -96,6 +95,33 @@
   .gcell::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.32));opacity:0;transition:opacity .3s}
   .gcell:hover::after{opacity:1}
   @media(max-width:679px){ .gallery,.gallery.g3{grid-template-columns:repeat(2,1fr)} .gcell{aspect-ratio:1/1} }
+  .gempty{margin-top:22px;border:1px dashed var(--hair2);border-radius:12px;padding:26px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(255,255,255,.015)}
+  .gempty svg{width:18px;height:18px;opacity:.6;margin-bottom:8px}
+
+  /* ── Transit divider (wavy dotted line + date + mode icon) ── */
+  .leg{position:relative;padding:30px 0 26px}
+  .leg-line{display:flex;align-items:center;gap:14px}
+  .leg-wave{flex:1;height:16px;opacity:.6;background-repeat:repeat-x;background-position:center;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23A78BFA' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
+  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(167,139,250,.32);
+            background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.03))}
+  .leg-ic{display:flex;color:var(--purple-soft)}
+  .leg-ic svg{width:17px;height:17px}
+  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
+  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft)}
+  .leg-note{display:block;text-align:center;font-family:var(--sans);font-size:11px;color:var(--mute);margin-top:9px;letter-spacing:.03em}
+  .leg.start .leg-chip{border-color:rgba(230,197,116,.4);background:linear-gradient(180deg,rgba(230,197,116,.10),rgba(230,197,116,.03))}
+  .leg.start .leg-ic,.leg.start .leg-mode,.leg.start .leg-date{color:var(--gold)}
+  .leg.start .leg-wave{opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23e6c574' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
+  @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
+
+  /* ── Pending / tentative stop states ── */
+  .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;vertical-align:middle;margin-left:8px}
+  .tag.tentative{color:var(--gold);border:1px solid rgba(230,197,116,.4);background:rgba(230,197,116,.07)}
+  .tag.pending{color:var(--mute2);border:1px solid var(--hair2);background:rgba(255,255,255,.03)}
+  .stay-pending{color:var(--mute);font-style:italic;font-weight:500}
+  .stay-pending::before{content:"—  "}
 
   /* ── Final exit / tip ── */
   .exit{margin-top:26px;padding:38px 0 20px;border-top:1px solid var(--hair);text-align:center}
@@ -143,10 +169,10 @@
   <header class="hero">
     <div class="wrap">
       <div class="hero-eyebrow">Private Itinerary</div>
-      <h1>The Greek Isles<br>&amp; <em>The Alps</em></h1>
-      <div class="hero-dates">September 14 — October 8</div>
+      <h1>Italy, The Isles<br>&amp; <em>The Alps</em></h1>
+      <div class="hero-dates">September 3 — October 8</div>
       <div class="hero-meta">
-        <span>8 Stays</span><span class="dot"></span><span>2 Countries → 4</span><span class="dot"></span><span>Islands · Riviera · Alps</span>
+        <span>11 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
       </div>
       <div style="margin-top:22px"><span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span></div>
     </div>
@@ -161,58 +187,107 @@
 const R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/';
 const g = f => R2 + f;
 
-const PARTS = [
-  { key:'Part One', title:'The Greek Isles & Mainland', stops:[0,1,2,3] },
-  { key:'Part Two', title:'The Alpine Overland Road Trip', stops:[4,5,6,7] },
-];
+// Transport-mode icons for the transit dividers.
+const ICONS = {
+  plane:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16Z"/></svg>',
+  train:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4 0-8 .5-8 4v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5V21h12v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-4-4-8-4Zm-4.5 15A1.5 1.5 0 1 1 9 15.5 1.5 1.5 0 0 1 7.5 17Zm3.5-6H6V6h5v5Zm2 0V6h5v5h-5Zm3.5 6a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Z"/></svg>',
+  car:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11l1.3.7A2 2 0 0 1 21 13.4V18h-3v-1.5H6V18H3v-4.6a2 2 0 0 1 .7-1.7L5 11Zm2.2-.5h9.6l-1-3.2a.5.5 0 0 0-.5-.3H8.7a.5.5 0 0 0-.5.3l-1 3.2ZM6.5 15A1.25 1.25 0 1 0 5.25 13.75 1.25 1.25 0 0 0 6.5 15Zm11 0A1.25 1.25 0 1 0 16.25 13.75 1.25 1.25 0 0 0 17.5 15Z"/></svg>',
+  ferry:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l6 3.2v3.3l3 1.1v2.1l-1 3.6a3.6 3.6 0 0 1-3 .9 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-3-.9l-1-3.6v-2.1l3-1.1V5.2L12 2Zm-4 5.9l4-1.5 4 1.5V6.3L12 4.1 8 6.3v1.6ZM4 18.3a4.8 4.8 0 0 0 3 1 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 3-1V20a5.8 5.8 0 0 1-3 .8 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6A5.8 5.8 0 0 1 4 20v-1.7Z"/></svg>',
+};
 
 const STOPS = [
+  // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
+  { loc:'Rome, Italy', nights:'4 Nights · Sept 3 → 7', stay:'Private Airbnb',
+    in:{ start:true, date:'September 3', mode:'plane', note:'Touchdown — the journey begins' },
+    vibe:'Four opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
+    logi:[], imgs:[], photosLater:true },
+
+  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stayPending:'Stay to be confirmed',
+    in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
+    vibe:'Fair Verona on the Adige — the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
+    logi:[], imgs:[], photosLater:true },
+
+  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true,
+    in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
+    vibe:'A tentative day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
+    logi:[], imgs:[], photosLater:true },
+
+  { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Securing our hotel partner', pending:true,
+    in:{ date:'Sept 11', mode:'plane', note:'Verona → Dubrovnik' },
+    vibe:'', logi:[], imgs:[], photosLater:true },
+
+  // ── Part 1: The Greek Isles & Mainland ──
   { loc:'Mykonos', nights:'3 Nights · Sept 14 → 17', stay:'Cali Mykonos',
+    in:{ date:'Sept 14', mode:'plane', note:'Dubrovnik → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock — an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Aegean out of Dubrovnik (DBV) the morning of Sept 14, connecting through Athens (ATH) on a swift 1h 15m layover, landing in Mykonos at <b>2:10 PM</b>.']],
     imgs:['f1aeb1c7a565-cali-mykonos-beach.jpg.webp','cf49a3f568bc-cali-suite-terraceview_1.jpg.webp','5acfbad18cec-05cali-mykonos-hotel-01-one-bedroom-villa.jpg.webp','c9c11e34d95d-04_cali_hotel_mykonos_spa.jpg.webp'] },
 
   { loc:'Ios', nights:'3 Nights · Sept 17 → 20', stay:'Calilo',
+    in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Ios · high-speed ferry' },
     vibe:'On remote Papas Beach, this design-forward sanctuary features massive, custom-carved marble swim-up suites and swings suspended over private pools. Praised by guests as a surreal, romantic location built entirely for deep relaxation.',
     logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Ios (approx. <b>2 hours</b>).']],
     imgs:['d4067b067eed-calilo-resort-ios-greece-angelos-michalopoulos-14-e1696972377637.jpg','1575ca55c517-calilo-resort-ios-greece-angelos-michalopoulos-16-e1696975274422.jpg','ae50d3730139-DJI_20260601195339_0468_D.jpg'] },
 
   { loc:'Athens Riviera', nights:'3 Nights · Sept 20 → 23', stay:'Cape Sounio',
+    in:{ date:'Sept 20', mode:'ferry', note:'Ios → Port of Lavrio' },
     vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
     logi:[['Transit','Northbound high-speed ferry from Ios.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
     imgs:['58ef54deaa39-01-cape-sounio-attica-grecotel-temple-view.jpg','5a1770052238-03-cape-sounio-attica-grecotel-villa-with-pool.jpg','321c97457bf3-02-accommodation-villas-at-cape-sounio-grecotel.jpg','8a7499fc4cac-05-temple-view-from-cape-sounio-grecotel.jpg'] },
 
   { loc:'Athens · Historic Center', nights:'3 Nights · Sept 23 → 26', stay:'The Dolli at Acropolis',
+    in:{ date:'Sept 23', mode:'car', note:'Cape Sounio → Athens · private transfer' },
     vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis — an ideal base for walking the Plaka and exploring the ancient landmarks.',
     logi:[['Transit','A direct 45–60 minute private transfer up the coast from Cape Sounio into the heart of historic Athens.']],
     imgs:['547474f08449-03-acropolis-view-grecotel-the-dolli-athens-greece.jpg','0b417bffb66c-09-metropolis-junior-suite-the-dolli-boutique-hotel-athens.jpg','6ad4902b9925-05-ancient-buildings-downtown-athens-greece-grecotel.jpg'] },
 
   { loc:'Southeast Slovenia', nights:'3 Nights · Sept 26 → 29', stay:'Hotel Grad Otočec',
+    in:{ date:'Sept 26', mode:'plane', note:'Athens → Ljubljana · then a 1h drive' },
     vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
     logi:[['Transit','Short 35-minute taxi from downtown Athens to ATH, then the non-stop morning Aegean flight to Ljubljana (LJU), approx. <b>2 hours</b>. Pick up the premium rental at the airport.'],['The Drive','A very easy, scenic <b>1-hour drive</b> southeast on the A2 highway.']],
     imgs:['04aa2d659507-The-Grad-Otoc-ec-Otoc-ec-Slovenia_Feat.jpg','ad3f2a638677-The-Grad-Otoc-ec-Otoc-ec-Slovenia_06.jpg','64e6eeab3234-The-Grad-Otoc-ec-Otoc-ec-Slovenia_03.jpg'] },
 
   { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 29 → Oct 2', stay:'Forestis Dolomites',
+    in:{ date:'Sept 29', mode:'car', note:'Slovenia → South Tyrol · ~4.5h drive' },
     vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
     logi:[['The Drive','<b>~4.5 hours</b> (~400 km / 250 mi) northwest from Slovenia — crossing into Italy on the A23 past Udine, cutting through South Tyrol up into the dense pine forests above Bressanone.']],
     imgs:['11de5e76e461-Copy-of-FORESTIS-Villa-Exterior-3-2048x1504.jpg','e95019d6f4d6-Copy-of-FORESTIS-Villa-Living-Room-2-2048x1536.jpg','353471f235c8-Copy-of-FORESTIS-Villa-Bedroom-12-2048x1536.jpg','3e59d620a8da-Copy-of-FORESTIS-Villa-Kitchen-1-2048x1536.jpg'] },
 
   { loc:'St. Moritz, Switzerland', nights:'3 Nights · Oct 2 → 5', stay:'Badrutt’s Palace Hotel',
+    in:{ date:'Oct 2', mode:'car', note:'Italy → Engadin · ~3.5h over the passes' },
     vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
     logi:[['The Drive','<b>~3.5 hours</b> (~200 km / 125 mi) west out of Italy, crossing the Swiss border through the majestic Müstair Valley and over the alpine passes into the Engadin valley.']],
     imgs:['39eb857fdf1d-badrutts-palace-gallery-landscape-nature-lake-winter-010-w.jpg','ad7f713b9303-badrutts-palace-gallery-building-architecture-001-s.jpg','71effc6d7563-badrutts-palace-gallery-entrance-chauffeur-rolls-royce-001.jpg','f33a06832b23-badrutts-palace-gallery-interior-design-rooms-and-suites-serlas-wing-003.jpg'] },
 
   { loc:'Gstaad, Switzerland', nights:'3 Nights · Oct 5 → 8', stay:'The Alpina Gstaad',
+    in:{ date:'Oct 5', mode:'car', note:'St. Moritz → Bernese Oberland · ~4.5h' },
     vibe:'A masterfully designed, contemporary chalet-style icon. Blending weathered local woodwork with world-class modern art, it boasts Michelin-starred dining, a lavish Six Senses Spa, and sweeping valley views.',
     logi:[['The Drive','<b>~4.5 hours</b> (~330 km / 205 mi) traversing Switzerland east to west — past Lake Zurich or the central mountain route by Andermatt, tracking Lake Thun before winding into the Bernese Oberland.']],
     imgs:['d389c2be9a0e-thealpinagstaad_exterior.jpg','ad570d715e1d-thealpinagstaad_roomssuites_0146_1920.jpg','8c875095c7bd-thealpinagstaad_roomssuites_0036_1920.jpg'] },
 ];
 
 function galleryHtml(imgs){
+  if(!imgs || !imgs.length)
+    return '<div class="gempty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-1 11H4l3.5-4.5 2.5 3 3.5-4.5L20 16Zm-13-6a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 7 10Z"/></svg>Photography to come</div>';
   const cls = imgs.length <= 3 ? 'gallery g3' : 'gallery';
   return '<div class="'+cls+'">' + imgs.map(function(f){
     return '<div class="gcell"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
   }).join('') + '</div>';
+}
+function legHtml(l){
+  var ic = ICONS[l.mode] || ICONS.car;
+  return '<div class="leg'+(l.start?' start':'')+'">'
+    + '<div class="leg-line">'
+    +   '<span class="leg-wave"></span>'
+    +   '<div class="leg-chip"><span class="leg-ic">'+ic+'</span><span class="leg-date">'+l.date+'</span>'
+    +     (l.mode?'<span class="leg-mode">'+l.mode+'</span>':'')+'</div>'
+    +   '<span class="leg-wave"></span>'
+    + '</div>'
+    + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
+    + '</div>';
+}
+function jprPill(){
+  return '<span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span>';
 }
 function logiHtml(logi){
   if(!logi||!logi.length) return '';
@@ -220,18 +295,22 @@ function logiHtml(logi){
     return '<div class="logi-row"><div class="logi-k">'+r[0]+'</div><div class="logi-v">'+r[1]+'</div></div>';
   }).join('') + '</div>';
 }
-function stopHtml(s, n){
-  return '<section class="stop">'
+function stopHtml(s, marker){
+  var cls = 'stop' + (s.pending?' pending':'') + (s.tentative?' tentative':'');
+  var tag = s.tentative ? '<span class="tag tentative">Tentative</span>'
+          : (s.pending ? '<span class="tag pending">Pending</span>' : '');
+  var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
+  return '<section class="'+cls+'">'
     + '<div class="stop-head">'
-    +   '<div class="stop-num">'+n+'</div>'
+    +   '<div class="stop-num">'+marker+'</div>'
     +   '<div class="stop-headtext">'
-    +     '<div class="stop-loc">'+s.loc+' <span class="stop-nights">'+s.nights+'</span></div>'
-    +     '<div class="stop-stay">'+s.stay+'</div>'
+    +     '<div class="stop-loc">'+s.loc+' <span class="stop-nights">'+s.nights+'</span>'+tag+'</div>'
+    +     '<div class="stop-stay">'+stayLine+'</div>'
     +   '</div>'
-    +   '<div class="stop-tools"><span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg><span class="jpr-k">Client</span>J/PR</span></div>'
+    +   '<div class="stop-tools">'+jprPill()+'</div>'
     + '</div>'
     + '<div class="stop-body">'
-    +   '<p class="vibe">'+s.vibe+'</p>'
+    +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
     +   logiHtml(s.logi)
     +   galleryHtml(s.imgs)
     + '</div>'
@@ -239,13 +318,13 @@ function stopHtml(s, n){
 }
 
 function render(){
-  var html = '';
-  PARTS.forEach(function(p){
-    html += '<div class="part"><div class="part-k">'+p.key+'</div><h2>'+p.title+'</h2><div class="part-line"></div></div>';
-    html += '<div class="timeline">';
-    p.stops.forEach(function(i){ html += stopHtml(STOPS[i], i+1); });
-    html += '</div>';
+  var html = '<div class="timeline">', num = 0;
+  STOPS.forEach(function(s){
+    if(s.in) html += legHtml(s.in);
+    var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips
+    html += stopHtml(s, marker);
   });
+  html += '</div>';
   // Final exit
   html += '<div class="exit">'
     + '<div class="part-k">The Final Exit · October 8</div>'
