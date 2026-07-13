@@ -1233,7 +1233,7 @@ async function fetchStripeIncome(env) {
   // Recognized MRR excludes trials (they pay $0 today); trial_mrr is what the
   // current trial cohort WOULD add if it all converts. Kept separate so the chart
   // can add trials as upside without double-counting.
-  let mrrActive = 0, payingActive = 0, trialMrr = 0;
+  let mrrActive = 0, payingActive = 0, trialMrr = 0, trialCount = 0;
   // Per-rate breakdown → auto-discovers every price a customer is on (founding
   // $9/mo, $15/mo, annual plans, and any new Memberstack price added later).
   const tierMap = new Map();   // key `${cents}|${interval}|${count}|${cur}` → tier
@@ -1273,7 +1273,7 @@ async function fetchStripeIncome(env) {
       // Recognized (paying) vs trial split. MRR, cadence counts, and the historical
       // ledger are PAYING-ONLY — trials pay $0 today, so they're not recognized
       // revenue. Their committed value lives in trial_mrr as separate upside.
-      if (isTrial) { trialMrr += subPerMonth; }
+      if (isTrial) { trialMrr += subPerMonth; trialCount++; }
       else {
         mrrActive += subPerMonth; payingActive++;
         if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
@@ -1355,10 +1355,24 @@ async function fetchStripeIncome(env) {
   const growCut = nowSec - GROW_WEEKS * WEEK;
   let recentSubs = 0, recentMrr = 0;
   for (const s of subLedger) if (s.created && s.created >= growCut) { recentSubs++; recentMrr += s.perMonth; }
+  // Forward-looking per-sub value: FUTURE signups land at CURRENT pricing, so
+  // the projection slope should not inherit the legacy $9/$90 average. Value
+  // new subs at the mean perMonth of subs created since the 2026-07 price
+  // cutover (>=2 samples), falling back to the trailing-window average.
+  const PRICE_CUTOVER = Date.parse('2026-07-01T00:00:00Z') / 1000;
+  let ncSubs = 0, ncMrr = 0;
+  for (const s of subLedger) if (s.created && s.created >= PRICE_CUTOVER) { ncSubs++; ncMrr += s.perMonth; }
+  // Trial cohort first: trials are all on CURRENT pricing (post-cutover subs
+  // can still be legacy-priced conversions of pre-cutover trials).
+  const newSubMrr = (trialCount >= 2) ? trialMrr / trialCount
+    : (ncSubs >= 2 ? ncMrr / ncSubs : (recentSubs ? recentMrr / recentSubs : 0));
   const growth = {
     window_weeks: GROW_WEEKS,
     subs_per_week: Math.round(recentSubs / GROW_WEEKS * 100) / 100,
     mrr_per_week: Math.round(recentMrr / GROW_WEEKS * 100) / 100,
+    new_sub_mrr: Math.round(newSubMrr * 100) / 100,
+    // slope for projections: signups/week valued at current pricing
+    mrr_per_week_forward: Math.round((recentSubs / GROW_WEEKS) * newSubMrr * 100) / 100,
   };
 
   // Activity feed = succeeded charges + trial signups (which carry no charge),
