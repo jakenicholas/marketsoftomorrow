@@ -144,6 +144,13 @@ jobs:
         run: python3 generate_market_pages.py
         continue-on-error: true
 
+      # Canonical Follow-the-Money dataset (journal/map/money-flat.json) — one
+      # sanitized source read by both the Atlas money module and the admin Lenders
+      # tab, so they never diverge. Depends on projects-flat.json (written above).
+      - name: Generate money-flat
+        run: python3 generate_money.py
+        continue-on-error: true
+
       # Pre-render one static HTML page per journal article
       # (/journal/post/<slug>/index.html) with baked SEO <head> + body so
       # social scrapers and non-JS crawlers see real content. Pulls bodies

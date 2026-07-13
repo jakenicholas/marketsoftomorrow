@@ -9,7 +9,7 @@
    window.tmwMoney.mountAll() re-mounts (Atlas re-renders its container). */
 (function () {
   'use strict';
-  var PROJECTS = 'https://www.oftmw.com/map/projects-flat.json';
+  var MONEY = 'https://www.oftmw.com/map/money-flat.json';   // canonical, sanitized (generate_money.py)
   var LENDER_MAP = 'https://tmw.jake-ab7.workers.dev/lender-map';
   var ATLAS = 'https://www.oftmw.com/atlas';
 
@@ -63,36 +63,13 @@
     if (lmap && lmap.overrides && lmap.overrides[low]) return lmap.overrides[low];
     return name;
   }
-  function financeDeals(projects, lmap) {
-    var out = [];
-    projects.forEach(function (p) {
-      var amt = saneM(num(p.FinancingAmountM)), lender = p.FinancingLender || '', date = p.FinancingDate || '';
-      if (amt == null) {                              // no sane flat amount → derive from the notes
-        var f = fromHistory(p.StatusHistory);
-        if (f) { amt = f.amt; if (!lender) lender = f.lender; if (!date) date = f.date; }
-        else if (!lender && !date) return;
-      }
-      if (amt == null && !lender && !date) return;
-      out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date), lat: num(p.Latitude), lng: num(p.Longitude) });
+  // Read the canonical money-flat.json (already sanitized + deduped + case-merged
+  // by generate_money.py — the SAME file the admin Lenders tab reads) and apply the
+  // LIVE lender-map (overrides / hidden) so the two always agree.
+  function financeDeals(money, lmap) {
+    return ((money && money.deals) || []).map(function (d) {
+      return { title: d.title, city: d.city || '', dev: d.dev || '', href: d.href, amt: d.amt, lender: normLender(d.lender, lmap), when: parseWhen(d.date), lat: d.lat, lng: d.lng };
     });
-    // Collapse a single SHARED loan recorded on multiple buildings of one project
-    // (identical lender + amount + date) so it isn't double-counted — e.g. the One
-    // Brickell Riverfront $513M loan sits on both LOFTY and The Standard Brickell.
-    var seen = {}, dedup = [];
-    out.forEach(function (d) {
-      if (d.lender && d.amt) { var k = String(d.lender).toLowerCase() + '|' + d.amt + '|' + (d.when || ''); if (seen[k]) return; seen[k] = 1; }
-      dedup.push(d);
-    });
-    // Canonicalize lender casing/spacing so variants merge into one lender (e.g.
-    // "Tyko Capital" + "TYKO Capital") — front-end grouping is case-sensitive, so
-    // pick the most-common spelling as the display form across every view.
-    var lkey = function (n) { return String(n).toLowerCase().replace(/\s+/g, ' ').trim(); };
-    var casing = {};
-    dedup.forEach(function (d) { if (!d.lender) return; var k = lkey(d.lender); (casing[k] || (casing[k] = {}))[d.lender] = (casing[k][d.lender] || 0) + 1; });
-    var canon = {};
-    Object.keys(casing).forEach(function (k) { var best = '', bc = -1; Object.keys(casing[k]).forEach(function (nm) { if (casing[k][nm] > bc) { bc = casing[k][nm]; best = nm; } }); canon[k] = best; });
-    dedup.forEach(function (d) { if (d.lender) d.lender = canon[lkey(d.lender)] || d.lender; });
-    return dedup;
   }
 
   var CSS = `
@@ -508,10 +485,10 @@
       pending.push(el);
     });
     if (!pending.length) return;
-    Promise.all([sharedJson(PROJECTS), sharedJson(LENDER_MAP).catch(function () { return null; })]).then(function (o) {
-      var projects = o[0], lmap = o[1] || { overrides: {}, hidden: [] };
-      if (!Array.isArray(projects) || !projects.length) return;
-      var deals = financeDeals(projects, lmap);
+    Promise.all([sharedJson(MONEY), sharedJson(LENDER_MAP).catch(function () { return null; })]).then(function (o) {
+      var money = o[0], lmap = o[1] || { overrides: {}, hidden: [] };
+      if (!money || !money.deals || !money.deals.length) return;
+      var deals = financeDeals(money, lmap);
       pending.forEach(function (el) {
         try { (el.__mode === 'full' ? renderFull : renderTeaser)(el, deals); el.setAttribute('data-tmw-money-done', '1'); } catch (e) {}
       });
