@@ -1233,7 +1233,7 @@ async function fetchStripeIncome(env) {
   // Recognized MRR excludes trials (they pay $0 today); trial_mrr is what the
   // current trial cohort WOULD add if it all converts. Kept separate so the chart
   // can add trials as upside without double-counting.
-  let mrrActive = 0, payingActive = 0, trialMrr = 0, trialCount = 0;
+  let mrrActive = 0, payingActive = 0, trialMrr = 0, trialCount = 0, trialNewMrr = 0, trialNewCount = 0;
   // Per-rate breakdown → auto-discovers every price a customer is on (founding
   // $9/mo, $15/mo, annual plans, and any new Memberstack price added later).
   const tierMap = new Map();   // key `${cents}|${interval}|${count}|${cur}` → tier
@@ -1273,7 +1273,14 @@ async function fetchStripeIncome(env) {
       // Recognized (paying) vs trial split. MRR, cadence counts, and the historical
       // ledger are PAYING-ONLY — trials pay $0 today, so they're not recognized
       // revenue. Their committed value lives in trial_mrr as separate upside.
-      if (isTrial) { trialMrr += subPerMonth; trialCount++; }
+      if (isTrial) {
+        trialMrr += subPerMonth; trialCount++;
+        // Current-lineup trials only ($15/mo or $150/yr) — legacy grandfathered
+        // trials ($9/$90) must not drag the forward per-sub value down.
+        if ((subIv === 'month' && Math.round(subAmt) === 15) || (subIv === 'year' && Math.round(subAmt) === 150)) {
+          trialNewMrr += subPerMonth; trialNewCount++;
+        }
+      }
       else {
         mrrActive += subPerMonth; payingActive++;
         if (subBucket === 'yearly') yearly++; else if (subBucket === 'monthly') monthly++; else other++;
@@ -1362,10 +1369,10 @@ async function fetchStripeIncome(env) {
   const PRICE_CUTOVER = Date.parse('2026-07-01T00:00:00Z') / 1000;
   let ncSubs = 0, ncMrr = 0;
   for (const s of subLedger) if (s.created && s.created >= PRICE_CUTOVER) { ncSubs++; ncMrr += s.perMonth; }
-  // Trial cohort first: trials are all on CURRENT pricing (post-cutover subs
-  // can still be legacy-priced conversions of pre-cutover trials).
-  const newSubMrr = (trialCount >= 2) ? trialMrr / trialCount
-    : (ncSubs >= 2 ? ncMrr / ncSubs : (recentSubs ? recentMrr / recentSubs : 0));
+  // Forward per-sub value = the CURRENT price lineup only: average of trials
+  // on $15/mo or $150/yr (real plan choices at today's prices). With none in
+  // flight, assume list monthly ($15). Legacy trials/conversions never count.
+  const newSubMrr = trialNewCount >= 1 ? trialNewMrr / trialNewCount : 15;
   const growth = {
     window_weeks: GROW_WEEKS,
     subs_per_week: Math.round(recentSubs / GROW_WEEKS * 100) / 100,
