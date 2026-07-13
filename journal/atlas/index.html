@@ -1363,13 +1363,17 @@
       .tlb-board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
       @media(max-width:900px){.tlb-board{grid-template-columns:1fr}}
       .tlb-card{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:17px 17px 7px}
-      .tlb-ct{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+      .tlb-ct{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+      .tlb-cl{display:flex;align-items:center;gap:9px}
+      .tlb-more{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8b958d;text-decoration:none;white-space:nowrap;transition:.15s}
+      .tlb-more:hover{color:#B9A6FF}
       .tlb-ico{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
       .tlb-ico svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
       .tlb-ch{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em}
       .tlb-card.dev .tlb-ico{background:rgba(167,139,250,.16);color:#B9A6FF}
       .tlb-card.arch .tlb-ico{background:rgba(240,214,138,.14);color:#f0d68a}
       .tlb-card.mkt .tlb-ico{background:rgba(255,255,255,.06);color:#ECEAE5}
+      .tlb-card.big .tlb-ico{background:rgba(31,223,103,.14);color:#42EB81}
       .tlb-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08);text-decoration:none}
       .tlb-card .tlb-row:first-of-type{border-top:0}
       a.tlb-row:hover .tlb-name{color:#f0d68a}
@@ -1380,7 +1384,8 @@
       .tlb-sub{display:block;font-size:10.5px;letter-spacing:.02em;text-transform:uppercase;color:#8b958d;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .tlb-met{text-align:right;flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
       .tlb-val{font-size:12.5px;font-weight:700;color:#ECEAE5;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
-      .tlb-val .u{color:#8b958d;font-weight:400;font-size:11px}
+      .tlb-val2{font-size:11px;font-weight:600;color:#8b958d;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+      .tlb-val .u,.tlb-val2 .u{color:#8b958d;font-weight:400;font-size:11px}
       .tlb-mv{font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:5px;white-space:nowrap}
       .tlb-mv.up{color:#42EB81;background:rgba(31,223,103,.14)}
       .tlb-mv.down{color:#ff8a8a;background:rgba(255,138,138,.12)}
@@ -1414,32 +1419,47 @@
         return `<a class="tlb-row" href="${href}"><span class="tlb-main"><span class="tlb-pbtop"><span class="tlb-pmkt">${escapeHtml(r.name)}</span><span class="tlb-pnum">${r.count}</span></span><span class="tlb-pbar"><i style="width:${pct}%"></i></span></span></a>`;
       }).join('');
     }
+    // Biggest-in-the-pipeline rows, identical to the homepage board: GFA on line
+    // one (unit muted like "proj"), floors/units on line two, deep-linked to the
+    // map by the no-separator mapslug.
+    function _bigRowsTlb(list) {
+      return (list || []).slice(0, 6).map((r, i) => {
+        const ms = r.mapslug || (r.slug ? String(r.slug).replace(/[^a-z0-9]/gi, '') : '');
+        const href = ms ? (MAP_ORIGIN + '/?project=' + encodeURIComponent(ms)) : '#';
+        const mets = (r.metric_lines || []).map((m, j) => {
+          let mm = String(m).replace(/^(.+?)\s+(sqft|fl|units|keys)$/i, (_, n, u) => escapeHtml(n) + ' <span class="u">' + u + '</span>');
+          if (mm === String(m)) mm = escapeHtml(m);
+          return `<span class="${j === 0 ? 'tlb-val' : 'tlb-val2'}">${mm}</span>`;
+        }).join('');
+        return `<a class="tlb-row${i === 0 ? ' top' : ''}" href="${href}"><span class="tlb-rank">${i + 1}</span><span class="tlb-main"><span class="tlb-name">${escapeHtml(r.name)}</span><span class="tlb-sub">${escapeHtml(r.sub || '')}</span></span><span class="tlb-met">${mets}</span></a>`;
+      }).join('');
+    }
     function renderLeaderboardSection() {
       // Lazy-load the movement deltas once (national), then re-render.
       if (!window.__atlasBoardMvLoaded) {
         window.__atlasBoardMvLoaded = true;
         fetch('https://www.oftmw.com/leaderboards.json', { cache: 'no-cache' })
           .then(r => r.ok ? r.json() : null)
-          .then(j => { if (!j) return; const mv = {}; ['developers', 'architects'].forEach(k => (j[k] || []).forEach(x => { if (x.slug) mv[x.slug] = x.mv || 'flat'; })); window.__atlasBoardMv = mv; renderAll(); })
+          .then(j => { if (!j) return; const mv = {}; ['developers', 'architects'].forEach(k => (j[k] || []).forEach(x => { if (x.slug) mv[x.slug] = x.mv || 'flat'; })); window.__atlasBoardMv = mv; window.__atlasBiggest = j.biggest || []; renderAll(); })
           .catch(() => {});
       }
-      const ICO_DEV = '<svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4"/></svg>';
-      const ICO_ARCH = '<svg viewBox="0 0 24 24"><path d="M12 3l8 15H4z"/><path d="M12 3v15"/></svg>';
-      const ICO_MKT = '<svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
-      const cardTlb = (cls, ico, title, rows) => `<div class="tlb-card ${cls}"><div class="tlb-ct"><span class="tlb-ico">${ico}</span><span class="tlb-ch">${title}</span></div>${rows}</div>`;
+      const ICO_DEV = '<svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/></svg>';
+      const ICO_ARCH = '<svg viewBox="0 0 24 24"><path d="M12 2 3 7v13h6v-6h6v6h6V7z"/></svg>';
+      const ICO_BIG = '<svg viewBox="0 0 24 24"><path d="M4 22V8l6-4v18M14 22V11l6-3v14M4 22h16"/></svg>';
+      const cardTlb = (cls, ico, title, more, rows) => `<div class="tlb-card ${cls}"><div class="tlb-ct"><div class="tlb-cl"><span class="tlb-ico">${ico}</span><span class="tlb-ch">${title}</span></div>${more || ''}</div>${rows}</div>`;
       return `
         <section class="atlas-section">
           <style>${_TLB_CSS}</style>
           <div class="atlas-section-head">
             <div>
               <h2 class="atlas-section-title">Who's <em>building</em> what</h2>
-              <p class="atlas-section-sub">The developers, architects, and cities shaping the pipeline.</p>
+              <p class="atlas-section-sub">The developers, architects, and biggest projects shaping the pipeline.</p>
             </div>
           </div>
           <div class="tlb-board">
-            ${cardTlb('dev', ICO_DEV, 'Most active developers', _firmRowsTlb(leaderboardSource('developers')))}
-            ${cardTlb('arch', ICO_ARCH, 'Most active architects', _firmRowsTlb(leaderboardSource('architects')))}
-            ${cardTlb('mkt', ICO_MKT, 'Top cities', _mktRowsTlb(leaderboardSource('cities')))}
+            ${cardTlb('dev', ICO_DEV, 'Most Active Developers', '<a class="tlb-more" href="https://www.oftmw.com/firm/">All &rarr;</a>', _firmRowsTlb(leaderboardSource('developers')))}
+            ${cardTlb('arch', ICO_ARCH, 'Most Active Architects', '<a class="tlb-more" href="https://www.oftmw.com/firm/">All &rarr;</a>', _firmRowsTlb(leaderboardSource('architects')))}
+            ${cardTlb('big', ICO_BIG, 'Biggest in the Pipeline', '<a class="tlb-more" href="' + MAP_ORIGIN + '/">Map &rarr;</a>', _bigRowsTlb(window.__atlasBiggest || []))}
           </div>
         </section>`;
     }
