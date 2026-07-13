@@ -2495,21 +2495,18 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
         {mc_search_html}
         <form id="mc-form" class="mc-row">
           <div class="mc-field">
-            <label for="mc-city">City</label>
             <select id="mc-city">
               <option value="">Any city</option>
               {city_options_html}
             </select>
           </div>
           <div class="mc-field">
-            <label for="mc-type">Category</label>
             <select id="mc-type">
               <option value="">Any category</option>
               {type_options_html}
             </select>
           </div>
           <div class="mc-field">
-            <label for="mc-year">Delivery by</label>
             <select id="mc-year">
               <option value="">Any time</option>
               <option value="2026">By end of 2026</option>

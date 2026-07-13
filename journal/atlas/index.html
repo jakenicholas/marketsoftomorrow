@@ -1683,7 +1683,21 @@
           + `<div>${nm}<div class="mchg"><span class="to">${escapeHtml(tag)}</span> ${hexMarker(11)}</div>`
           + `${meta ? `<div class="msrc">${meta}</div>` : ''}</div></div>`;
       }).join('');
-      return `<div class="atlas-panel"><h3 class="atlas-ph"><span class="lbl">Recent movers</span><span class="hint">last 12 months</span></h3>${rows}</div>`;
+      return `<div class="atlas-panel atlas-movers-panel">${rows}</div>`;
+    }
+
+    // Recent movers as its own titled section (sits below Follow the money).
+    function renderMoversSection() {
+      const panel = renderMovers();
+      if (!panel) return '';
+      return `
+        <section class="atlas-section">
+          <div class="atlas-section-head"><div>
+            <h2 class="atlas-section-title">Recent <em>movers</em></h2>
+            <p class="atlas-section-sub">Sourced milestones logged across the pipeline — last 12 months.</p>
+          </div></div>
+          ${panel}
+        </section>`;
     }
 
     function renderIndexPanel() {
@@ -1755,7 +1769,6 @@
             ${renderStageBars()}
             ${renderOpeningsPanel()}
           </div>
-          ${renderMovers()}
         </section>`;
     }
 
@@ -2237,8 +2250,14 @@
         return new Date(year, month, 1);
       }
 
-      const pipelineBase  = allBase.filter(p => { const d = deliveryAsDate(p); return d && d >= todayPivot; });
-      const completedBase = allBase.filter(p => { const d = deliveryAsDate(p); return d && d <  todayPivot; });
+      // Classify by STATUS first: an already-open project belongs in the
+      // "recently opened" archive, never in the upcoming pipeline. Splitting by
+      // delivery date alone put a current-month opening (e.g. a July 1 opening
+      // viewed on July 13) into the FUTURE pipeline still flagged "Now Open".
+      // Only not-yet-open projects split by delivery date vs the current month.
+      const isOpenNow = (p) => normStatus(p.delivery) === 'open';
+      const pipelineBase  = allBase.filter(p => { if (isOpenNow(p)) return false; const d = deliveryAsDate(p); return d && d >= todayPivot; });
+      const completedBase = allBase.filter(p => { if (isOpenNow(p)) return true;  const d = deliveryAsDate(p); return d && d <  todayPivot; });
 
       const statusFilter = currentTimelineStatus;
       const showCompleted = (statusFilter === 'all' || statusFilter === 'open');
@@ -2483,6 +2502,7 @@
           renderDashGrid(),
           renderLeaderboardSection(),
           renderMoneySection(),
+          renderMoversSection(),  // Recent movers — below Follow the money
           renderProjectCards(),   // Tracked projects moved to the bottom
           renderFootnote()
         );

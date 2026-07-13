@@ -1410,7 +1410,6 @@ def render_firm_hub(summaries, out_path):
         {mc_search_html}
         <form id="fc-form" class="mc-row">
           <div class="mc-field">
-            <label for="fc-role">Role</label>
             <select id="fc-role">
               <option value="">Any role</option>
               <option value="architect">Architect</option>
@@ -1418,14 +1417,12 @@ def render_firm_hub(summaries, out_path):
             </select>
           </div>
           <div class="mc-field">
-            <label for="fc-city">Active in city</label>
             <select id="fc-city">
               <option value="">Any city</option>
               {city_options_html}
             </select>
           </div>
           <div class="mc-field">
-            <label for="fc-type">Specializing in</label>
             <select id="fc-type">
               <option value="">Any category</option>
               {type_options_html}
