@@ -59,28 +59,44 @@ def firm_board(rows, name_key, slug_key):
         })
     return out
 
+def _fmt_gfa(g):
+    if g >= 1_000_000:
+        return f'{g / 1_000_000:.1f}M sq ft'
+    if g >= 1000:
+        return f'{round(g / 1000)}K sq ft'
+    return f'{g:,} sq ft'
+
+
 def biggest_board(rows):
-    # Floors + units on SEPARATE lines; no movement arrows here. (Units will be
-    # swapped for Gross Floor Area (GFA) later — see the reminder note.)
+    # Ranked by Gross Floor Area (built sq ft) — the "how big" number, so this is
+    # the BIGGEST board, not the tallest. Prefer a stated GfaSqFt; estimate from
+    # units/floors/keys when it's missing so every marquee project shows a
+    # comparable GFA figure on line 1 (no stray lone unit count standing out).
     scored = []
     for r in rows:
         fl, un, ke = to_int(r.get('Floors')), to_int(r.get('Units')), to_int(r.get('Keys'))
-        scale = fl * 1000 + un + ke        # floors dominate, then unit/key count
-        if scale <= 0:
+        gfa = to_int(r.get('GfaSqFt'))
+        if not gfa:
+            gfa = max(un * 1265, fl * 20000, ke * 1000)   # estimate when GFA isn't stated
+        if gfa <= 0:
             continue
-        lines = []
-        if fl: lines.append(f'{fl} fl')
-        gfa = to_int(r.get('GfaSqFt'))            # Gross Floor Area (populated in the Studio → gfa_sqft → GfaSqFt)
-        if gfa: lines.append(f'{gfa:,} sq ft')    # prefer GFA; falls back to units/keys until GFA is populated
-        elif un: lines.append(f'{un:,} units')
-        elif ke: lines.append(f'{ke:,} keys')
+        lines = [_fmt_gfa(gfa)]
+        if fl:
+            lines.append(f'{fl} fl')
+        elif un:
+            lines.append(f'{un:,} units')
+        elif ke:
+            lines.append(f'{ke:,} keys')
+        # mapslug = the map's project param (mapSlug of the title: no separators)
+        mslug = ''.join(ch for ch in (r.get('Title') or '').lower() if ch.isalnum())
         scored.append({
             'id': r.get('Slug') or r.get('Title'),
             'name': r.get('Title') or '',
             'slug': r.get('Slug') or '',
+            'mapslug': mslug,
             'sub': ' · '.join([p for p in [(r.get('ProjectType') or '').split(',')[0].strip(), (r.get('City') or '').strip()] if p]),
             'metric_lines': lines,
-            'scale': scale,
+            'scale': gfa,
         })
     scored.sort(key=lambda x: x['scale'], reverse=True)
     return scored[:TOP]
