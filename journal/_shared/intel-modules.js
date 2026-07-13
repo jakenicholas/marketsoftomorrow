@@ -73,7 +73,7 @@
         else if (!lender && !date) return;
       }
       if (amt == null && !lender && !date) return;
-      out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date) });
+      out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date), lat: num(p.Latitude), lng: num(p.Longitude) });
     });
     return out;
   }
@@ -129,6 +129,73 @@
 .tmw-money--full .fl .v{font-family:'JetBrains Mono','Inter',monospace;font-size:11px;color:var(--cream);font-weight:600;width:52px;text-align:right}
 .tmw-money--full .note{margin-top:14px;font-size:10px;letter-spacing:.02em;color:var(--mute);line-height:1.5}
 .tmw-m-loading{font-size:12px;color:var(--mute);padding:14px 2px}
+/* ---- interactive: tabs + flow + map + lender pages ---- */
+.tmw-money--full .tmw-m-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.tmw-money--full .mt{background:none;border:0;color:#8b958d;font:inherit;font-size:12.5px;font-weight:600;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.tmw-money--full .mt:hover{color:#ECEAE5}
+.tmw-money--full .mt.on{color:#fff;border-bottom-color:#1FDF67}
+.tmw-money--full .tmw-m-view{display:none}
+.tmw-money--full .tmw-m-view.on{display:block}
+.tmw-money--full .tmw-m-cap{font-size:12px;color:#8b958d;margin:0 0 12px}
+.tmw-money--full .tmw-m-cap b{color:#ECEAE5;font-weight:600}
+.tmw-money--full .tmw-m-svgwrap{width:100%;overflow-x:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:#0c0e0c;padding:8px 10px}
+.tmw-money--full .tmw-m-sankey,.tmw-money--full .tmw-m-map{width:100%;height:auto;display:block}
+.tmw-money--full .sk-band{transition:stroke-opacity .18s}
+.tmw-money--full .sk-label{font-size:11px;fill:#ECEAE5;font-family:'Inter',sans-serif}
+.tmw-money--full .sk-val{font-size:9.5px;fill:#6d766e;font-family:'JetBrains Mono',monospace}
+.tmw-money--full .sk-col{font-size:9px;letter-spacing:.14em;fill:#6d766e;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.tmw-money--full .tmw-m-flowread{margin-top:10px;font-size:12px;color:#8b958d;min-height:17px}
+.tmw-money--full .tmw-m-flowread b{color:#42EB81}
+.tmw-money--full .tmw-m-mapgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+@media(max-width:820px){.tmw-money--full .tmw-m-mapgrid,.tmw-money--full .tmw-m-lgrid{grid-template-columns:1fr!important}}
+.tmw-money--full .mp-region{font-size:8px;letter-spacing:.16em;fill:#6d766e;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.tmw-money--full .mp-lab{font-size:10px;fill:#ECEAE5;font-family:'Inter',sans-serif;pointer-events:none}
+.tmw-money--full .mp-cap{font-size:9px;fill:#42EB81;font-family:'JetBrains Mono',monospace;pointer-events:none}
+.tmw-money--full .mp-bub{cursor:pointer}
+.tmw-money--full .mp-glow{transition:opacity .2s}
+.tmw-money--full .tmw-m-mapdetail{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c0e0c;padding:14px 16px;min-height:220px}
+.tmw-money--full .mp-city{font-family:'Fraunces',Georgia,serif;font-size:17px;color:#fff;font-weight:600;margin:0}
+.tmw-money--full .mp-sub{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b958d;margin:3px 0 12px}
+.tmw-money--full .mp-h{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#6d766e;margin:12px 0 6px}
+.tmw-money--full .mp-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid rgba(255,255,255,.08);font-size:12px;text-decoration:none;color:inherit}
+.tmw-money--full .mp-row:first-of-type{border-top:0}
+.tmw-money--full .mp-row .r{color:#8b958d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmw-money--full a.mp-row:hover .r{color:#ECEAE5}
+.tmw-money--full .mp-row .v{color:#42EB81;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap}
+.tmw-money--full .mp-empty{color:#8b958d;font-size:12px;padding:30px 0;text-align:center}
+.tmw-money--full .tmw-m-lgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:14px}
+.tmw-money--full .tmw-m-chips{display:flex;flex-direction:column;gap:7px;max-height:360px;overflow-y:auto}
+.tmw-money--full .mc-chip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0c0e0c;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,background .15s}
+.tmw-money--full .mc-chip:hover{border-color:rgba(167,139,250,.4)}
+.tmw-money--full .mc-chip.on{border-color:#A78BFA;background:rgba(167,139,250,.07)}
+.tmw-money--full .mc-chip .cn{font-size:12.5px;font-weight:600;color:#fff;display:block}
+.tmw-money--full .mc-chip .cd{font-size:9.5px;color:#8b958d;margin-top:2px;display:block}
+.tmw-money--full .mc-chip .cv{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:700;color:#42EB81;flex:0 0 auto}
+.tmw-money--full .tmw-m-lprofile{border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#0c0e0c;padding:16px 17px;min-height:220px}
+.tmw-money--full .mc-name{font-family:'Fraunces',Georgia,serif;font-size:19px;color:#fff;font-weight:600;margin:0}
+.tmw-money--full .mc-tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#B9A6FF;margin:4px 0 13px}
+.tmw-money--full .mc-kpis{display:flex;gap:9px;margin-bottom:13px;flex-wrap:wrap}
+.tmw-money--full .mc-kpi{flex:1;min-width:80px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 11px}
+.tmw-money--full .mc-kpi .k{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#fff}
+.tmw-money--full .mc-kpi .k.g{color:#42EB81}
+.tmw-money--full .mc-kpi .kl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#6d766e;margin-top:3px}
+.tmw-money--full .mc-h{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#6d766e;margin:13px 0 7px}
+.tmw-money--full .mc-bar{display:grid;grid-template-columns:92px 1fr 46px;align-items:center;gap:9px;margin:5px 0}
+.tmw-money--full .mc-bar .bl{font-size:11px;color:#ECEAE5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmw-money--full .mc-bar .bw{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.tmw-money--full .mc-bar .bw i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(31,223,103,.5),#1FDF67)}
+.tmw-money--full .mc-bar .bv{font-family:'JetBrains Mono',monospace;font-size:10px;color:#8b958d;text-align:right}
+.tmw-money--full .mc-subt{font-size:11px;color:#8b958d}
+.tmw-money--full .mc-deal{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid rgba(255,255,255,.08);font-size:11.5px;text-decoration:none;color:inherit}
+.tmw-money--full .mc-deal:first-of-type{border-top:0}
+.tmw-money--full .mc-deal .dn{color:#ECEAE5}
+.tmw-money--full .mc-deal .dc{color:#8b958d;font-size:9.5px}
+.tmw-money--full .mc-deal .dv{font-family:'JetBrains Mono',monospace;color:#42EB81;font-weight:600;white-space:nowrap}
+.tmw-money--full .tmw-m-recentbar{margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+.tmw-money--full .rbh{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#6d766e;margin-bottom:10px}
+.tmw-money--full .tmw-m-recentrow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.tmw-money--full .tmw-m-recentrow .tmw-m-deal{min-width:232px;flex:0 0 auto}
+.tmw-money--full .tmw-m-empty{color:#8b958d;font-size:12px;padding:20px 0}
 `;
 
   function agg(deals) {
@@ -164,14 +231,50 @@
       + '</div>';
   }
 
+  function _money(m) { return m ? fmtM(m) : '—'; }
+  function svgEl(n, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
   function renderFull(el, deals) {
     var a = agg(deals);
-    var _yearAgo = Date.now() - 365 * 86400000;
-    var recent = deals.filter(function (d) { return d.when && d.when >= _yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 7);
-    var lend = {}; deals.forEach(function (d) { if (!d.lender) return; if (!lend[d.lender]) lend[d.lender] = { n: 0, amt: 0 }; lend[d.lender].n++; lend[d.lender].amt += (d.amt || 0); });
-    var lenders = Object.keys(lend).map(function (k) { return { name: k, n: lend[k].n, amt: lend[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 7);
-    var mc = {}; deals.forEach(function (d) { var c = d.city || '—'; if (!mc[c]) mc[c] = { n: 0, amt: 0 }; mc[c].n++; mc[c].amt += (d.amt || 0); });
-    var cities = Object.keys(mc).map(function (k) { return { city: k, n: mc[k].n, amt: mc[k].amt }; }).sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 7);
+    var yearAgo = Date.now() - 365 * 86400000;
+    var recent = deals.filter(function (d) { return d.when && d.when >= yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 8);
+
+    // lenders — each with its market breakdown + deals
+    var lm = {};
+    deals.forEach(function (d) {
+      if (!d.lender) return;
+      var L = lm[d.lender] || (lm[d.lender] = { name: d.lender, n: 0, amt: 0, cities: {}, deals: [] });
+      L.n++; L.amt += (d.amt || 0);
+      if (d.city) L.cities[d.city] = (L.cities[d.city] || 0) + (d.amt || 0);
+      L.deals.push(d);
+    });
+    var lenders = Object.keys(lm).map(function (k) { return lm[k]; }).sort(function (x, y) { return y.amt - x.amt || y.n - x.n; });
+
+    // cities — each with lenders, deals, averaged coordinates
+    var cm = {};
+    deals.forEach(function (d) {
+      var c = d.city; if (!c) return;
+      var C = cm[c] || (cm[c] = { city: c, n: 0, amt: 0, lenders: {}, deals: [], la: 0, lo: 0, nc: 0 });
+      C.n++; C.amt += (d.amt || 0);
+      if (d.lender) C.lenders[d.lender] = (C.lenders[d.lender] || 0) + (d.amt || 0);
+      C.deals.push(d);
+      if (d.lat != null && d.lng != null) { C.la += d.lat; C.lo += d.lng; C.nc++; }
+    });
+    var cities = Object.keys(cm).map(function (k) { var C = cm[k]; C.lat = C.nc ? C.la / C.nc : null; C.lng = C.nc ? C.lo / C.nc : null; return C; }).sort(function (x, y) { return y.amt - x.amt || y.n - x.n; });
+
+    // flows for the Sankey — the most ACTIVE lenders (by deal count, then $) into
+    // their top 3 markets. Ranking by activity (not raw $) keeps the diagram
+    // legible: multi-market lenders that actually "flow" beat one-off mega-deals.
+    var flows = [], fmk = {};
+    lenders.filter(function (l) { return l.amt > 0; }).slice().sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 6).forEach(function (l) {
+      Object.keys(l.cities).map(function (c) { return { city: c, amt: l.cities[c] }; })
+        .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; }).slice(0, 3)
+        .forEach(function (x) { flows.push({ l: l.name, m: x.city, v: x.amt }); fmk[x.city] = (fmk[x.city] || 0) + x.amt; });
+    });
+    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; });
+    var flt = {}; flows.forEach(function (f) { flt[f.l] = (flt[f.l] || 0) + f.v; });
+    var flenders = Object.keys(flt).map(function (k) { return { name: k, total: flt[k] }; }).sort(function (p, q) { return q.total - p.total; });
+
     el.className = 'tmw-money tmw-money--full';
     el.innerHTML = ''
       + '<div class="tmw-m-statrow">'
@@ -179,11 +282,153 @@
       + '<div class="s"><b>' + (a.disclosed ? fmtM(a.disclosed) : '—') + '</b><span>Disclosed capital</span></div>'
       + '<div class="s"><b>' + a.markets + '</b><span>Markets receiving capital</span></div>'
       + '</div>'
-      + '<div class="tmw-m-grid">'
-      + '<div class="col"><div class="h">Recent financings</div>' + recent.map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
-      + '<div class="col"><div class="h">Most active lenders</div>' + (lenders.length ? lenders.map(function (l) { return '<div class="r"><div class="rn"><div class="nm">' + esc(l.name) + '</div><div class="mt">' + l.n + (l.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (l.amt ? '' : ' na') + '">' + (l.amt ? fmtM(l.amt) : '—') + '</span></div>'; }).join('') : '<div class="note">No lenders yet.</div>') + '</div>'
-      + '<div class="col"><div class="h">Where capital is landing</div>' + cities.map(function (c) { return '<div class="r"><div class="rn"><div class="nm">' + esc(c.city) + '</div><div class="mt">' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</div></div><span class="amt' + (c.amt ? '' : ' na') + '">' + (c.amt ? fmtM(c.amt) : '—') + '</span></div>'; }).join('') + '</div>'
-      + '</div>';
+      + '<div class="tmw-m-tabs">'
+      + '<button class="mt on" data-mt="flow">Capital flow</button>'
+      + '<button class="mt" data-mt="map">Money map</button>'
+      + '<button class="mt" data-mt="lenders">Lenders</button>'
+      + '</div>'
+      + '<div class="tmw-m-view on" data-v="flow"><p class="tmw-m-cap">Who\'s funding what, where — <b>hover a lender</b> to trace its capital into markets.</p>'
+      + '<div class="tmw-m-svgwrap"><svg class="tmw-m-sankey" viewBox="0 0 680 320" preserveAspectRatio="xMidYMid meet" aria-label="Capital flow from lenders to markets"></svg></div>'
+      + '<div class="tmw-m-flowread"></div></div>'
+      + '<div class="tmw-m-view" data-v="map"><p class="tmw-m-cap">Where capital is landing — <b>click a market</b> for its deals + lenders.</p>'
+      + '<div class="tmw-m-mapgrid"><div class="tmw-m-svgwrap"><svg class="tmw-m-map" viewBox="0 0 460 320" preserveAspectRatio="xMidYMid meet" aria-label="Capital by market map"></svg></div>'
+      + '<div class="tmw-m-mapdetail"></div></div></div>'
+      + '<div class="tmw-m-view" data-v="lenders"><p class="tmw-m-cap">Every lender is a page — <b>click a lender</b> to open its profile.</p>'
+      + '<div class="tmw-m-lgrid"><div class="tmw-m-chips"></div><div class="tmw-m-lprofile"></div></div></div>'
+      + '<div class="tmw-m-recentbar"><div class="rbh">Latest financings</div><div class="tmw-m-recentrow">'
+      + recent.map(function (d) { return dealRow(d, 'tmw-m-deal'); }).join('') + '</div></div>';
+
+    try { buildFlow(el.querySelector('.tmw-m-sankey'), flenders, fmarkets, flows, el.querySelector('.tmw-m-flowread')); } catch (e) {}
+    try { buildMap(el.querySelector('.tmw-m-map'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
+    try { buildLenders(el.querySelector('.tmw-m-chips'), el.querySelector('.tmw-m-lprofile'), lenders); } catch (e) {}
+    wireTabs(el);
+  }
+
+  function wireTabs(el) {
+    var tabs = el.querySelectorAll('.mt'), views = el.querySelectorAll('.tmw-m-view');
+    Array.prototype.forEach.call(tabs, function (t) {
+      t.addEventListener('click', function () {
+        Array.prototype.forEach.call(tabs, function (x) { x.classList.remove('on'); }); t.classList.add('on');
+        var v = t.getAttribute('data-mt');
+        Array.prototype.forEach.call(views, function (vw) { vw.classList.toggle('on', vw.getAttribute('data-v') === v); });
+      });
+    });
+  }
+
+  function buildFlow(svg, lenders, markets, flows, readEl) {
+    if (!svg || !lenders.length || !markets.length) { if (readEl) readEl.textContent = 'Not enough disclosed financing to chart flows yet.'; if (svg) svg.parentNode.style.display = lenders.length ? '' : 'none'; return; }
+    var W = 680, H = 320, padT = 26, padB = 12, lx = 8, lw = 11, rx = W - 8 - lw, gap = 11;
+    var innerH = H - padT - padB;
+    var Ltot = lenders.reduce(function (s, l) { return s + l.total; }, 0) || 1;
+    var scale = (innerH - (lenders.length - 1) * gap) / Ltot;
+    var y = padT; lenders.forEach(function (l) { l._y = y; l._h = l.total * scale; y += l._h + gap; });
+    var mh = markets.reduce(function (s, m) { return s + m.total * scale; }, 0) + (markets.length - 1) * gap;
+    var my = padT + Math.max(0, (innerH - mh) / 2), mById = {};
+    markets.forEach(function (m) { m._y = my; m._h = m.total * scale; my += m._h + gap; mById[m.name] = m; });
+    var c1 = svgEl('text', { x: lx, y: 14, class: 'sk-col' }); c1.textContent = 'Lenders'; svg.appendChild(c1);
+    var c2 = svgEl('text', { x: rx + lw, y: 14, class: 'sk-col', 'text-anchor': 'end' }); c2.textContent = 'Markets'; svg.appendChild(c2);
+    var loff = {}, moff = {}, bg = svgEl('g', {}); svg.appendChild(bg);
+    flows.forEach(function (f) {
+      var l = null; lenders.forEach(function (x) { if (x.name === f.l) l = x; }); var m = mById[f.m]; if (!l || !m) return;
+      var t = f.v * scale; loff[f.l] = loff[f.l] || 0; moff[f.m] = moff[f.m] || 0;
+      var y1 = l._y + loff[f.l] + t / 2, y2 = m._y + moff[f.m] + t / 2; loff[f.l] += t; moff[f.m] += t;
+      var x1 = lx + lw, x2 = rx, cx = (x1 + x2) / 2;
+      var p = svgEl('path', { class: 'sk-band', d: 'M' + x1 + ',' + y1 + ' C' + cx + ',' + y1 + ' ' + cx + ',' + y2 + ' ' + x2 + ',' + y2, fill: 'none', stroke: '#1FDF67', 'stroke-width': Math.max(1, t), 'stroke-opacity': .16 });
+      p.setAttribute('data-l', f.l); p.setAttribute('data-m', f.m); bg.appendChild(p);
+    });
+    function node(x, yy, h, label, val, anchor, tint, key, isL) {
+      var g = svgEl('g', { class: 'sk-node' }); g.style.cursor = 'pointer';
+      g.appendChild(svgEl('rect', { x: x, y: yy, width: lw, height: Math.max(2, h), rx: 2, fill: tint, 'fill-opacity': .85 }));
+      var tx = anchor === 'start' ? x + lw + 7 : x - 7;
+      var t1 = svgEl('text', { x: tx, y: yy + h / 2 - 1, class: 'sk-label', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t1.textContent = label;
+      var t2 = svgEl('text', { x: tx, y: yy + h / 2 + 11, class: 'sk-val', 'text-anchor': anchor, 'dominant-baseline': 'middle' }); t2.textContent = fmtM(val);
+      g.appendChild(t1); g.appendChild(t2); g.setAttribute(isL ? 'data-l' : 'data-m', key); return g;
+    }
+    lenders.forEach(function (l) { svg.appendChild(node(lx, l._y, l._h, l.name, l.total, 'start', '#f0d68a', l.name, true)); });
+    markets.forEach(function (m) { svg.appendChild(node(rx, m._y, m._h, m.name, m.total, 'end', '#42EB81', m.name, false)); });
+    var bands = svg.querySelectorAll('.sk-band'), nodes = svg.querySelectorAll('.sk-node');
+    function hi(type, key) {
+      Array.prototype.forEach.call(bands, function (b) { var on = type === 'l' ? b.getAttribute('data-l') === key : b.getAttribute('data-m') === key; b.setAttribute('stroke-opacity', on ? .6 : .05); });
+      var tot = 0, parts = [];
+      flows.forEach(function (f) { if ((type === 'l' ? f.l : f.m) === key) { tot += f.v; parts.push((type === 'l' ? f.m : f.l) + (type === 'l' ? ' ' + fmtM(f.v) : '')); } });
+      readEl.innerHTML = '<b>' + esc(key) + '</b> — ' + fmtM(tot) + (type === 'l' ? ' → ' : ' in from ') + parts.join(' · ');
+    }
+    function reset() { Array.prototype.forEach.call(bands, function (b) { b.setAttribute('stroke-opacity', .16); }); readEl.textContent = 'Hover any lender or market to isolate its capital.'; }
+    Array.prototype.forEach.call(nodes, function (g) { g.addEventListener('mouseenter', function () { g.getAttribute('data-l') ? hi('l', g.getAttribute('data-l')) : hi('m', g.getAttribute('data-m')); }); g.addEventListener('mouseleave', reset); });
+    Array.prototype.forEach.call(bands, function (b) { b.style.cursor = 'pointer'; b.addEventListener('mouseenter', function () { hi('l', b.getAttribute('data-l')); }); b.addEventListener('mouseleave', reset); });
+    reset();
+  }
+
+  function buildMap(svg, detailEl, cities) {
+    if (!svg) return;
+    var W = 460, H = 320;
+    var geo = cities.filter(function (c) { return c.lat != null && c.lng != null; });
+    var isUS = function (c) { return c.lat >= 20 && c.lat <= 50 && c.lng >= -130 && c.lng <= -60; };
+    var rank = function (a, b) { return (b.amt || 0) - (a.amt || 0) || b.n - a.n; };
+    var us = geo.filter(isUS).sort(rank).slice(0, 13);
+    var intl = geo.filter(function (c) { return !isUS(c); }).sort(rank).slice(0, 4);
+    if (!us.length && !intl.length) { if (detailEl) detailEl.innerHTML = '<div class="mp-empty">No geolocated capital yet.</div>'; return; }
+    var maxv = 1; us.concat(intl).forEach(function (c) { var v = c.amt || c.n * 60; if (v > maxv) maxv = v; });
+    var rOf = function (c) { return 6 + Math.sqrt((c.amt || c.n * 60) / maxv) * 20; };
+    var latMax = 49.5, latMin = 24, lngMin = -125, lngMax = -66.5, mapW = intl.length ? W - 92 : W - 8;
+    var pts = us.map(function (c) { return { c: c, x: 22 + (c.lng - lngMin) / (lngMax - lngMin) * (mapW - 44), y: 24 + (latMax - c.lat) / (latMax - latMin) * (H - 48), r: rOf(c) }; });
+    for (var it = 0; it < 80; it++) { for (var i = 0; i < pts.length; i++) for (var j = i + 1; j < pts.length; j++) { var dx = pts[j].x - pts[i].x, dy = pts[j].y - pts[i].y, dd = Math.sqrt(dx * dx + dy * dy) || 0.01, mn = pts[i].r + pts[j].r + 7; if (dd < mn) { var pu = (mn - dd) / 2 / dd; pts[i].x -= dx * pu; pts[i].y -= dy * pu; pts[j].x += dx * pu; pts[j].y += dy * pu; } } }
+    pts.forEach(function (p) { p.x = Math.max(20, Math.min(mapW - 18, p.x)); p.y = Math.max(28, Math.min(H - 22, p.y)); });
+    var g0 = svgEl('g', { opacity: .5 }); svg.appendChild(g0);
+    [['WEST', 66, 28], ['MIDWEST', 205, 22], ['NORTHEAST', 350, 22], ['SOUTHEAST', 300, H - 8]].forEach(function (r) { var t = svgEl('text', { x: r[1], y: r[2], class: 'mp-region', 'text-anchor': 'middle' }); t.textContent = r[0]; g0.appendChild(t); });
+    if (intl.length) { g0.appendChild(svgEl('line', { x1: mapW + 6, y1: 28, x2: mapW + 6, y2: H - 18, stroke: 'rgba(255,255,255,.08)', 'stroke-dasharray': '3 5' })); var itx = svgEl('text', { x: W - 6, y: 22, class: 'mp-region', 'text-anchor': 'end' }); itx.textContent = 'INTL'; g0.appendChild(itx); }
+    function detail(c) {
+      Array.prototype.forEach.call(svg.querySelectorAll('.mp-bub'), function (b) { b.querySelector('.mp-glow').setAttribute('opacity', b.getAttribute('data-n') === c.city ? '1' : '.26'); });
+      var ll = Object.keys(c.lenders).map(function (k) { return { n: k, v: c.lenders[k] }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 5)
+        .map(function (x) { return '<div class="mp-row"><span class="r">' + esc(x.n) + '</span><span class="v">' + _money(x.v) + '</span></div>'; }).join('') || '<div class="mp-row"><span class="r">No named lender yet</span></div>';
+      var dd = c.deals.slice().sort(function (a, b) { return (b.amt || 0) - (a.amt || 0) || (b.when || 0) - (a.when || 0); }).slice(0, 5)
+        .map(function (d) { return '<a class="mp-row" href="' + esc(d.href) + '" target="_blank" rel="noopener"><span class="r">' + esc(d.title) + '</span><span class="v">' + _money(d.amt) + '</span></a>'; }).join('');
+      detailEl.innerHTML = '<p class="mp-city">' + esc(c.city) + '</p><p class="mp-sub">' + _money(c.amt) + ' · ' + c.n + (c.n === 1 ? ' deal' : ' deals') + '</p>'
+        + '<div class="mp-h">Lenders active here</div>' + ll + '<div class="mp-h">Deals</div>' + dd;
+    }
+    function bubble(c, x, y, r, col) {
+      var g = svgEl('g', { class: 'mp-bub' }); g.setAttribute('data-n', c.city); g.style.cursor = 'pointer';
+      g.appendChild(svgEl('circle', { class: 'mp-glow', cx: x, cy: y, r: r, fill: col, 'fill-opacity': .14, stroke: col, 'stroke-opacity': .55, 'stroke-width': 1.4 }));
+      g.appendChild(svgEl('circle', { cx: x, cy: y, r: 2.3, fill: col }));
+      g.appendChild(svgEl('circle', { class: 'hit', cx: x, cy: y, r: Math.max(r, 13), fill: 'transparent' }));
+      var right = x > W * 0.6;
+      var lab = svgEl('text', { class: 'mp-lab', x: right ? x - r - 6 : x + r + 6, y: y - 1, 'text-anchor': right ? 'end' : 'start' }); lab.textContent = c.city;
+      var cap = svgEl('text', { class: 'mp-cap', x: right ? x - r - 6 : x + r + 6, y: y + 10, 'text-anchor': right ? 'end' : 'start' }); cap.textContent = _money(c.amt);
+      g.appendChild(lab); g.appendChild(cap);
+      g.addEventListener('mouseenter', function () { detail(c); });
+      g.addEventListener('click', function () { detail(c); });
+      svg.appendChild(g);
+    }
+    pts.forEach(function (p) { bubble(p.c, p.x, p.y, p.r, '#1FDF67'); });
+    intl.forEach(function (c, i) { bubble(c, mapW + 46, 54 + i * 62, Math.min(rOf(c), 18), '#B9A6FF'); });
+    if (detailEl) detail(us[0] || intl[0]);
+  }
+
+  function buildLenders(chipsEl, profileEl, lenders) {
+    if (!chipsEl) return;
+    var top = lenders.slice(0, 14);
+    if (!top.length) { chipsEl.innerHTML = '<div class="tmw-m-empty">No lenders tracked yet.</div>'; return; }
+    function show(l) {
+      Array.prototype.forEach.call(chipsEl.querySelectorAll('.mc-chip'), function (c) { c.classList.toggle('on', c.getAttribute('data-l') === l.name); });
+      var mk = Object.keys(l.cities).map(function (k) { return { city: k, amt: l.cities[k] }; }).sort(function (a, b) { return b.amt - a.amt; });
+      var mmax = (mk[0] && mk[0].amt) || 1;
+      var bars = mk.filter(function (m) { return m.amt > 0; }).slice(0, 5).map(function (m) { return '<div class="mc-bar"><span class="bl">' + esc(m.city) + '</span><div class="bw"><i style="width:' + (m.amt / mmax * 100) + '%"></i></div><span class="bv">' + fmtM(m.amt) + '</span></div>'; }).join('') || '<div class="mc-subt">Markets not disclosed.</div>';
+      var avg = l.n ? Math.round(l.amt / l.n) : 0;
+      var deals = l.deals.slice().sort(function (a, b) { return (b.amt || 0) - (a.amt || 0) || (b.when || 0) - (a.when || 0); }).slice(0, 6).map(function (d) { return '<a class="mc-deal" href="' + esc(d.href) + '" target="_blank" rel="noopener"><span><span class="dn">' + esc(d.title) + '</span> <span class="dc">' + esc(d.city || '') + '</span></span><span class="dv">' + _money(d.amt) + '</span></a>'; }).join('');
+      profileEl.innerHTML = '<p class="mc-name">' + esc(l.name) + '</p><p class="mc-tag">' + l.n + (l.n === 1 ? ' deal' : ' deals') + ' tracked</p>'
+        + '<div class="mc-kpis"><div class="mc-kpi"><div class="k g">' + _money(l.amt) + '</div><div class="kl">Deployed</div></div>'
+        + '<div class="mc-kpi"><div class="k">' + l.n + '</div><div class="kl">Deals</div></div>'
+        + '<div class="mc-kpi"><div class="k">' + (avg ? fmtM(avg) : '—') + '</div><div class="kl">Avg check</div></div></div>'
+        + '<div class="mc-h">Where it lends</div>' + bars + '<div class="mc-h">Recent deals</div>' + deals;
+    }
+    chipsEl.innerHTML = '';
+    top.forEach(function (l) {
+      var b = document.createElement('button'); b.className = 'mc-chip'; b.setAttribute('data-l', l.name);
+      b.innerHTML = '<span><span class="cn">' + esc(l.name) + '</span><span class="cd">' + l.n + (l.n === 1 ? ' deal' : ' deals') + '</span></span><span class="cv">' + _money(l.amt) + '</span>';
+      b.addEventListener('click', function () { show(l); });
+      chipsEl.appendChild(b);
+    });
+    show(top[0]);
   }
 
   var SPARK = '<svg class="sp" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
