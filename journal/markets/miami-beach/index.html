@@ -20,7 +20,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "19 New Developments in Miami Beach (2026)", "description": "19 new developments in Miami Beach across 4 categories · 7 under construction · 1,222 residential units · tallest at 28 floors", "url": "https://www.oftmw.com/markets/miami-beach/", "datePublished": "2026-06-01", "dateModified": "2026-07-13", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 19, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/7200-collins/", "name": "7200 Collins"}, {"@type": "ListItem", "position": 2, "url": "https://www.oftmw.com/projects/aman-miami-beach/", "name": "Aman Miami Beach"}, {"@type": "ListItem", "position": 3, "url": "https://www.oftmw.com/projects/ella-miami-beach/", "name": "Ella Miami Beach"}, {"@type": "ListItem", "position": 4, "url": "https://www.oftmw.com/projects/grand-hyatt-convention-center-hotel/", "name": "Grand Hyatt Convention Center Hotel"}, {"@type": "ListItem", "position": 5, "url": "https://www.oftmw.com/projects/the-perigon-miami-beach/", "name": "The Perigon Miami Beach"}, {"@type": "ListItem", "position": 6, "url": "https://www.oftmw.com/projects/the-raleigh-rosewood-residences/", "name": "The Raleigh Rosewood Residences"}, {"@type": "ListItem", "position": 7, "url": "https://www.oftmw.com/projects/the-shore-club-resort-residences/", "name": "The Shore Club Resort & Residences"}, {"@type": "ListItem", "position": 8, "url": "https://www.oftmw.com/projects/villa-17/", "name": "Villa 17"}, {"@type": "ListItem", "position": 9, "url": "https://www.oftmw.com/projects/rivani-miami-beach/", "name": "Rivani Miami Beach"}, {"@type": "ListItem", "position": 10, "url": "https://www.oftmw.com/projects/delano-miami-beach/", "name": "Delano Miami Beach"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "Miami Beach", "item": "https://www.oftmw.com/markets/miami-beach/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What new developments are coming to Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "19 new developments across 4 categories — 7 under construction, 1 breaking ground, 1 opening soon, and 9 just announced. See the live map for every project."}}, {"@type": "Question", "name": "What is under construction in Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "7 projects are currently under construction in Miami Beach across every category we track. Each links to a live status page with milestones, renderings, and journal coverage."}}, {"@type": "Question", "name": "What projects are opening soon in Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "1 project in the Miami Beach pipeline are flagged Opening Soon — meaning expected opening within ~7 months. Pro members get weekly delivery updates on each."}}, {"@type": "Question", "name": "What projects have just been announced for Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "9 projects are in the announced phase for Miami Beach — meaning a developer has publicly committed but construction has not yet begun."}}, {"@type": "Question", "name": "What kinds of new projects are being built in Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "The Miami Beach pipeline is dominated by Residences (11), Hotel (4), Mixed-Use (3). Each category has its own dedicated landing page — explore the \"More project types in Miami Beach\" section above."}}, {"@type": "Question", "name": "Who is the biggest developer in Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "SHVO leads Miami Beach with 2 active projects across categories. Their firm page shows every market they're building in."}}, {"@type": "Question", "name": "What is the tallest project planned in Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "1250 West Avenue at 28 floors — currently Announced. Open the project page →"}}, {"@type": "Question", "name": "How many residential units are being added across Miami Beach?", "acceptedAnswer": {"@type": "Answer", "text": "Across the active Miami Beach pipeline, the developments we track will add 1,222 residential units. Pro members get the unit count by neighborhood and project type."}}, {"@type": "Question", "name": "When will the next wave of Miami Beach projects open?", "acceptedAnswer": {"@type": "Answer", "text": "Delivery dates across the active Miami Beach pipeline run from 2026 through 2030. Pro members get our weekly Slippage Report flagging which projects have slipped this week."}}, {"@type": "Question", "name": "How often is the Miami Beach development data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our map and every market page (including this one) rebuild from our database every hour, so a status change confirmed today shows up here within ~60 minutes. Editorial follow-ups land in the journal within the day."}}]}</script>
@@ -471,7 +474,7 @@
         <div class="card-title">Ella Miami Beach</div>
         <div class="card-loc">Miami Beach · North Beach</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 7, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 13, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -562,7 +565,7 @@
         <div class="card-title">The Shore Club Resort &amp; Residences</div>
         <div class="card-loc">Miami Beach · South Beach</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 7, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 13, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -881,7 +884,7 @@
         </div>
       </div>
       <div class="btn-grid"><div class="btn-cell"><div class="btn-val">1,222</div><div class="btn-lbl">Total residential units</div><div class="btn-sub">across 13 projects with unit data</div></div>
-<div class="btn-cell"><div class="btn-val">1,689</div><div class="btn-lbl">Total hotel keys</div><div class="btn-sub">across tracked hotels</div></div>
+<div class="btn-cell"><div class="btn-val">1,691</div><div class="btn-lbl">Total hotel keys</div><div class="btn-sub">across tracked hotels</div></div>
 <div class="btn-cell"><div class="btn-val">28 floors</div><div class="btn-lbl">Tallest in pipeline</div><div class="btn-sub">1250 West Avenue, Miami Beach</div></div>
 <div class="btn-cell"><div class="btn-val">16.7 floors</div><div class="btn-lbl">Avg height</div><div class="btn-sub">mean of 15 known</div></div>
 <div class="btn-cell"><div class="btn-val">2026–2030</div><div class="btn-lbl">Delivery window</div><div class="btn-sub">first to last expected delivery</div></div></div>
@@ -955,8 +958,8 @@
        window.tmwOverlay.open(query) which the Intelligence ask box calls below. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
-  <script src="/_shared/journal-search-core.js" defer></script>
-  <script src="/_shared/journal-search-overlay.js" defer></script>
+  <!-- search core + overlay are loaded once (versioned) by journal-dock.js — dropping the
+       static include avoids a duplicate download + parse of ~530KB of JS on every page -->
   <script>
     // Wires the Intelligence ask box + suggestion chips to the universal
     // overlay loaded by /_shared/journal-search-overlay.js. Every query is

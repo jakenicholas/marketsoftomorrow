@@ -22,7 +22,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -365,7 +368,7 @@
         <div class="card-title">Franck Muller Aeternitas Tower</div>
         <div class="card-loc">Dubai · Dubai Marina</div>
       </div>
-      <div class="card-verified card-verified--empty" aria-hidden="true"></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 13, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -462,8 +465,8 @@
 
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
-  <script src="/_shared/journal-search-core.js" defer></script>
-  <script src="/_shared/journal-search-overlay.js" defer></script>
+  <!-- search core + overlay are loaded once (versioned) by journal-dock.js — dropping the
+       static include avoids a duplicate download + parse of ~530KB of JS on every page -->
   <script src="/_shared/tmw-lightbox.js" defer></script>
   <script>
     // Same Intel ask wiring as the market pages. The overlay opens with the

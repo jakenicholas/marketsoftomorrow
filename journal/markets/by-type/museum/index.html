@@ -20,7 +20,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Fraunces self-hosted + preloaded (same as the homepage) — no render-blocking cross-origin fetch for the display font -->
+  <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fraunces.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "23 New Museums & Cultural Venues Worldwide (2026)", "description": "23 new museum developments worldwide across 19 cities · 7 under construction", "url": "https://www.oftmw.com/markets/by-type/museum/", "datePublished": "2026-06-01", "dateModified": "2026-07-13", "publisher": {"@type": "Organization", "name": "Markets of Tomorrow", "url": "https://www.oftmw.com"}, "mainEntity": {"@type": "ItemList", "numberOfItems": 23, "itemListElement": [{"@type": "ListItem", "position": 1, "url": "https://www.oftmw.com/projects/beijing-art-museum/", "name": "Beijing Art Museum"}, {"@type": "ListItem", "position": 2, "url": "https://www.oftmw.com/projects/memphis-art-museum/", "name": "Memphis Art Museum"}, {"@type": "ListItem", "position": 3, "url": "https://www.oftmw.com/projects/nanhai-art-center/", "name": "Nanhai Art Center"}, {"@type": "ListItem", "position": 4, "url": "https://www.oftmw.com/projects/north-carolina-museum-of-history-expansion/", "name": "North Carolina Museum of History Expansion"}, {"@type": "ListItem", "position": 5, "url": "https://www.oftmw.com/projects/rong-museum-of-art/", "name": "Róng Museum of Art"}, {"@type": "ListItem", "position": 6, "url": "https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/", "name": "The Society of the Four Arts"}, {"@type": "ListItem", "position": 7, "url": "https://www.oftmw.com/projects/the-whale/", "name": "The Whale"}, {"@type": "ListItem", "position": 8, "url": "https://www.oftmw.com/projects/grand-canal-museum-complex/", "name": "Grand Canal Museum Complex"}, {"@type": "ListItem", "position": 9, "url": "https://www.oftmw.com/projects/guggenheim-abu-dhabi/", "name": "Guggenheim Abu Dhabi"}, {"@type": "ListItem", "position": 10, "url": "https://www.oftmw.com/projects/london-museum/", "name": "London Museum"}]}, "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "TMW", "item": "https://www.oftmw.com/"}, {"@type": "ListItem", "position": 2, "name": "Markets", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 3, "name": "By type", "item": "https://www.oftmw.com/markets/"}, {"@type": "ListItem", "position": 4, "name": "Museum", "item": "https://www.oftmw.com/markets/by-type/museum/"}]}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Which cities have the most new museums?", "acceptedAnswer": {"@type": "Answer", "text": "The deepest museums pipelines are in Hangzhou (3), Abu Dhabi (2), Los Angeles (2), Palm Beach (1), West Palm Beach (1). We track 23 museums projects total across 19 cities."}}, {"@type": "Question", "name": "How many new museums are under construction worldwide?", "acceptedAnswer": {"@type": "Answer", "text": "7 museums are currently under construction worldwide. Plus 0 breaking ground, 4 opening soon, and 6 announced in the global pipeline."}}, {"@type": "Question", "name": "What new museums are opening soon worldwide?", "acceptedAnswer": {"@type": "Answer", "text": "4 museums are flagged Opening Soon — meaning expected opening within ~7 months. Browse each individually in the pipeline grid above."}}, {"@type": "Question", "name": "What museums have just been announced for 2026?", "acceptedAnswer": {"@type": "Answer", "text": "6 museums are in the announced phase across our global dataset. Each links to a live status page that updates as construction begins."}}, {"@type": "Question", "name": "What is the tallest new museum in the global pipeline?", "acceptedAnswer": {"@type": "Answer", "text": "Virginia Museum of Fine Arts Expansion in Richmond at 5 floors. See the project →"}}, {"@type": "Question", "name": "Who is the most active developer in museums worldwide?", "acceptedAnswer": {"@type": "Answer", "text": "Department of Culture and Tourism – Abu Dhabi leads the museums category with 2 active projects. Their firm page shows every market they're building in."}}, {"@type": "Question", "name": "Who designs the most new museums?", "acceptedAnswer": {"@type": "Answer", "text": "MAD Architects is the architect of record on 3 museums projects in our global dataset."}}, {"@type": "Question", "name": "When will the next wave of new museums deliver?", "acceptedAnswer": {"@type": "Answer", "text": "Delivery dates across the active global pipeline run from 2025 through 2029. Pro members get our weekly Slippage Report flagging which projects have slipped this week."}}, {"@type": "Question", "name": "How often is the museums development data updated?", "acceptedAnswer": {"@type": "Answer", "text": "Hourly. Our cron pipeline pulls fresh project data every hour and regenerates every market page. A status change confirmed today shows up within ~60 minutes."}}]}</script>
@@ -465,13 +468,13 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/nanhai-art-center/" aria-label="Open Nanhai Art Center">
-    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/048c8854a6c0-mad-architects-reveals-nanhai-art-center-in-guangdong-china_1.jpg" alt="Nanhai Art Center — Cultural in Nanhai District, Foshan" loading="lazy" decoding="async"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/048c8854a6c0-mad-architects-reveals-nanhai-art-center-in-guangdong-china_1.jpg" alt="Nanhai Art Center — Cultural in Nanhai Cultural District, Foshan" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Nanhai Art Center</div>
-        <div class="card-loc">Foshan · Nanhai District</div>
+        <div class="card-loc">Foshan · Nanhai Cultural District</div>
       </div>
-      <div class="card-verified card-verified--empty" aria-hidden="true"></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 13, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">3.5 yrs to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -509,13 +512,13 @@
 </div>
 <div class="card" data-status="active">
   <a class="card-link" href="https://www.oftmw.com/projects/rong-museum-of-art/" aria-label="Open Róng Museum of Art">
-    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/08d1504564f6-Ole-Scheeren-Rong-Museum-Zhu-Yumeng-01.webp" alt="Róng Museum of Art — Museum in Nanshan District, Shenzhen" loading="lazy" decoding="async"></div>
+    <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/08d1504564f6-Ole-Scheeren-Rong-Museum-Zhu-Yumeng-01.webp" alt="Róng Museum of Art — Museum in Houhai, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
       <div class="card-head">
         <div class="card-title">Róng Museum of Art</div>
-        <div class="card-loc">Shenzhen · Nanshan District</div>
+        <div class="card-loc">Shenzhen · Houhai</div>
       </div>
-      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 7, 2026</span></div>
+      <div class="card-verified"><span class="card-v-ico"><svg viewBox="0 0 100 100"><polygon class="card-v-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="7" stroke-linejoin="round"/></svg></span><span>Last verified Jul 13, 2026</span></div>
       
     <div class="pm-tl"><div class="pm-tl-date">18 months to delivery</div>
       <div class="pm-tl-meter"><div class="pm-tl-grad"></div>
@@ -1029,8 +1032,8 @@
        window.tmwOverlay.open(query) which the Intelligence ask box calls below. -->
   <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
-  <script src="/_shared/journal-search-core.js" defer></script>
-  <script src="/_shared/journal-search-overlay.js" defer></script>
+  <!-- search core + overlay are loaded once (versioned) by journal-dock.js — dropping the
+       static include avoids a duplicate download + parse of ~530KB of JS on every page -->
   <script>
     // Wires the Intelligence ask box + suggestion chips to the universal
     // overlay loaded by /_shared/journal-search-overlay.js. Every query is
