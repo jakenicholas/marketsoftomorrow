@@ -11863,6 +11863,53 @@ async function handleAdminGiveawayStats(env, origin, id) {
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// Public: travel-partner enquiry from the /travel itinerary page. Emails the
+// team (reply-to the sender) and sends the sender a confirmation with the same
+// details. Honeypot field silently absorbs bots.
+async function handleTravelPartner(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const clean = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]+/g, ' ').trim().slice(0, n);
+  const name    = clean(b.name, 120);
+  const email   = clean(b.email, 160);
+  const client  = clean(b.client, 160);
+  const website = clean(b.website, 200);
+  const city    = clean(b.city, 120) || 'Any city on the route';
+  if (clean(b.company, 80)) return json({ ok: true }, {}, env, origin);   // honeypot → pretend success
+  if (!name) return json({ error: 'Please add your name.' }, { status: 400 }, env, origin);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'Please add a valid email.' }, { status: 400 }, env, origin);
+  if (!env.RESEND_API_KEY) return json({ error: 'Email is not configured.' }, { status: 503 }, env, origin);
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+  const rows = [['Name', name], ['Email', email], ['Client', client || '—'], ['Client website', website || '—'], ['City of interest', city]];
+  const details = '<table style="border-collapse:collapse;font-family:Inter,Arial,sans-serif">' +
+    rows.map(r => '<tr><td style="padding:7px 20px 7px 0;color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="padding:7px 0;color:#4A392B;font-size:14px;font-weight:600">' + esc(r[1]) + '</td></tr>').join('') +
+    '</table>';
+  const shell = intro => '<div style="background:#EFE7D5;padding:34px 20px"><div style="max-width:520px;margin:0 auto;background:#F7F1E4;border:1px solid #E4D7BE;border-radius:16px;padding:30px 28px">' +
+    '<div style="font-family:Inter,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:#B0603A;margin-bottom:9px">Markets of Tomorrow</div>' +
+    '<div style="font-family:Georgia,serif;font-size:23px;color:#4A392B;margin-bottom:15px">Travel Partner Enquiry</div>' +
+    '<p style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.65;color:#5E4C3C;margin:0 0 20px">' + intro + '</p>' + details +
+    '<p style="font-family:Inter,Arial,sans-serif;font-size:12px;color:#8C7862;margin:24px 0 0">Italy, The Isles &amp; The Alps · Private Itinerary</p>' +
+    '</div></div>';
+  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';
+  const send = async (to, subject, html, replyTo) => {
+    const payload = { from: FROM, to: Array.isArray(to) ? to : [to], subject, html };
+    if (replyTo) payload.reply_to = replyTo;
+    try {
+      const r = await fetch('https://api.resend.com/emails', { method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload) });
+      return r.ok;
+    } catch { return false; }
+  };
+  const first = name.split(/\s+/)[0];
+  const notified = await send('media@oftmw.com', 'New travel-partner enquiry — ' + (client || name),
+    shell('A new travel-partner enquiry just came in from the itinerary page:'), email);
+  await send(email, 'We received your details — Markets of Tomorrow',
+    shell('Thanks ' + esc(first) + ' — we’ve received your details and will be in touch shortly. Here’s what you sent us:'), 'media@oftmw.com');
+  if (!notified) return json({ error: 'Could not send right now — please email media@oftmw.com directly.' }, { status: 502 }, env, origin);
+  return json({ ok: true }, {}, env, origin);
+}
+
 export default {
   async fetch(request, env) {
     const url    = new URL(request.url);
@@ -11945,6 +11992,11 @@ export default {
       // First-party post view counter (public): beacon in, count map out.
       if (request.method === 'POST' && url.pathname === '/view') {
         return await handlePostView(request, env, origin);
+      }
+      // Travel-partner enquiry from the /travel itinerary page: emails the team
+      // (reply-to the sender) and sends the sender a confirmation with the same details.
+      if (request.method === 'POST' && url.pathname === '/travel-partner') {
+        return await handleTravelPartner(request, env, origin);
       }
       if (request.method === 'GET' && url.pathname === '/post-views') {
         return await handlePostViews(env, origin);

@@ -154,6 +154,42 @@
   .pt-foot{text-align:center;margin-top:22px;padding-top:20px;border-top:1px solid var(--hair)}
   .pt-foot a{font-size:13px;font-weight:600;color:var(--terra);text-decoration:none;letter-spacing:.01em}
   .pt-foot a:hover{text-decoration:underline}
+  /* "Our deliverables" button under the intro */
+  .pt-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:11px 20px;border-radius:99px;background:var(--terra);
+          color:#FBF6EC;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+          transition:filter .15s,transform .15s;box-shadow:0 6px 18px rgba(176,96,58,.26)}
+  .pt-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .pt-arw{transition:transform .18s}
+  .pt-btn:hover .pt-arw,button.pt-tile:hover .pt-arw{transform:translateX(3px)}
+  /* pending tiles are buttons that open the enquiry modal */
+  button.pt-tile{width:100%;font:inherit;cursor:pointer;display:block;transition:border-color .15s,box-shadow .15s,transform .15s}
+  button.pt-tile:hover{border-color:var(--terra);box-shadow:0 10px 26px rgba(74,57,43,.13);transform:translateY(-2px)}
+  .pt-cta{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
+
+  /* ── Partner enquiry modal ── */
+  .pm-back{position:fixed;inset:0;z-index:200;background:rgba(40,30,20,.5);backdrop-filter:blur(4px);display:flex;align-items:center;
+           justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+  .pm-back.on{opacity:1;pointer-events:auto}
+  .pm{position:relative;width:100%;max-width:440px;background:linear-gradient(180deg,#FBF6EC,var(--cream));border:1px solid var(--hair2);
+      border-radius:20px;padding:30px 30px 26px;box-shadow:0 30px 80px rgba(40,30,20,.35);transform:translateY(12px) scale(.98);transition:transform .25s;max-height:92vh;overflow-y:auto}
+  .pm-back.on .pm{transform:none}
+  .pm-x{position:absolute;top:14px;right:16px;background:none;border:0;font-size:20px;line-height:1;color:var(--mute);cursor:pointer;padding:4px}
+  .pm-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:9px}
+  .pm h3{font-family:var(--serif);font-weight:600;font-size:25px;color:var(--brown);letter-spacing:-.01em;line-height:1.14}
+  .pm-sub{margin-top:8px;font-size:13.5px;line-height:1.6;color:var(--mute2)}
+  .pm-city{font-style:italic;color:var(--terra)}
+  .pm form{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .pm-field{display:flex;flex-direction:column;gap:5px}
+  .pm-field label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
+  .pm-field input{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
+  .pm-field input:focus{border-color:var(--terra)}
+  .pm-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .pm-submit{margin-top:6px;background:var(--terra);color:#FBF6EC;border:0;border-radius:12px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:filter .15s}
+  .pm-submit:hover{filter:brightness(1.06)} .pm-submit:disabled{opacity:.6;cursor:default}
+  .pm-msg{font-size:13px;min-height:18px}
+  .pm-msg.err{color:#b23c3c} .pm-msg.ok{color:#2f7d55}
+  .pm-done{text-align:center;padding:10px 0 4px}
+  .pm-check{width:52px;height:52px;border-radius:50%;background:rgba(47,125,85,.12);color:#2f7d55;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px}
 
   /* ── Pending / tentative stop states ── */
   .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
@@ -233,6 +269,33 @@
   <main class="wrap" id="tl"></main>
 </div>
 
+<!-- Partner enquiry modal -->
+<div class="pm-back" id="pm" aria-hidden="true">
+  <div class="pm" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <button class="pm-x" id="pmX" aria-label="Close">✕</button>
+    <div id="pmBody">
+      <div class="pm-k">Open Partnerships</div>
+      <h3 id="pmTitle">Express interest</h3>
+      <p class="pm-sub" id="pmSub">Tell us a little about you and we’ll be in touch.</p>
+      <form id="pmForm" novalidate autocomplete="on">
+        <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
+        <div class="pm-field"><label for="pmEmail">Email</label><input id="pmEmail" name="email" type="email" autocomplete="email" required></div>
+        <div class="pm-field"><label for="pmClient">Client / property name</label><input id="pmClient" name="client" autocomplete="organization"></div>
+        <div class="pm-field"><label for="pmSite">Client website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
+        <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
+        <button class="pm-submit" id="pmSubmit" type="submit">Send enquiry</button>
+        <div class="pm-msg" id="pmMsg" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+    <div class="pm-done" id="pmDone" style="display:none">
+      <div class="pm-check">✓</div>
+      <h3>Thank you</h3>
+      <p class="pm-sub">Your details are in — we’ve emailed you a copy and our team will follow up shortly.</p>
+      <button class="pm-submit" id="pmClose2" type="button" style="margin-top:18px;width:100%">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Lightbox -->
 <div id="lb"><span class="lb-x">✕</span><img alt=""></div>
 
@@ -269,7 +332,7 @@ const STOPS = [
     vibe:'A tentative day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
-  { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Securing our hotel partner', pending:true, noClient:true,
+  { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
     in:{ date:'Sept 11', mode:'plane', note:'Verona → Dubrovnik' },
     vibe:'', logi:[], imgs:['https://www.geoex.com/_next/image?url=https%3A%2F%2Fkxn3vdktxmez55pl.public.blob.vercel-storage.com%2FDubrovnik_AdobeStock_142786819_1920x1080.png&w=2048&q=75'] },
 
@@ -397,8 +460,8 @@ function stopHtml(s, marker){
   // Tentative keeps its own tag; the old "Pending" tag is replaced by a client pill.
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
-  // Italian legs, and "Looking for partner" where a hotel partner isn't locked yet.
-  var pill = s.pending ? jprPill('Looking for partner')
+  // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
+  var pill = s.pending ? jprPill('Open to partner')
            : s.noClient ? jprPill('Private')
            : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
@@ -529,22 +592,25 @@ function initRouteMap(tries){
   window.addEventListener('resize', function(){ sync(false); });
 }
 
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function partnerBoxHtml(){
   var pend = STOPS.filter(function(s){ return s.pending; });
   if(!pend.length) return '';
   var tiles = pend.map(function(s){
-    return '<div class="pt-tile">'
+    return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
       +   '<div class="pt-city">'+s.loc+'</div>'
       +   '<div class="pt-when">'+s.nights+'</div>'
       +   '<div class="pt-cats"><span>Hotels</span></div>'
-      + '</div>';
+      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      + '</button>';
   }).join('');
   var mailSubj = encodeURIComponent('Travel partner — Italy, The Isles & The Alps');
   return '<section class="partners">'
     + '<div class="pt-head">'
     +   '<div class="pt-k">Open Partnerships</div>'
     +   '<h2>Cities still seeking a local partner</h2>'
-    +   '<p class="pt-sub">Beyond the hotel, we’re curating the right restaurants, golf, excursions &amp; experiences in every city on this route. If you host, guide, or represent a standout, we’d love to include you.</p>'
+    +   '<p class="pt-sub">We’re curating the right restaurants, golf, excursions &amp; experiences in select cities on this route. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
+    +   '<a class="pt-btn" href="https://www.oftmw.com/media/hotels">Our deliverables <span class="pt-arw">→</span></a>'
     + '</div>'
     + '<div class="pt-grid">'+tiles+'</div>'
     + '<div class="pt-all">'
@@ -588,10 +654,63 @@ function render(){
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ lb.classList.remove('on'); lbImg.src=''; } });
 }
 
+// ── Partner enquiry modal ──
+var PARTNER_ENDPOINT = 'https://tmw.jake-ab7.workers.dev/travel-partner';
+function initPartnerModal(){
+  var back = document.getElementById('pm'); if(!back) return;
+  var form = document.getElementById('pmForm'), msg = document.getElementById('pmMsg'),
+      sub = document.getElementById('pmSub'), submit = document.getElementById('pmSubmit'),
+      titleEl = document.getElementById('pmTitle'), bodyEl = document.getElementById('pmBody'),
+      doneEl = document.getElementById('pmDone');
+  var city = '';
+  function open(c){
+    city = c || '';
+    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
+    sub.innerHTML = c ? 'You’re enquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
+                      : 'Tell us a little about you and we’ll be in touch.';
+    form.reset(); msg.textContent=''; msg.className='pm-msg';
+    bodyEl.style.display=''; doneEl.style.display='none'; submit.disabled=false; submit.textContent='Send enquiry';
+    back.classList.add('on'); back.setAttribute('aria-hidden','false');
+    setTimeout(function(){ document.getElementById('pmName').focus(); }, 80);
+  }
+  function close(){ back.classList.remove('on'); back.setAttribute('aria-hidden','true'); }
+  document.getElementById('pmX').addEventListener('click', close);
+  var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
+  back.addEventListener('click', function(e){ if(e.target === back) close(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
+  // Open from any pending tile (event-delegated — tiles are rendered dynamically).
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('.pt-tile[data-partner]');
+    if(t){ e.preventDefault(); open(t.getAttribute('data-partner')); }
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('pmName').value.trim();
+    var email = document.getElementById('pmEmail').value.trim();
+    if(!name){ msg.className='pm-msg err'; msg.textContent='Please add your name.'; return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.className='pm-msg err'; msg.textContent='Please add a valid email.'; return; }
+    var payload = { name:name, email:email,
+      client: document.getElementById('pmClient').value.trim(),
+      website: document.getElementById('pmSite').value.trim(),
+      company: document.getElementById('pmHp').value, city: city };
+    submit.disabled = true; submit.textContent = 'Sending…'; msg.className='pm-msg'; msg.textContent='';
+    fetch(PARTNER_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(res){
+        if(res.ok && res.j && res.j.ok){ bodyEl.style.display='none'; doneEl.style.display=''; }
+        else { submit.disabled=false; submit.textContent='Send enquiry'; msg.className='pm-msg err';
+               msg.textContent = (res.j && res.j.error) || 'Something went wrong — please email media@oftmw.com.'; }
+      })
+      .catch(function(){ submit.disabled=false; submit.textContent='Send enquiry'; msg.className='pm-msg err';
+        msg.textContent='Network error — please email media@oftmw.com.'; });
+  });
+}
+
 // ── Reveal (public page) ──
 (function(){
   var doc = document.getElementById('doc');
   render();
+  initPartnerModal();
   setTimeout(function(){ doc.classList.add('reveal'); }, 30);
 })();
 </script>
