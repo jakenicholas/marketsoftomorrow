@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Releases — The Weekly | Markets of Tomorrow</title>
+<meta name="description" content="Every edition of The Weekly — the build log of Markets of Tomorrow, newest first.">
+<link rel="canonical" href="https://www.oftmw.com/releases/">
+<link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Releases — The Weekly | Markets of Tomorrow">
+<meta property="og:description" content="Every edition of The Weekly — the build log of Markets of Tomorrow, newest first.">
+<meta property="og:url" content="https://www.oftmw.com/releases/">
+<meta property="og:image" content="https://www.oftmw.com/releases/img/ed2-0.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.oftmw.com/releases/img/ed2-0.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#070709;--ink2:#0d0f12;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);
+  --cream:#ECEAE5;--white:#fff;--mute:#9AA39C;--mute2:#C2C9C3;
+  --purple:#A78BFA;--purple-bright:#C4B5FD;--purple-glow:#B9A6FF;
+  --serif:'Fraunces',Georgia,serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(900px 560px at 82% -8%,rgba(167,139,250,.10),transparent 60%),radial-gradient(700px 600px at -6% 40%,rgba(167,139,250,.05),transparent 55%)}
+a{color:inherit;text-decoration:none}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 24px}
+.rel-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-bright);font-weight:600;text-shadow:0 0 16px rgba(167,139,250,.5)}
+.rel-crumbs{padding:26px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.rel-crumbs a:hover{color:var(--purple-bright)}
+.rel-crumbs .sep{opacity:.4;margin:0 8px}
+
+/* ── Archive index ── */
+.rel-hero{padding:52px 0 30px;border-bottom:1px solid var(--hair)}
+.rel-hero h1{font-family:var(--serif);font-size:clamp(40px,6.4vw,68px);font-weight:500;letter-spacing:-.022em;line-height:1.02;color:var(--white);margin:16px 0 0;text-wrap:balance}
+.rel-hero .sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:16px;max-width:56ch}
+.rel-list{display:flex;flex-direction:column;gap:20px;padding:38px 0 90px}
+.rel-card{display:grid;grid-template-columns:200px 1fr;gap:22px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
+.rel-card:hover{border-color:rgba(167,139,250,.42);transform:translateY(-2px);box-shadow:0 24px 60px -30px rgba(167,139,250,.5)}
+.rel-card .rc-media{position:relative;overflow:hidden;background:#111}
+.rel-card .rc-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.rel-card:hover .rc-media img{transform:scale(1.05)}
+.rel-card .rc-body{padding:22px 24px 22px 0;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.rel-card .rc-meta{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.rel-card .rc-no{color:var(--purple-bright);font-weight:700}
+.rel-card h2{font-family:var(--serif);font-size:clamp(22px,2.6vw,28px);font-weight:500;letter-spacing:-.014em;line-height:1.12;color:var(--white);margin:10px 0 8px}
+.rel-card .rc-dek{font-size:14px;color:var(--mute2);line-height:1.55}
+.rel-card .rc-cta{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-bright);display:inline-flex;align-items:center;gap:7px}
+.rel-card .rc-cta svg{width:13px;height:13px;transition:transform .2s}
+.rel-card:hover .rc-cta svg{transform:translateX(3px)}
+@media(max-width:620px){.rel-card{grid-template-columns:1fr}.rel-card .rc-media{aspect-ratio:16/9}.rel-card .rc-body{padding:0 22px 24px}}
+
+/* ── Reader ── */
+.rd-head{padding:44px 0 34px}
+.rd-head .meta{display:flex;align-items:center;gap:12px;margin-top:16px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.rd-head .meta .no{color:var(--purple-bright);font-weight:700}
+.rd-head h1{font-family:var(--serif);font-size:clamp(34px,5.4vw,58px);font-weight:500;letter-spacing:-.02em;line-height:1.04;color:var(--white);margin:18px 0 0;text-wrap:balance}
+.rd-head .dek{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:18px;max-width:56ch}
+.rd-cover{margin:8px 0 6px;border-radius:16px;overflow:hidden;border:1px solid var(--hair)}
+.rd-cover img{width:100%;height:auto;display:block}
+.rd-body{padding:12px 0 40px}
+.rd-body p{font-family:var(--serif);font-weight:300;font-size:19px;line-height:1.72;color:var(--cream);margin:0 0 26px;max-width:64ch}
+.rd-body p a{color:var(--purple-bright);border-bottom:1px solid rgba(167,139,250,.4);transition:border-color .2s}
+.rd-body p a:hover{border-color:var(--purple-bright)}
+.rd-body p b{font-weight:600;color:var(--white)}
+.rd-body h2{font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple-bright);margin:44px 0 20px;padding-top:26px;border-top:1px solid var(--hair);text-shadow:0 0 14px rgba(167,139,250,.4)}
+.rd-body figure{margin:34px 0 40px;border-radius:14px;overflow:hidden;border:1px solid var(--hair);box-shadow:0 26px 70px -34px rgba(0,0,0,.85)}
+.rd-body figure img{width:100%;height:auto;display:block}
+.rd-qs{list-style:none;margin:0 0 28px;padding:22px 24px;border:1px solid rgba(167,139,250,.28);border-radius:14px;background:linear-gradient(180deg,rgba(167,139,250,.06),rgba(167,139,250,.015));display:flex;flex-direction:column;gap:13px}
+.rd-qs li{font-family:var(--serif);font-style:italic;font-weight:300;font-size:16.5px;line-height:1.5;color:var(--mute2);display:flex;gap:12px}
+.rd-qs li::before{content:"";flex:none;width:6px;height:6px;margin-top:11px;border-radius:50%;background:var(--purple-glow);box-shadow:0 0 10px rgba(185,166,255,.8)}
+.rd-about{margin:10px 0 0;padding:26px 0 40px;border-top:1px solid var(--hair)}
+.rd-about .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin-bottom:12px}
+.rd-about p{font-size:14px;line-height:1.65;color:var(--mute2);font-family:var(--sans);font-weight:300;max-width:none}
+.rd-foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:24px 0 90px}
+.rd-foot a{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);display:inline-flex;align-items:center;gap:8px;transition:color .2s}
+.rd-foot a:hover{color:var(--purple-bright)}
+.rd-foot a svg{width:13px;height:13px}
+.rd-foot .li{color:var(--purple-bright)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span>Releases</nav>
+  <header class="rel-hero">
+    <span class="rel-eyebrow">The Weekly</span>
+    <h1>The build log.</h1>
+    <p class="sub">Every edition of The Weekly — what we shipped, and why it compounds. Newest on top.</p>
+  </header>
+  <div class="rel-list">
+    <a class="rel-card" href="/releases/edition2/">
+      <div class="rc-media"><img src="/releases/img/ed2-0.jpg" alt="The database learned to follow the money" loading="lazy"></div>
+      <div class="rc-body">
+        <div class="rc-meta"><span class="rc-no">No. 02</span><span>·</span><span>July 12, 2026</span></div>
+        <h2>The database learned to follow the money</h2>
+        <div class="rc-dek">Following the money, a proactive weekly Brief, and answers that are doors instead of dead ends.</div>
+        <span class="rc-cta">Read the edition <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+    <a class="rel-card" href="/releases/edition1/">
+      <div class="rc-media"><img src="/releases/img/ed1-0.jpg" alt="The model is the cheapest part" loading="lazy"></div>
+      <div class="rc-body">
+        <div class="rc-meta"><span class="rc-no">No. 01</span><span>·</span><span>July 5, 2026</span></div>
+        <h2>The model is the cheapest part</h2>
+        <div class="rc-dek">One shared brain that learns from every edit, Deep mode, and the day we deleted a 29,000-token prompt and the answers got better.</div>
+        <span class="rc-cta">Read the edition <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </a>
+  </div>
+</div>
+<script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
+</body></html>
