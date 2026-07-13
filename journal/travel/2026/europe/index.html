@@ -26,21 +26,6 @@
   a{color:inherit}
   img{display:block;max-width:100%}
 
-  /* ── Password gate ── */
-  #gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 92% at 50% 0%,#F7F0E3 0%,#E7DBC6 66%);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease}
-  #gate.hide{opacity:0;pointer-events:none}
-  .gate-card{width:100%;max-width:380px;text-align:center}
-  .gate-eyebrow{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);margin-bottom:18px}
-  .gate-mark{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px;color:var(--brown)}
-  .gate-sub{color:#8A755E;font-size:14px;margin-bottom:26px}
-  .gate-form{display:flex;gap:8px}
-  #gatePw{flex:1;background:#FBF6EC;border:1px solid #D8C6A6;border-radius:11px;padding:14px 16px;color:var(--brown);font-family:var(--sans);font-size:16px;letter-spacing:.3em;text-align:center;outline:none}
-  #gatePw:focus{border-color:var(--terra)}
-  #gateBtn{background:var(--terra);color:#FBF6EC;border:0;border-radius:11px;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;transition:filter .15s}
-  #gateBtn:hover{filter:brightness(1.06)}
-  .gate-err{color:#b23c3c;font-size:12.5px;margin-top:14px;height:16px;opacity:0;transition:opacity .2s}
-  .gate-err.show{opacity:1}
-
   /* ── Layout ── */
   #doc{opacity:0;transition:opacity .6s ease .1s}
   #doc.reveal{opacity:1}
@@ -142,6 +127,25 @@
   .leg.start .leg-wave{opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23e6c574' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
   @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
 
+  /* ── Open partnerships box (above the first day) ── */
+  .partners{margin:6px 0 8px;padding:32px 30px 34px;border:1px solid var(--hair2);border-radius:18px;
+            background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);box-shadow:0 10px 34px rgba(74,57,43,.09)}
+  .pt-head{text-align:center;max-width:62ch;margin:0 auto 24px}
+  .pt-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:11px}
+  .pt-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(23px,3.6vw,32px);letter-spacing:-.01em;color:var(--brown)}
+  .pt-sub{margin-top:12px;font-size:14.5px;line-height:1.72;color:var(--mute2)}
+  .pt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+  .pt-tile{background:#FCF8EF;border:1px solid var(--hair2);border-radius:14px;padding:22px 22px 20px;text-align:center;
+           box-shadow:0 4px 16px rgba(74,57,43,.06)}
+  .pt-city{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.01em;color:var(--brown)}
+  .pt-when{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--purple-soft);margin-top:3px}
+  .pt-cats{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:15px 0 17px}
+  .pt-cats span{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute2);
+                border:1px solid var(--hair2);border-radius:99px;padding:5px 11px;background:rgba(176,96,58,.05)}
+  .pt-mail{display:inline-block;font-size:12.5px;font-weight:600;color:var(--terra);text-decoration:none;
+           border-top:1px solid var(--hair);padding-top:14px;line-height:1.5;width:100%}
+  .pt-mail:hover{text-decoration:underline}
+
   /* ── Pending / tentative stop states ── */
   .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
   .tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;vertical-align:middle;margin-left:8px}
@@ -203,21 +207,7 @@
 </head>
 <body>
 
-<!-- Password gate -->
-<div id="gate">
-  <div class="gate-card">
-    <div class="gate-eyebrow">Markets of Tomorrow · Private</div>
-    <div class="gate-mark">The itinerary is sealed</div>
-    <div class="gate-sub">Enter the access code to view the journey.</div>
-    <form class="gate-form" id="gateForm" autocomplete="off">
-      <input id="gatePw" type="password" inputmode="numeric" placeholder="• • • •" aria-label="Access code" maxlength="12">
-      <button id="gateBtn" type="submit">Enter</button>
-    </form>
-    <div class="gate-err" id="gateErr">That code doesn't match. Try again.</div>
-  </div>
-</div>
-
-<!-- Itinerary (rendered after auth) -->
+<!-- Itinerary -->
 <div id="doc">
   <div class="topwrap">
     <div class="topshow" id="topshow" aria-hidden="true"></div>
@@ -533,9 +523,30 @@ function initRouteMap(tries){
   window.addEventListener('resize', function(){ sync(false); });
 }
 
+function partnerBoxHtml(){
+  var pend = STOPS.filter(function(s){ return s.pending; });
+  if(!pend.length) return '';
+  var tiles = pend.map(function(s){
+    var subj = encodeURIComponent('Travel partner — '+s.loc);
+    return '<div class="pt-tile">'
+      +   '<div class="pt-city">'+s.loc+'</div>'
+      +   '<div class="pt-when">'+s.nights+'</div>'
+      +   '<div class="pt-cats"><span>Restaurants</span><span>Hotels</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
+      +   '<a class="pt-mail" href="mailto:media@oftmw.com?subject='+subj+'">Email media@oftmw.com to confirm travel partner coverage</a>'
+      + '</div>';
+  }).join('');
+  return '<section class="partners">'
+    + '<div class="pt-head">'
+    +   '<div class="pt-k">Open Partnerships</div>'
+    +   '<h2>Cities still seeking a local partner</h2>'
+    +   '<p class="pt-sub">Beyond the hotel, we’re curating the right restaurants, golf, excursions &amp; experiences in every city on this route. If you host, guide, or represent a standout, we’d love to include you.</p>'
+    + '</div>'
+    + '<div class="pt-grid">'+tiles+'</div>'
+    + '</section>';
+}
 function render(){
   buildTopShow();
-  var html = '<div class="timeline">', num = 0;
+  var html = '<div class="timeline">' + partnerBoxHtml(), num = 0;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
     var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips
@@ -567,26 +578,12 @@ function render(){
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ lb.classList.remove('on'); lbImg.src=''; } });
 }
 
-// ── Gate ──
-var PW = '2332', KEY = 'tmw_travel_ok';
-function unlock(){
-  document.getElementById('gate').classList.add('hide');
+// ── Reveal (public page) ──
+(function(){
   var doc = document.getElementById('doc');
-  if(!doc.dataset.rendered){ render(); doc.dataset.rendered='1'; }
+  render();
   setTimeout(function(){ doc.classList.add('reveal'); }, 30);
-}
-try{ if(sessionStorage.getItem(KEY)==='1') unlock(); }catch(e){}
-document.getElementById('gateForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  var v = document.getElementById('gatePw').value.trim();
-  if(v === PW){ try{ sessionStorage.setItem(KEY,'1'); }catch(e){} unlock(); }
-  else {
-    var err = document.getElementById('gateErr'); err.classList.add('show');
-    var inp = document.getElementById('gatePw'); inp.value=''; inp.focus();
-    setTimeout(function(){ err.classList.remove('show'); }, 2400);
-  }
-});
-document.getElementById('gatePw').focus();
+})();
 </script>
 </body>
 </html>
