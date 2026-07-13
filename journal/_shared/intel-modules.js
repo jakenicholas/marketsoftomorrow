@@ -100,21 +100,23 @@
 .tmw-m-deal .amt.na{color:var(--mute);font-weight:500}
 /* ---- full (Atlas tile) ---- */
 .tmw-money--full .tmw-m-statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
-.tmw-money--full .tmw-m-statrow .s{border:1px solid rgba(31,223,103,.22);border-radius:14px;padding:16px 18px;background:linear-gradient(180deg,rgba(31,223,103,.05),rgba(31,223,103,.012))}
+.tmw-money--full .tmw-m-statrow .s{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c}
 .tmw-money--full .tmw-m-statrow .s b{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:30px;color:var(--gs);line-height:1;letter-spacing:-.02em;display:block}
 .tmw-money--full .tmw-m-statrow .s span{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:9px;display:block}
 .tmw-money--full .tmw-m-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media(max-width:980px){.tmw-money--full .tmw-m-grid{grid-template-columns:1fr}}
-.tmw-money--full .col{border:1px solid var(--hair2);border-radius:16px;padding:18px 20px;background:rgba(255,255,255,.02)}
-.tmw-money--full .col .h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);margin-bottom:12px}
+.tmw-money--full .col{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px 20px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),#0c0e0c}
+.tmw-money--full .col .h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute2);margin-bottom:0;padding-bottom:11px;border-bottom:1px solid var(--hair)}
 .tmw-money--full .r{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--hair);text-decoration:none}
-.tmw-money--full .r:first-of-type{border-top:0}
+.tmw-money--full .col .h + .r{border-top:0}
 .tmw-money--full .r:hover .nm{color:#fff}
 .tmw-money--full .r .rn{flex:1;min-width:0}
 .tmw-money--full .r .rn .nm{font-size:13px;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
 .tmw-money--full .r .rn .mt{font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--mute);margin-top:3px}
 .tmw-money--full .r .amt{font-family:'JetBrains Mono','Inter',monospace;font-size:12.5px;font-weight:700;color:var(--gs);flex:0 0 auto;font-variant-numeric:tabular-nums}
 .tmw-money--full .r .amt.na{color:var(--mute);font-weight:500}
+.tmw-money .ramt{display:inline-flex;flex-direction:column;align-items:flex-end;gap:3px;flex:0 0 auto}
+.tmw-money .rdate{font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);font-family:'JetBrains Mono','Inter',monospace}
 .tmw-money--full .fl{display:flex;align-items:center;gap:10px;margin-bottom:11px}
 .tmw-money--full .fl .nm{font-size:12.5px;color:var(--mute2);width:120px;flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tmw-money--full .fl .tk{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
@@ -132,8 +134,9 @@
 
   function dealRow(d, cls) {
     var amt = d.amt ? '<span class="amt">' + fmtM(d.amt) + '</span>' : '<span class="amt na">—</span>';
-    var meta = [d.city, d.lender || d.dev, d.when ? ago(d.when) : ''].filter(Boolean).join(' · ');
-    return '<a class="' + cls + '" href="' + esc(d.href) + '" target="_blank" rel="noopener"><div class="' + (cls === 'tmw-m-deal' ? 'dn' : 'rn') + '"><div class="nm">' + esc(d.title) + '</div><div class="mt">' + esc(meta) + '</div></div>' + amt + '</a>';
+    var meta = [d.city, d.lender || d.dev].filter(Boolean).join(' · ');
+    var date = d.when ? '<span class="rdate">' + ago(d.when) + '</span>' : '';
+    return '<a class="' + cls + '" href="' + esc(d.href) + '" target="_blank" rel="noopener"><div class="' + (cls === 'tmw-m-deal' ? 'dn' : 'rn') + '"><div class="nm">' + esc(d.title) + '</div><div class="mt">' + esc(meta) + '</div></div><span class="ramt">' + amt + date + '</span></a>';
   }
 
   function renderTeaser(el, deals) {
