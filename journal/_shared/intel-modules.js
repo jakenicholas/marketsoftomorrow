@@ -37,13 +37,18 @@
   // --- financing extraction: prefer the structured flat fields; else parse notes.
   function noteAmt(note) { var m = String(note || '').match(/\$\s*([\d,]+(?:\.\d+)?)\s*(billion|bn|million|mm|m|b)\b/i); if (!m) return null; var v = parseFloat(m[1].replace(/,/g, '')); return /^b/i.test(m[2]) ? v * 1000 : v; }
   function noteLender(note) { var m = String(note || '').match(/\bfrom\s+([A-Z][A-Za-z0-9.&'’ -]{2,38}?)(?=\s*[,;(]|\s+(?:construction|bridge|senior|mezzanine|for|per|via|and|closed|to|in|on|at|loan)\b|$)/); if (!m) return null; var L = m[1].trim().replace(/\s+/g, ' '); return L.length >= 3 ? L : null; }
+  // A single real-estate loan realistically tops out in the low tens of $B; a value
+  // above $50B ($50,000M) is almost always a unit error (raw dollars stored where
+  // millions were expected — "$600M" logged as 600000000). Reject it, re-parse note.
+  function saneM(v) { return (v != null && isFinite(v) && v > 0 && v <= 50000) ? v : null; }
   function fromHistory(sh) {
     if (!Array.isArray(sh)) return null;
     var best = null;
     sh.forEach(function (h) {
       if (!h) return;
       if (!(h.phase === 'financing' || /financ|construction loan|refinanc/i.test(h.note || ''))) return;
-      var amt = (h.loan_amount != null ? h.loan_amount : noteAmt(h.note));
+      var amt = saneM(h.loan_amount);
+      if (amt == null) amt = saneM(noteAmt(h.note));
       var lender = h.lender || noteLender(h.note);
       var date = h.effective_date || h.source_published || h.at || '';
       if (!best || (amt || 0) > (best.amt || 0)) best = { amt: amt, lender: lender || '', date: date };
@@ -61,11 +66,11 @@
   function financeDeals(projects, lmap) {
     var out = [];
     projects.forEach(function (p) {
-      var amt = num(p.FinancingAmountM), lender = p.FinancingLender || '', date = p.FinancingDate || '';
-      if (amt == null && !lender && !date) {
+      var amt = saneM(num(p.FinancingAmountM)), lender = p.FinancingLender || '', date = p.FinancingDate || '';
+      if (amt == null) {                              // no sane flat amount → derive from the notes
         var f = fromHistory(p.StatusHistory);
-        if (!f) return;
-        amt = f.amt; lender = f.lender; date = f.date;
+        if (f) { amt = f.amt; if (!lender) lender = f.lender; if (!date) date = f.date; }
+        else if (!lender && !date) return;
       }
       if (amt == null && !lender && !date) return;
       out.push({ title: p.Title, city: (p.City || '').trim(), dev: firstDev(p.Developer), href: projHref(p), amt: amt, lender: normLender(lender, lmap), when: parseWhen(date) });

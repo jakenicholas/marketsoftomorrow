@@ -165,11 +165,18 @@ def _enrich_financing(status_history):
             continue
         if not (h.get('phase') == 'financing' or _FIN_IS.search(h.get('note') or '')):
             continue
+        # A single loan realistically tops out in the low tens of $B; anything over
+        # $50B ($50,000M) is a unit error (raw dollars where millions were meant —
+        # "$600M" logged as 600000000). Reject an implausible value and re-derive
+        # from the note, healing the entry in place.
         amt = h.get('loan_amount')
-        if amt is None:
+        if not (isinstance(amt, (int, float)) and 0 < amt <= 50000):
             amt = _fin_amount_m(h.get('note'))
-            if amt is not None:
+            if isinstance(amt, (int, float)) and 0 < amt <= 50000:
                 h['loan_amount'] = amt
+            else:
+                amt = None
+                h.pop('loan_amount', None)
         ldr = h.get('lender')
         if not ldr:
             ldr = _fin_lender(h.get('note'))

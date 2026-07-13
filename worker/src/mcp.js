@@ -3344,6 +3344,8 @@ const IMPL = {
       let n = parseFloat(m[1].replace(/,/g, ''));
       if (!isFinite(n)) return null;
       if (m[2]) n *= 1000;                 // billions → millions
+      if (n >= 1e6) n = n / 1e6;           // looks like raw dollars → millions ("$600,000,000" → 600)
+      if (!(n > 0 && n <= 50000)) return null;   // implausible for a single loan (> $50B) — reject
       return Math.round(n * 100) / 100;    // stored in $millions
     })(args.loan_amount);
     const lenderName = clean(args.lender);
