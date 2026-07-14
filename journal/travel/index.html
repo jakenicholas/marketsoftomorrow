@@ -380,11 +380,12 @@ function initMarketMap(tries){
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
-  // Background = page beige (blends into the page); water = neutral gray (not beige).
+  // Land stays white, water gray; the globe's "space" (the bg around it) → page beige.
   function paintBg(){
     try{
       if(map.getLayer('background')) map.setPaintProperty('background','background-color','#F2E9D7');
       ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#D8D5CE'); });
+      map.setFog({ 'color':'#F2E9D7', 'high-color':'#F2E9D7', 'space-color':'#F2E9D7', 'star-intensity':0, 'horizon-blend':0.06 });
     }catch(e){}
   }
   if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }
