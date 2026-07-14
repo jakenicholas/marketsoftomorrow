@@ -31,12 +31,15 @@ def num(v):
     return n if n == n and n not in (float('inf'), float('-inf')) else None
 
 
-# A single real-estate loan realistically tops out in the low tens of $B; a value
-# above $50B ($50,000M) is almost always a unit error (raw dollars stored where
-# millions were expected — "$600M" logged as 600000000). Reject it, re-parse note.
+# A single real-estate construction loan realistically tops out around $2-3B (the
+# largest disclosed deals in our data — Aman Singapore / SkyWaters — sit at ~$3B).
+# A value above $6B ($6,000M) is almost always a unit OR currency error (raw dollars
+# stored where millions were expected — "$600M" logged as 600000000 — or a THB/JPY
+# figure read as USD, e.g. One Bangkok's THB 50B green loan logged as $50,000M).
+# Reject it and re-parse the note for a sane figure.
 def sane_m(v):
     n = num(v)
-    return n if (n is not None and 0 < n <= 50000) else None
+    return n if (n is not None and 0 < n <= 6000) else None
 
 
 def note_amt(note):
