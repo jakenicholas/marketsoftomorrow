@@ -285,7 +285,7 @@
         <div class="pm-field"><label for="pmSite">Property website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
         <div class="pm-field"><label for="pmNote">Message</label><textarea id="pmNote" name="message" rows="4" placeholder="Tell us about your property or what you'd like to offer…"></textarea></div>
         <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
-        <button class="pm-submit" id="pmSubmit" type="submit">Send enquiry</button>
+        <button class="pm-submit" id="pmSubmit" type="submit">Send inquiry</button>
         <div class="pm-msg" id="pmMsg" role="status" aria-live="polite"></div>
       </form>
     </div>
@@ -664,14 +664,14 @@ function initPartnerModal(){
       sub = document.getElementById('pmSub'), submit = document.getElementById('pmSubmit'),
       titleEl = document.getElementById('pmTitle'), bodyEl = document.getElementById('pmBody'),
       doneEl = document.getElementById('pmDone');
-  var city = '';
   function open(c){
-    city = c || '';
+    c = c || '';
+    form.dataset.city = c;   // bind city to the form so submit can't read a stale value
     titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
-    sub.innerHTML = c ? 'You’re enquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
+    sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
                       : 'Tell us a little about you and we’ll be in touch.';
     form.reset(); msg.textContent=''; msg.className='pm-msg';
-    bodyEl.style.display=''; doneEl.style.display='none'; submit.disabled=false; submit.textContent='Send enquiry';
+    bodyEl.style.display=''; doneEl.style.display='none'; submit.disabled=false; submit.textContent='Send inquiry';
     back.classList.add('on'); back.setAttribute('aria-hidden','false');
     setTimeout(function(){ document.getElementById('pmName').focus(); }, 80);
   }
@@ -687,6 +687,7 @@ function initPartnerModal(){
   });
   form.addEventListener('submit', function(e){
     e.preventDefault();
+    if(submit.disabled) return;   // guard against double-submit
     var name = document.getElementById('pmName').value.trim();
     var email = document.getElementById('pmEmail').value.trim();
     if(!name){ msg.className='pm-msg err'; msg.textContent='Please add your name.'; return; }
@@ -695,16 +696,16 @@ function initPartnerModal(){
       client: document.getElementById('pmClient').value.trim(),
       website: document.getElementById('pmSite').value.trim(),
       message: document.getElementById('pmNote').value.trim(),
-      company: document.getElementById('pmHp').value, city: city };
+      company: document.getElementById('pmHp').value, city: form.dataset.city || '' };
     submit.disabled = true; submit.textContent = 'Sending…'; msg.className='pm-msg'; msg.textContent='';
     fetch(PARTNER_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
       .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { ok:r.ok, j:j }; }); })
       .then(function(res){
         if(res.ok && res.j && res.j.ok){ bodyEl.style.display='none'; doneEl.style.display=''; }
-        else { submit.disabled=false; submit.textContent='Send enquiry'; msg.className='pm-msg err';
+        else { submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
                msg.textContent = (res.j && res.j.error) || 'Something went wrong — please email media@oftmw.com.'; }
       })
-      .catch(function(){ submit.disabled=false; submit.textContent='Send enquiry'; msg.className='pm-msg err';
+      .catch(function(){ submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
         msg.textContent='Network error — please email media@oftmw.com.'; });
   });
 }

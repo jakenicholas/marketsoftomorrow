@@ -11863,9 +11863,9 @@ async function handleAdminGiveawayStats(env, origin, id) {
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 
-// Public: travel-partner enquiry from the /travel itinerary page. Emails the
+// Public: travel-partner inquiry from the /travel itinerary page. Emails the
 // team (reply-to the sender) and sends the sender a confirmation with the same
-// details. Honeypot field silently absorbs bots.
+// details. Multipart (HTML + text) for deliverability. Honeypot absorbs bots.
 async function handleTravelPartner(request, env, origin) {
   let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const clean = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]+/g, ' ').trim().slice(0, n);
@@ -11881,7 +11881,7 @@ async function handleTravelPartner(request, env, origin) {
   if (!env.RESEND_API_KEY) return json({ error: 'Email is not configured.' }, { status: 503 }, env, origin);
 
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-  const rows = [['Name', name], ['Email', email], ['Client', client || '—'], ['Client website', website || '—'], ['City of interest', city]];
+  const rows = [['Name', name], ['Email', email], ['Client / property', client || '—'], ['Property website', website || '—'], ['City of interest', city]];
   const details = '<table style="border-collapse:collapse;font-family:Inter,Arial,sans-serif">' +
     rows.map(r => '<tr><td style="padding:7px 20px 7px 0;color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="padding:7px 0;color:#4A392B;font-size:14px;font-weight:600">' + esc(r[1]) + '</td></tr>').join('') +
     '</table>';
@@ -11889,15 +11889,25 @@ async function handleTravelPartner(request, env, origin) {
     ? '<div style="margin-top:18px"><div style="color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;font-family:Inter,Arial,sans-serif;margin-bottom:6px">Message</div>' +
       '<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#4A392B;white-space:pre-wrap">' + esc(message) + '</div></div>'
     : '';
-  const shell = intro => '<div style="background:#EFE7D5;padding:34px 20px"><div style="max-width:520px;margin:0 auto;background:#F7F1E4;border:1px solid #E4D7BE;border-radius:16px;padding:30px 28px">' +
+  const htmlShell = intro => '<div style="background:#EFE7D5;padding:34px 20px"><div style="max-width:520px;margin:0 auto;background:#F7F1E4;border:1px solid #E4D7BE;border-radius:16px;padding:30px 28px">' +
     '<div style="font-family:Inter,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:#B0603A;margin-bottom:9px">Markets of Tomorrow</div>' +
-    '<div style="font-family:Georgia,serif;font-size:23px;color:#4A392B;margin-bottom:15px">Travel Partner Enquiry</div>' +
+    '<div style="font-family:Georgia,serif;font-size:23px;color:#4A392B;margin-bottom:15px">Travel Partner Inquiry</div>' +
     '<p style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.65;color:#5E4C3C;margin:0 0 20px">' + intro + '</p>' + details + messageBlock +
     '<p style="font-family:Inter,Arial,sans-serif;font-size:12px;color:#8C7862;margin:24px 0 0">Italy, The Isles &amp; The Alps · Private Itinerary</p>' +
     '</div></div>';
+  // Plain-text alternative — HTML-only mail is a strong spam signal; a real
+  // multipart/alternative markedly improves inbox placement.
+  const textShell = introText => {
+    const lines = ['Markets of Tomorrow — Travel Partner Inquiry', '', introText, '',
+      'Name: ' + name, 'Email: ' + email, 'Client / property: ' + (client || '—'),
+      'Property website: ' + (website || '—'), 'City of interest: ' + city];
+    if (message) lines.push('', 'Message:', message);
+    lines.push('', 'Italy, The Isles & The Alps · Private Itinerary');
+    return lines.join('\n');
+  };
   const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';
-  const send = async (to, subject, html, replyTo) => {
-    const payload = { from: FROM, to: Array.isArray(to) ? to : [to], subject, html };
+  const send = async (to, subject, introHtml, introText, replyTo) => {
+    const payload = { from: FROM, to: Array.isArray(to) ? to : [to], subject, html: htmlShell(introHtml), text: textShell(introText) };
     if (replyTo) payload.reply_to = replyTo;
     try {
       const r = await fetch('https://api.resend.com/emails', { method: 'POST',
@@ -11907,10 +11917,11 @@ async function handleTravelPartner(request, env, origin) {
     } catch { return false; }
   };
   const first = name.split(/\s+/)[0];
-  const notified = await send('media@oftmw.com', 'New travel-partner enquiry — ' + (client || name),
-    shell('A new travel-partner enquiry just came in from the itinerary page:'), email);
+  const intro = 'A new travel-partner inquiry just came in from the itinerary page:';
+  const notified = await send('media@oftmw.com', 'New travel-partner inquiry — ' + (client || name), intro, intro, email);
   await send(email, 'We received your details — Markets of Tomorrow',
-    shell('Thanks ' + esc(first) + ' — we’ve received your details and will be in touch shortly. Here’s what you sent us:'), 'media@oftmw.com');
+    'Thanks ' + esc(first) + ' — we’ve received your details and will be in touch shortly. Here’s what you sent us:',
+    'Thanks ' + first + ' — we’ve received your details and will be in touch shortly. Here’s what you sent us:', 'media@oftmw.com');
   if (!notified) return json({ error: 'Could not send right now — please email media@oftmw.com directly.' }, { status: 502 }, env, origin);
   return json({ ok: true }, {}, env, origin);
 }
