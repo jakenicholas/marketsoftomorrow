@@ -36,9 +36,10 @@
   .tmw-chrome-head .tmw-fm-panel .tmw-oc{background:#E7DCC6 !important; border-color:rgba(176,96,58,.16) !important}
   /* Database: item titles → red (they were white = invisible on beige) */
   .tmw-chrome-head .tmw-fm-panel .tmw-mm-tx b{color:#B0603A !important}
-  /* The Lists: keep it a dark panel with all-white text */
-  .tmw-chrome-head .tmw-fm-panel:has(.tmw-ll){background:#0a0c0a !important; border-color:rgba(255,255,255,.12) !important}
-  .tmw-chrome-head .tmw-fm-panel:has(.tmw-ll) *{color:#fff !important}
+  /* The Lists: beige panel like the others; only the featured card's text sits over
+     its image, so keep that white — the side rows/eyebrow use the normal dark text. */
+  .tmw-chrome-head .tmw-fm-panel .tmw-lc-feat .tmw-lc-fm,
+  .tmw-chrome-head .tmw-fm-panel .tmw-lc-feat .tmw-lc-fm *{color:#fff !important}
   /* TMW logo (header + footer) → red */
   .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#B0603A !important}
   /* view toggle: icons only (hide labels), red icons + red container border, nothing selected */
