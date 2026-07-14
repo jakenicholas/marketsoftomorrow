@@ -81,7 +81,7 @@
   /* ── World map ── */
   .mapsec{padding:34px 0 6px}
   .tm-frame{border:1px solid var(--hair2);border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
-  .tm-map{width:100%;height:min(60vh,520px);background:var(--panel)}
+  .tm-map{width:100%;height:min(60vh,520px);background:var(--ink)}
   .tm-marker{width:16px;height:16px}
   .tm-dot{display:block;width:16px;height:16px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;box-shadow:0 2px 6px rgba(74,57,43,.4);cursor:pointer;transition:transform .15s}
   .tm-dot:hover{transform:scale(1.3);z-index:2}
@@ -124,21 +124,13 @@
   <main class="trips" id="trips"></main>
 </div>
 
-<section class="mapsec"><div class="wrap">
-  <div class="sec-head">
-    <div class="sec-k">On the Ground</div>
-    <h2>Everywhere we've reported from</h2>
-    <p class="sec-sub">A pin for every market our team has visited — across the country and around the world.</p>
-  </div>
-  <div class="tm-frame"><div id="tmap" class="tm-map"></div></div>
-</div></section>
-
 <section id="markets"><div class="wrap">
   <div class="sec-head">
     <div class="sec-k">Markets Visited</div>
     <h2>Markets we've visited</h2>
-    <p class="sec-sub">Our team reports from the field — capturing the projects, openings, and destinations shaping the future.</p>
+    <p class="sec-sub">Our team shares from the field, capturing the projects, openings, and destinations shaping the future.</p>
   </div>
+  <div class="tm-frame"><div id="tmap" class="tm-map"></div></div>
   <div class="mk-filters">
     <select id="fRegion" aria-label="Filter by region">
       <option value="">All regions</option>
@@ -311,6 +303,14 @@ function initMarketMap(tries){
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
+  // Recolor the map's water + background to the page beige so it blends in.
+  function paintBg(){
+    try{
+      if(map.getLayer('background')) map.setPaintProperty('background','background-color','#F2E9D7');
+      ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#F2E9D7'); });
+    }catch(e){}
+  }
+  if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }
   var b=new mapboxgl.LngLatBounds();
   MARKETS.forEach(function(m){
     if(m.lat==null||m.lng==null) return;
