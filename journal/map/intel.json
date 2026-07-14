@@ -4393,21 +4393,48 @@
       "delivery_speculative": false
     },
     "coral-cay-adventure-park": {
-      "estimate_years": 0.13,
-      "estimate_label": "49 days",
-      "days_out": 49,
-      "delivery_date": "2026-09-01",
-      "source": "known_date",
-      "precision": "other",
-      "confidence": "high",
+      "estimate_years": 1.9,
+      "estimate_label": "~1.9 years",
+      "range_low": 0.8,
+      "range_high": 3.0,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.4,
+      "avg_distance_km": 130.7,
+      "avg_distance_mi": 81.2,
+      "scale_used": false,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Entertainment",
       "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in 49 days.",
+      "comparables": [
+        {
+          "name": "Nude Miami",
+          "slug": "nude-miami",
+          "location": "Miami",
+          "years": 0.8,
+          "score": 0.4,
+          "distance_km": 131.4,
+          "distance_mi": 81.7
+        },
+        {
+          "name": "Nu Stadium at Miami Freedom Park",
+          "slug": "nu-stadium-at-miami-freedom-park",
+          "location": "Miami",
+          "years": 3.0,
+          "score": 0.4,
+          "distance_km": 130.0,
+          "distance_mi": 80.8
+        }
+      ],
+      "pattern_summary": "Among 2 regional entertainment projects in TMW's data, the median build time is 1.9 years (range 0.8–3).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "rosewood-residences-west-palm-beach": {
       "estimate_years": 2.9,
@@ -14013,8 +14040,8 @@
   "stats": {
     "high": 7,
     "medium": 18,
-    "low": 65,
-    "known_date": 485,
+    "low": 66,
+    "known_date": 484,
     "completed": 66,
     "skipped": 93,
     "no_type": 0,
