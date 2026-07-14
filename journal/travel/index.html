@@ -397,7 +397,7 @@ function initMarketMap(tries){
   var el=document.getElementById('tmap'); if(!el) return;
   if(typeof mapboxgl==='undefined'){ if((tries||0)<40) setTimeout(function(){ initMarketMap((tries||0)+1); },250); return; }
   mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
-  var VIEW = { center:[-45, 30], zoom:1.1 };   // flat map, zoomed out (slid west so Hawaii is in view)
+  var VIEW = { center:[-105, 30], zoom:1.1 };   // flat map, slid west so Japan + New Zealand are in view
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
     projection:'mercator', center:VIEW.center, zoom:VIEW.zoom, renderWorldCopies:true,
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
