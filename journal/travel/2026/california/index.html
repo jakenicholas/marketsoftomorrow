@@ -76,6 +76,8 @@
     50%{box-shadow:0 0 15px 3px rgba(176,96,58,.55);border-color:rgba(176,96,58,.85)}
   }
   @media(prefers-reduced-motion:reduce){ .jpr-pulse{animation:none} }
+  /* red filled "Open to Partnerships" bubble (matches the /travel homepage cards) */
+  .jpr.jpr-open{background:var(--terra)!important;border-color:var(--terra)!important;color:#FBF6EC!important}
 
   /* ── Part divider ── */
   .part{padding:64px 0 30px;text-align:center}
@@ -395,9 +397,9 @@ function legHtml(l){
     + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
     + '</div>';
 }
-function jprPill(label, key, pulse){
+function jprPill(label, key, pulse, cls){
   var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
-  return '<span class="jpr'+(pulse?' jpr-pulse':'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
+  return '<span class="jpr'+(pulse?' jpr-pulse':'')+(cls?' '+cls:'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
 }
 function logiHtml(logi){
   if(!logi||!logi.length) return '';
@@ -411,7 +413,7 @@ function stopHtml(s, marker){
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
-  var pill = s.pending ? jprPill('Open to partner', null, true)   // pulse-glow the open bubble
+  var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
            : s.noClient ? jprPill('Private')
            : jprPill(s.client || 'Client', 'Partner');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;

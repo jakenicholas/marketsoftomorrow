@@ -377,17 +377,16 @@ function initMarketMap(tries){
   var el=document.getElementById('tmap'); if(!el) return;
   if(typeof mapboxgl==='undefined'){ if((tries||0)<40) setTimeout(function(){ initMarketMap((tries||0)+1); },250); return; }
   mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
-  var VIEW = { center:[-28, 34], zoom:2 };   // Atlantic-centered globe (NA · Europe · Africa)
+  var VIEW = { center:[-28, 34], zoom:1.6 };   // flat map, framed on NA · Europe · Africa
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
-    center:VIEW.center, zoom:VIEW.zoom,
+    projection:'mercator', center:VIEW.center, zoom:VIEW.zoom, renderWorldCopies:true,
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
-  // Land stays white, water gray; the globe's "space" (the bg around it) → page beige.
+  // Flat map: land white, water gray, the base (map bg) → page beige.
   function paintBg(){
     try{
       if(map.getLayer('background')) map.setPaintProperty('background','background-color','#F2E9D7');
       ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#D8D5CE'); });
-      map.setFog({ 'color':'#F2E9D7', 'high-color':'#F2E9D7', 'space-color':'#F2E9D7', 'star-intensity':0, 'horizon-blend':0.06 });
     }catch(e){}
   }
   if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }

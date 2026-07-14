@@ -76,6 +76,8 @@
     50%{box-shadow:0 0 15px 3px rgba(176,96,58,.55);border-color:rgba(176,96,58,.85)}
   }
   @media(prefers-reduced-motion:reduce){ .jpr-pulse{animation:none} }
+  /* red filled "Open to Partnerships" bubble (matches the /travel homepage cards) */
+  .jpr.jpr-open{background:var(--terra)!important;border-color:var(--terra)!important;color:#FBF6EC!important}
 
   /* ── Part divider ── */
   .part{padding:64px 0 30px;text-align:center}
@@ -373,27 +375,24 @@ const STOPS = [
       'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
       'https://cf.bstatic.com/xdata/images/hotel/max1024x768/775299805.jpg?k=af00d6a610d3ec2a5fd0eb815f5e7a01d354571ca9f7e3a654aa1cd0b8f532a7&o='] },
 
-  { loc:'Paros', nights:'3 Nights · Sept 17 → 20', stay:'Andronis Minois',
-    in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Paros · high-speed ferry' },
-    vibe:'A serene, design-led retreat above Parasporos Bay on Paros — whitewashed Cycladic lines, an infinity pool over the Aegean, and a quieter, refined counterpoint to the busier isles.',
-    logi:[['Transit','Board a morning high-speed ferry direct from Mykonos to Paros (approx. <b>45 minutes</b>).']],
-    imgs:[
-      'https://simpleferry.com/_next/image?url=%2Fblog%2Fparos%2Fpicturesque-naousa-town-on-paros-island-greece-in-2026-01-05-23-09-06-utc.webp&w=3840&q=75',
-      'https://i.redd.it/aldpqddr2zyf1.jpeg',
-      'https://www.travelandleisure.com/thmb/temuzzCcD0u5XPo1pazHY7-lxok=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-header-exterior-andronis-minois-ANRNSMINOIS0524-ed5c061d79354e60898e63126995b520.jpg'] },
+  { loc:'Santorini, Greece', nights:'3 Nights · Sept 17 → 20', stay:'Andronis Luxury Suites',
+    in:{ date:'Sept 17', mode:'ferry', note:'Mykonos → Santorini · high-speed ferry' },
+    vibe:'Classic Cycladic white-plaster cave suites built into the dramatic volcanic cliffs of Oia — every suite with its own private infinity or heated cave plunge pool facing the deep-blue caldera, and the famous clifftop, candlelit Lycabettus restaurant above the sea.',
+    logi:[['Transit','Morning high-speed ferry direct from Mykonos to Santorini (approx. <b>2–2.5 hours</b>). Santorini (JTR) is a major international hub, so a quick 45-minute flight to Athens is an easy backup on Sept 20.']],
+    imgs:['https://media.cntraveller.com/photos/611be9bb69410e829d87e0c2/16:9/w_2560%2Cc_limit/Blue-domed-church-along-caldera-edge-in-Oia-Santorini-greece-conde-nast-traveller-11aug17-iStock.jpg'] },
 
-  { loc:'Athens Riviera', nights:'2 Nights · Sept 20 → 22', stay:'Cape Sounio',
-    in:{ date:'Sept 20', mode:'ferry', note:'Paros → Port of Lavrio' },
-    vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
-    logi:[['Transit','Northbound high-speed ferry from Paros — book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus for a direct, traffic-free 15-minute drive to the hotel.']],
+  { loc:'Athens Riviera', nights:'2 Nights · Sept 20 → 22', stay:'Four Seasons Astir Palace',
+    in:{ date:'Sept 20', mode:'ferry', note:'Santorini → Port of Piraeus' },
+    vibe:'The crown jewel of the Athens Riviera, in the prestigious enclave of Vouliagmeni — a glamorous 75-acre pine-clad peninsula bringing the golden era of the 1960s Riviera into the present. Three private beaches, a 300-meter waterfront boardwalk, fine dining including Matsuhisa by Nobu and a beachfront Greek taverna, and an exceptional spa — a resort escape just 30 minutes from the city.',
+    logi:[['Transit','High-speed ferry from Santorini to the main <b>Port of Piraeus</b> — larger, faster, and more stable options than the smaller port of Lavrio.'],['The Drive','A smooth, scenic <b>~43-minute drive</b> straight down the coast from Piraeus to Vouliagmeni.']],
     imgs:[
       'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
-      'https://media.cntraveller.com/photos/6a44feee8fad0c35774cfdd6/16:9/w_2560,c_limit/pool-view-cape-sounio-athens-riviera-greece-june-2026-pr.jpg'] },
+      'https://www.fourseasons.com/content/dam/fourseasons/images/web/APL/APL_137_original.jpg'] },
 
   { loc:'Athens · Historic Center', nights:'3 Nights · Sept 22 → 25', stay:'The Dolli at Acropolis',
-    in:{ date:'Sept 22', mode:'car', note:'Cape Sounio → Athens · private transfer' },
+    in:{ date:'Sept 22', mode:'car', note:'Vouliagmeni → Athens · private transfer' },
     vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis — an ideal base for walking the Plaka and exploring the ancient landmarks.',
-    logi:[['Transit','A direct 45–60 minute private transfer up the coast from Cape Sounio into the heart of historic Athens.']],
+    logi:[['Transit','A short ~30-minute private transfer up the coast from Vouliagmeni into the heart of historic Athens.']],
     imgs:[
       'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg',
       'https://www.thehotelguru.com/_images/98/6f/986fedf825c85c605b4319783c4df931/s1654x900.jpg',
@@ -472,9 +471,9 @@ function legHtml(l){
     + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
     + '</div>';
 }
-function jprPill(label, key, pulse){
+function jprPill(label, key, pulse, cls){
   var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
-  return '<span class="jpr'+(pulse?' jpr-pulse':'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
+  return '<span class="jpr'+(pulse?' jpr-pulse':'')+(cls?' '+cls:'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
 }
 function logiHtml(logi){
   if(!logi||!logi.length) return '';
@@ -488,7 +487,7 @@ function stopHtml(s, marker){
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
-  var pill = s.pending ? jprPill('Open to partner', null, true)   // pulse-glow the open bubble
+  var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
            : s.noClient ? jprPill('Private')
            : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
@@ -559,8 +558,8 @@ function initSlideshows(){
 // Approx lat/lng for the route map (numbered pins, geographic layout).
 var COORDS = {
   'Rome, Italy':[41.90,12.50], 'Verona, Italy':[45.44,10.99], 'Venice, Italy':[45.44,12.32],
-  'Dubrovnik, Croatia':[42.65,18.09], 'Mykonos':[37.45,25.33], 'Paros':[37.05,25.15],
-  'Athens Riviera':[37.65,24.02], 'Athens · Historic Center':[37.98,23.73],
+  'Dubrovnik, Croatia':[42.65,18.09], 'Mykonos':[37.45,25.33], 'Santorini, Greece':[36.42,25.43],
+  'Athens Riviera':[37.81,23.78], 'Athens · Historic Center':[37.98,23.73],
   'Southeast Slovenia':[45.84,15.04], 'The Dolomites, Italy':[46.72,11.66],
   'St. Moritz, Switzerland':[46.49,9.84], 'Gstaad, Switzerland':[46.48,7.29],
   'Zurich or Geneva, Switzerland':[46.20,6.14]
