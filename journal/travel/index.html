@@ -28,12 +28,20 @@
      search overlay and pinned dock — all scoped to this page's DOM only. */
   .tmw-chrome-head nav.main{background:#F2E9D7 !important; border-bottom:1px solid rgba(176,96,58,.2) !important}
   .tmw-chrome-head .nav-links{background:#F2E9D7 !important}
-  .tmw-chrome-head .wm-fill{fill:#B0603A !important}
   .tmw-chrome-head .nav-cta{background:rgba(176,96,58,.06) !important}
   .tmw-chrome-head .nav-cta .mc-count{background:rgba(176,96,58,.12) !important; border-color:rgba(176,96,58,.32) !important}
-  /* view toggle active segment → terracotta pill; member CTA text → terracotta */
-  .tmw-chrome-head .tmw-st-seg.on{background:#B0603A !important; color:#FBF6EC !important}
+  /* nav dropdown panels → beige (this isn't a dark page) */
+  .tmw-fm-panel,.tmw-fm-panel.v2{background:#FBF6EC !important; border-color:rgba(176,96,58,.2) !important}
+  /* TMW logo (header + footer) → the gray the view-toggle icons use */
+  .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#C2C9C3 !important}
+  /* view toggle: nothing selected (this isn't the journal page) — gray segments + border */
+  .tmw-chrome-head .tmw-st{border-color:#C2C9C3 !important}
+  .tmw-chrome-head .tmw-st-seg.on{background:transparent !important; color:#C2C9C3 !important; border-color:#C2C9C3 !important}
+  /* auth: terracotta by default, but profile icon black + notification pulse back to original purple */
   .tmw-chrome-head .tmw-auth, .tmw-chrome-head .tmw-auth *{color:#B0603A !important}
+  .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#111 !important; fill:#111 !important; stroke:#111 !important}
+  .tmw-chrome-head .v2-login-text{color:#111 !important}
+  .tmw-chrome-head .tmw-pulse-bell, .tmw-chrome-head .tmw-pulse-bell *{color:#A78BFA !important}
   .tmw-dock,.tmw-ov-root{display:none !important}
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
@@ -188,10 +196,10 @@ var TRIPS = [
   { title:'Four Seasons Fort Lauderdale', place:'Fort Lauderdale, Florida', date:'May 8 — 10, 2026',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/04a4e3ea5423-DJI_20250606074409_0238_F1.jpeg',
     partners:['Four Seasons'] },
-  { title:'Tokyo', place:'Tokyo, Japan', date:'April 21 — 26, 2026',
+  { title:'Back in Tokyo', place:'Tokyo, Japan', date:'April 21 — 26, 2026',
     img:'https://media.digitalnomads.world/wp-content/uploads/2021/02/20120635/tokyo-for-digital-nomads.jpg',
     partners:[] },
-  { title:'Hawaii', place:'Maui, Kauai, Oahu', date:'March 18 — April 21, 2026',
+  { title:'Maui, Kauai & Oahu', place:'Hawaii', date:'March 18 — April 21, 2026',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bb843cc42cf247b4b9ad045666c4dd6d~mv2.webp',
     partners:['Quinn PR','C&R PR','REM Public Relations','Andaz Maui','Princeville Makai','Puakea','Alohalani','Koa Kea Resort','Hokuala'] },
   { title:'New York City', place:'New York, New York', date:'March 5 — 8, 2026',
@@ -207,11 +215,11 @@ var TRIPS = [
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4ec3d6c43a9f4a5a8f6ab633be791253~mv2.avif', partners:[] },
   { title:'London', place:'London, United Kingdom', date:'October 22 — 25, 2025',
     img:'https://res.klook.com/image/upload/fl_lossy.progressive,q_60/v1755071506/destination/f8u2ktjkdlnbyrif6yls.jpg', partners:['LDPR','One Aldwych'] },
-  { title:'Iceland', place:'Iceland', date:'October 14 — 21, 2025',
+  { title:'A drive around Iceland', place:'Iceland', date:'October 14 — 21, 2025',
     img:'https://images.travelandleisureasia.com/wp-content/uploads/sites/3/2024/02/12190030/Kirkjufell.jpg', partners:[] },
   { title:'New York City', place:'New York, New York', date:'October 11 — 13, 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/db8e4a8c065e-iStock-178735930.jpg', partners:['RE: Agency','Dream Global'] },
-  { title:'Orange County, Lake Tahoe & Yosemite', place:'California', date:'September 11 — 20, 2025',
+  { title:'Orange County, Lake Tahoe\n& Yosemite', place:'California', date:'September 11 — 20, 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg', partners:['C&R PR','Clear Creek Tahoe'] },
   { title:'Streamsong', place:'Bowling Green, Florida', date:'May 8 — 11, 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bowling-green/streamsong-resort-2.jpeg', partners:['Streamsong'] },
@@ -256,7 +264,7 @@ function tripHtml(t, i){
     + '<div class="trip-img">'+imgHtml(t, i)+'</div>'
     + '<div class="trip-body">'
     +   '<div class="trip-date">'+esc(t.date)+'</div>'
-    +   '<h2 class="trip-title">'+esc(t.title)+'</h2>'
+    +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
     +   partnersHtml(t.partners)
     +   (t.href ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
