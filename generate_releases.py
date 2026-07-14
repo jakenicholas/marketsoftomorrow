@@ -21,6 +21,39 @@ OUT_DIR   = "journal/releases"
 
 def e(s): return html.escape(str(s or ""), quote=True)
 
+import glob, re, shutil
+
+DIGEST_SRC = "newsletter/digest-archive"
+DIGEST_OUT = OUT_DIR + "/digest"   # served copies at /releases/digest/<date>/
+
+def _digest_title(text):
+    m = re.search(r'<title>\s*([^<\n]{6,120})</title>', text)
+    if m and 'intentionally' not in m.group(1).lower():
+        return m.group(1).strip()
+    m = re.search(r'(?:preheader|preview|hidden)[^>]*>\s*([^<\n]{10,140})', text, re.I)
+    if m:
+        t = re.sub(r'\s+', ' ', m.group(1)).strip()
+        # trim a long preheader to a clean ~9-word headline
+        words = t.split(' ')
+        return ' '.join(words[:11]).rstrip(',;: ') + ('…' if len(words) > 11 else '')
+    return 'Weekly digest'
+
+MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+def _date_label(iso):
+    y, m, d = iso.split('-')
+    return f"{MONTHS[int(m)-1]} {int(d)}, {y}"
+
+def discover_digests():
+    out = []
+    for fp in sorted(glob.glob(DIGEST_SRC + "/*.html"), reverse=True):
+        base = os.path.basename(fp)[:-5]   # YYYY-MM-DD
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', base):
+            continue
+        txt = open(fp, encoding='utf-8', errors='replace').read()
+        out.append({'date': base, 'date_label': _date_label(base),
+                    'title': _digest_title(txt), 'src': fp})
+    return out
+
 # ── Editions (newest FIRST) ───────────────────────────────────────────────
 EDITIONS = [
   {
@@ -128,6 +161,21 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
 a{color:inherit;text-decoration:none}
 .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 24px}
 .rel-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-bright);font-weight:600;text-shadow:0 0 16px rgba(167,139,250,.5)}
+.rel-hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.rel-seg{display:inline-flex;border:1px solid var(--hair2);border-radius:999px;padding:3px;background:rgba(255,255,255,.03)}
+.rel-seg button{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--mute);background:none;border:0;cursor:pointer;padding:8px 16px;border-radius:999px;transition:color .2s,background .2s}
+.rel-seg button.on{color:#0a0a0a;background:var(--purple-bright);text-shadow:none}
+.rel-seg button:not(.on):hover{color:var(--cream)}
+/* consumer digest rows — no image, just date + title */
+.dig-list{display:flex;flex-direction:column;gap:0;padding:34px 0 90px}
+.dig-row{display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:20px;padding:22px 6px;border-top:1px solid var(--hair);text-decoration:none;transition:background .18s,padding-left .18s}
+.dig-row:last-child{border-bottom:1px solid var(--hair)}
+.dig-row:hover{background:linear-gradient(90deg,rgba(167,139,250,.06),transparent 70%);padding-left:14px}
+.dig-date{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.dig-title{font-family:var(--serif);font-size:clamp(18px,2vw,22px);font-weight:500;letter-spacing:-.012em;color:var(--white);line-height:1.2}
+.dig-arr{color:var(--purple-bright);font-family:var(--mono);font-size:15px;opacity:.55;transition:opacity .2s,transform .2s}
+.dig-row:hover .dig-arr{opacity:1;transform:translateX(3px)}
+@media(max-width:620px){.dig-row{grid-template-columns:1fr auto;gap:6px 14px}.dig-date{grid-column:1/-1}}
 .rel-crumbs{padding:26px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .rel-crumbs a:hover{color:var(--purple-bright)}
 .rel-crumbs .sep{opacity:.4;margin:0 8px}
@@ -138,6 +186,7 @@ a{color:inherit;text-decoration:none}
 .rel-hero h1{font-family:var(--serif);font-size:clamp(40px,6.4vw,68px);font-weight:500;letter-spacing:-.022em;line-height:1.02;color:var(--white);margin:16px 0 0;text-wrap:balance}
 .rel-hero .sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:16px;max-width:56ch}
 .rel-list{display:flex;flex-direction:column;gap:20px;padding:38px 0 90px}
+.rel-list[hidden],.dig-list[hidden]{display:none}
 .rel-card{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:center;padding:16px 0 16px 16px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
 .rel-card:hover{border-color:rgba(167,139,250,.42);transform:translateY(-2px);box-shadow:0 24px 60px -30px rgba(167,139,250,.5)}
 .rel-card .rc-media{position:relative;overflow:hidden;background:#111;aspect-ratio:16/9;align-self:center;border-radius:12px}
@@ -253,8 +302,9 @@ def build_index():
     canonical = f"{ROOT_URL}/releases/"
     og = f"{ROOT_URL}/releases/img/{EDITIONS[0]['cover']}"
     h = head(f"Releases — The Weekly | {SITE_NAME}",
-             "Every edition of The Weekly — the build log of Markets of Tomorrow, newest first.",
+             "The Weekly — Backend build log + Consumer digest archive from Markets of Tomorrow.",
              canonical, og)
+    # Backend view: the LinkedIn build-log editions
     cards = []
     for ed in EDITIONS:
         cards.append(f"""
@@ -267,17 +317,63 @@ def build_index():
         <span class="rc-cta">Read the edition {ARROW}</span>
       </div>
     </a>""")
+    # Consumer view: the newsletter digest archive (title + date, no images).
+    # Each digest is copied to /releases/digest/<date>/ so it is web-served.
+    digests = discover_digests()
+    os.makedirs(DIGEST_OUT, exist_ok=True)
+    rows = []
+    for d in digests:
+        dst = f"{DIGEST_OUT}/{d['date']}"
+        os.makedirs(dst, exist_ok=True)
+        shutil.copyfile(d['src'], f"{dst}/index.html")
+        rows.append(f"""
+    <a class="dig-row" href="/releases/digest/{e(d['date'])}/">
+      <span class="dig-date">{e(d['date_label'])}</span>
+      <span class="dig-title">{e(d['title'])}</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>""")
     body = f"""
 <div class="wrap">
-  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><span class="rc-cur">The Weekly:Backend</span></nav>
+  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><span class="rc-cur" id="crumbCur">The Weekly:Backend</span></nav>
   <header class="rel-hero">
-    <span class="rel-eyebrow">The Weekly</span>
-    <h1>The build log.</h1>
-    <p class="sub">Every edition of The Weekly:Backend, what we shipped, and why it compounds.</p>
+    <div class="rel-hero-top">
+      <span class="rel-eyebrow" id="relEyebrow">The Weekly:Backend</span>
+      <div class="rel-seg" role="tablist">
+        <button type="button" data-view="backend" class="on">Backend</button>
+        <button type="button" data-view="consumer">Consumer</button>
+      </div>
+    </div>
+    <h1 id="relH1">The build log.</h1>
+    <p class="sub" id="relSub">Every edition of The Weekly:Backend, what we shipped, and why it compounds.</p>
   </header>
-  <div class="rel-list">{''.join(cards)}
+  <div class="rel-list" data-view="backend">{''.join(cards)}
+  </div>
+  <div class="dig-list" data-view="consumer" hidden>{''.join(rows)}
   </div>
 </div>
+<script>
+(function(){{
+  var COPY = {{
+    backend:  {{ eye:'The Weekly:Backend',  h1:'The build log.',   sub:'Every edition of The Weekly:Backend, what we shipped, and why it compounds.' }},
+    consumer: {{ eye:'The Weekly:Consumer', h1:'The dispatch.',     sub:'Every consumer digest — the openings, projects, and stories, as they went out each week.' }}
+  }};
+  var segs = document.querySelectorAll('.rel-seg button');
+  function show(v){{
+    document.querySelectorAll('[data-view]').forEach(function(el){{
+      if (el.classList.contains('rel-list') || el.classList.contains('dig-list')) el.hidden = (el.getAttribute('data-view') !== v);
+    }});
+    segs.forEach(function(b){{ b.classList.toggle('on', b.getAttribute('data-view') === v); }});
+    var c = COPY[v];
+    document.getElementById('relEyebrow').textContent = c.eye;
+    document.getElementById('crumbCur').textContent = c.eye;
+    document.getElementById('relH1').textContent = c.h1;
+    document.getElementById('relSub').textContent = c.sub;
+    try {{ history.replaceState(null, '', v === 'consumer' ? '#consumer' : '#backend'); }} catch(_){{}}
+  }}
+  segs.forEach(function(b){{ b.addEventListener('click', function(){{ show(b.getAttribute('data-view')); }}); }});
+  if (location.hash === '#consumer') show('consumer');
+}})();
+</script>
 """
     with open(f"{OUT_DIR}/index.html", "w", encoding="utf-8") as f:
         f.write(h + body + FOOT_SCRIPTS)

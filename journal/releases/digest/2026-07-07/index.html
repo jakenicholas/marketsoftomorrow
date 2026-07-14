@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<!-- <title> intentionally OMITTED. Gmail (web + iOS + Android) renders
+     the <title> tag as a visible heading at the top of the email body,
+     so even a generic "Markets of Tomorrow" leaks as a stray line above
+     the brand logo. The real email subject is set in Resend per-send,
+     and the OG/Twitter title tags below still carry the dynamic subject
+     for share previews. -->
+
+<!-- Favicon (browser-tab icon for the web preview / archive) -->
+<link rel="icon" type="image/png" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
+<link rel="apple-touch-icon" href="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png">
+
+<!-- Social share image (Open Graph + Twitter) -->
+<meta property="og:title" content="Dolly Parton's SongTeller Hotel is opening">
+<meta property="og:description" content="One Montague Place broke ground in Brooklyn Heights, a $550 million, 672-foot tower with harbor-view condos, a jazz club, and BondST restaurant joining the borough's tallest. This week's coverage spans 40-plus projects, from Miami's Fouquet's residences and the reopened PS MIA private terminal to NoMad's 262 Fifth Avenue and Guatemala City's Foro Futeca arena.">
+<meta property="og:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg">
+<meta property="og:url" content="https://map.oftmw.com/newsletter/digest-archive/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Markets of Tomorrow">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dolly Parton's SongTeller Hotel is opening">
+<meta name="twitter:description" content="One Montague Place broke ground in Brooklyn Heights, a $550 million, 672-foot tower with harbor-view condos, a jazz club, and BondST restaurant joining the borough's tallest. This week's coverage spans 40-plus projects, from Miami's Fouquet's residences and the reopened PS MIA private terminal to NoMad's 262 Fifth Avenue and Guatemala City's Foro Futeca arena.">
+<meta name="twitter:image" content="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg">
+
+<style>
+  :root {
+    color-scheme: light;
+    supported-color-schemes: light;
+  }
+
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #ede9fe;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  @media only screen and (max-width: 480px) {
+    .two-col-cell {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 0 16px 0 !important;
+    }
+    .two-col-spacer { display: none !important; }
+    .ad-banner { width: 100% !important; }
+    .grid-card-image-wrap { height: 180px !important; }
+    /* On mobile, lock the body cell to a fixed min-height so cards with
+       1-line titles and cards with 2-line titles render the same size.
+       The previous `height: auto` made every card grow to its own
+       content, which is why "Glass House Boca Raton" (title wraps) was
+       visibly taller than "Ponce Park" (1-line title) in the same row. */
+    .grid-card-body { height: 120px !important; min-height: 120px !important; }
+    .grid-card { height: 300px !important; }
+    /* Feature tiles stack to one column on mobile. */
+    .feat-col { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+    /* Desktop pins every tile to 200px so a row's two tiles align. Stacked one
+       per row on mobile, that pin just leaves big empty boxes — let each tile
+       shrink to its own content instead. */
+    .feat-card-cell { height: auto !important; }
+    .feat-card-inner { max-height: none !important; }
+    /* Even vertical rhythm: each tile already has 10px bottom padding, so drop
+       the per-row table margin (otherwise row gaps are 20px and within-row gaps
+       are 10px). Hide the odd-row spacer cell so it doesn't add a blank block. */
+    .feat-row { margin-bottom: 0 !important; }
+    .feat-spacer { display: none !important; }
+  }
+
+  .preheader {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    color: #ede9fe;
+    visibility: hidden;
+  }
+  .wrapper { background-color: #ede9fe; width: 100%; }
+  .container { max-width: 600px; width: 100%; }
+
+  .hero { padding: 0 0 24px 0; text-align: center; }
+  .hero img { display: inline-block; max-width: 200px; height: auto; border: 0; }
+  .hero-label {
+    color: #6b5b8a;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 18px;
+    font-weight: 600;
+  }
+  .section-header {
+    color: #1e0a3c;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 32px 0 16px 0;
+    border-top: 1px solid #d8cef0;
+  }
+
+  /* Article cards (full-width, single column) */
+  .article-card {
+    background-color: #ffffff;
+    border: 1px solid #d8cef0;
+    border-radius: 12px;
+    margin: 0 0 16px 0;
+  }
+  .article-card-image-wrap {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background-color: #d8cef0;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .article-card-body { padding: 18px 20px 20px 20px; }
+  .article-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1e0a3c;
+    text-decoration: none;
+    margin: 0 0 6px 0;
+    display: block;
+  }
+  .article-card-summary {
+    color: #6b5b8a;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .read-more {
+    color: #1e0a3c;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 10px;
+    display: inline-block;
+  }
+
+  /* 2-column grid cards — TIGHTER, fixed height */
+  .grid-card {
+    background-color: #ffffff;
+    border: 1px solid #d8cef0;
+    border-radius: 12px;
+    height: 300px;
+  }
+  .grid-card-image-wrap {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background-color: #d8cef0;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  .grid-card-body {
+    padding: 12px 14px;
+    height: 120px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .grid-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1e0a3c;
+    text-decoration: none;
+    margin: 0 0 4px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .grid-card-meta {
+    color: #6b5b8a;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stage-pill {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  /* App updates: connected image + tile grid + button.
+     The hero gif image still anchors the section; below it the bullets
+     render as PURPLE feature tiles instead of a flat white bulleted
+     list, so the section reads more like the website's "TMW Intelligence
+     is Here" card (radial purple highlight, hex glyph, bold feature
+     names). Bullets are pre-split into {title, body} server-side so the
+     template just lays them out. */
+  .app-image-wrap {
+    width: 100%;
+    height: 360px;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    background-color: #ede9fe;
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+  /* Body wrapper -- no panel, just transparent. Feature tiles sit on
+     the page bg directly so the section reads as continuous with the
+     rest of the newsletter. (Was a white card with rounded bottom
+     corners that visually connected to the gif image above.) */
+  .cta-block-connected {
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .cta-headline {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e0a3c;
+    margin: 0 0 18px 0;
+    letter-spacing: -0.01em;
+  }
+  /* Purple feature tile -- one per bullet. Renders as a table-row cell
+     so Outlook + Gmail both handle the layout. The 32px hex glyph in
+     the top-left mirrors the TMW dot used elsewhere in the brand. */
+  .feature-tile {
+    background: rgba(167, 139, 250, 0.06);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 10px;
+    padding: 16px 16px 18px 16px;
+    margin: 0;
+  }
+  .feature-hex {
+    color: #A78BFA;
+    font-size: 16px;
+    line-height: 1;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .feature-title {
+    color: #1e0a3c;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 6px 0;
+  }
+  .feature-body {
+    color: #6b5b8a;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .cta-button {
+    display: inline-block;
+    background-color: #A78BFA;
+    color: #ffffff;
+    padding: 13px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 22px;
+    letter-spacing: 0.01em;
+  }
+  /* "Open TMW Pro" — styled like a feature tile but with a purple glow on the
+     border, text, and arrow (vs the solid-fill .cta-button). */
+  .cta-button-pro {
+    display: block;
+    text-align: center;
+    background: rgba(167, 139, 250, 0.08);
+    border: 1.5px solid #A78BFA;
+    color: #A78BFA !important;
+    padding: 16px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 0 18px rgba(167, 139, 250, 0.35);
+  }
+  /* Feature tiles: 2-up on desktop (stacks on mobile via the media query). */
+  .feat-col { vertical-align: top; }
+  /* Grid-card title: fixed 2-line height so 1-line and 2-line titles reserve
+     the same space and every card ends up the SAME total height. Gmail ignores
+     -webkit-line-clamp, so we pin the height + clip overflow here. */
+  .grid-card-title-wrap { height: 40px; overflow: hidden; margin: 0 0 4px 0; }
+
+  /* Ad banner */
+  .ad-wrap { padding: 24px 0; text-align: center; }
+  .ad-label {
+    color: #7d6f9c;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .ad-banner {
+    display: inline-block;
+    max-width: 600px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 0;
+  }
+
+  .footer {
+    padding: 40px 0 20px 0;
+    border-top: 1px solid #d8cef0;
+    text-align: center;
+  }
+  .footer-text { color: #6b5b8a; font-size: 13px; line-height: 1.6; }
+  .footer-links { color: #6b5b8a; font-size: 12px; margin-top: 12px; }
+  .footer-links a { color: #6b5b8a; text-decoration: none; }
+  a { color: #1e0a3c; }
+</style>
+</head>
+<body class="force-dark-bg" style='margin:0; padding:0; background-color:#ede9fe; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' bgcolor="#ede9fe">
+
+<div class="preheader" style="display:none; max-height:0; overflow:hidden; color:#ede9fe; visibility:hidden">One Montague Place broke ground in Brooklyn Heights, a $550 million, 672-foot tower with harbor-view condos, a jazz club, and BondST restaurant joining the borough's tallest. This week's coverage spans 40-plus projects, from Miami's Fouquet's residences and the reopened PS MIA private terminal to NoMad's 262 Fifth Avenue and Guatemala City's Foro Futeca arena.</div>
+<div style="display: none; max-height: 0; overflow: hidden;">͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏ ͏‌ ͏</div>
+
+<table role="presentation" class="wrapper force-dark-bg" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ede9fe" style="background-color:#ede9fe; width:100%">
+  <tr><td align="center" style="padding: 32px 16px; background-color: #ede9fe;">
+    <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; width:100%">
+
+      <!-- HERO -->
+      <tr><td class="hero" style="padding:0 0 24px 0; text-align:center" align="center">
+        <a href="https://www.oftmw.com" style="color:#1e0a3c"><img src="https://static.wixstatic.com/media/ca3b83_e80e88810ca942459bfaa140e9fc2267~mv2.png" alt="Markets of Tomorrow" width="200" style="display:inline-block; max-width:200px; height:auto; border:0" height="auto"></a>
+        <div class="hero-label force-muted-text" style="color:#6b5b8a; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-top:18px; font-weight:600">The Weekly · July 07, 2026</div>
+      </td></tr>
+      <tr><td>
+  <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://tmw.jake-ab7.workers.dev/r?id=mandarin-oriental&amp;s=newsletter" target="_blank" rel="noopener" style="color:#1e0a3c">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/1048a02173c6-MandarinOriental_WPB1-ezgif.com-video-to-gif-converter.gif" alt="Mandarin Oriental" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
+    </a><img src="https://tmw.jake-ab7.workers.dev/px?id=mandarin-oriental&amp;s=newsletter" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">
+</div>
+</td></tr>
+
+      <!-- TMW INTELLIGENCE — issue summary, styled like a journal article card.
+           Sits below the first ad and above the first journal section, under a
+           divider rule. The header mirrors the on-site TMW Intelligence panel
+           (hex glyph + label, pulsing-dot tag); the body is a server-built
+           summary of the whole issue and the three stats recap the counts. -->
+      <tr><td style="padding: 28px 0 28px 0; border-top: 1px solid #d8cef0;">
+        <table role="presentation" class="intel-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #d8cef0; border-radius: 12px;">
+          <tr><td style="padding: 22px 24px 6px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="left" style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #7C5CFC;">
+                  <span style="color:#A78BFA;">⬡</span>  TMW Intelligence
+                </td>
+                <td align="right" style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;" class="force-muted-text">
+                  <span style="color:#A78BFA;">•</span> This week
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding: 6px 24px 20px 24px;">
+            <div class="intel-body force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 17px; line-height: 1.55;">One Montague Place broke ground in Brooklyn Heights, a $550 million, 672-foot tower with harbor-view condos, a jazz club, and BondST restaurant joining the borough's tallest. This week's coverage spans 40-plus projects, from Miami's Fouquet's residences and the reopened PS MIA private terminal to NoMad's 262 Fifth Avenue and Guatemala City's Foro Futeca arena.</div>
+          </td></tr>
+          <tr><td style="padding: 0 24px;"><div style="border-top: 1px solid #ece6fb; font-size: 0; line-height: 0;"> </div></td></tr>
+          <tr><td style="padding: 16px 24px 22px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout: fixed;">
+              <tr>
+                <td align="left" valign="top" width="33%" style="width: 33.33%;">
+                  <div class="intel-stat-value force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">19</div>
+                  <div class="intel-stat-label force-muted-text" style="color:#6b5b8a; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">Stories</div>
+                </td>
+                <td align="left" valign="top" width="33%" style="width: 33.33%;">
+                  <div class="intel-stat-value force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">44</div>
+                  <div class="intel-stat-label force-muted-text" style="color:#6b5b8a; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">Updates</div>
+                </td>
+                <td align="left" valign="top" width="33%" style="width: 33.33%;">
+                  <div class="intel-stat-value force-light-text" style="color:#1e0a3c; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 700; line-height: 1;">29</div>
+                  <div class="intel-stat-label force-muted-text" style="color:#6b5b8a; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px;">Markets</div>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- FROM THE JOURNAL: FLORIDA -->
+      <tr><td>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">From the journal · Florida (5)</div>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/fouquet-s-hotel-and-residences-arrives-as-the-miami-design-district-s-first-residential-address-designed-by-sir-david-chipperfield/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16db3af6c75946ff85e5ff8ba74624a1~mv2.webp)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_16db3af6c75946ff85e5ff8ba74624a1~mv2.webp" alt="Fouquet&#39;s Hotel and Residences to become Miami Design District&#39;s first residential address" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/fouquet-s-hotel-and-residences-arrives-as-the-miami-design-district-s-first-residential-address-designed-by-sir-david-chipperfield/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Fouquet's Hotel and Residences to become Miami Design District's first residential address</a><div><a href="https://www.oftmw.com/post/fouquet-s-hotel-and-residences-arrives-as-the-miami-design-district-s-first-residential-address-designed-by-sir-david-chipperfield/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/the-berkeley-palm-beach-breaks-ground-on-its-25-story-clear-lake-tower/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3097faef2cf5-High-Level-West-View-Mid-Day-min-crop.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/3097faef2cf5-High-Level-West-View-Mid-Day-min-crop.jpg" alt="The Berkeley officially breaks ground in West Palm Beach" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/the-berkeley-palm-beach-breaks-ground-on-its-25-story-clear-lake-tower/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">The Berkeley officially breaks ground in West Palm Beach</a><div><a href="https://www.oftmw.com/post/the-berkeley-palm-beach-breaks-ground-on-its-25-story-clear-lake-tower/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/growin-group-breaks-ground-on-lev-a-boutique-condominium-in-aventura/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/371e9296023e-Growin-Group-Breaks-Ground-on-LEV-Boutique-Luxury-Condo-in-Aventura-4-crop.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/371e9296023e-Growin-Group-Breaks-Ground-on-LEV-Boutique-Luxury-Condo-in-Aventura-4-crop.jpg" alt="Growin Group breaks ground on Lev, a boutique condominium in Aventura" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/growin-group-breaks-ground-on-lev-a-boutique-condominium-in-aventura/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Growin Group breaks ground on Lev, a boutique condominium in Aventura</a><div><a href="https://www.oftmw.com/post/growin-group-breaks-ground-on-lev-a-boutique-condominium-in-aventura/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/a-morning-inside-pur-form-boca-raton-s-regenerative-wellness-destination/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e8f97450adff-purform-interior-4.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/e8f97450adff-purform-interior-4.jpg" alt="A morning inside PUR-FORM, Boca Raton&#39;s regenerative wellness destination" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/a-morning-inside-pur-form-boca-raton-s-regenerative-wellness-destination/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">A morning inside PUR-FORM, Boca Raton's regenerative wellness destination</a><div><a href="https://www.oftmw.com/post/a-morning-inside-pur-form-boca-raton-s-regenerative-wellness-destination/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/eudemonia-returns-to-west-palm-beach-this-november-bigger-than-ever/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_eb6b0626d2c446e199ae09599ca98798~mv2.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_eb6b0626d2c446e199ae09599ca98798~mv2.jpg" alt="Eudēmonia returns to West Palm Beach this November, bigger than ever" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/eudemonia-returns-to-west-palm-beach-this-november-bigger-than-ever/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Eudēmonia returns to West Palm Beach this November, bigger than ever</a><div><a href="https://www.oftmw.com/post/eudemonia-returns-to-west-palm-beach-this-november-bigger-than-ever/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+      </td></tr>
+      <tr><td>
+  <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://tmw.jake-ab7.workers.dev/r?id=ponce&amp;s=newsletter" target="_blank" rel="noopener" style="color:#1e0a3c">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e72132e0118b4facbea0faf135eb7f2d~mv2.gif" alt="Ponce Park" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
+    </a><img src="https://tmw.jake-ab7.workers.dev/px?id=ponce&amp;s=newsletter" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">
+</div>
+</td></tr>
+
+      <!-- FROM THE JOURNAL: MORE MARKETS -->
+      <tr><td>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">More markets (3)</div>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/one-montague-place-breaks-ground-a-550-million-tower-to-rise-among-brooklyn-s-tallest/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2cdab3912172-IMG_4226-gigapixel-low-resolution-v2-4x-crop.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2cdab3912172-IMG_4226-gigapixel-low-resolution-v2-4x-crop.jpg" alt="One Montague Place breaks ground, a $550 million tower to rise among Brooklyn&#39;s tallest" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/one-montague-place-breaks-ground-a-550-million-tower-to-rise-among-brooklyn-s-tallest/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">One Montague Place breaks ground, a $550 million tower to rise among Brooklyn's tallest</a><div><a href="https://www.oftmw.com/post/one-montague-place-breaks-ground-a-550-million-tower-to-rise-among-brooklyn-s-tallest/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/dolly-parton-s-songteller-hotel-brings-245-music-filled-rooms-and-a-career-spanning-museum-to-downtown-nashville/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ad116c62c9a-Exterior-crop-crop.jpg" alt="Dolly Parton&#39;s SongTeller Hotel and career-spanning museum will arrive in Nashville this fall" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/dolly-parton-s-songteller-hotel-brings-245-music-filled-rooms-and-a-career-spanning-museum-to-downtown-nashville/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">Dolly Parton's SongTeller Hotel and career-spanning museum will arrive in Nashville this fall</a><div><a href="https://www.oftmw.com/post/dolly-parton-s-songteller-hotel-brings-245-music-filled-rooms-and-a-career-spanning-museum-to-downtown-nashville/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+        <table role="presentation" class="article-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; margin:0 0 16px 0">
+  <tr><td>
+    <a href="https://www.oftmw.com/post/the-architects-behind-sofi-stadium-are-building-central-america-s-largest-indoor-arena-in-guatemala/" style="color:#1e0a3c; display:block">
+      <div class="article-card-image-wrap" style="width:100%; height:240px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/70e6eb20cb9a-foro-futeca-b4.jpg)" width="100%" height="240" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/70e6eb20cb9a-foro-futeca-b4.jpg" alt="The architects behind SoFi Stadium are building Central America&#39;s largest indoor arena in Guatemala" width="600" height="240" style="display:block;width:100%;height:240px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="article-card-body" style="padding:18px 20px 20px 20px">
+    <a href="https://www.oftmw.com/post/the-architects-behind-sofi-stadium-are-building-central-america-s-largest-indoor-arena-in-guatemala/" class="article-card-title force-light-text" style="color:#1e0a3c; font-size:18px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 6px 0; display:block">The architects behind SoFi Stadium are building Central America's largest indoor arena in Guatemala</a><div><a href="https://www.oftmw.com/post/the-architects-behind-sofi-stadium-are-building-central-america-s-largest-indoor-arena-in-guatemala/" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">Read on TMW →</a></div>
+  </td></tr>
+</table>
+      </td></tr>
+      <tr><td>
+  <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://tmw.jake-ab7.workers.dev/r?id=eudemonia&amp;s=newsletter" target="_blank" rel="noopener" style="color:#1e0a3c">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_7bc06d1b5e1b44fbada78cb379b40bdb~mv2.gif" alt="Eudemonia" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
+    </a><img src="https://tmw.jake-ab7.workers.dev/px?id=eudemonia&amp;s=newsletter" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">
+</div>
+</td></tr>
+
+      <!-- NEW ON THE MAP — combined, 2-col grid -->
+      <tr><td>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">What's new in the database (44)</div>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0; table-layout: fixed;">
+          <tr>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 8px 0 0;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7c86760f97b9-the_observatory_sv_drone_1_final.1500x0.jpg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7c86760f97b9-the_observatory_sv_drone_1_final.1500x0.jpg" alt="Tracking 29 more projects" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tracking</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Tracking 29 more projects</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">The Observatory Sun Valley +28 more</div>
+  </td></tr>
+</table>
+            </td>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 0 0 8px;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=spacexgigabay&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b77f95a6f492-images.jpeg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b77f95a6f492-images.jpeg" alt="SpaceX Gigabay" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Topped out</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=spacexgigabay&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">SpaceX Gigabay</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Merritt Island</div>
+  </td></tr>
+</table>
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0; table-layout: fixed;">
+          <tr>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 8px 0 0;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=currieparktowers&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/currie-park-towers.jpg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/currie-park-towers.jpg" alt="Currie Park Towers" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=currieparktowers&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Currie Park Towers</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">West Palm Beach</div>
+  </td></tr>
+</table>
+            </td>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 0 0 8px;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=the55&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/the55.jpg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/the55.jpg" alt="The55" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=the55&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The55</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Beverly Hills</div>
+  </td></tr>
+</table>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+      <tr><td>
+  <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://tmw.jake-ab7.workers.dev/r?id=waldorf-astoria-st-pete&amp;s=newsletter" target="_blank" rel="noopener" style="color:#1e0a3c">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/49c03212a2ac-WASTP_260608_1886x383.gif" alt="Waldorf Astoria Residences, St. Petersburg" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
+    </a><img src="https://tmw.jake-ab7.workers.dev/px?id=waldorf-astoria-st-pete&amp;s=newsletter" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">
+</div>
+</td></tr>
+      <tr><td>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0; table-layout: fixed;">
+          <tr>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 8px 0 0;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=thesound&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-sound.jpg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-sound.jpg" alt="The Sound" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Tenant announced</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=thesound&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Sound</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">West Palm Beach</div>
+  </td></tr>
+</table>
+            </td>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 0 0 8px;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=dollypartonssongtellerhotel&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/dolly-parton-s-songteller-hotel.jpg" alt="Dolly Parton&#39;s SongTeller Hotel" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#1FDF67">Now Open</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=dollypartonssongtellerhotel&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">Dolly Parton's SongTeller Hotel</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Nashville</div>
+  </td></tr>
+</table>
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0; table-layout: fixed;">
+          <tr>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 8px 0 0;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=coramerrickpark&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/cora-merrick-park.jpeg)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/coral-gables/cora-merrick-park.jpeg" alt="CORA Merrick Park" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=coramerrickpark&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">CORA Merrick Park</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Coral Gables</div>
+  </td></tr>
+</table>
+            </td>
+            <td class="two-col-cell" valign="top" width="50%" style="width: 50%; padding: 0 0 0 8px;">
+              <table role="presentation" class="grid-card force-dark-panel force-border" cellpadding="0" cellspacing="0" border="0" width="100%" height="300" bgcolor="#ffffff" style="background-color:#fff; border:1px solid #d8cef0; border-radius:12px; height:300px">
+  <tr><td height="180" style="height: 180px;">
+    <a href="https://www.oftmw.com/map/?project=thepierce&amp;fullscreen=true" style="color:#1e0a3c; display:block">
+      <div class="grid-card-image-wrap" style="width:100%; height:180px; overflow:hidden; border-radius:12px 12px 0 0; background-color:#d8cef0; background-size:cover; background-position:center center; background-repeat:no-repeat; background-image:url(https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/boynton-beach/the-pierce.png)" width="100%" height="180" bgcolor="#d8cef0">
+        <!--[if mso]>
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/boynton-beach/the-pierce.png" alt="The Pierce" width="290" height="180" style="display:block;width:100%;height:180px;border:0;" />
+        <![endif]-->
+      </div>
+    </a>
+  </td></tr>
+  <tr><td class="grid-card-body" valign="top" height="120" style="padding:12px 14px; height:120px; box-sizing:border-box; overflow:hidden">
+    <div class="stage-pill" style="font-size:11px; font-weight:600; margin-bottom:6px; color:#999">Financing secured</div>
+    <div class="grid-card-title-wrap" style="height:40px; overflow:hidden; margin:0 0 4px 0" height="40"><a href="https://www.oftmw.com/map/?project=thepierce&amp;fullscreen=true" class="grid-card-title force-light-text" style="color:#1e0a3c; font-size:15px; font-weight:700; line-height:1.3; text-decoration:none; margin:0 0 4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">The Pierce</a></div>
+    <div class="grid-card-meta force-muted-text" style="color:#6b5b8a; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Boynton Beach</div>
+  </td></tr>
+</table>
+            </td>
+          </tr>
+        </table>
+        <div style="text-align: center; margin: 8px 0 16px 0;">
+          <a href="https://map.oftmw.com" class="read-more force-accent-text" style="color:#1e0a3c; text-decoration:none; font-size:13px; font-weight:600; margin-top:10px; display:inline-block">+ 36 more in the database →</a>
+        </div>
+      </td></tr>
+      <tr><td>
+  <div class="ad-wrap" style="padding:24px 0; text-align:center" align="center">
+    <div class="ad-label force-muted-text" style="color:#7d6f9c; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; font-weight:600">Sponsored</div>
+    <a href="https://tmw.jake-ab7.workers.dev/r?id=Humanaut&amp;s=newsletter" target="_blank" rel="noopener" style="color:#1e0a3c">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_76b3fd4a07644bc8841a69e5d57c835b~mv2.gif" alt="Humanaut Health" class="ad-banner" width="100%" style="display:block; max-width:600px; width:100%; height:auto; border-radius:8px; border:0; margin:0 auto" height="auto">
+    </a><img src="https://tmw.jake-ab7.workers.dev/px?id=Humanaut&amp;s=newsletter" alt="" width="1" height="1" style="display:block;width:1px;height:1px;border:0;overflow:hidden;line-height:1px;">
+</div>
+</td></tr>
+
+      <!-- WHAT'S NEW IN THE APP — connected image + body -->
+      <tr><td>
+        <div class="section-header force-accent-text" style="color:#1e0a3c; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:32px 0 16px 0; border-top:1px solid #d8cef0">What's new in the app</div>
+
+        <!-- Image FULLY rounded (was 12px 12px 0 0 only for the connected
+             white card below; per user feedback the section now blends
+             with the page bg, so the image rounds on all corners). -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 16px 0;">
+          <tr><td style="padding: 0; line-height: 0; font-size: 0;">
+            <a href="https://map.oftmw.com" style="color:#1e0a3c; display:block">
+              <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9c8843b069db-tmw-pro-june-23.gif?v=1783453091" alt="Map of Tomorrow" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; border-radius:12px;">
+            </a>
+          </td></tr>
+        </table>
+
+        <!-- Body: feature tiles sit DIRECTLY on the page bg (no white
+             card panel). The section now reads as a continuation of the
+             newsletter -- same lavender backdrop as everything else --
+             instead of an awkward white-card-on-lavender block. Tiles
+             still carry their own subtle lavender wash + border. -->
+        <div class="cta-block-connected" style="background:transparent; border:0; padding:0">
+          <div class="cta-headline force-light-text" style="font-size:22px; font-weight:800; color:#1e0a3c; margin:0 0 18px 0; letter-spacing:-0.01em">TMW Pro is Here</div>
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Founding Member Status</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Secure your founding member number by July 1st (tomorrow) by making an account</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">TMW Intelligence (Onyx 4.1)</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">AI-powered timeline forecasts, site search, project research, and comparable-project analysis across every page</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">A Brand-New Map</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Faster, timeline scrubber, advanced filtering, interactive layers, 'what's moving' pins, and more</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">One Account Now Unlocks Everything</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">The journal, the database, your watchlist, and Pulse.</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Journal</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">You can now favorite articles to revisit later, linked project cards, and more</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Pulse</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Our live activity feed that shows new projects hitting the map and fresh stories publishing in real time, the moment they happen</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Architect and Developer Firm Pages</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Every project, collaboration, and timeline behind the names shaping each skyline, gathered into one profile you can explore</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 0 0 5px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">City, State, and Country Market Pages</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Explore every project, pipeline figure, developer, and timeline across radii of any size</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <table role="presentation" class="feat-row" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 0 0 10px 0; table-layout: fixed;">
+            <tr>
+              <td class="feat-col" valign="top" width="50%" style="vertical-align:top; width:50%; padding:0 5px 0 0">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: rgba(167, 139, 250, 0.06); border: 1px solid rgba(167, 139, 250, 0.28); border-radius: 10px;">
+                  <tr><td class="feat-card-cell" valign="top" height="200" style="height: 200px; padding: 16px 18px;">
+                    <!-- Equal-height tiles: pin the CELL height via the HTML
+                         height attribute (Gmail/Apple Mail honor td height
+                         reliably, but collapse height on a <div>), and clip the
+                         inner box so a long body can't grow the cell past it. -->
+                    <div class="feat-card-inner" style="max-height: 168px; overflow: hidden;">
+                      <div class="feature-hex" style="color:#A78BFA; font-size:16px; line-height:1; margin:0 0 8px 0; font-weight:700; letter-spacing:0.04em">⬡</div>
+                      <div class="feature-title" style="color:#1e0a3c; font-size:16px; font-weight:700; line-height:1.3; margin:0 0 6px 0">Atlas</div>
+                      <div class="feature-body" style="color:#6b5b8a; font-size:14px; line-height:1.55; margin:0">Deeper data and timeline tracking</div>
+                    </div>
+                  </td></tr>
+                </table>
+              </td>
+              <td class="feat-col feat-spacer" width="50%" style="vertical-align:top; width:50%" valign="top"> </td>
+            </tr>
+          </table>
+          <div style="margin-top: 8px;"><a href="https://map.oftmw.com" class="cta-button-pro" style="color:#A78BFA !important; display:block; text-align:center; background:rgba(167, 139, 250, 0.08); border:1.5px solid #A78BFA; padding:16px 22px; border-radius:10px; text-decoration:none; font-weight:700; font-size:16px; letter-spacing:0.02em; box-shadow:0 0 18px rgba(167, 139, 250, 0.35)" align="center">Open TMW Pro →</a></div>
+        </div>
+      </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td class="footer" style="padding:40px 0 20px 0; border-top:1px solid #d8cef0; text-align:center" align="center">
+        <div class="footer-text force-muted-text" style="color:#6b5b8a; font-size:13px; line-height:1.6">
+          You're getting this from <strong>media@marketsoftomorrow.com</strong> because you subscribed at
+          <a href="https://www.oftmw.com" class="force-accent-text" style="color:#1e0a3c">oftmw.com</a>.
+        </div>
+        <div class="footer-links" style="color:#6b5b8a; font-size:12px; margin-top:12px">
+          <a href="https://map.oftmw.com" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Map</a> ·
+          <a href="https://www.oftmw.com" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Journal</a> ·
+          <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" class="force-muted-text" style="color:#6b5b8a; text-decoration:none">Unsubscribe</a>
+        </div>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>

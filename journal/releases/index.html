@@ -2,12 +2,12 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Releases — The Weekly | Markets of Tomorrow</title>
-<meta name="description" content="Every edition of The Weekly — the build log of Markets of Tomorrow, newest first.">
+<meta name="description" content="The Weekly — Backend build log + Consumer digest archive from Markets of Tomorrow.">
 <link rel="canonical" href="https://www.oftmw.com/releases/">
 <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Releases — The Weekly | Markets of Tomorrow">
-<meta property="og:description" content="Every edition of The Weekly — the build log of Markets of Tomorrow, newest first.">
+<meta property="og:description" content="The Weekly — Backend build log + Consumer digest archive from Markets of Tomorrow.">
 <meta property="og:url" content="https://www.oftmw.com/releases/">
 <meta property="og:image" content="https://www.oftmw.com/releases/img/ed2-0.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -26,6 +26,21 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
 a{color:inherit;text-decoration:none}
 .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 24px}
 .rel-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-bright);font-weight:600;text-shadow:0 0 16px rgba(167,139,250,.5)}
+.rel-hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.rel-seg{display:inline-flex;border:1px solid var(--hair2);border-radius:999px;padding:3px;background:rgba(255,255,255,.03)}
+.rel-seg button{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--mute);background:none;border:0;cursor:pointer;padding:8px 16px;border-radius:999px;transition:color .2s,background .2s}
+.rel-seg button.on{color:#0a0a0a;background:var(--purple-bright);text-shadow:none}
+.rel-seg button:not(.on):hover{color:var(--cream)}
+/* consumer digest rows — no image, just date + title */
+.dig-list{display:flex;flex-direction:column;gap:0;padding:34px 0 90px}
+.dig-row{display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:20px;padding:22px 6px;border-top:1px solid var(--hair);text-decoration:none;transition:background .18s,padding-left .18s}
+.dig-row:last-child{border-bottom:1px solid var(--hair)}
+.dig-row:hover{background:linear-gradient(90deg,rgba(167,139,250,.06),transparent 70%);padding-left:14px}
+.dig-date{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.dig-title{font-family:var(--serif);font-size:clamp(18px,2vw,22px);font-weight:500;letter-spacing:-.012em;color:var(--white);line-height:1.2}
+.dig-arr{color:var(--purple-bright);font-family:var(--mono);font-size:15px;opacity:.55;transition:opacity .2s,transform .2s}
+.dig-row:hover .dig-arr{opacity:1;transform:translateX(3px)}
+@media(max-width:620px){.dig-row{grid-template-columns:1fr auto;gap:6px 14px}.dig-date{grid-column:1/-1}}
 .rel-crumbs{padding:26px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .rel-crumbs a:hover{color:var(--purple-bright)}
 .rel-crumbs .sep{opacity:.4;margin:0 8px}
@@ -36,6 +51,7 @@ a{color:inherit;text-decoration:none}
 .rel-hero h1{font-family:var(--serif);font-size:clamp(40px,6.4vw,68px);font-weight:500;letter-spacing:-.022em;line-height:1.02;color:var(--white);margin:16px 0 0;text-wrap:balance}
 .rel-hero .sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:16px;max-width:56ch}
 .rel-list{display:flex;flex-direction:column;gap:20px;padding:38px 0 90px}
+.rel-list[hidden],.dig-list[hidden]{display:none}
 .rel-card{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:center;padding:16px 0 16px 16px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
 .rel-card:hover{border-color:rgba(167,139,250,.42);transform:translateY(-2px);box-shadow:0 24px 60px -30px rgba(167,139,250,.5)}
 .rel-card .rc-media{position:relative;overflow:hidden;background:#111;aspect-ratio:16/9;align-self:center;border-radius:12px}
@@ -83,13 +99,19 @@ a{color:inherit;text-decoration:none}
 <body>
 
 <div class="wrap">
-  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><span class="rc-cur">The Weekly:Backend</span></nav>
+  <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><span class="rc-cur" id="crumbCur">The Weekly:Backend</span></nav>
   <header class="rel-hero">
-    <span class="rel-eyebrow">The Weekly</span>
-    <h1>The build log.</h1>
-    <p class="sub">Every edition of The Weekly:Backend, what we shipped, and why it compounds.</p>
+    <div class="rel-hero-top">
+      <span class="rel-eyebrow" id="relEyebrow">The Weekly:Backend</span>
+      <div class="rel-seg" role="tablist">
+        <button type="button" data-view="backend" class="on">Backend</button>
+        <button type="button" data-view="consumer">Consumer</button>
+      </div>
+    </div>
+    <h1 id="relH1">The build log.</h1>
+    <p class="sub" id="relSub">Every edition of The Weekly:Backend, what we shipped, and why it compounds.</p>
   </header>
-  <div class="rel-list">
+  <div class="rel-list" data-view="backend">
     <a class="rel-card" href="/releases/edition2/">
       <div class="rc-media"><img src="/releases/img/ed2-0.jpg" alt="The database learned to follow the money" loading="lazy"></div>
       <div class="rc-body">
@@ -109,7 +131,87 @@ a{color:inherit;text-decoration:none}
       </div>
     </a>
   </div>
+  <div class="dig-list" data-view="consumer" hidden>
+    <a class="dig-row" href="/releases/digest/2026-07-07/">
+      <span class="dig-date">July 7, 2026</span>
+      <span class="dig-title">One Montague Place broke ground in Brooklyn Heights, a $550 million…</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-30/">
+      <span class="dig-date">June 30, 2026</span>
+      <span class="dig-title">Tiger Woods unveils plans for a second championship course at Reef…</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-23/">
+      <span class="dig-date">June 23, 2026</span>
+      <span class="dig-title">Related Group broke ground on Manor Riverwalk District, the 369-unit first…</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-16/">
+      <span class="dig-date">June 16, 2026</span>
+      <span class="dig-title">8 stories, 42 updates this week.</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-10/">
+      <span class="dig-date">June 10, 2026</span>
+      <span class="dig-title">8 stories, 50 updates this week.</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-09/">
+      <span class="dig-date">June 9, 2026</span>
+      <span class="dig-title">8 stories, 50 updates this week.</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-03/">
+      <span class="dig-date">June 3, 2026</span>
+      <span class="dig-title">16 new projects on the map</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-06-02/">
+      <span class="dig-date">June 2, 2026</span>
+      <span class="dig-title">The Palm Beaches&#x27; first Michelin Star, Timber Towers, and New Clubs</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-05-26/">
+      <span class="dig-date">May 26, 2026</span>
+      <span class="dig-title">New Towers, Entertainment Districts &amp; Travel</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-05-19/">
+      <span class="dig-date">May 19, 2026</span>
+      <span class="dig-title">New Districts, Penthouses and Buccan&#x27;s Expansion</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+    <a class="dig-row" href="/releases/digest/2026-05-12/">
+      <span class="dig-date">May 12, 2026</span>
+      <span class="dig-title">New Restaurants, Pilates &amp; Residential Openings</span>
+      <span class="dig-arr">&rarr;</span>
+    </a>
+  </div>
 </div>
+<script>
+(function(){
+  var COPY = {
+    backend:  { eye:'The Weekly:Backend',  h1:'The build log.',   sub:'Every edition of The Weekly:Backend, what we shipped, and why it compounds.' },
+    consumer: { eye:'The Weekly:Consumer', h1:'The dispatch.',     sub:'Every consumer digest — the openings, projects, and stories, as they went out each week.' }
+  };
+  var segs = document.querySelectorAll('.rel-seg button');
+  function show(v){
+    document.querySelectorAll('[data-view]').forEach(function(el){
+      if (el.classList.contains('rel-list') || el.classList.contains('dig-list')) el.hidden = (el.getAttribute('data-view') !== v);
+    });
+    segs.forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === v); });
+    var c = COPY[v];
+    document.getElementById('relEyebrow').textContent = c.eye;
+    document.getElementById('crumbCur').textContent = c.eye;
+    document.getElementById('relH1').textContent = c.h1;
+    document.getElementById('relSub').textContent = c.sub;
+    try { history.replaceState(null, '', v === 'consumer' ? '#consumer' : '#backend'); } catch(_){}
+  }
+  segs.forEach(function(b){ b.addEventListener('click', function(){ show(b.getAttribute('data-view')); }); });
+  if (location.hash === '#consumer') show('consumer');
+})();
+</script>
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 </body></html>
