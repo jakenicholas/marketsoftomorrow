@@ -68,7 +68,14 @@
   // LIVE lender-map (overrides / hidden) so the two always agree.
   function financeDeals(money, lmap) {
     return ((money && money.deals) || []).map(function (d) {
-      return { title: d.title, city: d.city || '', dev: d.dev || '', href: d.href, amt: d.amt, lender: normLender(d.lender, lmap), when: parseWhen(d.date), lat: d.lat, lng: d.lng };
+      // Split each disclosed loan into its named tranches (syndicated deals credit
+      // each lender its own slice); normalize each through the live lender-map.
+      // `lender` stays the joined DISPLAY string; `lenders` drives aggregation.
+      var parts = (d.lenders && d.lenders.length ? d.lenders : [{ name: d.lender || '', amt: d.amt }])
+        .map(function (p) { return { name: normLender(p.name || '', lmap), amt: (p.amt == null ? d.amt : p.amt) }; })
+        .filter(function (p) { return p.name; });
+      var disp = parts.map(function (p) { return p.name; }).join(', ') || normLender(d.lender, lmap);
+      return { title: d.title, city: d.city || '', dev: d.dev || '', href: d.href, amt: d.amt, lender: disp, lenders: parts, when: parseWhen(d.date), lat: d.lat, lng: d.lng };
     });
   }
 
@@ -257,24 +264,30 @@
     var yearAgo = Date.now() - 365 * 86400000;
     var recent = deals.filter(function (d) { return d.when && d.when >= yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 8);
 
-    // lenders — each with its market breakdown + deals
+    // lenders — each with its market breakdown + deals. Credit each lender its OWN
+    // tranche (syndicated deals split across their named lenders, never double-count).
     var lm = {};
     deals.forEach(function (d) {
-      if (!d.lender) return;
-      var L = lm[d.lender] || (lm[d.lender] = { name: d.lender, n: 0, amt: 0, cities: {}, deals: [] });
-      L.n++; L.amt += (d.amt || 0);
-      if (d.city) L.cities[d.city] = (L.cities[d.city] || 0) + (d.amt || 0);
-      L.deals.push(d);
+      (d.lenders || []).forEach(function (p) {
+        if (!p.name) return;
+        var L = lm[p.name] || (lm[p.name] = { name: p.name, n: 0, amt: 0, cities: {}, deals: [] });
+        L.n++; L.amt += (p.amt || 0);
+        if (d.city) L.cities[d.city] = (L.cities[d.city] || 0) + (p.amt || 0);
+        L.deals.push(d);
+      });
     });
     var lenders = Object.keys(lm).map(function (k) { return lm[k]; }).sort(function (x, y) { return y.amt - x.amt || y.n - x.n; });
 
-    // cities — each with lenders, deals, averaged coordinates
+    // cities — each with lenders, deals, averaged coordinates. City $ is the sum of
+    // whole-deal totals (no double-count); per-lender split uses tranche amounts.
     var cm = {};
     deals.forEach(function (d) {
       var c = d.city; if (!c) return;
       var C = cm[c] || (cm[c] = { city: c, n: 0, amt: 0, lenders: {}, deals: [], la: 0, lo: 0, nc: 0 });
       C.n++; C.amt += (d.amt || 0);
-      if (d.lender) C.lenders[d.lender] = (C.lenders[d.lender] || 0) + (d.amt || 0);
+      (d.lenders || []).forEach(function (p) {
+        if (p.name) C.lenders[p.name] = (C.lenders[p.name] || 0) + (p.amt || 0);
+      });
       C.deals.push(d);
       if (d.lat != null && d.lng != null) { C.la += d.lat; C.lo += d.lng; C.nc++; }
     });

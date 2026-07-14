@@ -78,8 +78,73 @@ def from_history(sh):
         lender = h.get('lender') or note_lender(h.get('note'))
         date = h.get('effective_date') or h.get('source_published') or h.get('at') or ''
         if best is None or (amt or 0) > (best.get('amt') or 0):
-            best = {'amt': amt, 'lender': lender or '', 'date': date}
+            best = {'amt': amt, 'lender': lender or '', 'date': date, 'note': str(h.get('note') or '')}
     return best
+
+
+# --- Liveness filter -------------------------------------------------------
+# "Follow the Money" tells the PRIVATE development-capital story: who is lending
+# to build what. Two things are NOT that and get filtered out here:
+#  (a) civic / public infrastructure (stadiums, airports, universities, city
+#      halls, museums, park expansions) — a public bond authority isn't a real-
+#      estate lender, and these muddy the lender league table; and
+#  (b) non-construction capital — municipal / TIF / green / conduit BONDS, public
+#      facilities (EIB, Homes England, housing/aviation finance authorities), and
+#      pure REFINANCINGS or PRE-DEVELOPMENT / site / bridge loans (not build money).
+# A note that explicitly says "construction loan/financing" is always kept.
+_CIVIC_TITLE = re.compile(r'\b(stadium|arena|ballpark|performing arts|city hall|'
+                          r'courthouse|\bairport\b|university|\bcollege\b|museum|'
+                          r'opera house|convention center|amphitheat|transit|'
+                          r'rail station|seaport|cruise terminal|park expansion)\b', re.I)
+_GOV_DEV = re.compile(r'\b(city of|county|university|port authority|aviation authority|'
+                      r'housing finance authority|department of|state of|municipal)\b', re.I)
+_NONCONSTR = re.compile(r'\b(refinanc|\brefi\b|pre-?development|pre-?dev|site loan|'
+                        r'bridge loan|green bond|\bbond\b|tax-?exempt|\btif\b|conduit|'
+                        r'\beib\b|european investment bank|homes england|'
+                        r'housing finance authority|aviation authority|\bthda\b)\b', re.I)
+_IS_CONSTR = re.compile(r'construction (?:loan|financing|facilit|debt)', re.I)
+
+
+def exclude_reason(p, note):
+    title = str(p.get('Title') or '')
+    dev = str(p.get('Developer') or '')
+    types = ' '.join(p.get('Types') or []) + ' ' + str(p.get('PreferredType') or '')
+    if _CIVIC_TITLE.search(title) or re.search(r'\bstadium\b', types, re.I) or _GOV_DEV.search(dev):
+        return 'civic/public'
+    if _NONCONSTR.search(note) and not _IS_CONSTR.search(note):
+        return 'non-construction capital (bond/refi/pre-dev)'
+    return None
+
+
+# --- Multi-lender split ----------------------------------------------------
+# Pull every "$X <role> from <Lender>" tranche out of a financing note so a
+# syndicated deal credits each lender its own slice in the league table
+# (e.g. One Beverly Hills: $2.8B senior from J.P. Morgan + $1.5B mezz from VICI).
+# Only trust the split when 2+ tranches are found AND they sum to ~the total;
+# otherwise fall back to the single primary lender carrying the whole amount.
+_TRANCHE = re.compile(
+    r'\$\s*([\d.,]+)\s*((?i:billion|million|bn|mm|b|m))\b[^$]*?\bfrom\s+'
+    r'([A-Z][A-Za-z0-9.&\'’ -]+?)(?=\s+(?:plus|and|with)\b|\s*[+;,]|\s*$)')
+
+
+def parse_lenders(note, total, primary):
+    note = str(note or '')
+    found, seen = [], set()
+    for m in _TRANCHE.finditer(note):
+        amt = float(m.group(1).replace(',', '')) * (1000 if m.group(2)[0].lower() == 'b' else 1)
+        name = re.sub(r'\s+', ' ', m.group(3)).strip(" .,-’'")
+        if len(name) < 3:
+            continue
+        k = lkey(name)
+        if k in seen:
+            continue
+        seen.add(k)
+        found.append({'name': name, 'amt': round(amt, 3)})
+    if len(found) >= 2 and total and abs(sum(x['amt'] for x in found) - total) <= max(50, 0.1 * total):
+        return found
+    if primary:
+        return [{'name': primary, 'amt': total}]
+    return [{'name': '', 'amt': total}] if total else []
 
 
 def first_dev(v):
@@ -102,30 +167,34 @@ def main():
     with open(SRC, encoding='utf-8') as f:
         projects = json.load(f)
 
-    out = []
+    out, excluded = [], []
     for p in projects:
+        fh = from_history(p.get('StatusHistory')) or {}
         amt = sane_m(p.get('FinancingAmountM'))
         lender = (p.get('FinancingLender') or '').strip()
         date = (p.get('FinancingDate') or '').strip()
+        note = fh.get('note', '')
         if amt is None:                                  # no sane flat amount → parse the notes
-            fh = from_history(p.get('StatusHistory'))
-            if fh:
-                amt = fh['amt']
-                if not lender:
-                    lender = fh['lender']
-                if not date:
-                    date = fh['date']
-            elif not lender and not date:
-                continue
+            amt = fh.get('amt')
+        if not lender:
+            lender = fh.get('lender', '')
+        if not date:
+            date = fh.get('date', '')
         if amt is None and not lender and not date:
             continue
+        reason = exclude_reason(p, note)                 # drop civic + non-construction capital
+        if reason:
+            excluded.append((p.get('Title') or '', amt, reason))
+            continue
+        lenders = parse_lenders(note, amt, lender)       # split syndicated tranches
         out.append({
             'title': p.get('Title') or '',
             'city': (p.get('City') or '').strip(),
             'dev': first_dev(p.get('Developer')),
             'href': 'https://www.oftmw.com/map/?project=' + map_slug(p.get('Title') or ''),
             'amt': amt,
-            'lender': lender,
+            'lender': ', '.join(x['name'] for x in lenders if x['name']) or lender,
+            'lenders': lenders,
             'date': date,
             'lat': num(p.get('Latitude')),
             'lng': num(p.get('Longitude')),
@@ -165,11 +234,13 @@ def main():
         # survivor identity: prefer the parent's own row, then any row with a lender
         keep = min(idxs, key=lambda i: (0 if dedup[i]['_slug'] == gslug else 1,
                                         0 if dedup[i]['lender'] else 1))
-        # keep the parent's name/href but borrow a named lender/date off a sibling
+        # keep the parent's name/href but borrow the named lender(s)/tranches/date
+        # off a sibling when the parent's own row is blank
         if not dedup[keep]['lender']:
             for i in idxs:
                 if dedup[i]['lender']:
                     dedup[keep]['lender'] = dedup[i]['lender']
+                    dedup[keep]['lenders'] = dedup[i]['lenders']
                     break
         if not dedup[keep]['date']:
             for i in idxs:
@@ -183,17 +254,22 @@ def main():
         d.pop('_parent', None)
 
     # Canonicalize lender casing/spacing → the most-common spelling, so variants
-    # ("Tyko Capital" / "TYKO Capital") merge into one lender everywhere.
+    # ("Tyko Capital" / "TYKO Capital") merge into one lender everywhere. Operates
+    # on the per-tranche NAMES, then re-derives each deal's display string.
     casing = {}
     for d in dedup:
-        if not d['lender']:
-            continue
-        casing.setdefault(lkey(d['lender']), {})
-        casing[lkey(d['lender'])][d['lender']] = casing[lkey(d['lender'])].get(d['lender'], 0) + 1
+        for ld in d.get('lenders') or []:
+            nm = ld.get('name')
+            if not nm:
+                continue
+            casing.setdefault(lkey(nm), {})
+            casing[lkey(nm)][nm] = casing[lkey(nm)].get(nm, 0) + 1
     canon = {k: max(v.items(), key=lambda kv: kv[1])[0] for k, v in casing.items()}
     for d in dedup:
-        if d['lender']:
-            d['lender'] = canon.get(lkey(d['lender']), d['lender'])
+        for ld in d.get('lenders') or []:
+            if ld.get('name'):
+                ld['name'] = canon.get(lkey(ld['name']), ld['name'])
+        d['lender'] = ', '.join(x['name'] for x in (d.get('lenders') or []) if x['name']) or d['lender']
 
     disclosed = sum(d['amt'] for d in dedup if d['amt'])
     markets = len({d['city'] for d in dedup if d['city']})
@@ -208,8 +284,13 @@ def main():
     }
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
-    print('  ✓ money-flat.json — %d financings, $%.1fB disclosed, %d markets'
-          % (len(dedup), disclosed / 1000, markets))
+    syndicated = sum(1 for d in dedup if len(d.get('lenders') or []) > 1)
+    print('  ✓ money-flat.json — %d financings, $%.1fB disclosed, %d markets '
+          '(%d syndicated, %d filtered out as non-live)'
+          % (len(dedup), disclosed / 1000, markets, syndicated, len(excluded)))
+    from collections import Counter
+    for reason, n in Counter(r for _, _, r in excluded).items():
+        print('      – %d %s' % (n, reason))
 
 
 if __name__ == '__main__':
