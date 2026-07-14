@@ -377,7 +377,9 @@ function initMarketMap(tries){
   var el=document.getElementById('tmap'); if(!el) return;
   if(typeof mapboxgl==='undefined'){ if((tries||0)<40) setTimeout(function(){ initMarketMap((tries||0)+1); },250); return; }
   mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var VIEW = { center:[-28, 34], zoom:2 };   // Atlantic-centered globe (NA · Europe · Africa)
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
+    center:VIEW.center, zoom:VIEW.zoom,
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
   // Land stays white, water gray; the globe's "space" (the bg around it) → page beige.
@@ -389,22 +391,19 @@ function initMarketMap(tries){
     }catch(e){}
   }
   if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }
-  var b=new mapboxgl.LngLatBounds();
   MARKETS.forEach(function(m){
     if(m.lat==null||m.lng==null) return;
-    b.extend([m.lng, m.lat]);
     var mk=document.createElement('div'); mk.className='tm-marker'; mk.innerHTML='<span class="tm-dot"></span>';
     new mapboxgl.Marker({ element:mk, anchor:'center' }).setLngLat([m.lng, m.lat])
       .setPopup(new mapboxgl.Popup({ offset:14, closeButton:false }).setHTML('<span class="tm-pop"><b>'+esc(m.city)+'</b> · '+esc(m.region)+'</span>'))
       .addTo(map);
   });
-  map.fitBounds(b, { padding:{ top:46, bottom:46, left:46, right:46 }, maxZoom:4.2, duration:0 });
-  // The map inits far down the page (inside its container) — resize + re-fit once
-  // it's really sized and when it scrolls into view so the pins don't drift.
-  function sync(refit){ try{ map.resize(); if(refit) map.fitBounds(b, { padding:{ top:46, bottom:46, left:46, right:46 }, maxZoom:4.2, duration:0 }); }catch(e){} }
-  [150,450,1000].forEach(function(d){ setTimeout(function(){ sync(true); }, d); });
-  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(false); }); }, { threshold:0.15 }).observe(el); }catch(e){}
-  window.addEventListener('resize', function(){ sync(false); });
+  // The map inits far down the page (inside its container) — resize once it's really
+  // sized and when it scrolls into view so the projection stays correct.
+  function sync(){ try{ map.resize(); }catch(e){} }
+  [150,450,1000].forEach(function(d){ setTimeout(sync, d); });
+  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(); }); }, { threshold:0.15 }).observe(el); }catch(e){}
+  window.addEventListener('resize', sync);
 }
 initMarketMap();
 </script>
