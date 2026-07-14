@@ -12,17 +12,29 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <style>
-  /* Site DARK tokens live at :root so the injected universal chrome (header, footer,
-     pinned dock, member auth) renders exactly like the homepage. The beige travel
-     design is scoped to .tvl-page below and never leaks into the chrome. */
+  /* The universal chrome (header/footer/member badge) reads these :root tokens. On
+     THIS page only we point them at the beige page palette (beige bg, terracotta
+     text) so the chrome matches the travel page — the site-wide chrome is unchanged.
+     The page's own content uses the separate .tvl-page tokens below. */
   :root{
-    --ink:#070807; --ink-2:#0d0f0e; --panel:#141714; --panel-2:#1a1d1a; --panel-3:#222622;
-    --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
-    --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
-    --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
-    --purple:#A78BFA; --purple-glow:#B9A6FF;
+    --ink:#F2E9D7; --ink-2:#F2E9D7; --panel:#ECE1CD; --panel-2:#ECE1CD; --panel-3:#E7DCC6;
+    --hair:rgba(176,96,58,.18); --hair-2:rgba(176,96,58,.28);
+    --white:#8A3F22; --cream:#B0603A; --mute:#B0603A; --mute-2:#B0603A;
+    --green:#B0603A; --green-deep:#9E4A28; --green-soft:#C47A50; --gold:#B0603A; --gold-soft:#C47A50; --gold-deep:#9E4A28;
+    --purple:#B0603A; --purple-glow:#C47A50;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --glass:blur(16px) saturate(1.4);
   }
+  /* Override the chrome's few hardcoded dark surfaces + drop the Intelligence
+     search overlay and pinned dock — all scoped to this page's DOM only. */
+  .tmw-chrome-head nav.main{background:#F2E9D7 !important; border-bottom:1px solid rgba(176,96,58,.2) !important}
+  .tmw-chrome-head .nav-links{background:#F2E9D7 !important}
+  .tmw-chrome-head .wm-fill{fill:#B0603A !important}
+  .tmw-chrome-head .nav-cta{background:rgba(176,96,58,.06) !important}
+  .tmw-chrome-head .nav-cta .mc-count{background:rgba(176,96,58,.12) !important; border-color:rgba(176,96,58,.32) !important}
+  /* view toggle active segment → terracotta pill; member CTA text → terracotta */
+  .tmw-chrome-head .tmw-st-seg.on{background:#B0603A !important; color:#FBF6EC !important}
+  .tmw-chrome-head .tmw-auth, .tmw-chrome-head .tmw-auth *{color:#B0603A !important}
+  .tmw-dock,.tmw-ov-root{display:none !important}
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
     --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
@@ -47,7 +59,7 @@
 
   /* trips list */
   .trips{padding:12px 0 70px}
-  .trip{display:grid;grid-template-columns:minmax(0,44%) 1fr;gap:30px;align-items:center;
+  .trip{position:relative;display:grid;grid-template-columns:minmax(0,44%) 1fr;gap:30px;align-items:center;
         padding:26px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);
         margin-top:22px;box-shadow:0 8px 30px rgba(74,57,43,.07)}
   a.trip{transition:transform .18s,box-shadow .18s,border-color .18s}
@@ -71,7 +83,9 @@
   .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
   .trip-link .arw{transition:transform .18s}
   a.trip:hover .trip-link .arw{transform:translateX(4px)}
-  .upcoming-tag{display:inline-block;margin-left:10px;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--terra);border:1px solid rgba(176,96,58,.4);border-radius:99px;padding:3px 9px;vertical-align:middle;background:rgba(176,96,58,.06)}
+  .trip-badge{position:absolute;top:16px;right:18px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:4px 11px}
+  .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.4);background:rgba(176,96,58,.07)}
+  .trip-badge.ended{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.05)}
 
   footer.f{text-align:center;padding:34px 0 60px;color:var(--mute);font-size:12px;letter-spacing:.04em;border-top:1px solid var(--hair)}
   footer.f .fm{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mute2);margin-bottom:8px}
@@ -187,6 +201,16 @@ var TRIPS = [
   { title:'The Florida Keys', place:'Florida, USA', date:'December 6 — 10, 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_072eb313ecd645d8842f134ace8b34b8~mv2.jpeg',
     partners:['Bacchus','Little Palm Island','Three Waters Resort'] },
+  { title:'Paris', place:'Paris, France', date:'October 26 — 28, 2025', img:'', partners:[] },
+  { title:'London', place:'London, United Kingdom', date:'October 22 — 25, 2025', img:'', partners:['LDPR','One Aldwych'] },
+  { title:'Iceland', place:'Iceland', date:'October 14 — 21, 2025', img:'', partners:[] },
+  { title:'New York City', place:'New York, New York', date:'October 11 — 13, 2025', img:'', partners:['RE: Agency','Dream Global'] },
+  { title:'Orange County, Lake Tahoe & Yosemite', place:'California', date:'September 11 — 20, 2025', img:'', partners:['C&R PR','Clear Creek Tahoe'] },
+  { title:'Streamsong', place:'Bowling Green, Florida', date:'May 8 — 11, 2025', img:'', partners:['Streamsong'] },
+  { title:'North & South New Zealand', place:'New Zealand', date:'April 7 — 15, 2025', img:'', partners:[] },
+  { title:'Sydney & Great Barrier Reef', place:'Australia', date:'March 31 — April 7, 2025', img:'', partners:[] },
+  { title:'Tokyo & Kyoto', place:'Japan', date:'March 24 — 30, 2025', img:'', partners:[] },
+  { title:'Big Island, Kauai & Oahu', place:'Hawaii', date:'March 11 — 23, 2025', img:'', partners:['Quinn','Koa Kea Resort','Princeville Makai','The Surfjack Waikiki'] },
 ];
 
 // Warm Mediterranean gradients for placeholder tiles, cycled by index.
@@ -214,10 +238,12 @@ function partnersHtml(list){
     + '</div>';
 }
 function tripHtml(t, i){
-  var inner =
-      '<div class="trip-img">'+imgHtml(t, i)+'</div>'
+  // Top-right status pill: terracotta "Upcoming" for future trips, gray "Ended" for past.
+  var badge = '<span class="trip-badge '+(t.upcoming?'up':'ended')+'">'+(t.upcoming?'Upcoming':'Ended')+'</span>';
+  var inner = badge
+    + '<div class="trip-img">'+imgHtml(t, i)+'</div>'
     + '<div class="trip-body">'
-    +   '<div class="trip-date">'+esc(t.date)+(t.upcoming?'<span class="upcoming-tag">Upcoming</span>':'')+'</div>'
+    +   '<div class="trip-date">'+esc(t.date)+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title)+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
     +   partnersHtml(t.partners)
@@ -311,11 +337,11 @@ function initMarketMap(tries){
   var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
-  // Recolor the map's water + background to the page beige so it blends in.
+  // Background = page beige (blends into the page); water = neutral gray (not beige).
   function paintBg(){
     try{
       if(map.getLayer('background')) map.setPaintProperty('background','background-color','#F2E9D7');
-      ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#F2E9D7'); });
+      ['water','water-shadow','ocean'].forEach(function(l){ if(map.getLayer(l)) map.setPaintProperty(l,'fill-color','#D8D5CE'); });
     }catch(e){}
   }
   if(map.isStyleLoaded()) paintBg(); else { map.on('style.load', paintBg); map.on('load', paintBg); }
