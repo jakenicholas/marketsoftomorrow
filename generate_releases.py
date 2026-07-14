@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the /releases archive: TMW's LinkedIn newsletter editions, reader
 pages + an index. Newest edition stacks on top. To add a new edition, prepend
-its dict to EDITIONS and re-run — nothing else changes.
+its dict to EDITIONS and re-run; nothing else changes.
 
 Output:
   journal/releases/index.html            (archive landing, newest first)
@@ -43,15 +43,28 @@ def _date_label(iso):
     y, m, d = iso.split('-')
     return f"{MONTHS[int(m)-1]} {int(d)}, {y}"
 
+# Curated title overrides + editions to skip (Jake, 2026-07-13).
+DIGEST_TITLES = {
+    '2026-06-09': 'First U.S. Restaurant, Private Clubs & New Schools',
+    '2026-06-16': 'Restaurant and District Expansions, New Hotels & More',
+    '2026-06-23': '$1 Billion Districts, New Restaurants & Wellness Concepts',
+    '2026-06-30': 'New Autonomous Car Network, Clubs, and Condos',
+    '2026-07-07': 'Groundbreakings, Luxury Condos & Wellness',
+}
+DIGEST_SKIP = {'2026-06-03', '2026-06-10'}
+
 def discover_digests():
     out = []
     for fp in sorted(glob.glob(DIGEST_SRC + "/*.html"), reverse=True):
         base = os.path.basename(fp)[:-5]   # YYYY-MM-DD
         if not re.match(r'^\d{4}-\d{2}-\d{2}$', base):
             continue
+        if base in DIGEST_SKIP:
+            continue
         txt = open(fp, encoding='utf-8', errors='replace').read()
+        title = DIGEST_TITLES.get(base) or _digest_title(txt)
         out.append({'date': base, 'date_label': _date_label(base),
-                    'title': _digest_title(txt), 'src': fp})
+                    'title': title, 'src': fp})
     return out
 
 # ── Editions (newest FIRST) ───────────────────────────────────────────────
@@ -166,7 +179,7 @@ a{color:inherit;text-decoration:none}
 .rel-seg button{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--mute);background:none;border:0;cursor:pointer;padding:8px 16px;border-radius:999px;transition:color .2s,background .2s}
 .rel-seg button.on{color:#0a0a0a;background:var(--purple-bright);text-shadow:none}
 .rel-seg button:not(.on):hover{color:var(--cream)}
-/* consumer digest rows — no image, just date + title */
+/* consumer digest rows: no image, just date + title */
 .dig-list{display:flex;flex-direction:column;gap:0;padding:34px 0 90px}
 .dig-row{display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:20px;padding:22px 6px;border-top:1px solid var(--hair);text-decoration:none;transition:background .18s,padding-left .18s}
 .dig-row:last-child{border-bottom:1px solid var(--hair)}
@@ -270,7 +283,7 @@ def build_reader(ed):
     canonical = f"{ROOT_URL}/releases/{ed['slug']}/"
     og = f"{ROOT_URL}/releases/img/{ed['cover']}"
     desc = ed["dek"]
-    h = head(f"Edition {ed['num']}: {ed['title']} — {SITE_NAME}", desc, canonical, og)
+    h = head(f"Edition {ed['num']}: {ed['title']} | {SITE_NAME}", desc, canonical, og)
     body = f"""
 <div class="wrap">
   <nav class="rel-crumbs"><a href="/">TMW</a><span class="sep">/</span><a href="/releases/">The Weekly:Backend</a><span class="sep">/</span>Edition {ed['num']}</nav>
@@ -301,8 +314,8 @@ def build_reader(ed):
 def build_index():
     canonical = f"{ROOT_URL}/releases/"
     og = f"{ROOT_URL}/releases/img/{EDITIONS[0]['cover']}"
-    h = head(f"Releases — The Weekly | {SITE_NAME}",
-             "The Weekly — Backend build log + Consumer digest archive from Markets of Tomorrow.",
+    h = head(f"Releases | The Weekly | {SITE_NAME}",
+             "The Weekly: Backend build log and Consumer digest archive from Markets of Tomorrow.",
              canonical, og)
     # Backend view: the LinkedIn build-log editions
     cards = []
@@ -355,7 +368,7 @@ def build_index():
 (function(){{
   var COPY = {{
     backend:  {{ eye:'The Weekly:Backend',  h1:'The build log.',   sub:'Every edition of The Weekly:Backend, what we shipped, and why it compounds.' }},
-    consumer: {{ eye:'The Weekly:Consumer', h1:'The dispatch.',     sub:'Every consumer digest — the openings, projects, and stories, as they went out each week.' }}
+    consumer: {{ eye:'The Weekly:Consumer', h1:'The dispatch.',     sub:'The weekly openings, project updates, and stories.' }}
   }};
   var segs = document.querySelectorAll('.rel-seg button');
   function show(v){{
