@@ -350,6 +350,7 @@ const STOPS = [
     logi:[], imgs:['https://media.cntraveler.com/photos/57f3d1b244b4743b6f94de13/16:9/w_2560,c_limit/waterfront-park-charleston-GettyImages-478713798.jpg'] },
 
   { loc:'Charleston, South Carolina', nights:'2 Nights · July 19 → 21', stay:'Hotel Bennett', client:'Kate Hudson PR',
+    in:{ walk:true },
     out:{ date:'July 21', mode:'flight', note:'Fly home' },
     vibe:'A grand address on Marion Square in the heart of historic Charleston, with soaring interiors, a rooftop pool with steeple views, and refined Lowcountry dining a short walk from King Street.',
     logi:[], imgs:[
@@ -377,6 +378,9 @@ function galleryHtml(imgs, pos){
 function legHtml(l){
   if(l.or) return '<div class="leg leg-or"><div class="leg-line"><span class="leg-wave"></span>'
     + '<span class="leg-chip"><span class="leg-date">or</span></span>'
+    + '<span class="leg-wave"></span></div></div>';
+  if(l.walk) return '<div class="leg leg-walk"><div class="leg-line"><span class="leg-wave"></span>'
+    + '<span class="leg-chip"><span class="leg-date">🚶 walk</span></span>'
     + '<span class="leg-wave"></span></div></div>';
   var ic = ICONS[l.mode] || ICONS.car;
   return '<div class="leg'+(l.start?' start':'')+'">'
