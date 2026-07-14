@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <style>
   :root{
     --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
@@ -46,7 +48,7 @@
 
   /* image / placeholder */
   .trip-img{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/11;background:var(--panel);border:1px solid var(--hair)}
-  .trip-img img{width:100%;height:100%;object-fit:cover}
+  .trip-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
   .trip-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
   .trip-ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.22))}
   .trip-ph .ph-name{position:relative;z-index:1;font-family:var(--serif);font-weight:600;font-size:clamp(20px,3vw,27px);line-height:1.12;color:#FBF6EC;letter-spacing:-.01em;text-shadow:0 2px 14px rgba(40,25,12,.4)}
@@ -67,6 +69,39 @@
   footer.f{text-align:center;padding:34px 0 60px;color:var(--mute);font-size:12px;letter-spacing:.04em;border-top:1px solid var(--hair)}
   footer.f .fm{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mute2);margin-bottom:8px}
 
+  /* section heads (shared) */
+  .sec-head{text-align:center;margin-bottom:22px}
+  .sec-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:11px}
+  .sec-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,4vw,36px);letter-spacing:-.01em;color:var(--brown)}
+  .sec-sub{margin:12px auto 0;max-width:54ch;font-family:var(--serif);font-style:italic;font-size:16px;color:#6E5844;line-height:1.5}
+
+  /* ── World map ── */
+  .mapsec{padding:34px 0 6px}
+  .tm-frame{border:1px solid var(--hair2);border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
+  .tm-map{width:100%;height:min(60vh,520px);background:var(--panel)}
+  .tm-marker{width:16px;height:16px}
+  .tm-dot{display:block;width:16px;height:16px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;box-shadow:0 2px 6px rgba(74,57,43,.4);cursor:pointer;transition:transform .15s}
+  .tm-dot:hover{transform:scale(1.3);z-index:2}
+  .tm-pop{font-family:var(--sans);font-size:12.5px;color:var(--brown)} .tm-pop b{color:var(--terra)}
+  .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
+  .mapboxgl-popup-tip{border-top-color:#F5EEDF!important;border-bottom-color:#F5EEDF!important}
+  .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
+
+  /* ── Markets visited grid ── */
+  #markets{padding:48px 0 20px}
+  .mk-filters{display:flex;justify-content:center;align-items:center;gap:16px;margin:24px 0 22px;flex-wrap:wrap}
+  .mk-filters select{background-color:#FBF6EC;border:1px solid var(--hair2);border-radius:10px;padding:9px 32px 9px 13px;font-family:var(--sans);font-size:13px;color:var(--brown);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23B0603A' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+  .mk-count{font-size:13px;color:var(--mute2);font-weight:500}
+  .mk-count b{color:var(--brown)}
+  .mk-clear{background:none;border:0;color:var(--terra);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+  .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+  .mtile{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--panel);border:1px solid var(--hair)}
+  .mtile img{width:100%;height:100%;object-fit:cover}
+  .mtile figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 13px 11px;background:linear-gradient(transparent,rgba(40,25,12,.74));color:#FBF6EC;pointer-events:none}
+  .mtile .mc{display:block;font-family:var(--serif);font-weight:600;font-size:15.5px;letter-spacing:-.01em}
+  .mtile .mr{display:block;font-size:10.5px;letter-spacing:.07em;opacity:.85;margin-top:1px}
+
   @media(max-width:640px){
     .trip{grid-template-columns:1fr;gap:18px;padding:18px}
     .trip-img{aspect-ratio:16/10}
@@ -85,6 +120,39 @@
 <div class="rule"></div>
 <div class="wrap">
   <main class="trips" id="trips"></main>
+</div>
+
+<section class="mapsec"><div class="wrap">
+  <div class="sec-head">
+    <div class="sec-k">On the Ground</div>
+    <h2>Everywhere we've reported from</h2>
+    <p class="sec-sub">A pin for every market our team has visited — across the country and around the world.</p>
+  </div>
+  <div class="tm-frame"><div id="tmap" class="tm-map"></div></div>
+</div></section>
+
+<section id="markets"><div class="wrap">
+  <div class="sec-head">
+    <div class="sec-k">Markets Visited</div>
+    <h2>Markets we've visited</h2>
+    <p class="sec-sub">Our team reports from the field — capturing the projects, openings, and destinations shaping the future.</p>
+  </div>
+  <div class="mk-filters">
+    <select id="fRegion" aria-label="Filter by region">
+      <option value="">All regions</option>
+      <option value="United States">United States</option>
+      <option value="Caribbean">Caribbean</option>
+      <option value="Europe">Europe</option>
+      <option value="Asia">Asia</option>
+      <option value="Africa">Africa</option>
+      <option value="Oceania">Oceania</option>
+    </select>
+    <div class="mk-count"><b id="mcount">48</b> markets <button class="mk-clear" id="mclear" type="button" hidden>Clear</button></div>
+  </div>
+  <div class="mgrid" id="mgrid"></div>
+</div></section>
+
+<div class="wrap">
   <footer class="f"><div class="fm">More miles ahead.</div>Markets of Tomorrow · Travel</footer>
 </div>
 
@@ -93,16 +161,29 @@
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
   { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 — October 10, 2026',
-    href:'/travel/2026/europe/', upcoming:true, img:'', partners:['J/PR'] },
-  { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026', img:'', partners:['Private'] },
-  { title:'Four Seasons Fort Lauderdale', place:'Fort Lauderdale, Florida', date:'May 8 — 10, 2026', img:'', partners:['Four Seasons'] },
-  { title:'Tokyo', place:'Tokyo, Japan', date:'April 21 — 26, 2026', img:'', partners:[] },
-  { title:'Hawaii', place:'Maui · Kauai, Hawaii', date:'March 18 — April 21, 2026', img:'',
+    href:'/travel/2026/europe/', upcoming:true,
+    img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
+    partners:['J/PR'] },
+  { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026',
+    img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
+    partners:['Private'] },
+  { title:'Four Seasons Fort Lauderdale', place:'Fort Lauderdale, Florida', date:'May 8 — 10, 2026',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/04a4e3ea5423-DJI_20250606074409_0238_F1.jpeg',
+    partners:['Four Seasons'] },
+  { title:'Tokyo', place:'Tokyo, Japan', date:'April 21 — 26, 2026',
+    img:'https://media.digitalnomads.world/wp-content/uploads/2021/02/20120635/tokyo-for-digital-nomads.jpg',
+    partners:[] },
+  { title:'Hawaii', place:'Maui, Kauai, Oahu', date:'March 18 — April 21, 2026',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bb843cc42cf247b4b9ad045666c4dd6d~mv2.webp',
     partners:['Quinn PR','C&R PR','REM Public Relations','Andaz Maui','Princeville Makai','Puakea','Alohalani','Koa Kea Resort','Hokuala'] },
-  { title:'New York City', place:'New York, New York', date:'March 5 — 8, 2026', img:'',
+  { title:'New York City', place:'New York, New York', date:'March 5 — 8, 2026',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/db8e4a8c065e-iStock-178735930.jpg',
     partners:['Carli PR','Starlet PR','Slate Aviation'] },
-  { title:'Cabot Citrus Farms', place:'Brooksville, Florida', date:'December 11 — 14, 2025', img:'', partners:['Cabot'] },
-  { title:'The Florida Keys', place:'Florida, USA', date:'December 6 — 10, 2025', img:'',
+  { title:'Cabot Citrus Farms', place:'Brooksville, Florida', date:'December 11 — 14, 2025',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooksville/cabot-citrus-farms.jpeg',
+    partners:['Cabot'] },
+  { title:'The Florida Keys', place:'Florida, USA', date:'December 6 — 10, 2025',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_072eb313ecd645d8842f134ace8b34b8~mv2.jpeg',
     partners:['Bacchus','Little Palm Island','Three Waters Resort'] },
 ];
 
@@ -118,8 +199,11 @@ var PH = [
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
 function imgHtml(t, i){
-  if(t.img) return '<img loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.title)+'">';
-  return '<div class="trip-ph" style="background:'+PH[i % PH.length]+'"><div class="ph-name">'+esc(t.title)+'</div></div>';
+  // Gradient placeholder always sits behind; the photo overlays it and removes
+  // itself on error, so a blocked/broken URL degrades to the placeholder tile.
+  var ph = '<div class="trip-ph" style="background:'+PH[i % PH.length]+'"><div class="ph-name">'+esc(t.title)+'</div></div>';
+  var img = t.img ? '<img class="trip-photo" loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.title)+'" onerror="this.remove()">' : '';
+  return ph + img;
 }
 function partnersHtml(list){
   if(!list || !list.length) return '';
@@ -142,6 +226,107 @@ function tripHtml(t, i){
     : '<article class="trip">'+inner+'</article>';
 }
 document.getElementById('trips').innerHTML = TRIPS.map(tripHtml).join('');
+
+// ── Markets visited: single source for the grid + the world map. To make this
+// Studio-managed later, swap MARKETS for a fetch('/list/markets') and render the same. ──
+var MARKETS = [
+  { city:"Phoenix", region:"Arizona", area:"United States", img:"/media/img/9c8d509c3701.jpg", lat:33.45, lng:-112.07 },
+  { city:"Sedona", region:"Arizona", area:"United States", img:"/media/img/7aab92eb6230.jpg", lat:34.87, lng:-111.76 },
+  { city:"Tucson", region:"Arizona", area:"United States", img:"/media/img/6f446e6a5c19.jpg", lat:32.22, lng:-110.97 },
+  { city:"Los Angeles", region:"California", area:"United States", img:"/media/img/adee17f1baa2.jpg", lat:34.05, lng:-118.24 },
+  { city:"Lake Tahoe", region:"California", area:"United States", img:"/media/img/d1822d523c36.jpg", lat:39.09, lng:-120.03 },
+  { city:"San Diego", region:"California", area:"United States", img:"/media/img/540b0e288e1e.jpg", lat:32.72, lng:-117.16 },
+  { city:"Yosemite", region:"California", area:"United States", img:"/media/img/efd604daca36.jpg", lat:37.87, lng:-119.54 },
+  { city:"Orange County", region:"California", area:"United States", img:"https://www.thatocgirl.com/wp-content/uploads/2018/12/Treasure-Island-Laguna-Beach-California-1200x800.jpg", lat:33.70, lng:-117.83 },
+  { city:"Palm Springs", region:"California", area:"United States", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48b5dfcfb898-Golf-Parent-THe-Majecstic-Mountain-Course.jpg", lat:33.83, lng:-116.55 },
+  { city:"Denver", region:"Colorado", area:"United States", img:"/media/img/2a98976f676b.jpg", lat:39.74, lng:-104.99 },
+  { city:"Little Palm", region:"Florida", area:"United States", img:"/media/img/60aed571bf65.jpg", lat:24.62, lng:-81.40 },
+  { city:"Tampa", region:"Florida", area:"United States", img:"/media/img/a18354eb8206.jpg", lat:27.95, lng:-82.46 },
+  { city:"Miami", region:"Florida", area:"United States", img:"/media/img/811c658fc972.jpg", lat:25.76, lng:-80.19 },
+  { city:"West Palm Beach", region:"Florida", area:"United States", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d4737a23b2a34ead8b24452da17cdbaf~mv2.jpg", lat:26.71, lng:-80.05 },
+  { city:"Naples", region:"Florida", area:"United States", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4f513b543ad3418e8cc74595f3179aa0~mv2.jpeg", lat:26.14, lng:-81.79 },
+  { city:"Kauai", region:"Hawaii", area:"United States", img:"/media/img/4a3b5da6cf80.jpg", lat:22.05, lng:-159.50 },
+  { city:"Kailua-Kona", region:"Hawaii", area:"United States", img:"/media/img/4d96db24147b.jpg", lat:19.64, lng:-155.99 },
+  { city:"Maui", region:"Hawaii", area:"United States", img:"/media/img/a66b7ae56c70.jpg", lat:20.80, lng:-156.33 },
+  { city:"Oahu", region:"Hawaii", area:"United States", img:"/media/img/938678024d85.jpg", lat:21.47, lng:-157.98 },
+  { city:"Chicago", region:"Illinois", area:"United States", img:"/media/img/6392d3b09577.jpg", lat:41.88, lng:-87.63 },
+  { city:"Minneapolis", region:"Minnesota", area:"United States", img:"/media/img/441d1f146b84.jpg", lat:44.98, lng:-93.27 },
+  { city:"Yellowstone", region:"Montana", area:"United States", img:"/media/img/02732c872796.jpg", lat:44.60, lng:-110.50 },
+  { city:"Angel Fire", region:"New Mexico", area:"United States", img:"https://skinorthamerica100.s3.us-east-2.amazonaws.com/wp-content/uploads/2013/02/15190751/af-runs-3.jpg", lat:36.39, lng:-105.28 },
+  { city:"Manhattan", region:"New York", area:"United States", img:"/media/img/d8eb421fd9fe.jpg", lat:40.78, lng:-73.97 },
+  { city:"Chattanooga", region:"Tennessee", area:"United States", img:"/media/img/a3bc2d966424.jpg", lat:35.05, lng:-85.31 },
+  { city:"Nashville", region:"Tennessee", area:"United States", img:"/media/img/5ef6d4c351e7.jpg", lat:36.16, lng:-86.78 },
+  { city:"Milwaukee", region:"Wisconsin", area:"United States", img:"/media/img/c995e3f3116a.jpg", lat:43.04, lng:-87.91 },
+  { city:"Jackson Hole", region:"Wyoming", area:"United States", img:"/media/img/05edcd7c0b75.jpg", lat:43.48, lng:-110.76 },
+  { city:"Bimini", region:"Bahamas", area:"Caribbean", img:"/media/img/8eeb935a7f2e.jpg", lat:25.72, lng:-79.30 },
+  { city:"Punta Cana", region:"Dominican Republic", area:"Caribbean", img:"/media/img/82769e24960e.jpg", lat:18.58, lng:-68.40 },
+  { city:"Costa Mujeres", region:"Mexico", area:"Caribbean", img:"/media/img/b61d1e96dcd2.jpg", lat:21.27, lng:-86.81 },
+  { city:"Paris", region:"France", area:"Europe", img:"/media/img/41e1fbe262d8.jpg", lat:48.86, lng:2.35 },
+  { city:"Reykjavík", region:"Iceland", area:"Europe", img:"/media/img/3be724ee05c6.jpg", lat:64.15, lng:-21.94 },
+  { city:"Akureyri", region:"Iceland", area:"Europe", img:"https://www.hollandamerica.com/content/hal/us/en/cruise-destinations/northern-europe-cruises/europe-northern-ports/akureyri-iceland-aey/_jcr_content/root/container/hero/image.coreimg.jpeg/1771878221443/akureyri-iceland-c037.jpeg", lat:65.68, lng:-18.09 },
+  { city:"Florence", region:"Italy", area:"Europe", img:"/media/img/e71de62c4109.jpg", lat:43.77, lng:11.26 },
+  { city:"Positano", region:"Italy", area:"Europe", img:"/media/img/1795abb4a3b9.jpg", lat:40.63, lng:14.48 },
+  { city:"Rome", region:"Italy", area:"Europe", img:"/media/img/54fd89c70a09.jpg", lat:41.90, lng:12.50 },
+  { city:"Madrid", region:"Spain", area:"Europe", img:"/media/img/bffe20685fd4.jpg", lat:40.42, lng:-3.70 },
+  { city:"London", region:"United Kingdom", area:"Europe", img:"/media/img/1863db2d0650.jpg", lat:51.51, lng:-0.13 },
+  { city:"Tokyo", region:"Japan", area:"Asia", img:"/media/img/d9e0a7d3c706.jpg", lat:35.68, lng:139.69 },
+  { city:"Osaka", region:"Japan", area:"Asia", img:"/media/img/cf63fefa4794.jpg", lat:34.69, lng:135.50 },
+  { city:"Kyoto", region:"Japan", area:"Asia", img:"/media/img/c3eb773badc2.jpg", lat:35.01, lng:135.77 },
+  { city:"Luxor", region:"Egypt", area:"Africa", img:"/media/img/7b919e072cbe.jpg", lat:25.69, lng:32.64 },
+  { city:"Cairo", region:"Egypt", area:"Africa", img:"/media/img/410ea32becc7.jpg", lat:30.04, lng:31.24 },
+  { city:"Sydney", region:"Australia", area:"Oceania", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_2661a98d6a1c42ad8b31944999cadaba~mv2.webp", lat:-33.87, lng:151.21 },
+  { city:"Cairns", region:"Australia", area:"Oceania", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f91b669784ee4dd7848914e05212d612~mv2.webp", lat:-16.92, lng:145.77 },
+  { city:"Auckland", region:"New Zealand", area:"Oceania", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_908fe409d8c84a6db3f12bab2d5692e4~mv2.jpg", lat:-36.85, lng:174.76 },
+  { city:"Queenstown", region:"New Zealand", area:"Oceania", img:"https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8fe0cb11bc7243979fb86d0838695999~mv2.webp", lat:-45.03, lng:168.66 },
+];
+
+// Markets grid + region filter
+(function(){
+  var mg=document.getElementById('mgrid'); if(!mg) return;
+  mg.innerHTML = MARKETS.map(function(m){
+    return '<figure class="mtile" data-region="'+esc(m.area)+'">'
+      + '<img src="'+esc(m.img)+'" alt="'+esc(m.city)+', '+esc(m.region)+'" loading="lazy" onerror="this.style.display=\'none\'">'
+      + '<figcaption><span class="mc">'+esc(m.city)+'</span><span class="mr">'+esc(m.region)+'</span></figcaption>'
+      + '</figure>';
+  }).join('');
+  var fR=document.getElementById('fRegion'), mc=document.getElementById('mcount'), mclr=document.getElementById('mclear');
+  var tiles=[].slice.call(mg.querySelectorAll('.mtile'));
+  mc.textContent=tiles.length;
+  function apply(){
+    var rv=fR.value, shown=0;
+    tiles.forEach(function(t){ var ok=!rv||t.dataset.region===rv; t.hidden=!ok; if(ok)shown++; });
+    mc.textContent=shown; mclr.hidden=!rv;
+  }
+  fR.addEventListener('change', apply);
+  mclr.addEventListener('click', function(){ fR.value=''; apply(); });
+})();
+
+// World map — a terracotta dot per market (light-v11, beige-styled to match).
+function initMarketMap(tries){
+  var el=document.getElementById('tmap'); if(!el) return;
+  if(typeof mapboxgl==='undefined'){ if((tries||0)<40) setTimeout(function(){ initMarketMap((tries||0)+1); },250); return; }
+  mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var map=new mapboxgl.Map({ container:'tmap', style:'mapbox://styles/mapbox/light-v11',
+    attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
+  map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
+  var b=new mapboxgl.LngLatBounds();
+  MARKETS.forEach(function(m){
+    if(m.lat==null||m.lng==null) return;
+    b.extend([m.lng, m.lat]);
+    var mk=document.createElement('div'); mk.className='tm-marker'; mk.innerHTML='<span class="tm-dot"></span>';
+    new mapboxgl.Marker({ element:mk, anchor:'center' }).setLngLat([m.lng, m.lat])
+      .setPopup(new mapboxgl.Popup({ offset:14, closeButton:false }).setHTML('<span class="tm-pop"><b>'+esc(m.city)+'</b> · '+esc(m.region)+'</span>'))
+      .addTo(map);
+  });
+  map.fitBounds(b, { padding:{ top:46, bottom:46, left:46, right:46 }, maxZoom:4.2, duration:0 });
+  // The map inits far down the page (inside its container) — resize + re-fit once
+  // it's really sized and when it scrolls into view so the pins don't drift.
+  function sync(refit){ try{ map.resize(); if(refit) map.fitBounds(b, { padding:{ top:46, bottom:46, left:46, right:46 }, maxZoom:4.2, duration:0 }); }catch(e){} }
+  [150,450,1000].forEach(function(d){ setTimeout(function(){ sync(true); }, d); });
+  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(false); }); }, { threshold:0.15 }).observe(el); }catch(e){}
+  window.addEventListener('resize', function(){ sync(false); });
+}
+initMarketMap();
 </script>
 </body>
 </html>
