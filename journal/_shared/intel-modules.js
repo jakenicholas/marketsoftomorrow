@@ -523,7 +523,7 @@
       b.addEventListener('click', function () { show(l); });
       chipsEl.appendChild(b);
     });
-    show(top.filter(function (l) { return /^madison realty capital$/i.test(l.name); })[0] || top[0]);
+    show(top.filter(function (l) { return /^tyko capital$/i.test(l.name); })[0] || top[0]);
   }
 
   var SPARK = '<svg class="sp" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';

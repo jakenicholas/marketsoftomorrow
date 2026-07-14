@@ -172,6 +172,15 @@ def lkey(n):
     return re.sub(r'\s+', ' ', str(n).lower()).strip()
 
 
+# Known-brand canonical spellings — override the "most-common variant" heuristic
+# for names it gets wrong (acronym brands, and stray short forms that should fold
+# into the full name). Keyed by lkey. Also merges variants into ONE lender bucket.
+BRAND_CANON = {
+    'tyko': 'TYKO Capital',
+    'tyko capital': 'TYKO Capital',
+}
+
+
 def main():
     with open(SRC, encoding='utf-8') as f:
         projects = json.load(f)
@@ -277,6 +286,7 @@ def main():
             casing.setdefault(lkey(nm), {})
             casing[lkey(nm)][nm] = casing[lkey(nm)].get(nm, 0) + 1
     canon = {k: max(v.items(), key=lambda kv: kv[1])[0] for k, v in casing.items()}
+    canon.update(BRAND_CANON)                            # known-brand spellings win
     for d in dedup:
         for ld in d.get('lenders') or []:
             if ld.get('name'):
