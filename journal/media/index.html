@@ -23,6 +23,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 
 <!-- ─── GA4 (shared property with the map) ────────────────────────────────
      Same G-6NPTWCVFCG measurement ID as map.oftmw.com so events from this
@@ -279,6 +281,16 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 
 /* markets visited grid */
 .mgrid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:8px}
+/* markets-visited world map — dark, matches /map */
+#tmapMedia{width:100%; height:460px; border-radius:14px; overflow:hidden; border:1px solid var(--hair); margin:0 0 30px; position:relative; background:#0a131c}
+#tmapMedia .mapboxgl-ctrl-logo,#tmapMedia .mapboxgl-ctrl-attrib{opacity:.45}
+.tmm-marker{width:12px; height:12px}
+.tmm-dot{display:block; width:12px; height:12px; border-radius:50%; background:#E6C574; border:1.5px solid rgba(255,255,255,.85); box-shadow:0 0 0 3px rgba(230,197,116,.26), 0 0 10px 2px rgba(230,197,116,.5)}
+.tmm-pop .mapboxgl-popup-content{background:#12140f; border:1px solid rgba(230,197,116,.3); border-radius:8px; padding:7px 11px; box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tmm-pop .mapboxgl-popup-tip{border-top-color:#12140f; border-bottom-color:#12140f}
+.tmm-pop-tx{font-family:var(--mono); font-size:11px; letter-spacing:.02em; color:#F3ECD9}
+.tmm-pop-tx b{color:#E6C574}
+@media(max-width:700px){ #tmapMedia{height:340px} }
 .mtile{position:relative; margin:0; border-radius:12px; overflow:hidden; border:1px solid var(--hair); aspect-ratio:4/3}
 .mtile img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease, filter .4s ease; filter:saturate(.82) brightness(.74)}
 .mtile::after{content:""; position:absolute; inset:0; pointer-events:none;
@@ -1076,6 +1088,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <h2 class="reveal d1">Markets we've visited</h2>
       <p class="lede reveal d2">Our team reports from the field &mdash; capturing the projects, openings, and destinations shaping the future, <span class="hl-gold">across the country and around the world.</span></p>
     </div>
+    <div id="tmapMedia" class="reveal" aria-label="Map of markets we have visited"></div>
     <div class="cfilters mfilters reveal">
       <div class="cfilter cfilter-filter">
         <label>Filter</label>
@@ -1091,36 +1104,55 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           </select>
         </div>
       </div>
-      <div class="cfilter-meta"><span id="mcount">48</span> markets <button class="cclear" id="mclear" type="button" hidden>Clear</button></div>
+      <div class="cfilter-meta"><span id="mcount">68</span> markets <button class="cclear" id="mclear" type="button" hidden>Clear</button></div>
     </div>
     <div class="mgrid reveal" id="mgrid">
       <figure class="mtile" data-region="United States"><img src="/media/img/9c8d509c3701.jpg" alt="Phoenix, Arizona" loading="lazy"><figcaption><span class="mc">Phoenix</span><span class="mr">Arizona</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/7aab92eb6230.jpg" alt="Sedona, Arizona" loading="lazy"><figcaption><span class="mc">Sedona</span><span class="mr">Arizona</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/6f446e6a5c19.jpg" alt="Tucson, Arizona" loading="lazy"><figcaption><span class="mc">Tucson</span><span class="mr">Arizona</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://lp-cms-production.imgix.net/2019-06/369c5e1ff0e5e157c41ecae9f30a36ec-flagstaff.jpg" alt="Flagstaff, Arizona" loading="lazy"><figcaption><span class="mc">Flagstaff</span><span class="mr">Arizona</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://cdn.outsideonline.com/wp-content/uploads/2018/11/20/outside-guide-grand-canyon_h.jpg?auto=webp&width=3840&quality=75&fit=cover" alt="Grand Canyon, Arizona" loading="lazy"><figcaption><span class="mc">Grand Canyon</span><span class="mr">Arizona</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/adee17f1baa2.jpg" alt="Los Angeles, California" loading="lazy"><figcaption><span class="mc">Los Angeles</span><span class="mr">California</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/d1822d523c36.jpg" alt="Lake Tahoe, California" loading="lazy"><figcaption><span class="mc">Lake Tahoe</span><span class="mr">California</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/540b0e288e1e.jpg" alt="San Diego, California" loading="lazy"><figcaption><span class="mc">San Diego</span><span class="mr">California</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/efd604daca36.jpg" alt="Yosemite, California" loading="lazy"><figcaption><span class="mc">Yosemite</span><span class="mr">California</span></figcaption></figure>
-      <figure class="mtile" data-region="United States"><img src="https://www.thatocgirl.com/wp-content/uploads/2018/12/Treasure-Island-Laguna-Beach-California-1200x800.jpg" alt="Orange County, California" loading="lazy"><figcaption><span class="mc">Orange County</span><span class="mr">California</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Heisler_Park_-_Laguna_Beach_-_California_-_01.jpg/1280px-Heisler_Park_-_Laguna_Beach_-_California_-_01.jpg" alt="Orange County, California" loading="lazy"><figcaption><span class="mc">Orange County</span><span class="mr">California</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/48b5dfcfb898-Golf-Parent-THe-Majecstic-Mountain-Course.jpg" alt="Palm Springs, California" loading="lazy"><figcaption><span class="mc">Palm Springs</span><span class="mr">California</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg" alt="Big Sur, California" loading="lazy"><figcaption><span class="mc">Big Sur</span><span class="mr">California</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://cdn.britannica.com/13/77413-050-95217C0B/Golden-Gate-Bridge-San-Francisco.jpg" alt="San Francisco, California" loading="lazy"><figcaption><span class="mc">San Francisco</span><span class="mr">California</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg" alt="Napa Valley, California" loading="lazy"><figcaption><span class="mc">Napa Valley</span><span class="mr">California</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg" alt="Sacramento, California" loading="lazy"><figcaption><span class="mc">Sacramento</span><span class="mr">California</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/2a98976f676b.jpg" alt="Denver, Colorado" loading="lazy"><figcaption><span class="mc">Denver</span><span class="mr">Colorado</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/60aed571bf65.jpg" alt="Little Palm, Florida" loading="lazy"><figcaption><span class="mc">Little Palm</span><span class="mr">Florida</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/a18354eb8206.jpg" alt="Tampa, Florida" loading="lazy"><figcaption><span class="mc">Tampa</span><span class="mr">Florida</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/811c658fc972.jpg" alt="Miami, Florida" loading="lazy"><figcaption><span class="mc">Miami</span><span class="mr">Florida</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d4737a23b2a34ead8b24452da17cdbaf~mv2.jpg" alt="West Palm Beach, Florida" loading="lazy"><figcaption><span class="mc">West Palm Beach</span><span class="mr">Florida</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4f513b543ad3418e8cc74595f3179aa0~mv2.jpeg" alt="Naples, Florida" loading="lazy"><figcaption><span class="mc">Naples</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://images.contentstack.io/v3/assets/blt06f605a34f1194ff/blt7ffdd8bc287cca94/6819f69ed9012185dbc5ee30/aditya-vyas-HCKVHAEbkus-unsplash-MOBILE-HEADER.jpg?fit=crop&auto=webp&quality=60&crop=smart&format=avif" alt="Orlando, Florida" loading="lazy"><figcaption><span class="mc">Orlando</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://keywestboattrips.com/wp-content/uploads/2024/08/is-key-west-worth-visiting.jpg" alt="Key West, Florida" loading="lazy"><figcaption><span class="mc">Key West</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://www.thetopvillas.com/blog/wp-content/uploads/2021/02/Islamorada-featured.jpg" alt="Islamorada, Florida" loading="lazy"><figcaption><span class="mc">Islamorada</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://covecommunities.com/wp-content/uploads/2024/08/Lido_Beach_sarasota_Florida.jpg" alt="Sarasota, Florida" loading="lazy"><figcaption><span class="mc">Sarasota</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://cache.marriott.com/content/dam/marriott-digital/jw/us-canada/hws/m/mrkfl/en_us/photo/unlimited/assets/mrkfl-attraction-beach-0240.jpg" alt="Marco Island, Florida" loading="lazy"><figcaption><span class="mc">Marco Island</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://media-production.lp-cdn.com/cdn-cgi/image/format=auto,quality=85,fit=scale-down,width=1280/https://media-production.lp-cdn.com/media/f34227bb-a8c7-41e4-bf05-4284c4bfac56" alt="Orchid Island, Florida" loading="lazy"><figcaption><span class="mc">Orchid Island</span><span class="mr">Florida</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bowling-green/streamsong-resort-2.jpeg" alt="Streamsong, Florida" loading="lazy"><figcaption><span class="mc">Streamsong</span><span class="mr">Florida</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/4a3b5da6cf80.jpg" alt="Kauai, Hawaii" loading="lazy"><figcaption><span class="mc">Kauai</span><span class="mr">Hawaii</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/4d96db24147b.jpg" alt="Kailua-Kona, Hawaii" loading="lazy"><figcaption><span class="mc">Kailua-Kona</span><span class="mr">Hawaii</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/a66b7ae56c70.jpg" alt="Maui, Hawaii" loading="lazy"><figcaption><span class="mc">Maui</span><span class="mr">Hawaii</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/938678024d85.jpg" alt="Oahu, Hawaii" loading="lazy"><figcaption><span class="mc">Oahu</span><span class="mr">Hawaii</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/6392d3b09577.jpg" alt="Chicago, Illinois" loading="lazy"><figcaption><span class="mc">Chicago</span><span class="mr">Illinois</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://images.musement.com/cover/0157/69/louisville-adobestock-242505834-jpeg_header-15668668.jpg" alt="Louisville, Kentucky" loading="lazy"><figcaption><span class="mc">Louisville</span><span class="mr">Kentucky</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/441d1f146b84.jpg" alt="Minneapolis, Minnesota" loading="lazy"><figcaption><span class="mc">Minneapolis</span><span class="mr">Minnesota</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/02732c872796.jpg" alt="Yellowstone, Montana" loading="lazy"><figcaption><span class="mc">Yellowstone</span><span class="mr">Montana</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://westernhomejournal.com/wp-content/uploads/2024/05/24_BZ_Water_1.jpg.webp" alt="Bozeman, Montana" loading="lazy"><figcaption><span class="mc">Bozeman</span><span class="mr">Montana</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="https://skinorthamerica100.s3.us-east-2.amazonaws.com/wp-content/uploads/2013/02/15190751/af-runs-3.jpg" alt="Angel Fire, New Mexico" loading="lazy"><figcaption><span class="mc">Angel Fire</span><span class="mr">New Mexico</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://afar.brightspotcdn.com/dims4/default/dbeab46/2147483647/strip/true/crop/1064x532+0+89/resize/1440x720!/quality/90/?url=https%3A%2F%2Fk3-prod-afar-media.s3.us-west-2.amazonaws.com%2Fbrightspot%2F67%2Fed%2F52dc45ef5f4d59b107087ab9e227%2Foriginal-taos.jpeg" alt="Taos, New Mexico" loading="lazy"><figcaption><span class="mc">Taos</span><span class="mr">New Mexico</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/d8eb421fd9fe.jpg" alt="Manhattan, New York" loading="lazy"><figcaption><span class="mc">Manhattan</span><span class="mr">New York</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Falls%20Park%2C%20Sioux%20Falls%2C%20South%20Dakota.jpg?width=1280" alt="Sioux Falls, South Dakota" loading="lazy"><figcaption><span class="mc">Sioux Falls</span><span class="mr">South Dakota</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://www.hachettebookgroup.com/wp-content/uploads/2019/01/SD_BadlandsNP_AndriyKravchenko_123rf.jpg" alt="Black Hills, South Dakota" loading="lazy"><figcaption><span class="mc">Black Hills</span><span class="mr">South Dakota</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/a3bc2d966424.jpg" alt="Chattanooga, Tennessee" loading="lazy"><figcaption><span class="mc">Chattanooga</span><span class="mr">Tennessee</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/5ef6d4c351e7.jpg" alt="Nashville, Tennessee" loading="lazy"><figcaption><span class="mc">Nashville</span><span class="mr">Tennessee</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/c995e3f3116a.jpg" alt="Milwaukee, Wisconsin" loading="lazy"><figcaption><span class="mc">Milwaukee</span><span class="mr">Wisconsin</span></figcaption></figure>
+      <figure class="mtile" data-region="United States"><img src="https://www.wiproud.com/wp-content/uploads/sites/46/2024/07/Wisconsin-Road.jpg?w=1280" alt="La Crosse, Wisconsin" loading="lazy"><figcaption><span class="mc">La Crosse</span><span class="mr">Wisconsin</span></figcaption></figure>
       <figure class="mtile" data-region="United States"><img src="/media/img/05edcd7c0b75.jpg" alt="Jackson Hole, Wyoming" loading="lazy"><figcaption><span class="mc">Jackson Hole</span><span class="mr">Wyoming</span></figcaption></figure>
       <figure class="mtile" data-region="Caribbean"><img src="/media/img/8eeb935a7f2e.jpg" alt="Bimini, Bahamas" loading="lazy"><figcaption><span class="mc">Bimini</span><span class="mr">Bahamas</span></figcaption></figure>
       <figure class="mtile" data-region="Caribbean"><img src="/media/img/82769e24960e.jpg" alt="Punta Cana, Dominican Republic" loading="lazy"><figcaption><span class="mc">Punta Cana</span><span class="mr">Dominican Republic</span></figcaption></figure>
@@ -1142,6 +1174,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <figure class="mtile" data-region="Oceania"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f91b669784ee4dd7848914e05212d612~mv2.webp" alt="Cairns, Australia" loading="lazy"><figcaption><span class="mc">Cairns</span><span class="mr">Australia</span></figcaption></figure>
       <figure class="mtile" data-region="Oceania"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_908fe409d8c84a6db3f12bab2d5692e4~mv2.jpg" alt="Auckland, New Zealand" loading="lazy"><figcaption><span class="mc">Auckland</span><span class="mr">New Zealand</span></figcaption></figure>
       <figure class="mtile" data-region="Oceania"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_8fe0cb11bc7243979fb86d0838695999~mv2.webp" alt="Queenstown, New Zealand" loading="lazy"><figcaption><span class="mc">Queenstown</span><span class="mr">New Zealand</span></figcaption></figure>
+      <figure class="mtile" data-region="Oceania"><img src="https://media.nomadicmatt.com/2021/waitomo.jpg" alt="Waitomo, New Zealand" loading="lazy"><figcaption><span class="mc">Waitomo</span><span class="mr">New Zealand</span></figcaption></figure>
         </div>
   </div>
 </section>
@@ -1371,6 +1404,53 @@ let last=0; const nav=document.getElementById('nav');
   }
   fR.addEventListener('change',apply);
   mclr.addEventListener('click',()=>{fR.value='';apply();});
+})();
+// markets-visited world map — dark satellite base, matches /map
+(function initMediaMap(tries){
+  var el=document.getElementById('tmapMedia'); if(!el) return;
+  if(typeof mapboxgl==='undefined'){ if((tries||0)<40) return void setTimeout(function(){ initMediaMap((tries||0)+1); },250); return; }
+  var GEO=[
+    {c:"Phoenix",r:"Arizona",lat:33.45,lng:-112.07},{c:"Sedona",r:"Arizona",lat:34.87,lng:-111.76},{c:"Tucson",r:"Arizona",lat:32.22,lng:-110.97},
+    {c:"Flagstaff",r:"Arizona",lat:35.20,lng:-111.65},{c:"Grand Canyon",r:"Arizona",lat:36.06,lng:-112.14},{c:"Los Angeles",r:"California",lat:34.05,lng:-118.24},
+    {c:"Lake Tahoe",r:"California",lat:39.09,lng:-120.03},{c:"San Diego",r:"California",lat:32.72,lng:-117.16},{c:"Yosemite",r:"California",lat:37.87,lng:-119.54},
+    {c:"Orange County",r:"California",lat:33.70,lng:-117.83},{c:"Palm Springs",r:"California",lat:33.83,lng:-116.55},{c:"Big Sur",r:"California",lat:36.27,lng:-121.81},
+    {c:"San Francisco",r:"California",lat:37.77,lng:-122.42},{c:"Napa Valley",r:"California",lat:38.50,lng:-122.27},{c:"Sacramento",r:"California",lat:38.58,lng:-121.49},
+    {c:"Denver",r:"Colorado",lat:39.74,lng:-104.99},{c:"Little Palm",r:"Florida",lat:24.62,lng:-81.40},{c:"Tampa",r:"Florida",lat:27.95,lng:-82.46},
+    {c:"Miami",r:"Florida",lat:25.76,lng:-80.19},{c:"West Palm Beach",r:"Florida",lat:26.71,lng:-80.05},{c:"Naples",r:"Florida",lat:26.14,lng:-81.79},
+    {c:"Orlando",r:"Florida",lat:28.54,lng:-81.38},{c:"Key West",r:"Florida",lat:24.56,lng:-81.78},{c:"Islamorada",r:"Florida",lat:24.92,lng:-80.63},
+    {c:"Sarasota",r:"Florida",lat:27.34,lng:-82.53},{c:"Marco Island",r:"Florida",lat:25.94,lng:-81.72},{c:"Orchid Island",r:"Florida",lat:27.75,lng:-80.40},
+    {c:"Streamsong",r:"Florida",lat:27.68,lng:-81.80},{c:"Kauai",r:"Hawaii",lat:22.05,lng:-159.50},{c:"Kailua-Kona",r:"Hawaii",lat:19.64,lng:-155.99},
+    {c:"Maui",r:"Hawaii",lat:20.80,lng:-156.33},{c:"Oahu",r:"Hawaii",lat:21.47,lng:-157.98},{c:"Chicago",r:"Illinois",lat:41.88,lng:-87.63},
+    {c:"Louisville",r:"Kentucky",lat:38.25,lng:-85.76},{c:"Minneapolis",r:"Minnesota",lat:44.98,lng:-93.27},{c:"Yellowstone",r:"Montana",lat:44.60,lng:-110.50},
+    {c:"Bozeman",r:"Montana",lat:45.68,lng:-111.04},{c:"Angel Fire",r:"New Mexico",lat:36.39,lng:-105.28},{c:"Taos",r:"New Mexico",lat:36.41,lng:-105.57},
+    {c:"Manhattan",r:"New York",lat:40.78,lng:-73.97},{c:"Sioux Falls",r:"South Dakota",lat:43.55,lng:-96.73},{c:"Black Hills",r:"South Dakota",lat:44.00,lng:-103.50},
+    {c:"Chattanooga",r:"Tennessee",lat:35.05,lng:-85.31},{c:"Nashville",r:"Tennessee",lat:36.16,lng:-86.78},{c:"Milwaukee",r:"Wisconsin",lat:43.04,lng:-87.91},
+    {c:"La Crosse",r:"Wisconsin",lat:43.80,lng:-91.24},{c:"Jackson Hole",r:"Wyoming",lat:43.48,lng:-110.76},{c:"Bimini",r:"Bahamas",lat:25.72,lng:-79.30},
+    {c:"Punta Cana",r:"Dominican Republic",lat:18.58,lng:-68.40},{c:"Costa Mujeres",r:"Mexico",lat:21.27,lng:-86.81},{c:"Paris",r:"France",lat:48.86,lng:2.35},
+    {c:"Reykjavík",r:"Iceland",lat:64.15,lng:-21.94},{c:"Akureyri",r:"Iceland",lat:65.68,lng:-18.09},{c:"Florence",r:"Italy",lat:43.77,lng:11.26},
+    {c:"Positano",r:"Italy",lat:40.63,lng:14.48},{c:"Rome",r:"Italy",lat:41.90,lng:12.50},{c:"Madrid",r:"Spain",lat:40.42,lng:-3.70},
+    {c:"London",r:"United Kingdom",lat:51.51,lng:-0.13},{c:"Tokyo",r:"Japan",lat:35.68,lng:139.69},{c:"Osaka",r:"Japan",lat:34.69,lng:135.50},
+    {c:"Kyoto",r:"Japan",lat:35.01,lng:135.77},{c:"Luxor",r:"Egypt",lat:25.69,lng:32.64},{c:"Cairo",r:"Egypt",lat:30.04,lng:31.24},
+    {c:"Sydney",r:"Australia",lat:-33.87,lng:151.21},{c:"Cairns",r:"Australia",lat:-16.92,lng:145.77},{c:"Auckland",r:"New Zealand",lat:-36.85,lng:174.76},
+    {c:"Queenstown",r:"New Zealand",lat:-45.03,lng:168.66},{c:"Waitomo",r:"New Zealand",lat:-38.26,lng:175.10}
+  ];
+  mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var map=new mapboxgl.Map({ container:'tmapMedia', style:'mapbox://styles/mapbox/satellite-streets-v12',
+    projection:'mercator', center:[-45,28], zoom:1.05, renderWorldCopies:true,
+    attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
+  map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
+  map.addControl(new mapboxgl.AttributionControl({ compact:true }));
+  GEO.forEach(function(m){
+    var mk=document.createElement('div'); mk.className='tmm-marker'; mk.innerHTML='<span class="tmm-dot"></span>';
+    new mapboxgl.Marker({ element:mk, anchor:'center' }).setLngLat([m.lng, m.lat])
+      .setPopup(new mapboxgl.Popup({ offset:12, closeButton:false, className:'tmm-pop' })
+        .setHTML('<span class="tmm-pop-tx"><b>'+m.c+'</b> &middot; '+m.r+'</span>'))
+      .addTo(map);
+  });
+  function sync(){ try{ map.resize(); }catch(e){} }
+  [150,450,1000].forEach(function(d){ setTimeout(sync, d); });
+  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(); }); }, { threshold:0.12 }).observe(el); }catch(e){}
+  addEventListener('resize', sync);
 })();
 addEventListener('scroll',()=>{const y=scrollY; nav.style.transform=(y>last&&y>300)?'translateY(-100%)':'translateY(0)'; last=y;});
 (function(){
