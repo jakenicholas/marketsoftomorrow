@@ -257,9 +257,11 @@
   function renderFull(el, deals) {
     if (deals) el.__all = deals;                         // stash the full set; the range toggle re-renders from it
     deals = el.__all || deals || [];
-    var range = el.__range || '12';                      // months window: 3 / 6 / 12 (undated deals always shown)
-    var cutoff = Date.now() - parseInt(range, 10) * 30 * 86400000;
-    deals = deals.filter(function (d) { return !d.when || d.when >= cutoff; });
+    var range = el.__range || 'all';                     // window: all / 12 / 6 / 3 months (undated deals always shown).
+    if (range !== 'all') {                                // default 'all' so the full backfilled history is visible;
+      var cutoff = Date.now() - parseInt(range, 10) * 30 * 86400000;  // older loans (pre-12mo) were otherwise hidden.
+      deals = deals.filter(function (d) { return !d.when || d.when >= cutoff; });
+    }
     var a = agg(deals);
     var yearAgo = Date.now() - 365 * 86400000;
     var recent = deals.filter(function (d) { return d.when && d.when >= yearAgo; }).sort(function (x, y) { return y.when - x.when; }).slice(0, 8);
@@ -324,7 +326,7 @@
       + '<button class="tmw-m-tab" data-mt="map">Money map</button>'
       + '<button class="tmw-m-tab" data-mt="lenders">Lenders</button>'
       + '</div><div class="tmw-m-range">'
-      + ['3', '6', '12'].map(function (r) { return '<button class="rg' + (range === r ? ' on' : '') + '" data-rg="' + r + '">' + r + 'M</button>'; }).join('')
+      + [['3', '3M'], ['6', '6M'], ['12', '12M'], ['all', 'All']].map(function (r) { return '<button class="rg' + (range === r[0] ? ' on' : '') + '" data-rg="' + r[0] + '">' + r[1] + '</button>'; }).join('')
       + '</div></div>'
       + '<div class="tmw-m-view on" data-v="overview"><div class="tmw-m-grid">'
       + '<div class="col"><div class="h">Recent financings</div>' + recent.slice(0, 7).map(function (d) { return dealRow(d, 'r'); }).join('') + '</div>'
