@@ -434,8 +434,8 @@ function stopHtml(s, marker){
 // Top hero slideshow — crossfade through the trip's highlight images (up to 2 per
 // stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
 function buildTopShow(){
-  // Single static hero — the Charleston collage used on the /travel card (no auto-shuffle).
-  var pick = ['https://www.charlestoncvb.com/assets/images/home/collage-1.jpg'];
+  // Single static hero (no auto-shuffle).
+  var pick = ['https://www.charlestoncvb.com/blog/wp-content/uploads/Explore-Charleston-4-2019-blog-17.jpg'];
   if(!pick.length) return;
   var el = document.getElementById('topshow');
   el.innerHTML = pick.map(function(f,i){
@@ -539,27 +539,16 @@ function initRouteMap(tries){
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function partnerBoxHtml(){
-  var pend = STOPS.filter(function(s){ return s.pending; });
-  if(!pend.length) return '';
-  var tiles = pend.map(function(s){
-    return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
-      +   '<div class="pt-city">'+s.loc+'</div>'
-      +   '<div class="pt-when">'+s.nights+'</div>'
-      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
-      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
-      + '</button>';
-  }).join('');
   return '<section class="partners">'
     + '<div class="pt-head">'
     +   '<div class="pt-k">Open Partnerships</div>'
-    +   '<h2>Cities still seeking a local partner</h2>'
-    +   '<p class="pt-sub">We’re curating the right restaurants, golf, excursions &amp; experiences in select cities on this route. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
+    +   '<h2>Still seeking local partners in Charleston</h2>'
+    +   '<p class="pt-sub">The stay is set at Hotel Bennett, but we’re still curating the right restaurants, experiences &amp; excursions in Charleston. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
     +   '<a class="pt-btn" href="https://www.oftmw.com/media/hotels">Our deliverables <span class="pt-arw">→</span></a>'
     + '</div>'
-    + '<div class="pt-grid">'+tiles+'</div>'
     + '<div class="pt-all">'
-    +   '<div class="pt-all-k">Seeking in cities on the route</div>'
-    +   '<div class="pt-cats"><span>Restaurants</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
+    +   '<div class="pt-all-k">Seeking in Charleston</div>'
+    +   '<div class="pt-cats"><span>Restaurants</span><span>Experiences</span><span>Excursions</span></div>'
     + '</div>'
     + '</section>';
 }
