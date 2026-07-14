@@ -281,9 +281,9 @@
     <div class="topshow" id="topshow" aria-hidden="true"></div>
     <header class="hero">
       <div class="wrap">
-        <div class="hero-eyebrow">July 19 – 21, 2026</div>
+        <div class="hero-eyebrow">July 17 – 21, 2026</div>
         <h1><em>Charleston</em></h1>
-        <div class="hero-dates">1 Stay · South Carolina</div>
+        <div class="hero-dates">2 Stays · South Carolina</div>
       </div>
     </header>
   </div>
@@ -344,8 +344,12 @@ const ICONS = {
 };
 
 const STOPS = [
+  { loc:'Charleston, South Carolina', nights:'2 Nights · July 17 → 19', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+    in:{ start:true, date:'July 17', mode:'flight', note:'Fly in to start the weekend' },
+    vibe:'Opening on the harbor in historic Charleston, with waterfront promenades, cobblestoned streets, and Lowcountry tables a short walk from the Battery.',
+    logi:[], imgs:['https://media.cntraveler.com/photos/57f3d1b244b4743b6f94de13/16:9/w_2560,c_limit/waterfront-park-charleston-GettyImages-478713798.jpg'] },
+
   { loc:'Charleston, South Carolina', nights:'2 Nights · July 19 → 21', stay:'Hotel Bennett', client:'Kate Hudson PR',
-    in:{ start:true, date:'July 19', mode:'flight', note:'Fly in to start the weekend' },
     out:{ date:'July 21', mode:'flight', note:'Fly home' },
     vibe:'A grand address on Marion Square in the heart of historic Charleston, with soaring interiors, a rooftop pool with steeple views, and refined Lowcountry dining a short walk from King Street.',
     logi:[], imgs:[
@@ -470,9 +474,7 @@ function initSlideshows(){
 }
 
 // Approx lat/lng for the route map (numbered pins, geographic layout).
-var COORDS = {
-  'Charleston, South Carolina':[32.78,-79.93]
-};
+var COORDS = {};   // single city (two hotels) — no route map
 function routePoints(){
   var pts = [];
   STOPS.forEach(function(s){ var c = COORDS[s.loc]; if(c) pts.push({ loc:s.loc, nights:s.nights, lat:c[0], lng:c[1] }); });
@@ -539,13 +541,23 @@ function initRouteMap(tries){
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function partnerBoxHtml(){
+  var pend = STOPS.filter(function(s){ return s.pending; });
+  var tiles = pend.map(function(s){
+    return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
+      +   '<div class="pt-city">'+s.loc+'</div>'
+      +   '<div class="pt-when">'+s.nights+'</div>'
+      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
+      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      + '</button>';
+  }).join('');
   return '<section class="partners">'
     + '<div class="pt-head">'
     +   '<div class="pt-k">Open Partnerships</div>'
     +   '<h2>Still seeking local partners in Charleston</h2>'
-    +   '<p class="pt-sub">The stay is set at Hotel Bennett, but we’re still curating the right restaurants, experiences &amp; excursions in Charleston. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
+    +   '<p class="pt-sub">We’re still curating the opening stay plus the right restaurants, experiences &amp; excursions in Charleston. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
     +   '<a class="pt-btn" href="https://www.oftmw.com/media/hotels">Our deliverables <span class="pt-arw">→</span></a>'
     + '</div>'
+    + (tiles ? '<div class="pt-grid">'+tiles+'</div>' : '')
     + '<div class="pt-all">'
     +   '<div class="pt-all-k">Seeking in Charleston</div>'
     +   '<div class="pt-cats"><span>Restaurants</span><span>Experiences</span><span>Excursions</span></div>'
