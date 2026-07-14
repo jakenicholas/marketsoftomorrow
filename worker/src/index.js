@@ -11872,6 +11872,7 @@ async function handleTravelPartner(request, env, origin) {
   const name    = clean(b.name, 120);
   const email   = clean(b.email, 160);
   const client  = clean(b.client, 160);
+  const ptype   = clean(b.type, 60);
   const website = clean(b.website, 200);
   const message = String(b.message == null ? '' : b.message).replace(/\r\n/g, '\n').trim().slice(0, 2000);
   const city    = clean(b.city, 120) || 'Any city on the route';
@@ -11881,7 +11882,7 @@ async function handleTravelPartner(request, env, origin) {
   if (!env.RESEND_API_KEY) return json({ error: 'Email is not configured.' }, { status: 503 }, env, origin);
 
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-  const rows = [['Name', name], ['Email', email], ['Client / property', client || '—'], ['Property website', website || '—'], ['City of interest', city]];
+  const rows = [['Name', name], ['Email', email], ['Client / property', client || '—'], ['Partnership type', ptype || '—'], ['Property website', website || '—'], ['City of interest', city]];
   const details = '<table style="border-collapse:collapse;font-family:Inter,Arial,sans-serif">' +
     rows.map(r => '<tr><td style="padding:7px 20px 7px 0;color:#8C7862;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="padding:7px 0;color:#4A392B;font-size:14px;font-weight:600">' + esc(r[1]) + '</td></tr>').join('') +
     '</table>';
@@ -11900,7 +11901,7 @@ async function handleTravelPartner(request, env, origin) {
   const textShell = introText => {
     const lines = ['Markets of Tomorrow — Travel Partner Inquiry', '', introText, '',
       'Name: ' + name, 'Email: ' + email, 'Client / property: ' + (client || '—'),
-      'Property website: ' + (website || '—'), 'City of interest: ' + city];
+      'Partnership type: ' + (ptype || '—'), 'Property website: ' + (website || '—'), 'City of interest: ' + city];
     if (message) lines.push('', 'Message:', message);
     lines.push('', 'Italy, The Isles & The Alps · Private Itinerary');
     return lines.join('\n');

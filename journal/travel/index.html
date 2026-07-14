@@ -25,10 +25,13 @@
   img{display:block;max-width:100%}
   .wrap{max-width:960px;margin:0 auto;padding:0 22px}
 
-  /* top wordmark */
-  .top{padding:26px 0 0;text-align:center}
-  .wordmark{display:inline-block;font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:.02em;color:var(--brown)}
-  .wordmark span{color:var(--terra)}
+  /* Universal site chrome (header + footer) is injected by journal-chrome.js and is
+     built for the DARK theme — scope its dark design tokens here so it renders
+     correctly over this beige page without leaking into the page's own tokens. */
+  .tmw-chrome-head,.tmw-chrome-foot{
+    --ink:#070807; --ink-2:#0d0f0e; --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+    --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --green:#1FDF67;
+  }
 
   /* header */
   header.hero{padding:56px 0 30px;text-align:center}
@@ -110,7 +113,6 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><a class="wordmark" href="https://www.oftmw.com">Markets of Tomorrow</a></div>
   <header class="hero">
     <div class="eyebrow">Travel</div>
     <h1>The travel <em>log.</em></h1>
@@ -328,5 +330,7 @@ function initMarketMap(tries){
 }
 initMarketMap();
 </script>
+<!-- Universal site header + footer (single source of truth across the journal). -->
+<script src="/_shared/journal-chrome.js" defer></script>
 </body>
 </html>

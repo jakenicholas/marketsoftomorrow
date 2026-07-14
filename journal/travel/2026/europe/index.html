@@ -69,6 +69,13 @@
        font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;line-height:1;white-space:nowrap}
   .jpr svg{width:12px;height:12px;opacity:.9}
   .jpr .jpr-k{font-size:9px;font-weight:700;letter-spacing:.14em;opacity:.62}
+  /* pulse-glow the "Open to partner" bubbles on hotel-seeking stops */
+  .jpr-pulse{animation:jprPulse 2.2s ease-in-out infinite}
+  @keyframes jprPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(176,96,58,.28);border-color:rgba(176,96,58,.42)}
+    50%{box-shadow:0 0 15px 3px rgba(176,96,58,.55);border-color:rgba(176,96,58,.85)}
+  }
+  @media(prefers-reduced-motion:reduce){ .jpr-pulse{animation:none} }
 
   /* ── Part divider ── */
   .part{padding:64px 0 30px;text-align:center}
@@ -166,7 +173,17 @@
   button.pt-tile:hover{border-color:var(--terra);box-shadow:0 10px 26px rgba(74,57,43,.13);transform:translateY(-2px)}
   .pt-cta{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
   /* compact partner CTA card inside a hotel-seeking stop (no repeated city/date) */
-  button.pt-tile.stop-partner{max-width:320px;margin-top:22px;padding:18px 22px}
+  /* single-row hotel-partner CTA: hugs content on desktop, full-width on mobile */
+  button.pt-tile.stop-partner{display:inline-flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    width:auto;max-width:100%;margin-top:22px;padding:15px 22px}
+  .stop-partner .sp-lead{font-family:var(--serif);font-style:italic;font-size:15.5px;color:var(--mute2)}
+  .stop-partner .pt-cats{margin:0}
+  .stop-partner .pt-cta{margin-top:0}
+  @media(max-width:560px){ button.pt-tile.stop-partner{width:100%} }
+  /* per-location "Express interest" text link */
+  .stop-express{display:inline-flex;align-items:center;gap:6px;margin-top:18px;background:none;border:0;padding:0;cursor:pointer;
+    font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
+  .stop-express:hover .pt-arw{transform:translateX(3px)}
 
   /* ── Partner enquiry modal ── */
   .pm-back{position:fixed;inset:0;z-index:200;background:rgba(40,30,20,.5);backdrop-filter:blur(4px);display:flex;align-items:center;
@@ -183,9 +200,11 @@
   .pm form{margin-top:20px;display:flex;flex-direction:column;gap:12px}
   .pm-field{display:flex;flex-direction:column;gap:5px}
   .pm-field label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
-  .pm-field input,.pm-field textarea{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
+  .pm-field input,.pm-field textarea,.pm-field select{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
   .pm-field textarea{resize:vertical;min-height:96px;line-height:1.5}
-  .pm-field input:focus,.pm-field textarea:focus{border-color:var(--terra)}
+  .pm-field select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:36px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23B0603A' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .pm-field input:focus,.pm-field textarea:focus,.pm-field select:focus{border-color:var(--terra)}
   .pm-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
   .pm-submit{margin-top:6px;background:var(--terra);color:#FBF6EC;border:0;border-radius:12px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:filter .15s}
   .pm-submit:hover{filter:brightness(1.06)} .pm-submit:disabled{opacity:.6;cursor:default}
@@ -281,6 +300,16 @@
         <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
         <div class="pm-field"><label for="pmEmail">Email</label><input id="pmEmail" name="email" type="email" autocomplete="email" required></div>
         <div class="pm-field"><label for="pmClient">Client / property name</label><input id="pmClient" name="client" autocomplete="organization"></div>
+        <div class="pm-field"><label for="pmType">Partnership type</label>
+          <select id="pmType" name="type">
+            <option value="">Select type…</option>
+            <option>Hotel</option>
+            <option>Restaurant</option>
+            <option>Golf</option>
+            <option>Excursions</option>
+            <option>Experiences</option>
+          </select>
+        </div>
         <div class="pm-field"><label for="pmSite">Property website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
         <div class="pm-field"><label for="pmNote">Message</label><textarea id="pmNote" name="message" rows="4" placeholder="Tell us about your property or what you'd like to offer…"></textarea></div>
         <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
@@ -356,7 +385,7 @@ const STOPS = [
   { loc:'Athens Riviera', nights:'3 Nights · Sept 20 → 23', stay:'Cape Sounio',
     in:{ date:'Sept 20', mode:'ferry', note:'Paros → Port of Lavrio' },
     vibe:'Positioned directly opposite the ancient Temple of Poseidon on the edge of a pine-forest peninsula. Terraced beach bungalows, two secluded beaches, and excellent saltwater pools bridge the gap between island life and the mainland.',
-    logi:[['Transit','Northbound high-speed ferry from Paros.'],['Tip','Book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus — a direct, traffic-free 15-minute drive to the hotel.']],
+    logi:[['Transit','Northbound high-speed ferry from Paros — book a vessel that docks at the <b>Port of Lavrio</b> instead of Piraeus for a direct, traffic-free 15-minute drive to the hotel.']],
     imgs:[
       'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
       'https://media.cntraveller.com/photos/6a44feee8fad0c35774cfdd6/16:9/w_2560,c_limit/pool-view-cape-sounio-athens-riviera-greece-june-2026-pr.jpg'] },
@@ -443,9 +472,9 @@ function legHtml(l){
     + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
     + '</div>';
 }
-function jprPill(label, key){
+function jprPill(label, key, pulse){
   var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
-  return '<span class="jpr"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
+  return '<span class="jpr'+(pulse?' jpr-pulse':'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
 }
 function logiHtml(logi){
   if(!logi||!logi.length) return '';
@@ -459,17 +488,20 @@ function stopHtml(s, marker){
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
-  var pill = s.pending ? jprPill('Open to partner')
+  var pill = s.pending ? jprPill('Open to partner', null, true)   // pulse-glow the open bubble
            : s.noClient ? jprPill('Private')
            : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
-  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes.
+  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
+  // Every location gets an "Express interest" action; hotel-seeking stops get a
+  // single-row "Looking for [Hotel partner] Express interest →".
   var partnerCta = s.pending
-    ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'">'
-      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
-      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+    ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'" data-type="Hotel">'
+      +   '<span class="sp-lead">Looking for</span>'
+      +   '<span class="pt-cats"><span>Hotel partner</span></span>'
+      +   '<span class="pt-cta">Express interest <span class="pt-arw">→</span></span>'
       + '</button>'
-    : '';
+    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
   return '<section class="'+cls+'">'
     + galleryHtml(s.imgs)
     + '<div class="stop-info">'
@@ -657,13 +689,14 @@ function initPartnerModal(){
       sub = document.getElementById('pmSub'), submit = document.getElementById('pmSubmit'),
       titleEl = document.getElementById('pmTitle'), bodyEl = document.getElementById('pmBody'),
       doneEl = document.getElementById('pmDone');
-  function open(c){
+  function open(c, type){
     c = c || '';
     form.dataset.city = c;   // bind city to the form so submit can't read a stale value
     titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
     sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
                       : 'Tell us a little about you and we’ll be in touch.';
     form.reset(); msg.textContent=''; msg.className='pm-msg';
+    document.getElementById('pmType').value = type || '';   // preset partnership type when the tile implies one
     bodyEl.style.display=''; doneEl.style.display='none'; submit.disabled=false; submit.textContent='Send inquiry';
     back.classList.add('on'); back.setAttribute('aria-hidden','false');
     setTimeout(function(){ document.getElementById('pmName').focus(); }, 80);
@@ -673,10 +706,11 @@ function initPartnerModal(){
   var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
   back.addEventListener('click', function(e){ if(e.target === back) close(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
-  // Open from any pending tile (event-delegated — tiles are rendered dynamically).
+  // Open from any partner tile or per-location "Express interest" button
+  // (event-delegated — tiles are rendered dynamically).
   document.addEventListener('click', function(e){
-    var t = e.target.closest && e.target.closest('.pt-tile[data-partner]');
-    if(t){ e.preventDefault(); open(t.getAttribute('data-partner')); }
+    var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');
+    if(t){ e.preventDefault(); open(t.getAttribute('data-partner'), t.getAttribute('data-type')); }
   });
   form.addEventListener('submit', function(e){
     e.preventDefault();
@@ -687,6 +721,7 @@ function initPartnerModal(){
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.className='pm-msg err'; msg.textContent='Please add a valid email.'; return; }
     var payload = { name:name, email:email,
       client: document.getElementById('pmClient').value.trim(),
+      type: document.getElementById('pmType').value,
       website: document.getElementById('pmSite').value.trim(),
       message: document.getElementById('pmNote').value.trim(),
       company: document.getElementById('pmHp').value, city: form.dataset.city || '' };
