@@ -30,18 +30,20 @@
   .tmw-chrome-head .nav-links{background:#F2E9D7 !important}
   .tmw-chrome-head .nav-cta{background:rgba(176,96,58,.06) !important}
   .tmw-chrome-head .nav-cta .mc-count{background:rgba(176,96,58,.12) !important; border-color:rgba(176,96,58,.32) !important}
-  /* nav dropdown panels → beige (this isn't a dark page) */
-  .tmw-fm-panel,.tmw-fm-panel.v2{background:#FBF6EC !important; border-color:rgba(176,96,58,.2) !important}
-  /* TMW logo (header + footer) → the gray the view-toggle icons use */
-  .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#C2C9C3 !important}
-  /* view toggle: nothing selected (this isn't the journal page) — gray segments + border */
-  .tmw-chrome-head .tmw-st{border-color:#C2C9C3 !important}
-  .tmw-chrome-head .tmw-st-seg.on{background:transparent !important; color:#C2C9C3 !important; border-color:#C2C9C3 !important}
-  /* auth: terracotta by default, but profile icon black + notification pulse back to original purple */
+  /* nav dropdown panels → the page (darker) beige, not the tile beige */
+  .tmw-fm-panel,.tmw-fm-panel.v2{background:#F2E9D7 !important; border-color:rgba(176,96,58,.2) !important}
+  /* TMW logo (header + footer) → red */
+  .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#B0603A !important}
+  /* view toggle: icons only (hide labels), red icons + red container border, nothing selected */
+  .tmw-chrome-head .tmw-st-lbl{display:none !important}
+  .tmw-chrome-head .tmw-st{border-color:#B0603A !important}
+  .tmw-chrome-head .tmw-st-seg, .tmw-chrome-head .tmw-st-seg.on{background:transparent !important; border-color:transparent !important; color:#B0603A !important}
+  /* auth: terracotta; notification pulse stays original purple; Join/profile = red outline (not filled) */
   .tmw-chrome-head .tmw-auth, .tmw-chrome-head .tmw-auth *{color:#B0603A !important}
-  .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#111 !important; fill:#111 !important; stroke:#111 !important}
-  .tmw-chrome-head .v2-login-text{color:#111 !important}
   .tmw-chrome-head .tmw-pulse-bell, .tmw-chrome-head .tmw-pulse-bell *{color:#A78BFA !important}
+  .tmw-chrome-head .v2-profile-btn{background:transparent !important; border-color:#B0603A !important}
+  .tmw-chrome-head .v2-login-text{color:#B0603A !important}
+  .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#B0603A !important; stroke:#B0603A !important; fill:none !important}
   .tmw-dock,.tmw-ov-root{display:none !important}
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
