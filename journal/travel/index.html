@@ -54,6 +54,8 @@
   /* Pro premium star → filled black (overrides the outlined-icon rule above) */
   .tmw-chrome-head .v2-premium-star svg, .tmw-chrome-head .v2-premium-star svg *{fill:#000 !important; stroke:none !important}
   .tmw-dock,.tmw-ov-root{display:none !important}
+  /* mobile drawer: the dropdown triggers (div.tmw-fm) miss the divider the > a items get */
+  @media(max-width:980px){ .tmw-chrome-head .nav-links > .tmw-fm{border-bottom:1px solid var(--hair) !important} }
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
     --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
@@ -83,6 +85,8 @@
         margin-top:22px;box-shadow:0 8px 30px rgba(74,57,43,.07)}
   a.trip{transition:transform .18s,box-shadow .18s,border-color .18s}
   a.trip:hover{transform:translateY(-3px);box-shadow:0 16px 44px rgba(74,57,43,.14);border-color:var(--terra)}
+  /* upcoming trips keep the red border permanently to separate them from ended */
+  .trip.upcoming{border-color:var(--terra)}
 
   /* image / placeholder */
   .trip-img{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/11;background:var(--panel);border:1px solid var(--hair)}
@@ -103,9 +107,10 @@
   .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
   .trip-link .arw{transition:transform .18s}
   a.trip:hover .trip-link .arw{transform:translateX(4px)}
-  .trip-badge{position:absolute;top:16px;right:18px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:4px 11px}
-  .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.4);background:rgba(176,96,58,.07)}
-  .trip-badge.ended{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.05)}
+  /* status pill anchored inside the image's top-right corner, filled with the tile bg */
+  .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#FBF6EC;box-shadow:0 2px 8px rgba(40,25,12,.18)}
+  .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.55)}
+  .trip-badge.ended{color:var(--mute2);border:1px solid var(--hair2)}
 
   footer.f{text-align:center;padding:34px 0 60px;color:var(--mute);font-size:12px;letter-spacing:.04em;border-top:1px solid var(--hair)}
   footer.f .fm{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mute2);margin-bottom:8px}
@@ -194,7 +199,7 @@
 // Newest first. `href` = clickable (has a detail page); past trips have none.
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
-  { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 — October 10, 2026',
+  { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 — October 7, 2026',
     href:'/travel/2026/europe/', upcoming:true, openCTA:true,
     img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
     partners:['J/PR'] },
@@ -272,8 +277,8 @@ function partnersHtml(list, openCTA){
 function tripHtml(t, i){
   // Top-right status pill: terracotta "Upcoming" for future trips, gray "Ended" for past.
   var badge = '<span class="trip-badge '+(t.upcoming?'up':'ended')+'">'+(t.upcoming?'Upcoming':'Ended')+'</span>';
-  var inner = badge
-    + '<div class="trip-img">'+imgHtml(t, i)+'</div>'
+  var inner =
+      '<div class="trip-img">'+imgHtml(t, i)+badge+'</div>'   // badge anchored inside the image
     + '<div class="trip-body">'
     +   '<div class="trip-date">'+esc(t.date)+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
@@ -281,9 +286,10 @@ function tripHtml(t, i){
     +   partnersHtml(t.partners, t.openCTA)
     +   (t.href ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
     + '</div>';
+  var cls = 'trip' + (t.upcoming ? ' upcoming' : '');
   return t.href
-    ? '<a class="trip" href="'+esc(t.href)+'">'+inner+'</a>'
-    : '<article class="trip">'+inner+'</article>';
+    ? '<a class="'+cls+'" href="'+esc(t.href)+'">'+inner+'</a>'
+    : '<article class="'+cls+'">'+inner+'</article>';
 }
 document.getElementById('trips').innerHTML = TRIPS.map(tripHtml).join('');
 
