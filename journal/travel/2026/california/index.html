@@ -444,8 +444,8 @@ function stopHtml(s, marker){
 // Top hero slideshow — crossfade through the trip's highlight images (up to 2 per
 // stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
 function buildTopShow(){
-  var pick = [];
-  STOPS.forEach(function(s){ if(s.imgs && s.imgs.length) pick.push(s.imgs[0]); });   // first image of each location
+  // Single static hero — the Big Sur image used on the /travel card (no auto-shuffle).
+  var pick = ['https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg'];
   if(!pick.length) return;
   var el = document.getElementById('topshow');
   el.innerHTML = pick.map(function(f,i){
