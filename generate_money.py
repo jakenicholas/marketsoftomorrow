@@ -129,6 +129,8 @@ def main():
             'date': date,
             'lat': num(p.get('Latitude')),
             'lng': num(p.get('Longitude')),
+            '_slug': (p.get('Slug') or '').strip(),           # internal, popped before write
+            '_parent': (p.get('ParentSlug') or '').strip(),   # internal, popped before write
         })
 
     # Collapse a single SHARED loan recorded on multiple buildings of one project
@@ -141,6 +143,44 @@ def main():
                 continue
             seen.add(k)
         dedup.append(d)
+
+    # Collapse a shared loan recorded on BOTH a parent development and its child
+    # (e.g. Aman Beverly Hills' $4.3B is the SAME package as its parent One Beverly
+    # Hills' — different lender/date spellings dodge the exact-key dedup above).
+    # Group by (parent-or-self slug, amount); keep ONE — prefer the parent's own
+    # row, then any row that names a lender. Only same-parent same-amount rows
+    # merge, so unrelated projects are never touched.
+    groups = {}
+    for i, d in enumerate(dedup):
+        if d['amt'] is None:
+            continue
+        gk = ((d['_parent'] or d['_slug']), d['amt'])
+        if not gk[0]:
+            continue
+        groups.setdefault(gk, []).append(i)
+    drop = set()
+    for (gslug, _amt), idxs in groups.items():
+        if len(idxs) < 2:
+            continue
+        # survivor identity: prefer the parent's own row, then any row with a lender
+        keep = min(idxs, key=lambda i: (0 if dedup[i]['_slug'] == gslug else 1,
+                                        0 if dedup[i]['lender'] else 1))
+        # keep the parent's name/href but borrow a named lender/date off a sibling
+        if not dedup[keep]['lender']:
+            for i in idxs:
+                if dedup[i]['lender']:
+                    dedup[keep]['lender'] = dedup[i]['lender']
+                    break
+        if not dedup[keep]['date']:
+            for i in idxs:
+                if dedup[i]['date']:
+                    dedup[keep]['date'] = dedup[i]['date']
+                    break
+        drop.update(i for i in idxs if i != keep)
+    dedup = [d for i, d in enumerate(dedup) if i not in drop]
+    for d in dedup:                                   # drop internal keys
+        d.pop('_slug', None)
+        d.pop('_parent', None)
 
     # Canonicalize lender casing/spacing → the most-common spelling, so variants
     # ("Tyko Capital" / "TYKO Capital") merge into one lender everywhere.
