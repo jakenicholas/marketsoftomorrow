@@ -23,7 +23,7 @@
   function projHref(p) { return 'https://www.oftmw.com/map/?project=' + mapSlug(p && p.Title || ''); }
   function firstDev(v) { return String(v || '').split(/\s*[,/]\s*/).map(function (s) { return s.trim(); }).filter(function (s) { return s && s.toLowerCase() !== 'various'; })[0] || ''; }
   function num(v) { if (v == null || v === '') return null; var n = parseFloat(v); return isFinite(n) ? n : null; }
-  function fmtM(m) { if (m == null) return null; return m >= 1000 ? '$' + (m / 1000).toFixed(m % 1000 ? 1 : 0) + 'B' : '$' + Math.round(m) + 'M'; }
+  function fmtM(m) { if (m == null) return null; return m >= 1000 ? '$' + (m / 1000).toFixed(1) + 'B' : '$' + Math.round(m) + 'M'; }
   function parseWhen(s) {
     if (!s) return 0; s = String(s).trim();
     var t = Date.parse(s); if (!isNaN(t)) return t;
