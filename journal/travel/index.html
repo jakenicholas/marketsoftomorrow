@@ -32,6 +32,13 @@
   .tmw-chrome-head .nav-cta .mc-count{background:rgba(176,96,58,.12) !important; border-color:rgba(176,96,58,.32) !important}
   /* nav dropdown panels → the page (darker) beige, not the tile beige */
   .tmw-fm-panel,.tmw-fm-panel.v2{background:#F2E9D7 !important; border-color:rgba(176,96,58,.2) !important}
+  /* Focus Markets: tiles get a darker beige so they read as tiles on the panel */
+  .tmw-chrome-head .tmw-fm-panel .tmw-oc{background:#E7DCC6 !important; border-color:rgba(176,96,58,.16) !important}
+  /* Database: item titles → red (they were white = invisible on beige) */
+  .tmw-chrome-head .tmw-fm-panel .tmw-mm-tx b{color:#B0603A !important}
+  /* The Lists: keep it a dark panel with all-white text */
+  .tmw-chrome-head .tmw-fm-panel:has(.tmw-ll){background:#0a0c0a !important; border-color:rgba(255,255,255,.12) !important}
+  .tmw-chrome-head .tmw-fm-panel:has(.tmw-ll) *{color:#fff !important}
   /* TMW logo (header + footer) → red */
   .tmw-chrome-head .wm-fill,.tmw-chrome-foot .wm-fill{fill:#B0603A !important}
   /* view toggle: icons only (hide labels), red icons + red container border, nothing selected */
@@ -44,6 +51,8 @@
   .tmw-chrome-head .v2-profile-btn{background:transparent !important; border-color:#B0603A !important}
   .tmw-chrome-head .v2-login-text{color:#B0603A !important}
   .tmw-chrome-head .v2-profile-btn svg, .tmw-chrome-head .v2-profile-btn svg *{color:#B0603A !important; stroke:#B0603A !important; fill:none !important}
+  /* Pro premium star → filled black (overrides the outlined-icon rule above) */
+  .tmw-chrome-head .v2-premium-star svg, .tmw-chrome-head .v2-premium-star svg *{fill:#000 !important; stroke:none !important}
   .tmw-dock,.tmw-ov-root{display:none !important}
   /* Beige Mediterranean palette — travel page content only. */
   .tvl-page{
@@ -192,7 +201,7 @@ var TRIPS = [
   { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, openCTA:true,
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
-    partners:['Quinn','Private'] },
+    partners:['Quinn'] },
   { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
     partners:['Bimini Tides'] },
