@@ -295,22 +295,46 @@
     });
     var cities = Object.keys(cm).map(function (k) { var C = cm[k]; C.lat = C.nc ? C.la / C.nc : null; C.lng = C.nc ? C.lo / C.nc : null; return C; }).sort(function (x, y) { return y.amt - x.amt || y.n - x.n; });
 
-    // flows for the Sankey — the most ACTIVE lenders (by deal count, then $) into
-    // their top 3 markets. Ranking by activity (not raw $) keeps the diagram
-    // legible: multi-market lenders that actually "flow" beat one-off mega-deals.
-    var flows0 = [], fmk = {};
-    lenders.filter(function (l) { return l.amt > 0; }).slice().sort(function (x, y) { return y.n - x.n || y.amt - x.amt; }).slice(0, 9).forEach(function (l) {
-      Object.keys(l.cities).map(function (c) { return { city: c, amt: l.cities[c] }; })
-        .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; })
-        .forEach(function (x) { flows0.push({ l: l.name, m: x.city, v: x.amt }); fmk[x.city] = (fmk[x.city] || 0) + x.amt; });
+    // Sankey flow data — built MARKET-FIRST so every shown market ties out to the
+    // SAME total the Money map shows (no undercounting a market fed by a smaller
+    // lender). Markets = top 16 by true total; each market's capital is fully drawn
+    // — its top lenders as named bands, the rest folded into ONE "Other lenders"
+    // band. marketDetail carries the COMPLETE per-market lender list so hovering a
+    // market surfaces the same breakdown the map does, even for bundled lenders.
+    var NAMED = 10, OTHER = 'Other lenders';
+    var topLenders = lenders.filter(function (l) { return l.amt > 0; }).slice(0, NAMED);
+    var namedSet = {}; topLenders.forEach(function (l) { namedSet[l.name] = 1; });
+    // Rank markets by the capital the TOP lenders move into them (surfaces the
+    // markets those lenders actually fund — the point of the flow view), then show
+    // each at its TRUE total with EVERY lender: top lenders draw as named bands, the
+    // rest fold into one "Other lenders" band so the market always ties out to the
+    // Money map. marketDetail carries the complete per-market breakdown for hover.
+    var fmk = {};
+    topLenders.forEach(function (l) { Object.keys(l.cities).forEach(function (c) { if (l.cities[c] > 0) fmk[c] = (fmk[c] || 0) + l.cities[c]; }); });
+    var cityByName = {}; cities.forEach(function (c) { cityByName[c.city] = c; });
+    var topMarkets = Object.keys(fmk).sort(function (a, b) { return fmk[b] - fmk[a]; }).slice(0, 16);
+    var flows = [], flt = {}, marketDetail = {}, fmarkets = [];
+    topMarkets.forEach(function (name) {
+      var C = cityByName[name]; if (!C) return;
+      fmarkets.push({ name: name, total: C.amt });
+      var entries = Object.keys(C.lenders).map(function (k) { return { name: k, amt: C.lenders[k] }; })
+        .filter(function (x) { return x.amt > 0; }).sort(function (p, q) { return q.amt - p.amt; });
+      var namedSum = 0;
+      entries.forEach(function (e) {
+        if (namedSet[e.name]) { flows.push({ l: e.name, m: name, v: e.amt }); flt[e.name] = (flt[e.name] || 0) + e.amt; namedSum += e.amt; }
+      });
+      // Everything not drawn as a named band — smaller lenders AND undisclosed-lender
+      // deals — folds into one "Other" band so the market ties out to its TRUE total.
+      var otherBand = C.amt - namedSum;
+      if (otherBand > 0.5) { flows.push({ l: OTHER, m: name, v: otherBand }); flt[OTHER] = (flt[OTHER] || 0) + otherBand; }
+      // Hover detail = the complete disclosed-lender list + any undisclosed remainder,
+      // so it ties out to the same total the Money map shows for this market.
+      var disclosed = entries.reduce(function (s, e) { return s + e.amt; }, 0);
+      if (C.amt - disclosed > 0.5) entries = entries.concat([{ name: 'Undisclosed', amt: C.amt - disclosed }]);
+      marketDetail[name] = entries;
     });
-    // Cap to the top markets so the Sankey stays legible (no tiny colliding nodes),
-    // then recompute lender totals from the kept flows so node heights match bands.
-    var fmarkets = Object.keys(fmk).map(function (k) { return { name: k, total: fmk[k] }; }).sort(function (p, q) { return q.total - p.total; }).slice(0, 16);
-    var keepM = {}; fmarkets.forEach(function (m) { keepM[m.name] = 1; });
-    var flows = flows0.filter(function (f) { return keepM[f.m]; });
-    var flt = {}; flows.forEach(function (f) { flt[f.l] = (flt[f.l] || 0) + f.v; });
-    var flenders = Object.keys(flt).map(function (k) { return { name: k, total: flt[k] }; }).sort(function (p, q) { return q.total - p.total; });
+    var flenders = Object.keys(flt).map(function (k) { return { name: k, total: flt[k] }; })
+      .sort(function (p, q) { return (p.name === OTHER) - (q.name === OTHER) || q.total - p.total; });
 
     el.className = 'tmw-money tmw-money--full';
     el.innerHTML = ''
@@ -343,7 +367,7 @@
       + '<div class="tmw-m-lgrid"><div class="tmw-m-chips"></div><div class="tmw-m-lprofile"></div></div></div>'
       + '</div>';
 
-    try { buildFlow(el.querySelector('.tmw-m-sankey'), flenders, fmarkets, flows, el.querySelector('.tmw-m-flowread')); } catch (e) {}
+    try { buildFlow(el.querySelector('.tmw-m-sankey'), flenders, fmarkets, flows, el.querySelector('.tmw-m-flowread'), marketDetail); } catch (e) {}
     try { buildMap(el.querySelector('.tmw-m-mapbox'), el.querySelector('.tmw-m-mapdetail'), cities); } catch (e) {}
     try { buildLenders(el.querySelector('.tmw-m-chips'), el.querySelector('.tmw-m-lprofile'), lenders); } catch (e) {}
     wireTabs(el);
@@ -367,7 +391,7 @@
     });
   }
 
-  function buildFlow(svg, lenders, markets, flows, readEl) {
+  function buildFlow(svg, lenders, markets, flows, readEl, marketDetail) {
     if (!svg || !lenders.length || !markets.length) { if (readEl) readEl.textContent = 'Not enough disclosed financing to chart flows yet.'; if (svg) svg.parentNode.style.display = lenders.length ? '' : 'none'; return; }
     var W = 720, H = 500, padT = 24, padB = 14, lx = 8, lw = 11, rx = W - 8 - lw;
     var innerH = H - padT - padB;
@@ -418,6 +442,15 @@
     var bands = svg.querySelectorAll('.sk-band'), nodes = svg.querySelectorAll('.sk-node');
     function hi(type, key) {
       Array.prototype.forEach.call(bands, function (b) { var on = type === 'l' ? b.getAttribute('data-l') === key : b.getAttribute('data-m') === key; b.setAttribute('stroke-opacity', on ? .6 : .05); });
+      // For a MARKET, read the COMPLETE lender breakdown (marketDetail) so the
+      // read-out ties out to the Money map — including lenders folded into the
+      // "Other lenders" band on the chart. For a lender, list the markets it feeds.
+      if (type === 'm' && marketDetail && marketDetail[key]) {
+        var det = marketDetail[key];
+        var mtot = det.reduce(function (s, e) { return s + e.amt; }, 0);
+        readEl.innerHTML = '<b>' + esc(key) + '</b> — ' + fmtM(mtot) + ' in from ' + det.map(function (e) { return esc(e.name) + ' ' + fmtM(e.amt); }).join(' · ');
+        return;
+      }
       var tot = 0, parts = [];
       flows.forEach(function (f) { if ((type === 'l' ? f.l : f.m) === key) { tot += f.v; parts.push((type === 'l' ? f.m : f.l) + (type === 'l' ? ' ' + fmtM(f.v) : '')); } });
       readEl.innerHTML = '<b>' + esc(key) + '</b> — ' + fmtM(tot) + (type === 'l' ? ' → ' : ' in from ') + parts.join(' · ');

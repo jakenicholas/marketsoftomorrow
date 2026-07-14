@@ -178,6 +178,22 @@ def lkey(n):
 BRAND_CANON = {
     'tyko': 'TYKO Capital',
     'tyko capital': 'TYKO Capital',
+    'jpmorgan': 'J.P. Morgan',
+    'jpmorgan chase': 'J.P. Morgan',
+    'jp morgan': 'J.P. Morgan',
+    'ares-led': 'Ares',            # note-parser artifact; same lender as "Ares"
+    'ares management': 'Ares',
+    'one brickell riverfront': '3650 Capital',      # a PROJECT name; the loan is 3650 Capital's
+    'dwight mortgage trust ahead of': 'Dwight Mortgage Trust',  # trailing note junk
+}
+
+# Names the note-parser grabbed that are NOT lenders — drop them from the lender
+# league (the deal keeps its amount, just with no named lender). Keyed by lkey.
+HIDE_LENDERS = {
+    'argaam',          # a Saudi financial NEWS site, not a lender (The Avenues)
+    'c-pace',          # a financing MECHANISM (PACE), not a lender
+    'cpace',
+    'jll-arranged',    # JLL is the broker that ARRANGED the loan, not the lender
 }
 
 
@@ -222,6 +238,32 @@ def main():
             '_slug': (p.get('Slug') or '').strip(),           # internal, popped before write
             '_parent': (p.get('ParentSlug') or '').strip(),   # internal, popped before write
         })
+
+    # Canonicalize lender names FIRST — before any dedup — so variant spellings of
+    # the SAME lender collapse. This cleans the league table AND lets the shared-loan
+    # dedup below catch a loan spelled differently on two buildings (e.g. "Ares-led"
+    # vs "Ares" on 10 & 15 CityPlace). Most-common spelling wins, then known-brand
+    # overrides; non-lender false-positives (news sites) are dropped entirely.
+    casing = {}
+    for d in out:
+        for ld in d.get('lenders') or []:
+            nm = ld.get('name')
+            if nm and lkey(nm) not in HIDE_LENDERS:
+                casing.setdefault(lkey(nm), {})
+                casing[lkey(nm)][nm] = casing[lkey(nm)].get(nm, 0) + 1
+    canon = {k: max(v.items(), key=lambda kv: kv[1])[0] for k, v in casing.items()}
+    canon.update(BRAND_CANON)                            # known-brand spellings win
+    for d in out:
+        kept = []
+        for ld in d.get('lenders') or []:
+            nm = ld.get('name')
+            if nm and lkey(nm) in HIDE_LENDERS:
+                continue                                 # drop news-site / non-lender
+            if nm:
+                ld['name'] = canon.get(lkey(nm), nm)
+            kept.append(ld)
+        d['lenders'] = kept
+        d['lender'] = ', '.join(x['name'] for x in kept if x['name']) or ''
 
     # Collapse a single SHARED loan recorded on multiple buildings of one project
     # (identical lender + amount + date) so it isn't double-counted.
@@ -273,25 +315,6 @@ def main():
     for d in dedup:                                   # drop internal keys
         d.pop('_slug', None)
         d.pop('_parent', None)
-
-    # Canonicalize lender casing/spacing → the most-common spelling, so variants
-    # ("Tyko Capital" / "TYKO Capital") merge into one lender everywhere. Operates
-    # on the per-tranche NAMES, then re-derives each deal's display string.
-    casing = {}
-    for d in dedup:
-        for ld in d.get('lenders') or []:
-            nm = ld.get('name')
-            if not nm:
-                continue
-            casing.setdefault(lkey(nm), {})
-            casing[lkey(nm)][nm] = casing[lkey(nm)].get(nm, 0) + 1
-    canon = {k: max(v.items(), key=lambda kv: kv[1])[0] for k, v in casing.items()}
-    canon.update(BRAND_CANON)                            # known-brand spellings win
-    for d in dedup:
-        for ld in d.get('lenders') or []:
-            if ld.get('name'):
-                ld['name'] = canon.get(lkey(ld['name']), ld['name'])
-        d['lender'] = ', '.join(x['name'] for x in (d.get('lenders') or []) if x['name']) or d['lender']
 
     disclosed = sum(d['amt'] for d in dedup if d['amt'])
     markets = len({d['city'] for d in dedup if d['city']})
