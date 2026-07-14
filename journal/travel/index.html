@@ -12,26 +12,30 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <style>
+  /* Site DARK tokens live at :root so the injected universal chrome (header, footer,
+     pinned dock, member auth) renders exactly like the homepage. The beige travel
+     design is scoped to .tvl-page below and never leaks into the chrome. */
   :root{
+    --ink:#070807; --ink-2:#0d0f0e; --panel:#141714; --panel-2:#1a1d1a; --panel-3:#222622;
+    --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+    --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+    --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a; --gold-deep:#c9a558;
+    --purple:#A78BFA; --purple-glow:#B9A6FF;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --glass:blur(16px) saturate(1.4);
+  }
+  /* Beige Mediterranean palette — travel page content only. */
+  .tvl-page{
     --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
     --text:#4A392B; --mute:#8C7862; --mute2:#5E4C3C; --white:#3E2F22;
     --purple-soft:#B0603A; --gold:#B58A35; --cream:#F3EBDC; --brown:#4A392B; --terra:#B0603A;
-    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --serif:'Fraunces',Georgia,serif;
+    background:var(--ink); color:var(--text);
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  html,body{background:#F2E9D7;color:#4A392B;font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   body{overflow-x:hidden}
-  a{color:inherit;text-decoration:none}
-  img{display:block;max-width:100%}
+  .tvl-page a{color:inherit;text-decoration:none}
+  .tvl-page img{display:block;max-width:100%}
   .wrap{max-width:960px;margin:0 auto;padding:0 22px}
-
-  /* Universal site chrome (header + footer) is injected by journal-chrome.js and is
-     built for the DARK theme — scope its dark design tokens here so it renders
-     correctly over this beige page without leaking into the page's own tokens. */
-  .tmw-chrome-head,.tmw-chrome-foot{
-    --ink:#070807; --ink-2:#0d0f0e; --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
-    --white:#ffffff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3; --green:#1FDF67;
-  }
 
   /* header */
   header.hero{padding:56px 0 30px;text-align:center}
@@ -112,6 +116,7 @@
 </style>
 </head>
 <body>
+<div class="tvl-page">
 <div class="wrap">
   <header class="hero">
     <div class="eyebrow">Travel</div>
@@ -149,6 +154,7 @@
 <div class="wrap">
   <footer class="f"><div class="fm">More miles ahead.</div>Markets of Tomorrow · Travel</footer>
 </div>
+</div><!-- /.tvl-page -->
 
 <script>
 // Newest first. `href` = clickable (has a detail page); past trips have none.
@@ -158,6 +164,8 @@ var TRIPS = [
     href:'/travel/2026/europe/', upcoming:true,
     img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
     partners:['J/PR'] },
+  { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, img:'',
+    partners:['Quinn','Open to partner','Private'] },
   { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
     partners:['Private'] },
@@ -330,7 +338,9 @@ function initMarketMap(tries){
 }
 initMarketMap();
 </script>
-<!-- Universal site header + footer (single source of truth across the journal). -->
+<!-- Universal site chrome — same set the homepage loads (header/footer, pinned dock, member auth). -->
 <script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
+<script src="/_shared/journal-auth.js" defer></script>
 </body>
 </html>
