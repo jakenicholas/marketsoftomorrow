@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Private Itinerary — Markets of Tomorrow</title>
+<link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+<style>
+  :root{
+    /* full Mediterranean LIGHT colorway — beige page, brown ink, terracotta/gold accents */
+    --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
+    --text:#4A392B; --mute:#8C7862; --mute2:#5E4C3C; --white:#3E2F22;
+    --purple:#A8813A; --purple-soft:#B0603A; --gold:#B58A35; --gold-soft:#C79A3E;
+    --cream:#F3EBDC; --brown:#4A392B; --terra:#B0603A;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --serif:'Fraunces',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{overflow-x:hidden}
+  a{color:inherit}
+  img{display:block;max-width:100%}
+
+  /* ── Layout ── */
+  #doc{opacity:0;transition:opacity .6s ease .1s}
+  #doc.reveal{opacity:1}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+
+  /* ── Header: the image IS the background; the title overlays its washed top ── */
+  .topwrap{position:relative;overflow:hidden;min-height:88vh;background:var(--ink)}
+  /* pull the content up so the first box sits over the lower edge of the hero image */
+  #tl{position:relative;z-index:5;margin-top:-6vh}
+  header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
+  /* soft cream halo so the title reads over any image behind it */
+  .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
+  /* dates + meta are small and overlap the busier photo — give them a tighter, stronger cream halo */
+  .hero-dates,.hero-meta{text-shadow:0 1px 2px rgba(243,235,220,.92),0 0 11px rgba(243,235,220,.95),0 0 22px rgba(243,235,220,.7)}
+  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--mute2);margin-bottom:20px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
+  .hero h1 em{font-style:italic;color:var(--terra)}
+  .hero-dates{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:19px;color:#6E5844}
+  .hero-meta{margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--mute2)}
+  .hero-meta .dot{width:3px;height:3px;border-radius:50%;background:rgba(74,57,43,.34)}
+
+  /* Crossfading image is dropped to the lower ~60% of the taller header, leaving a
+     beige upper band for the title to breathe. Its top edge melts into that beige and
+     its bottom melts into the page below — cream veil, no harsh edge either end. */
+  .topshow{position:absolute;left:0;right:0;bottom:0;height:66%;overflow:hidden;background:var(--cream)}
+  .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.95) brightness(1.02)}
+  .topshow .ts-img.on{opacity:1}
+  .topshow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:linear-gradient(to bottom,
+      var(--ink) 0%,
+      rgba(243,235,220,.72) 11%,
+      rgba(243,235,220,.5) 25%,
+      rgba(243,235,220,.18) 44%,
+      rgba(243,235,220,.06) 64%,
+      rgba(243,235,220,.16) 87%,
+      var(--ink) 100%)}
+
+  /* ── Client pill (J/PR) ── */
+  .jpr{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;border-radius:99px;border:1px solid rgba(176,96,58,.42);
+       background:linear-gradient(180deg,rgba(176,96,58,.12),rgba(176,96,58,.04));color:var(--terra);
+       font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;line-height:1;white-space:nowrap}
+  .jpr svg{width:12px;height:12px;opacity:.9}
+  .jpr .jpr-k{font-size:9px;font-weight:700;letter-spacing:.14em;opacity:.62}
+  /* pulse-glow the "Open to partner" bubbles on hotel-seeking stops */
+  .jpr-pulse{animation:jprPulse 2.2s ease-in-out infinite}
+  @keyframes jprPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(176,96,58,.28);border-color:rgba(176,96,58,.42)}
+    50%{box-shadow:0 0 15px 3px rgba(176,96,58,.55);border-color:rgba(176,96,58,.85)}
+  }
+  @media(prefers-reduced-motion:reduce){ .jpr-pulse{animation:none} }
+
+  /* ── Part divider ── */
+  .part{padding:64px 0 30px;text-align:center}
+  .part-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:12px}
+  .part h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,4.4vw,38px);letter-spacing:-.01em;color:var(--white)}
+  .part-line{width:54px;height:2px;background:var(--purple);border-radius:2px;margin:20px auto 0;opacity:.7}
+
+  /* ── Timeline ── */
+  .timeline{position:relative;padding-left:0}
+  .stop{position:relative;padding:0 0 40px}
+  .stop-info{margin-top:18px}
+  .stop-topline{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .stop-num{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1px solid rgba(203,166,91,.45);background:rgba(203,166,91,.08);
+            display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--purple-soft)}
+  .stop-loc{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
+  .stop-tools{margin-left:auto}
+  .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,38px);line-height:1.1;letter-spacing:-.01em;color:var(--white);margin-top:10px}
+  .stop-date{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--purple-soft);margin-top:4px}
+  .vibe{margin-top:15px;font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
+  .logi{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+  .logi-row{display:flex;gap:11px;align-items:baseline;font-size:13.5px;color:var(--mute)}
+  .logi-k{flex:0 0 auto;min-width:64px;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft);padding-top:1px}
+  .logi-v{flex:1;color:var(--mute2);line-height:1.6}
+  .logi-v b{color:var(--text);font-weight:600}
+
+  /* ── Per-stop slideshow (sits on top of each stop) ── */
+  .slideshow{position:relative;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--hair);aspect-ratio:16/10}
+  .ss-viewport{width:100%;height:100%;overflow:hidden}
+  .ss-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+  .ss-slide{flex:0 0 100%;height:100%}
+  .ss-slide img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+  .ss-slide img.loaded{opacity:1}
+  /* Bare chevron arrows + top-right "n / N" counter — matches the journal article gallery. */
+  .ss-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:0;padding:0;
+            color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;z-index:3;
+            transition:opacity .22s,color .22s,filter .22s,transform .22s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
+  .ss-arrow svg{width:16px;height:16px}
+  .ss-arrow.ss-prev{left:14px} .ss-arrow.ss-next{right:14px}
+  .slideshow:hover .ss-arrow{opacity:1}
+  .ss-arrow:hover{color:var(--gold);transform:translateY(-50%) scale(1.12);
+            filter:drop-shadow(0 0 6px rgba(230,197,116,.75)) drop-shadow(0 0 13px rgba(230,197,116,.45))}
+  .ss-count{position:absolute;top:14px;right:14px;z-index:3;font-family:var(--sans);font-size:10.5px;font-weight:700;
+            letter-spacing:.1em;color:#fff;background:rgba(23,18,11,.6);backdrop-filter:blur(10px);padding:5px 10px;border-radius:999px}
+  @media(max-width:679px){ .slideshow{aspect-ratio:4/3} .ss-arrow{opacity:1} }
+  .gempty{border:1px dashed var(--hair2);border-radius:14px;padding:30px;text-align:center;color:var(--mute);font-size:12.5px;letter-spacing:.04em;background:rgba(74,57,43,.03);aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gempty svg{width:20px;height:20px;opacity:.6;margin-bottom:8px}
+
+  /* ── Transit divider (wavy dotted line + date + mode icon) ── */
+  .leg{position:relative;padding:30px 0 26px}
+  .leg-line{display:flex;align-items:center;gap:14px}
+  .leg-wave{flex:1;height:16px;opacity:.7;background-repeat:repeat-x;background-position:center;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23B0603A' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
+  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(176,96,58,.3);
+            background:linear-gradient(180deg,rgba(176,96,58,.10),rgba(176,96,58,.04))}
+  .leg-ic{display:flex;color:var(--purple-soft)}
+  .leg-ic svg{width:17px;height:17px}
+  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
+  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft)}
+  .leg-note{display:block;text-align:center;font-family:var(--sans);font-size:11px;color:var(--mute);margin-top:9px;letter-spacing:.03em}
+  @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
+
+  /* ── Open partnerships box (above the first day) ── */
+  .partners{margin:6px 0 8px;padding:32px 30px 34px;border:1px solid var(--hair2);border-radius:18px;
+            background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);box-shadow:0 10px 34px rgba(74,57,43,.09)}
+  .pt-head{text-align:center;max-width:62ch;margin:0 auto 24px}
+  .pt-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:11px}
+  .pt-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(23px,3.6vw,32px);letter-spacing:-.01em;color:var(--brown)}
+  .pt-sub{margin-top:12px;font-size:14.5px;line-height:1.72;color:var(--mute2)}
+  .pt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+  .pt-tile{background:#FCF8EF;border:1px solid var(--hair2);border-radius:14px;padding:22px 22px 20px;text-align:center;
+           box-shadow:0 4px 16px rgba(74,57,43,.06)}
+  .pt-city{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.01em;color:var(--brown)}
+  .pt-when{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--purple-soft);margin-top:3px}
+  .pt-cats{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:14px 0 2px}
+  .pt-cats span{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mute2);
+                border:1px solid var(--hair2);border-radius:99px;padding:5px 11px;background:rgba(176,96,58,.05)}
+  /* full-width third box: everything we're open to across every city (no hotels here) */
+  .pt-all{margin-top:16px;background:#FCF8EF;border:1px solid var(--hair2);border-radius:14px;padding:20px 22px;
+          text-align:center;box-shadow:0 4px 16px rgba(74,57,43,.06)}
+  .pt-all-k{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2);margin-bottom:13px}
+  .pt-all .pt-cats{margin:0}
+  /* single email line, outside the three boxes */
+  .pt-foot{text-align:center;margin-top:22px;padding-top:20px;border-top:1px solid var(--hair)}
+  .pt-foot a{font-size:13px;font-weight:600;color:var(--terra);text-decoration:none;letter-spacing:.01em}
+  .pt-foot a:hover{text-decoration:underline}
+  /* "Our deliverables" button under the intro */
+  .pt-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:11px 20px;border-radius:99px;background:var(--terra);
+          color:#FBF6EC;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+          transition:filter .15s,transform .15s;box-shadow:0 6px 18px rgba(176,96,58,.26)}
+  .pt-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .pt-arw{transition:transform .18s}
+  .pt-btn:hover .pt-arw,button.pt-tile:hover .pt-arw{transform:translateX(3px)}
+  /* pending tiles are buttons that open the enquiry modal */
+  button.pt-tile{width:100%;font:inherit;cursor:pointer;display:block;transition:border-color .15s,box-shadow .15s,transform .15s}
+  button.pt-tile:hover{border-color:var(--terra);box-shadow:0 10px 26px rgba(74,57,43,.13);transform:translateY(-2px)}
+  .pt-cta{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
+  /* compact partner CTA card inside a hotel-seeking stop (no repeated city/date) */
+  /* single-row hotel-partner CTA: hugs content on desktop, full-width on mobile */
+  button.pt-tile.stop-partner{display:inline-flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    width:auto;max-width:100%;margin-top:22px;padding:15px 22px}
+  .stop-partner .sp-lead{font-family:var(--serif);font-style:italic;font-size:15.5px;color:var(--mute2)}
+  .stop-partner .pt-cats{margin:0}
+  .stop-partner .pt-cta{margin-top:0}
+  @media(max-width:560px){ button.pt-tile.stop-partner{width:100%} }
+  /* per-location "Express interest" text link */
+  .stop-express{display:inline-flex;align-items:center;gap:6px;margin-top:18px;background:none;border:0;padding:0;cursor:pointer;
+    font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
+  .stop-express:hover .pt-arw{transform:translateX(3px)}
+
+  /* ── Partner enquiry modal ── */
+  .pm-back{position:fixed;inset:0;z-index:200;background:rgba(40,30,20,.5);backdrop-filter:blur(4px);display:flex;align-items:center;
+           justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+  .pm-back.on{opacity:1;pointer-events:auto}
+  .pm{position:relative;width:100%;max-width:440px;background:linear-gradient(180deg,#FBF6EC,var(--cream));border:1px solid var(--hair2);
+      border-radius:20px;padding:30px 30px 26px;box-shadow:0 30px 80px rgba(40,30,20,.35);transform:translateY(12px) scale(.98);transition:transform .25s;max-height:92vh;overflow-y:auto}
+  .pm-back.on .pm{transform:none}
+  .pm-x{position:absolute;top:14px;right:16px;background:none;border:0;font-size:20px;line-height:1;color:var(--mute);cursor:pointer;padding:4px}
+  .pm-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:9px}
+  .pm h3{font-family:var(--serif);font-weight:600;font-size:25px;color:var(--brown);letter-spacing:-.01em;line-height:1.14}
+  .pm-sub{margin-top:8px;font-size:13.5px;line-height:1.6;color:var(--mute2)}
+  .pm-city{font-style:italic;color:var(--terra)}
+  .pm form{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .pm-field{display:flex;flex-direction:column;gap:5px}
+  .pm-field label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
+  .pm-field input,.pm-field textarea,.pm-field select{background:#FDFAF2;border:1px solid var(--hair2);border-radius:11px;padding:12px 14px;font-family:var(--sans);font-size:15px;color:var(--brown);outline:none;transition:border-color .15s}
+  .pm-field textarea{resize:vertical;min-height:96px;line-height:1.5}
+  .pm-field select{-webkit-appearance:none;appearance:none;cursor:pointer;padding-right:36px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23B0603A' stroke-width='2'%3E%3Cpath d='M3 4.5 6 8l3-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .pm-field input:focus,.pm-field textarea:focus,.pm-field select:focus{border-color:var(--terra)}
+  .pm-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .pm-submit{margin-top:6px;background:var(--terra);color:#FBF6EC;border:0;border-radius:12px;padding:14px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:filter .15s}
+  .pm-submit:hover{filter:brightness(1.06)} .pm-submit:disabled{opacity:.6;cursor:default}
+  .pm-msg{font-size:13px;min-height:18px}
+  .pm-msg.err{color:#b23c3c} .pm-msg.ok{color:#2f7d55}
+  .pm-done{text-align:center;padding:10px 0 4px}
+  .pm-check{width:52px;height:52px;border-radius:50%;background:rgba(47,125,85,.12);color:#2f7d55;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px}
+
+  /* ── Pending / tentative stop states ── */
+  .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
+  .tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;vertical-align:middle;margin-left:8px}
+  .tag.tentative{color:var(--terra);border:1px solid rgba(176,96,58,.4);background:rgba(176,96,58,.08)}
+  .tag.pending{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.04)}
+  .stay-pending{color:var(--mute);font-style:italic;font-weight:500}
+
+  /* ── Route map (numbered locations, same colorway) ── */
+  .routemap{margin-top:26px;padding-top:34px;border-top:1px solid var(--hair)}
+  .rm-head{text-align:center;margin-bottom:22px}
+  .rm-k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--terra);margin-bottom:10px}
+  .rm-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,4vw,34px);color:var(--brown)}
+  .rm-frame{border:1px solid var(--hair2);border-radius:16px;padding:0;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
+  .rm-map{width:100%;height:min(58vh,480px)}
+  /* Outer wrapper is positioned by Mapbox via transform on every zoom/pan — it must
+     carry NO transform or transition of its own, or the pin lags/drifts behind the map. */
+  .rm-marker{width:28px;height:28px}
+  .rm-dot{width:28px;height:28px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;color:#8a3f22;
+             font-family:var(--serif);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;
+             box-shadow:0 2px 7px rgba(74,57,43,.35);cursor:pointer;transition:transform .15s}
+  .rm-dot:hover{transform:scale(1.14);z-index:2}
+  .rm-pop{font-family:var(--sans);font-size:12.5px;color:var(--brown)}
+  .rm-pop b{color:var(--terra)}
+  .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
+  .mapboxgl-popup-tip{border-top-color:#F5EEDF!important;border-bottom-color:#F5EEDF!important}
+  .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
+  .rm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px 20px;margin-top:22px}
+  .rm-li{display:flex;align-items:baseline;gap:10px;font-size:13.5px}
+  .rm-n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(176,96,58,.5);color:var(--terra);
+        font-family:var(--serif);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;align-self:center}
+  .rm-nm{color:var(--brown);font-weight:500}
+  .rm-dt{margin-left:auto;color:var(--mute);font-family:var(--serif);font-style:italic;font-size:12.5px;white-space:nowrap}
+
+  /* ── Final exit / tip ── */
+  .exit{margin-top:26px;padding:38px 0 20px;border-top:1px solid var(--hair);text-align:center}
+  .exit .part-k{color:var(--gold)}
+  .exit h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,4vw,34px);color:var(--white);margin-bottom:8px}
+  .exit p.lede{color:var(--mute2);max-width:60ch;margin:0 auto 26px;font-size:15px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:620px;margin:0 auto}
+  @media(max-width:600px){ .opts{grid-template-columns:1fr} }
+  .opt{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:20px 18px;text-align:left}
+  .opt-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:8px}
+  .opt-t{font-family:var(--serif);font-size:19px;color:var(--white);margin-bottom:5px}
+  .opt-d{font-size:13.5px;color:var(--mute)}
+  .tip{max-width:620px;margin:22px auto 0;background:rgba(230,197,116,.05);border:1px solid rgba(230,197,116,.22);border-radius:14px;padding:18px 20px;text-align:left}
+  .tip-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+  .tip-d{font-size:13.5px;color:var(--mute2);line-height:1.66}
+
+  footer.f{text-align:center;padding:56px 0 70px;color:var(--mute);font-size:12px;letter-spacing:.04em}
+  footer.f .fm{font-family:var(--serif);font-style:italic;color:var(--mute2);font-size:14px;margin-bottom:6px}
+
+  /* ── Lightbox ── */
+  #lb{position:fixed;inset:0;z-index:90;background:rgba(6,7,8,.94);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:28px;cursor:zoom-out}
+  #lb.on{display:flex}
+  #lb img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+  #lb .lb-x{position:absolute;top:20px;right:24px;color:var(--mute2);font-size:26px;line-height:1;cursor:pointer;font-family:var(--sans)}
+</style>
+</head>
+<body>
+
+<!-- Itinerary -->
+<div id="doc">
+  <div class="topwrap">
+    <div class="topshow" id="topshow" aria-hidden="true"></div>
+    <header class="hero">
+      <div class="wrap">
+        <div class="hero-eyebrow">August 1 — 9, 2026</div>
+        <h1>Pacific Coast Highway<br><em>&amp;</em> Napa Valley</h1>
+        <div class="hero-dates">5 Stays · California</div>
+      </div>
+    </header>
+  </div>
+  <main class="wrap" id="tl"></main>
+</div>
+
+<!-- Partner enquiry modal -->
+<div class="pm-back" id="pm" aria-hidden="true">
+  <div class="pm" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <button class="pm-x" id="pmX" aria-label="Close">✕</button>
+    <div id="pmBody">
+      <div class="pm-k">Open Partnerships</div>
+      <h3 id="pmTitle">Express interest</h3>
+      <p class="pm-sub" id="pmSub">Tell us a little about you and we’ll be in touch.</p>
+      <form id="pmForm" novalidate autocomplete="on">
+        <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
+        <div class="pm-field"><label for="pmEmail">Email</label><input id="pmEmail" name="email" type="email" autocomplete="email" required></div>
+        <div class="pm-field"><label for="pmClient">Client / property name</label><input id="pmClient" name="client" autocomplete="organization"></div>
+        <div class="pm-field"><label for="pmType">Partnership type</label>
+          <select id="pmType" name="type">
+            <option value="">Select type…</option>
+            <option>Hotel</option>
+            <option>Restaurant</option>
+            <option>Golf</option>
+            <option>Excursions</option>
+            <option>Experiences</option>
+          </select>
+        </div>
+        <div class="pm-field"><label for="pmSite">Property website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
+        <div class="pm-field"><label for="pmNote">Message</label><textarea id="pmNote" name="message" rows="4" placeholder="Tell us about your property or what you'd like to offer…"></textarea></div>
+        <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
+        <button class="pm-submit" id="pmSubmit" type="submit">Send inquiry</button>
+        <div class="pm-msg" id="pmMsg" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+    <div class="pm-done" id="pmDone" style="display:none">
+      <div class="pm-check">✓</div>
+      <h3>Thank you</h3>
+      <p class="pm-sub">Your details are in — we’ve emailed you a copy and our team will follow up shortly.</p>
+      <button class="pm-submit" id="pmClose2" type="button" style="margin-top:18px;width:100%">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lb"><span class="lb-x">✕</span><img alt=""></div>
+
+<script>
+const R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/';
+const g = f => /^https?:/i.test(f) ? f : R2 + f;
+
+// Transport-mode icons for the transit dividers.
+const ICONS = {
+  flight:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16Z"/></svg>',
+  train:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4 0-8 .5-8 4v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5V21h12v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-4-4-8-4Zm-4.5 15A1.5 1.5 0 1 1 9 15.5 1.5 1.5 0 0 1 7.5 17Zm3.5-6H6V6h5v5Zm2 0V6h5v5h-5Zm3.5 6a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Z"/></svg>',
+  car:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11l1.3.7A2 2 0 0 1 21 13.4V18h-3v-1.5H6V18H3v-4.6a2 2 0 0 1 .7-1.7L5 11Zm2.2-.5h9.6l-1-3.2a.5.5 0 0 0-.5-.3H8.7a.5.5 0 0 0-.5.3l-1 3.2ZM6.5 15A1.25 1.25 0 1 0 5.25 13.75 1.25 1.25 0 0 0 6.5 15Zm11 0A1.25 1.25 0 1 0 16.25 13.75 1.25 1.25 0 0 0 17.5 15Z"/></svg>',
+  ferry:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l6 3.2v3.3l3 1.1v2.1l-1 3.6a3.6 3.6 0 0 1-3 .9 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-3-.9l-1-3.6v-2.1l3-1.1V5.2L12 2Zm-4 5.9l4-1.5 4 1.5V6.3L12 4.1 8 6.3v1.6ZM4 18.3a4.8 4.8 0 0 0 3 1 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 3-1V20a5.8 5.8 0 0 1-3 .8 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6A5.8 5.8 0 0 1 4 20v-1.7Z"/></svg>',
+};
+
+const STOPS = [
+  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn',
+    in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown — the journey begins' },
+    vibe:'Opening in the heart of Silicon Valley — a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
+    logi:[], imgs:[] },
+
+  { loc:'Big Sur, California', nights:'Day Stop · Aug 4', stay:'Highway 1 & the Coast', noClient:true,
+    in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
+    vibe:'The most dramatic stretch of the Pacific Coast Highway — Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
+    logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
+    imgs:['https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg'] },
+
+  { loc:'Berkeley, California', nights:'2 Nights · Aug 4 → 6', stay:'Claremont Resort & Spa', client:'Quinn',
+    in:{ date:'Aug 4', mode:'car', note:'Big Sur → Berkeley' },
+    vibe:'A storied hilltop resort above the Bay — Mediterranean-white architecture, a classic spa, and sweeping views across to San Francisco and the Golden Gate.',
+    logi:[], imgs:[] },
+
+  { loc:'Napa Valley, California', nights:'1 Night · Aug 6 → 7', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+    in:{ date:'Aug 6', mode:'car', note:'Berkeley → Napa Valley' },
+    vibe:'', logi:[], imgs:[] },
+
+  { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true,
+    in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
+    vibe:'Closing the loop in the capital — a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
+    logi:[], imgs:[] },
+];
+
+function galleryHtml(imgs){
+  if(!imgs || !imgs.length)
+    return '<div class="gempty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-1 11H4l3.5-4.5 2.5 3 3.5-4.5L20 16Zm-13-6a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 7 10Z"/></svg>Photography to come</div>';
+  var n = imgs.length;
+  var slides = imgs.map(function(f){
+    return '<div class="ss-slide"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
+  }).join('');
+  if(n < 2) return '<div class="slideshow" data-n="1"><div class="ss-viewport"><div class="ss-track">'+slides+'</div></div></div>';
+  return '<div class="slideshow" data-n="'+n+'">'
+    + '<div class="ss-viewport"><div class="ss-track">'+slides+'</div></div>'
+    + '<button class="ss-arrow ss-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>'
+    + '<button class="ss-arrow ss-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>'
+    + '<div class="ss-count">1 / '+n+'</div>'
+    + '</div>';
+}
+function legHtml(l){
+  var ic = ICONS[l.mode] || ICONS.car;
+  return '<div class="leg'+(l.start?' start':'')+'">'
+    + '<div class="leg-line">'
+    +   '<span class="leg-wave"></span>'
+    +   '<div class="leg-chip"><span class="leg-ic">'+ic+'</span><span class="leg-date">'+l.date+'</span>'
+    +     (l.mode?'<span class="leg-mode">'+l.mode+'</span>':'')+'</div>'
+    +   '<span class="leg-wave"></span>'
+    + '</div>'
+    + (l.note?'<span class="leg-note">'+l.note+'</span>':'')
+    + '</div>';
+}
+function jprPill(label, key, pulse){
+  var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
+  return '<span class="jpr'+(pulse?' jpr-pulse':'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
+}
+function logiHtml(logi){
+  if(!logi||!logi.length) return '';
+  return '<div class="logi">' + logi.map(function(r){
+    return '<div class="logi-row"><div class="logi-k">'+r[0]+'</div><div class="logi-v">'+r[1]+'</div></div>';
+  }).join('') + '</div>';
+}
+function stopHtml(s, marker){
+  var cls = 'stop' + (s.pending?' pending':'') + (s.tentative?' tentative':'');
+  // Tentative keeps its own tag; the old "Pending" tag is replaced by a client pill.
+  var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
+  // Every tile carries a client bubble: J/PR for client stays, "Private" for the
+  // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
+  var pill = s.pending ? jprPill('Open to partner', null, true)   // pulse-glow the open bubble
+           : s.noClient ? jprPill('Private')
+           : jprPill(s.client || 'Client', 'Partner');
+  var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
+  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
+  // Every location gets an "Express interest" action; hotel-seeking stops get a
+  // single-row "Looking for [Hotel partner] Express interest →".
+  var partnerCta = s.pending
+    ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'" data-type="Hotel">'
+      +   '<span class="sp-lead">Looking for</span>'
+      +   '<span class="pt-cats"><span>Hotel partner</span></span>'
+      +   '<span class="pt-cta">Express interest <span class="pt-arw">→</span></span>'
+      + '</button>'
+    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
+  return '<section class="'+cls+'">'
+    + galleryHtml(s.imgs)
+    + '<div class="stop-info">'
+    +   '<div class="stop-topline">'
+    +     '<span class="stop-loc">'+s.nights+'</span>'+tag
+    +     '<span class="stop-tools">'+pill+'</span>'
+    +   '</div>'
+    +   '<div class="stop-stay">'+stayLine+'</div>'
+    +   '<div class="stop-date">'+s.loc+'</div>'
+    +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
+    +   logiHtml(s.logi)
+    +   partnerCta
+    + '</div>'
+    + '</section>';
+}
+
+// Top hero slideshow — crossfade through the trip's highlight images (up to 2 per
+// stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
+function buildTopShow(){
+  var pick = [];
+  STOPS.forEach(function(s){ if(s.imgs && s.imgs.length) pick.push(s.imgs[0]); });   // first image of each location
+  if(!pick.length) return;
+  var el = document.getElementById('topshow');
+  el.innerHTML = pick.map(function(f,i){
+    return '<img class="ts-img'+(i===0?' on':'')+'" src="'+g(f)+'" alt="" onerror="this.remove()">';
+  }).join('');
+  var imgs = [].slice.call(el.querySelectorAll('.ts-img')), i = 0;
+  if(imgs.length < 2) return;
+  setInterval(function(){ imgs[i].classList.remove('on'); i = (i+1) % imgs.length; imgs[i].classList.add('on'); }, 3500);
+}
+
+// Each stop's slideshow: gold-glow arrows on hover, dots, and auto-advance every
+// 3s ONLY while it's within the viewport frame (IntersectionObserver).
+function initSlideshows(){
+  document.querySelectorAll('.slideshow').forEach(function(ss){
+    var n = +ss.getAttribute('data-n'); if(n < 2) return;
+    var track = ss.querySelector('.ss-track');
+    var counter = ss.querySelector('.ss-count');
+    var i = 0, timer = null, inView = false, hovering = false;
+    function go(k){ i = (k + n) % n; track.style.transform = 'translateX(-' + (i*100) + '%)';
+      if(counter) counter.textContent = (i+1) + ' / ' + n; }
+    function tick(){ if(inView && !hovering) go(i+1); }
+    function start(){ if(!timer) timer = setInterval(tick, 3000); }
+    function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+    ss.querySelector('.ss-prev').addEventListener('click', function(e){ e.stopPropagation(); go(i-1); });
+    ss.querySelector('.ss-next').addEventListener('click', function(e){ e.stopPropagation(); go(i+1); });
+    ss.addEventListener('mouseenter', function(){ hovering = true; });
+    ss.addEventListener('mouseleave', function(){ hovering = false; });
+    new IntersectionObserver(function(ents){ ents.forEach(function(en){ inView = en.isIntersecting; }); },
+      { threshold: 0.4 }).observe(ss);
+    start();
+  });
+}
+
+// Approx lat/lng for the route map (numbered pins, geographic layout).
+var COORDS = {
+  'Palo Alto, California':[37.44,-122.14],
+  'Big Sur, California':[36.27,-121.81],
+  'Berkeley, California':[37.87,-122.27],
+  'Napa Valley, California':[38.30,-122.29],
+  'Sacramento, California':[38.58,-121.49]
+};
+function routePoints(){
+  var pts = [];
+  STOPS.forEach(function(s){ var c = COORDS[s.loc]; if(c) pts.push({ loc:s.loc, nights:s.nights, lat:c[0], lng:c[1] }); });
+  pts.forEach(function(p,i){ p.n = i+1; });
+  return pts;
+}
+function routeMapHtml(){
+  var pts = routePoints();
+  if(pts.length < 2) return '';
+  var legend = '<div class="rm-legend">'+pts.map(function(p){
+    var dt = p.nights.indexOf('·')>=0 ? p.nights.split('·').pop().trim() : p.nights;
+    return '<div class="rm-li"><span class="rm-n">'+p.n+'</span><span class="rm-nm">'+p.loc+'</span><span class="rm-dt">'+dt+'</span></div>';
+  }).join('')+'</div>';
+  return '<section class="routemap"><div class="rm-head"><div class="rm-k">The Route</div><h2>One route, up the California coast</h2></div>'
+    + '<div class="rm-frame"><div id="rmap" class="rm-map"></div></div>' + legend + '</section>';
+}
+// Real Mapbox map with numbered terracotta pins + a dashed route line.
+function initRouteMap(tries){
+  var el = document.getElementById('rmap'); if(!el) return;
+  if(typeof mapboxgl === 'undefined'){ if((tries||0) < 40) setTimeout(function(){ initRouteMap((tries||0)+1); }, 250); return; }
+  var pts = routePoints(); if(pts.length < 2) return;
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
+  var map = new mapboxgl.Map({
+    container:'rmap', style:'mapbox://styles/mapbox/light-v11',
+    attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false
+  });
+  map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
+  var b = new mapboxgl.LngLatBounds(); pts.forEach(function(p){ b.extend([p.lng, p.lat]); });
+  // These don't need tiles to finish loading, so run immediately (the 'load' event
+  // can stall behind tile requests) — fit the view + drop the numbered markers now.
+  map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 });
+  pts.forEach(function(p){
+    var m = document.createElement('div'); m.className = 'rm-marker'; m.innerHTML = '<span class="rm-dot">'+p.n+'</span>';
+    new mapboxgl.Marker({ element:m, anchor:'center' }).setLngLat([p.lng, p.lat])
+      .setPopup(new mapboxgl.Popup({ offset:18, closeButton:false }).setHTML('<span class="rm-pop"><b>'+p.n+'</b> · '+p.loc+'</span>'))
+      .addTo(map);
+  });
+  // The dashed route line needs the style loaded (not tiles) — add it as soon as
+  // the style is ready, whether that's already happened or fires later.
+  function addRoute(){
+    if(map.getSource('route')) return;
+    map.addSource('route', { type:'geojson', data:{ type:'Feature', geometry:{ type:'LineString',
+      coordinates: pts.map(function(p){ return [p.lng, p.lat]; }) } } });
+    map.addLayer({ id:'route', type:'line', source:'route',
+      layout:{ 'line-cap':'round', 'line-join':'round' },
+      paint:{ 'line-color':'#B0603A', 'line-width':2.4, 'line-dasharray':[0.4,2.2], 'line-opacity':0.85 } });
+  }
+  if(map.isStyleLoaded()) addRoute();
+  else {
+    map.on('style.load', addRoute);
+    var t = setInterval(function(){ if(map.isStyleLoaded()){ addRoute(); clearInterval(t); } }, 250);
+    setTimeout(function(){ clearInterval(t); }, 12000);
+  }
+
+  // Keep the projection synced to the container. Without this the map can init at a
+  // stale size (it's far down the page / inside the fade-in), so its center is off
+  // and markers appear to drift as you zoom in/out. Resize once it's really sized,
+  // when it scrolls into view, and on window resize — then re-fit so pins stay put.
+  function sync(refit){ try{ map.resize(); if(refit) map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 }); }catch(e){} }
+  [150, 450, 1000].forEach(function(d){ setTimeout(function(){ sync(true); }, d); });
+  try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(false); }); }, { threshold:0.15 }).observe(el); }catch(e){}
+  window.addEventListener('resize', function(){ sync(false); });
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function partnerBoxHtml(){
+  var pend = STOPS.filter(function(s){ return s.pending; });
+  if(!pend.length) return '';
+  var tiles = pend.map(function(s){
+    return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
+      +   '<div class="pt-city">'+s.loc+'</div>'
+      +   '<div class="pt-when">'+s.nights+'</div>'
+      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
+      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      + '</button>';
+  }).join('');
+  return '<section class="partners">'
+    + '<div class="pt-head">'
+    +   '<div class="pt-k">Open Partnerships</div>'
+    +   '<h2>Cities still seeking a local partner</h2>'
+    +   '<p class="pt-sub">We’re curating the right restaurants, golf, excursions &amp; experiences in select cities on this route. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
+    +   '<a class="pt-btn" href="https://www.oftmw.com/media/hotels">Our deliverables <span class="pt-arw">→</span></a>'
+    + '</div>'
+    + '<div class="pt-grid">'+tiles+'</div>'
+    + '<div class="pt-all">'
+    +   '<div class="pt-all-k">Seeking in cities on the route</div>'
+    +   '<div class="pt-cats"><span>Restaurants</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
+    + '</div>'
+    + '</section>';
+}
+function render(){
+  buildTopShow();
+  var html = '<div class="timeline">' + partnerBoxHtml(), num = 0;
+  STOPS.forEach(function(s){
+    if(s.in) html += legHtml(s.in);
+    var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips
+    html += stopHtml(s, marker);
+  });
+  html += '</div>';
+  html += routeMapHtml();
+  html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
+  document.getElementById('tl').innerHTML = html;
+
+  // Reveal images: inline onload misses images already complete (cache/fast) —
+  // sweep once so none stay stuck at opacity:0, and catch the rest via load/error.
+  Array.prototype.forEach.call(document.querySelectorAll('.ss-slide img'), function(im){
+    if(im.complete && im.naturalWidth>0){ im.classList.add('loaded'); return; }
+    im.addEventListener('load',  function(){ im.classList.add('loaded'); });
+    im.addEventListener('error', function(){ var sl=im.closest('.ss-slide'); if(sl) sl.style.display='none'; });
+  });
+
+  initSlideshows();
+  initRouteMap();
+  // (Image lightbox intentionally disabled — no full-screen/zoom on images.)
+}
+
+// ── Partner enquiry modal ──
+var PARTNER_ENDPOINT = 'https://tmw.jake-ab7.workers.dev/travel-partner';
+function initPartnerModal(){
+  var back = document.getElementById('pm'); if(!back) return;
+  var form = document.getElementById('pmForm'), msg = document.getElementById('pmMsg'),
+      sub = document.getElementById('pmSub'), submit = document.getElementById('pmSubmit'),
+      titleEl = document.getElementById('pmTitle'), bodyEl = document.getElementById('pmBody'),
+      doneEl = document.getElementById('pmDone');
+  function open(c, type){
+    c = c || '';
+    form.dataset.city = c;   // bind city to the form so submit can't read a stale value
+    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
+    sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
+                      : 'Tell us a little about you and we’ll be in touch.';
+    form.reset(); msg.textContent=''; msg.className='pm-msg';
+    document.getElementById('pmType').value = type || '';   // preset partnership type when the tile implies one
+    bodyEl.style.display=''; doneEl.style.display='none'; submit.disabled=false; submit.textContent='Send inquiry';
+    back.classList.add('on'); back.setAttribute('aria-hidden','false');
+    setTimeout(function(){ document.getElementById('pmName').focus(); }, 80);
+  }
+  function close(){ back.classList.remove('on'); back.setAttribute('aria-hidden','true'); }
+  document.getElementById('pmX').addEventListener('click', close);
+  var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
+  back.addEventListener('click', function(e){ if(e.target === back) close(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
+  // Open from any partner tile or per-location "Express interest" button
+  // (event-delegated — tiles are rendered dynamically).
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');
+    if(t){ e.preventDefault(); open(t.getAttribute('data-partner'), t.getAttribute('data-type')); }
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(submit.disabled) return;   // guard against double-submit
+    var name = document.getElementById('pmName').value.trim();
+    var email = document.getElementById('pmEmail').value.trim();
+    if(!name){ msg.className='pm-msg err'; msg.textContent='Please add your name.'; return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.className='pm-msg err'; msg.textContent='Please add a valid email.'; return; }
+    var payload = { name:name, email:email,
+      client: document.getElementById('pmClient').value.trim(),
+      type: document.getElementById('pmType').value,
+      website: document.getElementById('pmSite').value.trim(),
+      message: document.getElementById('pmNote').value.trim(),
+      company: document.getElementById('pmHp').value, city: form.dataset.city || '' };
+    submit.disabled = true; submit.textContent = 'Sending…'; msg.className='pm-msg'; msg.textContent='';
+    fetch(PARTNER_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(res){
+        if(res.ok && res.j && res.j.ok){ bodyEl.style.display='none'; doneEl.style.display=''; }
+        else { submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
+               msg.textContent = (res.j && res.j.error) || 'Something went wrong — please email media@oftmw.com.'; }
+      })
+      .catch(function(){ submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
+        msg.textContent='Network error — please email media@oftmw.com.'; });
+  });
+}
+
+// ── Reveal (public page) ──
+(function(){
+  var doc = document.getElementById('doc');
+  render();
+  initPartnerModal();
+  setTimeout(function(){ doc.classList.add('reveal'); }, 30);
+})();
+</script>
+</body>
+</html>
