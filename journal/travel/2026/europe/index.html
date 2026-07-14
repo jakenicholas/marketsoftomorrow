@@ -40,7 +40,7 @@
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
   /* dates + meta are small and overlap the busier photo — give them a tighter, stronger cream halo */
   .hero-dates,.hero-meta{text-shadow:0 1px 2px rgba(243,235,220,.92),0 0 11px rgba(243,235,220,.95),0 0 22px rgba(243,235,220,.7)}
-  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
+  .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--mute2);margin-bottom:20px}
   .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
   .hero h1 em{font-style:italic;color:var(--terra)}
   .hero-dates{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:19px;color:#6E5844}
@@ -99,7 +99,7 @@
   .ss-viewport{width:100%;height:100%;overflow:hidden}
   .ss-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.4,0,.2,1)}
   .ss-slide{flex:0 0 100%;height:100%}
-  .ss-slide img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;cursor:zoom-in}
+  .ss-slide img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
   .ss-slide img.loaded{opacity:1}
   /* Bare chevron arrows + top-right "n / N" counter — matches the journal article gallery. */
   .ss-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:0;padding:0;
@@ -165,6 +165,8 @@
   button.pt-tile{width:100%;font:inherit;cursor:pointer;display:block;transition:border-color .15s,box-shadow .15s,transform .15s}
   button.pt-tile:hover{border-color:var(--terra);box-shadow:0 10px 26px rgba(74,57,43,.13);transform:translateY(-2px)}
   .pt-cta{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
+  /* compact partner CTA card inside a hotel-seeking stop (no repeated city/date) */
+  button.pt-tile.stop-partner{max-width:320px;margin-top:22px;padding:18px 22px}
 
   /* ── Partner enquiry modal ── */
   .pm-back{position:fixed;inset:0;z-index:200;background:rgba(40,30,20,.5);backdrop-filter:blur(4px);display:flex;align-items:center;
@@ -258,12 +260,9 @@
     <div class="topshow" id="topshow" aria-hidden="true"></div>
     <header class="hero">
       <div class="wrap">
-        <div class="hero-eyebrow">Private Itinerary</div>
-        <h1>Italy, The Isles<br>&amp; <em>The Alps</em></h1>
-        <div class="hero-dates">September 3 — October 10</div>
-        <div class="hero-meta">
-          <span>12 Stays</span><span class="dot"></span><span>5 Countries</span><span class="dot"></span><span>Rome · Adriatic · Isles · Alps</span>
-        </div>
+        <div class="hero-eyebrow">September 3 — October 10</div>
+        <h1>Italy, The Isles<br><em>&amp;</em> The Alps</h1>
+        <div class="hero-dates">12 Stays · 5 Countries</div>
       </div>
     </header>
   </div>
@@ -307,7 +306,7 @@ const g = f => /^https?:/i.test(f) ? f : R2 + f;
 
 // Transport-mode icons for the transit dividers.
 const ICONS = {
-  plane:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16Z"/></svg>',
+  flight:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16Z"/></svg>',
   train:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4 0-8 .5-8 4v9.5A3.5 3.5 0 0 0 7.5 19L6 20.5V21h12v-.5L16.5 19a3.5 3.5 0 0 0 3.5-3.5V6c0-3.5-4-4-8-4Zm-4.5 15A1.5 1.5 0 1 1 9 15.5 1.5 1.5 0 0 1 7.5 17Zm3.5-6H6V6h5v5Zm2 0V6h5v5h-5Zm3.5 6a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Z"/></svg>',
   car:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11l1.3.7A2 2 0 0 1 21 13.4V18h-3v-1.5H6V18H3v-4.6a2 2 0 0 1 .7-1.7L5 11Zm2.2-.5h9.6l-1-3.2a.5.5 0 0 0-.5-.3H8.7a.5.5 0 0 0-.5.3l-1 3.2ZM6.5 15A1.25 1.25 0 1 0 5.25 13.75 1.25 1.25 0 0 0 6.5 15Zm11 0A1.25 1.25 0 1 0 16.25 13.75 1.25 1.25 0 0 0 17.5 15Z"/></svg>',
   ferry:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l6 3.2v3.3l3 1.1v2.1l-1 3.6a3.6 3.6 0 0 1-3 .9 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-2.5-1 3.6 3.6 0 0 1-2.5 1 3.6 3.6 0 0 1-3-.9l-1-3.6v-2.1l3-1.1V5.2L12 2Zm-4 5.9l4-1.5 4 1.5V6.3L12 4.1 8 6.3v1.6ZM4 18.3a4.8 4.8 0 0 0 3 1 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 2.5-.8 4.8 4.8 0 0 0 2.5.8 4.8 4.8 0 0 0 3-1V20a5.8 5.8 0 0 1-3 .8 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6 5.8 5.8 0 0 1-2.5-.6 5.8 5.8 0 0 1-2.5.6A5.8 5.8 0 0 1 4 20v-1.7Z"/></svg>',
@@ -315,32 +314,29 @@ const ICONS = {
 
 const STOPS = [
   // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
-  { loc:'Rome, Italy', nights:'4 Nights · Sept 3 → 7', stay:'Private Airbnb', noClient:true,
-    in:{ start:true, date:'September 3', mode:'plane', note:'Touchdown — the journey begins' },
-    vibe:'Four opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
+  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Airbnb', noClient:true,
+    in:{ start:true, date:'September 4', mode:'flight', note:'Touchdown — the journey begins' },
+    vibe:'Opening nights in the Eternal City — a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
-      'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg',
-      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA%3D%3D/original/457ac4e1-170a-424a-859b-70a7dbd972ff.jpeg?im_w=1200',
-      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/a15d8dcc-53da-4329-98fb-bb9c10c8195b.jpeg?im_w=2560',
-      'https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MTEyMDgwNDk3OTY2MjM5NjcwMA==/original/2a66eb6e-8f8e-43f2-a79c-18c135f5b74c.jpeg?im_w=2560'] },
+      'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg'] },
 
   { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
     vibe:'Fair Verona on the Adige — the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
     logi:[], imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
 
-  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', tentative:true, noClient:true,
+  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', noClient:true,
     in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
-    vibe:'A tentative day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
+    vibe:'A day among the canals — the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
   { loc:'Dubrovnik, Croatia', nights:'2 Nights · Sept 11 → 13', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
-    in:{ date:'Sept 11', mode:'plane', note:'Verona → Dubrovnik' },
+    in:{ date:'Sept 11', mode:'flight', note:'Verona → Dubrovnik' },
     vibe:'', logi:[], imgs:['https://www.geoex.com/_next/image?url=https%3A%2F%2Fkxn3vdktxmez55pl.public.blob.vercel-storage.com%2FDubrovnik_AdobeStock_142786819_1920x1080.png&w=2048&q=75'] },
 
   // ── Part 1: The Greek Isles & Mainland ──
   { loc:'Mykonos', nights:'3 Nights · Sept 14 → 17', stay:'Cali Mykonos',
-    in:{ date:'Sept 14', mode:'plane', note:'Dubrovnik → Mykonos' },
+    in:{ date:'Sept 14', mode:'flight', note:'Dubrovnik → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock — an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Aegean out of Dubrovnik (DBV) the morning of Sept 14, connecting through Athens (ATH) on a swift 1h 15m layover, landing in Mykonos at <b>2:10 PM</b>.']],
     imgs:[
@@ -378,7 +374,7 @@ const STOPS = [
       'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg'] },
 
   { loc:'Southeast Slovenia', nights:'3 Nights · Sept 26 → 29', stay:'Hotel Grad Otočec',
-    in:{ date:'Sept 26', mode:'plane', note:'Athens → Ljubljana · then a 1h drive' },
+    in:{ date:'Sept 26', mode:'flight', note:'Athens → Ljubljana · then a 1h drive' },
     vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
     logi:[['Transit','Short 35-minute taxi from downtown Athens to ATH, then the non-stop morning Aegean flight to Ljubljana (LJU), approx. <b>2 hours</b>. Pick up the premium rental at the airport.'],['The Drive','A very easy, scenic <b>1-hour drive</b> southeast on the A2 highway.']],
     imgs:[
@@ -467,18 +463,25 @@ function stopHtml(s, marker){
            : s.noClient ? jprPill('Private')
            : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
-  // Order (per request): images on top → city → hotel → date → notes.
+  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes.
+  var partnerCta = s.pending
+    ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'">'
+      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
+      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      + '</button>'
+    : '';
   return '<section class="'+cls+'">'
     + galleryHtml(s.imgs)
     + '<div class="stop-info">'
     +   '<div class="stop-topline">'
-    +     '<span class="stop-loc">'+s.loc+'</span>'+tag
+    +     '<span class="stop-loc">'+s.nights+'</span>'+tag
     +     '<span class="stop-tools">'+pill+'</span>'
     +   '</div>'
     +   '<div class="stop-stay">'+stayLine+'</div>'
-    +   '<div class="stop-date">'+s.nights+'</div>'
+    +   '<div class="stop-date">'+s.loc+'</div>'
     +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
     +   logiHtml(s.logi)
+    +   partnerCta
     + '</div>'
     + '</section>';
 }
@@ -602,11 +605,10 @@ function partnerBoxHtml(){
     return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
       +   '<div class="pt-city">'+s.loc+'</div>'
       +   '<div class="pt-when">'+s.nights+'</div>'
-      +   '<div class="pt-cats"><span>Hotels</span></div>'
+      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
       +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
       + '</button>';
   }).join('');
-  var mailSubj = encodeURIComponent('Travel partner — Italy, The Isles & The Alps');
   return '<section class="partners">'
     + '<div class="pt-head">'
     +   '<div class="pt-k">Open Partnerships</div>'
@@ -619,7 +621,6 @@ function partnerBoxHtml(){
     +   '<div class="pt-all-k">Seeking in every city on the route</div>'
     +   '<div class="pt-cats"><span>Restaurants</span><span>Golf</span><span>Excursions</span><span>Experiences</span></div>'
     + '</div>'
-    + '<div class="pt-foot"><a href="mailto:media@oftmw.com?subject='+mailSubj+'">Email media@oftmw.com to confirm travel partner coverage</a></div>'
     + '</section>';
 }
 function render(){
@@ -645,15 +646,7 @@ function render(){
 
   initSlideshows();
   initRouteMap();
-
-  // Lightbox — open on slide-image click (arrows/dots stopPropagation so they don't).
-  var lb = document.getElementById('lb'), lbImg = lb.querySelector('img');
-  document.getElementById('tl').addEventListener('click', function(e){
-    var im = e.target.closest('.ss-slide img'); if(!im) return;
-    lbImg.src = im.src; lb.classList.add('on');
-  });
-  lb.addEventListener('click', function(){ lb.classList.remove('on'); lbImg.src=''; });
-  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ lb.classList.remove('on'); lbImg.src=''; } });
+  // (Image lightbox intentionally disabled — no full-screen/zoom on images.)
 }
 
 // ── Partner enquiry modal ──
