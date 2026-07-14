@@ -344,19 +344,19 @@ const ICONS = {
 };
 
 const STOPS = [
-  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn',
+  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn', imgPos:'center 72%',
     in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown — the journey begins' },
     vibe:'Opening in the heart of Silicon Valley — a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
     logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
 
-  { loc:'Big Sur, California', nights:'Day Stop · Aug 4', stay:'Highway 1 & the Coast', noClient:true,
+  { loc:'Big Sur, California', nights:'2 Nights · Aug 4 → 6', stay:'Highway 1 & the Coast', pending:true, tentative:true,
     in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
     vibe:'The most dramatic stretch of the Pacific Coast Highway — Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
     logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
     imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
 
-  { loc:'Berkeley, California', nights:'2 Nights · Aug 4 → 6', stay:'Claremont Resort & Spa', client:'Quinn',
-    in:{ date:'Aug 4', mode:'car', note:'Big Sur → Berkeley' },
+  { loc:'Berkeley, California', nights:'2 Nights · Aug 4 → 6', stay:'Claremont Resort & Spa', client:'Quinn', tentative:true,
+    in:{ or:true },
     vibe:'A storied hilltop resort above the Bay — Mediterranean-white architecture, a classic spa, and sweeping views across to San Francisco and the Golden Gate.',
     logi:[], imgs:['https://ohanare.com/wp-content/uploads/2023/05/Claremont-Resort-Club-updated.png'] },
 
@@ -370,12 +370,13 @@ const STOPS = [
     logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
 ];
 
-function galleryHtml(imgs){
+function galleryHtml(imgs, pos){
   if(!imgs || !imgs.length)
     return '<div class="gempty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 5H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-1 11H4l3.5-4.5 2.5 3 3.5-4.5L20 16Zm-13-6a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 7 10Z"/></svg>Photography to come</div>';
   var n = imgs.length;
+  var ps = pos ? ' style="object-position:'+pos+'"' : '';
   var slides = imgs.map(function(f){
-    return '<div class="ss-slide"><img loading="lazy" src="'+g(f)+'" alt="" onload="this.classList.add(\'loaded\')"></div>';
+    return '<div class="ss-slide"><img loading="lazy" src="'+g(f)+'" alt=""'+ps+' onload="this.classList.add(\'loaded\')"></div>';
   }).join('');
   if(n < 2) return '<div class="slideshow" data-n="1"><div class="ss-viewport"><div class="ss-track">'+slides+'</div></div></div>';
   return '<div class="slideshow" data-n="'+n+'">'
@@ -386,6 +387,9 @@ function galleryHtml(imgs){
     + '</div>';
 }
 function legHtml(l){
+  if(l.or) return '<div class="leg leg-or"><div class="leg-line"><span class="leg-wave"></span>'
+    + '<span class="leg-chip"><span class="leg-date">or</span></span>'
+    + '<span class="leg-wave"></span></div></div>';
   var ic = ICONS[l.mode] || ICONS.car;
   return '<div class="leg'+(l.start?' start':'')+'">'
     + '<div class="leg-line">'
@@ -428,7 +432,7 @@ function stopHtml(s, marker){
       + '</button>'
     : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
   return '<section class="'+cls+'">'
-    + galleryHtml(s.imgs)
+    + galleryHtml(s.imgs, s.imgPos)
     + '<div class="stop-info">'
     +   '<div class="stop-topline">'
     +     '<span class="stop-loc">'+s.nights+'</span>'+tag
