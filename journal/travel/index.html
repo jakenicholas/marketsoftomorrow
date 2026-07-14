@@ -87,6 +87,7 @@
   .trip-place{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--purple-soft);margin-top:5px}
   .trip-partners{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   .trip-pill{font-size:11px;font-weight:600;letter-spacing:.01em;color:var(--mute2);border:1px solid var(--hair2);border-radius:99px;padding:6px 12px;background:rgba(176,96,58,.05);white-space:nowrap}
+  .trip-pill.open-pill{color:#FBF6EC;background:var(--terra);border-color:var(--terra)}
   .p-lead{color:var(--mute);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;align-self:center;margin-right:2px}
   .trip-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
   .trip-link .arw{transition:transform .18s}
@@ -183,13 +184,13 @@
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
   { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 — October 10, 2026',
-    href:'/travel/2026/europe/', upcoming:true,
+    href:'/travel/2026/europe/', upcoming:true, openCTA:true,
     img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
     partners:['J/PR'] },
-  { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true,
+  { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, openCTA:true,
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
-    partners:['Quinn','Open to partner','Private'] },
+    partners:['Quinn','Private'] },
   { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
     partners:['Private'] },
@@ -251,11 +252,11 @@ function imgHtml(t, i){
   var img = t.img ? '<img class="trip-photo" loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.title)+'" onerror="this.remove()">' : '';
   return ph + img;
 }
-function partnersHtml(list){
-  if(!list || !list.length) return '';
-  return '<div class="trip-partners"><span class="p-lead">Partners</span>'
-    + list.map(function(p){ return '<span class="trip-pill">'+esc(p)+'</span>'; }).join('')
-    + '</div>';
+function partnersHtml(list, openCTA){
+  var pills = (list || []).map(function(p){ return '<span class="trip-pill">'+esc(p)+'</span>'; });
+  if(openCTA) pills.unshift('<span class="trip-pill open-pill">Open to Partnerships</span>');
+  if(!pills.length) return '';
+  return '<div class="trip-partners"><span class="p-lead">Partners</span>' + pills.join('') + '</div>';
 }
 function tripHtml(t, i){
   // Top-right status pill: terracotta "Upcoming" for future trips, gray "Ended" for past.
@@ -266,7 +267,7 @@ function tripHtml(t, i){
     +   '<div class="trip-date">'+esc(t.date)+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
-    +   partnersHtml(t.partners)
+    +   partnersHtml(t.partners, t.openCTA)
     +   (t.href ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
     + '</div>';
   return t.href
