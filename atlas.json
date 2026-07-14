@@ -3,7 +3,7 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 362
+      "count": 360
     },
     {
       "type": "Hotel",
@@ -23,7 +23,7 @@
     },
     {
       "type": "Entertainment",
-      "count": 27
+      "count": 28
     },
     {
       "type": "Travel",
@@ -35,7 +35,7 @@
     },
     {
       "type": "Stadium",
-      "count": 15
+      "count": 16
     },
     {
       "type": "Cultural",
@@ -7405,9 +7405,9 @@
     },
     {
       "st": "Other",
-      "ty": "Residences",
+      "ty": "Hotel",
       "sl": "Construction",
-      "yr": 2026,
+      "yr": 2028,
       "sm": null,
       "ci": "Ivins",
       "u": 0,
@@ -7987,7 +7987,7 @@
     },
     {
       "st": "Other",
-      "ty": "Hotel",
+      "ty": "Entertainment",
       "sl": "Construction",
       "yr": 2030,
       "sm": "2018-04",
@@ -8437,12 +8437,12 @@
     },
     {
       "st": "Other",
-      "ty": "Residences",
+      "ty": "Stadium",
       "sl": "Breaking Ground",
       "yr": 2029,
       "sm": "2025-12",
       "ci": "Honolulu",
-      "u": 0,
+      "u": 4500,
       "k": 0,
       "fl": 0,
       "dv": [
@@ -14903,7 +14903,7 @@
     {
       "st": "SC",
       "ty": "Golf",
-      "sl": "Announced",
+      "sl": "Breaking Ground",
       "yr": null,
       "sm": null,
       "ci": "Bluffton",
@@ -18374,7 +18374,7 @@
     {
       "st": "Other",
       "ty": "Golf",
-      "sl": "Construction",
+      "sl": "Opening Soon",
       "yr": 2026,
       "sm": null,
       "ci": "Thousand Oaks",
@@ -20433,11 +20433,11 @@
     "total_projects": 810,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 316,
-    "opening_this_year": 117
+    "under_construction": 315,
+    "opening_this_year": 116
   },
   "scale": {
-    "units": 276168,
+    "units": 280668,
     "keys": 55143,
     "floors": 13417
   },
@@ -21293,8 +21293,8 @@
     "types": [
       {
         "name": "Residences",
-        "sub": "45% of pipeline",
-        "count": 362,
+        "sub": "44% of pipeline",
+        "count": 360,
         "states": [
           "FL",
           "Other",
@@ -21370,7 +21370,7 @@
       {
         "name": "Entertainment",
         "sub": "3% of pipeline",
-        "count": 27,
+        "count": 28,
         "states": [
           "FL",
           "Other",
@@ -21410,7 +21410,7 @@
       {
         "name": "Stadium",
         "sub": "2% of pipeline",
-        "count": 15,
+        "count": 16,
         "states": [
           "Other",
           "FL",
@@ -27174,7 +27174,11 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 5
+          "count": 4
+        },
+        {
+          "label": "Breaking Ground",
+          "count": 1
         },
         {
           "label": "Construction",
@@ -27784,19 +27788,19 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 232
+      "count": 231
     },
     {
       "label": "Breaking Ground",
-      "count": 31
+      "count": 32
     },
     {
       "label": "Construction",
-      "count": 316
+      "count": 315
     },
     {
       "label": "Opening Soon",
-      "count": 99
+      "count": 100
     },
     {
       "label": "Now Open",
@@ -27868,7 +27872,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 117
+      "count": 116
     },
     {
       "year": 2027,
@@ -27876,7 +27880,7 @@
     },
     {
       "year": 2028,
-      "count": 147
+      "count": 148
     },
     {
       "year": 2029,
@@ -27945,6 +27949,20 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-miramar-lake-club-coming-soon-2026-07-14",
+      "type": "status_change",
+      "tag": "Coming soon",
+      "title": "Miramar Lake Club  Coming soon",
+      "project_slug": "miramar-lake-club",
+      "project_title": "Miramar Lake Club",
+      "city": "Thousand Oaks",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/f02dc9ce558f-Great-Lawn_Rendering_The-Miramar-Lake-Club_Caruso.jpeg",
+      "event_date": "2026-07-07",
+      "source_url": "https://caruso.com/newsroom/press-releases/2026/first-look-caruso-unveils-the-miramar-lake-club-a-new-standard-for-private-golf-in-southern-california-set-to-open-this-fall/",
+      "link": "https://www.oftmw.com/map/?project=miramarlakeclub",
+      "timestamp": "2026-07-14T13:18:02.587Z"
+    },
     {
       "id": "ms-sarasota-square-apartments-financing-2026-07-14",
       "type": "status_change",
@@ -28624,16 +28642,6 @@
       "source_url": "https://www.einnews.com/pr_news/918227271/developers-break-ground-on-eden-a-new-boutique-luxury-condominium-near-aventura-mall",
       "link": "https://www.oftmw.com/map/?project=edenresidences",
       "timestamp": "2026-07-12T23:13:18.164Z"
-    },
-    {
-      "id": "track-group-20260712T2236-11",
-      "type": "tracking",
-      "tag": "Tracking",
-      "title": "Tracking 11 more projects",
-      "city": "Red Hat Amphitheater +10 more",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/39b467575e11-red-hat-2.jpg",
-      "link": "https://www.oftmw.com/map/",
-      "timestamp": "2026-07-12T22:36:22.083441+00:00"
     }
   ],
   "most_covered": [
