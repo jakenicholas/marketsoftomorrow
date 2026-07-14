@@ -70,15 +70,24 @@ def from_history(sh):
     for h in sh:
         if not isinstance(h, dict):
             continue
-        if not (h.get('phase') == 'financing' or re.search(r'financ|construction loan|refinanc', str(h.get('note') or ''), re.I)):
+        # phase=='financing' is authoritative. The note fallback must match ACTUAL
+        # financing language — NOT the word "financial" (e.g. "Financial District",
+        # "Dubai International Financial Centre") in a location-correction note,
+        # which used to mint phantom financings on projects with no disclosed loan.
+        note = str(h.get('note') or '')
+        if not (h.get('phase') == 'financing'
+                or re.search(r'\bfinancing\b|\bconstruction loan\b|\bloan\b|\brefinanc|\bmezzanine\b', note, re.I)):
             continue
         amt = sane_m(h.get('loan_amount'))
         if amt is None:
-            amt = sane_m(note_amt(h.get('note')))
-        lender = h.get('lender') or note_lender(h.get('note'))
+            amt = sane_m(note_amt(note))
+        lender = h.get('lender') or note_lender(note)
         date = h.get('effective_date') or h.get('source_published') or h.get('at') or ''
-        if best is None or (amt or 0) > (best.get('amt') or 0):
-            best = {'amt': amt, 'lender': lender or '', 'date': date, 'note': str(h.get('note') or '')}
+        # keep the biggest amount; on a tie (e.g. both undisclosed) prefer an entry
+        # that at least names a lender, so a "$—, PNC Bank" beats a bare "$—".
+        if (best is None or (amt or 0) > (best.get('amt') or 0)
+                or ((amt or 0) == (best.get('amt') or 0) and lender and not best.get('lender'))):
+            best = {'amt': amt, 'lender': lender or '', 'date': date, 'note': note}
     return best
 
 
@@ -180,7 +189,10 @@ def main():
             lender = fh.get('lender', '')
         if not date:
             date = fh.get('date', '')
-        if amt is None and not lender and not date:
+        # A real financing has at least an AMOUNT or a LENDER. A bare date with
+        # neither is not a deal — it's usually a phantom from a mis-extracted flat
+        # FinancingDate (e.g. "Financial District" in a location-correction note).
+        if amt is None and not lender:
             continue
         reason = exclude_reason(p, note)                 # drop civic + non-construction capital
         if reason:

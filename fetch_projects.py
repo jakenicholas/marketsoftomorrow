@@ -126,7 +126,10 @@ _FIN_LENDER_RES = [
     re.compile(r'loan\s*\(([A-Z][\w.&\'’ -]+?)\)'),
     re.compile(r'(?:closed|secured|refinanced)\s+with\s+([A-Z][\w.&\'’ -]+?)(?=\s*[,;(]|\s+(?:%s)\b|$)' % _FIN_STOP),
 ]
-_FIN_IS = re.compile(r'financ|construction loan|refinanc', re.I)
+# Match ACTUAL financing language, NOT the word "financial" (e.g. "Financial
+# District", "Dubai International Financial Centre") in a location-correction
+# note — that used to mint a phantom FinancingDate on projects with no loan.
+_FIN_IS = re.compile(r'\bfinancing\b|\bconstruction loan\b|\bloan\b|\brefinanc|\bmezzanine\b', re.I)
 
 
 def _fin_amount_m(note: str):
