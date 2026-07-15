@@ -3,15 +3,15 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 360
+      "count": 359
     },
     {
       "type": "Hotel",
-      "count": 192
+      "count": 194
     },
     {
       "type": "Mixed-Use",
-      "count": 64
+      "count": 62
     },
     {
       "type": "Golf",
@@ -19,18 +19,18 @@
     },
     {
       "type": "Office",
-      "count": 36
+      "count": 37
     },
     {
       "type": "Entertainment",
       "count": 27
     },
     {
-      "type": "Travel",
-      "count": 17
+      "type": "Museum",
+      "count": 18
     },
     {
-      "type": "Museum",
+      "type": "Travel",
       "count": 17
     },
     {
@@ -42,12 +42,12 @@
       "count": 10
     },
     {
-      "type": "Education",
+      "type": "Park",
       "count": 8
     },
     {
-      "type": "Park",
-      "count": 8
+      "type": "Education",
+      "count": 7
     },
     {
       "type": "Retail",
@@ -5014,7 +5014,7 @@
     },
     {
       "st": "FL",
-      "ty": "Education",
+      "ty": "Museum",
       "sl": "Announced",
       "yr": 2029,
       "sm": "2026-03",
@@ -15482,7 +15482,7 @@
     },
     {
       "st": "Other",
-      "ty": "Residences",
+      "ty": "Hotel",
       "sl": "Opening Soon",
       "yr": 2026,
       "sm": null,
@@ -15510,7 +15510,7 @@
     {
       "st": "Other",
       "ty": "Hotel",
-      "sl": "Announced",
+      "sl": "Now Open",
       "yr": 2019,
       "sm": null,
       "ci": "La Ribera",
@@ -15577,10 +15577,10 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Hotel",
       "sl": "Construction",
-      "yr": null,
-      "sm": null,
+      "yr": 2027,
+      "sm": "2025-12",
       "ci": "La Ribera",
       "u": 232,
       "k": 0,
@@ -15602,7 +15602,7 @@
       "ci": "West Palm Beach",
       "u": 16,
       "k": 0,
-      "fl": 26,
+      "fl": 16,
       "dv": [
         [
           "Easton Street Capital",
@@ -17788,7 +17788,7 @@
       "st": "FL",
       "ty": "Residences",
       "sl": "Opening Soon",
-      "yr": 2027,
+      "yr": 2026,
       "sm": "2024-12",
       "ci": "Sarasota",
       "u": 29,
@@ -18574,10 +18574,10 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Office",
       "sl": "Announced",
-      "yr": null,
-      "sm": null,
+      "yr": 2030,
+      "sm": "2026-12",
       "ci": "San Francisco",
       "u": 0,
       "k": 200,
@@ -20434,12 +20434,12 @@
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 311,
-    "opening_this_year": 115
+    "opening_this_year": 116
   },
   "scale": {
     "units": 289668,
     "keys": 55205,
-    "floors": 13474
+    "floors": 13464
   },
   "leaderboards": {
     "developers": [
@@ -21294,7 +21294,7 @@
       {
         "name": "Residences",
         "sub": "44% of pipeline",
-        "count": 360,
+        "count": 359,
         "states": [
           "FL",
           "Other",
@@ -21310,7 +21310,7 @@
       {
         "name": "Hotel",
         "sub": "24% of pipeline",
-        "count": 192,
+        "count": 194,
         "states": [
           "Other",
           "FL",
@@ -21328,7 +21328,7 @@
       {
         "name": "Mixed-Use",
         "sub": "8% of pipeline",
-        "count": 64,
+        "count": 62,
         "states": [
           "Other",
           "FL",
@@ -21355,8 +21355,8 @@
       },
       {
         "name": "Office",
-        "sub": "4% of pipeline",
-        "count": 36,
+        "sub": "5% of pipeline",
+        "count": 37,
         "states": [
           "FL",
           "Other",
@@ -21380,6 +21380,20 @@
         ]
       },
       {
+        "name": "Museum",
+        "sub": "2% of pipeline",
+        "count": 18,
+        "states": [
+          "Other",
+          "FL",
+          "AE",
+          "NY",
+          "UK",
+          "TN",
+          "NC"
+        ]
+      },
+      {
         "name": "Travel",
         "sub": "2% of pipeline",
         "count": 17,
@@ -21391,20 +21405,6 @@
           "FR",
           "UK",
           "JP"
-        ]
-      },
-      {
-        "name": "Museum",
-        "sub": "2% of pipeline",
-        "count": 17,
-        "states": [
-          "Other",
-          "AE",
-          "FL",
-          "NY",
-          "UK",
-          "TN",
-          "NC"
         ]
       },
       {
@@ -21428,14 +21428,6 @@
         ]
       },
       {
-        "name": "Education",
-        "sub": "1% of pipeline",
-        "count": 8,
-        "states": [
-          "FL"
-        ]
-      },
-      {
         "name": "Park",
         "sub": "1% of pipeline",
         "count": 8,
@@ -21443,6 +21435,14 @@
           "FL",
           "Other",
           "TX"
+        ]
+      },
+      {
+        "name": "Education",
+        "sub": "1% of pipeline",
+        "count": 7,
+        "states": [
+          "FL"
         ]
       },
       {
@@ -22386,7 +22386,7 @@
         {
           "name": "Education",
           "sub": "2% of pipeline",
-          "count": 8,
+          "count": 7,
           "states": [
             "FL"
           ]
@@ -22457,6 +22457,20 @@
           ]
         },
         {
+          "name": "Museum",
+          "sub": "1% of pipeline",
+          "count": 2,
+          "states": [
+            "Other",
+            "FL",
+            "AE",
+            "NY",
+            "UK",
+            "TN",
+            "NC"
+          ]
+        },
+        {
           "name": "Healthcare",
           "sub": "1% of pipeline",
           "count": 2,
@@ -22481,20 +22495,6 @@
           "count": 1,
           "states": [
             "FL"
-          ]
-        },
-        {
-          "name": "Museum",
-          "sub": "0% of pipeline",
-          "count": 1,
-          "states": [
-            "Other",
-            "AE",
-            "FL",
-            "NY",
-            "UK",
-            "TN",
-            "NC"
           ]
         }
       ]
@@ -23189,8 +23189,8 @@
           "count": 1,
           "states": [
             "Other",
-            "AE",
             "FL",
+            "AE",
             "NY",
             "UK",
             "TN",
@@ -23920,8 +23920,8 @@
           "count": 1,
           "states": [
             "Other",
-            "AE",
             "FL",
+            "AE",
             "NY",
             "UK",
             "TN",
@@ -24967,8 +24967,8 @@
           "count": 2,
           "states": [
             "Other",
-            "AE",
             "FL",
+            "AE",
             "NY",
             "UK",
             "TN",
@@ -25510,8 +25510,8 @@
           "count": 1,
           "states": [
             "Other",
-            "AE",
             "FL",
+            "AE",
             "NY",
             "UK",
             "TN",
@@ -26258,8 +26258,8 @@
           "count": 1,
           "states": [
             "Other",
-            "AE",
             "FL",
+            "AE",
             "NY",
             "UK",
             "TN",
@@ -26516,7 +26516,7 @@
       "scale": {
         "units": 81516,
         "keys": 11639,
-        "floors": 6108
+        "floors": 6098
       },
       "status_distribution": [
         {
@@ -27788,7 +27788,7 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 231
+      "count": 230
     },
     {
       "label": "Breaking Ground",
@@ -27804,7 +27804,7 @@
     },
     {
       "label": "Now Open",
-      "count": 132
+      "count": 133
     }
   ],
   "momentum": [
@@ -27831,7 +27831,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 31
+      "count": 32
     },
     {
       "month": "Jan",
@@ -27872,7 +27872,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 115
+      "count": 116
     },
     {
       "year": 2027,
@@ -27888,7 +27888,7 @@
     },
     {
       "year": 2030,
-      "count": 50
+      "count": 51
     }
   ],
   "available_states": [
@@ -27949,6 +27949,36 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-aman-residences-amanvari-bookings-2026-07-15",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Aman Residences, Amanvari  Bookings open",
+      "project_slug": "aman-residences-amanvari",
+      "project_title": "Aman Residences, Amanvari",
+      "city": "La Ribera",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/la-ribera/amanvari-residences.jpg",
+      "event_date": "2026-05",
+      "source_url": "https://www.hotelmanagement.net/development/aman-open-mexican-resort-spring",
+      "link": "https://www.oftmw.com/map/?project=amanresidencesamanvari",
+      "timestamp": "2026-07-15T01:15:46.170Z",
+      "parent_slug": "costa-palmas",
+      "parent_title": "Costa Palmas"
+    },
+    {
+      "id": "ms-ikonic-scottsdale-financing-2026-07-15",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "IKONIC Scottsdale  Financing secured",
+      "project_slug": "ikonic-scottsdale",
+      "project_title": "IKONIC Scottsdale",
+      "city": "Scottsdale",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/scottsdale/ikonic-scottsdale.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://commercialobserver.com/2026/06/hampton-group-construction-loan-scottsdale-residential/",
+      "link": "https://www.oftmw.com/map/?project=ikonicscottsdale",
+      "timestamp": "2026-07-15T01:15:01.831Z"
+    },
     {
       "id": "ms-eden-residences-construction-2026-07-14",
       "type": "status_change",
@@ -28614,34 +28644,6 @@
       "source_url": "https://therealdeal.com/miami/2026/04/23/sales-start-for-fouquets-managed-design-district-condos/",
       "link": "https://www.oftmw.com/map/?project=fouquetshotelandresidencesmiamidesigndistrict",
       "timestamp": "2026-07-13T01:15:18.541Z"
-    },
-    {
-      "id": "ms-st-regis-residences-houston-financing-2026-07-13",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "St. Regis Residences, Houston  Financing secured",
-      "project_slug": "st-regis-residences-houston",
-      "project_title": "St. Regis Residences, Houston",
-      "city": "Houston",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/houston/st-regis-residences-houston.avif",
-      "event_date": "2026-05",
-      "source_url": "https://www.bisnow.com/houston/news/construction-development/satya-breaks-ground-st-regis-residences-houston-134462",
-      "link": "https://www.oftmw.com/map/?project=stregisresidenceshouston",
-      "timestamp": "2026-07-13T01:13:16.443Z"
-    },
-    {
-      "id": "ms-101-se-7th-street-financing-2026-07-12",
-      "type": "status_change",
-      "tag": "Financing secured",
-      "title": "101 SE 7th Street  Financing secured",
-      "project_slug": "101-se-7th-street",
-      "project_title": "101 SE 7th Street",
-      "city": "Fort Lauderdale",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7d6ba3717ea2-oda-fort-lauderdale-2.png",
-      "event_date": "2026-07",
-      "source_url": "https://commercialobserver.com/2026/07/dependable-equities-fort-lauderdale/",
-      "link": "https://www.oftmw.com/map/?project=101se7thstreet",
-      "timestamp": "2026-07-12T23:38:32.137Z"
     }
   ],
   "most_covered": [
