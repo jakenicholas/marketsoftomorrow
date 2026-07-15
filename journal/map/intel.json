@@ -5826,6 +5826,23 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
+    "diriyah-gate": {
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 534,
+      "delivery_date": "2027-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
     "jeddah-tower": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
@@ -5983,18 +6000,18 @@
       "is_mixed_use": true
     },
     "torch-tower": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 900,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 609,
+      "delivery_date": "2028-03-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Mixed-Use",
       "metro": "Tokyo",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~1.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -7453,41 +7470,6 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
-    },
-    "navy-seal-museum-san-diego": {
-      "estimate_years": 6.7,
-      "estimate_label": "~6.7 years",
-      "range_low": 6.7,
-      "range_high": 6.7,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.4,
-      "avg_distance_km": 185.9,
-      "avg_distance_mi": 115.5,
-      "scale_used": false,
-      "firm_signal": null,
-      "source": "comparables",
-      "project_type": "Museum",
-      "metro": "Other",
-      "comparables": [
-        {
-          "name": "David Geffen Galleries at LACMA",
-          "slug": "david-geffen-galleries-at-lacma",
-          "location": "Los Angeles",
-          "years": 6.7,
-          "score": 0.4,
-          "distance_km": 185.9,
-          "distance_mi": 115.5
-        }
-      ],
-      "pattern_summary": "Among 1 regional museum project in TMW's data, the median build time is 6.7 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
     },
     "atlantis-the-royal": {
       "estimate_years": 6.1,
@@ -8956,10 +8938,10 @@
       "delivery_speculative": true
     },
     "hatai-bangkok": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 534,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 900,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
@@ -8967,7 +8949,7 @@
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -14077,8 +14059,8 @@
   "stats": {
     "high": 7,
     "medium": 18,
-    "low": 67,
-    "known_date": 482,
+    "low": 66,
+    "known_date": 483,
     "completed": 66,
     "skipped": 94,
     "no_type": 0,
