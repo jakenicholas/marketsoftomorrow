@@ -1445,7 +1445,7 @@ let last=0; const nav=document.getElementById('nav');
   ];
   mapboxgl.accessToken='pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA';
   var map=new mapboxgl.Map({ container:'tmapMedia', style:'mapbox://styles/floridaoftomorrow/clkbk4qlw000a01qw94rj0xa7',
-    projection:'mercator', center:[-105,28], zoom:1.05, renderWorldCopies:true,
+    projection:'mercator', center:[-105,28], zoom: window.matchMedia('(max-width: 700px)').matches ? 0 : 1.05, renderWorldCopies:true,
     attributionControl:false, cooperativeGestures:true, dragRotate:false, pitchWithRotate:false });
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
   map.addControl(new mapboxgl.AttributionControl({ compact:true }));
