@@ -7241,7 +7241,10 @@ async function distillUnitsToPool(env, units, { mapSys, redSys, source, evidence
   const batches = [];
   for (let i = 0; i < units.length; i += batchSize) batches.push(units.slice(i, i + batchSize));
   const mapResults = await Promise.all(batches.map(async (batch) => {
-    const usr = batch.map((u, k) => `--- ITEM ${k + 1} (${u.weightLabel || 'signal'}: ${u.weight}) — "${String(u.label || '').slice(0, 120)}" ---\n${u.text}`).join('\n\n').slice(0, 30000);
+    const usr = batch.map((u, k) => {
+      const w = (u.weight != null && u.weight !== '') ? ` (${u.weightLabel || 'signal'}: ${u.weight})` : '';
+      return `--- ITEM ${k + 1}${w} — "${String(u.label || '').slice(0, 120)}" ---\n${u.text}`;
+    }).join('\n\n').slice(0, 30000);
     const arr = await call(mapSys, usr, 900);
     return Array.isArray(arr) ? arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) })) : [];
   }));
@@ -7321,6 +7324,99 @@ async function handleLearnSocial(req, env, origin) {
       .bind(Math.floor(Date.now() / 1000), 'system:social-distill', 'brain_social_learn', JSON.stringify({ scanned: rows.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged })).run();
   } catch (_) {}
   return json({ ok: true, scanned: rows.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged, review, notes: res.notes }, {}, env, origin);
+}
+
+// POST /admin/brain/learn-carousels — distill house voice from our carousel
+// back-catalog (the Design-editor decks: caption + per-slide headline copy) into
+// the brain's POOL voice tier. No engagement metric on designs, so ranked by
+// recency + copy-richness. Body: { top?, review? }.
+async function handleLearnCarousels(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const top = Math.min(Math.max(parseInt(body.top, 10) || 60, 10), 150);
+  const review = body.review === true;
+  await ensureBrandNotes(env);
+  await ensureDesignsTable(env);
+  let units = [];
+  try {
+    const r = await env.DB.prepare(`SELECT title, doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(top).all();
+    units = (r.results || []).map((d) => ({ label: d.title || 'carousel', text: designDocText(d.doc_json || '{}') }))
+      .filter((u) => u.text && u.text.length > 60)
+      .map((u) => ({ label: u.label, text: u.text.slice(0, 1400) }));   // caption + slide headlines
+  } catch (e) { return json({ error: 'designs read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (!units.length) return json({ error: 'no carousel decks with copy found' }, { status: 404 }, env, origin);
+
+  const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI the HOUSE VOICE for Instagram CAROUSELS. Below are the caption + per-slide headline copy from real TMW carousel decks. Extract the DURABLE, WIDE-SCOPED carousel patterns they share — how slide 1 hooks, how the story is chunked across slides, headline length + rhythm, how the caption complements the slides, CTA and closing habits — that apply to ANY future carousel on ANY subject. '
+    + 'HARD FILTERS: never output a deck-specific fact (a name, price, date, project, city). No one-off observations. Only patterns evidenced across MULTIPLE decks. Each pattern is ONE short general imperative (e.g. "Make slide 1 a single bold claim, not a title", "Keep slide headlines under ~7 words"). '
+    + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
+  const redSys = 'You are consolidating raw candidate carousel-voice patterns for Markets of Tomorrow. Merge duplicates and near-duplicates, drop anything deck-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped carousel rules. Aim for 12-20 crisp, non-overlapping imperatives. '
+    + 'Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+  const res = await distillUnitsToPool(env, units, { mapSys, redSys, source: 'carousel-distill', evidence: 'Learned from our carousel back-catalog (caption + slide copy)', category: 'carousel', context: 'distilled from carousel decks', review, batchSize: 16 });
+  if (!res.candidates) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:carousel-distill', 'brain_carousel_learn', JSON.stringify({ scanned: units.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged })).run();
+  } catch (_) {}
+  return json({ ok: true, scanned: units.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged, review, notes: res.notes }, {}, env, origin);
+}
+
+// POST /admin/reindex-bodies — embed FULL article bodies (chunked) into Vectorize as
+// kind:'article_body' (title-less, so they never leak into the facts bucket), giving
+// the brain semantic access to real prose for tone/context. Paginated by view rank:
+// body { limit?, offset? }. Re-run with the returned next_offset to cover more.
+async function handleReindexBodies(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const limit = Math.min(Math.max(parseInt(body.limit, 10) || 150, 10), 400);
+  const offset = Math.max(parseInt(body.offset, 10) || 0, 0);
+  const CHUNK = 1200, MAX_CHUNKS = 5;
+  let rows = [];
+  try {
+    const r = await env.DB.prepare(
+      `SELECT p.slug, p.title, p.body_html, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views
+       FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug
+       WHERE p.status='published'
+       ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC, p.published_at DESC
+       LIMIT ?1 OFFSET ?2`
+    ).bind(limit, offset).all();
+    rows = (r.results || []).filter((x) => x.slug);
+  } catch (e) { return json({ error: 'posts read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  // Build chunk records (pack paragraphs to ~CHUNK chars, cap per article).
+  const recs = [];
+  for (const x of rows) {
+    const text = htmlToText(x.body_html || '').trim();
+    if (text.length < 200) continue;
+    const paras = text.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
+    const chunks = []; let buf = '';
+    for (const p of paras) {
+      if ((buf + '\n' + p).length > CHUNK && buf) { chunks.push(buf); buf = p; }
+      else buf = buf ? buf + '\n' + p : p;
+      if (chunks.length >= MAX_CHUNKS) break;
+    }
+    if (buf && chunks.length < MAX_CHUNKS) chunks.push(buf);
+    chunks.slice(0, MAX_CHUNKS).forEach((c, i) => recs.push({ slug: x.slug, title: x.title || '', views: x.views || 0, i, text: c.slice(0, CHUNK) }));
+  }
+  let embedded = 0;
+  try {
+    for (let i = 0; i < recs.length; i += 90) {
+      const chunk = recs.slice(i, i + 90);
+      const vecs = await embedTexts(env, chunk.map((c) => c.text));
+      const items = chunk.map((c, k) => ({
+        id: vecId('abody', c.slug + ':' + c.i),
+        values: vecs[k],
+        // NOTE: `atitle` NOT `title` — a title field would leak this into the facts bucket.
+        metadata: { kind: 'article_body', slug: String(c.slug).slice(0, 200), atitle: String(c.title).slice(0, 200), chunk: c.i, views: c.views, text: String(c.text).slice(0, 500) },
+      })).filter((it) => Array.isArray(it.values));
+      if (items.length) { await env.VECTORIZE.upsert(items); embedded += items.length; }
+    }
+  } catch (e) { return json({ error: 'embed failed: ' + String(e && e.message || e) }, { status: 502 }, env, origin); }
+  const done = rows.length < limit;
+  return json({ ok: true, articles: rows.length, chunks: recs.length, embedded, offset, next_offset: done ? null : offset + limit, done }, {}, env, origin);
 }
 
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
@@ -10345,7 +10441,7 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
 // piece is best-effort; a failure just omits that piece. Returns { text } ready
 // to drop into a system prompt, plus the structured parts.
 export async function assembleBrain(env, { topic = '', place = '', voice = true, maxKnowledge = 4, maxFacts = 6 } = {}) {
-  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], text: '', injected_ids: [] };
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], text: '', injected_ids: [] };
   if (!env || !env.DB) return out;
   if (voice) {
     // Always-on tiers load into EVERY writing prompt: the small curated CANON (the
@@ -10388,11 +10484,14 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
     try {
       const [vec] = await embedTexts(env, [q]);
       if (Array.isArray(vec)) {
-        const ms = (await env.VECTORIZE.query(vec, { topK: 20, returnMetadata: 'all' })).matches || [];
+        const ms = (await env.VECTORIZE.query(vec, { topK: 24, returnMetadata: 'all' })).matches || [];
         out.knowledge = ms.filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
           .slice(0, maxKnowledge).map(m => String(m.metadata.text).slice(0, 400));
-        out.facts = ms.filter(m => m.metadata && m.metadata.kind !== 'knowledge' && (m.score || 0) >= 0.55 && m.metadata.title)
+        out.facts = ms.filter(m => m.metadata && m.metadata.kind !== 'knowledge' && m.metadata.kind !== 'article_body' && (m.score || 0) >= 0.55 && m.metadata.title)
           .slice(0, maxFacts).map(m => ({ title: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
+        // Full-body article passages (kind:'article_body', title-less) — real prose for tone/context.
+        out.passages = ms.filter(m => m.metadata && m.metadata.kind === 'article_body' && (m.score || 0) >= 0.55 && m.metadata.text)
+          .slice(0, 2).map(m => String(m.metadata.text).slice(0, 300));
       }
     } catch (_) {}
   }
@@ -10402,6 +10501,7 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
   if (out.knowledge.length) parts.push('BACKGROUND KNOWLEDGE (evergreen context for accuracy — do not quote verbatim):\n' + out.knowledge.map(k => '- ' + k).join('\n'));
   if (out.facts.length) parts.push('RELATED IN OUR DATABASE (real projects/articles we track — reference where relevant, never invent details):\n' + out.facts.map(f => `- ${f.title}${f.where ? ' — ' + f.where : ''}${f.status ? ' (' + f.status + ')' : ''} [${f.kind}]`).join('\n'));
   if (out.exemplars.length) parts.push('EXEMPLARS (voice/structure to echo, not facts):\n' + out.exemplars.map(e => `Q: ${e.query}\nA: ${e.answer}`).join('\n\n'));
+  if (out.passages && out.passages.length) parts.push('PAST COVERAGE PASSAGES (real excerpts from our own archive — echo the tone and framing, never copy verbatim or restate as a new fact):\n' + out.passages.map(p => '- ' + p).join('\n'));
   out.text = parts.join('\n\n');
   return out;
 }
@@ -12632,6 +12732,8 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-corpus') return await handleLearnCorpus(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/social/sync')       return await handleSocialSync(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-social') return await handleLearnSocial(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/learn-carousels') return await handleLearnCarousels(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/reindex-bodies')     return await handleReindexBodies(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
