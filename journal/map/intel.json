@@ -3392,67 +3392,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "singer-island-gateway": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 1.7,
-      "range_high": 4.3,
-      "confidence": "high",
-      "comparable_count": 15,
-      "good_count": 5,
-      "exact_count": 5,
-      "used_relaxed": false,
-      "avg_match_score": 0.55,
-      "avg_distance_km": 483.0,
-      "avg_distance_mi": 300.1,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Arquitectonica",
-        "count": 12,
-        "median_years": 3.07,
-        "stddev_years": 1.75,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.65
-      },
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "Palm Beach",
-      "comparables": [
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 1.0,
-          "distance_km": 1.9,
-          "distance_mi": 1.2
-        },
-        {
-          "name": "The Ritz-Carlton Residences, Estero Bay",
-          "slug": "the-ritz-carlton-residences-estero-bay",
-          "location": "Bonita Springs",
-          "years": 3.5,
-          "score": 0.76,
-          "distance_km": 183.7,
-          "distance_mi": 114.2
-        },
-        {
-          "name": "Alba",
-          "slug": "alba",
-          "location": "West Palm Beach",
-          "years": 2.8,
-          "score": 0.7,
-          "distance_km": 3.5,
-          "distance_mi": 2.2
-        }
-      ],
-      "pattern_summary": "Among 15 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.3). Adjusted to ~3 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
-    },
     "norton-museum-of-art-expansion": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -3566,18 +3505,18 @@
       "delivery_speculative": false
     },
     "the-lincoln": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 899,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 2.0,
+      "estimate_label": "~2 years",
+      "days_out": 805,
+      "delivery_date": "2028-09-28",
       "source": "known_date",
-      "precision": "year",
+      "precision": "other",
       "confidence": "high",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~2 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -3859,18 +3798,18 @@
       "delivery_speculative": true
     },
     "mr-c-residences-boca-raton": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 1.7,
-      "range_high": 4.8,
-      "confidence": "medium",
-      "comparable_count": 19,
-      "good_count": 2,
-      "exact_count": 2,
-      "used_relaxed": false,
-      "avg_match_score": 0.52,
-      "avg_distance_km": 1021.2,
-      "avg_distance_mi": 634.6,
+      "estimate_years": 4.0,
+      "estimate_label": "~4 years",
+      "range_low": 3.8,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 1698.0,
+      "avg_distance_mi": 1055.1,
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
@@ -3882,42 +3821,24 @@
         "blend_weight": 0.65
       },
       "source": "comparables",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Palm Beach",
       "comparables": [
         {
-          "name": "Inscription",
-          "slug": "inscription",
-          "location": "West Palm Beach",
-          "years": 2.0,
-          "score": 0.88,
-          "distance_km": 43.0,
-          "distance_mi": 26.7
-        },
-        {
-          "name": "The Spruce",
-          "slug": "the-spruce",
-          "location": "West Palm Beach",
-          "years": 2.4,
-          "score": 0.73,
-          "distance_km": 43.4,
-          "distance_mi": 27.0
-        },
-        {
-          "name": "DELUX WeHo",
-          "slug": "delux-weho",
-          "location": "Nashville",
-          "years": 1.7,
-          "score": 0.64,
-          "distance_km": 1259.7,
-          "distance_mi": 782.8
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 1698.0,
+          "distance_mi": 1055.1
         }
       ],
-      "pattern_summary": "Among 19 residences projects in TMW's data, the median build time is 2.8 years (range 1.7–4.8). Adjusted to ~3 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 3.8–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "continuum-12000-sport-wellness-residences": {
       "estimate_years": 3.0,
@@ -11543,67 +11464,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "rosewood-tokyo": {
-      "estimate_years": 3.1,
-      "estimate_label": "~3.1 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 4,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.56,
-      "avg_distance_km": 11297.7,
-      "avg_distance_mi": 7020.1,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Mori Building",
-        "count": 1,
-        "median_years": 4.25,
-        "stddev_years": 0.0,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
-      "project_type": "Hotel",
-      "metro": "Tokyo",
-      "comparables": [
-        {
-          "name": "Dolly Parton's SongTeller Hotel",
-          "slug": "dolly-partons-songteller-hotel",
-          "location": "Nashville",
-          "years": 1.6,
-          "score": 0.64,
-          "distance_km": 10693.4,
-          "distance_mi": 6644.6
-        },
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.64,
-          "distance_km": 11915.7,
-          "distance_mi": 7404.1
-        },
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.64,
-          "distance_km": 11876.0,
-          "distance_mi": 7379.4
-        }
-      ],
-      "pattern_summary": "Among 4 hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–8.1). Adjusted to ~3.1 years for Mori Building's own track record (~4.2-year typical pace across 1 prior project).",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true,
-      "is_mixed_use": false
-    },
     "the-halcyon-residences-marina": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -13409,57 +13269,21 @@
       "is_mixed_use": true
     },
     "bay-one-residences-colombo": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 1.7,
-      "range_high": 4.3,
-      "confidence": "low",
-      "comparable_count": 16,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.42,
-      "avg_distance_km": 14711.3,
-      "avg_distance_mi": 9141.2,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 914,
+      "delivery_date": "2029-01-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.64,
-          "distance_km": 15683.1,
-          "distance_mi": 9745.0
-        },
-        {
-          "name": "AQUA at Westshore Yacht Club",
-          "slug": "aqua-at-westshore-yacht-club",
-          "location": "Tampa",
-          "years": 1.9,
-          "score": 0.64,
-          "distance_km": 15704.1,
-          "distance_mi": 9758.1
-        },
-        {
-          "name": "The Ritz-Carlton Residences, Estero Bay",
-          "slug": "the-ritz-carlton-residences-estero-bay",
-          "location": "Bonita Springs",
-          "years": 3.5,
-          "score": 0.64,
-          "distance_km": 15813.8,
-          "distance_mi": 9826.3
-        }
-      ],
-      "pattern_summary": "Among 16 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.3).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "shanghai-north-bund-center": {
       "estimate_years": 4.9,
@@ -13934,16 +13758,16 @@
     }
   },
   "stats": {
-    "high": 7,
-    "medium": 18,
-    "low": 63,
-    "known_date": 482,
+    "high": 6,
+    "medium": 17,
+    "low": 62,
+    "known_date": 483,
     "completed": 66,
-    "skipped": 97,
+    "skipped": 99,
     "no_type": 0,
-    "firm_boosted": 40,
+    "firm_boosted": 38,
     "speculative_softened": 179,
     "district": 11,
-    "mixed_use_adjusted": 22
+    "mixed_use_adjusted": 23
   }
 }
