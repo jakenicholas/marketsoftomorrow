@@ -12325,6 +12325,117 @@ async function handleAdminGiveawayStats(env, origin, id) {
   } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// ── Flows: cash flow + media in-kind ledger (Studio "Flows" tab; admin-gated) ──
+// One table, four kinds:
+//   income  — money in (status paid|unpaid replaces the sheet's red highlight)
+//   inkind  — media barter received; expenses_json = out-of-pocket costs
+//             ([{label, category, amount}]) so net barter value is computable
+//   pending — invoiced/expected money not yet on the books (sheet's Pending col)
+//   plan    — recurring payment plans (plan_day = "5th of Every Month")
+async function ensureFlowsTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS flows (
+    id TEXT PRIMARY KEY, kind TEXT NOT NULL, year INTEGER NOT NULL,
+    date TEXT, amount REAL, description TEXT, party TEXT, paid_by TEXT,
+    category TEXT, status TEXT, type TEXT, star INTEGER DEFAULT 0,
+    notes TEXT, expenses_json TEXT, plan_day TEXT,
+    created_at INTEGER, updated_at INTEGER
+  )`).run();
+}
+function flowClean(b) {
+  const s = (v, n) => { const t = String(v == null ? '' : v).trim(); return t ? t.slice(0, n) : null; };
+  const kind = ['income', 'inkind', 'pending', 'plan'].includes(b.kind) ? b.kind : null;
+  let expenses = null;
+  if (Array.isArray(b.expenses)) {
+    expenses = JSON.stringify(b.expenses.slice(0, 80).map(e => ({
+      label: String((e && e.label) || '').slice(0, 200),
+      category: String((e && e.category) || 'Misc').slice(0, 60),
+      amount: Math.max(0, +((e && e.amount) || 0)) || 0
+    })).filter(e => e.label || e.amount));
+  }
+  return {
+    kind,
+    year: Math.min(2100, Math.max(2000, parseInt(b.year, 10) || new Date().getFullYear())),
+    date: s(b.date, 40), amount: b.amount == null || b.amount === '' ? null : (+b.amount || 0),
+    description: s(b.description, 400), party: s(b.party, 200), paid_by: s(b.paid_by, 60),
+    category: s(b.category, 80), status: s(b.status, 40), type: s(b.type, 60),
+    star: b.star ? 1 : 0, notes: s(b.notes, 400), expenses_json: expenses, plan_day: s(b.plan_day, 80)
+  };
+}
+function flowRow(r) {
+  let expenses = [];
+  try { expenses = r.expenses_json ? JSON.parse(r.expenses_json) : []; } catch (_) {}
+  return {
+    id: r.id, kind: r.kind, year: +r.year, date: r.date, amount: r.amount == null ? null : +r.amount,
+    description: r.description, party: r.party, paid_by: r.paid_by, category: r.category,
+    status: r.status, type: r.type, star: !!r.star, notes: r.notes, plan_day: r.plan_day,
+    expenses, updated_at: r.updated_at
+  };
+}
+// GET /admin/flows?year=2026 → { entries, years }
+async function handleAdminFlowsList(env, origin, url) {
+  try {
+    await ensureFlowsTable(env);
+    const year = parseInt(url.searchParams.get('year'), 10) || null;
+    const rs = year
+      ? await env.DB.prepare(`SELECT * FROM flows WHERE year = ? ORDER BY date IS NULL, date ASC, created_at ASC`).bind(year).all()
+      : await env.DB.prepare(`SELECT * FROM flows ORDER BY date IS NULL, date ASC, created_at ASC`).all();
+    const yr = await env.DB.prepare(`SELECT DISTINCT year FROM flows ORDER BY year DESC`).all();
+    return json({ entries: (rs.results || []).map(flowRow), years: (yr.results || []).map(r => +r.year) }, {}, env, origin);
+  } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
+}
+// POST /admin/flows — create (no id) or update (id present). Returns the row.
+async function handleAdminFlowSave(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const f = flowClean(b || {});
+  if (!f.kind) return json({ error: 'kind must be income|inkind|pending|plan' }, { status: 400 }, env, origin);
+  try {
+    await ensureFlowsTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    let id = String((b && b.id) || '').slice(0, 80);
+    if (id) {
+      const cur = await env.DB.prepare(`SELECT id FROM flows WHERE id = ?`).bind(id).first();
+      if (!cur) return json({ error: 'not_found' }, { status: 404 }, env, origin);
+      await env.DB.prepare(`UPDATE flows SET kind=?,year=?,date=?,amount=?,description=?,party=?,paid_by=?,category=?,status=?,type=?,star=?,notes=?,expenses_json=?,plan_day=?,updated_at=? WHERE id=?`)
+        .bind(f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, id).run();
+    } else {
+      id = 'fl-' + crypto.randomUUID();
+      await env.DB.prepare(`INSERT INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, now).run();
+    }
+    const row = await env.DB.prepare(`SELECT * FROM flows WHERE id = ?`).bind(id).first();
+    return json({ ok: true, entry: flowRow(row) }, {}, env, origin);
+  } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
+}
+// DELETE /admin/flows/:id
+async function handleAdminFlowDelete(env, origin, id) {
+  try {
+    await ensureFlowsTable(env);
+    await env.DB.prepare(`DELETE FROM flows WHERE id = ?`).bind(id).run();
+    return json({ ok: true }, {}, env, origin);
+  } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
+}
+// POST /admin/flows/import { entries: [...] } — bulk seed (idempotent via
+// caller-supplied ids; rows INSERT OR REPLACE). For migrating sheet years.
+async function handleAdminFlowsImport(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const list = Array.isArray(b && b.entries) ? b.entries.slice(0, 2000) : [];
+  if (!list.length) return json({ error: 'entries[] required' }, { status: 400 }, env, origin);
+  try {
+    await ensureFlowsTable(env);
+    const now = Math.floor(Date.now() / 1000);
+    let n = 0;
+    for (const raw of list) {
+      const f = flowClean(raw || {});
+      if (!f.kind) continue;
+      const id = String((raw && raw.id) || ('fl-' + crypto.randomUUID())).slice(0, 80);
+      await env.DB.prepare(`INSERT OR REPLACE INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, now).run();
+      n++;
+    }
+    return json({ ok: true, imported: n }, {}, env, origin);
+  } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
+}
+
 // Public: travel-partner inquiry from the /travel itinerary page. Emails the
 // team (reply-to the sender) and sends the sender a confirmation with the same
 // details. Multipart (HTML + text) for deliverability. Honeypot absorbs bots.
@@ -12678,6 +12789,20 @@ export default {
           if (gm[2] === '/entries' && request.method === 'GET') return await handleAdminGiveawayEntries(env, origin, decodeURIComponent(gm[1]));
           if (!gm[2] && request.method === 'DELETE')            return await handleAdminGiveawayDelete(env, origin, decodeURIComponent(gm[1]));
         }
+      }
+      // ── Flows: cash flow + in-kind ledger, admin (token-gated) ──
+      if (url.pathname === '/admin/flows' || url.pathname === '/admin/flows/import' || /^\/admin\/flows\/[^/]+$/.test(url.pathname)) {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        if (url.pathname === '/admin/flows') {
+          if (request.method === 'GET')  return await handleAdminFlowsList(env, origin, url);
+          if (request.method === 'POST') return await handleAdminFlowSave(request, env, origin);
+        }
+        if (url.pathname === '/admin/flows/import' && request.method === 'POST') {
+          return await handleAdminFlowsImport(request, env, origin);
+        }
+        const fm = url.pathname.match(/^\/admin\/flows\/([^/]+)$/);
+        if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
