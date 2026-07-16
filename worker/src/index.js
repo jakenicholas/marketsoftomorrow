@@ -1070,7 +1070,7 @@ async function handleDesignCaptions(req, env, origin) {
   // SHARED BRAIN — same house voice + learned carousel rules the connector/Fable
   // use everywhere else, so captions match the machine's taste and stay unified.
   let brainText = '';
-  try { const brain = await assembleBrain(env, { topic: title || current, voice: true, maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
+  try { const brain = await assembleBrain(env, { topic: title || current, voice: true, surface: 'carousel', maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
   // exclude goes in the USER message (not the cached system block) so "regenerate"
   // gives genuinely fresh options without busting the brain cache.
   const ctx = 'POST: ' + (title || '(untitled)')
@@ -7419,6 +7419,60 @@ async function handleReindexBodies(req, env, origin) {
   return json({ ok: true, articles: rows.length, chunks: recs.length, embedded, offset, next_offset: done ? null : offset + limit, done }, {}, env, origin);
 }
 
+// POST /admin/brain/format-bands — turn the distilled pool notes into tight,
+// ALWAYS-ON surface format bands. Topic-agnostic format rules ("5-8 word slide
+// headlines") never win the relevance lottery, so this consolidates each surface's
+// distilled notes into a ~12-rule checklist marked tier='format' (loaded
+// unconditionally for that surface in assembleBrain) and retires the redundant
+// source notes so the pool stays lean. Body: { review? } (review stages instead).
+async function handleFormatBands(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureBrandNotes(env);
+  const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+  const SURFACES = [
+    { key: 'article', sources: ['corpus-distill'] },
+    { key: 'social', sources: ['social-distill'] },
+    { key: 'carousel', sources: ['carousel-distill'] },
+  ];
+  const now = Math.floor(Date.now() / 1000);
+  const results = {};
+  for (const s of SURFACES) {
+    const ph = s.sources.map(() => '?').join(',');
+    let src = [];
+    try { src = (await env.DB.prepare(`SELECT id, kind, note FROM brand_notes WHERE active=1 AND created_by IN (${ph})`).bind(...s.sources).all()).results || []; } catch (_) {}
+    if (!src.length) { results[s.key] = { skipped: 'no distilled notes for this surface' }; continue; }
+    const sys = 'You are consolidating a media brand\'s ' + s.key + ' writing rules into a TIGHT always-on checklist. Merge overlaps, drop anything redundant, too niche, or topic-specific, and keep the most load-bearing, distinct, wide-scoped rules. Return 8-12 crisp imperatives ordered by importance. Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+    const usr = 'RULES:\n' + src.map((n) => `- [${n.kind}] ${n.note}`).join('\n').slice(0, 24000);
+    let band = [];
+    try { const arr = parseLLMJson(await fableGenerate(env, { system: sys, user: usr, maxTokens: 1600 })); if (Array.isArray(arr)) band = arr.filter((x) => x && x.note).slice(0, 12).map((x) => ({ kind: String(x.kind || 'voice'), note: String(x.note).slice(0, 400) })); } catch (_) {}
+    if (!band.length) { results[s.key] = { error: 'consolidation produced nothing', from: src.length }; continue; }
+    // Clear any prior band for this surface so re-running replaces rather than stacks.
+    try { await env.DB.prepare(`SELECT id FROM brand_notes WHERE active=1 AND tier='format' AND category=?1`).bind(s.key).all().then((r) => retireBrandNotes(env, (r.results || []).map((x) => x.id))); } catch (_) {}
+    const notes = [];
+    for (const b of band) {
+      const kind = ALLOWED.includes(b.kind) ? b.kind : 'voice';
+      const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+      try {
+        await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,?3,?4,?5,'format-band',?6,1,'voice','format',0)`)
+          .bind(id, kind, s.key, b.note, s.key + ' format band', now).run();
+        try { await brainNoteVectors(env, [{ id, kind, note: b.note, scope: 'voice' }]); } catch (_) {}
+        notes.push(b.note);
+      } catch (_) {}
+    }
+    // Retire the redundant source notes now that the essentials live in the band.
+    try { await retireBrandNotes(env, src.map((n) => n.id)); } catch (_) {}
+    results[s.key] = { consolidated_from: src.length, band: notes.length, notes };
+  }
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(now, 'system:format-bands', 'brain_format_bands', JSON.stringify(results)).run();
+  } catch (_) {}
+  return json({ ok: true, surfaces: results }, {}, env, origin);
+}
+
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
 // Pool notes are retrieved by RELEVANCE (canon always loads; see assembleBrain).
 // Each note embeds as kind:'brand_note' with NO title field, so it can never
@@ -10440,10 +10494,22 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
 // evergreen knowledge & the closest real projects/articles (Vectorize). Every
 // piece is best-effort; a failure just omits that piece. Returns { text } ready
 // to drop into a system prompt, plus the structured parts.
-export async function assembleBrain(env, { topic = '', place = '', voice = true, maxKnowledge = 4, maxFacts = 6 } = {}) {
-  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], text: '', injected_ids: [] };
+export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6 } = {}) {
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [] };
   if (!env || !env.DB) return out;
   if (voice) {
+    // Surface FORMAT band — the always-on how-we-write-a-<surface> checklist for the
+    // piece being written (article | carousel | social). These are topic-agnostic
+    // format rules that relevance retrieval systematically misses, so they load
+    // unconditionally for their surface (built by /admin/brain/format-bands).
+    if (surface) {
+      try {
+        const fmt = (await env.DB.prepare(
+          `SELECT kind, note FROM brand_notes WHERE active = 1 AND tier='format' AND category=?1 ORDER BY id ASC LIMIT 14`
+        ).bind(surface).all()).results || [];
+        if (fmt.length) out.format = fmt.map(r => `- [${r.kind}] ${r.note}`).join('\n');
+      } catch (_) {}
+    }
     // Always-on tiers load into EVERY writing prompt: the small curated CANON (the
     // constitution) plus the auto-learned EDITOR band (recent, size-capped lessons
     // from the editor's own article edits — this is what makes edits dial in fast).
@@ -10496,6 +10562,7 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
     } catch (_) {}
   }
   const parts = [];
+  if (out.format) { const sName = surface === 'social' ? 'CAPTION' : surface === 'carousel' ? 'CAROUSEL' : 'ARTICLE'; parts.push(sName + ' FORMAT RULES (how we write every ' + (surface === 'social' ? 'caption' : surface) + ' — learned from our best-performing work, always apply):\n' + out.format); }
   if (out.voice) parts.push('HOUSE VOICE & RULES (Markets of Tomorrow brand brain — follow this):\n' + out.voice);
   if (out.rules.length) parts.push('LEARNED EDITORIAL RULES (what the intelligence engine has learned works):\n' + out.rules.map(r => '- ' + r).join('\n'));
   if (out.knowledge.length) parts.push('BACKGROUND KNOWLEDGE (evergreen context for accuracy — do not quote verbatim):\n' + out.knowledge.map(k => '- ' + k).join('\n'));
@@ -12734,6 +12801,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-social') return await handleLearnSocial(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-carousels') return await handleLearnCarousels(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/reindex-bodies')     return await handleReindexBodies(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/format-bands') return await handleFormatBands(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)

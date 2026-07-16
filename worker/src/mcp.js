@@ -2271,7 +2271,7 @@ const IMPL = {
     // in the last ~4 months, refuse — pick a DIFFERENT story instead.
     const rej = await topicRejected(env, topic + ' ' + String(args.angle || ''));
     if (rej) throw new Error('TOPIC REJECTED BY EDITOR: a draft on this story ("' + rej.title + '") was deleted on ' + new Date(rej.rejected_at * 1000).toISOString().slice(0, 10) + ' — it is suppressed until ' + new Date(rej.until * 1000).toISOString().slice(0, 10) + '. Do NOT redraft it or a close variant; choose a different story.');
-    const brain = await assembleBrain(env, { topic, place: String(args.place || '') });
+    const brain = await assembleBrain(env, { topic, place: String(args.place || ''), surface: 'article' });
     const sys = [
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
@@ -2344,7 +2344,7 @@ const IMPL = {
     if (row.status !== 'draft') throw new Error('refusing to revise a ' + row.status + ' post — only drafts are editable remotely');
     const current = stripHtml(row.body_html || '');
     if (!current.trim()) throw new Error('draft has no body text to revise');
-    const brain = await assembleBrain(env, { topic: String(row.title || ''), place: String(args.place || '') });
+    const brain = await assembleBrain(env, { topic: String(row.title || ''), place: String(args.place || ''), surface: 'article' });
     const sys = [
       'You are the senior staff editor for Markets of Tomorrow (TMW). Revise the article below per the instruction, keeping it on-brand.',
       brain.text || '',
