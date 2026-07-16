@@ -63,7 +63,7 @@
         var since = MON[dt.getMonth()] + ' ' + dt.getDate();
         var bar = document.createElement('div'); bar.className = 'tmw-growth-bar';
         bar.innerHTML = '<span class="gi">' + (up ? '▲' : '▼') + '</span><span><b>' + (up ? '+' : '') + g.delta.toLocaleString()
-          + '</b> followers across the network this month<span class="gs">  (' + (up ? '+' : '') + g.pct + '% since ' + since + ')</span></span>';
+          + '</b> followers across the network<span class="gs">  (' + (up ? '+' : '') + g.pct + '% since ' + since + ')</span></span>';
         if (ph) ph.appendChild(bar); else anchor.parentNode.insertBefore(bar, anchor.nextSibling);
       }
     }
