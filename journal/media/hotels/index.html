@@ -147,6 +147,26 @@ a.tag:hover{border-color:var(--mute2); background:rgba(255,255,255,.07); color:v
 a.tag:hover svg{transform:translateX(2px)}
 .dcard .dlink{margin-top:20px}
 
+/* partnership levels (options) */
+.lvl-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px}
+.lvl-card{padding:34px 30px 28px; display:flex; flex-direction:column; position:relative; overflow:visible}
+.lvl-card.featured{border-color:rgba(230,197,116,.34); box-shadow:0 18px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(230,197,116,.2) inset, inset 0 1px 0 rgba(255,255,255,.07), 0 0 44px -10px rgba(230,197,116,.28)}
+.lvl-badge{position:absolute; top:-12px; left:30px; background:var(--gold); color:var(--ink); font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; padding:6px 13px; border-radius:6px; box-shadow:0 8px 26px rgba(230,197,116,.4); z-index:2}
+.lvl-head{display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding-bottom:22px; margin-bottom:22px; border-bottom:1px solid var(--hair)}
+.lvl-lab{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft)}
+.lvl-name{font-family:var(--serif); font-weight:600; font-size:25px; color:var(--white); letter-spacing:-.015em; line-height:1.1}
+.lvl-price{font-family:var(--serif); font-weight:600; font-size:30px; color:var(--gold-soft); letter-spacing:-.02em; line-height:1; margin-top:2px; text-shadow:0 0 20px rgba(230,197,116,.3)}
+.lvl-price .base{font-family:var(--sans); font-size:16px; color:var(--green-soft); font-weight:500; letter-spacing:0; text-shadow:none}
+.lvl-list{list-style:none; padding:0; margin:0 0 auto; display:flex; flex-direction:column; gap:15px}
+.lvl-list li{display:grid; grid-template-columns:26px 1fr; gap:10px; align-items:flex-start}
+.lvl-qty{font-family:var(--serif); font-weight:600; color:var(--gold-soft); font-size:18px; line-height:1.15; text-align:center; text-shadow:0 0 12px rgba(230,197,116,.4)}
+.lvl-qty.plus{font-family:var(--mono); color:var(--green-soft); text-shadow:none}
+.lvl-item{display:flex; flex-direction:column; gap:3px; min-width:0}
+.lvl-item-h{font-size:14.5px; color:var(--white); font-weight:600; line-height:1.35; letter-spacing:-.005em}
+.lvl-item-s{font-size:12.5px; color:var(--mute); line-height:1.45; font-weight:300}
+.lvl-foot{font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--mute2); padding-top:18px; margin-top:24px; border-top:1px solid var(--hair)}
+@media(max-width:900px){ .lvl-grid{grid-template-columns:1fr} }
+
 /* focus-market toggle */
 .market-box{margin-top:22px; padding-top:20px; border-top:1px dashed var(--hair2)}
 .mkt-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
@@ -381,7 +401,7 @@ a.tag:hover svg{transform:translateX(2px)}
     <div class="shead reveal">
       <div class="eyebrow">Our Deliverables</div>
       <h2>What we create for you</h2>
-      <p class="lede">A full content package built around a single stay &mdash; published across Hotels of Tomorrow and the wider Markets of Tomorrow umbrella.</p>
+      <p class="lede">Our <b style="color:var(--cream);font-weight:500">base partnership</b> &mdash; a full content package built around a single stay, published across Hotels of Tomorrow and the wider Markets of Tomorrow umbrella. Want more reach? <a href="#levels" style="color:var(--gold-soft);text-decoration:none;border-bottom:1px solid rgba(230,197,116,.34)">Scale up with a level below.</a></p>
     </div>
 
     <div class="dgrid">
@@ -465,6 +485,69 @@ a.tag:hover svg{transform:translateX(2px)}
           <a class="btn btn-ghost" href="https://www.oftmw.com/hotels">See the Iconic Hotel List <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Partnership levels (options) ──────────────────────────────────────── -->
+<section id="levels" style="padding-top:6px">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="eyebrow" style="color:var(--gold)">Choose Your Level</div>
+      <h2>The base is included &mdash; <span class="hl-gold">scale up</span> when you want more.</h2>
+      <p class="lede">Everything in &ldquo;What we create for you&rdquo; comes standard with every partnership. These are optional add-on levels &mdash; pick one for extra posts, extra articles, and more photography.</p>
+    </div>
+
+    <div class="lvl-grid">
+      <!-- Level 1 — Base -->
+      <article class="lvl-card glass reveal d1">
+        <div class="lvl-head">
+          <span class="lvl-lab">Level 1</span>
+          <h3 class="lvl-name">Base Partnership</h3>
+          <div class="lvl-price"><span class="base">Included</span></div>
+        </div>
+        <ul class="lvl-list">
+          <li><span class="lvl-qty">1</span><span class="lvl-item"><span class="lvl-item-h">Social collab post</span><span class="lvl-item-s">One reel or carousel across our accounts, plus daily stories during the stay</span></span></li>
+          <li><span class="lvl-qty">1</span><span class="lvl-item"><span class="lvl-item-h">Website article</span><span class="lvl-item-s">One solo article, plus inclusion in a Best Hotels round-up</span></span></li>
+          <li><span class="lvl-qty">1</span><span class="lvl-item"><span class="lvl-item-h">Newsletter feature</span><span class="lvl-item-s">A featured story in the Hotels of Tomorrow newsletter</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Original photo &amp; video</span><span class="lvl-item-s">Shot by our team, plus 5&ndash;10 aerial photos for your own use</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Iconic Lists consideration</span><span class="lvl-item-s">Considered for our Iconic Hotels &amp; Restaurants lists</span></span></li>
+        </ul>
+        <div class="lvl-foot">Comped stay + $500 travel fee</div>
+      </article>
+
+      <!-- Level 2 -->
+      <article class="lvl-card glass reveal d2">
+        <div class="lvl-head">
+          <span class="lvl-lab">Level 2</span>
+          <h3 class="lvl-name">Extended</h3>
+          <div class="lvl-price">+$1,000</div>
+        </div>
+        <ul class="lvl-list">
+          <li><span class="lvl-qty">2</span><span class="lvl-item"><span class="lvl-item-h">Social collab posts</span><span class="lvl-item-s">One extra post on top of the base &mdash; two total</span></span></li>
+          <li><span class="lvl-qty">2</span><span class="lvl-item"><span class="lvl-item-h">Website articles</span><span class="lvl-item-s">One extra article on top of the base &mdash; two total</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">More photography</span><span class="lvl-item-s">An expanded photo &amp; video set beyond the base shoot</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Everything in the base</span><span class="lvl-item-s">Newsletter feature, daily stories, and Iconic Lists consideration</span></span></li>
+        </ul>
+        <div class="lvl-foot">Base partnership + $1,000</div>
+      </article>
+
+      <!-- Level 3 -->
+      <article class="lvl-card glass featured reveal d3">
+        <div class="lvl-badge">Most Reach</div>
+        <div class="lvl-head">
+          <span class="lvl-lab">Level 3</span>
+          <h3 class="lvl-name">Flagship</h3>
+          <div class="lvl-price">+$2,500</div>
+        </div>
+        <ul class="lvl-list">
+          <li><span class="lvl-qty">4</span><span class="lvl-item"><span class="lvl-item-h">Social collab posts</span><span class="lvl-item-s">Four posts across our accounts &mdash; our fullest social push</span></span></li>
+          <li><span class="lvl-qty">2</span><span class="lvl-item"><span class="lvl-item-h">Website articles</span><span class="lvl-item-s">Two solo articles published across the network</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Most photography</span><span class="lvl-item-s">Our largest photo &amp; video set &mdash; the full shoot</span></span></li>
+          <li><span class="lvl-qty plus">+</span><span class="lvl-item"><span class="lvl-item-h">Everything in the base</span><span class="lvl-item-s">Newsletter feature, daily stories, and Iconic Lists consideration</span></span></li>
+        </ul>
+        <div class="lvl-foot">Base partnership + $2,500</div>
+      </article>
     </div>
   </div>
 </section>
