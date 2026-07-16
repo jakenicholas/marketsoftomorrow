@@ -6260,6 +6260,112 @@ async function handleSocialTopPostsPull(req, env, origin) {
   posts.sort((x, y) => (y.views || 0) - (x.views || 0));
   return json({ ok: true, posts, days, max_per: maxPer, errors, pulled_at: new Date().toISOString() }, {}, env, origin);
 }
+
+// ── Instagram post archive (Move 2: stop discarding the performance signal) ────
+// handleSocialTopPostsPull pulls media+insights LIVE for the accounts page and
+// throws it away (caption truncated to 160). This persists a rolling archive with
+// FULL captions + engagement, so the brain can learn from what actually performed.
+async function ensureIgPosts(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS ig_posts (
+    id TEXT PRIMARY KEY, account TEXT, caption TEXT, permalink TEXT, media_type TEXT,
+    thumb TEXT, ts INTEGER, likes INTEGER, comments INTEGER, views INTEGER, reach INTEGER,
+    interactions INTEGER, saved INTEGER, shares INTEGER, fetched_at INTEGER
+  )`).run();
+  try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS ig_posts_acct_ts ON ig_posts (account, ts)').run(); } catch (_) {}
+}
+// Walk media + insights for every connected brand account (FULL captions). Mirrors
+// the collection logic in handleSocialTopPostsPull; kept separate so the live
+// accounts-page endpoint is never at risk. Returns { posts, errors, accounts }.
+async function collectBrandPosts(env, token, { days = 120, maxPer = 80, onlyKey = '' } = {}) {
+  const sinceTs = days > 0 ? Math.floor(Date.now() / 1000) - days * 86400 : 0;
+  let accts = [];
+  try {
+    await ensureSocialAccountsTable(env);
+    const { results } = await env.DB.prepare(`SELECT key, ig_handle, page_id, ig_user_id FROM social_accounts ORDER BY sort_order ASC`).all();
+    accts = results || [];
+  } catch (_) {}
+  if (onlyKey) accts = accts.filter((a) => a.key === onlyKey);
+  const norm = (s) => String(s || '').toLowerCase().replace(/^@/, '').trim();
+  const byIg = {}, byPage = {};
+  try {
+    const resp = await graphGet('me/accounts', { fields: 'name,instagram_business_account{id,username}', limit: '200', access_token: token });
+    for (const p of ((resp && resp.data) || [])) { if (p.id) byPage[String(p.id)] = p; const ig = p.instagram_business_account; if (ig && ig.username) byIg[norm(ig.username)] = p; }
+  } catch (_) {}
+  const metricValue = (row) => { if (!row) return null; if (row.total_value && row.total_value.value != null) return Number(row.total_value.value) || 0; if (row.values && row.values.length && row.values[0] && row.values[0].value != null) return Number(row.values[0].value) || 0; return null; };
+  const posts = [], errors = {};
+  for (const a of accts) {
+    const page = byIg[norm(a.ig_handle)] || (a.page_id ? byPage[String(a.page_id)] : null);
+    const igid = String(a.ig_user_id || (page && page.instagram_business_account && page.instagram_business_account.id) || '').trim();
+    if (!igid) { errors[a.key] = 'no IG user id'; continue; }
+    const items = []; let after = null, windowDone = false;
+    for (let pg = 0; pg < 8 && !windowDone && items.length < maxPer; pg++) {
+      const params = { fields: 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count', limit: '50', access_token: token };
+      if (after) params.after = after;
+      const media = await graphGet(igid + '/media', params);
+      if (media && media.error) { errors[a.key] = metaErr(media); break; }
+      for (const m of ((media && media.data) || [])) { const ts = Math.floor(Date.parse(m.timestamp || '') / 1000) || 0; if (sinceTs && ts && ts < sinceTs) { windowDone = true; break; } items.push(m); if (items.length >= maxPer) break; }
+      after = media && media.paging && media.paging.cursors && media.paging.cursors.after;
+      if (!after) break;
+    }
+    const enriched = await Promise.all(items.map(async (m) => {
+      const met = {};
+      for (const set of ['views,reach,total_interactions,saved,shares', 'views,reach']) { let ins = null; try { ins = await graphGet(m.id + '/insights', { metric: set, access_token: token }); } catch (_) {} if (ins && !ins.error) { for (const row of (ins.data || [])) met[row.name] = metricValue(row); break; } }
+      return {
+        account: a.key, id: m.id, caption: String(m.caption || ''),   // FULL caption, not truncated
+        permalink: m.permalink || '', media_type: m.media_product_type || m.media_type || '',
+        thumb: m.thumbnail_url || m.media_url || '', ts: Math.floor(Date.parse(m.timestamp || '') / 1000) || 0,
+        likes: (m.like_count != null) ? Number(m.like_count) : null, comments: (m.comments_count != null) ? Number(m.comments_count) : null,
+        views: met.views != null ? met.views : null, reach: met.reach != null ? met.reach : null,
+        interactions: met.total_interactions != null ? met.total_interactions : null, saved: met.saved != null ? met.saved : null, shares: met.shares != null ? met.shares : null,
+      };
+    }));
+    posts.push(...enriched);
+  }
+  return { posts, errors, accounts: accts.length };
+}
+// Persist the archive (upsert by media id; refresh metrics + fetched_at, keep caption/ts).
+async function syncSocialPosts(env, { days = 120, maxPer = 80 } = {}) {
+  if (!env.META_SYSTEM_TOKEN || !env.DB) return { ok: false, error: 'not configured' };
+  await ensureIgPosts(env);
+  const { posts, errors, accounts } = await collectBrandPosts(env, env.META_SYSTEM_TOKEN, { days, maxPer });
+  const now = Math.floor(Date.now() / 1000);
+  let synced = 0;
+  for (const p of posts) {
+    if (!p.id) continue;
+    try {
+      await env.DB.prepare(`INSERT INTO ig_posts (id, account, caption, permalink, media_type, thumb, ts, likes, comments, views, reach, interactions, saved, shares, fetched_at)
+        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)
+        ON CONFLICT(id) DO UPDATE SET caption=excluded.caption, permalink=excluded.permalink, media_type=excluded.media_type, thumb=excluded.thumb,
+          likes=excluded.likes, comments=excluded.comments, views=excluded.views, reach=excluded.reach, interactions=excluded.interactions, saved=excluded.saved, shares=excluded.shares, fetched_at=excluded.fetched_at`)
+        .bind(p.id, p.account, String(p.caption || '').slice(0, 4000), p.permalink, p.media_type, p.thumb, p.ts, p.likes, p.comments, p.views, p.reach, p.interactions, p.saved, p.shares, now).run();
+      synced++;
+    } catch (_) {}
+  }
+  try { await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('social_sync_at',?1,?1) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?1").bind(now).run(); } catch (_) {}
+  return { ok: true, synced, accounts, errors };
+}
+async function maybeSocialSync(env) {
+  if (!env.META_SYSTEM_TOKEN || !env.DB) return;
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='social_sync_at'").first();
+    if (row && (now - (parseInt(row.value, 10) || 0)) < 20 * 3600) return;   // ~daily
+  } catch (_) {}
+  try { await syncSocialPosts(env, { days: 120, maxPer: 80 }); } catch (_) {}
+}
+// POST /admin/social/sync — persist the Instagram archive on demand (also runs ~daily via cron).
+async function handleSocialSync(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const days = Math.min(365, Math.max(7, parseInt(body.days, 10) || 120));
+  const maxPer = Math.min(200, Math.max(10, parseInt(body.max, 10) || 80));
+  const res = await syncSocialPosts(env, { days, maxPer });
+  if (!res.ok) return json(res, { status: 500 }, env, origin);
+  return json(res, {}, env, origin);
+}
+
 async function handlePublish(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.META_SYSTEM_TOKEN) return json({ error: 'META_SYSTEM_TOKEN is not configured on the worker.' }, { status: 500 }, env, origin);
@@ -7095,54 +7201,59 @@ async function handleLearnCorpus(req, env, origin) {
   } catch (e) { return json({ error: 'corpus read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
   if (!arts.length) return json({ error: 'no published articles with body text found' }, { status: 404 }, env, origin);
 
-  // 2) MAP — pull wide-scoped voice/structure patterns from each batch of top articles.
+  // 2-4) MAP → REDUCE → WRITE via the shared distiller.
   const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI writer the HOUSE VOICE. Below are excerpts from some of TMW\'s BEST-PERFORMING published articles (real, human-approved, high-readership). Extract the DURABLE, WIDE-SCOPED writing patterns they share — tone, sentence rhythm, how openings work, how projects/numbers/places are framed, structural habits, signature moves — that a writer could apply to ANY future article on ANY subject. '
     + 'HARD FILTERS: never output an article-specific fact (a name, price, date, project, city). No one-off observations. Only patterns evidenced across MULTIPLE pieces. Each pattern is ONE short general imperative (e.g. "Open on the concrete change, not a scene-setting metaphor", "Deploy one hard number early to anchor scale"). '
     + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
-  const batches = [];
-  for (let i = 0; i < arts.length; i += batchSize) batches.push(arts.slice(i, i + batchSize));
-  // Run the per-batch extraction concurrently so a large corpus pass still finishes
-  // inside one request (Cloudflare's ~100s ceiling) instead of stacking sequentially.
-  const mapResults = await Promise.all(batches.map(async (batch) => {
-    const usr = batch.map((a, k) => `--- ARTICLE ${k + 1} (views: ${a.views}) — "${a.title}" ---\n${a.text}`).join('\n\n').slice(0, 30000);
+  const redSys = 'You are consolidating raw candidate writing-voice patterns for Markets of Tomorrow into the brand brain. Merge duplicates and near-duplicates, drop anything article-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped house-voice rules. Aim for 15-25 crisp, non-overlapping imperatives. '
+    + 'Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+  const units = arts.map((a) => ({ label: a.title, weight: a.views, weightLabel: 'views', text: a.text }));
+  const res = await distillUnitsToPool(env, units, { mapSys, redSys, source: 'corpus-distill', evidence: "Learned from TMW's top-performing published articles", category: 'corpus', context: 'distilled from top-performing articles', review, batchSize });
+  if (!res.candidates) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:corpus-distill', 'brain_corpus_learn', JSON.stringify({ scanned: arts.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged })).run();
+  } catch (_) {}
+  return json({ ok: true, scanned: arts.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged, review, notes: res.notes }, {}, env, origin);
+}
+
+// Shared voice distiller. MAP wide-scoped patterns from `units` (concurrent Haiku
+// batches, so a big pass finishes inside one request), REDUCE to a durable set,
+// dedup against the brain (reinforce a near-match, don't duplicate), and WRITE to
+// the POOL voice tier (or stage for review). units: [{label, weight, weightLabel,
+// text}]. Returns { candidates, final, written, reinforced, staged, notes }.
+async function distillUnitsToPool(env, units, { mapSys, redSys, source, evidence, category = 'corpus', context = 'distilled', review = false, batchSize = 12 } = {}) {
+  const call = async (system, user, maxTokens) => {
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 900, system: mapSys, messages: [{ role: 'user', content: usr }] }),
+        body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }),
       });
-      if (!r.ok) return [];
+      if (!r.ok) return null;
       const d = await r.json();
       const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
-      const m = txt.match(/\[[\s\S]*\]/); if (!m) return [];
-      let arr; try { arr = JSON.parse(m[0]); } catch { return []; }
-      return Array.isArray(arr) ? arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) })) : [];
-    } catch (_) { return []; }
+      const m = txt.match(/\[[\s\S]*\]/); if (!m) return null;
+      try { return JSON.parse(m[0]); } catch { return null; }
+    } catch (_) { return null; }
+  };
+  // MAP
+  const batches = [];
+  for (let i = 0; i < units.length; i += batchSize) batches.push(units.slice(i, i + batchSize));
+  const mapResults = await Promise.all(batches.map(async (batch) => {
+    const usr = batch.map((u, k) => `--- ITEM ${k + 1} (${u.weightLabel || 'signal'}: ${u.weight}) — "${String(u.label || '').slice(0, 120)}" ---\n${u.text}`).join('\n\n').slice(0, 30000);
+    const arr = await call(mapSys, usr, 900);
+    return Array.isArray(arr) ? arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) })) : [];
   }));
   const rawCandidates = mapResults.flat();
-  if (!rawCandidates.length) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
-
-  // 3) REDUCE — consolidate raw candidates into a small, non-overlapping durable set.
-  const redSys = 'You are consolidating raw candidate writing-voice patterns for Markets of Tomorrow into the brand brain. Merge duplicates and near-duplicates, drop anything article-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped house-voice rules. Aim for 15-25 crisp, non-overlapping imperatives. '
-    + 'Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+  if (!rawCandidates.length) return { candidates: 0, final: 0, written: 0, reinforced: 0, staged: 0, notes: [] };
+  // REDUCE
   let finalNotes = [];
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 1600, system: redSys, messages: [{ role: 'user', content: 'CANDIDATES:\n' + rawCandidates.map((c) => `- [${c.kind}] ${c.note}`).join('\n').slice(0, 24000) }] }),
-    });
-    if (r.ok) {
-      const d = await r.json();
-      const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
-      const m = txt.match(/\[[\s\S]*\]/);
-      if (m) { try { const arr = JSON.parse(m[0]); if (Array.isArray(arr)) finalNotes = arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 400) })); } catch (_) {} }
-    }
-  } catch (_) {}
+  const red = await call(redSys, 'CANDIDATES:\n' + rawCandidates.map((c) => `- [${c.kind}] ${c.note}`).join('\n').slice(0, 24000), 1600);
+  if (Array.isArray(red)) finalNotes = red.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 400) }));
   if (!finalNotes.length) finalNotes = rawCandidates.slice(0, 24);   // fallback: raw candidates if reduce failed
   finalNotes = finalNotes.slice(0, 30);
-
-  // 4) WRITE — dedup against the existing brain; reinforce a match, else add to POOL voice.
+  // WRITE
   const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
   const now = Math.floor(Date.now() / 1000);
   let written = 0, reinforced = 0, staged = 0; const kept = [];
@@ -7156,22 +7267,60 @@ async function handleLearnCorpus(req, env, origin) {
       continue;
     }
     if (review) {
-      try { await brainWrite(env, { type: 'voice', kind, note, source: 'corpus-distill', evidence: "Learned from TMW's top-performing published articles" }, { review: true }); staged++; } catch (_) {}
+      try { await brainWrite(env, { type: 'voice', kind, note, source, evidence }, { review: true }); staged++; } catch (_) {}
       continue;
     }
     const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
     try {
-      await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,'corpus',?3,?4,'corpus-distill',?5,1,'voice','pool',0)`)
-        .bind(id, kind, note, 'distilled from top-performing articles', now).run();
+      await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,?3,?4,?5,?6,?7,1,'voice','pool',0)`)
+        .bind(id, kind, category, note, context, source, now).run();
       try { await brainNoteVectors(env, [{ id, kind, note, scope: 'voice' }]); } catch (_) {}
       written++; kept.push({ kind, note });
     } catch (_) {}
   }
+  return { candidates: rawCandidates.length, final: finalNotes.length, written, reinforced, staged, notes: kept };
+}
+
+// POST /admin/brain/learn-social — distill house voice from our BEST-PERFORMING
+// Instagram posts (ranked by saves + shares, the truest "this landed" signal) into
+// the brain's POOL voice tier. Reads the ig_posts archive — populate it first with a
+// social sync (POST /admin/social/sync, also runs ~daily). Body: { top?, review? }.
+async function handleLearnSocial(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const top = Math.min(Math.max(parseInt(body.top, 10) || 48, 10), 120);
+  const review = body.review === true;
+  await ensureBrandNotes(env);
+  await ensureIgPosts(env);
+  // Rank by resonance: saves + shares are the strongest "this landed" signals.
+  let rows = [];
+  try {
+    const r = await env.DB.prepare(
+      `SELECT caption, saved, shares, views, reach FROM ig_posts
+       WHERE caption IS NOT NULL AND length(caption) > 40
+       ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC
+       LIMIT ?1`
+    ).bind(top).all();
+    rows = (r.results || []).filter((x) => x.caption && String(x.caption).length > 40);
+  } catch (e) { return json({ error: 'archive read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (!rows.length) return json({ error: 'no cached posts with captions — run a social sync first (POST /admin/social/sync)' }, { status: 404 }, env, origin);
+
+  const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI the HOUSE VOICE for social captions. Below are captions from TMW\'s BEST-PERFORMING Instagram posts (highest saves + shares — i.e. what actually resonated). Extract the DURABLE, WIDE-SCOPED caption patterns they share — how the opening hook works, how the subject is framed, sentence/line-break rhythm, how numbers and places are used, CTA and closing habits, emoji/hashtag conventions — that apply to ANY future post on ANY subject. '
+    + 'HARD FILTERS: never output a post-specific fact (a name, price, date, project, city, handle). No one-off observations. Only patterns evidenced across MULTIPLE captions. Each pattern is ONE short general imperative (e.g. "Open the caption on the single most surprising fact, not a greeting", "Keep the first line short so it survives the truncation fold"). '
+    + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
+  const redSys = 'You are consolidating raw candidate social-caption voice patterns for Markets of Tomorrow. Merge duplicates and near-duplicates, drop anything post-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped caption rules. Aim for 12-20 crisp, non-overlapping imperatives. '
+    + 'Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+  const units = rows.map((p) => ({ label: String(p.caption).split('\n')[0].slice(0, 80), weight: (p.saved || 0) + (p.shares || 0), weightLabel: 'saves+shares', text: String(p.caption).slice(0, 1200) }));
+  const res = await distillUnitsToPool(env, units, { mapSys, redSys, source: 'social-distill', evidence: 'Learned from top-performing Instagram posts (saves + shares)', category: 'social', context: 'distilled from top-performing IG posts', review, batchSize: 16 });
+  if (!res.candidates) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
   try {
     await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
-      .bind(now, 'system:corpus-distill', 'brain_corpus_learn', JSON.stringify({ scanned: arts.length, candidates: rawCandidates.length, final: finalNotes.length, written, reinforced, staged })).run();
+      .bind(Math.floor(Date.now() / 1000), 'system:social-distill', 'brain_social_learn', JSON.stringify({ scanned: rows.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged })).run();
   } catch (_) {}
-  return json({ ok: true, scanned: arts.length, candidates: rawCandidates.length, final: finalNotes.length, written, reinforced, staged, review, notes: kept }, {}, env, origin);
+  return json({ ok: true, scanned: rows.length, candidates: res.candidates, final: res.final, written: res.written, reinforced: res.reinforced, staged: res.staged, review, notes: res.notes }, {}, env, origin);
 }
 
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
@@ -12481,6 +12630,8 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/knowledge')     return await handleKnowledgeIngest(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/brain/corpus')  return await handleCorpusRead(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-corpus') return await handleLearnCorpus(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/social/sync')       return await handleSocialSync(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/learn-social') return await handleLearnSocial(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
@@ -12682,6 +12833,7 @@ export default {
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
+    ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
     ctx.waitUntil(maybeEmbedAB(env));            // embedding A/B (dormant unless flagged)
