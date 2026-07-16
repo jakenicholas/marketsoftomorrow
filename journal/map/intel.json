@@ -5068,10 +5068,10 @@
       "delivery_speculative": false
     },
     "malabar-residences": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 138,
-      "delivery_date": "2026-12-01",
+      "estimate_years": 0.13,
+      "estimate_label": "47 days",
+      "days_out": 47,
+      "delivery_date": "2026-09-01",
       "source": "known_date",
       "precision": "other",
       "confidence": "medium",
@@ -5079,7 +5079,7 @@
       "metro": "New York",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~5 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in 47 days based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -5793,21 +5793,65 @@
       "delivery_speculative": false
     },
     "marina-village": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 152,
-      "delivery_date": "2026-12-15",
-      "source": "known_date",
-      "precision": "month",
-      "confidence": "high",
+      "estimate_years": 1.7,
+      "estimate_label": "~1.7 years",
+      "range_low": 1.2,
+      "range_high": 4.8,
+      "confidence": "medium",
+      "comparable_count": 15,
+      "good_count": 4,
+      "exact_count": 4,
+      "used_relaxed": false,
+      "avg_match_score": 0.54,
+      "avg_distance_km": 948.7,
+      "avg_distance_mi": 589.5,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "REG Architects",
+        "count": 1,
+        "median_years": 0.61,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
+      "comparables": [
+        {
+          "name": "Inscription",
+          "slug": "inscription",
+          "location": "West Palm Beach",
+          "years": 2.0,
+          "score": 1.0,
+          "distance_km": 5.5,
+          "distance_mi": 3.4
+        },
+        {
+          "name": "The Spruce",
+          "slug": "the-spruce",
+          "location": "West Palm Beach",
+          "years": 2.4,
+          "score": 0.85,
+          "distance_km": 4.3,
+          "distance_mi": 2.7
+        },
+        {
+          "name": "Alba",
+          "slug": "alba",
+          "location": "West Palm Beach",
+          "years": 2.8,
+          "score": 0.7,
+          "distance_km": 2.3,
+          "distance_mi": 1.4
+        }
+      ],
+      "pattern_summary": "Among 15 residences projects in TMW's data, the median build time is 2.5 years (range 1.2–4.8). Adjusted to ~1.7 years for REG Architects's own track record (~0.6-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "king-salman-park": {
       "estimate_years": 1.5,
@@ -6946,57 +6990,21 @@
       "delivery_speculative": false
     },
     "the-standard-lisbon": {
-      "estimate_years": 2.3,
-      "estimate_label": "~2.3 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 4,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.56,
-      "avg_distance_km": 7284.6,
-      "avg_distance_mi": 4526.5,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.4,
+      "estimate_label": "~5 months",
+      "days_out": 152,
+      "delivery_date": "2026-12-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Hotel",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "Dolly Parton's SongTeller Hotel",
-          "slug": "dolly-partons-songteller-hotel",
-          "location": "Nashville",
-          "years": 1.6,
-          "score": 0.64,
-          "distance_km": 6643.5,
-          "distance_mi": 4128.1
-        },
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.64,
-          "distance_km": 6607.1,
-          "distance_mi": 4105.5
-        },
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.64,
-          "distance_km": 6788.1,
-          "distance_mi": 4217.9
-        }
-      ],
-      "pattern_summary": "Among 4 hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–8.1).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~5 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "guggenheim-abu-dhabi": {
       "estimate_years": 0.4,
@@ -10701,23 +10709,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "ocean-one": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 899,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Mixed-Use",
-      "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
     "capella-residences-bangkok": {
       "estimate_years": 3.8,
       "estimate_label": "~3.8 years",
@@ -13944,13 +13935,13 @@
   },
   "stats": {
     "high": 7,
-    "medium": 17,
-    "low": 64,
-    "known_date": 483,
+    "medium": 18,
+    "low": 63,
+    "known_date": 482,
     "completed": 66,
-    "skipped": 96,
+    "skipped": 97,
     "no_type": 0,
-    "firm_boosted": 39,
+    "firm_boosted": 40,
     "speculative_softened": 179,
     "district": 11,
     "mixed_use_adjusted": 22
