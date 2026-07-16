@@ -3920,8 +3920,8 @@
       "is_mixed_use": false
     },
     "continuum-12000-sport-wellness-residences": {
-      "estimate_years": 2.9,
-      "estimate_label": "~2.9 years",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 1.7,
       "range_high": 4.8,
       "confidence": "medium",
@@ -3930,17 +3930,17 @@
       "exact_count": 4,
       "used_relaxed": false,
       "avg_match_score": 0.54,
-      "avg_distance_km": 1010.7,
-      "avg_distance_mi": 628.0,
+      "avg_distance_km": 1011.2,
+      "avg_distance_mi": 628.3,
       "scale_used": true,
       "firm_signal": {
-        "firm": "Kobi Karp",
-        "count": 1,
-        "median_years": 2.83,
-        "stddev_years": 0.0,
+        "firm": "Arquitectonica",
+        "count": 12,
+        "median_years": 3.07,
+        "stddev_years": 1.75,
         "role": "architect",
         "consistent": false,
-        "blend_weight": 0.4
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -3952,8 +3952,8 @@
           "location": "Miami",
           "years": 2.5,
           "score": 0.85,
-          "distance_km": 12.0,
-          "distance_mi": 7.5
+          "distance_km": 11.6,
+          "distance_mi": 7.2
         },
         {
           "name": "Nautilus 220",
@@ -3961,8 +3961,8 @@
           "location": "Lake Park",
           "years": 3.2,
           "score": 0.76,
-          "distance_km": 100.7,
-          "distance_mi": 62.6
+          "distance_km": 101.3,
+          "distance_mi": 63.0
         },
         {
           "name": "The Ritz-Carlton Residences, Estero Bay",
@@ -3970,11 +3970,11 @@
           "location": "Bonita Springs",
           "years": 3.5,
           "score": 0.76,
-          "distance_km": 176.3,
-          "distance_mi": 109.6
+          "distance_km": 177.5,
+          "distance_mi": 110.3
         }
       ],
-      "pattern_summary": "Among 18 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Adjusted to ~2.9 years for Kobi Karp's own track record (~2.8-year typical pace across 1 prior project).",
+      "pattern_summary": "Among 18 residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Adjusted to ~3 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
@@ -7087,49 +7087,6 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "marina-bay-sands-expansion": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
-      "range_low": 3.0,
-      "range_high": 3.0,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.34,
-      "avg_distance_km": 16905.7,
-      "avg_distance_mi": 10504.7,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Populous",
-        "count": 1,
-        "median_years": 3.03,
-        "stddev_years": 0.0,
-        "role": "architect",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
-      "project_type": "Hotel",
-      "metro": "Other",
-      "comparables": [
-        {
-          "name": "Naples Beach Club, A Four Seasons Resort",
-          "slug": "naples-beach-club-a-four-seasons-resort",
-          "location": "Naples",
-          "years": 3.0,
-          "score": 0.34,
-          "distance_km": 16905.7,
-          "distance_mi": 10504.7
-        }
-      ],
-      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 3 years. Adjusted to ~3 years for Populous's own track record (~3-year typical pace across 1 prior project).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
-    },
     "cabot-revelstoke": {
       "estimate_years": 3.5,
       "estimate_label": "~3.5 years",
@@ -8411,7 +8368,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Hotel",
+      "project_type": "Mixed-Use",
       "metro": "Charleston",
       "comparables": [],
       "comparable_count": 0,
@@ -8462,7 +8419,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -8720,7 +8677,7 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Hotel",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -8730,57 +8687,39 @@
       "delivery_speculative": true
     },
     "the-stockman-auberge-collection": {
-      "estimate_years": 1.6,
-      "estimate_label": "~1.6 years",
-      "range_low": 1.6,
-      "range_high": 8.1,
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
+      "range_high": 4.3,
       "confidence": "low",
-      "comparable_count": 3,
+      "comparable_count": 1,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
       "avg_match_score": 0.34,
-      "avg_distance_km": 2290.9,
-      "avg_distance_mi": 1423.5,
+      "avg_distance_km": 2754.8,
+      "avg_distance_mi": 1711.8,
       "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
-      "project_type": "Hotel",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [
         {
-          "name": "Siari, a Ritz-Carlton Reserve",
-          "slug": "siari-a-ritz-carlton-reserve",
-          "location": "Riviera Nayarit",
-          "years": 1.6,
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
           "score": 0.34,
-          "distance_km": 2176.1,
-          "distance_mi": 1352.1
-        },
-        {
-          "name": "Dolly Parton's SongTeller Hotel",
-          "slug": "dolly-partons-songteller-hotel",
-          "location": "Nashville",
-          "years": 1.6,
-          "score": 0.34,
-          "distance_km": 1807.2,
-          "distance_mi": 1122.9
-        },
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.34,
-          "distance_km": 2889.5,
-          "distance_mi": 1795.4
+          "distance_km": 2754.8,
+          "distance_mi": 1711.8
         }
       ],
-      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 1.6 years (range 1.6–8.1).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "janu-residences-dubai": {
       "estimate_years": 1.5,
@@ -14005,15 +13944,15 @@
   },
   "stats": {
     "high": 7,
-    "medium": 18,
-    "low": 65,
+    "medium": 17,
+    "low": 64,
     "known_date": 483,
     "completed": 66,
-    "skipped": 94,
+    "skipped": 96,
     "no_type": 0,
-    "firm_boosted": 41,
+    "firm_boosted": 39,
     "speculative_softened": 179,
     "district": 11,
-    "mixed_use_adjusted": 21
+    "mixed_use_adjusted": 22
   }
 }
