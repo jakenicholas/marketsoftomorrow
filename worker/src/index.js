@@ -7028,6 +7028,149 @@ async function handleKnowledgeIngest(req, env, origin) {
   return json({ ok: true, added }, {}, env, origin);
 }
 
+// GET /admin/brain/corpus — the performance-ranked article corpus (body text +
+// view counts), so a distiller (or a human) can inspect what we're learning
+// house voice FROM. Reads the published posts JOIN post_views. Read-only.
+async function handleCorpusRead(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no db' }, { status: 503 }, env, origin);
+  const url = new URL(req.url);
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '60', 10) || 60, 1), 200);
+  const offset = Math.max(parseInt(url.searchParams.get('offset') || '0', 10) || 0, 0);
+  const chars = Math.min(Math.max(parseInt(url.searchParams.get('chars') || '2400', 10) || 2400, 200), 8000);
+  const order = url.searchParams.get('order') === 'recent' ? 'recent' : 'views';
+  const orderSql = order === 'recent'
+    ? 'p.published_at DESC'
+    : 'COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC, p.published_at DESC';
+  try {
+    const r = await env.DB.prepare(
+      `SELECT p.slug, p.title, p.main_category, p.body_html,
+              COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views
+       FROM posts p LEFT JOIN post_views pv ON pv.slug = p.slug
+       WHERE p.status='published'
+       ORDER BY ${orderSql} LIMIT ?1 OFFSET ?2`
+    ).bind(limit, offset).all();
+    const rows = (r.results || []).map((x) => ({
+      slug: x.slug, title: x.title || '', category: x.main_category || '', views: x.views || 0,
+      text: htmlToText(x.body_html || '').slice(0, chars),
+    })).filter((x) => x.slug && x.text);
+    return json({ ok: true, count: rows.length, order, articles: rows }, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
+}
+
+// POST /admin/brain/learn-corpus — the corpus distiller. Reads the top-performing
+// published articles, extracts wide-scoped HOUSE-VOICE patterns from each batch
+// (map), consolidates them into a small durable set (reduce), and writes them into
+// the brand brain's POOL voice tier (retrieved by relevance in assembleBrain). This
+// is how the brain learns from the thousands of articles we've already published,
+// weighted by what actually performed. Dedups against the existing brain (reinforce,
+// don't duplicate). Body: { top?, batch?, review? }. review=true stages proposals
+// in the Teach tab instead of writing straight to pool. Best-effort; bounded so it
+// completes in one request (default top=48 → 4 map calls + 1 reduce).
+async function handleLearnCorpus(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const top = Math.min(Math.max(parseInt(body.top, 10) || 48, 10), 120);
+  const batchSize = Math.min(Math.max(parseInt(body.batch, 10) || 12, 6), 20);
+  const review = body.review === true;   // default false: write straight to POOL (relevance-gated, low risk)
+  await ensureBrandNotes(env);
+
+  // 1) Pull the top-performing published articles (by lifetime views).
+  let arts = [];
+  try {
+    const r = await env.DB.prepare(
+      `SELECT p.slug, p.title, p.main_category, p.body_html,
+              COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views
+       FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug
+       WHERE p.status='published'
+       ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC, p.published_at DESC
+       LIMIT ?1`
+    ).bind(top).all();
+    arts = (r.results || []).map((x) => ({
+      slug: x.slug, title: x.title || '', views: x.views || 0,
+      text: htmlToText(x.body_html || '').slice(0, 2200),
+    })).filter((x) => x.slug && x.text.length > 200);
+  } catch (e) { return json({ error: 'corpus read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (!arts.length) return json({ error: 'no published articles with body text found' }, { status: 404 }, env, origin);
+
+  // 2) MAP — pull wide-scoped voice/structure patterns from each batch of top articles.
+  const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI writer the HOUSE VOICE. Below are excerpts from some of TMW\'s BEST-PERFORMING published articles (real, human-approved, high-readership). Extract the DURABLE, WIDE-SCOPED writing patterns they share — tone, sentence rhythm, how openings work, how projects/numbers/places are framed, structural habits, signature moves — that a writer could apply to ANY future article on ANY subject. '
+    + 'HARD FILTERS: never output an article-specific fact (a name, price, date, project, city). No one-off observations. Only patterns evidenced across MULTIPLE pieces. Each pattern is ONE short general imperative (e.g. "Open on the concrete change, not a scene-setting metaphor", "Deploy one hard number early to anchor scale"). '
+    + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
+  const rawCandidates = [];
+  for (let i = 0; i < arts.length; i += batchSize) {
+    const batch = arts.slice(i, i + batchSize);
+    const usr = batch.map((a, k) => `--- ARTICLE ${k + 1} (views: ${a.views}) — "${a.title}" ---\n${a.text}`).join('\n\n').slice(0, 30000);
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 900, system: mapSys, messages: [{ role: 'user', content: usr }] }),
+      });
+      if (!r.ok) continue;
+      const d = await r.json();
+      const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+      const m = txt.match(/\[[\s\S]*\]/); if (!m) continue;
+      let arr; try { arr = JSON.parse(m[0]); } catch { continue; }
+      if (Array.isArray(arr)) for (const c of arr) if (c && c.note) rawCandidates.push({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) });
+    } catch (_) {}
+  }
+  if (!rawCandidates.length) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
+
+  // 3) REDUCE — consolidate raw candidates into a small, non-overlapping durable set.
+  const redSys = 'You are consolidating raw candidate writing-voice patterns for Markets of Tomorrow into the brand brain. Merge duplicates and near-duplicates, drop anything article-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped house-voice rules. Aim for 15-25 crisp, non-overlapping imperatives. '
+    + 'Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<short general imperative>"}].';
+  let finalNotes = [];
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 1600, system: redSys, messages: [{ role: 'user', content: 'CANDIDATES:\n' + rawCandidates.map((c) => `- [${c.kind}] ${c.note}`).join('\n').slice(0, 24000) }] }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+      const m = txt.match(/\[[\s\S]*\]/);
+      if (m) { try { const arr = JSON.parse(m[0]); if (Array.isArray(arr)) finalNotes = arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 400) })); } catch (_) {} }
+    }
+  } catch (_) {}
+  if (!finalNotes.length) finalNotes = rawCandidates.slice(0, 24);   // fallback: raw candidates if reduce failed
+  finalNotes = finalNotes.slice(0, 30);
+
+  // 4) WRITE — dedup against the existing brain; reinforce a match, else add to POOL voice.
+  const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+  const now = Math.floor(Date.now() / 1000);
+  let written = 0, reinforced = 0, staged = 0; const kept = [];
+  for (const n of finalNotes) {
+    const note = String(n.note).slice(0, 2000);
+    if (!note) continue;
+    const kind = ALLOWED.includes(n.kind) ? n.kind : 'voice';
+    let existing = null; try { existing = await matchLessonToExisting(env, note); } catch (_) {}
+    if (existing && existing.id) {
+      try { await env.DB.prepare('UPDATE brand_notes SET violations=COALESCE(violations,0)+1, last_violated_at=?1 WHERE id=?2').bind(now, existing.id).run(); reinforced++; } catch (_) {}
+      continue;
+    }
+    if (review) {
+      try { await brainWrite(env, { type: 'voice', kind, note, source: 'corpus-distill', evidence: "Learned from TMW's top-performing published articles" }, { review: true }); staged++; } catch (_) {}
+      continue;
+    }
+    const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    try {
+      await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,'corpus',?3,?4,'corpus-distill',?5,1,'voice','pool',0)`)
+        .bind(id, kind, note, 'distilled from top-performing articles', now).run();
+      try { await brainNoteVectors(env, [{ id, kind, note, scope: 'voice' }]); } catch (_) {}
+      written++; kept.push({ kind, note });
+    } catch (_) {}
+  }
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(now, 'system:corpus-distill', 'brain_corpus_learn', JSON.stringify({ scanned: arts.length, candidates: rawCandidates.length, final: finalNotes.length, written, reinforced, staged })).run();
+  } catch (_) {}
+  return json({ ok: true, scanned: arts.length, candidates: rawCandidates.length, final: finalNotes.length, written, reinforced, staged, review, notes: kept }, {}, env, origin);
+}
+
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
 // Pool notes are retrieved by RELEVANCE (canon always loads; see assembleBrain).
 // Each note embeds as kind:'brand_note' with NO title field, so it can never
@@ -12333,6 +12476,8 @@ export default {
       // Semantic retrieval (TMW Intelligence): rebuild the index (admin) + query it (public).
       if (request.method === 'POST' && url.pathname === '/admin/reindex')      return await handleReindex(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/knowledge')     return await handleKnowledgeIngest(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/brain/corpus')  return await handleCorpusRead(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/learn-corpus') return await handleLearnCorpus(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
