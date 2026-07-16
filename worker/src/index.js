@@ -7099,9 +7099,11 @@ async function handleLearnCorpus(req, env, origin) {
   const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI writer the HOUSE VOICE. Below are excerpts from some of TMW\'s BEST-PERFORMING published articles (real, human-approved, high-readership). Extract the DURABLE, WIDE-SCOPED writing patterns they share — tone, sentence rhythm, how openings work, how projects/numbers/places are framed, structural habits, signature moves — that a writer could apply to ANY future article on ANY subject. '
     + 'HARD FILTERS: never output an article-specific fact (a name, price, date, project, city). No one-off observations. Only patterns evidenced across MULTIPLE pieces. Each pattern is ONE short general imperative (e.g. "Open on the concrete change, not a scene-setting metaphor", "Deploy one hard number early to anchor scale"). '
     + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
-  const rawCandidates = [];
-  for (let i = 0; i < arts.length; i += batchSize) {
-    const batch = arts.slice(i, i + batchSize);
+  const batches = [];
+  for (let i = 0; i < arts.length; i += batchSize) batches.push(arts.slice(i, i + batchSize));
+  // Run the per-batch extraction concurrently so a large corpus pass still finishes
+  // inside one request (Cloudflare's ~100s ceiling) instead of stacking sequentially.
+  const mapResults = await Promise.all(batches.map(async (batch) => {
     const usr = batch.map((a, k) => `--- ARTICLE ${k + 1} (views: ${a.views}) — "${a.title}" ---\n${a.text}`).join('\n\n').slice(0, 30000);
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -7109,14 +7111,15 @@ async function handleLearnCorpus(req, env, origin) {
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: 900, system: mapSys, messages: [{ role: 'user', content: usr }] }),
       });
-      if (!r.ok) continue;
+      if (!r.ok) return [];
       const d = await r.json();
       const txt = ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
-      const m = txt.match(/\[[\s\S]*\]/); if (!m) continue;
-      let arr; try { arr = JSON.parse(m[0]); } catch { continue; }
-      if (Array.isArray(arr)) for (const c of arr) if (c && c.note) rawCandidates.push({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) });
-    } catch (_) {}
-  }
+      const m = txt.match(/\[[\s\S]*\]/); if (!m) return [];
+      let arr; try { arr = JSON.parse(m[0]); } catch { return []; }
+      return Array.isArray(arr) ? arr.filter((c) => c && c.note).map((c) => ({ kind: String(c.kind || 'voice'), note: String(c.note).slice(0, 300) })) : [];
+    } catch (_) { return []; }
+  }));
+  const rawCandidates = mapResults.flat();
   if (!rawCandidates.length) return json({ error: 'extraction produced no candidates' }, { status: 502 }, env, origin);
 
   // 3) REDUCE — consolidate raw candidates into a small, non-overlapping durable set.
