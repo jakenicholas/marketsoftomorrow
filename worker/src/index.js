@@ -891,6 +891,54 @@ async function handleTrialEligible(req, env, origin, url) {
 }
 // POST /admin/cancel-subscription { email, immediate? } — admin-gated. Sets the
 // member's sub to cancel at period end (trial → no charge; paid → keeps paid term).
+// Void every OPEN invoice on a customer. Canceling a subscription does NOT
+// stop Stripe's dunning on invoices already issued — a past-due member keeps
+// getting "payment failed, update your card" retries/emails until the open
+// invoice is voided. Best-effort: a restricted key without Invoices:Write
+// reports the failure instead of throwing so the cancel itself still lands.
+async function voidOpenInvoices(env, customerId) {
+  const out = { voided: [], failed: [] };
+  if (!customerId) return out;
+  try {
+    const inv = await stripeGet(env, '/invoices?customer=' + customerId + '&status=open&limit=20');
+    for (const i of (inv.data || [])) {
+      try {
+        const r = await fetch('https://api.stripe.com/v1/invoices/' + i.id + '/void', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + stripeWriteKey(env) },
+        });
+        if (r.ok) out.voided.push(i.id);
+        else out.failed.push(i.id + ' (' + r.status + ')');
+      } catch (e) { out.failed.push(i.id); }
+    }
+  } catch (_) { /* listing failed — nothing to void */ }
+  return out;
+}
+// Shared cancel core for the admin + member self-serve endpoints. A sub in
+// dunning (past_due/unpaid) always cancels IMMEDIATELY and voids its open
+// invoices — "cancel at period end" would leave Stripe retrying the failed
+// charge and emailing the member indefinitely (the Sarah Weber case).
+async function cancelSubForEmail(env, email, immediate) {
+  const sub = await findSubByEmail(env, email);
+  if (!sub) return { found: false };
+  const dunning = sub.status === 'past_due' || sub.status === 'unpaid';
+  if (sub.status === 'canceled') {
+    // Already canceled can still have an open invoice mid-dunning — void it.
+    const inv = await voidOpenInvoices(env, sub.customer);
+    return { found: true, ok: true, status: 'canceled', already: true, invoices: inv };
+  }
+  const now = immediate || dunning;
+  const res = now
+    ? await fetch('https://api.stripe.com/v1/subscriptions/' + sub.id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + stripeWriteKey(env) } }).then(r => r.json())
+    : await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'true' });
+  if (res.error) throw new Error(res.error.message || 'Stripe error');
+  const invoices = now ? await voidOpenInvoices(env, sub.customer) : null;
+  return {
+    found: true, ok: true, status: res.status,
+    cancel_at_period_end: !!res.cancel_at_period_end,
+    was_trialing: sub.status === 'trialing', was_dunning: dunning,
+    invoices,
+  };
+}
 async function handleAdminCancelSub(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe not configured' }, { status: 500 }, env, origin);
@@ -898,14 +946,38 @@ async function handleAdminCancelSub(req, env, origin) {
   const email = String(b.email || '').trim().toLowerCase();
   if (!email) return json({ error: 'email required' }, { status: 400 }, env, origin);
   try {
-    const sub = await findSubByEmail(env, email);
-    if (!sub) return json({ error: 'No subscription found for ' + email }, { status: 404 }, env, origin);
-    if (sub.status === 'canceled') return json({ ok: true, status: 'canceled', already: true, email }, {}, env, origin);
-    const res = b.immediate
-      ? await fetch('https://api.stripe.com/v1/subscriptions/' + sub.id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + stripeWriteKey(env) } }).then(r => r.json())
-      : await stripePost(env, '/subscriptions/' + sub.id, { cancel_at_period_end: 'true' });
-    return json({ ok: true, status: res.status, cancel_at_period_end: !!res.cancel_at_period_end, was_trialing: sub.status === 'trialing', email }, {}, env, origin);
+    const r = await cancelSubForEmail(env, email, !!b.immediate);
+    if (!r.found) return json({ error: 'No subscription found for ' + email }, { status: 404 }, env, origin);
+    return json({ ...r, email }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+// POST /cancel-my-plan { member_id } — member SELF-SERVE cancel, used by the
+// account page when Memberstack's Stripe portal launcher can't help (e.g. a
+// past-due member whose plan connection already lapsed — they're stuck getting
+// dunning emails with no working cancel path). Authenticated by the opaque
+// Memberstack member id from the logged-in session: the worker resolves the
+// member's CANONICAL email via the Memberstack Admin API and only ever cancels
+// that member's own subscription — no caller-supplied email is trusted.
+async function handleCancelMyPlan(req, env, origin) {
+  if (!env.STRIPE_SECRET_KEY) return json({ ok: false, error: 'billing not configured' }, { status: 500 }, env, origin);
+  if (!env.MEMBERSTACK_SECRET_KEY) return json({ ok: false, error: 'accounts not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ ok: false, error: 'bad json' }, { status: 400 }, env, origin); }
+  const memberId = String(b.member_id || '').trim();
+  if (!memberId) return json({ ok: false, error: 'member_id required' }, { status: 400 }, env, origin);
+  try {
+    const mr = await fetch(MS_API + '/members/' + encodeURIComponent(memberId), { headers: msHeaders(env) });
+    if (!mr.ok) return json({ ok: false, error: 'member not found' }, { status: 404 }, env, origin);
+    const mj = await mr.json();
+    const m = mj.data || mj;
+    const email = String(
+      (m.auth && m.auth.email) || m.email ||
+      (m.customFields && (m.customFields.email || m.customFields['email-address'])) || ''
+    ).trim().toLowerCase();
+    if (!email) return json({ ok: false, error: 'no email on account' }, { status: 404 }, env, origin);
+    const r = await cancelSubForEmail(env, email, false);
+    if (!r.found) return json({ ok: true, found: false, message: 'No subscription to cancel.' }, {}, env, origin);
+    return json(r, {}, env, origin);
+  } catch (e) { return json({ ok: false, error: String(e.message || e) }, { status: 502 }, env, origin); }
 }
 // GET /admin/member-history?email= — the member's full Stripe billing story:
 // every subscription they've ever had (including incomplete checkouts) plus
@@ -13544,6 +13616,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);

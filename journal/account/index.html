@@ -796,7 +796,37 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   function ms(){return window.$memberstackDom}
   $('btnPw').addEventListener('click',function(){var m=ms();try{if(m&&m.openModal){m.openModal('FORGOT_PASSWORD').catch(function(){try{m.openModal('RESET_PASSWORD')}catch(e){}});return}}catch(e){}alert('Use “Forgot password” on the login screen to reset.')});
-  $('btnPlan').addEventListener('click',function(){var m=ms();try{if(m&&m.launchStripeCustomerPortal){m.launchStripeCustomerPortal();return}}catch(e){}alert('To manage or cancel your plan, contact support@oftmw.com.')});
+  // Direct self-serve cancel (worker /cancel-my-plan, keyed to the logged-in
+  // member id). This is the guaranteed path: it works even when the Stripe
+  // portal launcher can't — e.g. a past-due member whose plan connection
+  // lapsed, who'd otherwise be stuck getting payment-retry emails with no way
+  // to stop them. A failing payment cancels immediately and stops retries.
+  function cancelMyPlanFlow(){
+    getMember().then(function(mem){
+      if(!mem||!mem.id){ alert('Please log in again, then retry.'); return; }
+      if(!confirm('Cancel your Markets of Tomorrow plan?\n\nA trial ends with no charge, a paid plan runs to the end of its period, and a failing payment stops being retried immediately. You can re-subscribe any time.')) return;
+      fetch(WORKER+'/cancel-my-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){
+          if(j&&j.ok){ alert(j.found===false?'You have no active plan — nothing to cancel.':'Your plan is cancelled. You will not be billed again.'); location.reload(); }
+          else alert('Cancellation failed'+(j&&j.error?': '+j.error:'')+'. Email support@oftmw.com and we\'ll sort it right away.');
+        })
+        .catch(function(){ alert('Cancellation failed — email support@oftmw.com and we\'ll sort it right away.'); });
+    });
+  }
+  $('btnPlan').addEventListener('click',function(){
+    var m=ms();
+    try{
+      if(m&&m.launchStripeCustomerPortal){
+        // Portal rejections (no linked Stripe customer, lapsed plan connection)
+        // fall through to the direct cancel flow instead of a dead-end alert.
+        var p=m.launchStripeCustomerPortal();
+        if(p&&p.catch) p.catch(function(){ cancelMyPlanFlow(); });
+        return;
+      }
+    }catch(e){}
+    cancelMyPlanFlow();
+  });
   $('btnOut').addEventListener('click',function(){var m=ms();try{if(m&&m.logout){m.logout().then(function(){location.href='/'}).catch(function(){location.href='/'});return}}catch(e){}location.href='/'});
   function isPaid(m){ try{ return ((m&&m.planConnections)||[]).some(function(p){return p.active===true||p.status==='ACTIVE';}); }catch(e){ return false; } }
   // Show the "trial/plan cancelled — you won't be billed" banner from the live Stripe state.
