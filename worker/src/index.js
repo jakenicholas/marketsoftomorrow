@@ -13053,6 +13053,7 @@ async function handleQboSync(request, env, origin) {
     const invoices = await qboQueryAll(env, auth, 'Invoice', range);
     const payments = await qboQueryAll(env, auth, 'Payment', range);
     const receipts = await qboQueryAll(env, auth, 'SalesReceipt', range);
+    const deposits = await qboQueryAll(env, auth, 'Deposit', range);
 
     // invoice id → latest linked payment date
     const payDate = {};
@@ -13126,8 +13127,38 @@ async function handleQboSync(request, env, origin) {
       }
     }
 
+    // 3) bank deposits — Wix/Stripe payouts arrive as customer-less Deposits,
+    //    NET of processor fees (2.9% + $0.30: $675 lands as $655.12). Wires and
+    //    checks arrive at gross. Greedy chronological matching: earliest unused
+    //    deposit whose amount matches the row's expected net/gross within the
+    //    payout window fills received_date.
+    let depositMatched = 0;
+    {
+      const usedDep = new Set();
+      const pool = deposits.map(d => ({ id: String(d.Id), date: d.TxnDate, amt: +d.TotalAmt || 0 }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const feeNet = a => Math.round((a * 0.971 - 0.30) * 100) / 100;
+      const needs = rows.filter(r => !r.received_date && r.status !== 'unpaid' && r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const addDays = (iso, n) => { const t = new Date(iso + 'T12:00:00'); t.setDate(t.getDate() + n); return t.toISOString().slice(0, 10); };
+      for (const r of needs) {
+        const gross = +r.amount || 0;
+        if (!gross) continue;
+        const targets = (r.paid_by === 'Wix' || r.paid_by === 'Stripe') ? [feeNet(gross), gross] : [gross];
+        const lo = addDays(r.date, -3), hi = addDays(r.date, 60);
+        const hit = pool.find(d => !usedDep.has(d.id) && d.date >= lo && d.date <= hi
+          && targets.some(t => Math.abs(d.amt - t) < 0.011));
+        if (!hit) continue;
+        usedDep.add(hit.id);
+        await env.DB.prepare(`UPDATE flows SET received_date=?, qbo_txn_id=COALESCE(qbo_txn_id, ?), updated_at=? WHERE id=?`)
+          .bind(hit.date, 'dep-' + hit.id, now, r.id).run();
+        r.received_date = hit.date;
+        depositMatched++; receivedFilled++;
+      }
+    }
+
     return json({ ok: true, year, counts: { invoices: invoices.length, payments: payments.length, receipts: receipts.length,
-      updated, autoLinked, statusFlips, receivedFilled }, unlinked, ambiguous }, {}, env, origin);
+      deposits: deposits.length, updated, autoLinked, statusFlips, receivedFilled, depositMatched }, unlinked, ambiguous }, {}, env, origin);
   } catch (e) {
     const notConn = /not_connected|refresh_expired/.test(e.message);
     return json({ error: e.message, connect: notConn ? '/api/qbo/connect' : undefined }, { status: notConn ? 409 : 500 }, env, origin);
