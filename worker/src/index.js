@@ -1072,7 +1072,7 @@ async function handleDesignCaptions(req, env, origin) {
   const _pi = slides.findIndex(s => s === current);
   const slidePos = _pi >= 0 ? _pi + 1 : slides.length + 1;
   const slideTotal = Math.max(slides.length, slidePos);
-  // SHARED BRAIN — same house voice + learned carousel rules the connector/Fable
+  // SHARED BRAIN: same house voice + learned carousel rules the connector/Fable
   // use everywhere else, so captions match the machine's taste and stay unified.
   let brainText = '';
   try { const brain = await assembleBrain(env, { topic: title || current, voice: true, surface: 'carousel', maxKnowledge: 0, maxFacts: 0 }); brainText = (brain && (brain.text || brain.voice)) || ''; } catch (_) {}
@@ -1081,7 +1081,7 @@ async function handleDesignCaptions(req, env, origin) {
   const ctx = 'POST: ' + (title || '(untitled)')
     + '\nSLIDE HEADLINES SO FAR:\n' + (slides.length ? slides.map((s, i) => (i + 1) + '. ' + s).join('\n') : '(none)')
     + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)')
-    + (exclude.length ? '\n\nALREADY SHOWN — do NOT repeat or closely echo any of these; give genuinely DIFFERENT options:\n' + exclude.map(s => '- ' + s).join('\n') : '');
+    + (exclude.length ? '\n\nALREADY SHOWN, do NOT repeat or closely echo any of these; give genuinely DIFFERENT options:\n' + exclude.map(s => '- ' + s).join('\n') : '');
   const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand.\n\n'
     + (brainText ? ('HOUSE BRAIN (voice + learned rules, FOLLOW THESE):\n' + brainText + '\n\n') : '')
     + 'CAROUSEL ARC (how our decks read start to finish):\n'
@@ -1091,11 +1091,11 @@ async function handleDesignCaptions(req, env, origin) {
     + 'You are writing SLIDE ' + slidePos + ' of ' + slideTotal + '. Make it play its role in that arc and follow naturally from the slide headlines so far.\n\n'
     + 'HARD RULES:\n'
     + '- ONE punchy line per option; lead with a concrete FACT (a number, a name, a superlative) when possible.\n'
-    + '- LENGTH: keep each headline TIGHT — roughly 40–80 characters (2–3 short lines in a NARROW slide box). Longer wraps to 5+ lines and crowds the layout.\n'
+    + '- LENGTH: keep each headline TIGHT, roughly 40–80 characters (2–3 short lines in a NARROW slide box). Longer wraps to 5+ lines and crowds the layout.\n'
     + '- PUNCTUATION + CASE: match the CURRENT SLIDE TEXT and the house voice above. No hashtags, no emojis, no clickbait, no em dashes, and no trailing period on a headline unless the house style uses one.\n'
     + '- Preserve exact spellings + diacritics from the post (e.g. "Eudēmonia").\n\n'
     + (mode === 'similar'
-        ? 'TASK: REWORD the CURRENT SLIDE TEXT into 5 options — keep the same meaning + core fact, but each option is a genuinely DIFFERENT phrasing (different structure / word order), clearly the same idea said fresh.'
+        ? 'TASK: REWORD the CURRENT SLIDE TEXT into 5 options, keeping the same meaning + core fact, but each option is a genuinely DIFFERENT phrasing (different structure / word order), clearly the same idea said fresh.'
         : 'TASK: Generate 5 NEW headline ideas for THIS slide, each surfacing a DIFFERENT concrete fact or angle drawn from the post above (do not merely reword the current text).')
     + '\n\nReturn ONLY a JSON array of exactly 5 strings, nothing else.';
   const txt = await fableGenerate(env, { system: sys, user: ctx, maxTokens: 1200 });   // Fable 5 (brain-cached)
