@@ -13504,6 +13504,17 @@ export default {
       }
       // ── QuickBooks OAuth + sync ──
       if (url.pathname === '/qbo/connect' && request.method === 'GET') {
+        // Browser-clickable alternative to the admin bearer: a single-use
+        // connect key pre-inserted into qbo_oauth_state (state = 'ck-…').
+        const key = url.searchParams.get('key') || '';
+        if (key && key.startsWith('ck-') && env.DB) {
+          await ensureQboTables(env);
+          const row = await env.DB.prepare(`SELECT state FROM qbo_oauth_state WHERE state = ?`).bind(key).first();
+          if (row) {
+            await env.DB.prepare(`DELETE FROM qbo_oauth_state WHERE state = ?`).bind(key).run();
+            return await handleQboConnect(env, origin);
+          }
+        }
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
         return await handleQboConnect(env, origin);
