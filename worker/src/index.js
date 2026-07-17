@@ -4973,10 +4973,58 @@ async function handlePostsPublish(req, env, origin, id) {
 // propose GENERALIZABLE lessons about our house voice/style to the shared brain
 // (review-gated via brainWrite). Cheap classifier; proposes nothing on trivial
 // diffs. This is the loop that makes Fable-authored drafts COMPOUND.
+// ── Draft-quality eval (Loop 2): grade the gap between the AI's starting draft and
+// the human-finished version. Retention = how much of the AI draft survived to
+// the finish (100 = published/exported verbatim, the brain nailed it; low = heavy
+// rework). Tracked over time so we can SEE the brain mastering each surface.
+async function ensureEvalScores(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS eval_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, slug TEXT, retention INTEGER,
+    ai_words INTEGER, final_words INTEGER, title TEXT, ts INTEGER
+  )`).run();
+  try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS eval_scores_kind_ts ON eval_scores (kind, ts)').run(); } catch (_) {}
+}
+// Sørensen–Dice similarity over word bigrams (0–100). Robust to reordering, cheap,
+// no LLM. Measures how close the AI draft is to the human-finished copy.
+function wordDiceSimilarity(a, b) {
+  const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const A = norm(a), B = norm(b);
+  if (!A && !B) return 100;
+  if (!A || !B) return 0;
+  const shingles = (s) => {
+    const w = s.split(' ').filter(Boolean); const m = new Map();
+    if (w.length < 2) { const k = w[0] || s; m.set(k, 1); return m; }
+    for (let i = 0; i < w.length - 1; i++) { const k = w[i] + ' ' + w[i + 1]; m.set(k, (m.get(k) || 0) + 1); }
+    return m;
+  };
+  const sa = shingles(A), sb = shingles(B);
+  let inter = 0, na = 0, nb = 0;
+  for (const v of sa.values()) na += v;
+  for (const v of sb.values()) nb += v;
+  for (const [k, v] of sa) if (sb.has(k)) inter += Math.min(v, sb.get(k));
+  if (na + nb === 0) return 100;
+  return Math.round((2 * inter / (na + nb)) * 100);
+}
+async function recordEvalScore(env, { kind, slug, aiText, finalText, title }) {
+  if (!env || !env.DB) return;
+  const ai = String(aiText || ''), fin = String(finalText || '');
+  if (!ai || !fin) return;   // need both snapshots (only AI-authored pieces have a baseline)
+  try {
+    await ensureEvalScores(env);
+    const retention = wordDiceSimilarity(ai, fin);
+    const aw = ai.split(/\s+/).filter(Boolean).length, fw = fin.split(/\s+/).filter(Boolean).length;
+    await env.DB.prepare(`INSERT INTO eval_scores (kind, slug, retention, ai_words, final_words, title, ts) VALUES (?1,?2,?3,?4,?5,?6,?7)`)
+      .bind(kind, String(slug || '').slice(0, 200), retention, aw, fw, String(title || '').slice(0, 160), Math.floor(Date.now() / 1000)).run();
+  } catch (_) {}
+}
+
 async function captureEditLesson(env, post) {
   if (!env.ANTHROPIC_API_KEY || !env.DB) return;
   const orig = htmlToText(post.ai_original_html || '');
   const final = htmlToText(post.body_html || '');
+  // Grade this publish (0→100 retention) BEFORE the trivial-edit gate, so a
+  // published-as-is draft correctly records a perfect score.
+  try { await recordEvalScore(env, { kind: 'article', slug: post.slug || String(post.id || ''), aiText: orig, finalText: final, title: post.title || '' }); } catch (_) {}
   if (!orig || !final || orig === final) return;
   // Skip trivial edits — only learn from a real revision.
   if (orig.slice(0, 4000) === final.slice(0, 4000) && Math.abs(final.length - orig.length) < 40) return;
@@ -5069,6 +5117,12 @@ async function handleDesignLearn(req, env, origin) {
   let b; try { b = await req.json(); } catch { return json({ error: 'invalid JSON' }, { status: 400 }, env, origin); }
   const slug = String(b.slug || '').trim();
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  // Grade the carousel (0→100) at export/download using the AI-original vs final
+  // copy — BEFORE captureDesignLesson advances the baseline.
+  try {
+    const drow = await env.DB.prepare('SELECT ai_original_json, doc_json, title FROM designs WHERE slug=?1').bind(slug).first();
+    if (drow && drow.ai_original_json) await recordEvalScore(env, { kind: 'carousel', slug, aiText: designDocText(drow.ai_original_json), finalText: designDocText(drow.doc_json), title: drow.title || '' });
+  } catch (_) {}
   try { await captureDesignLesson(env, slug); } catch (_) {}
   return json({ ok: true }, {}, env, origin);
 }
@@ -7471,6 +7525,98 @@ async function handleFormatBands(req, env, origin) {
       .bind(now, 'system:format-bands', 'brain_format_bands', JSON.stringify(results)).run();
   } catch (_) {}
   return json({ ok: true, surfaces: results }, {}, env, origin);
+}
+
+// GET /admin/brain/eval-scores — the draft-quality trend (Loop 2). Per surface:
+// how much of the AI draft survives to the finish, all-time and recent-vs-prior
+// (is the brain mastering the format?). Body params: days.
+async function handleEvalScores(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureEvalScores(env);
+  const u = new URL(req.url);
+  const days = Math.min(400, Math.max(7, parseInt(u.searchParams.get('days') || '120', 10) || 120));
+  const now = Math.floor(Date.now() / 1000), since = now - days * 86400;
+  let rows = [];
+  try { rows = (await env.DB.prepare(`SELECT kind, slug, retention, title, ts FROM eval_scores WHERE ts >= ?1 ORDER BY ts DESC LIMIT 1000`).bind(since).all()).results || []; } catch (_) {}
+  const avg = (a) => a.length ? Math.round(a.reduce((s, x) => s + (x.retention || 0), 0) / a.length) : null;
+  const by_kind = ['article', 'carousel'].map((k) => {
+    const r = rows.filter((x) => x.kind === k);
+    const recent = r.filter((x) => x.ts >= now - 14 * 86400);
+    const prior = r.filter((x) => x.ts < now - 14 * 86400 && x.ts >= now - 28 * 86400);
+    return { kind: k, n: r.length, avg: avg(r), avg_recent: avg(recent), avg_prior: avg(prior), n_recent: recent.length };
+  });
+  return json({ ok: true, days, by_kind, recent: rows.slice(0, 40) }, {}, env, origin);
+}
+
+// POST /admin/brain/eval-run — the offline harness (Loop 1). Uses the back-catalog
+// as an answer key: takes N of our best pieces, writes a fresh draft from a neutral
+// brief with the brain ON vs OFF, and an LLM judge scores each against the real one.
+// Reports the brain-ON vs brain-OFF quality delta. Body: { kind:'social'|'article', n? }.
+async function handleEvalRun(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const kind = body.kind === 'article' ? 'article' : 'social';
+  const n = Math.min(Math.max(parseInt(body.n, 10) || 5, 2), 10);
+  const surface = kind === 'social' ? 'social' : 'article';
+  // Haiku helper (brief extraction + judging).
+  const haiku = async (system, user, maxTokens = 300) => {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }),
+      });
+      if (!r.ok) return '';
+      const d = await r.json();
+      return ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+    } catch (_) { return ''; }
+  };
+  // 1) References — our best pieces for this surface.
+  let refs = [];
+  try {
+    if (kind === 'social') {
+      const r = await env.DB.prepare(`SELECT caption AS text, saved, shares FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 80 ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC LIMIT ?1`).bind(n).all();
+      refs = (r.results || []).map((x) => ({ text: String(x.text).slice(0, 1200), label: String(x.text).split('\n')[0].slice(0, 60) }));
+    } else {
+      const r = await env.DB.prepare(`SELECT p.title, p.body_html, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC LIMIT ?1`).bind(n).all();
+      refs = (r.results || []).map((x) => ({ text: htmlToText(x.body_html || '').slice(0, 3000), label: String(x.title || '').slice(0, 60) })).filter((x) => x.text.length > 200);
+    }
+  } catch (e) { return json({ error: 'reference read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (!refs.length) return json({ error: kind === 'social' ? 'no cached posts — run a social sync first' : 'no published articles found' }, { status: 404 }, env, origin);
+
+  const what = kind === 'social' ? 'an Instagram caption' : 'a short article (4-6 short paragraphs)';
+  const maxGen = kind === 'social' ? 380 : 1100;
+  const items = await Promise.all(refs.map(async (ref) => {
+    // neutral brief (facts only, no style) so the brain has to supply the voice
+    const brief = (await haiku('Extract a NEUTRAL factual brief from this piece: the subject and its key facts only, in 1-3 plain lines. Strip ALL style, phrasing, and voice. Output just the brief.', ref.text, 200)).trim();
+    if (!brief) return null;
+    const brain = await assembleBrain(env, { topic: brief.slice(0, 120), surface, voice: true, maxKnowledge: 0, maxFacts: 0 });
+    const genSys = (on) => 'You are the Markets of Tomorrow writer. Write ' + what + ' from the brief below.' + (on && brain.text ? '\n\n' + brain.text : '');
+    const [draftOn, draftOff] = await Promise.all([
+      fableGenerate(env, { system: genSys(true), user: 'BRIEF:\n' + brief, maxTokens: maxGen }),
+      fableGenerate(env, { system: genSys(false), user: 'BRIEF:\n' + brief, maxTokens: maxGen }),
+    ]);
+    const judgeSys = 'You are a strict editor for Markets of Tomorrow. Below is a GOLD example (a real high-performing TMW piece) and a CANDIDATE draft written from a similar brief. Score the CANDIDATE 0-100 on how well it matches TMW\'s house voice, structure, and format quality shown by the gold example. Do NOT reward copying facts; reward voice/structure/format match and overall quality. Output ONLY JSON: {"score": <0-100>}.';
+    const judge = async (draft) => {
+      if (!draft) return null;
+      const t = await haiku(judgeSys, 'GOLD:\n' + ref.text.slice(0, 1500) + '\n\n---\n\nCANDIDATE:\n' + String(draft).slice(0, 1500), 120);
+      const m = t.match(/\{[\s\S]*\}/); if (!m) return null;
+      try { const s = JSON.parse(m[0]).score; return typeof s === 'number' ? Math.max(0, Math.min(100, s)) : null; } catch { return null; }
+    };
+    const [on, off] = await Promise.all([judge(draftOn), judge(draftOff)]);
+    return { label: ref.label, on, off };
+  }));
+  const clean = items.filter((x) => x && x.on != null && x.off != null);
+  if (!clean.length) return json({ error: 'harness produced no scored items (try again)' }, { status: 502 }, env, origin);
+  const avg = (a) => a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length) : null;
+  const on = avg(clean.map((x) => x.on)), off = avg(clean.map((x) => x.off));
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:eval-run', 'brain_eval_run', JSON.stringify({ kind, n: clean.length, brain_on: on, brain_off: off, delta: on - off })).run();
+  } catch (_) {}
+  return json({ ok: true, kind, n: clean.length, brain_on: on, brain_off: off, delta: on - off, items: clean }, {}, env, origin);
 }
 
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
@@ -12934,6 +13080,8 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-carousels') return await handleLearnCarousels(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/reindex-bodies')     return await handleReindexBodies(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/format-bands') return await handleFormatBands(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/brain/eval-scores') return await handleEvalScores(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
