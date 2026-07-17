@@ -7504,8 +7504,8 @@ async function handleFormatBands(req, env, origin) {
   await ensureBrandNotes(env);
   const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
   const SURFACES = [
-    { key: 'article', sources: ['corpus-distill'] },
-    { key: 'social', sources: ['social-distill'] },
+    { key: 'article', sources: ['corpus-distill', 'contrast-article'] },
+    { key: 'social', sources: ['social-distill', 'contrast-social'] },
     { key: 'carousel', sources: ['carousel-distill'] },
   ];
   const now = Math.floor(Date.now() / 1000);
@@ -7652,6 +7652,80 @@ async function handleEvalRun(req, env, origin) {
       .bind(Math.floor(Date.now() / 1000), 'system:eval-run', 'brain_eval_run', JSON.stringify({ kind, n: clean.length, brain_on: on, brain_off: off, delta: on - off })).run();
   } catch (_) {}
   return json({ ok: true, kind, n: clean.length, brain_on: on, brain_off: off, delta: on - off, items: clean }, {}, env, origin);
+}
+
+// Dedup-and-write a set of voice notes to the POOL tier (reinforce a near-match
+// instead of duplicating). Shared by the contrastive learner.
+async function writeVoiceNotes(env, notes, { source, category = 'corpus', context = 'distilled', review = false } = {}) {
+  const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+  const now = Math.floor(Date.now() / 1000);
+  let written = 0, reinforced = 0, staged = 0; const kept = [];
+  for (const n of notes) {
+    const note = String((n && n.note) || '').slice(0, 2000); if (!note) continue;
+    const kind = ALLOWED.includes(n.kind) ? n.kind : 'voice';
+    let existing = null; try { existing = await matchLessonToExisting(env, note); } catch (_) {}
+    if (existing && existing.id) {
+      try { await env.DB.prepare('UPDATE brand_notes SET violations=COALESCE(violations,0)+1, last_violated_at=?1 WHERE id=?2').bind(now, existing.id).run(); reinforced++; } catch (_) {}
+      continue;
+    }
+    if (review) { try { await brainWrite(env, { type: 'voice', kind, note, source, evidence: context }, { review: true }); staged++; } catch (_) {} continue; }
+    const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+    try {
+      await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,?3,?4,?5,?6,?7,1,'voice','pool',0)`)
+        .bind(id, kind, category, note, context, source, now).run();
+      try { await brainNoteVectors(env, [{ id, kind, note, scope: 'voice' }]); } catch (_) {}
+      written++; kept.push({ kind, note });
+    } catch (_) {}
+  }
+  return { written, reinforced, staged, notes: kept };
+}
+
+// POST /admin/brain/learn-contrastive — CONTRASTIVE distillation. Instead of only
+// learning "what good looks like" from top performers, this learns the DELTA: what
+// high-engagement pieces do that low-engagement ones don't. Feeds matched winner +
+// loser sets to Fable and extracts only the DISCRIMINATING patterns. The sharpest,
+// least-obvious signal we have. Body: { kind:'social'|'article', top?, bottom? }.
+async function handleLearnContrastive(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const kind = body.kind === 'article' ? 'article' : 'social';
+  const top = Math.min(Math.max(parseInt(body.top, 10) || (kind === 'social' ? 25 : 15), 6), 40);
+  const bottom = Math.min(Math.max(parseInt(body.bottom, 10) || (kind === 'social' ? 25 : 15), 6), 40);
+  const chars = kind === 'social' ? 280 : 550;
+  await ensureBrandNotes(env);
+  let winners = [], losers = [];
+  try {
+    if (kind === 'social') {
+      await ensureIgPosts(env);
+      winners = ((await env.DB.prepare(`SELECT caption AS t, COALESCE(saved,0)+COALESCE(shares,0) AS m FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 60 AND (COALESCE(saved,0)+COALESCE(shares,0)) > 0 ORDER BY m DESC LIMIT ?1`).bind(top).all()).results) || [];
+      losers = ((await env.DB.prepare(`SELECT caption AS t, COALESCE(saved,0)+COALESCE(shares,0) AS m FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 60 AND COALESCE(views,0) > 0 ORDER BY m ASC LIMIT ?1`).bind(bottom).all()).results) || [];
+    } else {
+      winners = ((await env.DB.prepare(`SELECT p.body_html AS t, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS m FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' AND (COALESCE(pv.views,0)+COALESCE(pv.wix_views,0)) > 0 ORDER BY m DESC LIMIT ?1`).bind(top).all()).results) || [];
+      losers = ((await env.DB.prepare(`SELECT p.body_html AS t, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS m FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' AND (COALESCE(pv.views,0)+COALESCE(pv.wix_views,0)) > 0 ORDER BY m ASC LIMIT ?1`).bind(bottom).all()).results) || [];
+      winners = winners.map((x) => ({ t: htmlToText(x.t || ''), m: x.m }));
+      losers = losers.map((x) => ({ t: htmlToText(x.t || ''), m: x.m }));
+    }
+  } catch (e) { return json({ error: 'read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  winners = winners.filter((x) => x.t && x.t.length > 40);
+  losers = losers.filter((x) => x.t && x.t.length > 40);
+  if (winners.length < 4 || losers.length < 4) return json({ error: kind === 'social' ? 'not enough measured posts for a contrast — run a social sync first' : 'not enough articles with view data for a contrast' }, { status: 404 }, env, origin);
+
+  const fmt = (arr) => arr.map((x, i) => `${i + 1}. ${String(x.t).replace(/\s+/g, ' ').slice(0, chars)}`).join('\n');
+  const sys = 'You are analyzing why some Markets of Tomorrow ' + (kind === 'social' ? 'Instagram captions' : 'articles') + ' vastly outperform others, to teach its AI writer. Below are HIGH-PERFORMERS (top engagement) and LOW-PERFORMERS (bottom engagement). Find the DISCRIMINATING patterns: concrete, wide-scoped writing behaviours the HIGH group consistently does that the LOW group does not (or vice-versa). Ignore topic/subject differences and one-off facts — only patterns that SEPARATE winners from losers and generalize to ANY future piece. Frame each as a short imperative pushing toward the winning behaviour (e.g. "Front-load the single most surprising number in the first line — winners lead with it, losers bury it"). '
+    + 'Output ONLY a JSON array (6-12 items): [{"kind":"voice"|"structure"|"like"|"avoid","note":"<imperative>"}].';
+  const usr = 'HIGH-PERFORMERS (top engagement):\n' + fmt(winners) + '\n\n---\n\nLOW-PERFORMERS (bottom engagement):\n' + fmt(losers);
+  let notes = [];
+  try { const arr = parseLLMJson(await fableGenerate(env, { system: sys, user: usr.slice(0, 26000), maxTokens: 1600 })); if (Array.isArray(arr)) notes = arr.filter((x) => x && x.note).slice(0, 14).map((x) => ({ kind: String(x.kind || 'voice'), note: String(x.note).slice(0, 400) })); } catch (_) {}
+  if (!notes.length) return json({ error: 'contrastive analysis produced nothing (try again)' }, { status: 502 }, env, origin);
+  const res = await writeVoiceNotes(env, notes, { source: 'contrast-' + kind, category: kind, context: 'discriminating pattern (winners vs losers)' });
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`)
+      .bind(Math.floor(Date.now() / 1000), 'system:contrast-distill', 'brain_contrastive_learn', JSON.stringify({ kind, winners: winners.length, losers: losers.length, written: res.written, reinforced: res.reinforced })).run();
+  } catch (_) {}
+  return json({ ok: true, kind, winners: winners.length, losers: losers.length, written: res.written, reinforced: res.reinforced, notes: res.notes }, {}, env, origin);
 }
 
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
@@ -12624,6 +12698,203 @@ async function handleAdminFlowsImport(request, env, origin) {
   } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// ── QuickBooks Online: OAuth + reconciliation sync for the Flows ledger ──
+// Secrets: QBO_CLIENT_ID + QBO_CLIENT_SECRET (Intuit developer app; Jake owns).
+// Flow: GET /qbo/connect (admin, via the Studio proxy) → Intuit consent →
+// GET /qbo/callback (public, state-checked) stores tokens in D1. Then
+// POST /admin/qbo/sync pulls Invoices + Payments (+ SalesReceipts) and updates
+// ONLY flows rows already linked via qbo_txn_id — plus conservative unique
+// auto-links — per Jake's rules: open invoice = unpaid, QBO amount wins,
+// never auto-create ledger rows.
+const QBO_AUTH_URL = 'https://appcenter.intuit.com/connect/oauth2';
+const QBO_TOKEN_URL = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+const QBO_API = 'https://quickbooks.api.intuit.com';
+const QBO_REDIRECT = 'https://tmw.jake-ab7.workers.dev/qbo/callback';
+
+async function ensureQboTables(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS qbo_auth (
+    id INTEGER PRIMARY KEY CHECK (id = 1), realm_id TEXT,
+    access_token TEXT, refresh_token TEXT,
+    access_expires_at INTEGER, refresh_expires_at INTEGER, updated_at INTEGER
+  )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS qbo_oauth_state (state TEXT PRIMARY KEY, created_at INTEGER)`).run();
+  try { await env.DB.prepare('ALTER TABLE flows ADD COLUMN qbo_txn_id TEXT').run(); } catch (_) { /* exists */ }
+}
+
+async function handleQboConnect(env, origin) {
+  if (!env.QBO_CLIENT_ID) return json({ error: 'QBO_CLIENT_ID secret not set' }, { status: 500 }, env, origin);
+  await ensureQboTables(env);
+  const state = crypto.randomUUID();
+  await env.DB.prepare(`INSERT INTO qbo_oauth_state (state, created_at) VALUES (?,?)`)
+    .bind(state, Math.floor(Date.now() / 1000)).run();
+  const u = new URL(QBO_AUTH_URL);
+  u.searchParams.set('client_id', env.QBO_CLIENT_ID);
+  u.searchParams.set('response_type', 'code');
+  u.searchParams.set('scope', 'com.intuit.quickbooks.accounting');
+  u.searchParams.set('redirect_uri', QBO_REDIRECT);
+  u.searchParams.set('state', state);
+  return Response.redirect(u.toString(), 302);
+}
+
+async function qboTokenRequest(env, params) {
+  const basic = btoa(env.QBO_CLIENT_ID + ':' + env.QBO_CLIENT_SECRET);
+  const r = await fetch(QBO_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Authorization': 'Basic ' + basic, 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+    body: new URLSearchParams(params).toString()
+  });
+  if (!r.ok) throw new Error('token exchange ' + r.status + ': ' + (await r.text()).slice(0, 300));
+  return r.json();
+}
+async function qboStoreTokens(env, realmId, tok) {
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT OR REPLACE INTO qbo_auth (id, realm_id, access_token, refresh_token, access_expires_at, refresh_expires_at, updated_at)
+    VALUES (1, ?, ?, ?, ?, ?, ?)`)
+    .bind(realmId, tok.access_token, tok.refresh_token,
+      now + (tok.expires_in || 3600) - 60, now + (tok.x_refresh_token_expires_in || 8640000) - 3600, now).run();
+}
+
+async function handleQboCallback(request, env, origin) {
+  await ensureQboTables(env);
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code'), state = url.searchParams.get('state'), realmId = url.searchParams.get('realmId');
+  const err = url.searchParams.get('error');
+  const page = (msg, ok) => new Response(
+    '<!doctype html><body style="background:#070807;color:' + (ok ? '#1FDF67' : '#ff8a8a') + ';font-family:ui-monospace,monospace;display:flex;align-items:center;justify-content:center;height:100vh;font-size:16px">' + msg + '</body>',
+    { status: ok ? 200 : 400, headers: { 'Content-Type': 'text/html' } });
+  if (err) return page('QuickBooks said: ' + err, false);
+  if (!code || !state || !realmId) return page('Missing code/state/realmId', false);
+  const st = await env.DB.prepare(`SELECT state, created_at FROM qbo_oauth_state WHERE state = ?`).bind(state).first();
+  await env.DB.prepare(`DELETE FROM qbo_oauth_state WHERE state = ? OR created_at < ?`).bind(state, Math.floor(Date.now() / 1000) - 900).run();
+  if (!st || st.created_at < Math.floor(Date.now() / 1000) - 900) return page('State expired — retry /qbo/connect', false);
+  try {
+    const tok = await qboTokenRequest(env, { grant_type: 'authorization_code', code, redirect_uri: QBO_REDIRECT });
+    await qboStoreTokens(env, realmId, tok);
+    return page('✓ QuickBooks connected (realm ' + realmId + '). You can close this tab — run the sync from Flows.', true);
+  } catch (e) { return page('Connect failed: ' + e.message, false); }
+}
+
+// Valid access token, refreshing (and rotating the refresh token) as needed.
+async function qboAccessToken(env) {
+  const row = await env.DB.prepare(`SELECT * FROM qbo_auth WHERE id = 1`).first();
+  if (!row || !row.refresh_token) throw new Error('not_connected');
+  const now = Math.floor(Date.now() / 1000);
+  if (row.access_expires_at > now) return { token: row.access_token, realm: row.realm_id };
+  if (row.refresh_expires_at && row.refresh_expires_at < now) throw new Error('refresh_expired — reconnect via /qbo/connect');
+  const tok = await qboTokenRequest(env, { grant_type: 'refresh_token', refresh_token: row.refresh_token });
+  await qboStoreTokens(env, row.realm_id, tok);
+  return { token: tok.access_token, realm: row.realm_id };
+}
+
+async function qboQueryAll(env, auth, entity, where) {
+  const out = [];
+  for (let start = 1; start < 5000; start += 1000) {
+    const q = `SELECT * FROM ${entity} ${where} STARTPOSITION ${start} MAXRESULTS 1000`;
+    const r = await fetch(`${QBO_API}/v3/company/${auth.realm}/query?query=${encodeURIComponent(q)}&minorversion=75`, {
+      headers: { 'Authorization': 'Bearer ' + auth.token, 'Accept': 'application/json' }
+    });
+    if (!r.ok) throw new Error(entity + ' query ' + r.status + ': ' + (await r.text()).slice(0, 300));
+    const d = await r.json();
+    const rows = (d.QueryResponse && d.QueryResponse[entity]) || [];
+    out.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return out;
+}
+
+// POST /admin/qbo/sync { year? } → reconcile linked flows rows against QBO.
+async function handleQboSync(request, env, origin) {
+  let b = {}; try { b = await request.json(); } catch (_) {}
+  const year = Math.min(2100, Math.max(2000, parseInt(b.year, 10) || new Date().getFullYear()));
+  try {
+    await ensureFlowsTable(env);
+    await ensureQboTables(env);
+    const auth = await qboAccessToken(env);
+    const range = `WHERE TxnDate >= '${year}-01-01' AND TxnDate <= '${year}-12-31'`;
+    const invoices = await qboQueryAll(env, auth, 'Invoice', range);
+    const payments = await qboQueryAll(env, auth, 'Payment', range);
+    const receipts = await qboQueryAll(env, auth, 'SalesReceipt', range);
+
+    // invoice id → latest linked payment date
+    const payDate = {};
+    for (const p of payments) {
+      for (const line of (p.Line || [])) {
+        for (const lt of (line.LinkedTxn || [])) {
+          if (lt.TxnType === 'Invoice' && lt.TxnId) {
+            if (!payDate[lt.TxnId] || p.TxnDate > payDate[lt.TxnId]) payDate[lt.TxnId] = p.TxnDate;
+          }
+        }
+      }
+    }
+
+    const rs = await env.DB.prepare(`SELECT * FROM flows WHERE year = ? AND kind = 'income'`).bind(year).all();
+    const rows = rs.results || [];
+    const byQid = new Map(rows.filter(r => r.qbo_txn_id).map(r => [String(r.qbo_txn_id), r]));
+    const now = Math.floor(Date.now() / 1000);
+    let updated = 0, statusFlips = 0, receivedFilled = 0, autoLinked = 0;
+    const unlinked = [], ambiguous = [];
+
+    // 1) linked invoices → status (open = unpaid, always), amount (QBO wins),
+    //    invoice_date, received_date from the linked payment
+    for (const inv of invoices) {
+      const row = byQid.get(String(inv.Id));
+      const open = (+inv.Balance || 0) > 0;
+      if (!row) {
+        // conservative auto-link: unique same-amount row within ±7d, not yet linked
+        const cands = rows.filter(r => !r.qbo_txn_id && r.date && Math.abs(+r.amount - (+inv.TotalAmt || 0)) < 0.01
+          && Math.abs((new Date(r.date) - new Date(inv.TxnDate)) / 86400000) <= 7);
+        if (cands.length === 1) {
+          const r0 = cands[0];
+          r0.qbo_txn_id = String(inv.Id);
+          byQid.set(String(inv.Id), r0);
+          autoLinked++;
+        } else {
+          (cands.length ? ambiguous : unlinked).push({ id: inv.Id, date: inv.TxnDate, amount: +inv.TotalAmt || 0, customer: inv.CustomerRef && inv.CustomerRef.name, open });
+          continue;
+        }
+      }
+      const r2 = byQid.get(String(inv.Id));
+      const newStatus = open ? 'unpaid' : 'paid';
+      const newReceived = open ? null : (payDate[String(inv.Id)] || r2.received_date || null);
+      const changed = r2.status !== newStatus || Math.abs(+r2.amount - (+inv.TotalAmt || 0)) > 0.005
+        || r2.invoice_date !== inv.TxnDate || (r2.received_date || null) !== newReceived;
+      if (r2.status !== newStatus) statusFlips++;
+      if (newReceived && r2.received_date !== newReceived) receivedFilled++;
+      await env.DB.prepare(`UPDATE flows SET amount=?, status=?, invoice_date=?, received_date=?, qbo_txn_id=?, updated_at=? WHERE id=?`)
+        .bind(+inv.TotalAmt || 0, newStatus, inv.TxnDate, newReceived, String(inv.Id), now, r2.id).run();
+      if (changed) updated++;
+    }
+
+    // 2) sales receipts (wires/checks Jake logs as customer sales): money moved
+    //    same-day — unique-match fills received_date on unlinked rows
+    for (const sr of receipts) {
+      const key = 'sr-' + sr.Id;
+      if (byQid.has(key)) {
+        const r3 = byQid.get(key);
+        await env.DB.prepare(`UPDATE flows SET received_date=?, updated_at=? WHERE id=?`).bind(sr.TxnDate, now, r3.id).run();
+        continue;
+      }
+      const cands = rows.filter(r => !r.qbo_txn_id && r.date && Math.abs(+r.amount - (+sr.TotalAmt || 0)) < 0.01
+        && Math.abs((new Date(r.date) - new Date(sr.TxnDate)) / 86400000) <= 7);
+      if (cands.length === 1) {
+        const r3 = cands[0];
+        r3.qbo_txn_id = key;
+        byQid.set(key, r3);
+        await env.DB.prepare(`UPDATE flows SET received_date=?, qbo_txn_id=?, updated_at=? WHERE id=?`).bind(sr.TxnDate, key, now, r3.id).run();
+        receivedFilled++; autoLinked++;
+      } else if (cands.length > 1) {
+        ambiguous.push({ id: key, date: sr.TxnDate, amount: +sr.TotalAmt || 0, customer: sr.CustomerRef && sr.CustomerRef.name, kind: 'sales_receipt' });
+      }
+    }
+
+    return json({ ok: true, year, counts: { invoices: invoices.length, payments: payments.length, receipts: receipts.length,
+      updated, autoLinked, statusFlips, receivedFilled }, unlinked, ambiguous }, {}, env, origin);
+  } catch (e) {
+    const notConn = /not_connected|refresh_expired/.test(e.message);
+    return json({ error: e.message, connect: notConn ? '/api/qbo/connect' : undefined }, { status: notConn ? 409 : 500 }, env, origin);
+  }
+}
+
 // Public: travel-partner inquiry from the /travel itinerary page. Emails the
 // team (reply-to the sender) and sends the sender a confirmation with the same
 // details. Multipart (HTML + text) for deliverability. Honeypot absorbs bots.
@@ -12992,6 +13263,20 @@ export default {
         const fm = url.pathname.match(/^\/admin\/flows\/([^/]+)$/);
         if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
+      // ── QuickBooks OAuth + sync ──
+      if (url.pathname === '/qbo/connect' && request.method === 'GET') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleQboConnect(env, origin);
+      }
+      if (url.pathname === '/qbo/callback' && request.method === 'GET') {
+        return await handleQboCallback(request, env, origin);
+      }
+      if (url.pathname === '/admin/qbo/sync' && request.method === 'POST') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleQboSync(request, env, origin);
+      }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
       }
@@ -13117,6 +13402,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/format-bands') return await handleFormatBands(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/brain/eval-scores') return await handleEvalScores(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
