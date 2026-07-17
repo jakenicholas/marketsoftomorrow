@@ -7947,7 +7947,7 @@ const BRAIN_AUTOPILOT_PHASES = [
   { name: 'optimize-article', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'article' }), env, 'internal') },
   { name: 'garden', run: (env) => gardenBrain(env) },
   { name: 'attribution', run: (env) => runAttribution(env) },
-  { name: 'reportcard', run: (env) => buildReportCard(env) },
+  { name: 'reportcard', run: async (env) => { const card = await buildReportCard(env); await sendBrainReportEmail(env, card); } },
 ];
 async function maybeBrainAutopilot(env) {
   if (!env.DB || !env.ANTHROPIC_API_KEY || !retrievalReady(env)) return;
@@ -13643,6 +13643,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/report-email') return await handleReportEmail(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
