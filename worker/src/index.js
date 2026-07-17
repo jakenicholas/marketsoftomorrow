@@ -907,6 +907,49 @@ async function handleAdminCancelSub(req, env, origin) {
     return json({ ok: true, status: res.status, cancel_at_period_end: !!res.cancel_at_period_end, was_trialing: sub.status === 'trialing', email }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
 }
+// GET /admin/member-history?email= — the member's full Stripe billing story:
+// every subscription they've ever had (including incomplete checkouts) plus
+// recent invoices. Rendered by the Analytics profile modal's "Account history"
+// section — the plan pill only shows the CURRENT state, which reads "free" for
+// someone whose trial/Pro lapsed and hides that they ever subscribed.
+async function handleAdminMemberHistory(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.STRIPE_SECRET_KEY) return json({ configured: false, subs: [], invoices: [] }, {}, env, origin);
+  const email = String(url.searchParams.get('email') || '').trim().toLowerCase();
+  if (!email) return json({ error: 'email required' }, { status: 400 }, env, origin);
+  try {
+    const subs = [], invoices = [];
+    const custs = await stripeGet(env, '/customers?email=' + encodeURIComponent(email) + '&limit=10');
+    for (const c of (custs.data || [])) {
+      const ss = await stripeGet(env, '/subscriptions?customer=' + c.id + '&status=all&limit=20');
+      for (const s of (ss.data || [])) {
+        const price = s.items && s.items.data && s.items.data[0] && s.items.data[0].price;
+        subs.push({
+          id: s.id, status: s.status, created: s.created,
+          trial_start: s.trial_start || null, trial_end: s.trial_end || null,
+          cancel_at_period_end: !!s.cancel_at_period_end,
+          canceled_at: s.canceled_at || null, ended_at: s.ended_at || null,
+          current_period_end: s.current_period_end || null,
+          amount: price ? price.unit_amount : null,
+          interval: price && price.recurring ? price.recurring.interval : null,
+        });
+      }
+      const inv = await stripeGet(env, '/invoices?customer=' + c.id + '&limit=30');
+      for (const i of (inv.data || [])) {
+        invoices.push({
+          id: i.id, created: i.created, status: i.status,          // open|paid|uncollectible|void|draft
+          amount_due: i.amount_due, amount_paid: i.amount_paid,
+          attempt_count: i.attempt_count || 0,
+          next_payment_attempt: i.next_payment_attempt || null,
+          billing_reason: i.billing_reason || null,
+        });
+      }
+    }
+    subs.sort((a, b) => b.created - a.created);
+    invoices.sort((a, b) => b.created - a.created);
+    return json({ configured: true, found: !!(subs.length || invoices.length), subs, invoices }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
 // Deep-search allowance ledger for one member. Buckets: a rolling monthly free
 // tier (DEEP_MONTHLY_CAP), a permanent credit balance (admin grants + future
 // purchases), and an "unlimited" flag (owner/testers). Usage is `intel_deep`
@@ -13500,6 +13543,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/sub-status')              return await handleSubStatus(request, env, origin, url);
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
