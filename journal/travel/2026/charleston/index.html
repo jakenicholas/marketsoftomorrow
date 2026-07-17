@@ -291,44 +291,6 @@
   <main class="wrap" id="tl"></main>
 </div>
 
-<!-- Partner enquiry modal -->
-<div class="pm-back" id="pm" aria-hidden="true">
-  <div class="pm" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
-    <button class="pm-x" id="pmX" aria-label="Close">✕</button>
-    <div id="pmBody">
-      <div class="pm-k">Open Partnerships</div>
-      <h3 id="pmTitle">Express interest</h3>
-      <p class="pm-sub" id="pmSub">Tell us a little about you and we’ll be in touch.</p>
-      <form id="pmForm" novalidate autocomplete="on">
-        <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
-        <div class="pm-field"><label for="pmEmail">Email</label><input id="pmEmail" name="email" type="email" autocomplete="email" required></div>
-        <div class="pm-field"><label for="pmClient">Client / property name</label><input id="pmClient" name="client" autocomplete="organization"></div>
-        <div class="pm-field"><label for="pmType">Partnership type</label>
-          <select id="pmType" name="type">
-            <option value="">Select type…</option>
-            <option>Hotel</option>
-            <option>Restaurant</option>
-            <option>Golf</option>
-            <option>Excursions</option>
-            <option>Experiences</option>
-          </select>
-        </div>
-        <div class="pm-field"><label for="pmSite">Property website</label><input id="pmSite" name="website" inputmode="url" placeholder="https://"></div>
-        <div class="pm-field"><label for="pmNote">Message</label><textarea id="pmNote" name="message" rows="4" placeholder="Tell us about your property or what you'd like to offer…"></textarea></div>
-        <input class="pm-hp" tabindex="-1" autocomplete="off" id="pmHp" name="company" aria-hidden="true" placeholder="Company">
-        <button class="pm-submit" id="pmSubmit" type="submit">Send inquiry</button>
-        <div class="pm-msg" id="pmMsg" role="status" aria-live="polite"></div>
-      </form>
-    </div>
-    <div class="pm-done" id="pmDone" style="display:none">
-      <div class="pm-check">✓</div>
-      <h3>Thank you</h3>
-      <p class="pm-sub">Your details are in — we’ve emailed you a copy and our team will follow up shortly.</p>
-      <button class="pm-submit" id="pmClose2" type="button" style="margin-top:18px;width:100%">Close</button>
-    </div>
-  </div>
-</div>
-
 <!-- Lightbox -->
 <div id="lb"><span class="lb-x">✕</span><img alt=""></div>
 
@@ -346,10 +308,10 @@ const ICONS = {
 };
 
 const STOPS = [
-  { loc:'Charleston, South Carolina', nights:'2 Nights · July 17 → 19', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+  { loc:'Charleston, South Carolina', nights:'2 Nights · July 17 → 19', stay:'The Mills House', noClient:true,
     in:{ start:true, date:'July 17', mode:'flight', note:'Fly in to start the weekend' },
     vibe:'Opening on the harbor in historic Charleston, with waterfront promenades, cobblestoned streets, and Lowcountry tables a short walk from the Battery.',
-    logi:[], imgs:['https://media.cntraveler.com/photos/57f3d1b244b4743b6f94de13/16:9/w_2560,c_limit/waterfront-park-charleston-GettyImages-478713798.jpg'] },
+    logi:[], imgs:['https://www.millshouse.com/content/uploads/2023/04/homepage-9.png'] },
 
   { loc:'Charleston, South Carolina', nights:'2 Nights · July 19 → 21', stay:'Hotel Bennett', client:'Kate Hudson PR',
     in:{ walk:true },
@@ -411,20 +373,9 @@ function stopHtml(s, marker){
   var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
-  var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
-           : s.noClient ? jprPill('Private')
-           : jprPill(s.client || 'Client', 'Partner');
-  var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
-  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
-  // Every location gets an "Express interest" action; hotel-seeking stops get a
-  // single-row "Looking for [Hotel partner] Express interest →".
-  var partnerCta = s.pending
-    ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'" data-type="Hotel">'
-      +   '<span class="sp-lead">Looking for</span>'
-      +   '<span class="pt-cats"><span>Hotel partner</span></span>'
-      +   '<span class="pt-cta">Express interest <span class="pt-arw">→</span></span>'
-      + '</button>'
-    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
+  var pill = s.noClient ? jprPill('Private') : jprPill(s.client || 'Client', 'Partner');
+  var stayLine = s.stay;
+  // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes.
   return '<section class="'+cls+'">'
     + galleryHtml(s.imgs, s.imgPos)
     + '<div class="stop-info">'
@@ -436,7 +387,6 @@ function stopHtml(s, marker){
     +   '<div class="stop-date">'+s.loc+'</div>'
     +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
     +   logiHtml(s.logi)
-    +   partnerCta
     + '</div>'
     + '</section>';
 }
@@ -546,34 +496,9 @@ function initRouteMap(tries){
 }
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-function partnerBoxHtml(){
-  var pend = STOPS.filter(function(s){ return s.pending; });
-  var tiles = pend.map(function(s){
-    return '<button type="button" class="pt-tile" data-partner="'+esc(s.loc)+'">'
-      +   '<div class="pt-city">'+s.loc+'</div>'
-      +   '<div class="pt-when">'+s.nights+'</div>'
-      +   '<div class="pt-cats"><span>Hotel partner</span></div>'
-      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
-      + '</button>';
-  }).join('');
-  return '<section class="partners">'
-    + '<div class="pt-head">'
-    +   '<div class="pt-k">Open Partnerships</div>'
-    +   '<h2>Still seeking local partners in Charleston</h2>'
-    +   '<p class="pt-sub">We’re still curating the opening stay plus the right restaurants, experiences &amp; excursions in Charleston. If you host, guide, or represent a standout, we’d love to include you in our travel coverage.</p>'
-    +   '<a class="pt-btn" href="https://www.oftmw.com/media/hotels">Our deliverables <span class="pt-arw">→</span></a>'
-    + '</div>'
-    + (tiles ? '<div class="pt-grid">'+tiles+'</div>' : '')
-    + '<div class="pt-all">'
-    +   '<div class="pt-all-k">Seeking in Charleston</div>'
-    +   '<div class="pt-cats"><span>Restaurants</span><span>Experiences</span><span>Excursions</span></div>'
-    +   '<button type="button" class="stop-express" data-partner="Charleston, South Carolina" data-type="Experiences">Express interest <span class="pt-arw">→</span></button>'
-    + '</div>'
-    + '</section>';
-}
 function render(){
   buildTopShow();
-  var html = '<div class="timeline">' + partnerBoxHtml(), num = 0;
+  var html = '<div class="timeline">', num = 0;
   STOPS.forEach(function(s){
     if(s.in) html += legHtml(s.in);
     var marker = s.tentative ? '◇' : (++num);   // ◇ for tentative day trips

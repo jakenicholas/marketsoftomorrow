@@ -117,6 +117,10 @@
   .trip-badge{position:absolute;top:14px;right:14px;z-index:2;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:5px 12px;background:#FBF6EC;box-shadow:0 2px 8px rgba(40,25,12,.18)}
   .trip-badge.up{color:var(--terra);border:1px solid rgba(176,96,58,.55)}
   .trip-badge.ended{color:var(--mute2);border:1px solid var(--hair2)}
+  /* Live = we're on the trip right now: filled terracotta + a pulsing dot. */
+  .trip-badge.live{color:#FBF6EC;background:var(--terra);border:1px solid var(--terra);display:inline-flex;align-items:center;gap:6px}
+  .trip-badge.live .live-dot{width:6px;height:6px;border-radius:50%;background:#FBF6EC;animation:trip-live 1.8s ease-in-out infinite}
+  @keyframes trip-live{0%,100%{opacity:1}50%{opacity:.3}}
 
   footer.f{text-align:center;padding:34px 0 60px;color:var(--mute);font-size:12px;letter-spacing:.04em;border-top:1px solid var(--hair)}
   footer.f .fm{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mute2);margin-bottom:8px}
@@ -206,14 +210,14 @@
 // `img` empty → an elegant gradient placeholder tile (drop a URL in later).
 var TRIPS = [
   { title:'Italy, The Isles & The Alps', place:'Italy · Croatia · Greece · Slovenia · Switzerland', date:'September 3 — October 7, 2026',
-    href:'/travel/2026/europe/', upcoming:true, openCTA:true,
+    href:'/travel/2026/europe/', upcoming:true, openCTA:true, start:'2026-09-03', end:'2026-10-07',
     img:'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
     partners:['J/PR'] },
-  { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, openCTA:true,
+  { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, openCTA:true, start:'2026-08-01', end:'2026-08-09',
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
     partners:['Quinn','Nobu Hotels'] },
-  { title:'Charleston', place:'Charleston, South Carolina', date:'July 17 – 21, 2026', upcoming:true, openCTA:true,
+  { title:'Charleston', place:'Charleston, South Carolina', date:'July 17 – 21, 2026', upcoming:true, start:'2026-07-17', end:'2026-07-21',
     href:'/travel/2026/charleston/',
     img:'https://www.charlestoncvb.com/assets/images/home/collage-1.jpg',
     partners:['Kate Hudson PR','Hotel Bennett'] },
@@ -284,9 +288,22 @@ function partnersHtml(list, openCTA){
   if(!pills.length) return '';
   return '<div class="trip-partners"><span class="p-lead">Partners</span>' + pills.join('') + '</div>';
 }
+// Status from the trip's real dates when present: LIVE while we're actually there,
+// Upcoming before it starts, Ended after. Falls back to the `upcoming` flag.
+function tripStatus(t){
+  if (t.start && t.end) {
+    var now = new Date(), s0 = new Date(t.start + 'T00:00:00'), e0 = new Date(t.end + 'T23:59:59');
+    if (now >= s0 && now <= e0) return 'live';
+    return now < s0 ? 'up' : 'ended';
+  }
+  return t.upcoming ? 'up' : 'ended';
+}
 function tripHtml(t, i){
-  // Top-right status pill: terracotta "Upcoming" for future trips, gray "Ended" for past.
-  var badge = '<span class="trip-badge '+(t.upcoming?'up':'ended')+'">'+(t.upcoming?'Upcoming':'Ended')+'</span>';
+  // Top-right status pill: filled terracotta "Live" while we're there, outlined
+  // "Upcoming" before, gray "Ended" after.
+  var st = tripStatus(t);
+  var label = st === 'live' ? 'Live' : (st === 'up' ? 'Upcoming' : 'Ended');
+  var badge = '<span class="trip-badge '+st+'">'+(st==='live'?'<span class="live-dot"></span>':'')+label+'</span>';
   var inner =
       '<div class="trip-img">'+imgHtml(t, i)+badge+'</div>'   // badge anchored inside the image
     + '<div class="trip-body">'
@@ -296,7 +313,7 @@ function tripHtml(t, i){
     +   partnersHtml(t.partners, t.openCTA)
     +   (t.href ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
     + '</div>';
-  var cls = 'trip' + (t.upcoming ? ' upcoming' : '');
+  var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '');
   return t.href
     ? '<a class="'+cls+'" href="'+esc(t.href)+'">'+inner+'</a>'
     : '<article class="'+cls+'">'+inner+'</article>';
