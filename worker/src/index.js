@@ -7728,6 +7728,105 @@ async function handleLearnContrastive(req, env, origin) {
   return json({ ok: true, kind, winners: winners.length, losers: losers.length, written: res.written, reinforced: res.reinforced, notes: res.notes }, {}, env, origin);
 }
 
+// POST /admin/brain/optimize-bands — HARNESS-DRIVEN SELF-TUNING. For a surface,
+// generate K candidate format-band variants from the distilled pool, SCORE each
+// against our best work via the harness (brain writes with the candidate injected),
+// and PROMOTE the highest-scoring one if it beats the current live band. The eval
+// stops being a report card and becomes an optimizer. Body: { kind, n?, variants? }.
+async function handleOptimizeBands(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
+  if (!retrievalReady(env)) return json({ error: 'retrieval not configured (need AI + VECTORIZE)' }, { status: 503 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const surface = ['article', 'carousel', 'social'].includes(body.kind) ? body.kind : 'social';
+  const n = Math.min(Math.max(parseInt(body.n, 10) || 3, 2), 5);
+  const K = Math.min(Math.max(parseInt(body.variants, 10) || 2, 2), 3);
+  await ensureBrandNotes(env);
+  const haiku = async (system, user, maxTokens = 200) => {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' }, body: JSON.stringify({ model: CLASSIFY_MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] }) });
+      if (!r.ok) return ''; const d = await r.json(); return ((d.content || []).find((b) => b && b.type === 'text') || {}).text || '';
+    } catch (_) { return ''; }
+  };
+  // 1) References (our best pieces for this surface).
+  let refs = [];
+  try {
+    if (surface === 'social') {
+      refs = ((await env.DB.prepare(`SELECT caption AS t FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 80 ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC LIMIT ?1`).bind(n).all()).results || []).map((x) => ({ text: String(x.t).slice(0, 1200) }));
+    } else if (surface === 'carousel') {
+      refs = ((await env.DB.prepare(`SELECT doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(n * 3).all()).results || []).map((x) => ({ text: designDocText(x.doc_json || '{}').slice(0, 1400) })).filter((x) => x.text.length > 60).slice(0, n);
+    } else {
+      refs = ((await env.DB.prepare(`SELECT p.body_html AS t FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC LIMIT ?1`).bind(n).all()).results || []).map((x) => ({ text: htmlToText(x.t || '').slice(0, 3000) })).filter((x) => x.text.length > 200);
+    }
+  } catch (e) { return json({ error: 'reference read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (refs.length < 2) return json({ error: 'not enough reference pieces for ' + surface + ' (run the learn/sync buttons first)' }, { status: 404 }, env, origin);
+
+  // 2) The distilled source notes for this surface.
+  const srcMap = { social: ['social-distill', 'contrast-social'], article: ['corpus-distill', 'contrast-article'], carousel: ['carousel-distill'] };
+  const sources = srcMap[surface]; const ph = sources.map(() => '?').join(',');
+  let srcNotes = [];
+  try { srcNotes = (await env.DB.prepare(`SELECT kind, note FROM brand_notes WHERE active=1 AND created_by IN (${ph})`).bind(...sources).all()).results || []; } catch (_) {}
+  if (srcNotes.length < 4) return json({ error: 'not enough distilled notes to optimize ' + surface + ' — run the learn buttons first' }, { status: 404 }, env, origin);
+  const srcBlock = srcNotes.map((n2) => `- [${n2.kind}] ${n2.note}`).join('\n').slice(0, 20000);
+
+  // 3) Generate K candidate bands (distinct consolidation strategies).
+  const styles = ['the tightest, highest-leverage 8-10 rules only — ruthless', 'a well-rounded 11-12 rules covering hook, structure, numbers, and close', 'ordered strictly by what most separates high-performers from low ones'];
+  const mkBand = async (i) => {
+    const sys = 'Consolidate these ' + surface + ' writing rules into an always-on checklist: ' + styles[i % styles.length] + '. Merge overlaps, drop redundancy, keep each a crisp general imperative. Output ONLY a JSON array: [{"kind":"voice"|"structure"|"like"|"avoid","note":"<imperative>"}].';
+    const arr = parseLLMJson(await fableGenerate(env, { system: sys, user: 'RULES:\n' + srcBlock, maxTokens: 1400 }));
+    return (Array.isArray(arr) ? arr : []).filter((x) => x && x.note).slice(0, 12).map((x) => ({ kind: String(x.kind || 'voice'), note: String(x.note).slice(0, 400) }));
+  };
+  const candidates = (await Promise.all(Array.from({ length: K }, (_, i) => mkBand(i)))).filter((b) => b.length);
+  if (!candidates.length) return json({ error: 'candidate generation failed (try again)' }, { status: 502 }, env, origin);
+
+  // 4) Briefs (extracted once, reused for every band).
+  const briefs = await Promise.all(refs.map((ref) => haiku('Extract a NEUTRAL factual brief (subject + key facts only, no style/phrasing) from this piece in 1-3 plain lines.', ref.text, 200).then((s) => s.trim())));
+
+  // 5) Score a band (its text injected as the format rules) against the refs.
+  const what = surface === 'social' ? 'an Instagram caption' : surface === 'carousel' ? 'an Instagram carousel — a caption then 5-7 slide headlines as "CAPTION: ..." then "SLIDE 1: ..."' : 'a short article (4-6 short paragraphs)';
+  const maxGen = surface === 'article' ? 1100 : surface === 'carousel' ? 650 : 380;
+  const judgeSys = 'You are a strict editor for Markets of Tomorrow. Below is a GOLD example (a real high-performing TMW piece) and a CANDIDATE draft from a similar brief. Score the CANDIDATE 0-100 on how well it matches TMW\'s house voice, structure, and format quality shown by the gold. Do NOT reward copying facts. Output ONLY JSON: {"score": <0-100>}.';
+  const scoreBand = async (bandText) => {
+    const scores = await Promise.all(refs.map(async (ref, idx) => {
+      if (!briefs[idx]) return null;
+      const draft = await fableGenerate(env, { system: 'You are the Markets of Tomorrow writer. Write ' + what + ' from the brief.' + (bandText ? '\n\nFORMAT RULES (always apply):\n' + bandText : ''), user: 'BRIEF:\n' + briefs[idx], maxTokens: maxGen });
+      if (!draft) return null;
+      const t = await haiku(judgeSys, 'GOLD:\n' + ref.text.slice(0, 1500) + '\n\n---\n\nCANDIDATE:\n' + String(draft).slice(0, 1500), 120);
+      const m = t.match(/\{[\s\S]*\}/); if (!m) return null;
+      try { const s = JSON.parse(m[0]).score; return typeof s === 'number' ? Math.max(0, Math.min(100, s)) : null; } catch { return null; }
+    }));
+    const clean = scores.filter((x) => x != null);
+    return clean.length ? Math.round(clean.reduce((a, b) => a + b, 0) / clean.length) : null;
+  };
+  const bandText = (band) => band.map((b) => `- [${b.kind}] ${b.note}`).join('\n');
+
+  // 6) Baseline = the current live band (or none), then score all candidates concurrently.
+  let currentText = '';
+  try { const cur = (await env.DB.prepare(`SELECT kind, note FROM brand_notes WHERE active=1 AND tier='format' AND category=?1 ORDER BY id ASC LIMIT 14`).bind(surface).all()).results || []; currentText = cur.map((r) => `- [${r.kind}] ${r.note}`).join('\n'); } catch (_) {}
+  const [baseline, ...candScores] = await Promise.all([scoreBand(currentText), ...candidates.map((c) => scoreBand(bandText(c)))]);
+  const scored = candidates.map((band, i) => ({ band, score: candScores[i], rules: band.length })).filter((s) => s.score != null);
+  if (!scored.length) return json({ error: 'scoring produced no results (try again)' }, { status: 502 }, env, origin);
+  scored.sort((a, b) => b.score - a.score);
+  const winner = scored[0];
+
+  // 7) Promote the winner if it beats the current band.
+  let promoted = false;
+  if (winner && (baseline == null || winner.score > baseline)) {
+    const now = Math.floor(Date.now() / 1000);
+    const ALLOWED = ['like', 'dislike', 'rule', 'voice', 'structure', 'topic', 'avoid', 'example'];
+    try { const old = (await env.DB.prepare(`SELECT id FROM brand_notes WHERE active=1 AND tier='format' AND category=?1`).bind(surface).all()).results || []; await retireBrandNotes(env, old.map((x) => x.id)); } catch (_) {}
+    for (const b of winner.band) {
+      const kind = ALLOWED.includes(b.kind) ? b.kind : 'voice';
+      const id = 'bn-' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+      try { await env.DB.prepare(`INSERT INTO brand_notes (id, kind, category, note, context, created_by, created_at, active, scope, tier, violations) VALUES (?1,?2,?3,?4,'optimized format band','format-band',?5,1,'voice','format',0)`).bind(id, kind, surface, b.note, now).run(); try { await brainNoteVectors(env, [{ id, kind, note: b.note, scope: 'voice' }]); } catch (_) {} } catch (_) {}
+    }
+    promoted = true;
+  }
+  try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(Math.floor(Date.now() / 1000), 'system:optimize-bands', 'brain_optimize_bands', JSON.stringify({ surface, baseline, winner: winner.score, promoted, candidates: scored.map((s) => s.score) })).run(); } catch (_) {}
+  return json({ ok: true, surface, baseline, candidates: scored.map((s) => ({ score: s.score, rules: s.rules })), winner: { score: winner.score, rules: winner.rules }, promoted, band: promoted ? winner.band.map((b) => b.note) : null }, {}, env, origin);
+}
+
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
 // Pool notes are retrieved by RELEVANCE (canon always loads; see assembleBrain).
 // Each note embeds as kind:'brand_note' with NO title field, so it can never
@@ -13403,6 +13502,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/brain/eval-scores') return await handleEvalScores(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)
