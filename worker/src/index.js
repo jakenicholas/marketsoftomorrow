@@ -7576,7 +7576,17 @@ async function handleEvalScores(req, env, origin) {
     markers = ev.map((e) => ({ ts: e.ts, label: LABELS[e.event_name] || e.event_name }));
   } catch (_) {}
   const current_sig = await brainSignature(env);
-  return json({ ok: true, days, by_kind, by_sig, markers, current_sig, recent: rows.slice(0, 40) }, {}, env, origin);
+  // Autopilot status + latest report card, so the panel shows the self-running machine.
+  let autopilot = null, report = null;
+  try {
+    const PHASES = ['sync', 'learn-corpus', 'learn-social', 'learn-carousels', 'contrast-social', 'contrast-article', 'optimize-social', 'optimize-carousel', 'optimize-article', 'garden', 'attribution', 'reportcard'];
+    const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='brain_autopilot'").first();
+    if (row && row.value) { const st = JSON.parse(row.value); const running = st.idx < PHASES.length; autopilot = { running, phase: running ? PHASES[st.idx] : null, done: Math.min(st.idx, PHASES.length), of: PHASES.length, cycle_started: st.started || 0, next_cycle: running ? null : (st.started || 0) + 7 * 86400 }; }
+    else autopilot = { running: false, done: 0, of: PHASES.length, cycle_started: 0, next_cycle: 0 };
+    const rc = await env.DB.prepare(`SELECT props_json, ts FROM events WHERE event_name='brain_report_card' ORDER BY ts DESC LIMIT 1`).first();
+    if (rc && rc.props_json) { try { report = JSON.parse(rc.props_json); } catch (_) {} }
+  } catch (_) {}
+  return json({ ok: true, days, by_kind, by_sig, markers, current_sig, autopilot, report, recent: rows.slice(0, 40) }, {}, env, origin);
 }
 
 // POST /admin/brain/eval-run — the offline harness (Loop 1). Uses the back-catalog
@@ -7825,6 +7835,92 @@ async function handleOptimizeBands(req, env, origin) {
   }
   try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(Math.floor(Date.now() / 1000), 'system:optimize-bands', 'brain_optimize_bands', JSON.stringify({ surface, baseline, winner: winner.score, promoted, candidates: scored.map((s) => s.score) })).run(); } catch (_) {}
   return json({ ok: true, surface, baseline, candidates: scored.map((s) => ({ score: s.score, rules: s.rules })), winner: { score: winner.score, rules: winner.rules }, promoted, band: promoted ? winner.band.map((b) => b.note) : null }, {}, env, origin);
+}
+
+// Build an internally-authorized Request so the cron AUTOPILOT can invoke the same
+// admin handlers the buttons do (reuses the real ADMIN_TOKEN auth path — no bypass).
+function internalReq(path, env, bodyObj) {
+  return new Request('https://internal' + path, {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + (env.ADMIN_TOKEN || ''), 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyObj || {}),
+  });
+}
+// Evidence-based pruning (per-rule attribution): retire pool voice notes that have
+// NEVER been retrieved into a prompt after a month — dead weight that only dilutes
+// retrieval. Conservative cap per run. Keeps the pool self-cleaning.
+async function runAttribution(env, { maxRetire = 20, ageDays = 30 } = {}) {
+  if (!env.DB) return { retired: 0 };
+  try {
+    const cutoff = Math.floor(Date.now() / 1000) - ageDays * 86400;
+    const dead = (await env.DB.prepare(
+      `SELECT id FROM brand_notes WHERE active=1 AND tier='pool' AND scope='voice' AND COALESCE(retrievals,0)=0 AND created_at < ?1 ORDER BY created_at ASC LIMIT ?2`
+    ).bind(cutoff, maxRetire).all()).results || [];
+    if (dead.length) await retireBrandNotes(env, dead.map((x) => x.id));
+    try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(Math.floor(Date.now() / 1000), 'system:attribution', 'brain_attribution', JSON.stringify({ retired: dead.length })).run(); } catch (_) {}
+    return { retired: dead.length };
+  } catch (_) { return { retired: 0 }; }
+}
+// Snapshot the brain's health into one report-card event (retention by surface,
+// tier counts, latest optimize deltas). Read by the panel; feeds a future digest.
+async function buildReportCard(env) {
+  if (!env.DB) return null;
+  try {
+    await ensureEvalScores(env);
+    const now = Math.floor(Date.now() / 1000);
+    const scoreRows = (await env.DB.prepare(`SELECT kind, retention, ts FROM eval_scores WHERE ts >= ?1`).bind(now - 60 * 86400).all()).results || [];
+    const avg = (a) => a.length ? Math.round(a.reduce((s, x) => s + (x.retention || 0), 0) / a.length) : null;
+    const retention = {};
+    for (const k of ['article', 'carousel']) { const r = scoreRows.filter((x) => x.kind === k); retention[k] = { n: r.length, avg: avg(r), recent: avg(r.filter((x) => x.ts >= now - 14 * 86400)) }; }
+    const tc = async (sql) => { const r = await env.DB.prepare(sql).first(); return (r && r.n) || 0; };
+    const tiers = {
+      canon: await tc(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='canon'`),
+      editor: await tc(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='editor'`),
+      format: await tc(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='format'`),
+      pool: await tc(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='pool'`),
+    };
+    let optimizes = [];
+    try { const ev = (await env.DB.prepare(`SELECT props_json, ts FROM events WHERE event_name='brain_optimize_bands' ORDER BY ts DESC LIMIT 3`).all()).results || []; optimizes = ev.map((e) => { try { const p = JSON.parse(e.props_json); return { surface: p.surface, baseline: p.baseline, winner: p.winner, promoted: p.promoted, ts: e.ts }; } catch { return null; } }).filter(Boolean); } catch (_) {}
+    const card = { ts: now, sig: await brainSignature(env), retention, tiers, optimizes };
+    try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(now, 'system:reportcard', 'brain_report_card', JSON.stringify(card)).run(); } catch (_) {}
+    return card;
+  } catch (_) { return null; }
+}
+// THE AUTOPILOT — runs the whole brain pipeline automatically, one phase per cron
+// tick (~2 min apart), a full cycle weekly: sync latest content → learn (corpus,
+// social, carousels) → contrastive → self-tune the format bands (optimize) → garden
+// → prune dead notes → report card. No buttons to remember; the brain maintains,
+// cleans, and improves itself. State in sync_state 'brain_autopilot' = {idx,started,last}.
+const BRAIN_AUTOPILOT_PHASES = [
+  { name: 'sync', run: (env) => syncSocialPosts(env, { days: 120, maxPer: 80 }) },
+  { name: 'learn-corpus', run: (env) => handleLearnCorpus(internalReq('/admin/brain/learn-corpus', env, { top: 48 }), env, 'internal') },
+  { name: 'learn-social', run: (env) => handleLearnSocial(internalReq('/admin/brain/learn-social', env, { top: 48 }), env, 'internal') },
+  { name: 'learn-carousels', run: (env) => handleLearnCarousels(internalReq('/admin/brain/learn-carousels', env, { top: 60 }), env, 'internal') },
+  { name: 'contrast-social', run: (env) => handleLearnContrastive(internalReq('/admin/brain/learn-contrastive', env, { kind: 'social' }), env, 'internal') },
+  { name: 'contrast-article', run: (env) => handleLearnContrastive(internalReq('/admin/brain/learn-contrastive', env, { kind: 'article' }), env, 'internal') },
+  { name: 'optimize-social', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'social' }), env, 'internal') },
+  { name: 'optimize-carousel', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'carousel' }), env, 'internal') },
+  { name: 'optimize-article', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'article' }), env, 'internal') },
+  { name: 'garden', run: (env) => gardenBrain(env) },
+  { name: 'attribution', run: (env) => runAttribution(env) },
+  { name: 'reportcard', run: (env) => buildReportCard(env) },
+];
+async function maybeBrainAutopilot(env) {
+  if (!env.DB || !env.ANTHROPIC_API_KEY || !retrievalReady(env)) return;
+  const now = Math.floor(Date.now() / 1000);
+  let st = { idx: BRAIN_AUTOPILOT_PHASES.length, started: 0, last: 0 };
+  try { const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='brain_autopilot'").first(); if (row && row.value) st = JSON.parse(row.value); } catch (_) {}
+  if (st.idx >= BRAIN_AUTOPILOT_PHASES.length) {
+    if (now - (st.started || 0) < 7 * 86400) return;      // one full cycle per week
+    st = { idx: 0, started: now, last: 0 };
+  } else if (now - (st.last || 0) < 120) {
+    return;                                                // space phases ~2 min apart (no overlap)
+  }
+  const phase = BRAIN_AUTOPILOT_PHASES[st.idx];
+  st.idx += 1; st.last = now;                              // CLAIM before running so the next tick can't double-run this phase
+  try { await env.DB.prepare("INSERT INTO sync_state (key,value,updated_at) VALUES ('brain_autopilot',?1,?2) ON CONFLICT(key) DO UPDATE SET value=?1, updated_at=?2").bind(JSON.stringify(st), now).run(); } catch (_) {}
+  try { await phase.run(env); } catch (_) {}
+  try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(now, 'system:autopilot', 'brain_autopilot_phase', JSON.stringify({ phase: phase.name, idx: st.idx, of: BRAIN_AUTOPILOT_PHASES.length })).run(); } catch (_) {}
 }
 
 // ── Brand-brain vectors ──────────────────────────────────────────────────────
@@ -13707,6 +13803,7 @@ export default {
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
     ctx.waitUntil(maybeGardenBrain(env));        // prune/merge the brain ~weekly (review-gated)
+    ctx.waitUntil(maybeBrainAutopilot(env));     // AUTOPILOT: run the whole learn→optimize→clean→report pipeline automatically (one phase/tick, full cycle weekly)
     ctx.waitUntil(maybeEmbedAB(env));            // embedding A/B (dormant unless flagged)
     ctx.waitUntil(refreshThreadsTokens(env));    // keep Threads tokens alive (60-day expiry)
     ctx.waitUntil(refreshLinkedinToken(env));    // keep the LinkedIn token alive (60-day expiry)
