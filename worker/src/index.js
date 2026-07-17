@@ -7893,13 +7893,13 @@ async function sendBrainReportEmail(env, card) {
   const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const ret = card.retention || {}; const t = card.tiers || {};
-  const pct = (v) => v == null ? '—' : v + '%';
+  const pct = (v) => v == null ? 'n/a' : v + '%';
   const arrow = (r) => { const a = r || {}; if (a.recent == null || a.avg == null) return ''; const d = a.recent - a.avg; return d > 1 ? ' (▲ improving)' : d < -1 ? ' (▼ slipping)' : ''; };
   const retRow = (label, r) => `<tr><td style="padding:6px 18px 6px 0;color:#8C7862;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">${label}</td><td style="padding:6px 0;color:#4A392B;font-size:15px;font-weight:600">${pct((r || {}).avg)}${esc(arrow(r))} <span style="color:#8C7862;font-size:12px;font-weight:400">· ${(r || {}).n || 0} graded</span></td></tr>`;
   const optRows = (card.optimizes || []).slice(0, 3).map((o) => `<tr><td style="padding:5px 18px 5px 0;color:#8C7862;font-size:12px;text-transform:capitalize">${esc(o.surface)}</td><td style="padding:5px 0;color:#4A392B;font-size:13px">${o.baseline == null ? 'new' : o.baseline} → <b>${o.winner}</b> ${o.promoted ? '<span style="color:#2f9e5f;font-weight:700">promoted ✓</span>' : '<span style="color:#8C7862">held</span>'}</td></tr>`).join('') || '<tr><td style="color:#8C7862;font-size:13px;padding:5px 0">No tuning runs yet.</td></tr>';
   const html = '<div style="background:#EFE7D5;padding:34px 20px"><div style="max-width:560px;margin:0 auto;background:#F7F1E4;border:1px solid #E4D7BE;border-radius:16px;padding:30px 28px;font-family:Inter,Arial,sans-serif">' +
     '<div style="font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:#B0603A;margin-bottom:9px">Markets of Tomorrow</div>' +
-    '<div style="font-family:Georgia,serif;font-size:24px;color:#4A392B;margin-bottom:6px">Brain — Weekly Report</div>' +
+    '<div style="font-family:Georgia,serif;font-size:24px;color:#4A392B;margin-bottom:6px">Brain Weekly Report</div>' +
     '<p style="font-size:13px;line-height:1.6;color:#5E4C3C;margin:0 0 20px">The brand brain ran its weekly cycle: synced our latest content, learned from what performed, self-tuned the format bands, and cleaned itself. Here is where it stands.</p>' +
     '<div style="font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#B0603A;margin:6px 0 4px">Draft quality (AI draft → finished)</div>' +
     '<table style="border-collapse:collapse">' + retRow('Article', ret.article) + retRow('Carousel', ret.carousel) + '</table>' +
@@ -7909,13 +7909,13 @@ async function sendBrainReportEmail(env, card) {
     `<p style="font-size:13px;color:#4A392B;margin:0">${t.canon || 0} canon · ${t.editor || 0} editor · ${t.format || 0} format · ${t.pool || 0} pool <span style="color:#8C7862">(${esc(card.sig || '')})</span></p>` +
     '<p style="font-size:12px;color:#8C7862;margin:24px 0 0">Runs automatically every week. Manage at admin.oftmw.com/brain</p>' +
     '</div></div>';
-  const text = ['TMW Brain — Weekly Report', '', 'Draft quality (AI draft -> finished):',
+  const text = ['TMW Brain Weekly Report', '', 'Draft quality (AI draft -> finished):',
     '  Article: ' + pct((ret.article || {}).avg) + ' (' + ((ret.article || {}).n || 0) + ' graded)',
     '  Carousel: ' + pct((ret.carousel || {}).avg) + ' (' + ((ret.carousel || {}).n || 0) + ' graded)',
     '', 'Self-tuning: ' + ((card.optimizes || []).map((o) => o.surface + ' ' + (o.baseline == null ? 'new' : o.baseline) + '->' + o.winner + (o.promoted ? ' promoted' : ' held')).join('; ') || 'none'),
     '', 'Brain size: ' + (t.canon || 0) + ' canon, ' + (t.editor || 0) + ' editor, ' + (t.format || 0) + ' format, ' + (t.pool || 0) + ' pool',
     '', 'Runs automatically every week. admin.oftmw.com/brain'].join('\n');
-  const subject = 'TMW Brain weekly — article ' + pct((ret.article || {}).avg) + ', carousel ' + pct((ret.carousel || {}).avg);
+  const subject = 'TMW Brain weekly: article ' + pct((ret.article || {}).avg) + ', carousel ' + pct((ret.carousel || {}).avg);
   try {
     const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { 'Authorization': 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: FROM, to: [to], subject, html, text }) });
     return r.ok;
