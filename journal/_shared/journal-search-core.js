@@ -572,7 +572,12 @@
     // projects ARE opening SOON" leaks "are" into the residual narrowing
     // and surfaces as an Area chip.
     'are','was','were','been','being','have','has','had','does','did',
-    'soon','already','yet'
+    'soon','already','yet',
+    // conversational filler + relative-time words — "okay give me all projects
+    // then" and "hotels from yesterday and today" carry zero matchable meaning
+    // in these tokens; leaking them into text/bio matching guarantees 0 hits.
+    'okay','yeah','yep','sure','then','them','gimme','right',
+    'now','today','tonight','yesterday','tomorrow','currently','lately'
   ]);
   // Build the meaningful-tokens list a surface uses for its strict relevance
   // filter -- length >= 3 AND not a generic stopword. Exposed so the overlay
@@ -1399,7 +1404,13 @@
     // ("best new hotels" → pipeline), so iconic only fires when !pipeline.
     var ICONIC_CUE = /\b(best|top|top[- ]?tier|top[- ]?rated|highest[- ]?rated|good|great|greatest|grandest|finest|iconic|legendary|famous|renowned|acclaimed|celebrated|storied|revered|esteemed|prestigious|premier|premium|elite|luxury|luxurious|exclusive|exquisite|exceptional|coveted|prized|sought[- ]?after|leading|foremost|ultimate|definitive|quintessential|marquee|classic|must[- ]?(?:visit|see|try|stay|play)|favou?rite|world[- ]?class|standout|notable|signature|flagship)\b/;
     var iconic = null;
-    if (!pipeline) {
+    // A recency sort ("latest hotels", "newest luxury residences") is a DATABASE
+    // browse of the tracked pipeline, not an editorial best-of ask — even when a
+    // quality adjective like "luxury" trips ICONIC_CUE. Without this, "latest
+    // hotels and luxury residences" went iconic, the editorial list place-matched
+    // nothing, and the answer falsely claimed we track no hotels.
+    var _recency = sort && sort.key === 'updated';
+    if (!pipeline && !_recency) {
       var _cue = ICONIC_CUE.test(full);
       // Golf is inherently an EDITORIAL category for us — golf *projects* in the
       // pipeline are rare, so "golf courses in california" (no "best" cue, and a
@@ -1448,8 +1459,19 @@
     // structured path sorts by units/floors so real scale wins. (Date/newest sorts
     // are NOT gated here — "latest news" must stay on the text path.)
     var _sizeSort = sort && (sort.key === 'floors' || sort.key === 'units' || sort.key === 'size');
-    if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || usOnly || (pipeline && types.size) || (rolling && types.size)) {
+    // BROWSE-ALL — "okay give me all projects then", "show me everything".
+    // Every token is generic/filler and the user asked for the whole set: a
+    // real database browse, not a failed parse. Without this it fell to the
+    // text-match path (which needs meaningful tokens to score) and answered
+    // "nothing matched in the database" with the entire live map behind it.
+    var browseAll = !firm && !place && !firmRank && !iconic && !types.size
+      && !statuses.size && !phases.size && floorsMin == null && yearMin == null
+      && /\b(all|every|everything|entire|whole)\b/.test(full)
+      && /\b(projects?|developments?|buildings?|properties|portfolio|database|everything|of them)\b/.test(full)
+      && filterMeaningfulTokens(full.split(/\s+/)).length === 0;
+    if (firm || place || firmRank || iconic || floorsMin != null || _sizeSort || usOnly || browseAll || (pipeline && types.size) || (rolling && types.size)) {
       return {
+        browseAll: browseAll,
         statuses: statuses, statusLabels: statusLabels,
         phases: phases, phaseLabels: phaseLabels, phaseVerbs: phaseVerbs,
         types: types, typeLabel: typeLabel, typeNoun: typeNoun,
@@ -2185,7 +2207,9 @@
     // category nouns + filler). An item matches if any of them appears in its
     // region/location — substring-wise, so "miami" matches "Miami Beach" and
     // "lucia" matches "Saint Lucia". No place words → the full (ordered) list.
-    var qWords = nq.split(/\s+/).filter(function (w) { return w.length >= 4 && !ICONIC_STOP[w]; });
+    // QUERY_STOPWORDS too: conversational/temporal filler ("right now",
+    // "today", "here") must never act as a place filter and empty the list.
+    var qWords = nq.split(/\s+/).filter(function (w) { return w.length >= 4 && !ICONIC_STOP[w] && !QUERY_STOPWORDS.has(w); });
     // Pure US-country ask (no more-specific place named) → all US-based items,
     // i.e. everything that ISN'T clearly international. Region-level markers
     // only, so a US "St. Petersburg, Florida" is never wrongly excluded.

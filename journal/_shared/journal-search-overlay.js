@@ -2894,6 +2894,26 @@
     var noun = s.iconic ? (ICONIC_NOUN[s.iconic] || 'results')
       : (s.typeLabel ? (s.typeLabel.toLowerCase() + (/s$/.test(s.typeLabel) ? '' : ' projects')) : 'projects');
     var place = (s.cities && s.cities.length) ? s.cities.join(' & ') : (s.region || placeFromQuery(q));
+    // ABSENCE GUARD — never claim we don't track a type we DO track. With no
+    // place to scope the miss, count what the database actually holds for the
+    // parsed type(s); if we have any, the honest answer is "couldn't match the
+    // specifics", not a false "we're not tracking any hotels yet" (which reads
+    // as a data gap and torches trust). Place-scoped misses stay as-is: "no
+    // hotels in <place> yet" is a true statement about our coverage there.
+    if (!place && s.types && s.types.size && typeof PROJECTS !== 'undefined' && PROJECTS && PROJECTS.length){
+      var _cnt = 0;
+      try {
+        PROJECTS.forEach(function(p){
+          var pt = String(p.ProjectType || '');
+          var hit = false;
+          s.types.forEach(function(t){ if (pt.indexOf(t) >= 0) hit = true; });
+          if (hit) _cnt++;
+        });
+      } catch(_){}
+      if (_cnt) {
+        return 'We track <b>' + _cnt + ' ' + esc(noun) + '</b> worldwide, but nothing matched every detail of that ask. Try adding a place or a project name.';
+      }
+    }
     return 'We’re not tracking any ' + esc(noun) + (place ? ' in <b>' + esc(tc(place)) + '</b>' : '') + ' yet.';
   }
 
@@ -3622,7 +3642,9 @@
       // so the RESULTS stay on-topic, not just the narration.
       var _prior = null;
       for (var _ti = _thread.length - 2; _ti >= 0; _ti--){ if (_thread[_ti] && _thread[_ti].parsed){ _prior = _thread[_ti].parsed; break; } }
-      if (smart && _prior && Core.resolveFollowup) { smart = Core.resolveFollowup(smart, _prior); }
+      // A browse-all ask ("okay give me all projects then") means the WHOLE
+      // database — never inherit the prior turn's type/place filters into it.
+      if (smart && _prior && Core.resolveFollowup && !smart.browseAll) { smart = Core.resolveFollowup(smart, _prior); }
       // Stash the parse on the current turn for the NEXT follow-up + the LLM.
       if (_thread.length) _thread[_thread.length - 1].parsed = smart || null;
       // Dining isn't a project type — it's journal coverage. Route ANY food
@@ -3659,7 +3681,7 @@
         // the united states"), not a concept. Keep the structured parse so it ranks
         // by scale instead of falling to keyword text-match (which floated a padel
         // court into "biggest projects"). Place-only questions still go concept.
-        if (smart && (smart.sort || smart.usOnly || (smart.types && smart.types.size) || smart.floorsMin != null)) {
+        if (smart && (smart.sort || smart.usOnly || smart.browseAll || (smart.types && smart.types.size) || smart.floorsMin != null)) {
           /* keep smart — structured list */
         } else {
           _conceptQ = true; smart = null;
@@ -3890,7 +3912,16 @@
       // — no place ("best hotels") would pull every hotel project; a non-project
       // place ("best golf in california", restaurants) has no projects to blend.
       var hasProjectPlace = s.cities.length || s.region || s.area;
-      if (!s.types.size || !hasProjectPlace) rows = [];
+      if (!iconicHits.length && rows.length && !hasProjectPlace && !placeFromQuery(q)){
+        // The iconic cue fired but the editorial list matched nothing, and the
+        // query names NO place (a named-but-untracked place like "hotels in
+        // fiji" keeps the honest place-scoped absence answer instead). We DO
+        // have database rows; fall back to them rather than wiping the set and
+        // falsely answering "we're not tracking any X yet".
+        s.iconic = null;
+      } else if (!s.types.size || !hasProjectPlace) {
+        rows = [];
+      }
     }
     // If the query strongly identifies ONE specific project in the result
     // set (e.g. "how many units does viceroy fort lauderdale have" picks
