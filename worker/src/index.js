@@ -4980,9 +4980,25 @@ async function handlePostsPublish(req, env, origin, id) {
 async function ensureEvalScores(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS eval_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, slug TEXT, retention INTEGER,
-    ai_words INTEGER, final_words INTEGER, title TEXT, ts INTEGER
+    ai_words INTEGER, final_words INTEGER, title TEXT, brain_sig TEXT, ts INTEGER
   )`).run();
   try { await env.DB.prepare('CREATE INDEX IF NOT EXISTS eval_scores_kind_ts ON eval_scores (kind, ts)').run(); } catch (_) {}
+  try { await env.DB.prepare('ALTER TABLE eval_scores ADD COLUMN brain_sig TEXT').run(); } catch (_) {}   // for tables created before sig tracking
+}
+// Compact fingerprint of the ALWAYS-ON brain at a moment in time, so every draft
+// score can be correlated to the brain version that produced it (prove a change
+// moved retention). e.g. "c20-e15-fa11-fc10-fs9-p188".
+async function brainSignature(env) {
+  try {
+    const c = async (sql) => { const r = await env.DB.prepare(sql).first(); return (r && r.n) || 0; };
+    const canon = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='canon'`);
+    const editor = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='editor'`);
+    const fa = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='format' AND category='article'`);
+    const fc = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='format' AND category='carousel'`);
+    const fs = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='format' AND category='social'`);
+    const pool = await c(`SELECT COUNT(*) n FROM brand_notes WHERE active=1 AND tier='pool'`);
+    return `c${canon}-e${editor}-fa${fa}-fc${fc}-fs${fs}-p${pool}`;
+  } catch (_) { return ''; }
 }
 // Sørensen–Dice similarity over word bigrams (0–100). Robust to reordering, cheap,
 // no LLM. Measures how close the AI draft is to the human-finished copy.
@@ -5013,8 +5029,9 @@ async function recordEvalScore(env, { kind, slug, aiText, finalText, title }) {
     await ensureEvalScores(env);
     const retention = wordDiceSimilarity(ai, fin);
     const aw = ai.split(/\s+/).filter(Boolean).length, fw = fin.split(/\s+/).filter(Boolean).length;
-    await env.DB.prepare(`INSERT INTO eval_scores (kind, slug, retention, ai_words, final_words, title, ts) VALUES (?1,?2,?3,?4,?5,?6,?7)`)
-      .bind(kind, String(slug || '').slice(0, 200), retention, aw, fw, String(title || '').slice(0, 160), Math.floor(Date.now() / 1000)).run();
+    const sig = await brainSignature(env);
+    await env.DB.prepare(`INSERT INTO eval_scores (kind, slug, retention, ai_words, final_words, title, brain_sig, ts) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)`)
+      .bind(kind, String(slug || '').slice(0, 200), retention, aw, fw, String(title || '').slice(0, 160), sig, Math.floor(Date.now() / 1000)).run();
   } catch (_) {}
 }
 
@@ -7538,7 +7555,7 @@ async function handleEvalScores(req, env, origin) {
   const days = Math.min(400, Math.max(7, parseInt(u.searchParams.get('days') || '120', 10) || 120));
   const now = Math.floor(Date.now() / 1000), since = now - days * 86400;
   let rows = [];
-  try { rows = (await env.DB.prepare(`SELECT kind, slug, retention, title, ts FROM eval_scores WHERE ts >= ?1 ORDER BY ts DESC LIMIT 1000`).bind(since).all()).results || []; } catch (_) {}
+  try { rows = (await env.DB.prepare(`SELECT kind, slug, retention, title, brain_sig, ts FROM eval_scores WHERE ts >= ?1 ORDER BY ts DESC LIMIT 1000`).bind(since).all()).results || []; } catch (_) {}
   const avg = (a) => a.length ? Math.round(a.reduce((s, x) => s + (x.retention || 0), 0) / a.length) : null;
   const by_kind = ['article', 'carousel'].map((k) => {
     const r = rows.filter((x) => x.kind === k);
@@ -7546,7 +7563,20 @@ async function handleEvalScores(req, env, origin) {
     const prior = r.filter((x) => x.ts < now - 14 * 86400 && x.ts >= now - 28 * 86400);
     return { kind: k, n: r.length, avg: avg(r), avg_recent: avg(recent), avg_prior: avg(prior), n_recent: recent.length };
   });
-  return json({ ok: true, days, by_kind, recent: rows.slice(0, 40) }, {}, env, origin);
+  // Retention grouped by the brain version that produced it — the correlation proof.
+  const bySigMap = {};
+  for (const x of rows) { const s = x.brain_sig || '—'; (bySigMap[s] = bySigMap[s] || []).push(x); }
+  const by_sig = Object.entries(bySigMap).map(([sig, r]) => ({ sig, n: r.length, avg: avg(r), from: Math.min(...r.map((x) => x.ts)), to: Math.max(...r.map((x) => x.ts)) })).sort((a, b) => b.to - a.to).slice(0, 8);
+  // Brain-change markers so the trend can annotate "the brain changed here".
+  let markers = [];
+  try {
+    const LABELS = { brain_format_bands: 'Format bands rebuilt', brain_corpus_learn: 'Learned from articles', brain_social_learn: 'Learned from top posts', brain_carousel_learn: 'Learned from carousels', brain_gardened: 'Gardener ran', brain_eval_run: 'Harness run' };
+    const names = Object.keys(LABELS).map(() => '?').join(',');
+    const ev = (await env.DB.prepare(`SELECT event_name, ts FROM events WHERE event_name IN (${names}) AND ts >= ?${Object.keys(LABELS).length + 1} ORDER BY ts DESC LIMIT 12`).bind(...Object.keys(LABELS), since).all()).results || [];
+    markers = ev.map((e) => ({ ts: e.ts, label: LABELS[e.event_name] || e.event_name }));
+  } catch (_) {}
+  const current_sig = await brainSignature(env);
+  return json({ ok: true, days, by_kind, by_sig, markers, current_sig, recent: rows.slice(0, 40) }, {}, env, origin);
 }
 
 // POST /admin/brain/eval-run — the offline harness (Loop 1). Uses the back-catalog
@@ -7558,9 +7588,9 @@ async function handleEvalRun(req, env, origin) {
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'no anthropic key' }, { status: 503 }, env, origin);
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   let body = {}; try { body = await req.json(); } catch (_) {}
-  const kind = body.kind === 'article' ? 'article' : 'social';
+  const kind = ['article', 'carousel', 'social'].includes(body.kind) ? body.kind : 'social';
   const n = Math.min(Math.max(parseInt(body.n, 10) || 5, 2), 10);
-  const surface = kind === 'social' ? 'social' : 'article';
+  const surface = kind;   // 'social' | 'carousel' | 'article' all map to a format-band category
   // Haiku helper (brief extraction + judging).
   const haiku = async (system, user, maxTokens = 300) => {
     try {
@@ -7579,15 +7609,20 @@ async function handleEvalRun(req, env, origin) {
     if (kind === 'social') {
       const r = await env.DB.prepare(`SELECT caption AS text, saved, shares FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 80 ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC LIMIT ?1`).bind(n).all();
       refs = (r.results || []).map((x) => ({ text: String(x.text).slice(0, 1200), label: String(x.text).split('\n')[0].slice(0, 60) }));
+    } else if (kind === 'carousel') {
+      const r = await env.DB.prepare(`SELECT title, doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(n).all();
+      refs = (r.results || []).map((x) => ({ text: designDocText(x.doc_json || '{}'), label: String(x.title || 'carousel').slice(0, 60) })).filter((x) => x.text && x.text.length > 60).map((x) => ({ text: x.text.slice(0, 1400), label: x.label }));
     } else {
       const r = await env.DB.prepare(`SELECT p.title, p.body_html, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC LIMIT ?1`).bind(n).all();
       refs = (r.results || []).map((x) => ({ text: htmlToText(x.body_html || '').slice(0, 3000), label: String(x.title || '').slice(0, 60) })).filter((x) => x.text.length > 200);
     }
   } catch (e) { return json({ error: 'reference read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
-  if (!refs.length) return json({ error: kind === 'social' ? 'no cached posts — run a social sync first' : 'no published articles found' }, { status: 404 }, env, origin);
+  if (!refs.length) return json({ error: kind === 'social' ? 'no cached posts — run a social sync first' : kind === 'carousel' ? 'no carousel decks found — build some carousels first' : 'no published articles found' }, { status: 404 }, env, origin);
 
-  const what = kind === 'social' ? 'an Instagram caption' : 'a short article (4-6 short paragraphs)';
-  const maxGen = kind === 'social' ? 380 : 1100;
+  const what = kind === 'social' ? 'an Instagram caption'
+    : kind === 'carousel' ? 'an Instagram carousel — a caption then 5-7 slide headlines, formatted EXACTLY as "CAPTION: <text>" on the first line, then one line per slide: "SLIDE 1: <headline>", "SLIDE 2: <headline>", and so on'
+    : 'a short article (4-6 short paragraphs)';
+  const maxGen = kind === 'article' ? 1100 : kind === 'carousel' ? 650 : 380;
   const items = await Promise.all(refs.map(async (ref) => {
     // neutral brief (facts only, no style) so the brain has to supply the voice
     const brief = (await haiku('Extract a NEUTRAL factual brief from this piece: the subject and its key facts only, in 1-3 plain lines. Strip ALL style, phrasing, and voice. Output just the brief.', ref.text, 200)).trim();
