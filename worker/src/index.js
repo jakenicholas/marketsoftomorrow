@@ -1067,6 +1067,11 @@ async function handleDesignCaptions(req, env, origin) {
   const title = String(b.title || '').slice(0, 300);
   const slides = Array.isArray(b.slides) ? b.slides.map(s => String(s || '').slice(0, 400)).filter(Boolean).slice(0, 12) : [];
   const exclude = Array.isArray(b.exclude) ? b.exclude.map(s => String(s || '').slice(0, 200)).filter(Boolean).slice(0, 25) : [];
+  // Where this slide sits in the deck's arc, so the generator plays the right beat
+  // (slide 1 = hook/hype, middle = info, last = close) and reads flowy start to finish.
+  const _pi = slides.findIndex(s => s === current);
+  const slidePos = _pi >= 0 ? _pi + 1 : slides.length + 1;
+  const slideTotal = Math.max(slides.length, slidePos);
   // SHARED BRAIN — same house voice + learned carousel rules the connector/Fable
   // use everywhere else, so captions match the machine's taste and stay unified.
   let brainText = '';
@@ -1078,11 +1083,16 @@ async function handleDesignCaptions(req, env, origin) {
     + '\n\nCURRENT SLIDE TEXT:\n' + (current || '(empty)')
     + (exclude.length ? '\n\nALREADY SHOWN — do NOT repeat or closely echo any of these; give genuinely DIFFERENT options:\n' + exclude.map(s => '- ' + s).join('\n') : '');
   const sys = 'You write Instagram carousel SLIDE HEADLINES for Markets of Tomorrow, a real-estate-development media brand.\n\n'
-    + (brainText ? ('HOUSE BRAIN — voice + learned rules, FOLLOW THESE:\n' + brainText + '\n\n') : '')
+    + (brainText ? ('HOUSE BRAIN (voice + learned rules, FOLLOW THESE):\n' + brainText + '\n\n') : '')
+    + 'CAROUSEL ARC (how our decks read start to finish):\n'
+    + '- Slide 1 is the HOOK: one bold, high-energy claim that stops the scroll (never a title or label).\n'
+    + '- The middle slides deliver the INFO. One concrete fact each, every slide building on the one before so the deck reads in a smooth flow, not disconnected cards.\n'
+    + '- The last slide lands the payoff or a light call to action.\n'
+    + 'You are writing SLIDE ' + slidePos + ' of ' + slideTotal + '. Make it play its role in that arc and follow naturally from the slide headlines so far.\n\n'
     + 'HARD RULES:\n'
     + '- ONE punchy line per option; lead with a concrete FACT (a number, a name, a superlative) when possible.\n'
     + '- LENGTH: keep each headline TIGHT — roughly 40–80 characters (2–3 short lines in a NARROW slide box). Longer wraps to 5+ lines and crowds the layout.\n'
-    + '- PUNCTUATION + CASE: match the CURRENT SLIDE TEXT and the house voice above — no hashtags, no emojis, no clickbait, no trailing period on a headline unless the house style uses one. Use en/em dashes the way the house does.\n'
+    + '- PUNCTUATION + CASE: match the CURRENT SLIDE TEXT and the house voice above. No hashtags, no emojis, no clickbait, no em dashes, and no trailing period on a headline unless the house style uses one.\n'
     + '- Preserve exact spellings + diacritics from the post (e.g. "Eudēmonia").\n\n'
     + (mode === 'similar'
         ? 'TASK: REWORD the CURRENT SLIDE TEXT into 5 options — keep the same meaning + core fact, but each option is a genuinely DIFFERENT phrasing (different structure / word order), clearly the same idea said fresh.'
@@ -7421,7 +7431,7 @@ async function handleLearnCarousels(req, env, origin) {
   } catch (e) { return json({ error: 'designs read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
   if (!units.length) return json({ error: 'no carousel decks with copy found' }, { status: 404 }, env, origin);
 
-  const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI the HOUSE VOICE for Instagram CAROUSELS. Below are the caption + per-slide headline copy from real TMW carousel decks. Extract the DURABLE, WIDE-SCOPED carousel patterns they share — how slide 1 hooks, how the story is chunked across slides, headline length + rhythm, how the caption complements the slides, CTA and closing habits — that apply to ANY future carousel on ANY subject. '
+  const mapSys = 'You study Markets of Tomorrow, a real-estate development media brand, to teach its AI the HOUSE VOICE for Instagram CAROUSELS. Below are the caption + per-slide headline copy (IN SLIDE ORDER) from real TMW carousel decks. Extract the DURABLE, WIDE-SCOPED patterns they share, with SPECIAL ATTENTION to the START-TO-END ARC: what SLIDE 1 does (the hook or hype that stops the scroll), how the MIDDLE slides deliver the info and BUILD on each other so the deck reads in a smooth flow, and how the LAST slide closes. Also capture headline length and rhythm, how consecutive slides connect, and how the caption complements the slides. Everything must generalize to ANY future carousel on ANY subject. '
     + 'HARD FILTERS: never output a deck-specific fact (a name, price, date, project, city). No one-off observations. Only patterns evidenced across MULTIPLE decks. Each pattern is ONE short general imperative (e.g. "Make slide 1 a single bold claim, not a title", "Keep slide headlines under ~7 words"). '
     + 'Output ONLY a JSON array (5-10 items): [{"kind":"voice"|"structure"|"like","note":"<short general imperative>"}].';
   const redSys = 'You are consolidating raw candidate carousel-voice patterns for Markets of Tomorrow. Merge duplicates and near-duplicates, drop anything deck-specific or too narrow, and return ONLY the DISTINCT, durable, wide-scoped carousel rules. Aim for 12-20 crisp, non-overlapping imperatives. '
@@ -13173,8 +13183,31 @@ async function handleQboSync(request, env, origin) {
         .filter(w => w.length > 2 && !['the','llc','inc','and','one','time','blast','campaign','group','partners','residences'].includes(w)));
       const pool = deposits.map(d => ({
         id: String(d.Id), date: d.TxnDate, amt: +d.TotalAmt || 0,
-        names: (d.Line || []).map(l => (((l.DepositLineDetail || {}).Entity || {}).name || '')).filter(Boolean).join(' ')
+        names: (d.Line || []).map(l => (((l.DepositLineDetail || {}).Entity || {}).name || '')).filter(Boolean).join(' '),
+        accts: (d.Line || []).map(l => (((l.DepositLineDetail || {}).AccountRef || {}).name || '')).filter(Boolean).join(' ').toLowerCase()
       })).sort((a, b) => a.date.localeCompare(b.date));
+
+      // Aggregate subscription rows (e.g. "TMW Pro Subscriptions (net)", Stripe):
+      // the money arrives as MANY small deposits categorized to a same-named
+      // income account. received = the month's last such payout.
+      for (const r of rows) {
+        if (r.received_date || r.status === 'unpaid' || r.paid_by !== 'Stripe') continue;
+        if (!r.date || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) continue;
+        const desc = String(r.description || '').toLowerCase();
+        const month = r.date.slice(0, 7);
+        const hits = pool.filter(d => {
+          if (usedDep.has(d.id) || !d.accts || d.date.slice(0, 7) !== month) return false;
+          const key = d.accts.split(' ').slice(0, 2).join(' ');
+          return key.length >= 5 && key !== 'sales' && key !== 'interest earned' && desc.includes(key);
+        });
+        if (!hits.length) continue;
+        const last = hits.reduce((a, b) => a.date > b.date ? a : b);
+        hits.forEach(d => usedDep.add(d.id));
+        await env.DB.prepare(`UPDATE flows SET received_date=?, qbo_txn_id=COALESCE(qbo_txn_id, ?), updated_at=? WHERE id=?`)
+          .bind(last.date, 'depagg-' + month + '-' + hits.length, now, r.id).run();
+        r.received_date = last.date;
+        depositMatched++; receivedFilled++;
+      }
       const feeNet = a => Math.round((a * 0.971 - 0.30) * 100) / 100;
       const needs = rows.filter(r => !r.received_date && r.status !== 'unpaid' && r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -13206,6 +13239,51 @@ async function handleQboSync(request, env, origin) {
     const notConn = /not_connected|refresh_expired/.test(e.message);
     return json({ error: e.message, connect: notConn ? '/api/qbo/connect' : undefined }, { status: notConn ? 409 : 500 }, env, origin);
   }
+}
+
+// GET /admin/qbo/txn/:qid — live details for the QBO transaction matched to a
+// flows row (qid = invoice Id | 'sr-<id>' | 'dep-<id>' | 'depagg-…'). Feeds the
+// "QuickBooks match" bar in the Flows edit popup.
+async function handleQboTxnInfo(env, origin, qid) {
+  try {
+    await ensureQboTables(env);
+    if (qid.startsWith('depagg-')) {
+      const m = qid.match(/^depagg-(\d{4}-\d{2})-(\d+)$/);
+      return json({ type: 'Stripe payout batch', month: m ? m[1] : null, batch_count: m ? +m[2] : null,
+        note: 'Aggregated from multiple small bank deposits categorized to the matching income account.' }, {}, env, origin);
+    }
+    const auth = await qboAccessToken(env);
+    let entity = 'invoice', id = qid;
+    if (qid.startsWith('sr-')) { entity = 'salesreceipt'; id = qid.slice(3); }
+    else if (qid.startsWith('dep-')) { entity = 'deposit'; id = qid.slice(4); }
+    const r = await fetch(`${QBO_API}/v3/company/${auth.realm}/${entity}/${id}?minorversion=75`, {
+      headers: { 'Authorization': 'Bearer ' + auth.token, 'Accept': 'application/json' }
+    });
+    if (!r.ok) return json({ error: 'qbo fetch ' + r.status + ' [tid ' + (r.headers.get('intuit_tid') || '-') + ']' }, { status: 502 }, env, origin);
+    const d = await r.json();
+    const t = d.Invoice || d.SalesReceipt || d.Deposit || {};
+    const lineNames = (t.Line || []).map(l => (((l.DepositLineDetail || {}).Entity || {}).name || '')).filter(Boolean);
+    return json({
+      type: d.Invoice ? 'Invoice' : (d.SalesReceipt ? 'Sales receipt' : 'Bank deposit'),
+      id, txn_date: t.TxnDate || null, due_date: t.DueDate || null,
+      amount: t.TotalAmt != null ? +t.TotalAmt : null,
+      balance: t.Balance != null ? +t.Balance : null,
+      customer: (t.CustomerRef && t.CustomerRef.name) || lineNames.join(', ') || null,
+      doc_number: t.DocNumber || null, memo: t.PrivateNote || null,
+      qbo_link: `https://qbo.intuit.com/app/${entity}?txnId=${id}`
+    }, {}, env, origin);
+  } catch (e) { return json({ error: e.message }, { status: 500 }, env, origin); }
+}
+
+// POST /admin/flows/:id/unlink-qbo — drop the QBO match (and its synced dates)
+async function handleFlowUnlinkQbo(env, origin, id) {
+  try {
+    await ensureFlowsTable(env);
+    await ensureQboTables(env);
+    await env.DB.prepare(`UPDATE flows SET qbo_txn_id=NULL, invoice_date=NULL, received_date=NULL, updated_at=strftime('%s','now') WHERE id=?`)
+      .bind(id).run();
+    return json({ ok: true }, {}, env, origin);
+  } catch (e) { return json({ error: e.message }, { status: 500 }, env, origin); }
 }
 
 // Public: travel-partner inquiry from the /travel itinerary page. Emails the
@@ -13600,6 +13678,20 @@ export default {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
         return await handleQboSync(request, env, origin);
+      }
+      {
+        const qm = url.pathname.match(/^\/admin\/qbo\/txn\/([^/]+)$/);
+        if (qm && request.method === 'GET') {
+          const denied = await requireAdminToken(request, env, origin);
+          if (denied) return denied;
+          return await handleQboTxnInfo(env, origin, decodeURIComponent(qm[1]));
+        }
+        const um = url.pathname.match(/^\/admin\/flows\/([^/]+)\/unlink-qbo$/);
+        if (um && request.method === 'POST') {
+          const denied = await requireAdminToken(request, env, origin);
+          if (denied) return denied;
+          return await handleFlowUnlinkQbo(env, origin, decodeURIComponent(um[1]));
+        }
       }
       if (request.method === 'GET' && url.pathname === '/blog') {
         return await handleBlog(env, origin, url);
