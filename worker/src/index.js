@@ -12340,6 +12340,11 @@ async function ensureFlowsTable(env) {
     notes TEXT, expenses_json TEXT, plan_day TEXT,
     created_at INTEGER, updated_at INTEGER
   )`).run();
+  // QuickBooks reconciliation: invoice_date = when it was recorded/invoiced in
+  // QBO; received_date = when the payment actually landed.
+  for (const col of ['invoice_date TEXT', 'received_date TEXT']) {
+    try { await env.DB.prepare('ALTER TABLE flows ADD COLUMN ' + col).run(); } catch (_) { /* exists */ }
+  }
 }
 function flowClean(b) {
   const s = (v, n) => { const t = String(v == null ? '' : v).trim(); return t ? t.slice(0, n) : null; };
@@ -12358,7 +12363,8 @@ function flowClean(b) {
     date: s(b.date, 40), amount: b.amount == null || b.amount === '' ? null : (+b.amount || 0),
     description: s(b.description, 400), party: s(b.party, 200), paid_by: s(b.paid_by, 60),
     category: s(b.category, 80), status: s(b.status, 40), type: s(b.type, 60),
-    star: b.star ? 1 : 0, notes: s(b.notes, 400), expenses_json: expenses, plan_day: s(b.plan_day, 80)
+    star: b.star ? 1 : 0, notes: s(b.notes, 400), expenses_json: expenses, plan_day: s(b.plan_day, 80),
+    invoice_date: s(b.invoice_date, 40), received_date: s(b.received_date, 40)
   };
 }
 function flowRow(r) {
@@ -12368,6 +12374,7 @@ function flowRow(r) {
     id: r.id, kind: r.kind, year: +r.year, date: r.date, amount: r.amount == null ? null : +r.amount,
     description: r.description, party: r.party, paid_by: r.paid_by, category: r.category,
     status: r.status, type: r.type, star: !!r.star, notes: r.notes, plan_day: r.plan_day,
+    invoice_date: r.invoice_date || null, received_date: r.received_date || null,
     expenses, updated_at: r.updated_at
   };
 }
@@ -12395,12 +12402,12 @@ async function handleAdminFlowSave(request, env, origin) {
     if (id) {
       const cur = await env.DB.prepare(`SELECT id FROM flows WHERE id = ?`).bind(id).first();
       if (!cur) return json({ error: 'not_found' }, { status: 404 }, env, origin);
-      await env.DB.prepare(`UPDATE flows SET kind=?,year=?,date=?,amount=?,description=?,party=?,paid_by=?,category=?,status=?,type=?,star=?,notes=?,expenses_json=?,plan_day=?,updated_at=? WHERE id=?`)
-        .bind(f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, id).run();
+      await env.DB.prepare(`UPDATE flows SET kind=?,year=?,date=?,amount=?,description=?,party=?,paid_by=?,category=?,status=?,type=?,star=?,notes=?,expenses_json=?,plan_day=?,invoice_date=?,received_date=?,updated_at=? WHERE id=?`)
+        .bind(f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, f.invoice_date, f.received_date, now, id).run();
     } else {
       id = 'fl-' + crypto.randomUUID();
-      await env.DB.prepare(`INSERT INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, now).run();
+      await env.DB.prepare(`INSERT INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,invoice_date,received_date,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, f.invoice_date, f.received_date, now, now).run();
     }
     const row = await env.DB.prepare(`SELECT * FROM flows WHERE id = ?`).bind(id).first();
     return json({ ok: true, entry: flowRow(row) }, {}, env, origin);
@@ -12428,8 +12435,8 @@ async function handleAdminFlowsImport(request, env, origin) {
       const f = flowClean(raw || {});
       if (!f.kind) continue;
       const id = String((raw && raw.id) || ('fl-' + crypto.randomUUID())).slice(0, 80);
-      await env.DB.prepare(`INSERT OR REPLACE INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, now, now).run();
+      await env.DB.prepare(`INSERT OR REPLACE INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,invoice_date,received_date,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+        .bind(id, f.kind, f.year, f.date, f.amount, f.description, f.party, f.paid_by, f.category, f.status, f.type, f.star, f.notes, f.expenses_json, f.plan_day, f.invoice_date, f.received_date, now, now).run();
       n++;
     }
     return json({ ok: true, imported: n }, {}, env, origin);
