@@ -12911,6 +12911,7 @@ function flowRow(r) {
     description: r.description, party: r.party, paid_by: r.paid_by, category: r.category,
     status: r.status, type: r.type, star: !!r.star, notes: r.notes, plan_day: r.plan_day,
     invoice_date: r.invoice_date || null, received_date: r.received_date || null,
+    qbo_txn_id: r.qbo_txn_id || null,
     expenses, updated_at: r.updated_at
   };
 }
