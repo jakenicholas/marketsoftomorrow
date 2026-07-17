@@ -7411,12 +7411,13 @@ async function handleLearnCarousels(req, env, origin) {
   const review = body.review === true;
   await ensureBrandNotes(env);
   await ensureDesignsTable(env);
+  try { await matchDesignsToIgPosts(env); } catch (_) {}   // refresh deck→post engagement links first
   let units = [];
   try {
-    const r = await env.DB.prepare(`SELECT title, doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(top).all();
-    units = (r.results || []).map((d) => ({ label: d.title || 'carousel', text: designDocText(d.doc_json || '{}') }))
+    const r = await env.DB.prepare(`SELECT title, doc_json, ig_engagement FROM designs ORDER BY ig_engagement DESC, created_at DESC LIMIT ?1`).bind(top).all();
+    units = (r.results || []).map((d) => ({ label: d.title || 'carousel', text: designDocText(d.doc_json || '{}'), weight: d.ig_engagement != null ? d.ig_engagement : '', weightLabel: 'saves+shares' }))
       .filter((u) => u.text && u.text.length > 60)
-      .map((u) => ({ label: u.label, text: u.text.slice(0, 1400) }));   // caption + slide headlines
+      .map((u) => ({ label: u.label, text: u.text.slice(0, 1400), weight: u.weight, weightLabel: u.weightLabel }));   // caption + slide headlines, engagement-ranked
   } catch (e) { return json({ error: 'designs read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
   if (!units.length) return json({ error: 'no carousel decks with copy found' }, { status: 404 }, env, origin);
 
@@ -7928,6 +7929,36 @@ async function handleReportEmail(req, env, origin) {
   const card = await buildReportCard(env);
   const sent = await sendBrainReportEmail(env, card);
   return json({ ok: sent, to: env.BRAIN_REPORT_TO || 'jake@oftmw.com', card }, sent ? {} : { status: 502 }, env, origin);
+}
+
+async function ensureDesignPerf(env) {
+  for (const col of ['ig_post_id TEXT', 'ig_engagement INTEGER', 'ig_matched_at INTEGER']) {
+    try { await env.DB.prepare(`ALTER TABLE designs ADD COLUMN ${col}`).run(); } catch (_) {}
+  }
+}
+// Link each carousel deck to the published IG post it became (by caption similarity)
+// so carousel learning + scoring can rank by REAL engagement (saves+shares), the same
+// as captions. Gives carousels the performance signal that designs otherwise lack.
+async function matchDesignsToIgPosts(env, { minSim = 55, maxDesigns = 400 } = {}) {
+  if (!env.DB) return { matched: 0 };
+  try {
+    await ensureDesignsTable(env); await ensureIgPosts(env); await ensureDesignPerf(env);
+    const designs = (await env.DB.prepare(`SELECT slug, doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(maxDesigns).all()).results || [];
+    const igs = (await env.DB.prepare(`SELECT id, caption, COALESCE(saved,0)+COALESCE(shares,0) AS m FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 40`).all()).results || [];
+    if (!designs.length || !igs.length) return { matched: 0 };
+    const now = Math.floor(Date.now() / 1000); let matched = 0;
+    for (const d of designs) {
+      let capt = ''; try { capt = String(JSON.parse(d.doc_json || '{}').caption || ''); } catch (_) {}
+      if (capt.length < 40) continue;
+      let best = null, bestSim = 0;
+      for (const ig of igs) { const sim = wordDiceSimilarity(capt, ig.caption); if (sim > bestSim) { bestSim = sim; best = ig; } }
+      if (best && bestSim >= minSim) {
+        try { await env.DB.prepare(`UPDATE designs SET ig_post_id=?1, ig_engagement=?2, ig_matched_at=?3 WHERE slug=?4`).bind(best.id, best.m, now, d.slug).run(); matched++; } catch (_) {}
+      }
+    }
+    try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,?3,?4)`).bind(now, 'system:deck-match', 'brain_deck_match', JSON.stringify({ matched, designs: designs.length })).run(); } catch (_) {}
+    return { matched };
+  } catch (_) { return { matched: 0 }; }
 }
 
 // THE AUTOPILOT: runs the whole brain pipeline automatically, one phase per cron
@@ -13135,8 +13166,14 @@ async function handleQboSync(request, env, origin) {
     let depositMatched = 0;
     {
       const usedDep = new Set();
-      const pool = deposits.map(d => ({ id: String(d.Id), date: d.TxnDate, amt: +d.TotalAmt || 0 }))
-        .sort((a, b) => a.date.localeCompare(b.date));
+      // wire/check deposits usually name the client on the deposit line — use
+      // it: a named deposit only matches a row for that client, never across
+      const toks = s => new Set(String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)
+        .filter(w => w.length > 2 && !['the','llc','inc','and','one','time','blast','campaign','group','partners','residences'].includes(w)));
+      const pool = deposits.map(d => ({
+        id: String(d.Id), date: d.TxnDate, amt: +d.TotalAmt || 0,
+        names: (d.Line || []).map(l => (((l.DepositLineDetail || {}).Entity || {}).name || '')).filter(Boolean).join(' ')
+      })).sort((a, b) => a.date.localeCompare(b.date));
       const feeNet = a => Math.round((a * 0.971 - 0.30) * 100) / 100;
       const needs = rows.filter(r => !r.received_date && r.status !== 'unpaid' && r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -13146,8 +13183,13 @@ async function handleQboSync(request, env, origin) {
         if (!gross) continue;
         const targets = (r.paid_by === 'Wix' || r.paid_by === 'Stripe') ? [feeNet(gross), gross] : [gross];
         const lo = addDays(r.date, -3), hi = addDays(r.date, 60);
-        const hit = pool.find(d => !usedDep.has(d.id) && d.date >= lo && d.date <= hi
+        const rt = toks((r.party || '') + ' ' + (r.description || ''));
+        const cands = pool.filter(d => !usedDep.has(d.id) && d.date >= lo && d.date <= hi
           && targets.some(t => Math.abs(d.amt - t) < 0.011));
+        const overlap = d => { const dt = toks(d.names); for (const w of dt) if (rt.has(w)) return true; return false; };
+        // prefer a client-named deposit that names THIS client; else an unnamed
+        // deposit; a deposit named for a DIFFERENT client never matches
+        const hit = cands.find(d => d.names && overlap(d)) || cands.find(d => !d.names);
         if (!hit) continue;
         usedDep.add(hit.id);
         await env.DB.prepare(`UPDATE flows SET received_date=?, qbo_txn_id=COALESCE(qbo_txn_id, ?), updated_at=? WHERE id=?`)
