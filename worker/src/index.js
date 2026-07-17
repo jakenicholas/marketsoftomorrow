@@ -7580,7 +7580,7 @@ async function handleEvalScores(req, env, origin) {
   // Autopilot status + latest report card, so the panel shows the self-running machine.
   let autopilot = null, report = null;
   try {
-    const PHASES = ['sync', 'learn-corpus', 'learn-social', 'learn-carousels', 'contrast-social', 'contrast-article', 'optimize-social', 'optimize-carousel', 'optimize-article', 'garden', 'attribution', 'reportcard'];
+    const PHASES = ['sync', 'match-perf', 'learn-corpus', 'learn-social', 'learn-carousels', 'contrast-social', 'contrast-article', 'optimize-social', 'optimize-carousel', 'optimize-article', 'garden', 'attribution', 'reportcard'];
     const row = await env.DB.prepare("SELECT value FROM sync_state WHERE key='brain_autopilot'").first();
     if (row && row.value) { const st = JSON.parse(row.value); const running = st.idx < PHASES.length; autopilot = { running, phase: running ? PHASES[st.idx] : null, done: Math.min(st.idx, PHASES.length), of: PHASES.length, cycle_started: st.started || 0, next_cycle: running ? null : (st.started || 0) + 7 * 86400 }; }
     else autopilot = { running: false, done: 0, of: PHASES.length, cycle_started: 0, next_cycle: 0 };
@@ -7621,7 +7621,7 @@ async function handleEvalRun(req, env, origin) {
       const r = await env.DB.prepare(`SELECT caption AS text, saved, shares FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 80 ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC LIMIT ?1`).bind(n).all();
       refs = (r.results || []).map((x) => ({ text: String(x.text).slice(0, 1200), label: String(x.text).split('\n')[0].slice(0, 60) }));
     } else if (kind === 'carousel') {
-      const r = await env.DB.prepare(`SELECT title, doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(n).all();
+      const r = await env.DB.prepare(`SELECT title, doc_json FROM designs ORDER BY ig_engagement DESC, created_at DESC LIMIT ?1`).bind(n).all();
       refs = (r.results || []).map((x) => ({ text: designDocText(x.doc_json || '{}'), label: String(x.title || 'carousel').slice(0, 60) })).filter((x) => x.text && x.text.length > 60).map((x) => ({ text: x.text.slice(0, 1400), label: x.label }));
     } else {
       const r = await env.DB.prepare(`SELECT p.title, p.body_html, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC LIMIT ?1`).bind(n).all();
@@ -7766,7 +7766,7 @@ async function handleOptimizeBands(req, env, origin) {
     if (surface === 'social') {
       refs = ((await env.DB.prepare(`SELECT caption AS t FROM ig_posts WHERE caption IS NOT NULL AND length(caption) > 80 ORDER BY (COALESCE(saved,0)+COALESCE(shares,0)) DESC, COALESCE(views,0) DESC LIMIT ?1`).bind(n).all()).results || []).map((x) => ({ text: String(x.t).slice(0, 1200) }));
     } else if (surface === 'carousel') {
-      refs = ((await env.DB.prepare(`SELECT doc_json FROM designs ORDER BY created_at DESC LIMIT ?1`).bind(n * 3).all()).results || []).map((x) => ({ text: designDocText(x.doc_json || '{}').slice(0, 1400) })).filter((x) => x.text.length > 60).slice(0, n);
+      refs = ((await env.DB.prepare(`SELECT doc_json FROM designs ORDER BY ig_engagement DESC, created_at DESC LIMIT ?1`).bind(n * 3).all()).results || []).map((x) => ({ text: designDocText(x.doc_json || '{}').slice(0, 1400) })).filter((x) => x.text.length > 60).slice(0, n);
     } else {
       refs = ((await env.DB.prepare(`SELECT p.body_html AS t FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug WHERE p.status='published' ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC LIMIT ?1`).bind(n).all()).results || []).map((x) => ({ text: htmlToText(x.t || '').slice(0, 3000) })).filter((x) => x.text.length > 200);
     }
@@ -7968,13 +7968,14 @@ async function matchDesignsToIgPosts(env, { minSim = 55, maxDesigns = 400 } = {}
 // cleans, and improves itself. State in sync_state 'brain_autopilot' = {idx,started,last}.
 const BRAIN_AUTOPILOT_PHASES = [
   { name: 'sync', run: (env) => syncSocialPosts(env, { days: 120, maxPer: 80 }) },
+  { name: 'match-perf', run: (env) => matchDesignsToIgPosts(env) },
   { name: 'learn-corpus', run: (env) => handleLearnCorpus(internalReq('/admin/brain/learn-corpus', env, { top: 48 }), env, 'internal') },
   { name: 'learn-social', run: (env) => handleLearnSocial(internalReq('/admin/brain/learn-social', env, { top: 48 }), env, 'internal') },
   { name: 'learn-carousels', run: (env) => handleLearnCarousels(internalReq('/admin/brain/learn-carousels', env, { top: 60 }), env, 'internal') },
   { name: 'contrast-social', run: (env) => handleLearnContrastive(internalReq('/admin/brain/learn-contrastive', env, { kind: 'social' }), env, 'internal') },
   { name: 'contrast-article', run: (env) => handleLearnContrastive(internalReq('/admin/brain/learn-contrastive', env, { kind: 'article' }), env, 'internal') },
   { name: 'optimize-social', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'social' }), env, 'internal') },
-  { name: 'optimize-carousel', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'carousel' }), env, 'internal') },
+  { name: 'optimize-carousel', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'carousel', n: 5, variants: 3 }), env, 'internal') },
   { name: 'optimize-article', run: (env) => handleOptimizeBands(internalReq('/admin/brain/optimize-bands', env, { kind: 'article' }), env, 'internal') },
   { name: 'garden', run: (env) => gardenBrain(env) },
   { name: 'attribution', run: (env) => runAttribution(env) },
