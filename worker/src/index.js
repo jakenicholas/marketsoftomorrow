@@ -7921,7 +7921,7 @@ async function sendBrainReportEmail(env, card) {
     return r.ok;
   } catch { return false; }
 }
-// POST /admin/brain/report-email — build + email the report card on demand (test the weekly brief).
+// POST /admin/brain/report-email: build + email the report card on demand (test the weekly brief).
 async function handleReportEmail(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.RESEND_API_KEY) return json({ error: 'Email (RESEND_API_KEY) not configured on the worker.' }, { status: 503 }, env, origin);
@@ -7930,7 +7930,7 @@ async function handleReportEmail(req, env, origin) {
   return json({ ok: sent, to: env.BRAIN_REPORT_TO || 'jake@oftmw.com', card }, sent ? {} : { status: 502 }, env, origin);
 }
 
-// THE AUTOPILOT — runs the whole brain pipeline automatically, one phase per cron
+// THE AUTOPILOT: runs the whole brain pipeline automatically, one phase per cron
 // tick (~2 min apart), a full cycle weekly: sync latest content → learn (corpus,
 // social, carousels) → contrastive → self-tune the format bands (optimize) → garden
 // → prune dead notes → report card. No buttons to remember; the brain maintains,
