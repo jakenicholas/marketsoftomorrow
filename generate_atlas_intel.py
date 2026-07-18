@@ -177,8 +177,19 @@ def compute_all(projects: list[dict], today: datetime.date | None = None) -> dic
         else:
             confidence = "medium"
 
+        # Geography for filter-aware + globally-diverse rendering: state code
+        # for US markets (CountyState), country otherwise.
+        st_c = collections.Counter((p.get("CountyState") or "").strip() for p in plist if (p.get("CountyState") or "").strip())
+        co_c = collections.Counter((p.get("Country") or "").strip() for p in plist if (p.get("Country") or "").strip())
+        state = st_c.most_common(1)[0][0] if st_c else ""
+        country = co_c.most_common(1)[0][0] if co_c else ""
+        region = state if country == "United States" and state else (country or city)
+
         markets[cslug] = {
             "city": city,
+            "state": state,
+            "country": country,
+            "region": region,
             "score": score,
             "level": level_of(score),
             "pipeline_projects": len(plist),

@@ -754,8 +754,16 @@
     background: #0a0a0a;
     margin: 0 -32px 22px; padding: 12px 32px 13px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
   }
+  .atlas-sticky-filters { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .atlas-sticky-filters::-webkit-scrollbar { display: none; }
+  .ash-hint { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(167,139,250,0.8); flex: 0 0 auto; margin-right: 2px; }
+  .ash-chip { flex: 0 0 auto; font-family: inherit; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 6px 13px; cursor: pointer; transition: border-color .15s, color .15s; display: inline-flex; align-items: center; gap: 7px; }
+  .ash-chip:hover { color: #fff; border-color: rgba(167,139,250,0.5); }
+  .ash-chip.on { background: rgba(167,139,250,0.14); border-color: rgba(167,139,250,0.45); color: #A78BFA; box-shadow: 0 0 14px rgba(167,139,250,0.18); }
+  .ash-chip .x { font-size: 10px; opacity: .8; }
+  .ash-chip.ash-clear { border-style: dashed; color: rgba(255,255,255,0.5); }
   .atlas-stickyhead .atlas-view-tabs { margin: 0; align-self: flex-start; }
   .atlas-stickyhead .atlas-filter-bar { margin: 0; }
   @media (max-width: 800px) {
@@ -2559,9 +2567,31 @@
       const sec = document.getElementById('atlasSupplySec');
       if (!sec || !supplyIntel || !supplyIntel.markets) return;
       const COLOR = { Balanced: '#1FDF67', Elevated: '#F5A623', Saturated: '#FF5C5C' };
-      const tops = Object.entries(supplyIntel.markets)
-        .filter(([, m]) => m.pipeline_projects >= 4)
-        .sort((a, b) => b[1].score - a[1].score).slice(0, 8);
+      const stFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const ciFilter = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
+      const pool = Object.entries(supplyIntel.markets)
+        .map(([slug, m]) => [slug, m])
+        .filter(([, m]) => m.pipeline_projects >= ((stFilter || ciFilter) ? 2 : 4))
+        .sort((a, b) => b[1].score - a[1].score);
+      let tops;
+      if (ciFilter) {
+        const mine = pool.find(([, m]) => m.city === ciFilter);
+        const st = mine ? mine[1].state : null;
+        tops = pool.filter(([, m]) => m.city === ciFilter || (st && m.state === st)).slice(0, 8);
+      } else if (stFilter) {
+        tops = pool.filter(([, m]) => m.state === stFilter).slice(0, 8);
+      } else {
+        // Global default: cap two markets per region so one hot metro
+        // doesn't crowd out the world.
+        const per = {}; tops = [];
+        for (const ent of pool) {
+          const r = ent[1].region || ent[1].city;
+          if ((per[r] || 0) >= 2) continue;
+          per[r] = (per[r] || 0) + 1;
+          tops.push(ent);
+          if (tops.length >= 8) break;
+        }
+      }
       if (!tops.length) { sec.remove(); return; }
       sec.innerHTML = `
         <div class="atlas-section-head"><div>
@@ -2597,11 +2627,21 @@
     function fillProjSec() {
       const sec = document.getElementById('atlasProjSec');
       if (!sec || !projShape || !projShape.projects) return;
-      const rows = Object.entries(projShape.projects)
+      let rows = Object.entries(projShape.projects)
         .map(([slug, v]) => Object.assign({ slug }, v))
         .filter(v => v.modeled && v.title)
         .sort((a, b) => (b.confidence === 'high') - (a.confidence === 'high') || (b.comp_count || 0) - (a.comp_count || 0));
-      if (rows.length < 3) { sec.remove(); return; }
+      const pStFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
+      const pCiFilter = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
+      if (pStFilter || pCiFilter) {
+        if (!supplyIntel && supplyIntelP) { supplyIntelP.then(() => fillProjSec()); return; }
+        rows = rows.filter(v => {
+          if (pCiFilter) return v.city === pCiFilter;
+          const mk = supplyIntel && supplyIntel.markets && supplyIntel.markets[v.market];
+          return mk && mk.state === pStFilter;
+        });
+      }
+      if (rows.length < ((pStFilter || pCiFilter) ? 1 : 3)) { sec.innerHTML = ''; return; }
       const shown = rows.slice(0, 8);
       sec.innerHTML = `
         <div class="atlas-section-head"><div>
@@ -2634,12 +2674,46 @@
       }).catch(() => {});
     }
 
+    // Sticky-bar filter chips: active filters (with ✕) when set, quick
+    // dial-in state shortcuts when not — mirrors the search-bar selects.
+    function renderStickyFilters() {
+      const states = (atlasData.available_states || []).slice(0, 6);
+      const active = [];
+      if (currentStateFilter && currentStateFilter !== 'ALL') {
+        const s = (atlasData.available_states || []).find(x => x.code === currentStateFilter);
+        active.push({ k: 'state', label: s ? s.label : currentStateFilter });
+      }
+      if (currentCityFilter && currentCityFilter !== 'ALL') active.push({ k: 'city', label: currentCityFilter });
+      if (currentTypeFilter && currentTypeFilter !== 'ALL') active.push({ k: 'type', label: currentTypeFilter });
+      if (currentYearFilter) active.push({ k: 'year', label: 'By end of ' + currentYearFilter });
+      let inner;
+      if (active.length) {
+        inner = active.map(a => `<button class="ash-chip on" data-clear="${a.k}">${escapeHtml(a.label)}<span class="x">✕</span></button>`).join('')
+          + `<button class="ash-chip ash-clear" data-clear="all">Clear all</button>`;
+      } else if (states.length) {
+        inner = `<span class="ash-hint">Dial in</span>` + states.map(s =>
+          `<button class="ash-chip" data-state="${escapeHtml(s.code)}">${escapeHtml(s.label)}</button>`).join('');
+      } else return '';
+      return `<div class="atlas-sticky-filters" id="atlasStickyFilters">${inner}</div>`;
+    }
+    document.addEventListener('click', function (e) {
+      const chip = e.target.closest('#atlasStickyFilters .ash-chip');
+      if (!chip) return;
+      if (chip.dataset.state) { currentStateFilter = chip.dataset.state; currentCityFilter = 'ALL'; }
+      else if (chip.dataset.clear === 'state') currentStateFilter = 'ALL';
+      else if (chip.dataset.clear === 'city') currentCityFilter = 'ALL';
+      else if (chip.dataset.clear === 'type') currentTypeFilter = 'ALL';
+      else if (chip.dataset.clear === 'year') currentYearFilter = '';
+      else if (chip.dataset.clear === 'all') { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentYearFilter = ''; }
+      renderAll();
+    });
+
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       syncHeadOffset();
-      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + '</div>';
+      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + renderStickyFilters() + '</div>';
       const sections = [];
       if (currentAtlasView === 'timeline') {
         sections.push(stickyhead, renderStateFilter(), renderTimelineSection());
