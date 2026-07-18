@@ -2988,9 +2988,9 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     <div class="pp-below" id="ppBelow">
       {watching_card_html}
       {dossier_html}
-      {atlas_intel_html}
       {about_section}
       {firms_section}
+      {atlas_intel_html}
       <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
       {updates_section_html}
       {family_section}

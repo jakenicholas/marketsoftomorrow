@@ -108,6 +108,8 @@ def main():
         cs = slugify(geo[slug]['city'])
         sup = supply['markets'].get(cs) or {}
         pub[slug] = {
+            'title': geo[slug]['title'],
+            'city': geo[slug]['city'],
             'modeled': bool(m),
             'confidence': (m or {}).get('confidence'),
             'comp_count': (m or {}).get('comp_count', 0),

@@ -980,6 +980,56 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
     <div class="tlb-board" id="tlbBoard"></div>
     <!-- Follow the Money — reusable intel module (/_shared/intel-modules.js) -->
     <div data-tmw-money data-mode="teaser"></div>
+    <!-- Atlas Intelligence — projected-pricing preview (public teaser; values
+         are a Pro surface and are never in this page's payload) -->
+    <div id="homeAtlasIntel" hidden>
+      <style>
+        #homeAtlasIntel{margin-top:14px;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:16px 18px}
+        #homeAtlasIntel .hai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+        #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700}
+        #homeAtlasIntel .hai-eyebrow i{width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 10px 1px #A78BFA}
+        #homeAtlasIntel .hai-sub{font-size:12px;color:rgba(255,255,255,.55)}
+        #homeAtlasIntel .hai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        @media(max-width:900px){#homeAtlasIntel .hai-grid{grid-template-columns:1fr}}
+        #homeAtlasIntel .hai-card{display:block;text-decoration:none;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:12px 14px;transition:border-color .15s}
+        #homeAtlasIntel .hai-card:hover{border-color:rgba(167,139,250,.5)}
+        #homeAtlasIntel .hai-name{color:#fff;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        #homeAtlasIntel .hai-meta{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+        #homeAtlasIntel .hai-row{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+        #homeAtlasIntel .hai-psf{font-size:17px;font-weight:700;color:#fff;filter:blur(6px);user-select:none;opacity:.85}
+        #homeAtlasIntel .hai-unit{font-size:10.5px;color:rgba(255,255,255,.45)}
+        #homeAtlasIntel .hai-conf{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.06em;color:rgba(167,139,250,.8);border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:2px 8px}
+        #homeAtlasIntel .hai-cta{display:inline-block;margin-top:12px;text-decoration:none;font-size:12px;font-weight:700;color:#A78BFA}
+      </style>
+      <div class="hai-head">
+        <span class="hai-eyebrow"><i></i>Atlas Intelligence · Onyx projections</span>
+        <span class="hai-sub" id="haiSub"></span>
+      </div>
+      <div class="hai-grid" id="haiGrid"></div>
+      <a class="hai-cta" href="/atlas/">Projected pricing, scenarios and supply pressure — inside the Atlas &rarr;</a>
+    </div>
+    <script>
+    (function(){
+      fetch('/map/atlas-projections-public.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+        if(!d||!d.projects) return;
+        var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+        var rows=Object.keys(d.projects).map(function(k){var v=d.projects[k];v._slug=k;return v;})
+          .filter(function(v){return v.modeled&&v.title;})
+          .sort(function(a,b){return (b.confidence==='high')-(a.confidence==='high')||(b.comp_count||0)-(a.comp_count||0);});
+        if(rows.length<3) return;
+        document.getElementById('haiSub').textContent='Modeled pricing at delivery now live for '+rows.length+' pre-construction projects';
+        document.getElementById('haiGrid').innerHTML=rows.slice(0,3).map(function(v){
+          return '<a class="hai-card" href="/projects/'+encodeURIComponent(v._slug)+'/">'
+            +'<div class="hai-name">'+esc(v.title)+'</div>'
+            +'<div class="hai-meta">'+esc(v.city||'')+(v.delivery_label?' · '+esc(v.delivery_label):'')+'</div>'
+            +'<div class="hai-row"><span class="hai-psf">$•,•••</span><span class="hai-unit">/ sq ft at delivery</span>'
+            +'<span class="hai-conf">'+esc((v.confidence||'').toUpperCase())+' · '+(v.comp_count||0)+' comps</span></div></a>';
+        }).join('');
+        document.getElementById('homeAtlasIntel').hidden=false;
+        try{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_home_preview_view',{});}catch(_e){}
+      }).catch(function(){});
+    })();
+    </script>
     <div class="tlb-trend" id="tlbTrend" hidden></div>
     <div class="tlb-foot">
       <a class="cta" href="https://www.oftmw.com/atlas">Explore the database &rarr;</a>
