@@ -165,6 +165,18 @@
     vertical-align: middle;
   }
 
+  /* Atlas Intelligence · supply pressure */
+  .asp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .asp-grid { grid-template-columns: repeat(2, 1fr); } }
+  .asp-card { display: block; text-decoration: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 14px 12px; text-align: center; transition: border-color .15s; }
+  .asp-card:hover { border-color: rgba(167,139,250,0.45); }
+  .asp-g { width: 64px; margin: 0 auto; display: block; }
+  .asp-n { font-size: 15px; font-weight: 700; fill: #fff; font-variant-numeric: tabular-nums; }
+  .asp-city { color: #fff; font-size: 13.5px; font-weight: 600; margin-top: 6px; }
+  .asp-lvl { font-size: 9px; letter-spacing: .16em; font-weight: 700; margin-top: 2px; }
+  .asp-meta { color: rgba(255,255,255,0.45); font-size: 10.5px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .asp-foot { color: rgba(255,255,255,0.35); font-size: 10px; margin-top: 12px; font-family: var(--mono, monospace); }
+
   /* Leaderboard rows become clickable links to /architects/<slug>/ or
      /developers/<slug>/ — those firm pages live on map.oftmw.com (they 404
      on www), so the render emits absolute map URLs. Inherits the number,
@@ -2504,6 +2516,53 @@
         + '<div data-tmw-money data-mode="full"><div class="tmw-m-loading" style="font:12px \'Inter\',sans-serif;color:#8b958d;padding:14px 2px">Tracing the capital…</div></div>'
         + '</section>';
     }
+    // ── Atlas Intelligence · supply pressure (Surface C) ──────────────
+    // Reads /map/atlas-intel.json (generate_atlas_intel.py — same scores the
+    // market pages bake in). Fetched once, filled into the placeholder section
+    // whenever renderAll rebuilds the DOM.
+    let supplyIntel = null, supplyIntelP = null;
+    function renderSupplySection() { return '<section class="atlas-section" id="atlasSupplySec"></section>'; }
+    function loadSupplyIntel() {
+      if (supplyIntel) { fillSupplySec(); return; }
+      if (!supplyIntelP) {
+        supplyIntelP = fetch('/map/atlas-intel.json', { cache: 'no-cache' })
+          .then(r => r.ok ? r.json() : null)
+          .then(j => { supplyIntel = j; fillSupplySec(); })
+          .catch(() => {});
+      } else { supplyIntelP.then(() => fillSupplySec()); }
+    }
+    function miniSupplyGauge(score, color) {
+      const len = Math.PI * 26, dash = len * Math.max(score, 2) / 100;
+      return `<svg viewBox="0 0 64 38" class="asp-g" aria-hidden="true">`
+        + `<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/>`
+        + `<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${len.toFixed(1)}"/>`
+        + `<text x="32" y="30" text-anchor="middle" class="asp-n">${score}</text></svg>`;
+    }
+    function fillSupplySec() {
+      const sec = document.getElementById('atlasSupplySec');
+      if (!sec || !supplyIntel || !supplyIntel.markets) return;
+      const COLOR = { Balanced: '#1FDF67', Elevated: '#F5A623', Saturated: '#FF5C5C' };
+      const tops = Object.entries(supplyIntel.markets)
+        .filter(([, m]) => m.pipeline_projects >= 4)
+        .sort((a, b) => b[1].score - a[1].score).slice(0, 8);
+      if (!tops.length) { sec.remove(); return; }
+      sec.innerHTML = `
+        <div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Supply <em>pressure</em></h2>
+          <p class="atlas-section-sub">New-supply concentration by market over the next 36 months, modeled by Onyx from the delivery pipeline.</p>
+        </div></div>
+        <div class="atlas-panel">
+          <div class="asp-grid">` + tops.map(([slug, m]) => {
+            const c = COLOR[m.level] || '#1FDF67';
+            return `<a class="asp-card" href="/markets/${slug}/">${miniSupplyGauge(m.score, c)}`
+              + `<div class="asp-city">${m.city}</div>`
+              + `<div class="asp-lvl" style="color:${c}">${m.level.toUpperCase()}</div>`
+              + `<div class="asp-meta">${m.delivering_24mo.projects} projects · ${(m.delivering_24mo.units || 0).toLocaleString()} units next 24 mo</div></a>`;
+          }).join('') + `</div>
+          <div class="asp-foot">Scored 0–100 on near-term delivery density and window concentration · Balanced &lt;40 · Elevated 40–69 · Saturated 70+</div>
+        </div>`;
+    }
+
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
@@ -2520,6 +2579,7 @@
           renderStateFilter(),
           renderHeadlineTiles(),
           renderDashGrid(),
+          renderSupplySection(),
           renderLeaderboardSection(),
           renderMoneySection(),
           renderMoversSection(),  // Recent movers — below Follow the money
@@ -2529,6 +2589,7 @@
       }
       sections.push(renderFooter());
       root.innerHTML = sections.join('');
+      loadSupplyIntel();
       wireInteractions();
       updateLoadMoreBtn(currentLbKey);
       try { if (window.tmwMoney) window.tmwMoney.mountAll(); } catch (e) {}

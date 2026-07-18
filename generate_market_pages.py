@@ -45,6 +45,9 @@ from generate_pages import (
     format_delivery_display,
     _format_time_to_delivery,
 )
+# Atlas Intelligence — Surface C (supply pressure). Imported so market pages
+# and atlas-intel.json can never disagree on a score.
+from generate_atlas_intel import compute_all as compute_atlas_intel
 
 ROOT_URL   = "https://www.oftmw.com"
 SITE_NAME  = "Markets of Tomorrow"
@@ -690,6 +693,74 @@ def stats_strip_html(projects: list[dict]) -> str:
         for label, n, cls in cells
     )
 
+# ─── Atlas Intelligence · Surface C — supply pressure (market hero metric) ───
+# Copy rules (spec §0): plain market-fact language ("a 53-project pipeline"),
+# never machinery words; every card carries a confidence chip; all figures in
+# this surface are public-safe (no pricing values).
+SUPPLY_LEVEL_COLOR = {'Balanced': '#1FDF67', 'Elevated': '#F5A623', 'Saturated': '#FF5C5C'}
+
+def _fmt_half(half: str) -> str:
+    """'2026H2' → 'H2 ’26'"""
+    return f"{half[4:]} ’{half[2:4]}"
+
+def supply_pressure_html(m: dict | None) -> str:
+    if not m:
+        return ''
+    score, level = m['score'], m['level']
+    color = SUPPLY_LEVEL_COLOR.get(level, '#1FDF67')
+    # Semicircle gauge: r=52 arc from (8,64) to (112,64), length ≈ π·52.
+    arc_len = 3.14159 * 52
+    dash = arc_len * max(score, 2) / 100.0
+    units_bit = f", delivering {m['pipeline_units']:,} residences and keys" if m['pipeline_units'] else ""
+    sub = (f"New-supply concentration over the next 36 months — "
+           f"a {m['pipeline_projects']}-project pipeline{units_bit}.")
+    windows = [w for w in m['windows']]
+    max_u = max([w['units'] for w in windows] + [1])
+    bars = []
+    for w in windows:
+        h = max(6, round(64 * w['units'] / max_u)) if w['units'] else 4
+        on = ' on' if w['units'] == max_u and w['units'] else ''
+        bars.append(
+            f'<div class="sp-win{on}" title="{w["projects"]} projects · {w["units"]:,} units">'
+            f'<div class="sp-bar-wrap"><div class="sp-bar" style="height:{h}px"></div></div>'
+            f'<div class="sp-win-n">{w["projects"]}p</div>'
+            f'<div class="sp-win-l">{esc(_fmt_half(w["half"]))}</div>'
+            f'</div>'
+        )
+    extras = []
+    if m['later']['projects']:
+        extras.append(f"{m['later']['projects']} more beyond 36 months")
+    if m['undated_projects']:
+        extras.append(f"{m['undated_projects']} without a public date")
+    extras_line = (' · '.join(extras)) if extras else ''
+    conf = m['confidence'].capitalize()
+    dated_pct = round(m['provenance']['dated_share'] * 100)
+    return f'''
+    <section class="section sp-mod" aria-label="Supply pressure">
+      <div class="sp-grid">
+        <div class="sp-gauge-col">
+          <div class="sp-eyebrow">Supply pressure</div>
+          <svg class="sp-gauge" viewBox="0 0 120 72" role="img" aria-label="Supply pressure {score} of 100 — {esc(level)}">
+            <path d="M 8 64 A 52 52 0 0 1 112 64" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9" stroke-linecap="round"/>
+            <path d="M 8 64 A 52 52 0 0 1 112 64" fill="none" stroke="{color}" stroke-width="9" stroke-linecap="round"
+                  stroke-dasharray="{dash:.1f} {arc_len:.1f}"/>
+            <text x="60" y="52" text-anchor="middle" class="sp-score">{score}</text>
+            <text x="60" y="66" text-anchor="middle" class="sp-level" fill="{color}">{esc(level.upper())}</text>
+          </svg>
+          <div class="sp-scale"><span>0</span><span>Balanced · Elevated · Saturated</span><span>100</span></div>
+        </div>
+        <div class="sp-windows-col">
+          <div class="sp-sub">{esc(sub)}</div>
+          <div class="sp-windows">{''.join(bars)}</div>
+          <div class="sp-windows-cap">Deliveries by half-year{(' · ' + esc(extras_line)) if extras_line else ''}</div>
+        </div>
+      </div>
+      <div class="sp-foot">
+        <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: {esc(conf)} · {dated_pct}% of deliveries dated</span>
+        <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+      </div>
+    </section>'''
+
 def _count_firms(projects: list[dict], name_field: str, slug_field: str) -> tuple[collections.Counter, dict[str,str]]:
     """Tally how many projects each firm appears on, and remember its slug.
 
@@ -940,6 +1011,7 @@ def render_page(
     faqs: list[tuple[str, str]] = None,  # [(question, answer_html), ...] — both displayed + emitted as FAQPage JSON-LD
     extra_jsonld: str = '',     # additional schema.org blocks (Place, etc.)
     status_sections: str = '',  # H2 sub-sections by status, exact-match search phrases
+    supply_html: str = '',      # Atlas Intelligence Surface C (city/market pages)
 ) -> str:
     faqs = faqs or []
     canonical = ROOT_URL + canonical_path
@@ -1073,6 +1145,28 @@ def render_page(
 
     /* Stats */
     .stats {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 32px 0; border-bottom:1px solid var(--hair); }}
+    /* Atlas Intelligence · supply pressure */
+    .sp-mod {{ background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:22px 24px 16px; margin-top:26px; }}
+    .sp-grid {{ display:grid; grid-template-columns:190px 1fr; gap:26px; align-items:center; }}
+    .sp-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; margin-bottom:10px; }}
+    .sp-gauge {{ width:100%; max-width:190px; display:block; }}
+    .sp-gauge .sp-score {{ font-size:30px; font-weight:700; fill:#fff; font-variant-numeric:tabular-nums; }}
+    .sp-gauge .sp-level {{ font-size:8.5px; letter-spacing:.18em; font-weight:700; }}
+    .sp-scale {{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:9px; color:rgba(255,255,255,.35); margin-top:6px; }}
+    .sp-sub {{ font-size:14px; line-height:1.55; color:rgba(255,255,255,.78); margin-bottom:14px; max-width:560px; }}
+    .sp-windows {{ display:flex; gap:10px; align-items:flex-end; }}
+    .sp-win {{ flex:1; text-align:center; min-width:0; }}
+    .sp-bar-wrap {{ height:64px; display:flex; align-items:flex-end; justify-content:center; }}
+    .sp-bar {{ width:70%; max-width:44px; border-radius:5px 5px 2px 2px; background:rgba(255,255,255,.16); }}
+    .sp-win.on .sp-bar {{ background:#A78BFA; }}
+    .sp-win-n {{ font-family:var(--mono); font-size:10px; color:rgba(255,255,255,.6); margin-top:5px; font-variant-numeric:tabular-nums; }}
+    .sp-win-l {{ font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.38); margin-top:1px; white-space:nowrap; }}
+    .sp-windows-cap {{ font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.38); margin-top:9px; }}
+    .sp-foot {{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,.07); margin-top:16px; padding-top:11px; }}
+    .sp-conf {{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:4px 10px; }}
+    .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.3); }}
+    .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.3); }}
+    .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.75); }}
     .stat {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }}
     .stat .n {{ font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }}
     .stat .l {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }}
@@ -1288,6 +1382,9 @@ def render_page(
     @media (max-width: 760px) {{
       .wrap {{ padding: 0 18px; }}
       .stats {{ grid-template-columns: repeat(2, 1fr); }}
+      .sp-grid {{ grid-template-columns: 1fr; gap: 14px; }}
+      .sp-gauge {{ margin: 0 auto; }}
+      .sp-windows {{ gap: 6px; }}
       .leads {{ grid-template-columns: 1fr; }}
       .pro-cta {{ flex-direction: column; align-items: flex-start; }}
       .intel form {{ flex-direction: column; }}
@@ -1316,6 +1413,7 @@ def render_page(
     <div class="stats" aria-label="Status breakdown">
 {stats_html}
     </div>
+{supply_html}
 
     <section class="section">
       <div class="section-head">
@@ -2787,6 +2885,12 @@ def main():
 
     by_city_type, by_city, by_type = bucket_projects(projects)
 
+    # Atlas Intelligence: one supply-pressure compute for every market, shared
+    # by every page in this run (same math that writes atlas-intel.json).
+    ATLAS_INTEL = compute_atlas_intel(projects)
+    def supply_for(city: str) -> str:
+        return supply_pressure_html(ATLAS_INTEL['markets'].get(slugify(city)))
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     # markets-index.json — { "City": "slug" } for every city that gets a page
@@ -2873,6 +2977,7 @@ def main():
             map_search=f'{city} {ptype}',
             intel_city=city, intel_type=ptype,
             body_copy_html=long_copy,
+            supply_html=supply_for(city),
             faqs=faqs_city_type(city, ptype, bucket),
             extra_jsonld=place_jsonld(city),
             status_sections=status_sections_html(
@@ -2933,6 +3038,7 @@ def main():
             intro_html=intro, projects=bucket_sorted, related_cities=related_cities, more_types=more_types,
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
+            supply_html=supply_for(city),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),
             status_sections=status_sections_html(
