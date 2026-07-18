@@ -131,9 +131,12 @@
     + '@keyframes tmwOvHxsRing{0%,60%{transform:scale(1);opacity:0}72%{opacity:.5}100%{transform:scale(1.7);opacity:0}}'
     + '@keyframes tmwOvFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'
 
-    + '.tmw-ov-root{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;transition:opacity .3s ease;'
+    // visibility:hidden when closed (delayed past the fade) — opacity:0 alone
+    // still PAINTS the near-opaque scrim under some compositing paths (seen as
+    // a full-width black band behind the signup modal on project pages).
+    + '.tmw-ov-root{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s;'
     + 'font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#ECEAE5;font-size:15px;line-height:1.55}'
-    + '.tmw-ov-root.open{opacity:1;pointer-events:auto}'
+    + '.tmw-ov-root.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}'
 
     + '.tmw-ov-scrim{position:absolute;inset:0;background:rgba(7,8,7,.82);'
     + '-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}'
