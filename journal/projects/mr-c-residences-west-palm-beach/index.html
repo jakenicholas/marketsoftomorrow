@@ -1414,7 +1414,7 @@
             tries = tries || 0;
             var ms = window.$memberstackDom;
             if (ms && ms.getCurrentMember) { ms.getCurrentMember().then(function(r){ cb(r && r.data); }).catch(function(){ cb(null); }); return; }
-            if (tries > 20) { cb(null); return; }
+            if (tries > 40) { cb(null); return; }
             setTimeout(function(){ withMember(cb, tries + 1); }, 500);
           }
           withMember(function(mem){
