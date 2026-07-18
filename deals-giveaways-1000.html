@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deals &amp; Giveaways — Onyx-style card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#060706; --card:#0c0e0d; --card-2:#0a0c0b;
+    --purple-glow:#B9A6FF; --hair:rgba(255,255,255,.08);
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--ink)}
+  body{
+    min-height:100vh;display:grid;place-items:center;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;font-kerning:normal;
+  }
+
+  /* exact 1000×1000 artboard — screenshot this element */
+  .stage{
+    position:relative;width:1000px;height:1000px;overflow:hidden;
+    background:var(--ink);display:flex;align-items:center;justify-content:center;
+  }
+  .stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(760px 520px at 50% 8%,rgba(167,139,250,.10),transparent 62%),
+      radial-gradient(1200px 1200px at 50% 50%,transparent 52%,rgba(0,0,0,.55));
+  }
+
+  /* the Onyx-style card — now a perfect square */
+  .card{
+    position:relative;z-index:1;width:900px;height:900px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,var(--card),var(--card-2));
+    border:1px solid var(--hair);border-radius:34px;
+    box-shadow:0 50px 120px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.01) inset;
+  }
+  .card::before{  /* faint purple wash at the top edge, like the live box */
+    content:"";position:absolute;inset:0;border-radius:34px;pointer-events:none;
+    background:radial-gradient(620px 260px at 50% 0%,rgba(167,139,250,.10),transparent 70%);
+  }
+
+  /* centered hero wordmark — JS sizes it to fill the card width */
+  .hero{
+    position:relative;
+    font-family:var(--serif);font-optical-sizing:auto;font-weight:500;
+    font-size:100px;line-height:1;letter-spacing:-.03em;color:#fff;white-space:nowrap;
+    opacity:0;transition:opacity .18s ease;
+  }
+  .hero.ready{opacity:1}
+  .hero em{font-style:normal;font-weight:600;color:var(--purple-glow);
+    text-shadow:0 0 20px rgba(185,166,255,.55),0 0 44px rgba(167,139,250,.35)}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <h1 class="hero" id="hero">Deals <em>&amp;</em> Giveaways</h1>
+    </div>
+  </div>
+
+<script>
+  (function(){
+    var TARGET = 800;  // wordmark width inside the 900px square card
+    function fit(){
+      var h = document.getElementById('hero');
+      h.style.fontSize = '100px';
+      var w = h.getBoundingClientRect().width;
+      h.style.fontSize = (100 * TARGET / w) + 'px';
+      h.classList.add('ready');
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    else window.addEventListener('load', fit);
+  })();
+</script>
+</body>
+</html>

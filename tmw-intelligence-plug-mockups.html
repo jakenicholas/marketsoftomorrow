@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMW Intelligence — journal header concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#070807; --card:#0c0e0d; --card2:#0a0c0b;
+    --purple:#A78BFA; --pglow:#B9A6FF; --green:#1FDF67; --green-soft:#42EB81; --gold:#e6c574; --gold-soft:#f0d68a;
+    --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+    --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;line-height:1.5;padding:48px 24px 90px}
+  .wrap{max-width:1000px;margin:0 auto}
+  .page-h{text-align:center;margin-bottom:8px}
+  .page-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--pglow);margin-bottom:14px}
+  h1.page{font-family:var(--serif);font-weight:600;font-size:38px;letter-spacing:-.02em;color:#fff}
+  .page-sub{color:var(--mute2);font-size:15px;max-width:60ch;margin:12px auto 0}
+
+  .concept{margin-top:56px}
+  .c-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--hair)}
+  .c-tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft);font-weight:600}
+  .c-name{font-family:var(--serif);font-weight:600;font-size:22px;color:#fff}
+  .c-why{color:var(--mute);font-size:13px;flex:1;min-width:220px}
+
+  /* faux journal frame: tab bar + plug in context */
+  .frame{border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#080a09,#060706)}
+  .tabbar{display:flex;justify-content:center;gap:6px;padding:16px 0 4px}
+  .tab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);padding:9px 18px;border-radius:999px}
+  .tab.on{color:#111;background:#fff;font-weight:600}
+  .stage{padding:22px 26px 30px}
+
+  /* shared bits */
+  .hex{flex:none}
+  .hex svg{display:block}
+  .spark{color:var(--pglow);filter:drop-shadow(0 0 6px rgba(167,139,250,.5))}
+  .eyebrow-int{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--pglow)}
+  .live{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green)}
+  .btn-ask{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-weight:600;font-size:14px;color:#0a0a0a;background:linear-gradient(135deg,var(--pglow),var(--purple));padding:12px 22px;border-radius:11px;box-shadow:0 0 22px rgba(167,139,250,.45);cursor:pointer;border:none}
+  .chip{font-family:var(--sans);font-size:13px;color:var(--mute2);background:rgba(255,255,255,.03);border:1px solid var(--hair);border-radius:999px;padding:8px 15px;cursor:pointer;white-space:nowrap}
+  .chip:hover{border-color:rgba(167,139,250,.5);color:#fff}
+
+  /* A — Ask bar */
+  .ask{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid rgba(167,139,250,.4);border-radius:16px;background:rgba(167,139,250,.05);box-shadow:0 0 28px rgba(167,139,250,.12)}
+  .ask .ph{flex:1;font-size:16px;color:var(--mute)}
+  .ask .go{width:44px;height:44px;flex:none;border-radius:50%;background:linear-gradient(135deg,var(--pglow),var(--purple));display:flex;align-items:center;justify-content:center;color:#0a0a0a}
+  .chiprow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .a-eyebrow{margin-bottom:14px}
+
+  /* B — Editorial banner */
+  .banner{position:relative;border:1px solid var(--hair);border-radius:18px;background:linear-gradient(180deg,var(--card),var(--card2));padding:30px 34px;overflow:hidden}
+  .banner::before{content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;background:radial-gradient(560px 200px at 50% 0%,rgba(167,139,250,.14),transparent 70%)}
+  .banner > *{position:relative}
+  .banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .banner h2{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;letter-spacing:-.02em;color:#fff;max-width:20ch}
+  .banner .sub{color:var(--mute2);font-size:15px;margin:14px 0 22px;max-width:52ch}
+
+  /* C — Answer teaser */
+  .teaser{border:1px solid var(--hair);border-radius:18px;background:linear-gradient(180deg,var(--card),var(--card2));padding:24px 26px}
+  .t-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .q-chip{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:var(--cream);background:rgba(255,255,255,.03);border:1px solid var(--hair);border-radius:12px;padding:11px 16px;margin-bottom:14px}
+  .q-chip .hexs{color:var(--pglow)}
+  .t-ans{font-size:15.5px;line-height:1.55;color:var(--mute2)}
+  .t-ans b{color:#fff;font-weight:600}
+  .t-ans .hl{color:var(--pglow)}
+  .t-foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:15px;border-top:1px solid var(--hair);flex-wrap:wrap;gap:12px}
+  .grounded{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--mute)}
+  .grounded b{color:var(--pglow);font-weight:600}
+  .t-cta{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pglow);cursor:pointer}
+
+  /* D — Slim strip */
+  .strip{display:flex;align-items:center;gap:14px;padding:14px 20px;border:1px solid var(--hair);border-left:2px solid var(--purple);border-radius:12px;background:linear-gradient(90deg,rgba(167,139,250,.08),transparent 60%)}
+  .strip .pulse{width:9px;height:9px;border-radius:50%;background:var(--purple);box-shadow:0 0 10px rgba(167,139,250,.8);flex:none;animation:pl 1.8s ease-in-out infinite}
+  @keyframes pl{0%,100%{opacity:1}50%{opacity:.4}}
+  .strip .txt{flex:1;font-size:15px;color:var(--cream)}
+  .strip .txt b{color:#fff;font-weight:600}
+  .strip .arrow{color:var(--pglow);font-size:18px}
+
+  .note{color:var(--mute);font-size:12.5px;margin-top:12px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-h">
+    <div class="page-eyebrow">✦ Mockups · Markets of Tomorrow</div>
+    <h1 class="page">TMW Intelligence — journal headers</h1>
+    <p class="page-sub">Four directions for an Onyx plug that sits atop each journal tab and contextualizes to the tab's topic. Each shown on a different tab.</p>
+  </div>
+
+  <!-- ─────────── CONCEPT A ─────────── -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-tag">Concept A</span>
+      <span class="c-name">The ask bar</span>
+      <span class="c-why">Turns the header into a query launchpad — a ready Onyx input with topic-aware starter questions. Highest intent, most interactive.</span>
+    </div>
+    <div class="frame">
+      <div class="tabbar">
+        <span class="tab">News</span><span class="tab">Restaurants</span><span class="tab on">Hotels</span><span class="tab">Golf</span>
+      </div>
+      <div class="stage">
+        <div class="eyebrow-int a-eyebrow"><span class="spark">✦</span> TMW Intelligence</div>
+        <div class="ask">
+          <span class="hex"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B9A6FF" stroke-width="1.5" stroke-linejoin="round"><path d="M7 4 H17 L22 12 L17 20 H7 L2 12 Z"/></svg></span>
+          <span class="ph">Ask Onyx about the hotel pipeline…</span>
+          <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg></span>
+        </div>
+        <div class="chiprow">
+          <span class="chip">Which hotels open in Miami this year?</span>
+          <span class="chip">Most active hotel developer</span>
+          <span class="chip">New luxury resorts, 2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── CONCEPT B ─────────── -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-tag">Concept B</span>
+      <span class="c-name">The editorial banner</span>
+      <span class="c-why">Brand-forward, magazine masthead energy. A serif hook + one CTA. Reads as a section intro, not a search box.</span>
+    </div>
+    <div class="frame">
+      <div class="tabbar">
+        <span class="tab">News</span><span class="tab">Restaurants</span><span class="tab">Hotels</span><span class="tab on">Golf</span>
+      </div>
+      <div class="stage">
+        <div class="banner">
+          <div class="banner-top">
+            <div class="eyebrow-int"><span class="spark">✦</span> TMW Intelligence · Onyx 4.1</div>
+            <div class="live"><span class="dot"></span> Live</div>
+          </div>
+          <h2>Ask anything about golf's next great courses.</h2>
+          <div class="sub">Every new build, expansion, and clubhouse we track — the whole golf pipeline, answered in seconds.</div>
+          <button class="btn-ask">Ask Onyx <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── CONCEPT C ─────────── -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-tag">Concept C</span>
+      <span class="c-name">The answer teaser</span>
+      <span class="c-why">Shows the value up front — a real Onyx answer preview with its grounding line, then invites your own question. Proves it before you ask.</span>
+    </div>
+    <div class="frame">
+      <div class="tabbar">
+        <span class="tab">News</span><span class="tab on">Restaurants</span><span class="tab">Hotels</span><span class="tab">Golf</span>
+      </div>
+      <div class="stage">
+        <div class="teaser">
+          <div class="t-top">
+            <div class="eyebrow-int"><span class="spark">✦</span> TMW Intelligence</div>
+            <div class="live"><span class="dot"></span> Onyx 4.1</div>
+          </div>
+          <div class="q-chip"><span class="hexs"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4 H17 L22 12 L17 20 H7 L2 12 Z"/></svg></span> Which restaurants are opening in West Palm Beach?</div>
+          <div class="t-ans"><b>Nine new restaurants</b> are opening across West Palm Beach through 2026, led by <span class="hl">José Andrés</span>' Mediterranean concept at Olara and the debut of <span class="hl">Elliott Aster</span> at The Vinoy…</div>
+          <div class="t-foot">
+            <span class="grounded">Onyx 4.1 · grounded in <b>42 restaurants</b></span>
+            <span class="t-cta">Ask your own question <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── CONCEPT D ─────────── -->
+  <section class="concept">
+    <div class="c-head">
+      <span class="c-tag">Concept D</span>
+      <span class="c-name">The slim strip</span>
+      <span class="c-why">Minimal, non-intrusive — a single line above the feed. Least real estate, keeps the stories the star. Good as an always-on nudge.</span>
+    </div>
+    <div class="frame">
+      <div class="tabbar">
+        <span class="tab on">News</span><span class="tab">Restaurants</span><span class="tab">Hotels</span><span class="tab">Golf</span>
+      </div>
+      <div class="stage">
+        <div class="strip">
+          <span class="pulse"></span>
+          <span class="txt"><b>Ask Onyx about the news</b> — every project behind the headlines, answered in seconds.</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Open this file in Chrome to see it in the real brand fonts. Say which direction (or mix) you want and I'll build it into the live journal tabs.</p>
+  </section>
+
+</div>
+</body>
+</html>

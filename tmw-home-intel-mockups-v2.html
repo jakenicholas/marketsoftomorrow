@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TMW Intelligence — New home concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1FDF67; --green-deep:#18c75a; --green-soft:#42EB81;
+    --purple:#A78BFA; --purple-glow:#B9A6FF; --purple-deep:#7c5cff;
+    --gold:#e6c574; --gold-soft:#f0d68a;
+    --ink:#070807; --panel:#121512;
+    --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+    --white:#fff; --cream:#ECEAE5; --mute:#8b958d; --mute2:#C2C9C3;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+    --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--ink); color:var(--cream); font-family:var(--sans); line-height:1.5;
+    background-image:radial-gradient(900px 620px at 84% -8%, rgba(167,139,250,.10), transparent 60%),
+      radial-gradient(760px 640px at -6% 22%, rgba(31,223,103,.05), transparent 55%);}
+  .page{max-width:1160px; margin:0 auto; padding:52px 32px 100px}
+  .doc-h{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); margin-bottom:6px}
+  .doc-t{font-family:var(--serif); font-weight:400; font-size:clamp(28px,4vw,44px); letter-spacing:-.015em; color:var(--white); margin:0 0 10px}
+  .doc-s{color:var(--mute2); font-weight:300; max-width:74ch; margin:0}
+  .concept{margin-top:64px}
+  .clabel{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:8px}
+  .clabel .n{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-glow); font-weight:600}
+  .clabel .t{font-family:var(--serif); font-size:26px; color:var(--white); font-weight:500; letter-spacing:-.01em}
+  .clabel .tag{font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; padding:3px 8px; border-radius:6px}
+  .tag.free{color:var(--green-soft); border:1px solid rgba(31,223,103,.4)}
+  .tag.pro{color:var(--gold-soft); border:1px solid rgba(230,197,116,.45)}
+  .cnote{color:var(--mute); font-size:13px; margin:0 0 22px; max-width:80ch}
+  .cnote b{color:var(--mute2); font-weight:500}
+
+  .eyebrow{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; margin-bottom:14px}
+  .eyebrow.p{color:var(--purple-glow)} .eyebrow.g{color:var(--green)}
+  .eyebrow .spark{width:14px; height:14px; fill:currentColor; filter:drop-shadow(0 0 6px rgba(167,139,250,.7))}
+  .eyebrow .pip{width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); animation:pip 2s ease-in-out infinite}
+  @keyframes pip{0%,100%{opacity:.5; transform:scale(.85)}50%{opacity:1; transform:scale(1.12)}}
+  h3.sec{font-family:var(--serif); font-weight:500; font-size:clamp(22px,2.6vw,32px); color:var(--white); letter-spacing:-.012em; margin:0 0 20px}
+  h3.sec em{font-style:italic; color:var(--purple-glow)}
+
+  /* ===== 1 · ONYX NOTICED ===== */
+  .noticed{display:grid; grid-template-columns:1.35fr 1fr; gap:14px}
+  .ncard{border:1px solid rgba(167,139,250,.24); border-radius:16px; padding:22px 24px;
+    background:linear-gradient(180deg, rgba(167,139,250,.065), rgba(167,139,250,.015)); position:relative}
+  .ncard.mini{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.008)); border-color:var(--hair2)}
+  .ncat{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--purple-glow); font-weight:600; margin-bottom:11px}
+  .nstmt{font-size:18px; line-height:1.42; color:var(--cream); font-weight:400; margin:0 0 15px}
+  .ncard.mini .nstmt{font-size:15px; margin-bottom:12px}
+  .nstmt b{color:#fff; font-weight:600}
+  .nbar{display:flex; align-items:center; gap:10px; margin:0 0 14px}
+  .nbar .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); width:96px; flex:0 0 auto}
+  .nbar .tk{flex:1; height:8px; border-radius:4px; background:rgba(255,255,255,.07); overflow:hidden}
+  .nbar .tk i{display:block; height:100%; border-radius:4px}
+  .nbar .tk i.wpb{background:linear-gradient(90deg,var(--purple-deep),var(--purple-glow))}
+  .nbar .tk i.mia{background:linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,255,255,.4))}
+  .nbar .v{font-family:var(--mono); font-size:11px; color:var(--cream); font-weight:600; width:26px; text-align:right}
+  .nproof{font-family:var(--mono); font-size:10.5px; letter-spacing:.02em; color:var(--mute); display:flex; align-items:center; gap:8px; margin-bottom:14px}
+  .nproof .dot{width:4px;height:4px;border-radius:50%;background:var(--mute)}
+  .ncta{display:inline-flex; align-items:center; gap:6px; appearance:none; background:none; border:0; cursor:pointer; padding:0;
+    font-family:var(--sans); font-size:12.5px; font-weight:600; color:var(--purple-glow)}
+  .ncta:hover{color:#fff}
+  .ncta svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .nright{display:flex; flex-direction:column; gap:14px}
+
+  /* ===== 2 · ONYX FORECASTS ===== */
+  .fcast{border:1px solid rgba(167,139,250,.24); border-radius:18px; overflow:hidden;
+    background:linear-gradient(180deg, rgba(167,139,250,.05), rgba(167,139,250,.012))}
+  .fcgrid{display:grid; grid-template-columns:1fr 1fr; }
+  .fcblock{padding:22px 24px}
+  .fcblock+.fcblock{border-left:1px solid var(--hair)}
+  .fchd{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); margin-bottom:16px; display:flex; align-items:center; gap:8px}
+  .fchd svg{width:14px; height:14px; stroke:var(--purple-glow); fill:none; stroke-width:2}
+  .frow{display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--hair)}
+  .frow:first-of-type{border-top:0}
+  .frow .fn{flex:1; min-width:0}
+  .frow .fn .nm{font-size:13.5px; color:var(--cream); font-weight:600}
+  .frow .fn .mt{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); margin-top:3px}
+  .frow .conf{width:90px; flex:0 0 auto; display:flex; align-items:center; gap:8px}
+  .frow .conf .tk{flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.09); overflow:hidden}
+  .frow .conf .tk i{display:block; height:100%; border-radius:3px; background:linear-gradient(90deg,var(--purple-deep),var(--purple-glow))}
+  .frow .conf .pc{font-family:var(--mono); font-size:11px; font-weight:600; color:var(--purple-glow); width:30px; text-align:right}
+  .fcnext{grid-column:1/-1; border-top:1px solid var(--hair); padding:20px 24px; display:flex; align-items:center; gap:18px; background:rgba(167,139,250,.05)}
+  .fcnext .badge{width:44px; height:44px; border-radius:12px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.35)}
+  .fcnext .badge svg{width:22px; height:22px; stroke:var(--purple-glow); fill:none; stroke-width:1.8}
+  .fcnext .txt .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin-bottom:5px}
+  .fcnext .txt .big{font-family:var(--serif); font-size:22px; color:#fff; font-weight:500; line-height:1.1}
+  .fcnext .txt .big em{font-style:italic; color:var(--purple-glow)}
+  .fcnext .txt .why{font-size:12.5px; color:var(--mute2); margin-top:4px; font-weight:300}
+  .fcnext .pro{margin-left:auto; flex:0 0 auto; align-self:flex-start; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.45); border-radius:5px; padding:3px 7px}
+
+  /* ===== 3 · FOLLOW THE MONEY ===== */
+  .money{display:grid; grid-template-columns:1.25fr 1fr; gap:14px}
+  .mcard{border:1px solid rgba(31,223,103,.22); border-radius:16px; padding:20px 22px; background:linear-gradient(180deg, rgba(31,223,103,.05), rgba(31,223,103,.012))}
+  .mcard.side{border-color:var(--hair2); background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.008))}
+  .mhd{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); margin-bottom:16px}
+  .mrow{display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--hair)}
+  .mrow:first-of-type{border-top:0}
+  .mrow .rk{font-family:var(--mono); font-size:12px; font-weight:700; color:var(--mute); width:15px; text-align:center; flex:0 0 auto}
+  .mrow .mn{flex:1; min-width:0}
+  .mrow .mn .nm{font-size:13.5px; color:var(--cream); font-weight:600}
+  .mrow .mn .mt{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); margin-top:3px}
+  .mrow .amt{font-family:var(--mono); font-size:13px; font-weight:700; color:var(--green-soft); flex:0 0 auto; font-variant-numeric:tabular-nums}
+  .mrow .amt small{display:block; text-align:right; color:var(--mute); font-weight:600; font-size:9.5px; margin-top:2px; letter-spacing:.04em}
+  .mflow{display:flex; flex-direction:column; gap:12px}
+  .mflow .fl{display:flex; align-items:center; gap:10px}
+  .mflow .fl .nm{font-size:12.5px; color:var(--mute2); width:120px; flex:0 0 auto}
+  .mflow .fl .tk{flex:1; height:7px; border-radius:4px; background:rgba(255,255,255,.07); overflow:hidden}
+  .mflow .fl .tk i{display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,var(--green-deep),var(--green-soft))}
+  .mflow .fl .v{font-family:var(--mono); font-size:11px; color:var(--cream); font-weight:600; width:38px; text-align:right}
+  .mfoot{margin-top:16px; font-size:12.5px; color:var(--mute)}
+  .mfoot a{color:var(--green-soft); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:5px}
+  .mfoot a svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+
+  @media(max-width:860px){ .noticed,.fcgrid,.money{grid-template-columns:1fr} .fcblock+.fcblock{border-left:0;border-top:1px solid var(--hair)} }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="doc-h">Markets of Tomorrow · Internal mockup v2</div>
+  <h1 class="doc-t">New TMW Intelligence for the home page</h1>
+  <p class="doc-s">Forward-looking and Onyx-generated — the opposite of Pulse (past events), the Board (current rankings), and Trending (past queries). Illustrative data.</p>
+
+  <!-- 1 · ONYX NOTICED -->
+  <section class="concept">
+    <div class="clabel"><span class="n">Concept 1</span><span class="t">Onyx Noticed</span><span class="tag free">Everyone · free</span></div>
+    <p class="cnote">Onyx scans the whole dataset and surfaces a pattern <b>nobody searched for</b> — with the receipts. Synthesis, not a feed. Refreshes as the data moves.</p>
+    <span class="eyebrow p"><svg class="spark" viewBox="0 0 24 24"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>Onyx Noticed<span class="pip"></span></span>
+    <h3 class="sec">This week Onyx <em>noticed</em>…</h3>
+    <div class="noticed">
+      <div class="ncard">
+        <div class="ncat">Market shift</div>
+        <p class="nstmt"><b>West Palm Beach</b> out-built Miami in new luxury units this month — the first time in the dataset.</p>
+        <div class="nbar"><span class="lab">West Palm</span><span class="tk"><i class="wpb" style="width:100%"></i></span><span class="v">12</span></div>
+        <div class="nbar"><span class="lab">Miami</span><span class="tk"><i class="mia" style="width:75%"></i></span><span class="v">9</span></div>
+        <button class="ncta">See the 12 projects behind this <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="nright">
+        <div class="ncard mini">
+          <div class="ncat">Firm momentum</div>
+          <p class="nstmt"><b>Arquitectonica</b> is now the architect on 1 of every 6 tracked Florida towers.</p>
+          <div class="nproof">63 of 396 projects<span class="dot"></span>+4 this month</div>
+          <button class="ncta">See their pipeline <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="ncard mini">
+          <div class="ncat">Typology</div>
+          <p class="nstmt"><b>Mass timber</b> is accelerating — 3 towers filed in the last 60 days, all South Florida.</p>
+          <div class="nproof">Jeff Greene + 2 developers<span class="dot"></span>60d</div>
+          <button class="ncta">See the timber projects <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · ONYX FORECASTS -->
+  <section class="concept">
+    <div class="clabel"><span class="n">Concept 2</span><span class="t">Onyx Forecasts — What's Next</span><span class="tag pro">Free teaser · Pro depth</span></div>
+    <p class="cnote">Predictions, not history. Built on the completion-forecast engine you already run — surfaced <b>forward</b>: what's likely to move, and where next. Each with a confidence read.</p>
+    <span class="eyebrow p"><svg class="spark" viewBox="0 0 24 24"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>What's Next · Onyx Forecast</span>
+    <h3 class="sec">Where the pipeline is <em>headed</em></h3>
+    <div class="fcast">
+      <div class="fcgrid">
+        <div class="fcblock">
+          <div class="fchd"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg>Likely to break ground · this quarter</div>
+          <div class="frow"><div class="fn"><div class="nm">One West Palm · Phase 2</div><div class="mt">West Palm Beach</div></div><div class="conf"><span class="tk"><i style="width:78%"></i></span><span class="pc">78%</span></div></div>
+          <div class="frow"><div class="fn"><div class="nm">Nashville Yards · Tower C</div><div class="mt">Nashville</div></div><div class="conf"><span class="tk"><i style="width:71%"></i></span><span class="pc">71%</span></div></div>
+          <div class="frow"><div class="fn"><div class="nm">Olara · North Tower</div><div class="mt">West Palm Beach</div></div><div class="conf"><span class="tk"><i style="width:66%"></i></span><span class="pc">66%</span></div></div>
+        </div>
+        <div class="fcblock">
+          <div class="fchd"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M21 7v6h-6"/></svg>Projected to top out · 2027</div>
+          <div class="frow"><div class="fn"><div class="nm">Waldorf Astoria Residences</div><div class="mt">St. Petersburg</div></div><div class="conf"><span class="tk"><i style="width:84%"></i></span><span class="pc">84%</span></div></div>
+          <div class="frow"><div class="fn"><div class="nm">South Flagler House</div><div class="mt">West Palm Beach</div></div><div class="conf"><span class="tk"><i style="width:80%"></i></span><span class="pc">80%</span></div></div>
+          <div class="frow"><div class="fn"><div class="nm">Aston Martin Residences</div><div class="mt">Miami</div></div><div class="conf"><span class="tk"><i style="width:73%"></i></span><span class="pc">73%</span></div></div>
+        </div>
+      </div>
+      <div class="fcnext">
+        <span class="badge"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <div class="txt">
+          <div class="k">Next submarket to heat up</div>
+          <div class="big"><em>Riviera Beach</em></div>
+          <div class="why">6 pipeline projects, up from 2 a year ago — with land assembly accelerating just north of the WPB core.</div>
+        </div>
+        <span class="pro">Pro · full forecast + reasoning</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · FOLLOW THE MONEY -->
+  <section class="concept">
+    <div class="clabel"><span class="n">Concept 3</span><span class="t">Follow the Money</span><span class="tag free">New data lens</span></div>
+    <p class="cnote">A capital-flows view rolled up from your <b>"Financing secured"</b> events: who's lending, who's deploying, and which markets the money is moving toward. Nobody in the space surfaces this.</p>
+    <span class="eyebrow g"><svg class="spark" viewBox="0 0 24 24" style="fill:var(--green)"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>Follow the Money · Last 30 days</span>
+    <h3 class="sec">Where the capital is <em>moving</em></h3>
+    <div class="money">
+      <div class="mcard">
+        <div class="mhd">Most active capital · this month</div>
+        <div class="mrow"><span class="rk">1</span><div class="mn"><div class="nm">Bank OZK</div><div class="mt">Construction lender</div></div><div class="amt">$612M<small>4 deals</small></div></div>
+        <div class="mrow"><span class="rk">2</span><div class="mn"><div class="nm">Related Ross</div><div class="mt">Developer equity · WPB</div></div><div class="amt">$430M<small>3 deals</small></div></div>
+        <div class="mrow"><span class="rk">3</span><div class="mn"><div class="nm">Terra Group</div><div class="mt">Developer equity · Miami</div></div><div class="amt">$285M<small>2 deals</small></div></div>
+        <div class="mrow"><span class="rk">4</span><div class="mn"><div class="nm">Apollo Global</div><div class="mt">Mezzanine / debt</div></div><div class="amt">$210M<small>2 deals</small></div></div>
+      </div>
+      <div class="mcard side">
+        <div class="mhd">Money flowing toward</div>
+        <div class="mflow">
+          <div class="fl"><span class="nm">West Palm Beach</span><span class="tk"><i style="width:100%"></i></span><span class="v">$1.1B</span></div>
+          <div class="fl"><span class="nm">Miami</span><span class="tk"><i style="width:74%"></i></span><span class="v">$820M</span></div>
+          <div class="fl"><span class="nm">Nashville</span><span class="tk"><i style="width:41%"></i></span><span class="v">$455M</span></div>
+          <div class="fl"><span class="nm">St. Petersburg</span><span class="tk"><i style="width:28%"></i></span><span class="v">$310M</span></div>
+        </div>
+        <div class="mfoot">Rolled up from 11 financing events · <a href="#">See every deal <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

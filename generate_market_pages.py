@@ -699,6 +699,17 @@ def stats_strip_html(projects: list[dict]) -> str:
 # this surface are public-safe (no pricing values).
 SUPPLY_LEVEL_COLOR = {'Balanced': '#1FDF67', 'Elevated': '#F5A623', 'Saturated': '#FF5C5C'}
 
+# Public SHAPE metadata for the projection layer (no values — see
+# scripts/atlas_backfill.py). Used to decide which markets carry the
+# Pro-gated submarket pricing band.
+try:
+    with open('journal/map/atlas-projections-public.json', encoding='utf-8') as _f:
+        _ATLAS_PUB = json.load(_f).get('projects', {})
+except Exception:
+    _ATLAS_PUB = {}
+ATLAS_MODELED_BY_MARKET = collections.Counter(
+    v.get('market') for v in _ATLAS_PUB.values() if v.get('modeled') and v.get('market'))
+
 def _fmt_half(half: str) -> str:
     """'2026H2' → 'H2 ’26'"""
     return f"{half[4:]} ’{half[2:4]}"
@@ -759,7 +770,66 @@ def supply_pressure_html(m: dict | None) -> str:
         <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: {esc(conf)} · {dated_pct}% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
       </div>
+      {market_band_html(m)}
     </section>'''
+
+def market_band_html(m: dict) -> str:
+    """Submarket median pricing band (Surface A aggregate) — Pro-gated. The
+    static page carries the SHAPE only; values arrive from the worker after a
+    server-side Memberstack check. Rendered only for markets with 2+ modeled
+    project projections."""
+    mslug = slugify(m.get('city') or '')
+    n = ATLAS_MODELED_BY_MARKET.get(mslug, 0)
+    if n < 2:
+        return ''
+    return f'''
+      <div class="sp-band" id="spBand" data-market="{esc(mslug)}">
+        <div class="sp-band-head">
+          <span class="sp-band-k">Projected pricing · submarket median at delivery</span>
+          <span class="sp-band-pill">Onyx Projection</span>
+        </div>
+        <div class="sp-band-row">
+          <span class="sp-band-val" id="spBandVal">$•,•••</span>
+          <span class="sp-band-unit">/ sq ft</span>
+          <span class="sp-band-range" id="spBandRange">band $•,••• – $•,•••</span>
+          <span class="sp-band-n">{n} modeled projects</span>
+          <a class="sp-band-cta" id="spBandCta" href="/map/?upgrade=1">Unlock with Pro</a>
+        </div>
+      </div>
+      <style>
+        .sp-band{{border-top:1px solid rgba(255,255,255,.07);margin-top:12px;padding-top:13px}}
+        .sp-band-head{{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}}
+        .sp-band-k{{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45)}}
+        .sp-band-pill{{font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(167,139,250,.14);color:#A78BFA;border:1px solid rgba(167,139,250,.28)}}
+        .sp-band-row{{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}}
+        .sp-band-val{{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}}
+        .sp-band-unit{{font-size:12px;color:rgba(255,255,255,.5)}}
+        .sp-band-range{{font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.6)}}
+        .sp-band-n{{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.38)}}
+        .sp-band-cta{{margin-left:auto;text-decoration:none;font-size:11.5px;font-weight:700;padding:7px 13px;border-radius:999px;background:#A78BFA;color:#0a0a0a}}
+        #spBand.locked .sp-band-val,#spBand.locked .sp-band-range{{filter:blur(7px);user-select:none;opacity:.85}}
+      </style>
+      <script>
+      (function(){{
+        var el=document.getElementById('spBand'); if(!el) return; el.classList.add('locked');
+        function withMember(cb,t){{t=t||0;var ms=window.$memberstackDom;
+          if(ms&&ms.getCurrentMember){{ms.getCurrentMember().then(function(r){{cb(r&&r.data);}}).catch(function(){{cb(null);}});return;}}
+          if(t>40){{cb(null);return;}} setTimeout(function(){{withMember(cb,t+1);}},500);}}
+        withMember(function(mem){{ if(!mem||!mem.id) return;
+          fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{market:el.getAttribute('data-market'),member_id:mem.id}})}})
+            .then(function(r){{return r.json();}})
+            .then(function(j){{ if(!j||!j.found||j.gated) return;
+              var money=function(n){{return '$'+Math.round(n).toLocaleString('en-US');}};
+              document.getElementById('spBandVal').textContent=money(j.median_psf);
+              document.getElementById('spBandRange').textContent='band '+money(j.band[0])+' – '+money(j.band[1]);
+              el.classList.remove('locked');
+              var c=document.getElementById('spBandCta'); if(c) c.remove();
+              try{{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_market_band_pro_view',{{market:el.getAttribute('data-market')}});}}catch(_e){{}}
+            }}).catch(function(){{}});
+        }});
+        try{{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_market_band_view',{{market:el.getAttribute('data-market')}});}}catch(_e){{}}
+      }})();
+      </script>'''
 
 def _count_firms(projects: list[dict], name_field: str, slug_field: str) -> tuple[collections.Counter, dict[str,str]]:
     """Tally how many projects each firm appears on, and remember its slug.

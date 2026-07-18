@@ -979,6 +979,130 @@ async function handleCancelMyPlan(req, env, origin) {
     return json(r, {}, env, origin);
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, { status: 502 }, env, origin); }
 }
+// ── Atlas Intelligence — projection store + Pro gate ────────────────────────
+// The projection VALUES live only here (D1), never in the public repo or any
+// public payload (spec §6: blur is visual, the data must actually be absent).
+// Raw inputs include `list_psf_observed` which is INTERNAL-ONLY — the deep
+// sanitizer below strips it (and its provenance/basis fields) from every
+// response as a belt-and-suspenders guarantee on top of "we never SELECT it".
+async function ensureAtlasProjTable(env) {
+  if (!env.DB) return;
+  try {
+    await env.DB.exec(`CREATE TABLE IF NOT EXISTS atlas_projection (slug TEXT PRIMARY KEY, city_slug TEXT, raw_json TEXT NOT NULL, model_json TEXT, confidence TEXT, comp_count INTEGER DEFAULT 0, updated_at INTEGER)`);
+  } catch (_) {}
+}
+const ATLAS_INTERNAL_KEYS = ['list_psf_observed', 'list_psf_source', 'list_psf_basis'];
+function atlasSanitize(x) {
+  if (Array.isArray(x)) return x.map(atlasSanitize);
+  if (x && typeof x === 'object') {
+    const out = {};
+    for (const k of Object.keys(x)) {
+      if (ATLAS_INTERNAL_KEYS.indexOf(k) >= 0) continue;
+      out[k] = atlasSanitize(x[k]);
+    }
+    return out;
+  }
+  return x;
+}
+// Server-side Pro check by Memberstack member id — an active or trialing plan
+// connection counts as Pro (same rule as the client gate: trialing must not
+// be re-popped). Fails CLOSED: no verification → no values.
+async function isProMemberServer(env, memberId) {
+  if (!env.MEMBERSTACK_SECRET_KEY || !memberId) return false;
+  try {
+    const r = await fetch(MS_API + '/members/' + encodeURIComponent(memberId), { headers: msHeaders(env) });
+    if (!r.ok) return false;
+    const j = await r.json();
+    const m = j.data || j;
+    const pcs = m.planConnections || m.plan_connections || [];
+    return Array.isArray(pcs) && pcs.some(pc => {
+      if (!pc) return false;
+      const st = String(pc.status || '').toUpperCase();
+      return pc.active === true || st === 'ACTIVE' || st === 'TRIALING' || st === 'PAST_DUE';
+    });
+  } catch (_) { return false; }
+}
+async function atlasProAllowed(req, env, memberId) {
+  // Admin token (Studio tooling / verification) also unlocks values.
+  try {
+    const auth = req.headers.get('Authorization') || '';
+    if (env.ADMIN_TOKEN && auth === 'Bearer ' + env.ADMIN_TOKEN) return true;
+  } catch (_) {}
+  return isProMemberServer(env, memberId);
+}
+// POST /atlas/projection-full { slug, member_id } → the full Surface A/B
+// payload for ONE project, Pro-gated. Public callers get { gated: true } and
+// no numbers, ever.
+async function handleAtlasProjectionFull(req, env, origin) {
+  if (!env.DB) return json({ gated: true, error: 'unavailable' }, { status: 503 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim().toLowerCase();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  await ensureAtlasProjTable(env);
+  if (!(await atlasProAllowed(req, env, String(b.member_id || '').trim()))) {
+    return json({ gated: true }, { status: 403 }, env, origin);
+  }
+  try {
+    const row = await env.DB.prepare('SELECT model_json, confidence, comp_count, updated_at FROM atlas_projection WHERE slug=?').bind(slug).first();
+    if (!row || !row.model_json) return json({ found: false }, {}, env, origin);
+    const model = atlasSanitize(JSON.parse(row.model_json));
+    return json({ found: true, gated: false, slug, model, updated_at: row.updated_at }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+// POST /atlas/market-band { market, member_id } → submarket median band
+// (market pages' aggregated Surface A). Same gate.
+async function handleAtlasMarketBand(req, env, origin) {
+  if (!env.DB) return json({ gated: true, error: 'unavailable' }, { status: 503 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const market = String(b.market || '').trim().toLowerCase();
+  if (!market) return json({ error: 'market required' }, { status: 400 }, env, origin);
+  await ensureAtlasProjTable(env);
+  if (!(await atlasProAllowed(req, env, String(b.member_id || '').trim()))) {
+    return json({ gated: true }, { status: 403 }, env, origin);
+  }
+  try {
+    const rs = await env.DB.prepare('SELECT slug, model_json FROM atlas_projection WHERE city_slug=? AND model_json IS NOT NULL').bind(market).all();
+    const rows = (rs.results || []).map(r => { try { return { slug: r.slug, m: JSON.parse(r.model_json) }; } catch (_) { return null; } }).filter(Boolean);
+    if (rows.length < 2) return json({ found: false, projects: rows.length }, {}, env, origin);
+    const mids = rows.map(r => r.m.proj_psf_delivery).filter(Number.isFinite).sort((a, b) => a - b);
+    const lows = rows.map(r => r.m.proj_psf_band && r.m.proj_psf_band[0]).filter(Number.isFinite).sort((a, b) => a - b);
+    const highs = rows.map(r => r.m.proj_psf_band && r.m.proj_psf_band[1]).filter(Number.isFinite).sort((a, b) => a - b);
+    const med = (xs) => xs.length ? (xs.length % 2 ? xs[(xs.length - 1) / 2] : (xs[xs.length / 2 - 1] + xs[xs.length / 2]) / 2) : null;
+    return json(atlasSanitize({
+      found: true, gated: false, market,
+      projects: rows.length,
+      median_psf: Math.round(med(mids) / 10) * 10,
+      band: [Math.round(med(lows) / 10) * 10, Math.round(med(highs) / 10) * 10],
+      proj_psf_source: 'modeled',
+    }), {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+// POST /admin/atlas/projection — upsert one project's raw+model rows (the
+// weekly sweep's write path). GET /admin/atlas/coverage — review report.
+async function handleAdminAtlasUpsert(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no DB' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim().toLowerCase();
+  if (!slug || !b.raw) return json({ error: 'slug + raw required' }, { status: 400 }, env, origin);
+  await ensureAtlasProjTable(env);
+  try {
+    await env.DB.prepare('INSERT INTO atlas_projection (slug, city_slug, raw_json, model_json, confidence, comp_count, updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET city_slug=excluded.city_slug, raw_json=excluded.raw_json, model_json=excluded.model_json, confidence=excluded.confidence, comp_count=excluded.comp_count, updated_at=excluded.updated_at')
+      .bind(slug, String(b.city_slug || ''), JSON.stringify(b.raw), b.model ? JSON.stringify(b.model) : null,
+            String(b.confidence || ''), Number(b.comp_count || 0), Math.floor(Date.now() / 1000)).run();
+    return json({ ok: true, slug }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+async function handleAdminAtlasCoverage(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'no DB' }, { status: 500 }, env, origin);
+  await ensureAtlasProjTable(env);
+  try {
+    const rs = await env.DB.prepare('SELECT slug, city_slug, confidence, comp_count, updated_at, model_json IS NOT NULL AS has_model FROM atlas_projection ORDER BY city_slug, slug').all();
+    return json({ rows: rs.results || [] }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+
 // GET /admin/member-history?email= — the member's full Stripe billing story:
 // every subscription they've ever had (including incomplete checkouts) plus
 // recent invoices. Rendered by the Analytics profile modal's "Account history"
@@ -13617,6 +13741,10 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/atlas/projection-full')     return await handleAtlasProjectionFull(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/atlas/market-band')         return await handleAtlasMarketBand(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/atlas/projection')    return await handleAdminAtlasUpsert(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/atlas/coverage')      return await handleAdminAtlasCoverage(request, env, origin);
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/admin/deep-credits') return await handleAdminDeepCredits(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-checkout') return await handleDeepCheckout(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/deep-claim') return await handleDeepClaim(request, env, origin);
