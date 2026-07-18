@@ -242,7 +242,18 @@ jobs:
           for attempt in 1 2 3 4 5; do
             if git push; then echo "pushed on attempt $attempt"; break; fi
             echo "push rejected (attempt $attempt) - rebasing onto origin/main..."
-            git pull --rebase --autostash origin main || { echo "rebase failed"; exit 1; }
+            # A manual push mid-run can CONFLICT with our regenerated files
+            # (e.g. a code change that also regenerates atlas-intel.json).
+            # The manual push is the fresher truth — resolve conflicts by
+            # taking origin/main's version and dropping ours; the next hourly
+            # run regenerates everything from the new source anyway. If that
+            # empties our commit, skip it rather than fail the run.
+            if ! git pull --rebase --autostash origin main; then
+              echo "rebase conflict - preferring the freshly pushed versions of conflicted files"
+              CONFLICTS=$(git diff --name-only --diff-filter=U)
+              [ -n "$CONFLICTS" ] && git checkout --ours -- $CONFLICTS && git add -A
+              GIT_EDITOR=true git rebase --continue || git rebase --skip || { echo "rebase failed"; exit 1; }
+            fi
             sleep 3
             if [ "$attempt" = "5" ]; then echo "still rejected after retries"; exit 1; fi
           done

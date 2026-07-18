@@ -2546,6 +2546,18 @@
     // market pages bake in). Fetched once, filled into the placeholder section
     // whenever renderAll rebuilds the DOM.
     let supplyIntel = null, supplyIntelP = null;
+    // Slugs of markets that actually HAVE a /markets/ page — nothing without
+    // a landing page is ever rendered as a clickable tile.
+    let marketPageSlugs = null, marketPageSlugsP = null;
+    function loadMarketPageSlugs() {
+      if (!marketPageSlugsP) {
+        marketPageSlugsP = fetch('/markets-index.json', { cache: 'no-cache' })
+          .then(r => r.ok ? r.json() : null)
+          .then(j => { marketPageSlugs = j ? new Set(Object.values(j)) : new Set(); })
+          .catch(() => { marketPageSlugs = new Set(); });
+      }
+      return marketPageSlugsP;
+    }
     function renderSupplySection() { return '<section class="atlas-section" id="atlasSupplySec"></section>'; }
     function loadSupplyIntel() {
       if (supplyIntel) { fillSupplySec(); return; }
@@ -2566,11 +2578,13 @@
     function fillSupplySec() {
       const sec = document.getElementById('atlasSupplySec');
       if (!sec || !supplyIntel || !supplyIntel.markets) return;
+      if (!marketPageSlugs) { loadMarketPageSlugs().then(() => fillSupplySec()); return; }
       const COLOR = { Balanced: '#1FDF67', Elevated: '#F5A623', Saturated: '#FF5C5C' };
       const stFilter = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
       const ciFilter = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
       const pool = Object.entries(supplyIntel.markets)
         .map(([slug, m]) => [slug, m])
+        .filter(([slug]) => marketPageSlugs.has(slug))
         .filter(([, m]) => m.pipeline_projects >= ((stFilter || ciFilter) ? 2 : 4))
         .sort((a, b) => b[1].score - a[1].score);
       let tops;

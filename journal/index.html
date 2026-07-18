@@ -1055,11 +1055,17 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         });
       }).catch(function(){});
       // Supply pressure — one row of the hottest markets (public surface).
-      fetch('/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(ai){
+      Promise.all([
+        fetch('/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}),
+        fetch('/markets-index.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;})
+      ]).then(function(pair){
+        var ai=pair[0], mi=pair[1];
         if(!ai||!ai.markets) return;
+        var pageSlugs=mi?Object.values(mi):[];
         var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
         var COL={Balanced:'#1FDF67',Elevated:'#F5A623',Saturated:'#FF5C5C'};
         var tops=Object.keys(ai.markets).map(function(k){var m=ai.markets[k];m._slug=k;return m;})
+          .filter(function(m){return pageSlugs.indexOf(m._slug)>=0;})
           .filter(function(m){return m.pipeline_projects>=4;})
           .sort(function(a,b){return b.score-a.score;}).slice(0,6);
         if(tops.length<3) return;
