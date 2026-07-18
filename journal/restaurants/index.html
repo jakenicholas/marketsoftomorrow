@@ -2052,6 +2052,7 @@ async function loadAndRenderAd() {
   }
   CAROUSEL.intervalMs = Math.max(3000, (data.rotateSeconds || 7) * 1000);
   CAROUSEL.slides = filterEligibleSlides(data.ads || [], PLACEMENT);
+  for (var _i = CAROUSEL.slides.length - 1; _i > 0; _i--) { var _j = Math.floor(Math.random() * (_i + 1)); var _t = CAROUSEL.slides[_i]; CAROUSEL.slides[_i] = CAROUSEL.slides[_j]; CAROUSEL.slides[_j] = _t; }  // randomize order so each load opens on a different banner
   if (!CAROUSEL.slides.length) {
     const banner = document.getElementById('banner-ad');
     if (banner) banner.style.display = 'none';

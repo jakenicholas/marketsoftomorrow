@@ -669,6 +669,7 @@ async function loadAndRenderAd() {
     if (!pl.includes('all') && !pl.includes(PLACEMENT)) return false;
     return !!(a.video || a.image);
   });
+  for (var _i = CAROUSEL.slides.length - 1; _i > 0; _i--) { var _j = Math.floor(Math.random() * (_i + 1)); var _t = CAROUSEL.slides[_i]; CAROUSEL.slides[_i] = CAROUSEL.slides[_j]; CAROUSEL.slides[_j] = _t; }  // randomize order so each load opens on a different banner
   if (!CAROUSEL.slides.length) { const b = document.getElementById('banner-ad'); if (b) b.style.display = 'none'; return; }
   const track = document.getElementById('fc-track');
   const dots  = document.getElementById('fc-dots');
