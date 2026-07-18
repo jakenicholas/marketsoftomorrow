@@ -1216,9 +1216,10 @@ def render_page(
     /* Stats */
     .stats {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 32px 0; border-bottom:1px solid var(--hair); }}
     /* Atlas Intelligence · supply pressure */
-    .sp-mod {{ background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:22px 24px 16px; margin-top:26px; }}
+    .sp-mod {{ background:radial-gradient(640px 240px at 12% 0%, rgba(167,139,250,0.10), transparent 60%), rgba(255,255,255,0.03); border:1px solid rgba(167,139,250,0.26); border-radius:16px; padding:24px 28px 18px; margin-top:26px; box-shadow:0 0 44px rgba(167,139,250,0.10), inset 0 0 34px rgba(167,139,250,0.04); }}
     .sp-grid {{ display:grid; grid-template-columns:190px 1fr; gap:26px; align-items:center; }}
-    .sp-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; margin-bottom:10px; }}
+    .sp-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; margin-bottom:10px; display:flex; align-items:center; gap:8px; }}
+    .sp-eyebrow::before {{ content:''; width:6px; height:6px; border-radius:50%; background:#A78BFA; box-shadow:0 0 11px 2px rgba(167,139,250,.8); flex:0 0 auto; }}
     .sp-gauge {{ width:100%; max-width:190px; display:block; }}
     .sp-gauge .sp-score {{ font-size:30px; font-weight:700; fill:#fff; font-variant-numeric:tabular-nums; }}
     .sp-gauge .sp-level {{ font-size:8.5px; letter-spacing:.18em; font-weight:700; }}
@@ -1236,7 +1237,7 @@ def render_page(
     .sp-conf {{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:4px 10px; }}
     .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.3); }}
     .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.3); }}
-    .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.75); }}
+    .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }}
     .stat {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }}
     .stat .n {{ font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }}
     .stat .l {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }}

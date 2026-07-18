@@ -984,7 +984,15 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
          are a Pro surface and are never in this page's payload) -->
     <div id="homeAtlasIntel" hidden>
       <style>
-        #homeAtlasIntel{margin-top:14px;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:16px 18px}
+        #homeAtlasIntel{margin-top:14px;background:radial-gradient(700px 240px at 10% 0%, rgba(167,139,250,.11), transparent 60%), rgba(167,139,250,.04);border:1px solid rgba(167,139,250,.26);border-radius:16px;padding:18px 20px;box-shadow:0 0 44px rgba(167,139,250,.10), inset 0 0 32px rgba(167,139,250,.04)}
+        #homeAtlasIntel .hai-supply{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 12px;padding-bottom:2px}
+        #homeAtlasIntel .hai-supply::-webkit-scrollbar{display:none}
+        #homeAtlasIntel .hai-sp{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-size:11.5px;color:rgba(255,255,255,.8);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 12px;transition:border-color .15s}
+        #homeAtlasIntel .hai-sp:hover{border-color:rgba(167,139,250,.5)}
+        #homeAtlasIntel .hai-sp b{font-variant-numeric:tabular-nums;font-weight:700}
+        #homeAtlasIntel .hai-sp i{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+        #homeAtlasIntel .hai-sp-label{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(167,139,250,.85);flex:0 0 auto;align-self:center;margin-right:2px;text-shadow:0 0 10px rgba(167,139,250,.5)}
+        #homeAtlasIntel .hai-psf.on{filter:none;opacity:1;color:#A78BFA;text-shadow:0 0 14px rgba(167,139,250,.45)}
         #homeAtlasIntel .hai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
         #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700}
         #homeAtlasIntel .hai-eyebrow i{width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 10px 1px #A78BFA}
@@ -1005,6 +1013,7 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         <span class="hai-eyebrow"><i></i>Atlas Intelligence · Onyx projections</span>
         <span class="hai-sub" id="haiSub"></span>
       </div>
+      <div class="hai-supply" id="haiSupply" hidden></div>
       <div class="hai-grid" id="haiGrid"></div>
       <a class="hai-cta" href="/atlas/">Projected pricing, scenarios and supply pressure — inside the Atlas &rarr;</a>
     </div>
@@ -1027,6 +1036,40 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         }).join('');
         document.getElementById('homeAtlasIntel').hidden=false;
         try{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_home_preview_view',{});}catch(_e){}
+        // Pro members see the real modeled PSF (server-verified per card;
+        // values are never in this page's payload).
+        var shown=rows.slice(0,3);
+        function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
+          if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
+          if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
+        withMember(function(mem){ if(!mem||!mem.id) return;
+          shown.forEach(function(v,i){
+            fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:v._slug,member_id:mem.id})})
+              .then(function(r2){return r2.json();})
+              .then(function(j){ if(!j||!j.found||j.gated||!j.model) return;
+                var card=document.querySelectorAll('#haiGrid .hai-card')[i];
+                var el=card&&card.querySelector('.hai-psf');
+                if(el){el.textContent='$'+Math.round(j.model.proj_psf_delivery).toLocaleString('en-US');el.classList.add('on');}
+              }).catch(function(){});
+          });
+        });
+      }).catch(function(){});
+      // Supply pressure — one row of the hottest markets (public surface).
+      fetch('/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(ai){
+        if(!ai||!ai.markets) return;
+        var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+        var COL={Balanced:'#1FDF67',Elevated:'#F5A623',Saturated:'#FF5C5C'};
+        var tops=Object.keys(ai.markets).map(function(k){var m=ai.markets[k];m._slug=k;return m;})
+          .filter(function(m){return m.pipeline_projects>=4;})
+          .sort(function(a,b){return b.score-a.score;}).slice(0,6);
+        if(tops.length<3) return;
+        var box=document.getElementById('haiSupply');
+        box.innerHTML='<span class="hai-sp-label">Supply pressure</span>'+tops.map(function(m){
+          var c=COL[m.level]||'#1FDF67';
+          return '<a class="hai-sp" href="/markets/'+encodeURIComponent(m._slug)+'/"><i style="background:'+c+';box-shadow:0 0 8px '+c+'"></i>'+esc(m.city)+' <b style="color:'+c+'">'+m.score+'</b></a>';
+        }).join('');
+        box.hidden=false;
+        document.getElementById('homeAtlasIntel').hidden=false;
       }).catch(function(){});
     })();
     </script>
