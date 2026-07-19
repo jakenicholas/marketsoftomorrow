@@ -38,6 +38,7 @@ import os
 import re
 import statistics
 from tmw_search_bar import MC_SEARCH_CSS, mc_search_html_for, mc_search_js_for
+from generate_pages import atlas_intel_section_html as onyx_project_card, ATLAS_PROJ_PUBLIC as ONYX_PUB
 import sys
 from collections import defaultdict
 from _incremental import changed_and_removed
@@ -819,9 +820,23 @@ def render_page(firm, firm_projects, stats, coverage_items):
                        f' · {e(mk["level"])} · {mk["pipeline_projects"]}-project pipeline</span>')
         else:
             eyebrow = 'City'
+        score_line = eyebrow if eyebrow != 'City' else ''
         return (f'<a class="rel-card" href="{href}">'
-                f'<div class="city">{eyebrow}</div><div class="name">{e(city)}</div>'
-                f'<div class="count">{n} project{"s" if n != 1 else ""} →</div></a>')
+                f'<div class="city">City</div><div class="name">{e(city)}</div>'
+                f'<div class="count">{n} project{"s" if n != 1 else ""} →</div>'
+                + (f'<div class="city" style="margin-top:8px">{score_line}</div>' if score_line else '')
+                + '</a>')
+    # Onyx flagship: the firm's highest-confidence modeled project gets the
+    # full Atlas Intelligence card (same module as the SEO project pages).
+    _onyx_cands = []
+    for _p in firm_projects:
+        _s = (_p.get('Slug') or '').strip().lower()
+        _v = ONYX_PUB.get(_s)
+        if _v and _v.get('modeled'):
+            _onyx_cands.append(((( _v.get('confidence') == 'high'), _v.get('comp_count', 0)), _p))
+    _onyx_cands.sort(key=lambda t: t[0], reverse=True)
+    onyx_card_html = onyx_project_card(_onyx_cands[0][1]) if _onyx_cands else ''
+
     cities_html = ''.join(_city_card(city, n) for city, n in top_cities) \
         or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No mapped cities yet.</div>'
 
@@ -1079,6 +1094,8 @@ def render_page(firm, firm_projects, stats, coverage_items):
 {cities_html}
       </div>
     </section>
+
+{onyx_card_html}
 
 {faqs_html}
 

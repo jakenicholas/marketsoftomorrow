@@ -189,6 +189,21 @@
   .asp-chip:hover { border-color: rgba(167,139,250,0.5); }
   .asp-chip i { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
   .asp-chip b { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .apj-hero { display: flex; align-items: center; gap: 22px; text-decoration: none; color: inherit;
+    background: radial-gradient(560px 220px at 10% 0%, rgba(167,139,250,0.10), transparent 60%), rgba(255,255,255,0.03);
+    border: 1px solid rgba(167,139,250,0.3); border-radius: 16px; padding: 20px 24px;
+    box-shadow: 0 0 40px rgba(167,139,250,0.1), inset 0 0 30px rgba(167,139,250,0.04); transition: border-color .15s; }
+  .apj-hero:hover { border-color: rgba(167,139,250,0.55); }
+  .apj-hero-l { min-width: 0; flex: 1; }
+  .apj-hero-k { font-family: var(--mono, monospace); font-size: 9.5px; letter-spacing: .15em; text-transform: uppercase; color: rgba(167,139,250,0.85); font-weight: 700; margin-bottom: 6px; }
+  .apj-hero-name { font-family: var(--serif); font-weight: 600; font-size: 21px; letter-spacing: -.02em; }
+  .apj-hero-meta { color: rgba(255,255,255,0.5); font-size: 12.5px; margin-top: 2px; }
+  .apj-hero-row { display: flex; align-items: baseline; gap: 8px; margin-top: 12px; }
+  .apj-hero-psf { font-size: 34px; }
+  .apj-hero-conf { font-family: var(--mono, monospace); font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 10px; }
+  .apj-hero-band { width: 300px; height: 90px; flex: 0 0 auto; }
+  .apj-hero-cta { flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: #A78BFA; white-space: nowrap; }
+  @media (max-width: 900px) { .apj-hero { flex-wrap: wrap; } .apj-hero-band { width: 100%; } }
   .apj-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
   @media (max-width: 900px) { .apj-grid { grid-template-columns: repeat(2, 1fr); } }
   .apj-card { display: block; text-decoration: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 13px 14px; transition: border-color .15s; min-width: 0; }
@@ -2679,13 +2694,33 @@
         });
       }
       if (rows.length < ((pStFilter || pCiFilter) ? 1 : 3)) { sec.innerHTML = ''; return; }
-      const shown = rows.slice(0, 8);
+      const hero = rows[0];
+      const shown = rows.slice(1, 9);
+      const heroHtml = `
+        <a class="apj-hero" data-slug="${hero.slug}" href="/projects/${encodeURIComponent(hero.slug)}/">
+          <div class="apj-hero-l">
+            <div class="apj-hero-k">Projected pricing at delivery</div>
+            <div class="apj-hero-name">${hero.title}</div>
+            <div class="apj-hero-meta">${hero.city || ''}${hero.delivery_label ? ' · Coming ' + hero.delivery_label : ''}</div>
+            <div class="apj-hero-row"><span class="apj-psf apj-hero-psf">$•,•••</span><span class="apj-unit">/ sq ft at delivery</span></div>
+            <div class="apj-hero-conf">Confidence: ${(hero.confidence || '').charAt(0).toUpperCase() + (hero.confidence || '').slice(1)} · ${hero.comp_count} comps · modeled, never listings</div>
+          </div>
+          <svg class="apj-hero-band" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
+            <defs><linearGradient id="apjBandG" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="rgba(31,223,103,0.02)"/><stop offset="100%" stop-color="rgba(31,223,103,0.22)"/></linearGradient></defs>
+            <path d="M0,60 L60,56 L120,50 L180,42 L240,33 L300,22 L300,44 L240,52 L180,60 L120,66 L60,71 L0,75 Z" fill="url(#apjBandG)"/>
+            <path d="M0,68 L60,64 L120,58 L180,51 L240,43 L300,33" fill="none" stroke="#1FDF67" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="300" cy="33" r="3.5" fill="#1FDF67"/>
+            <line x1="60" y1="8" x2="60" y2="82" stroke="rgba(255,255,255,0.14)" stroke-dasharray="3 4"/>
+          </svg>
+          <span class="apj-hero-cta">Full projection →</span>
+        </a>`;
       sec.innerHTML = `
         <div class="atlas-section-head"><div>
           <h2 class="atlas-section-title">Onyx <em>projections</em></h2>
           <p class="atlas-section-sub">Modeled pricing at delivery for ${rows.length} pre-construction projects — every number carries a comp basis and a confidence read. Values are a Pro surface.</p>
         </div></div>
-        <div class="atlas-panel"><div class="apj-grid">` + shown.map(v =>
+        <div class="atlas-panel">` + heroHtml + `<div class="apj-grid" style="margin-top:14px">` + shown.map(v =>
           `<a class="apj-card" data-slug="${v.slug}" href="/projects/${encodeURIComponent(v.slug)}/">
             <div class="apj-name">${v.title}</div>
             <div class="apj-meta">${v.city || ''}${v.delivery_label ? ' · ' + v.delivery_label : ''}</div>
@@ -2699,12 +2734,12 @@
       if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
         const mem = r && r.data;
         if (!mem || !mem.id) return;
-        shown.forEach(v => {
+        [hero].concat(shown).forEach(v => {
           fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
             .then(r2 => r2.json())
             .then(j => {
               if (!j || !j.found || j.gated || !j.model) return;
-              const el = sec.querySelector(`.apj-card[data-slug="${v.slug}"] .apj-psf`);
+              const el = sec.querySelector(`[data-slug="${v.slug}"] .apj-psf`);
               if (el) { el.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US'); el.classList.add('on'); }
             }).catch(() => {});
         });

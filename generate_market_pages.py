@@ -48,6 +48,7 @@ from generate_pages import (
 # Atlas Intelligence — Surface C (supply pressure). Imported so market pages
 # and atlas-intel.json can never disagree on a score.
 from generate_atlas_intel import compute_all as compute_atlas_intel
+from generate_pages import atlas_intel_section_html as onyx_project_card, ATLAS_PROJ_PUBLIC as ONYX_PUB
 
 ROOT_URL   = "https://www.oftmw.com"
 SITE_NAME  = "Markets of Tomorrow"
@@ -855,6 +856,17 @@ def region_compare_html(label: str, cities_in_state) -> str:
             + _mod_head('How they compare', f'The hottest markets in <em>{esc(label)}</em>',
                         'Supply pressure, pipeline scale and modeled pricing, side by side.')
             + f'<div class="cmp-grid">{cards}</div></section>')
+
+PROJECTS_BY_SLUG = {}   # filled in main()
+
+def onyx_flagship_html(market_slug: str) -> str:
+    """The full Surface A+B project card (same module as the SEO project
+    pages) for the market's highest-confidence modeled project."""
+    cands = [(s, v) for s, v in ONYX_PUB.items() if v.get('modeled') and v.get('market') == market_slug]
+    if not cands: return ''
+    cands.sort(key=lambda kv: ((kv[1].get('confidence') == 'high'), kv[1].get('comp_count', 0)), reverse=True)
+    row = PROJECTS_BY_SLUG.get(cands[0][0])
+    return onyx_project_card(row) if row else ''
 
 def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list[tuple[str, str]]) -> str:
     """Sticky dashboard rail: market vitals + jump chips + live-filter chips.
@@ -3627,6 +3639,8 @@ def main():
     # by every page in this run (same math that writes atlas-intel.json).
     global ATLAS_INTEL
     ATLAS_INTEL = compute_atlas_intel(projects)
+    PROJECTS_BY_SLUG.clear()
+    PROJECTS_BY_SLUG.update({(p.get('Slug') or '').strip().lower(): p for p in projects if p.get('Slug')})
     MARKETS_WITH_PAGES.clear()
     MARKETS_WITH_PAGES.update(slugify(c) for c, b in by_city.items() if len(b) >= CITY_MIN)
     def supply_for(city: str) -> str:
@@ -3791,6 +3805,7 @@ def main():
             city_modules_top=(lambda mods: market_rail_html(city, slugify(city), ATLAS_INTEL,
                               [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
                               + ''.join(h for _, h in mods))([
+                                  (('atlasIntel', 'Pricing'), onyx_flagship_html(slugify(city))),
                                   (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
                                   (('m-brands', 'Brands'), brands_html(city, bucket)),
                                   (('m-openings', 'Openings'), openings_timeline_html(city, bucket)),

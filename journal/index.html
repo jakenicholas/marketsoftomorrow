@@ -993,6 +993,7 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         #homeAtlasIntel .hai-sp i{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
         #homeAtlasIntel .hai-sp-label{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(167,139,250,.85);flex:0 0 auto;align-self:center;margin-right:2px;text-shadow:0 0 10px rgba(167,139,250,.5)}
         #homeAtlasIntel .hai-psf.on{filter:none;opacity:1;color:#A78BFA;text-shadow:0 0 14px rgba(167,139,250,.45)}
+        #homeAtlasIntel .hai-band{width:100%;height:34px;margin-top:10px;display:block}
         #homeAtlasIntel .hai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
         #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700}
         #homeAtlasIntel .hai-eyebrow i{width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 10px 1px #A78BFA}
@@ -1032,7 +1033,11 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
             +'<div class="hai-name">'+esc(v.title)+'</div>'
             +'<div class="hai-meta">'+esc(v.city||'')+(v.delivery_label?' · '+esc(v.delivery_label):'')+'</div>'
             +'<div class="hai-row"><span class="hai-psf">$•,•••</span><span class="hai-unit">/ sq ft at delivery</span>'
-            +'<span class="hai-conf">'+esc((v.confidence||'').toUpperCase())+' · '+(v.comp_count||0)+' comps</span></div></a>';
+            +'<span class="hai-conf">'+esc((v.confidence||'').toUpperCase())+' · '+(v.comp_count||0)+' comps</span></div>'
+            +'<svg class="hai-band" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">'
+            +'<path d="M0,24 L40,22 L80,19 L120,15 L160,11 L200,6 L200,14 L160,18 L120,22 L80,25 L40,27 L0,29 Z" fill="rgba(31,223,103,0.14)"/>'
+            +'<path d="M0,27 L40,25 L80,22 L120,18 L160,14 L200,9" fill="none" stroke="#1FDF67" stroke-width="1.6" stroke-linecap="round"/>'
+            +'<circle cx="200" cy="9" r="2.5" fill="#1FDF67"/></svg></a>';
         }).join('');
         document.getElementById('homeAtlasIntel').hidden=false;
         try{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_home_preview_view',{});}catch(_e){}
