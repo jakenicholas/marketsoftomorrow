@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">20</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">7</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">8</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">0</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">3</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>20</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>7</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 20 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2030" data-mk-nb="Bordesley Green" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-birmingham-city-powerhouse/" aria-label="Open The Birmingham City Powerhouse">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/birmingham/the-birmingham-city-powerhouse.webp" alt="The Birmingham City Powerhouse — Stadium in Bordesley Green, Birmingham" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birmingham-city-powerhouse/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/knighthead-capital-management-tom-wagner/"><span class="nm">Knighthead Capital Management</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tom-brady/"><span class="nm">Tom Brady</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birmingham-city-powerhouse/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/heatherwick-studio-manica-architecture/"><span class="nm">Heatherwick Studio; Manica Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Las Vegas Strip" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/" aria-label="Open Athletics Las Vegas Ballpark">
     <div class="card-img"><img class="card-img-el" src="https://www.designboom.com/wp-content/uploads/2024/03/bjarke-ingels-group-las-vegas-ballpark-hntb-oakland-athletics-baseball-designboom-1200.jpg" alt="Athletics Las Vegas Ballpark — Stadium in Las Vegas Strip" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/athletics/"><span class="nm">Athletics</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/athletics-las-vegas-ballpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hntb/"><span class="nm">HNTB</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Zona 5" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/foro-futeca/" aria-label="Open Foro Futeca">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/guatemala-city/foro-futeca.jpg" alt="Foro Futeca — Mixed-Use in Zona 5, Guatemala City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/foro-futeca/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/futeca-corporacion/"><span class="nm">Futeca Corporación</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/foro-futeca/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks-architects/"><span class="nm">HKS Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/as-arquitectura/"><span class="nm">AS Arquitectura</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="El Mansouria" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-stade-hassan-ii/" aria-label="Open Grand Stade Hassan II">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b87892a84844-worlds-largest-football-stadium-grand-stade-hassan-ii-morocco-populous-oualalou-" alt="Grand Stade Hassan II — Stadium in El Mansouria, Benslimane" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-stade-hassan-ii/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sonarges/"><span class="nm">SONARGES</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-stade-hassan-ii/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oualalou-choi/"><span class="nm">Oualalou + Choi</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/huntington-bank-field/" aria-label="Open Huntington Bank Field">
     <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2026/02/xq8ftrxvfxhk4d3dz9rx.jpg" alt="Huntington Bank Field — Stadium in Brook Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/huntington-bank-field/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/haslam-sports-group/"><span class="nm">Haslam Sports Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/huntington-bank-field/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jacksonville-jaguars-stadium/" aria-label="Open Jacksonville Jaguars Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/jacksonville-jaguars-stadium.webp" alt="Jacksonville Jaguars Stadium — Stadium in Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="14">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Plant Drive Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/" aria-label="Open Palm Beach Gardens IcePlex">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/palm-beach-gardens-iceplex.jpg" alt="Palm Beach Gardens IcePlex — Stadium in Plant Drive Park, Palm Beach Gardens" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/palm-beach-north-athletic-foundation/"><span class="nm">Palm Beach North Athletic Foundation</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-gardens-iceplex/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Hollywood Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sofi-stadium-district/" aria-label="Open SoFi Stadium District">
     <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2022/09/Cosm_HollywoodPark-copy.jpg" alt="SoFi Stadium District — Mixed-Use in Hollywood Park, Inglewood" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kroenke-sports-entertainment/"><span class="nm">Kroenke Sports &amp; Entertainment</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks-architects/"><span class="nm">HKS Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="East Bank" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/tennessee-titans-stadium/" aria-label="Open Tennessee Titans Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/tennessee-titans-stadium.webp" alt="Tennessee Titans Stadium — Entertainment in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tennessee-titans-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/metropolitan-government-of-nashville/"><span class="nm">Metropolitan Government of Nashville</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tennessee-titans/"><span class="nm">Tennessee Titans</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tennessee-titans-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manica-architecture/"><span class="nm">Manica Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tvs/"><span class="nm">TVS</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Halawa" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/honolulu/aloha-stadium.jpg" alt="Aloha Stadium — Mixed-Use in Halawa, Honolulu" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aloha-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aloha-halawa-district-partners-development-ventures-group/"><span class="nm">Aloha Halawa District Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stanford-carr-development/"><span class="nm">Stanford Carr Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ameresco/"><span class="nm">Ameresco</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cordish-companies/"><span class="nm">Cordish Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aloha-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rma-architects/"><span class="nm">RMA Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sb-architects/"><span class="nm">SB Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henning-larsen/"><span class="nm">Henning Larsen</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alakea-design-group/"><span class="nm">Alakea Design Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wcit-architects/"><span class="nm">WCIT Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Herston" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/brisbane-olympic-stadium/" aria-label="Open Brisbane Olympic Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brisbane/brisbane-olympic-stadium.jpeg" alt="Brisbane Olympic Stadium — Stadium in Herston, Brisbane" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/brisbane-olympic-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/queensland-government/"><span class="nm">Queensland Government</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/games-independent-infrastructure-and-coordination-authority/"><span class="nm">Games Independent Infrastructure and Coordination Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/brisbane-olympic-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cox-architecture/"><span class="nm">Cox Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hassell/"><span class="nm">Hassell</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/azusa-sekkei/"><span class="nm">Azusa Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="South Saunders" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/downtown-south/" aria-label="Open Downtown South">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/fe3be5a41eee-WEB_View-2-1-scaled-1.jpg" alt="Downtown South — Mixed-Use in South Saunders, Raleigh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/downtown-south/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kane-realty-corporation/"><span class="nm">Kane Realty Corporation</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/downtown-south/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Pietralata" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/new-as-roma-stadium/" aria-label="Open New AS Roma Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/rome/new-as-roma-stadium.jpg" alt="New AS Roma Stadium — Stadium in Pietralata, Rome" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-as-roma-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/as-roma-friedkin-group/"><span class="nm">AS Roma (Friedkin Group)</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-as-roma-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="San Siro" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/new-san-siro-stadium/" aria-label="Open New San Siro Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/milan/new-san-siro-stadium.jpg" alt="New San Siro Stadium — Stadium in San Siro, Milan" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-san-siro-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ac-milan/"><span class="nm">AC Milan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fc-internazionale-milano/"><span class="nm">FC Internazionale Milano</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-san-siro-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manica/"><span class="nm">MANICA</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Trafford Wharfside" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/new-trafford/" aria-label="Open New Trafford">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/manchester/new-trafford.jpg" alt="New Trafford — Stadium in Trafford Wharfside, Manchester" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-trafford/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manchester-united-football-club/"><span class="nm">Manchester United Football Club</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-trafford/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Dale Mabry / Hillsborough College" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-bay-rays-stadium/" aria-label="Open Tampa Bay Rays Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-bay-rays-stadium.webp" alt="Tampa Bay Rays Stadium — Stadium in Dale Mabry / Hillsborough College, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tampa-bay-rays-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tampa-bay-rays/"><span class="nm">Tampa Bay Rays</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hines/"><span class="nm">Hines</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tampa-bay-rays-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Walton &amp; One" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/walton-one-stadium/" aria-label="Open Walton &amp; One Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/8d9cecc4265b-img39_5b307f-crop.jpg" alt="Walton &amp; One Stadium — Stadium in Walton &amp; One, Port St. Lucie" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/walton-one-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ebenezer-stadium-llc/"><span class="nm">Ebenezer Stadium LLC</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/port-st-lucie-sc/"><span class="nm">Port St. Lucie SC</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/walton-one-stadium/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/new-highmark-stadium/" aria-label="Open New Highmark Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/orchard-park/new-highmark-stadium.jpg" alt="New Highmark Stadium — Stadium in Orchard Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pegula-sports-entertainment/"><span class="nm">Pegula Sports &amp; Entertainment</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/erie-county/"><span class="nm">Erie County</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/new-york-state/"><span class="nm">New York State</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/nu-stadium-at-miami-freedom-park.jpeg" alt="Nu Stadium at Miami Freedom Park — Stadium in Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/miami-freedom-park-llc-david-beckham/"><span class="nm">Miami Freedom Park</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jorge-jose-mas/"><span class="nm">Jorge &amp; Jose Mas)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manica/"><span class="nm">MANICA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2027" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/spotify-camp-nou-renovation/" aria-label="Open Spotify Camp Nou (Renovation)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/barcelona/spotify-camp-nou-renovation.jpeg" alt="Spotify Camp Nou (Renovation) — Stadium in Barcelona" loading="lazy" decoding="async"></div>
     <div class="card-body">

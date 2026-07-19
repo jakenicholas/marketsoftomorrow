@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">10</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">1</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">7</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">1</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">1</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>10</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>7</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 10 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Jeddah Economic City" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jeddah-tower/" aria-label="Open Jeddah Tower">
     <div class="card-img"><img class="card-img-el" src="https://media.cnn.com/api/v1/images/stellar/prod/180117103814-jeddah-tower-rendering.jpg?q=w_1600,h_898,x_0,y_0,c_fill" alt="Jeddah Tower — Hotel in Jeddah Economic City, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jeddah-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jeddah-economic-company/"><span class="nm">Jeddah Economic Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kingdom-holding/"><span class="nm">Kingdom Holding</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jeddah-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adrian-smith-gordon-gill-architecture/"><span class="nm">Adrian Smith + Gordon Gill Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="North Riyadh" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-international-airport/" aria-label="Open King Salman International Airport">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riyadh/king-salman-international-airport.jpg" alt="King Salman International Airport — Travel in North Riyadh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-salman-international-airport-development-company-ksiadc/"><span class="nm">King Salman International Airport Development Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/public-investment-fund/"><span class="nm">Public Investment Fund</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Central Riyadh (former airport)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-park/" aria-label="Open King Salman Park">
     <div class="card-img"><img class="card-img-el" src="https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg" alt="King Salman Park — Mixed-Use in Central Riyadh (former airport)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-salman-park-foundation/"><span class="nm">King Salman Park Foundation</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/omrania/"><span class="nm">Omrania</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henning-larsen-architects/"><span class="nm">Henning Larsen Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2040" data-mk-nb="Northwest Riyadh" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/new-murabba/" aria-label="Open New Murabba">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/saudi-arabia/new-murabba.jpg" alt="New Murabba — Mixed-Use in Northwest Riyadh, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-murabba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/new-murabba-development-company/"><span class="nm">New Murabba Development Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-murabba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aecom/"><span class="nm">AECOM</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Tuwaiq Mountains" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/qiddiya/" aria-label="Open Qiddiya">
     <div class="card-img"><img class="card-img-el" src="https://skift.com/wp-content/uploads/2023/12/Qiddiya-.png" alt="Qiddiya — Entertainment in Tuwaiq Mountains, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qiddiya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/qiddiya-investment-company/"><span class="nm">Qiddiya Investment Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qiddiya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pp-big-master-plan/"><span class="nm">pp (BIG) (master plan)</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Sharaan Nature Reserve" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sharaan-resort-by-jean-nouvel/" aria-label="Open Sharaan Resort by Jean Nouvel">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2020/10/jean-nouvel-resort-saudi-arabia-alula-sharaan-rock-dwellings_dezeen_2364_col_11.jpg" alt="Sharaan Resort by Jean Nouvel — Hotel in Sharaan Nature Reserve, AlUla" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="4">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Trojena" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/saudi-arabia/trojena.webp" alt="Trojena — Entertainment in Trojena, NEOM, Tabuk Province, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trojena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/neom/"><span class="nm">NEOM</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trojena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lava-architects/"><span class="nm">LAVA Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zaha-hadid-architects/"><span class="nm">Zaha Hadid Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/unstudio/"><span class="nm">UNStudio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mecanoo/"><span class="nm">Mecanoo</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aedas/"><span class="nm">Aedas</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bureau-proberts/"><span class="nm">Bureau Proberts</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="North Riyadh" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-avenues/" aria-label="Open The Avenues">
     <div class="card-img"><img class="card-img-el" src="https://www.rli.uk.com/wp-content/uploads/2023/10/The-Avenues-Project-Riyadh-Saudi-Arabia-Developer-Mabanee.jpg" alt="The Avenues — Retail in North Riyadh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-avenues/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mabanee-company/"><span class="nm">Mabanee Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-avenues/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aedas/"><span class="nm">Aedas</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Al Wadi District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/retal-heights/" aria-label="Open Retal Heights">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1dc96e18a527-RETAL_AMENITIES_POOL-1763654226-scaled.jpg" alt="Retal Heights — Mixed-Use in Al Wadi District, Riyadh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/retal-heights/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/retal-urban-development-company/"><span class="nm">Retal Urban Development Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ajdan-real-estate-development/"><span class="nm">Ajdan Real Estate Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/retal-heights/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2030" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/amaala/" aria-label="Open AMAALA">
     <div class="card-img"><img class="card-img-el" src="https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp" alt="AMAALA — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">

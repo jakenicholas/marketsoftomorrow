@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,14 +542,14 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">20</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">9</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">3</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">4</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">4</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>20</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>9</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>4</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>4</div><div class="l">Recently Opened</div></div>
     </div>
 
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -531,13 +564,14 @@
         </div>
         <div class="sp-windows-col">
           <div class="sp-sub">New-supply concentration over the next 36 months — a 54-project pipeline, delivering 8,008 residences and keys.</div>
-          <div class="sp-windows"><div class="sp-win" title="7 projects · 1,067 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:38px"></div></div><div class="sp-win-n">7</div><div class="sp-win-l">H2 ’26</div></div><div class="sp-win" title="2 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">H1 ’27</div></div><div class="sp-win" title="10 projects · 1,651 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:59px"></div></div><div class="sp-win-n">10</div><div class="sp-win-l">H2 ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’28</div></div><div class="sp-win on" title="7 projects · 1,795 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">7</div><div class="sp-win-l">H2 ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’29</div></div></div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window. 15 more deliver beyond the 36-month horizon. 13 have no public delivery date yet.</div>
+          <div class="sp-windows"><div class="sp-win" title="7 projects · 1,067 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:38px"></div></div><div class="sp-win-n">7</div><div class="sp-win-l">Late ’26</div></div><div class="sp-win" title="2 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">Early ’27</div></div><div class="sp-win" title="10 projects · 1,651 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:59px"></div></div><div class="sp-win-n">10</div><div class="sp-win-l">Late ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’28</div></div><div class="sp-win on" title="7 projects · 1,795 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">7</div><div class="sp-win-l">Late ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’29</div></div></div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window. 15 more deliver beyond the 36-month horizon. 13 have no public delivery date yet.</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="high">Confidence: <em>High</em> · 76% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        <a class="sp-atlas" href="/atlas/?state=FL">Florida in the Atlas →</a>
       </div>
       
       <div class="sp-band" id="spBand" data-market="west-palm-beach">
@@ -590,7 +624,7 @@
     </section>
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -599,7 +633,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 20 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2027" data-mk-nb="CityPlace" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/10-cityplace/" aria-label="Open 10 CityPlace">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/10-cityplace.jpeg" alt="10 CityPlace — Office in CityPlace, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -621,7 +655,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/10-cityplace/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/10-cityplace/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2028" data-mk-nb="Southern Northwood" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/olara/" aria-label="Open Olara">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/olara.jpeg" alt="Olara — Residences in Southern Northwood, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -643,7 +677,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/olara/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/savanna/"><span class="nm">Savanna</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/olara/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2026" data-mk-nb="Nora District" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-hotel/" aria-label="Open The Nora Hotel">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-nora-district-2.jpg" alt="The Nora Hotel — Hotel in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
@@ -665,7 +699,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nora-hotel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bd-hotels-sean-macpherson/"><span class="nm">BD Hotels</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wheelock-street-capital/"><span class="nm">Wheelock Street Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ndt-development/"><span class="nm">NDT Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/place-projects/"><span class="nm">Place Projects</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nora-hotel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stantec/"><span class="nm">Stantec</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="CityPlace" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/15-cityplace/" aria-label="Open 15 CityPlace">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/15-cityplace.jpeg" alt="15 CityPlace — Office in CityPlace, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -687,7 +721,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/15-cityplace/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/15-cityplace/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="El Cid" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/biba/" aria-label="Open BIBA">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/biba.webp" alt="BIBA — Members Club &amp; Boutique Hotel in El Cid, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -709,7 +743,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/biba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/biba-development/"><span class="nm">BIBA Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/biba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/garcia-stromberg/"><span class="nm">Garcia Stromberg</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Northwood" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/district-at-northwood.jpg" alt="District at Northwood — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -734,7 +768,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="14">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="South End" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-sound/" aria-label="Open The Sound">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-sound.jpg" alt="The Sound — Mixed-Use in South End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -756,7 +790,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-sound/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woodfield-development/"><span class="nm">Woodfield Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/flagler-realty-development-inc/"><span class="nm">Flagler Realty &amp; Development Inc.</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-sound/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Downtown West Palm Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/120-s-dixie-highway/" aria-label="Open 120 S. Dixie Highway">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/120-s-dixie-highway.jpg" alt="120 S. Dixie Highway — Mixed-Use in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -778,7 +812,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/120-s-dixie-highway/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jeff-greene/"><span class="nm">Jeff Greene</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/120-s-dixie-highway/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/carlo-ratti-associati/"><span class="nm">Carlo Ratti Associati</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nexus-systems/"><span class="nm">Nexus Systems</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Northwood" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/2823-broadway/" aria-label="Open 2823 Broadway">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/2823-broadway.jpg" alt="2823 Broadway — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -800,7 +834,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/2823-broadway/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/various/"><span class="nm">Various</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/2823-broadway/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reg-architects/"><span class="nm">REG Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/curio-by-hilton/" aria-label="Open Curio by Hilton">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/curio-by-hilton.webp" alt="Curio by Hilton — Hotel in Downtown, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -822,7 +856,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/curio-by-hilton/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/curio-by-hilton/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="North End" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/good-samaritan-medical-district/" aria-label="Open Good Samaritan Medical District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/good-samaritan-medical-district.jpg" alt="Good Samaritan Medical District — Mixed-Use in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -844,7 +878,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/good-samaritan-medical-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/easton-street-capital-frisbie-group-principals/"><span class="nm">Easton Street Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/good-samaritan-medical-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Nora District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-apartments/" aria-label="Open Nora Apartments">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/nora-apartments.jpeg" alt="Nora Apartments — Residences in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
@@ -866,7 +900,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nora-apartments/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ndt-development/"><span class="nm">NDT Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/place-projects/"><span class="nm">Place Projects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wheelock-street-capital/"><span class="nm">Wheelock Street Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nora-apartments/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cube-3/"><span class="nm">CUBE 3</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><span class="nm">Morris Adjmi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Nora District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/nora-house/" aria-label="Open Nora House">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/nora-house.png" alt="Nora House — Residences in Nora District, West Palm Beach" loading="lazy" decoding="async"><span class="card-parent-chip">Part of The Nora District</span></div>
     <div class="card-body">
@@ -888,7 +922,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nora-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-ronto-group-and-partners/"><span class="nm">The Ronto Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ndt-development/"><span class="nm">NDT Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wheelock-street-capital/"><span class="nm">Wheelock Street Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nora-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/swedroe-architecture/"><span class="nm">Swedroe Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown West Palm Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Palm Harbor Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ross-private-club.jpg" alt="Palm Harbor Club — Entertainment in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -910,7 +944,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ross-private-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/leisure-resorts-llc-chase-enterprises/"><span class="nm">Leisure Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ross-private-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><span class="nm">Robert A.M. Stern Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="North End" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/safe-harbor-rybovich-district/" aria-label="Open Safe Harbor Rybovich District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/safe-harbor-rybovich-district.jpeg" alt="Safe Harbor Rybovich District — Mixed-Use in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -932,7 +966,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/safe-harbor-rybovich-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/safe-harbor-marinas/"><span class="nm">Safe Harbor Marinas</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/safe-harbor-rybovich-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Westgate" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/pbkc-redevelopment/" aria-label="Open Westgate Village (Palm Beach Kennel Club Redevelopment)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/pbkc-redevelopment.jpg" alt="Westgate Village (Palm Beach Kennel Club Redevelopment) — Mixed-Use in Westgate, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -954,7 +988,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pbkc-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra-group/"><span class="nm">Terra Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/frisbie-group/"><span class="nm">Frisbie Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pbkc-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/eataly-food-hall/" aria-label="Open Eataly Food Hall">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/eataly-food-hall.jpg" alt="Eataly Food Hall — Retail in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -976,7 +1010,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/eataly-food-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eataly/"><span class="nm">Eataly</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/eataly-food-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eataly-design-studio-in-historic-harriet-himmel-hall/"><span class="nm">Eataly Design Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/garden-butcher/" aria-label="Open Garden Butcher">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/garden-butcher.jpeg" alt="Garden Butcher — Retail in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -998,7 +1032,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/garden-butcher/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/garden-butcher/"><span class="nm">Garden Butcher</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/garden-butcher/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reg-architects/"><span class="nm">REG Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Nora District" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-nora-district.jpeg" alt="The Nora District — Mixed-Use in Nora District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1020,7 +1054,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nora-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ndt-development/"><span class="nm">NDT Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/place-projects/"><span class="nm">Place Projects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wheelock-street-capital/"><span class="nm">Wheelock Street Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nora-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stantec/"><span class="nm">Stantec</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-spruce/" aria-label="Open The Spruce">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-spruce.jpg" alt="The Spruce — Residences in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">

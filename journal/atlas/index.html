@@ -1289,7 +1289,17 @@
         </div>`;
     }
 
-    let currentStateFilter = 'ALL';
+    // Deep-linkable state filter: /atlas/?state=FL pre-dials the whole page
+    // (market pages' "Florida in the Atlas" links land here).
+    let currentStateFilter = (new URLSearchParams(location.search).get('state') || 'ALL').toUpperCase() || 'ALL';
+    function syncStateUrl() {
+      try {
+        const u = new URL(location.href);
+        if (currentStateFilter && currentStateFilter !== 'ALL') u.searchParams.set('state', currentStateFilter);
+        else u.searchParams.delete('state');
+        history.replaceState(null, '', u);
+      } catch (_) {}
+    }
     // Default to the Overview ('stats') view — it renders instantly from
     // atlas.json alone (no projects-flat.json dependency), so the page is
     // never stuck on a loading state.
@@ -2719,6 +2729,7 @@
       else if (chip.dataset.clear === 'type') currentTypeFilter = 'ALL';
       else if (chip.dataset.clear === 'year') currentYearFilter = '';
       else if (chip.dataset.clear === 'all') { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentYearFilter = ''; }
+      syncStateUrl();
       renderAll();
     });
 

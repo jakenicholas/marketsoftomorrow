@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">26</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">5</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">15</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">4</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>26</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>15</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>4</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 26 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="" data-mk-nb="Revelstoke Mountain Resort" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-revelstoke/" aria-label="Open Cabot Revelstoke">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/revelstoke/cabot-revelstoke.jpeg" alt="Cabot Revelstoke — Golf in Revelstoke Mountain Resort" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/cabot-revelstoke/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cabot/"><span class="nm">Cabot</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/northland-properties/"><span class="nm">Northland Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/cabot-revelstoke/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/whitman/"><span class="nm">Whitman</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/axland-cutten/"><span class="nm">Axland &amp; Cutten</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2028" data-mk-nb="East Bank" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-pedestrian-bridge/" aria-label="Open Oracle Pedestrian Bridge">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/oracle-pedestrian-bridge.jpeg" alt="Oracle Pedestrian Bridge — Park in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span><span class="card-parent-chip">Part of Oracle Campus</span></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oracle-pedestrian-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oracle/"><span class="nm">Oracle</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oracle-pedestrian-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Karingani Game Reserve" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-karingani/" aria-label="Open Aman Karingani">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/c077952943b5-Aman-Karingani-Mozambique-Rendering.jpg" alt="Aman Karingani — Hotel in Karingani Game Reserve" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-karingani/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-karingani/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Vaavu Atoll" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-maldives/" aria-label="Open Aman Maldives">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/dd1ba80e08ad-Aman-Maldives-Maldives-2-Bedroom-Beach-Pavilion_50674.webp" alt="Aman Maldives — Hotel in Vaavu Atoll" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-maldives/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-maldives/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kerry-hill-architects/"><span class="nm">Kerry Hill Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Wadi Safar" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/amansamar/" aria-label="Open Amansamar">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/bb2abc8f5fd3-Aman-Residences-Amansamar-Exterior-Aerial.webp" alt="Amansamar — Residences in Wadi Safar, Diriyah" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amansamar/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amansamar/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Cuntan (Liangjiang New Area)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/chongqing-cuntan-international-cruise-centre/" aria-label="Open Chongqing Cuntan International Cruise Centre">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/9f65a6e986b6-01_MAD_Chongqing_Cuntan_Cruise_Terminal.jpg" alt="Chongqing Cuntan International Cruise Centre — Mixed-Use in Cuntan (Liangjiang New Area), Chongqing" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="20">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Gaoming District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/foshan-gaoming-international-airport/" aria-label="Open Foshan Gaoming International Airport">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4525d0146377-491598575_1133160708610749_1435174852199182896_n-gigapixel-low-resolution-v2-2x." alt="Foshan Gaoming International Airport — Travel in Gaoming District, Foshan" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/foshan-gaoming-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/guangdong-airport-authority/"><span class="nm">Guangdong Airport Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/foshan-gaoming-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/guangdong-architectural-design-research-institute/"><span class="nm">Guangdong Architectural Design &amp; Research Institute</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adpi/"><span class="nm">ADPi</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Île-de-France" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-paris-express/" aria-label="Open Grand Paris Express">
     <div class="card-img"><img class="card-img-el" src="https://www.leausa.us/media/immagini/5783_z_LEA-perspective-de-la-gare-pont-de-bondy-credits-001_1.jpg" alt="Grand Paris Express — Travel in Île-de-France, Paris" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-paris-express/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/socit-du-grand-paris/"><span class="nm">Société du Grand Paris</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-paris-express/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/socit-du-grand-paris/"><span class="nm">Société du Grand Paris</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2040" data-mk-nb="Euston" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/hs2-euston-station-redevelopment/" aria-label="Open HS2 Euston Station Redevelopment">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2022/03/grimshaw-euston-station-hs2_dezeen_2364_col_1a.jpg" alt="HS2 Euston Station Redevelopment — Travel in Euston, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hs2-euston-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hs2-ltd/"><span class="nm">HS2 Ltd</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/uk-government/"><span class="nm">UK Government</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hs2-euston-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/grimshaw-architects/"><span class="nm">Grimshaw Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Jamaica" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jfk-expansion/" aria-label="Open JFK (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/jfk-expansion.jpg" alt="JFK (Expansion) — Travel in Jamaica, Queens, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jfk-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jfk-millennium-partners-vantage-group/"><span class="nm">JFK Millennium Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rxr/"><span class="nm">RXR</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/american-triple-i/"><span class="nm">American Triple I</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jetblue-with-port-authority-of-nynj/"><span class="nm">JetBlue</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jfk-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corgan/"><span class="nm">Corgan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aecom-hunt/"><span class="nm">AECOM Hunt</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="North Riyadh" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-international-airport/" aria-label="Open King Salman International Airport">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riyadh/king-salman-international-airport.jpg" alt="King Salman International Airport — Travel in North Riyadh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-salman-international-airport-development-company-ksiadc/"><span class="nm">King Salman International Airport Development Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/public-investment-fund/"><span class="nm">Public Investment Fund</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Overtown" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/miami-signature-bridge/" aria-label="Open Miami Signature Bridge">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/miami-signature-bridge.webp" alt="Miami Signature Bridge — Park in Overtown, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-signature-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fdot/"><span class="nm">FDOT</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-miami/"><span class="nm">City of Miami</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-signature-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/donald-macdonald-architects/"><span class="nm">Donald MacDonald Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Raleigh-Durham International Airport" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/rdu-terminal-2-expansion/" aria-label="Open RDU Terminal 2 Expansion">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b7507f1fef64-1-Northeast-Corner-from-above-JBB_PS-2048x1152.jpg" alt="RDU Terminal 2 Expansion — Travel in Raleigh-Durham International Airport, Morrisville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rdu-terminal-2-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/raleigh-durham-airport-authority/"><span class="nm">Raleigh-Durham Airport Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rdu-terminal-2-expansion/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2035" data-mk-nb="Changi East" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/singapore-changi-airport-terminal-5/" aria-label="Open Singapore Changi Airport Terminal 5">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2022/09/singapore-changi-airport-terminal-5-heatherwick-studio-kpf_dezeen_2364_hero.jpg" alt="Singapore Changi Airport Terminal 5 — Travel in Changi East, Singapore" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/singapore-changi-airport-terminal-5/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/changi-airport-group/"><span class="nm">Changi Airport Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/singapore-changi-airport-terminal-5/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/heatherwick-studio/"><span class="nm">Heatherwick Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/tampa-international-airport-expansion/" aria-label="Open Tampa International Airport (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/tampa-international-airport-expansion.jpg" alt="Tampa International Airport (Expansion) — Travel in Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tampa-international-airport-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tampa-international-airport-tpa/"><span class="nm">Tampa International Airport</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tampa-international-airport-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hok/"><span class="nm">HOK</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Tokiwabashi" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/" aria-label="Open Torch Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/tokyo-station-city-redevelopment.jpg" alt="Torch Tower — Travel in Tokiwabashi, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jr-east/"><span class="nm">JR East</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei/"><span class="nm">Nikken Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Trojena" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/trojena/" aria-label="Open Trojena">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/saudi-arabia/trojena.webp" alt="Trojena — Entertainment in Trojena, NEOM, Tabuk Province, Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trojena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/neom/"><span class="nm">NEOM</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trojena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lava-architects/"><span class="nm">LAVA Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zaha-hadid-architects/"><span class="nm">Zaha Hadid Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/unstudio/"><span class="nm">UNStudio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mecanoo/"><span class="nm">Mecanoo</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aedas/"><span class="nm">Aedas</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bureau-proberts/"><span class="nm">Bureau Proberts</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Costa Palmas" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt="Amanvari — Hotel in Costa Palmas, Los Cabos" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Costa Palmas</span></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amanvari/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/irongate/"><span class="nm">Irongate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amanvari/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elastic-architects/"><span class="nm">Elastic Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Roberts Road" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/spacex-gigabay/" aria-label="Open SpaceX Gigabay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b77f95a6f492-images.jpeg" alt="SpaceX Gigabay — Travel in Roberts Road, Merritt Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/spacex-gigabay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spacex/"><span class="nm">SpaceX</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/spacex-gigabay/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Mount Enterprise (East Texas)" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/wild-spring-dunes/" aria-label="Open Wild Spring Dunes">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/mount-enterprise/wild-spring-dunes.webp" alt="Wild Spring Dunes — Golf in Mount Enterprise (East Texas)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wild-spring-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dream-golf/"><span class="nm">Dream Golf</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wild-spring-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/renaissance-golf-design/"><span class="nm">Renaissance Golf Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/coore-crenshaw/"><span class="nm">Coore &amp; Crenshaw</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Edgewater" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/anantara-miami-resort-residences.jpg" alt="Anantara Miami Resort &amp; Residences — Mixed-Use in Edgewater, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/one-thousand-group/"><span class="nm">One Thousand Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/miami-international-airport-expansion/" aria-label="Open Miami International Airport (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/miami-international-airport-expansion.jpg" alt="Miami International Airport (Expansion) — Travel in Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-international-airport-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/miami-dade-aviation-department/"><span class="nm">Miami-Dade Aviation Department</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-international-airport-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hok/"><span class="nm">HOK</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2034" data-mk-nb="" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/ohare-global-terminal/" aria-label="Open O&#x27;Hare Global Terminal">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/chicago/ohare-global-terminal.jpg" alt="O&#x27;Hare Global Terminal — Travel in Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ohare-global-terminal/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/chicago-department-of-aviation/"><span class="nm">Chicago Department of Aviation</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ohare-global-terminal/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-ord-studio-gang/"><span class="nm">Studio Gang</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/solomon-cordwell-buenz/"><span class="nm">Solomon Cordwell Buenz</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corgan/"><span class="nm">Corgan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stl-architects-skidmore/"><span class="nm">STL Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Midtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/penn-station-redevelopment/" aria-label="Open Penn Station Redevelopment">
     <div class="card-img"><img class="card-img-el" src="https://www.mas.org/wp-content/uploads/2017/12/penn-station-rendering-lobby-with-sunshine-pano.jpg" alt="Penn Station Redevelopment — Park in Midtown, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/penn-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/empire-state-development/"><span class="nm">Empire State Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/vornado/"><span class="nm">Vornado</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/penn-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/pittsburgh-international-airport/" aria-label="Open Pittsburgh International Airport">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2026/01/vidal-hdr-gensler-pittsburgh-airport_dezeen_2364_hero.jpg" alt="Pittsburgh International Airport — Travel in Pittsburgh" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pittsburgh-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/allegheny-county-airport-authority/"><span class="nm">Allegheny County Airport Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pittsburgh-international-airport/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hdr/"><span class="nm">HDR</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/luis-vidal-architects/"><span class="nm">Luis Vidal + Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/private-suite-miami/" aria-label="Open Private Suite Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/private-suite-miami.jpeg" alt="Private Suite Miami — Travel" loading="lazy" decoding="async"></div>
     <div class="card-body">

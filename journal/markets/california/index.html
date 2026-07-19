@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">14</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">4</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">5</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">2</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>14</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>4</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 14 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2027" data-mk-nb="Beverly Hills" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/one-beverly-hills/" aria-label="Open One Beverly Hills">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/one-beverly-hills.jpg" alt="One Beverly Hills — Mixed-Use" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cain-international/"><span class="nm">Cain International</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eldridge-industries/"><span class="nm">Eldridge Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="One Beverly Hills" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-beverly-hills/" aria-label="Open Aman Beverly Hills">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/aman-beverly-hills.jpg" alt="Aman Beverly Hills — Mixed-Use in One Beverly Hills" loading="lazy" decoding="async"><span class="card-parent-chip">Part of One Beverly Hills</span></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-resorts/"><span class="nm">Aman Resorts</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cain-international/"><span class="nm">Cain International</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eldridge-industries/"><span class="nm">Eldridge Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="East Village" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/andia-by-bosa/" aria-label="Open Andia by Bosa">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/san-diego/andia-by-bosa.webp" alt="Andia by Bosa — Residences in East Village, San Diego" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/andia-by-bosa/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bosa-development/"><span class="nm">Bosa Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/andia-by-bosa/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Aetna Springs" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-napa-valley/" aria-label="Open Six Senses Napa Valley">
     <div class="card-img"><img class="card-img-el" src="https://cornerboothhospitality.com/wp-content/uploads/2025/03/Six-Senses-Napa-Aetna-Springs-08-1000x800.jpg" alt="Six Senses Napa Valley — Hotel in Aetna Springs, Pope Valley" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-napa-valley/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/weller-development-partners/"><span class="nm">Weller Development Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mohari-hospitality/"><span class="nm">Mohari Hospitality</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-napa-valley/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olson-kundig/"><span class="nm">Olson Kundig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Hollywood Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sofi-stadium-district/" aria-label="Open SoFi Stadium District">
     <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2022/09/Cosm_HollywoodPark-copy.jpg" alt="SoFi Stadium District — Mixed-Use in Hollywood Park, Inglewood" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kroenke-sports-entertainment/"><span class="nm">Kroenke Sports &amp; Entertainment</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks-architects/"><span class="nm">HKS Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/the55/" aria-label="Open The55">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/the55.jpg" alt="The55 — Mixed-Use in Beverly Hills" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="8">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Exposition Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/" aria-label="Open Lucas Museum of Narrative Art">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg" alt="Lucas Museum of Narrative Art — Museum in Exposition Park, Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lucas-museum-of-narrative-art-george-lucas/"><span class="nm">Lucas Museum of Narrative Art</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mellody-hobson/"><span class="nm">Mellody Hobson)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mad-architects/"><span class="nm">MAD Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stantec/"><span class="nm">Stantec</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Hollywood Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-kali-hotel-and-rooftop/" aria-label="Open The Kali Hotel and Rooftop">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a728858eba1d-107558_N5.jpg" alt="The Kali Hotel and Rooftop — Hotel in Hollywood Park, Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-kali-hotel-and-rooftop/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kpc-development-company/"><span class="nm">KPC Development Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/crescent-hotels-resorts/"><span class="nm">Crescent Hotels &amp; Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-kali-hotel-and-rooftop/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Hollywood" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/6800-sunset/" aria-label="Open 6800 Sunset">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/c88c88716c91-gallery1.jpg" alt="6800 Sunset — Mixed-Use in Hollywood, Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/6800-sunset/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/galaxy-commercial-holdings/"><span class="nm">Galaxy Commercial Holdings</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/6800-sunset/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ojb/"><span class="nm">OJB</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Marina District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/first-island/" aria-label="Open First &amp; Island">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/san-diego/first-island.jpg" alt="First &amp; Island — Residences in Marina District, San Diego" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/first-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bosa-development/"><span class="nm">Bosa Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/first-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/james-km-cheng-architects/"><span class="nm">James KM Cheng Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown Los Angeles" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/hope-village/" aria-label="Open Hope Village">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7e0caa75ac84-666d98c0bc34b5bf97891b86_practice_hope_village-8_opt-crop.jpg" alt="Hope Village — Residences in Downtown Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hope-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/homeboy-industries/"><span class="nm">Homeboy Industries</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mccourt-partners/"><span class="nm">McCourt Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hope-village/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="North Embarcadero" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/navy-seal-museum-san-diego/" aria-label="Open Navy SEAL Museum San Diego">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/san-diego/navy-seal-museum-san-diego.jpg" alt="Navy SEAL Museum San Diego — Museum in North Embarcadero, San Diego" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/navy-seal-museum-san-diego/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/navy-seal-museum-san-diego/"><span class="nm">Navy SEAL Museum San Diego</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hensel-phelps/"><span class="nm">Hensel Phelps</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/navy-seal-museum-san-diego/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zgf-architects/"><span class="nm">ZGF Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/" aria-label="Open David Geffen Galleries at LACMA">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6864/eb28/c677/4079/71d8/7db3/large_jpg/first-look-at-the-lacma-david-geffen-galleries-designed-by-peter-zumthor_12.jpg" alt="David Geffen Galleries at LACMA — Museum in Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/los-angeles-county-museum-of-art-lacma/"><span class="nm">Los Angeles County Museum of Art</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/david-geffen-galleries-at-lacma/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/peter-zumthor-with-skidmore/"><span class="nm">Peter Zumthor</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/skyline-oc/" aria-label="Open Skyline OC">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/santa-ana/skyline-oc.jpg" alt="Skyline OC — Residences in Santa Ana" loading="lazy" decoding="async"></div>
     <div class="card-body">

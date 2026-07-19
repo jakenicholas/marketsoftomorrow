@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">33</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">3</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">24</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">2</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">3</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>33</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>24</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 33 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Jumeirah 2" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-dubai/" aria-label="Open Aman Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/aman-dubai.png" alt="Aman Dubai — Residences in Jumeirah 2, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kerry-hill-architects/"><span class="nm">Kerry Hill Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Palm Jumeirah" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/armani-beach-residences-at-palm-jumeirah/" aria-label="Open Armani Beach Residences at Palm Jumeirah">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ac58c6c0fa8e-Armani-prl-1.jpg" alt="Armani Beach Residences at Palm Jumeirah — Residences in Palm Jumeirah, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/armani-beach-residences-at-palm-jumeirah/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arada/"><span class="nm">Arada</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/armani-beach-residences-at-palm-jumeirah/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tadao-ando-architect-associates/"><span class="nm">Tadao Ando Architect &amp; Associates</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown Dubai" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/" aria-label="Open Baccarat Hotel and Residences Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7de9fca776bc-66ab2604c17ab0afabcf7189_baccarat.webp" alt="Baccarat Hotel and Residences Dubai — Residences in Downtown Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shamal-holding/"><span class="nm">Shamal Holding</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-libeskind/"><span class="nm">Studio Libeskind</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Business Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/bugatti-residences-by-binghatti/" aria-label="Open Bugatti Residences by Binghatti">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/bebef5acd5ff-bugatti-residences-banner.jpg" alt="Bugatti Residences by Binghatti — Residences in Business Bay, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bugatti-residences-by-binghatti/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti/"><span class="nm">Binghatti</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bugatti-residences-by-binghatti/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti/"><span class="nm">Binghatti</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Jumeirah Bay Island" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/bulgari-lighthouse-dubai/" aria-label="Open Bulgari Lighthouse Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/df97d13a945a-Render-by-Neverending-Studio-02-2x.webp" alt="Bulgari Lighthouse Dubai — Residences in Jumeirah Bay Island, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bulgari-lighthouse-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/meraas/"><span class="nm">Meraas</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bulgari-lighthouse-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/antonio-citterio-patricia-viel/"><span class="nm">Antonio Citterio Patricia Viel</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Sheikh Zayed Road" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-azizi/" aria-label="Open Burj Azizi">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/burj-azizi.jpeg" alt="Burj Azizi — Mixed-Use in Sheikh Zayed Road, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="27">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Business Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-binghatti-jacob-co-residences/" aria-label="Open Burj Binghatti Jacob &amp; Co Residences">
     <div class="card-img"><img class="card-img-el" src="https://metropolitan.realestate/wp-content/uploads/2022/11/Binghatti_Jacob-1.jpg" alt="Burj Binghatti Jacob &amp; Co Residences — Residences in Business Bay, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-binghatti-jacob-co-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti-properties/"><span class="nm">Binghatti Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-binghatti-jacob-co-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti/"><span class="nm">Binghatti</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Dubai Maritime City" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/chelsea-residences-by-damac/" aria-label="Open Chelsea Residences by DAMAC">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/94046aa9c3de-Chelsea_Residences-Homepage_Hero_16x9.jpg" alt="Chelsea Residences by DAMAC — Residences in Dubai Maritime City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chelsea-residences-by-damac/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/damac-properties/"><span class="nm">DAMAC Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chelsea-residences-by-damac/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Palm Jumeirah" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/como-residences/" aria-label="Open Como Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/5ce1081fe0b8-como-residences.jpg" alt="Como Residences — Residences in Palm Jumeirah, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/como-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nakheel/"><span class="nm">Nakheel</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/como-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/benjelloun-piper-architecture/"><span class="nm">Benjelloun Piper Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Trade Centre" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/corinthia-tower-dubai/" aria-label="Open Corinthia Tower Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/907ce08ac00b-Corinthia-2-1.webp" alt="Corinthia Tower Dubai — Residences in Trade Centre, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-tower-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dubai-general-properties/"><span class="nm">Dubai General Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corinthia/"><span class="nm">Corinthia</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-tower-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/atkinsrealis/"><span class="nm">AtkinsRéalis</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Al Jaddaf" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/dubai-urban-tech-district/" aria-label="Open Dubai Urban Tech District">
     <div class="card-img"><img class="card-img-el" src="https://www.designboom.com/wp-content/dbsub/449519/2022-09-08/urb-unveils-urban-tech-district-in-dubai-1-6319c0baba626.jpg" alt="Dubai Urban Tech District — Mixed-Use in Al Jaddaf, UAE" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-urban-tech-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dubai-municipality/"><span class="nm">Dubai Municipality</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/smart-dubai/"><span class="nm">Smart Dubai</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-urban-tech-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/urb/"><span class="nm">URB</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Business Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/dwtn-residences/" aria-label="Open DWTN Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d9002e23c4d3-main_banner.jpg" alt="DWTN Residences — Residences in Business Bay, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dwtn-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/deyaar/"><span class="nm">Deyaar</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dwtn-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dar-consult/"><span class="nm">DAR Consult</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Dubai Marina" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/franck-muller-aeternitas-tower/" aria-label="Open Franck Muller Aeternitas Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7637a2edd4b2-The-Aeternitas-Tower1.webp" alt="Franck Muller Aeternitas Tower — Residences in Dubai Marina" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/franck-muller-aeternitas-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/london-gate/"><span class="nm">London Gate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/franck-muller-aeternitas-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/national-engineering-bureau/"><span class="nm">National Engineering Bureau</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="DIFC" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/janu-residences-dubai/" aria-label="Open Janu Residences Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/janu-residences-dubai.jpg" alt="Janu Residences Dubai — Mixed-Use in DIFC, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/janu-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/janu-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/herzog-de-meuron/"><span class="nm">Herzog &amp; de Meuron</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Saadiyat Cultural District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-residences-saadiyat-cultural-district/" aria-label="Open Mandarin Oriental Residences, Saadiyat Cultural District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/17de029d5c45-images-1-.jpeg" alt="Mandarin Oriental Residences, Saadiyat Cultural District — Residences in Saadiyat Cultural District, Abu Dhabi" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mandarin-oriental-residences-saadiyat-cultural-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aldar-properties/"><span class="nm">Aldar Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mandarin-oriental-residences-saadiyat-cultural-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Downtown Dubai" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/mercedes-benz-places-dubai/" aria-label="Open Mercedes-Benz Places Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ea7eb827d335-mb-places-skyline-2560x1440.avif" alt="Mercedes-Benz Places Dubai — Residences in Downtown Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mercedes-benz-places-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti/"><span class="nm">Binghatti</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mercedes-benz-places-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/binghatti/"><span class="nm">Binghatti</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Downtown Dubai" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/mr-c-residences-downtown-dubai/" aria-label="Open Mr. C Residences Downtown Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/13740a3466be-Mr_C_Home_Hero_26e1e8f135.webp" alt="Mr. C Residences Downtown Dubai — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mr-c-residences-downtown-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alta-real-estate-development/"><span class="nm">ALTA Real Estate Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mr-c-residences-downtown-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/1508-london/"><span class="nm">1508 London</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Al Wasl" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/muraba-veil/" aria-label="Open Muraba Veil">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/f7c7f89adf92-Muraba-veil-01.webp" alt="Muraba Veil — Residences in Al Wasl, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/muraba-veil/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/muraba/"><span class="nm">Muraba</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/muraba-veil/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rcr-arquitectes/"><span class="nm">RCR Arquitectes</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="DIFC / Trade Centre" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/nebula-tower/" aria-label="Open Nebula Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4079b89d5e53-nebula.png" alt="Nebula Tower — Mixed-Use in DIFC / Trade Centre, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nebula-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aldar-properties/"><span class="nm">Aldar Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nebula-tower/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Dubai Marina" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-residences-dubai-marina/" aria-label="Open Six Senses Residences Dubai Marina">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/8c933b48c6ab-6968bc5c9fde222afed25de0_D3_04-Hero_SELECT-GROUP.jpg" alt="Six Senses Residences Dubai Marina — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-residences-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/select-group/"><span class="nm">Select Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-residences-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woods-bagot/"><span class="nm">Woods Bagot</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Jumeirah Lake Towers" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sobha-central/" aria-label="Open Sobha Central">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/fe97633f98e0-The-Pinnacle.jpg.webp" alt="Sobha Central — Residences in Jumeirah Lake Towers, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sobha-central/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sobha-realty/"><span class="nm">Sobha Realty</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sobha-central/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Dubai Harbour" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-residences-at-the-dubai-beach-edition/" aria-label="Open The Residences at The Dubai Beach EDITION">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/15e50d837130-hero.jpg" alt="The Residences at The Dubai Beach EDITION — Residences in Dubai Harbour" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-residences-at-the-dubai-beach-edition/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shamal-holding/"><span class="nm">Shamal Holding</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-residences-at-the-dubai-beach-edition/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rogers-stirk-harbour-partners/"><span class="nm">Rogers Stirk Harbour + Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rockwell-group/"><span class="nm">Rockwell Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Business Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/vela-dorchester-collection/" aria-label="Open Vela Dorchester Collection">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4e7a3973dfbb-Vela-Dorchester.jpg" alt="Vela Dorchester Collection — Residences in Business Bay, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vela-dorchester-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/omniyat/"><span class="nm">Omniyat</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vela-dorchester-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Al Marjan Island" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/wynn-al-marjan-island/" aria-label="Open Wynn Al Marjan Island">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ras-al-khaimah/wynn-al-marjan-island.avif" alt="Wynn Al Marjan Island — Mixed-Use in Al Marjan Island, Ras Al Khaimah" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wynn-al-marjan-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wynn-resorts/"><span class="nm">Wynn Resorts</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/marjan/"><span class="nm">Marjan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rak-hospitality-holding/"><span class="nm">RAK Hospitality Holding</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wynn-al-marjan-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wynn-design-and-development/"><span class="nm">Wynn Design and Development</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Dubai Creek Harbour" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/dubai-creek-tower/" aria-label="Open Dubai Creek Tower">
     <div class="card-img"><img class="card-img-el" src="https://cdn.myportfolio.com/6c5949c1e6bb700311fb2cef833a0a61/58f52932-dd80-4782-8c99-55e016f266aa_rw_3840.png?h=6827866b03577f6521c90fb660010af1" alt="Dubai Creek Tower — Hotel in Dubai Creek Harbour, UAE" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-creek-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/emaar-properties/"><span class="nm">Emaar Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-creek-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/santiago-calatrava/"><span class="nm">Santiago Calatrava</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Al Habtoor City" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/al-habtoor-tower/" aria-label="Open Al Habtoor Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/f01c805b221d-Top_Down_View.jpg" alt="Al Habtoor Tower — Residences in Al Habtoor City, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/al-habtoor-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/al-habtoor-group/"><span class="nm">Al Habtoor Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/al-habtoor-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mak-consultancy-architects/"><span class="nm">MAK Consultancy &amp; Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Saadiyat Cultural District" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/guggenheim-abu-dhabi/" aria-label="Open Guggenheim Abu Dhabi">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2019/05/guggenheim-abu-dhabi-frank-gehry_dezeen_936_hero4.jpg" alt="Guggenheim Abu Dhabi — Museum in Saadiyat Cultural District, Abu Dhabi" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1124,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/guggenheim-abu-dhabi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/department-of-culture-and-tourism-abu-dhabi/"><span class="nm">Department of Culture and Tourism – Abu Dhabi</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/guggenheim-abu-dhabi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gehry-partners/"><span class="nm">Gehry Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown Jumeira" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-jumeira/" aria-label="Open Burj Jumeira">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2019/02/burj-jumeira-architecture-supertall-skyscraper-tower-dubai-uae_dezeen_2364_col_1.jpg" alt="Burj Jumeira — Mixed-Use in Downtown Jumeira, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1146,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-jumeira/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dubai-holding/"><span class="nm">Dubai Holding</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-jumeira/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Saadiyat Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-abu-dhabi-at-saadiyat-beach/" aria-label="Open Four Seasons Private Residences Abu Dhabi at Saadiyat Beach">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b010b96ef19f-ASR_003_aspect16x9.jpg" alt="Four Seasons Private Residences Abu Dhabi at Saadiyat Beach — Residences in Saadiyat Beach, Abu Dhabi" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1168,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-abu-dhabi-at-saadiyat-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alain-holding/"><span class="nm">ALAIN Holding</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-abu-dhabi-at-saadiyat-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/killa-design/"><span class="nm">Killa Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Yas Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/stellar-by-elie-saab/" aria-label="Open Stellar by Elie Saab">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/3ece561ce9de-unnamed-11.jpg" alt="Stellar by Elie Saab — Residences in Yas Island, Abu Dhabi" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1190,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/stellar-by-elie-saab/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/emirates-developments/"><span class="nm">Emirates Developments</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/stellar-by-elie-saab/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/ciel-dubai-marina/" aria-label="Open Ciel Dubai Marina">
     <div class="card-img"><img class="card-img-el" src="https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/news/2025/ciel-dubai-marina-vignette-collection-debuts-as-the-worlds-tallest-hotel-hero-img.jpg" alt="Ciel Dubai Marina — Hotel in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1212,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ciel-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-first-group/"><span class="nm">The First Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ciel-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/norr-group/"><span class="nm">NORR Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/wasl-tower/" aria-label="Open Wasl Tower">
     <div class="card-img"><img class="card-img-el" src="https://prod-waslcdn.wasl.ae/waslae-filesystem/styles/max_2600x2600/azblob/2025-09/700%20X%204006-min_0.jpg?itok=aHng4bKB" alt="Wasl Tower — Mixed-Use in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1234,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wasl-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wasl-asset-management-group/"><span class="nm">Wasl Asset Management Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wasl-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/unstudio/"><span class="nm">UNStudio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/zayed-national-museum/" aria-label="Open Zayed National Museum">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/55f8/011a/c84a/8a3e/7f00/0088/large_jpg/looking-south-to-zayed-national-museum-by-night.jpg?1442316559" alt="Zayed National Museum — Museum in Abu Dhabi" loading="lazy" decoding="async"></div>
     <div class="card-body">

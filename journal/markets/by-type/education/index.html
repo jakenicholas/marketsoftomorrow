@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">16</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">6</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">6</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">2</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>16</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>6</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>6</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 16 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2032" data-mk-nb="Hudson Yards" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
     <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/08/A.png" alt="Hudson Yards West — Mixed-Use in Hudson Yards, New York City" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-companies/"><span class="nm">Related Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oxford-properties/"><span class="nm">Oxford Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wynn-resorts/"><span class="nm">Wynn Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="East Central" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/chapter-slc/" aria-label="Open Chapter SLC">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/salt-lake-city/chapter-slc.png" alt="Chapter SLC — Residences in East Central, Salt Lake City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chapter-slc/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cole-west/"><span class="nm">Cole West</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/crg/"><span class="nm">CRG</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chapter-slc/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lamar-johnson-collaborative/"><span class="nm">Lamar Johnson Collaborative</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Al Jaddaf" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/dubai-urban-tech-district/" aria-label="Open Dubai Urban Tech District">
     <div class="card-img"><img class="card-img-el" src="https://www.designboom.com/wp-content/dbsub/449519/2022-09-08/urb-unveils-urban-tech-district-in-dubai-1-6319c0baba626.jpg" alt="Dubai Urban Tech District — Mixed-Use in Al Jaddaf, UAE" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-urban-tech-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dubai-municipality/"><span class="nm">Dubai Municipality</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/smart-dubai/"><span class="nm">Smart Dubai</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dubai-urban-tech-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/urb/"><span class="nm">URB</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Central Riyadh (former airport)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-park/" aria-label="Open King Salman Park">
     <div class="card-img"><img class="card-img-el" src="https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg" alt="King Salman Park — Mixed-Use in Central Riyadh (former airport)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-salman-park-foundation/"><span class="nm">King Salman Park Foundation</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/omrania/"><span class="nm">Omrania</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henning-larsen-architects/"><span class="nm">Henning Larsen Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown West Palm Beach" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-atlantic-university-residence-hall/" aria-label="Open Palm Beach Atlantic University Residence Hall">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/palm-beach-atlantic-university-residence-hall.jpg" alt="Palm Beach Atlantic University Residence Hall — Education in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-atlantic-university-residence-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gilbane-development/"><span class="nm">Gilbane Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/provident-group/"><span class="nm">Provident Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-atlantic-university-residence-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cube-3/"><span class="nm">CUBE 3</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Midtown" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/" aria-label="Open The Society of the Four Arts">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/the-society-of-the-four-arts-renovation.jpeg" alt="The Society of the Four Arts — Cultural in Midtown, Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="10">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Kelly Park Corridor" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/wyld-oaks/" aria-label="Open Wyld Oaks">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/apopka/wyld-oaks.jpg" alt="Wyld Oaks — Mixed-Use in Kelly Park Corridor, Apopka" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wyld-oaks/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wyld-oaks/"><span class="nm">Wyld Oaks</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wyld-oaks/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Exposition Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/" aria-label="Open Lucas Museum of Narrative Art">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6915/b4f2/9d4e/bd01/82e4/a73d/large_jpg/lucas-museum-of-narrative-art-by-mad-architects-to-open-in-los-angeles-in-september-2026_9.jpg" alt="Lucas Museum of Narrative Art — Museum in Exposition Park, Los Angeles" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lucas-museum-of-narrative-art-george-lucas/"><span class="nm">Lucas Museum of Narrative Art</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mellody-hobson/"><span class="nm">Mellody Hobson)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lucas-museum-of-narrative-art/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mad-architects/"><span class="nm">MAD Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stantec/"><span class="nm">Stantec</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Lake Lytal Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ymca-of-the-palm-beaches-flagship-community-center.avif" alt="YMCA of the Palm Beaches — Mixed-Use in Lake Lytal Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ymca-of-the-palm-beaches/"><span class="nm">YMCA of the Palm Beaches</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pbk-architects/"><span class="nm">PBK Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pbk-architects-1/"><span class="nm">PBK Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Coleman Park" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/african-american-museum-and-research-library/" aria-label="Open African American Museum and Research Library">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/african-american-museum-and-research-library.jpg" alt="African American Museum and Research Library — Museum in Coleman Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/african-american-museum-and-research-library/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><span class="nm">City of West Palm Beach</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/african-american-museum-and-research-library/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hood-design-studio/"><span class="nm">Hood Design Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/pine-crest-school-west-palm-beach/" aria-label="Open Pine Crest School West Palm Beach">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/pine-crest-school-west-palm-beach.webp" alt="Pine Crest School West Palm Beach — Education" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pine-crest-school-west-palm-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pine-crest-school/"><span class="nm">Pine Crest School</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pine-crest-school-west-palm-beach/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="SoSo" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-greene-school-expansion/" aria-label="Open The Greene School (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-greene-school-expansion.jpg" alt="The Greene School (Expansion) — Education in SoSo, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-greene-school-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-greene-school/"><span class="nm">The Greene School</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-greene-school-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reg-architects/"><span class="nm">REG Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Historic Northwest" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/vanderbilt-university/" aria-label="Open Vanderbilt University">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/vanderbilt-university.webp" alt="Vanderbilt University — Education in Historic Northwest, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vanderbilt-university/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/vanderbilt-university/"><span class="nm">Vanderbilt University</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vanderbilt-university/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elkus-manfredi-architects/"><span class="nm">Elkus Manfredi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="K-Park" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/wingrove-academy/" aria-label="Open Wingrove Academy">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wellington/wingrove-academy.jpeg" alt="Wingrove Academy — Education in K-Park, Wellington" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wingrove-academy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elevated-operator-backed-by-stephen-ross-related-ross/"><span class="nm">ElevatED</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wingrove-academy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elkus-manfredi-architects/"><span class="nm">Elkus Manfredi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/studio-museum-in-harlem/" aria-label="Open Studio Museum">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg" alt="Studio Museum — Museum in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><span class="nm">The Studio Museum in Harlem</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><span class="nm">Adjaye Associates</span></a><span class="pp-firm-chip is-plain"><span class="nm">Cooper Robertson</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Village Park" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/wellington-sports-academy/" aria-label="Open Wellington Sports Academy">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wellington/wellington-sports-academy.jpg" alt="Wellington Sports Academy — Education in Village Park, Wellington" loading="lazy" decoding="async"></div>
     <div class="card-body">

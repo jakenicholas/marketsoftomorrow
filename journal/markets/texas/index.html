@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">27</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">9</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">8</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">4</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">3</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>27</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>9</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>4</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 27 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="East End" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/buffalo-bayou-east/" aria-label="Open Buffalo Bayou East">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/6582d810c7ff-2024.04.29_TMP_Aerial-Rendering1_Japhet-Edit_Small.jpg" alt="Buffalo Bayou East — Park in East End, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/buffalo-bayou-east/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/buffalo-bayou-partnership/"><span class="nm">Buffalo Bayou Partnership</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/buffalo-bayou-east/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/michael-van-valkenburgh-associates/"><span class="nm">Michael Van Valkenburgh Associates</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Turtle Creek" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/" aria-label="Open Four Seasons Hotel and Residences Dallas at Turtle Creek">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/four-seasons-hotel-and-residences-dallas-at-turtle-creek.jpg" alt="Four Seasons Hotel and Residences Dallas at Turtle Creek — Mixed-Use in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/carpenter-company/"><span class="nm">Carpenter &amp; Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-dallas-at-turtle-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pelli-clarke-partners/"><span class="nm">Pelli Clarke &amp; Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/swa-group/"><span class="nm">SWA Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Veale Ranch" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/maverick-golf-ranch-club/" aria-label="Open Maverick Golf &amp; Ranch Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-worth/maverick-golf-ranch-club.jpg" alt="Maverick Golf &amp; Ranch Club — Golf in Veale Ranch, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/maverick-golf-ranch-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/discovery-land-company/"><span class="nm">Discovery Land Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pmb-capital-investments/"><span class="nm">PMB Capital Investments</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/maverick-golf-ranch-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tom-fazio/"><span class="nm">Tom Fazio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Memorial Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-residences-houston/" aria-label="Open St. Regis Residences, Houston">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/houston/st-regis-residences-houston.avif" alt="St. Regis Residences, Houston — Residences in Memorial Park, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/st-regis-residences-houston/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/satya/"><span class="nm">Satya</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/st-regis-residences-houston/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pickard-chilton/"><span class="nm">Pickard Chilton</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kirksey/"><span class="nm">Kirksey</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/forrestperkins/"><span class="nm">ForrestPerkins</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="River Oaks" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/" aria-label="Open The Birdsall, Auberge Resorts Collection">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/houston/the-birdsall-auberge-resorts-collection.jpg" alt="The Birdsall, Auberge Resorts Collection — Hotel in River Oaks, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/transwestern-development-company/"><span class="nm">Transwestern Development Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-birdsall-auberge-resorts-collection/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Upper Kirby" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-lily-river-oaks/" aria-label="Open The Lily River Oaks">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/houston/the-lily-river-oaks.jpg" alt="The Lily River Oaks — Mixed-Use in Upper Kirby, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="21">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Texas Hill Country" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-texas-hill-country/" aria-label="Open Waldorf Astoria Texas Hill Country">
     <div class="card-img"><img class="card-img-el" src="https://imgproxy.divecdn.com/DJ4fd68OEwUT8wvJjivqwJFWpfanzfi6q__7aQ-2Hlw/g:ce/rs:fill:1200:675:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9XYWxkb3JmLUFzdG9yaWEtVGV4YXMtSGlsbC1Db3VudHJ5LUFydGlzdHMtQ29uY2VwdHVhbC1SZW5kZXJpbmcuanBn.webp" alt="Waldorf Astoria Texas Hill Country — Hotel in Texas Hill Country, Fredericksburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-texas-hill-country/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wine-country-hospitality-partners-mark-harmon/"><span class="nm">Wine Country Hospitality Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-radovan/"><span class="nm">Robert Radovan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tim-sparapani/"><span class="nm">Tim Sparapani)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-texas-hill-country/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-caban/"><span class="nm">Studio CABAN</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fab-studio/"><span class="nm">FAB Studio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tipler-group/"><span class="nm">TIPLER Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-outside/"><span class="nm">Studio Outside</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/paul-duesing-partners/"><span class="nm">Paul Duesing Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Cultural District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/westside-village/" aria-label="Open Westside Village">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-worth/westside-village.jpg" alt="Westside Village — Mixed-Use in Cultural District, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/westside-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/larkspur-capital/"><span class="nm">Larkspur Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-keystone-group/"><span class="nm">The Keystone Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/westside-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/michael-hsu-office-of-architecture/"><span class="nm">Michael Hsu Office of Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corgan/"><span class="nm">Corgan</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Lake Austin" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/" aria-label="Open Four Seasons Private Residences Lake Austin">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/69bb2705a7b9-FSLA_Aerial_High_downtown_frame_01_30889177c8.jpg" alt="Four Seasons Private Residences Lake Austin — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/austin-capital-partners/"><span class="nm">Austin Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lincoln-property-company/"><span class="nm">Lincoln Property Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lissoni-partners/"><span class="nm">Lissoni &amp; Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="South Central Waterfront" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/one-lady-bird-lake/" aria-label="Open One Lady Bird Lake">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/one-lady-bird-lake.jpg" alt="One Lady Bird Lake — Residences in South Central Waterfront, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-lady-bird-lake/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-texas/"><span class="nm">Related Texas</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-lady-bird-lake/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kpf/"><span class="nm">KPF</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/workshopapd/"><span class="nm">Workshop/APD</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tbg-partners/"><span class="nm">TBG Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Harwood District" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/" aria-label="Open The Dallas EDITION Hotel &amp; Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/the-dallas-edition-hotel-residences.jpg" alt="The Dallas EDITION Hotel &amp; Residences — Mixed-Use in Harwood District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kaizen-development-partners/"><span class="nm">Kaizen Development Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-dallas-edition-hotel-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/boka-powell/"><span class="nm">BOKA Powell</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bonetti-kozerski-architecture/"><span class="nm">Bonetti/Kozerski Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Rainey Street District" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/1-hotel-austin/" aria-label="Open 1 Hotel Austin">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/1-hotel-austin.jpg" alt="1 Hotel Austin — Hotel in Rainey Street District, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1-hotel-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lincoln-property-company-kairoi-residential/"><span class="nm">Lincoln Property Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1-hotel-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Turtle Creek" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/" aria-label="Open Rosewood Residences Turtle Creek">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/rosewood-residences-turtle-creek.jpg" alt="Rosewood Residences Turtle Creek — Residences in Turtle Creek, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/usa-infrastructure-investments/"><span class="nm">USA Infrastructure Investments</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/svag/"><span class="nm">SVAG</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-residences-turtle-creek/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lucien-lagrange-architects/"><span class="nm">Lucien Lagrange Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Knox District" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-knox/" aria-label="Open The Knox">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/the-knox.webp" alt="The Knox — Mixed-Use in Knox District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-knox/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/trammell-crow-company/"><span class="nm">Trammell Crow Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-knox/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Waller Creek" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/waterline/" aria-label="Open Waterline">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/waterline.jpg" alt="Waterline — Residences in Waller Creek, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waterline/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lincoln-property-company/"><span class="nm">Lincoln Property Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kairoi-residential/"><span class="nm">Kairoi Residential</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waterline/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Central Business District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/711-north-pearl/" aria-label="Open 711 North Pearl">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/711-north-pearl.jpg" alt="711 North Pearl — Residences in Central Business District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/711-north-pearl/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/empira-group/"><span class="nm">Empira Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/711-north-pearl/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gff-architects/"><span class="nm">GFF Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="River Oaks" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/ace-ivy/" aria-label="Open Ace &amp; Ivy">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/houston/ace-ivy.jpg" alt="Ace &amp; Ivy — Residences in River Oaks, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ace-ivy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/everlight-group/"><span class="nm">Everlight Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ace-ivy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lake-flato/"><span class="nm">Lake Flato</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Texas Hill Country" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/amansanu/" aria-label="Open Amansanu">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/texas-hill-country/amansanu.jpg" alt="Amansanu — Hotel in Texas Hill Country" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amansanu/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amansanu/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olson-kundig/"><span class="nm">Olson Kundig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/block-87/" aria-label="Open Block 87">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/53b3ec704110-650b4c86f9d443b879e8a657_portfolio-block-87-4.jpg" alt="Block 87 — Mixed-Use in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/block-87/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-town-lake-company/"><span class="nm">The Town Lake Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/block-87/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-8-architects/"><span class="nm">Studio 8 Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Uptown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/" aria-label="Open Dallas Proper Hotel and Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/dallas-proper-hotel-and-residences.jpg" alt="Dallas Proper Hotel and Residences — Mixed-Use in Uptown, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/proper-hospitality/"><span class="nm">Proper Hospitality</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lincoln-property-company/"><span class="nm">Lincoln Property Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/dallas-proper-hotel-and-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Design District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/hi-line-square/" aria-label="Open Hi Line Square">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dallas/hi-line-square.jpg" alt="Hi Line Square — Mixed-Use in Design District, Dallas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hi-line-square/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mccourt-partners/"><span class="nm">McCourt Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hn-capital-partners/"><span class="nm">HN Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hi-line-square/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/perkins-will/"><span class="nm">Perkins&amp;Will</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Downtown Austin" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/luminary/" aria-label="Open Luminary">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/luminary.jpg" alt="Luminary — Residences in Downtown Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/luminary/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/luminary/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Uptown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-houston/" aria-label="Open The Ritz-Carlton Residences Houston">
     <div class="card-img"><img class="card-img-el" src="https://brandedliving.co/wp-content/uploads/2025/09/The-Ritz-Carlton-Residences-Houston_Hero-1_The-Boundary-scaled.jpg" alt="The Ritz-Carlton Residences Houston — Residences in Uptown, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-houston/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/deiso-moss/"><span class="nm">Deiso Moss</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cleary-interests/"><span class="nm">Cleary Interests</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-houston/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pickard-chilton/"><span class="nm">Pickard Chilton</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ziegler-cooper/"><span class="nm">Ziegler Cooper</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/wilson-tower/" aria-label="Open Wilson Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/wilson-tower.jpg" alt="Wilson Tower — Residences in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wilson-tower/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wilson-tower/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Downtown" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/atx-tower/" aria-label="Open ATX Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/atx-tower.jpg" alt="ATX Tower — Mixed-Use in Downtown, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/atx-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tishman-speyer/"><span class="nm">Tishman Speyer</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ryan-companies/"><span class="nm">Ryan Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/atx-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/handel-architects/"><span class="nm">Handel Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/page/"><span class="nm">Page</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Rainey Street" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-modern-austin-residences/" aria-label="Open The Modern Austin Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d6af491d66d6-TheModernAustinResidences-hero2022.jpg" alt="The Modern Austin Residences — Residences in Rainey Street, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-modern-austin-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/urbanspace/"><span class="nm">Urbanspace</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-modern-austin-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nelsen-partners/"><span class="nm">Nelsen Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/page/"><span class="nm">Page</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Rainey Street District" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-travis/" aria-label="Open The Travis">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/austin/the-travis.jpg" alt="The Travis — Residences in Rainey Street District, Austin" loading="lazy" decoding="async"></div>
     <div class="card-body">

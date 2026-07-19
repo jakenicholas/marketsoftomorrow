@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">10</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">1</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">6</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">1</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>10</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>6</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 10 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2026" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/jacks-bay-club-resort.jpeg" alt="Jack&#x27;s Bay Club &amp; Resort — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eleuthera-properties-ltd/"><span class="nm">Eleuthera Properties Ltd</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Children&#x27;s Bay Cay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/amancaya/" aria-label="Open Amancaya">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/amancaya.jpeg" alt="Amancaya — Mixed-Use in Children&#x27;s Bay Cay, Exuma, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amancaya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oko-group/"><span class="nm">OKO Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/squircle-capital/"><span class="nm">Squircle Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dona-bertarelli/"><span class="nm">Dona Bertarelli</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amancaya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jacobsen-studio/"><span class="nm">Jacobsen Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="North Bimini" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/banyan-tree-bimini/" aria-label="Open Banyan Tree Bimini">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/banyan-tree-bimini.webp" alt="Banyan Tree Bimini — Residences in North Bimini, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/banyan-tree-bimini/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rockwell-island-development-group-ridge/"><span class="nm">Rockwell Island Development Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/banyan-tree-bimini/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oppenheim-architecture/"><span class="nm">Oppenheim Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/ritz-carlton-reserve-at-cotton-bay.jpg" alt="Ritz-Carlton Reserve at Cotton Bay — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cotton-bay-holdings/"><span class="nm">Cotton Bay Holdings</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/abax-architects/"><span class="nm">ABAX Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tahr-arquitectura/"><span class="nm">TAHR Arquitectura</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Winding Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-green-at-abaco-club/" aria-label="Open The Green at Abaco Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/the-green-at-abaco-club.jpeg" alt="The Green at Abaco Club — Residences in Winding Bay, Great Abaco, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-green-at-abaco-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/southworth-development/"><span class="nm">Southworth Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-green-at-abaco-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Paradise Island" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/the-ocean-club.jpg" alt="The Ocean Club, Four Seasons Residences — Residences in Paradise Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="4">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="The Abacos" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-abacos/montage-cay.jpg" alt="Montage Cay — Residences in The Abacos" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/montage-cay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-global-financial/"><span class="nm">Sterling Global Financial</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-montage-cay-ltd/"><span class="nm">Sterling Montage Cay Ltd.</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/montage-cay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-c-glazier/"><span class="nm">Robert C. Glazier</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sks-studio/"><span class="nm">SKS Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Barbary Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-grand-bahama/" aria-label="Open Six Senses Grand Bahama">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/freeport/six-senses-grand-bahama.jpg" alt="Six Senses Grand Bahama — Hotel in Barbary Beach, Freeport" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-grand-bahama/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/six-senses-hotels-resorts-spas/"><span class="nm">Six Senses Hotels Resorts Spas</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ihg-hotels-resorts/"><span class="nm">IHG Hotels &amp; Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-grand-bahama/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/briland-club-residences-marina/" aria-label="Open Briland Club Residences &amp; Marina">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/harbour-island/briland-club-residences-marina.jpg" alt="Briland Club Residences &amp; Marina — Residences in Harbour Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/briland-club-residences-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/4m-harbour-island-ltd/"><span class="nm">4M Harbour Island Ltd.</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-global-advisors/"><span class="nm">Sterling Global Advisors</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-royal-portfolio/"><span class="nm">The Royal Portfolio</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/briland-club-residences-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cma-design-studio/"><span class="nm">CMA Design Studio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bunny-williams/"><span class="nm">Bunny Williams</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/" aria-label="Open Hurricane Hole Superyacht Marina">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/paradise-island/hurricane-hole-superyacht-marina.jpg" alt="Hurricane Hole Superyacht Marina — Marina in Paradise Island" loading="lazy" decoding="async"></div>
     <div class="card-body">

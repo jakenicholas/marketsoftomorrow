@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,14 +542,14 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">18</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">8</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">8</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">0</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">0</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>18</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Recently Opened</div></div>
     </div>
 
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -531,13 +564,14 @@
         </div>
         <div class="sp-windows-col">
           <div class="sp-sub">New-supply concentration over the next 36 months — a 79-project pipeline, delivering 29,949 residences and keys.</div>
-          <div class="sp-windows"><div class="sp-win" title="4 projects · 1,088 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:12px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">H2 ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’27</div></div><div class="sp-win" title="15 projects · 3,066 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:33px"></div></div><div class="sp-win-n">15</div><div class="sp-win-l">H2 ’27</div></div><div class="sp-win" title="2 projects · 539 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:6px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">H1 ’28</div></div><div class="sp-win on" title="21 projects · 6,001 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">21</div><div class="sp-win-l">H2 ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’29</div></div></div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window. 18 more deliver beyond the 36-month horizon. 19 have no public delivery date yet.</div>
+          <div class="sp-windows"><div class="sp-win" title="4 projects · 1,088 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:12px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">Late ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’27</div></div><div class="sp-win" title="15 projects · 3,066 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:33px"></div></div><div class="sp-win-n">15</div><div class="sp-win-l">Late ’27</div></div><div class="sp-win" title="2 projects · 539 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:6px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">Early ’28</div></div><div class="sp-win on" title="21 projects · 6,001 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">21</div><div class="sp-win-l">Late ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’29</div></div></div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window. 18 more deliver beyond the 36-month horizon. 19 have no public delivery date yet.</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="high">Confidence: <em>High</em> · 76% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        <a class="sp-atlas" href="/atlas/?state=FL">Florida in the Atlas →</a>
       </div>
       
       <div class="sp-band" id="spBand" data-market="miami">
@@ -590,7 +624,7 @@
     </section>
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -599,7 +633,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 18 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2028" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-residences-miami/" aria-label="Open Waldorf Astoria Residences Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/waldorf-astoria-residences-miami.jpeg" alt="Waldorf Astoria Residences Miami — Mixed-Use" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -621,7 +655,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/property-markets-group/"><span class="nm">Property Markets Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/greybrook-realty/"><span class="nm">Greybrook Realty</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/carlos-ott/"><span class="nm">Carlos Ott</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sieger-suarez-architects/"><span class="nm">Sieger Suarez Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="North Bay Village" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/continuum-waterfront-district.jpg" alt="Continuum Waterfront District — Mixed-Use in North Bay Village, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -643,7 +677,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-waterfront-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/continuum-company/"><span class="nm">Continuum Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-waterfront-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Design District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jean-georges-miami-tropic-residences/" aria-label="Open Jean-Georges Miami Tropic Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jean-georges-miami-tropic-residences.jpg" alt="Jean-Georges Miami Tropic Residences — Mixed-Use in Design District, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -665,7 +699,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jean-georges-miami-tropic-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra/"><span class="nm">Terra</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lion-development/"><span class="nm">Lion Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jean-georges-miami-tropic-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/yabu-pushelberg/"><span class="nm">Yabu Pushelberg</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/clad/"><span class="nm">Clad</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="West Brickell" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/meli-residences-miami/" aria-label="Open Meliá Residences Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/meli-residences-miami.jpeg" alt="Meliá Residences Miami — Mixed-Use in West Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -687,7 +721,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/meli-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/urban-network-capital-group/"><span class="nm">Urban Network Capital Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/melia-hotels-resorts/"><span class="nm">Melia Hotels Resorts</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/concepto-capital-group/"><span class="nm">Concepto Capital Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/meli-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adriana-hoyos-design-studio/"><span class="nm">Adriana Hoyos Design Studio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/concepto-taller-de-arquitectura/"><span class="nm">Concepto Taller De Arquitectura</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dti-architects/"><span class="nm">DTI Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Brickell" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/mercedes-benz-places/" aria-label="Open Mercedes-Benz Places">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mercedes-benz-places.webp" alt="Mercedes-Benz Places — Mixed-Use in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -709,7 +743,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mercedes-benz-places/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jds-development-group/"><span class="nm">JDS Development Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mercedes-benz-places/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shop-architects/"><span class="nm">SHoP Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Design District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/mirai-design-district/" aria-label="Open MIRAI Design District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/mirai-design-district.jpeg" alt="MIRAI Design District — Mixed-Use in Design District, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -734,7 +768,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="12">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown Miami" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/okan-tower/" aria-label="Open Okan Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/okan-tower.webp" alt="Okan Tower — Mixed-Use in Downtown Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -756,7 +790,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/okan-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/okan-group/"><span class="nm">Okan Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/okan-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/behar-font-partners/"><span class="nm">Behar Font &amp; Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Miami River" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/riverside-wharf.jpeg" alt="Riverside Wharf — Mixed-Use in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -778,7 +812,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/riverside-wharf/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mv-real-estate-holdings-mvreh/"><span class="nm">MV Real Estate Holdings</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/driftwood-capital/"><span class="nm">Driftwood Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/merrimac-ventures/"><span class="nm">Merrimac Ventures</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/riverside-wharf/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cube-3-architects/"><span class="nm">CUBE 3 Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Health District" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/highland-park-miami/" aria-label="Open Highland Park Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/highland-park-miami.jpg" alt="Highland Park Miami — Mixed-Use in Health District, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -800,7 +834,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/highland-park-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/black-salmon/"><span class="nm">Black Salmon</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-allen-morris-company/"><span class="nm">The Allen Morris Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/highland-park-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oppenheim-architecture/"><span class="nm">Oppenheim Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/naturalficial/"><span class="nm">Naturalficial</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="West Little River" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/the-huehub/" aria-label="Open The HueHub">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-huehub.webp" alt="The HueHub — Mixed-Use in West Little River, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -822,7 +856,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-huehub/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pablo-castro-urban-network-capital/"><span class="nm">Pablo Castro (Urban Network Capital)</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/laura-tauber/"><span class="nm">Laura Tauber</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-huehub/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Brickell" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/1040-s-miami/" aria-label="Open 1040 S Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/1040-s-miami.jpg" alt="1040 S Miami — Mixed-Use in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -844,7 +878,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1040-s-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/prosper-group/"><span class="nm">Prosper Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/forte-development/"><span class="nm">Forte Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/1040-s-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Blue Lagoon" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/5800-blue-lagoon-drive/" aria-label="Open 5800 Blue Lagoon Drive">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/5800-blue-lagoon-drive.jpg" alt="5800 Blue Lagoon Drive — Residences in Blue Lagoon, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -866,7 +900,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/5800-blue-lagoon-drive/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/london-regional-properties/"><span class="nm">London + Regional Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/5800-blue-lagoon-drive/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bizi-arq/"><span class="nm">BIZI ARQ</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Edgewater" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/anantara-miami-resort-residences/" aria-label="Open Anantara Miami Resort &amp; Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/anantara-miami-resort-residences.jpg" alt="Anantara Miami Resort &amp; Residences — Mixed-Use in Edgewater, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -888,7 +922,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/one-thousand-group/"><span class="nm">One Thousand Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anantara-miami-resort-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/odp-architects/"><span class="nm">ODP Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Watson Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jungle-island.jpeg" alt="Jungle Island — Mixed-Use in Watson Island, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -910,7 +944,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jungle-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/esj-capital-partners/"><span class="nm">ESJ Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra-group/"><span class="nm">Terra Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jungle-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Little Haiti" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/magic-city-innovation-district/" aria-label="Open Magic City Innovation District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/magic-city-innovation-district.avif" alt="Magic City Innovation District — Mixed-Use in Little Haiti, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -932,7 +966,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/magic-city-innovation-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dragon-global/"><span class="nm">Dragon Global</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/plaza-equity-partners/"><span class="nm">Plaza Equity Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/magic-city-innovation-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Park West" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-tree-residences-miami/" aria-label="Open Palm Tree Residences Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/palm-tree-residences-miami.jpg" alt="Palm Tree Residences Miami — Mixed-Use in Park West, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -954,7 +988,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-tree-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/property-markets-group/"><span class="nm">Property Markets Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lion-development-group/"><span class="nm">Lion Development Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eden-residential/"><span class="nm">Eden Residential</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-equities/"><span class="nm">Sterling Equities</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-tree-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Miami Design District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/sweetbird-north/" aria-label="Open Sweetbird North">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/sweetbird-north.jpg" alt="Sweetbird North — Mixed-Use in Miami Design District" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -976,7 +1010,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sweetbird-north/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/miami-design-district-associates/"><span class="nm">Miami Design District Associates</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/raycliff-capital/"><span class="nm">Raycliff Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sweetbird-north/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/snhetta/"><span class="nm">Snøhetta</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Wynwood" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-boxer/" aria-label="Open The Boxer">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/the-boxer.png" alt="The Boxer — Mixed-Use in Wynwood, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">

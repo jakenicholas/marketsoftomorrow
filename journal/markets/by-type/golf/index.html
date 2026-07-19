@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">58</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">8</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">20</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">12</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">15</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>58</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>20</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>12</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>15</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 58 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2026" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/jacks-bay-club-resort.jpeg" alt="Jack&#x27;s Bay Club &amp; Resort — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eleuthera-properties-ltd/"><span class="nm">Eleuthera Properties Ltd</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="" data-mk-nb="Revelstoke Mountain Resort" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/cabot-revelstoke/" aria-label="Open Cabot Revelstoke">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/revelstoke/cabot-revelstoke.jpeg" alt="Cabot Revelstoke — Golf in Revelstoke Mountain Resort" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/cabot-revelstoke/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cabot/"><span class="nm">Cabot</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/northland-properties/"><span class="nm">Northland Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/cabot-revelstoke/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/whitman/"><span class="nm">Whitman</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/axland-cutten/"><span class="nm">Axland &amp; Cutten</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2026" data-mk-nb="East Cape" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/costa-palmas/" aria-label="Open Costa Palmas">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/la-ribera/costa-palmas.jpg" alt="Costa Palmas — Mixed-Use in East Cape, La Ribera" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/costa-palmas/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/irongate-group/"><span class="nm">Irongate Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/costa-palmas/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Greater Zion" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/black-desert-resort-expansion/" aria-label="Open Black Desert Resort (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ivins/black-desert-resort-expansion.jpeg" alt="Black Desert Resort (Expansion) — Residences in Greater Zion, Ivins" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/black-desert-resort-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/black-desert-resort-llc/"><span class="nm">Black Desert Resort LLC</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/black-desert-resort-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Aledo" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/bluejack-ranch/" aria-label="Open Bluejack Ranch">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/98ed9bf09c5a-img-news-2026-06-03.jpg" alt="Bluejack Ranch — Golf in Aledo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bluejack-ranch/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/andy-mitchell/"><span class="nm">Andy Mitchell</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/j-j-henry/"><span class="nm">J.J. Henry</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bluejack-ranch/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tgr-design/"><span class="nm">TGR Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/beau-welling-design/"><span class="nm">Beau Welling Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Cabo Real" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/cabo-real-surf-club/" aria-label="Open Cabo Real Surf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/6d837c38fa8e-SMA-CRSC-SD-NO.-13-Surf-Casitas.jpeg" alt="Cabo Real Surf Club — Residences in Cabo Real, Los Cabos" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="52">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Carolina Sandhills" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-carolina/candyroot-lodge.jpg" alt="Candyroot Lodge — Golf in Carolina Sandhills, Jefferson" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/candyroot-lodge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aaron-oberman/"><span class="nm">Aaron Oberman</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ethan-oberman/"><span class="nm">Ethan Oberman</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/candyroot-lodge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mike-koprowski/"><span class="nm">Mike Koprowski</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="La Quinta" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/coral-mountain-desert-club/" aria-label="Open Coral Mountain Desert Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/la-quinta/coral-mountain-desert-club.jpg" alt="Coral Mountain Desert Club — Golf in La Quinta" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coral-mountain-desert-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/meriwether-companies/"><span class="nm">Meriwether Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coral-mountain-desert-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/david-mclay-kidd/"><span class="nm">David McLay Kidd</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Caye Chapel" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/caye-chapel/four-seasons-resort-and-residences-caye-chapel.jpg" alt="Four Seasons Resort and Residences Caye Chapel — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/four-seasons-hotels-and-resorts/"><span class="nm">Four Seasons Hotels and Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Southern Greenville County" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/kawonu-golf-club/" aria-label="Open Kawonu Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/greenville/kawonu-golf-club.jpeg" alt="Kawonu Golf Club — Golf in Southern Greenville County" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/kawonu-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/scott-ferrell/"><span class="nm">Scott Ferrell</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/barton-tuck-founding-partners/"><span class="nm">Barton Tuck</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/kawonu-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/andrew-green/"><span class="nm">Andrew Green</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/denzinger-architects/"><span class="nm">Denzinger Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Veale Ranch" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/maverick-golf-ranch-club/" aria-label="Open Maverick Golf &amp; Ranch Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-worth/maverick-golf-ranch-club.jpg" alt="Maverick Golf &amp; Ranch Club — Golf in Veale Ranch, Fort Worth" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/maverick-golf-ranch-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/discovery-land-company/"><span class="nm">Discovery Land Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pmb-capital-investments/"><span class="nm">PMB Capital Investments</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/maverick-golf-ranch-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tom-fazio/"><span class="nm">Tom Fazio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Former Sherbrooke Golf &amp;amp; Country Club site" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/lantana/nokosi-golf-club.jpeg" alt="NOKOSI Golf Club — Golf in Former Sherbrooke Golf &amp;amp; Country Club site, Lantana" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nokosi-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nicklaus-design/"><span class="nm">Nicklaus Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/twg-global/"><span class="nm">TWG Global</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nokosi-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Vernon" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/old-shores/" aria-label="Open Old Shores">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/panhandle/old-shores.jpg" alt="Old Shores — Golf in Vernon" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/old-shores/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/michael-keiser/"><span class="nm">Michael Keiser</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/old-shores/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tom-doak/"><span class="nm">Tom Doak</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/purebred-farm/" aria-label="Open Purebred Farm">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/kohler/purebred-farm.jpeg" alt="Purebred Farm — Golf in Kohler" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/purebred-farm/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohler/"><span class="nm">Kohler</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/purebred-farm/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-collins-dormer/"><span class="nm">King-Collins Dormer</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/ritz-carlton-reserve-at-cotton-bay.jpg" alt="Ritz-Carlton Reserve at Cotton Bay — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cotton-bay-holdings/"><span class="nm">Cotton Bay Holdings</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/abax-architects/"><span class="nm">ABAX Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tahr-arquitectura/"><span class="nm">TAHR Arquitectura</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Troon North" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/scottsdale-golf-retreat-at-troon-north/" aria-label="Open Scottsdale Golf Retreat at Troon North">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/scottsdale/scottsdale-golf-retreat-at-troon-north.jpg" alt="Scottsdale Golf Retreat at Troon North — Hotel in Troon North, Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/scottsdale-golf-retreat-at-troon-north/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mba-development-partners/"><span class="nm">MBA Development Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/scottsdale-golf-retreat-at-troon-north/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Desert Mountain" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/seven-desert-mountain/" aria-label="Open Seven Desert Mountain">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/scottsdale/seven-desert-mountain.jpg" alt="Seven Desert Mountain — Golf in Desert Mountain, Scottsdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/seven-desert-mountain/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cullum-homes/"><span class="nm">Cullum Homes</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/camelot-homes/"><span class="nm">Camelot Homes</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/seven-desert-mountain/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/drewett-works/"><span class="nm">Drewett Works</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shell-bay-residences/" aria-label="Open Shell Bay Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hallandale-beach/shell-bay-residences.webp" alt="Shell Bay Residences — Residences in Hallandale Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shell-bay-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/witkoff/"><span class="nm">Witkoff</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ppg-development/"><span class="nm">PPG Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shell-bay-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Sequatchie Valley" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sweetens-cove-golf-club/" aria-label="Open Sweetens Cove Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-pittsburg/sweetens-cove-golf-club.jpeg" alt="Sweetens Cove Golf Club — Golf in Sequatchie Valley, South Pittsburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sweetens-cove-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reef-capital-partners/"><span class="nm">Reef Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sweetens-cove-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-collins-dormer/"><span class="nm">King-Collins Dormer</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pfeffer-torode-architecture/"><span class="nm">Pfeffer Torode Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Winding Bay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-green-at-abaco-club/" aria-label="Open The Green at Abaco Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/the-green-at-abaco-club.jpeg" alt="The Green at Abaco Club — Residences in Winding Bay, Great Abaco, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-green-at-abaco-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/southworth-development/"><span class="nm">Southworth Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-green-at-abaco-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Paradise Island" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/the-ocean-club.jpg" alt="The Ocean Club, Four Seasons Residences — Residences in Paradise Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ocean-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/two-roads-development/"><span class="nm">Two Roads Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/access-industries/"><span class="nm">Access Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ocean-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sb-architects/"><span class="nm">SB Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/champalimaud-design/"><span class="nm">Champalimaud Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Cutalong" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/tributer-resort/" aria-label="Open Tributer Resort">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/mineral/tributer-resort.jpg" alt="Tributer Resort — Residences in Cutalong, Mineral" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tributer-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reef-capital-partners/"><span class="nm">Reef Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tributer-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tgr-design/"><span class="nm">TGR Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Palmetto Bluff" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/anson-at-palmetto-bluff/" aria-label="Open Anson at Palmetto Bluff">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bluffton/anson-at-palmetto-bluff.jpg" alt="Anson at Palmetto Bluff — Golf in Palmetto Bluff, Bluffton" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anson-at-palmetto-bluff/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/south-street-partners/"><span class="nm">South Street Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/anson-at-palmetto-bluff/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/coore-crenshaw/"><span class="nm">Coore &amp; Crenshaw</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="South Shore" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/the-wellington/" aria-label="Open The Wellington">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wellington/the-wellington.jpeg" alt="The Wellington — Residences in South Shore, Wellington" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-wellington/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wellington-lifestyle-partners-wlp/"><span class="nm">Wellington Lifestyle Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-wellington/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/workshopapd/"><span class="nm">Workshop/APD</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/d-stanley-dixon-architect/"><span class="nm">D. Stanley Dixon Architect</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><span class="nm">Morris Adjmi Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/squire-partners/"><span class="nm">Squire &amp; Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/bear-lakes-country-club-expansion/" aria-label="Open Bear Lakes Country Club (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/bear-lakes-country-club-expansion.jpeg" alt="Bear Lakes Country Club (Expansion) — Country Club in West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bear-lakes-country-club-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bear-lakes-country-club/"><span class="nm">Bear Lakes Country Club</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bear-lakes-country-club-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/love-golf-design-davis-love-iii/"><span class="nm">Love Golf Design (Davis Love III</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mark-love/"><span class="nm">Mark Love</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/scot-sherman/"><span class="nm">Scot Sherman)</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Streamsong Resort" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/streamsong-resort/" aria-label="Open Bone Valley at Streamsong">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bowling-green/streamsong-resort.jpeg" alt="Bone Valley at Streamsong — Park in Streamsong Resort, Bowling Green" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/streamsong-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mosaic-company/"><span class="nm">Mosaic Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/streamsong-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alfonso-architects/"><span class="nm">Alfonso Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/david-mclay-kidd/"><span class="nm">David McLay Kidd</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Gewan Island" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/corinthia-gewan-island/" aria-label="Open Corinthia Gewan Island">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/0b20de171b25-corinthia-gewan-island-render-hotel-entrance-lr.png" alt="Corinthia Gewan Island — Hotel in Gewan Island, Doha" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1124,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-gewan-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/united-development-company/"><span class="nm">United Development Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-gewan-island/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Spring Hill" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/firefly/" aria-label="Open Firefly">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/firefly.jpg" alt="Firefly — Golf in Spring Hill" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1146,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/firefly/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/storied-development/"><span class="nm">Storied Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wheelock-street-capital/"><span class="nm">Wheelock Street Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/firefly/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/andrew-green/"><span class="nm">Andrew Green</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Oleada" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-hyatt-los-cabos-at-oleada/" aria-label="Open Grand Hyatt Los Cabos at Oleada">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/cabo-san-lucas/grand-hyatt-los-cabos-at-oleada.jpg" alt="Grand Hyatt Los Cabos at Oleada — Hotel in Oleada, Cabo San Lucas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1168,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-hyatt-los-cabos-at-oleada/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-hyatt-los-cabos-at-oleada/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Jordanelle Ridge" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/marcella-club/" aria-label="Open Marcella Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/park-city/marcella-club.jpeg" alt="Marcella Club — Golf in Jordanelle Ridge, Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1190,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marcella-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/extell-development/"><span class="nm">Extell Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marcella-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olson-kundig/"><span class="nm">Olson Kundig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Myakka City" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/miakka-golf-club/" aria-label="Open Miakka Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/myakka-city/miakka-golf-club.jpg" alt="Miakka Golf Club — Golf in Myakka City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1212,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miakka-golf-club/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miakka-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dana-fry/"><span class="nm">Dana Fry</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jason-straka/"><span class="nm">Jason Straka</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/paul-azinger/"><span class="nm">Paul Azinger</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Lake Sherwood" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/miramar-lake-club/" aria-label="Open Miramar Lake Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/f02dc9ce558f-Great-Lawn_Rendering_The-Miramar-Lake-Club_Caruso.jpeg" alt="Miramar Lake Club — Golf in Lake Sherwood, Thousand Oaks" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1234,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miramar-lake-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/caruso/"><span class="nm">Caruso</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miramar-lake-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jack-nicklaus/"><span class="nm">Jack Nicklaus</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Antognolla" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-antognolla/" aria-label="Open Six Senses Antognolla">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/perugia/six-senses-antognolla.jpg" alt="Six Senses Antognolla — Hotel in Antognolla, Perugia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1256,7 +1289,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-antognolla/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/antognolla-s-p-a/"><span class="nm">Antognolla S.p.A.</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-antognolla/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woods-bagot/"><span class="nm">Woods Bagot</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Mount Enterprise (East Texas)" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/wild-spring-dunes/" aria-label="Open Wild Spring Dunes">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/mount-enterprise/wild-spring-dunes.webp" alt="Wild Spring Dunes — Golf in Mount Enterprise (East Texas)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1278,7 +1311,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wild-spring-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dream-golf/"><span class="nm">Dream Golf</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wild-spring-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/renaissance-golf-design/"><span class="nm">Renaissance Golf Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/coore-crenshaw/"><span class="nm">Coore &amp; Crenshaw</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Solaeris" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/esplanade-at-solaeris/" aria-label="Open Esplanade at Solaeris">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/port-st-lucie/esplanade-at-solaeris.jpg" alt="Esplanade at Solaeris — Residences in Solaeris, Port St. Lucie" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1300,7 +1333,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/esplanade-at-solaeris/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/taylor-morrison/"><span class="nm">Taylor Morrison</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/esplanade-at-solaeris/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/c-w-golf-architecture/"><span class="nm">C.W. Golf Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Praia do Pego" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/jncquoi-comporta/" aria-label="Open JNcQUOI Comporta">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/5f879e9c5854-687a2b772983c185261888.jpg" alt="JNcQUOI Comporta — Hotel in Praia do Pego, Comporta" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1322,7 +1355,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jncquoi-comporta/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/amorim-luxury-group/"><span class="nm">Amorim Luxury Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jncquoi-comporta/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/vincent-van-duysen/"><span class="nm">Vincent Van Duysen</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Diamante" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/legacy-golf-club-at-diamante/" aria-label="Open Legacy Golf Club at Diamante">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/9a3834090f48-DJI_0681-Edit.jpeg" alt="Legacy Golf Club at Diamante — Golf in Diamante, Cabo San Lucas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1344,7 +1377,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/legacy-golf-club-at-diamante/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/legacy-properties/"><span class="nm">Legacy Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/legacy-golf-club-at-diamante/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tgr-design/"><span class="nm">TGR Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cook-and-solis/"><span class="nm">Cook and Solis</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Boquerón Bay" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/" aria-label="Open Mandarin Oriental Esencia, Puerto Rico">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/cabo-rojo/mandarin-oriental-esencia-puerto-rico.jpeg" alt="Mandarin Oriental Esencia, Puerto Rico — Hotel in Boquerón Bay, Cabo Rojo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1366,7 +1399,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reuben-brothers/"><span class="nm">Reuben Brothers</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/three-rules-capital/"><span class="nm">Three Rules Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mandarin-oriental-hotel-group/"><span class="nm">Mandarin Oriental Hotel Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mandarin-oriental-esencia-puerto-rico/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-mk27/"><span class="nm">Studio MK27</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alvarez-diaz-villalon/"><span class="nm">Álvarez Díaz &amp; Villalón</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/edsa/"><span class="nm">EDSA</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Panyu" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/one-pengrui/" aria-label="Open One Pengrui">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1c70e631a063-3188_1x1_updated_Atchain.webp" alt="One Pengrui — Residences in Panyu, Guangzhou" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1388,7 +1421,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-pengrui/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pengrui/"><span class="nm">Pengrui</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-pengrui/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Johns Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/orange-hill-course-kiawah-island-club/" aria-label="Open Orange Hill Course, Kiawah Island Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/kiawah-island/orange-hill-course-kiawah-island-club.jpg" alt="Orange Hill Course, Kiawah Island Club — Golf in Johns Island, Kiawah Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1410,7 +1443,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/orange-hill-course-kiawah-island-club/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/orange-hill-course-kiawah-island-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/beau-welling-design/"><span class="nm">Beau Welling Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/sentryworld-renovation/" aria-label="Open SentryWorld Renovation">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/07b62e62af35-FlowerHole-Golf-SentryWorld-1200x844.jpg" alt="SentryWorld Renovation — Golf in Stevens Point" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1432,7 +1465,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sentryworld-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sentry-insurance/"><span class="nm">Sentry Insurance</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sentryworld-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jay-blasi-design/"><span class="nm">Jay Blasi Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Waukesha County" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/trinity-hills/" aria-label="Open Trinity Hills">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d14783c36029-images-1-.jpeg" alt="Trinity Hills — Golf in Waukesha County, Dousman" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1454,7 +1487,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trinity-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bob-lang/"><span class="nm">Bob Lang</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trinity-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/steve-stricker/"><span class="nm">Steve Stricker</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Mayakoba" data-mk-st="Complete">
   <a class="card-link" href="https://www.oftmw.com/projects/mayakoba/" aria-label="Open Mayakoba">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/e3878faef452-mayakoba-trails-hq-layers-2x.jpg" alt="Mayakoba — Mixed-Use in Mayakoba, Playa del Carmen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1476,7 +1509,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mayakoba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rlh-properties/"><span class="nm">RLH Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/mayakoba/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/altamira-by-lennar/" aria-label="Open Altamira by Lennar">
     <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2025/09/dah_porto_altamira_rend_exterior_frontview_th_12_06_23.webp" alt="Altamira by Lennar — Residences in Homestead" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1498,7 +1531,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/altamira-by-lennar/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lennar/"><span class="nm">Lennar</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/altamira-by-lennar/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/bounty-club/" aria-label="Open Bounty Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/bounty-club.jpg" alt="Bounty Club — Golf in Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1520,7 +1553,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bounty-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/8am-golf-justin-timberlake-backed/"><span class="nm">8AM Golf (Justin Timberlake-backed)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bounty-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-collins-dormer/"><span class="nm">King-Collins Dormer</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pfeffer-torode/"><span class="nm">Pfeffer Torode</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Town of Rome" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-commons/" aria-label="Open Commons">
     <div class="card-img"><img class="card-img-el" src="https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333" alt="Commons — Golf in Town of Rome, Nekoosa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1542,7 +1575,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-commons/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dream-golf/"><span class="nm">Dream Golf</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-commons/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jim-craig/"><span class="nm">Jim Craig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Shura Island" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/fairmont-the-red-sea/" aria-label="Open Fairmont The Red Sea">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/shura-island/fairmont-the-red-sea.jpg" alt="Fairmont The Red Sea — Hotel in Shura Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1564,7 +1597,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/fairmont-the-red-sea/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/red-sea-global/"><span class="nm">Red Sea Global</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/accor/"><span class="nm">Accor</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/fairmont-the-red-sea/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Triple Bay" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-amaala/" aria-label="Open Four Seasons Resort and Residences AMAALA">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/amaala/four-seasons-resort-and-residences-amaala.jpeg" alt="Four Seasons Resort and Residences AMAALA — Hotel in Triple Bay, AMAALA" loading="lazy" decoding="async"><span class="card-parent-chip">Part of AMAALA</span></div>
     <div class="card-body">
@@ -1586,7 +1619,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-amaala/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/red-sea-global/"><span class="nm">Red Sea Global</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/four-seasons-hotels-and-resorts/"><span class="nm">Four Seasons Hotels and Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-amaala/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/u-a/"><span class="nm">U+A</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Bahía Beach" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/" aria-label="Open Four Seasons Resort and Residences Puerto Rico">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/r-o-grande/four-seasons-resort-and-residences-puerto-rico.avif" alt="Four Seasons Resort and Residences Puerto Rico — Hotel in Bahía Beach, Río Grande" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1608,7 +1641,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/paulson-amp-co/"><span class="nm">Paulson &amp; Co.</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-puerto-rico/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/meyer-davis/"><span class="nm">Meyer Davis</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-trent-jones-jr/"><span class="nm">Robert Trent Jones Jr.</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/high-grove-golf-club/" aria-label="Open High Grove Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://www.golfcoursearchitecture.net/Portals/0/Images/HighGroveHanse-4_web.jpg" alt="High Grove Golf Club — Golf in Central Florida" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1630,7 +1663,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/high-grove-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ryan-hanks/"><span class="nm">Ryan Hanks</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/colin-sheehan/"><span class="nm">Colin Sheehan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bert-guy-founders/"><span class="nm">Bert Guy (founders)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/high-grove-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hanse-golf-design/"><span class="nm">Hanse Golf Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/thomas-denzinger-architects/"><span class="nm">Thomas &amp; Denzinger Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Luštica Peninsula" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/lustica-bay/" aria-label="Open Lustica Bay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/708184f4e789-54222082816_f5a22c57b3_6k-1-.jpeg" alt="Lustica Bay — Mixed-Use in Luštica Peninsula, Tivat" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1652,7 +1685,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lustica-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/orascom-development/"><span class="nm">Orascom Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lustica-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gary-player-design/"><span class="nm">Gary Player Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/nauka/" aria-label="Open Nauka">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-nayarit/nauka.jpg" alt="Nauka — Residences in Riviera Nayarit" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1674,7 +1707,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nauka/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/life-properties-international/"><span class="nm">LIFE Properties International</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nauka/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olson-kundig/"><span class="nm">Olson Kundig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/panther-national/" aria-label="Open Panther National">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/panther-national.jpeg" alt="Panther National — Golf in Palm Beach Gardens" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1696,7 +1729,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/panther-national/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dominik-senn/"><span class="nm">Dominik Senn</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/panther-national/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jack-nicklaus/"><span class="nm">Jack Nicklaus</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/justin-thomas/"><span class="nm">Justin Thomas</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2027" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/rodeo-dunes/" aria-label="Open Rodeo Dunes">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/roggen/rodeo-dunes.jpg" alt="Rodeo Dunes — Golf in Roggen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1718,7 +1751,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rodeo-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dream-golf/"><span class="nm">Dream Golf</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rodeo-dunes/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/coore-crenshaw/"><span class="nm">Coore &amp; Crenshaw</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/craig-haltom/"><span class="nm">Craig Haltom</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="East Quogue" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-hills/" aria-label="Open The Hills">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/east-quogue/the-hills.jpg" alt="The Hills — Golf in East Quogue" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1740,7 +1773,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/discovery-land-company/"><span class="nm">Discovery Land Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/trout-national-the-reserve/" aria-label="Open Trout National - The Reserve">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/millville/trout-national-the-reserve.jpg" alt="Trout National - The Reserve — Golf in Millville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1762,7 +1795,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trout-national-the-reserve/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mike-trout/"><span class="nm">Mike Trout</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/john-ruga/"><span class="nm">John Ruga</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/trout-national-the-reserve/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tgr-design/"><span class="nm">TGR Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Grand Geneva Resort" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/wee-nip-short-course/" aria-label="Open Wee Nip Short Course">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/09662bd8a1e2-1920X700-2025120911011726weenipaerial1920700.jpg" alt="Wee Nip Short Course — Golf in Grand Geneva Resort, Lake Geneva" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1784,7 +1817,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wee-nip-short-course/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/marcus-hotels-resorts/"><span class="nm">Marcus Hotels &amp; Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wee-nip-short-course/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dusenberry-golf-course-design/"><span class="nm">Dusenberry Golf Course Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="Lake Michigan Shoreline" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/whistling-straits/" aria-label="Open Whistling Straits">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/946e4a446456-zaa24681_rgb.jpg" alt="Whistling Straits — Golf in Lake Michigan Shoreline, Sheboygan" loading="lazy" decoding="async"></div>
     <div class="card-body">

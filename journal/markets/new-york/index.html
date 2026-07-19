@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">36</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">9</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">11</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">7</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">7</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>36</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>9</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>11</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>7</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>7</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 36 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2032" data-mk-nb="Hudson Yards" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
     <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/08/A.png" alt="Hudson Yards West — Mixed-Use in Hudson Yards, New York City" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-companies/"><span class="nm">Related Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oxford-properties/"><span class="nm">Oxford Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wynn-resorts/"><span class="nm">Wynn Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Tribeca" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/101-franklin-street/" aria-label="Open 101 Franklin Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/101-franklin-street.jpg" alt="101 Franklin Street — Residences in Tribeca, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/101-franklin-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skylight-real-estate-partners/"><span class="nm">Skylight Real Estate Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cannon-hill-capital-partners/"><span class="nm">Cannon Hill Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tpg/"><span class="nm">TPG</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/101-franklin-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/steven-harris-architects/"><span class="nm">Steven Harris Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Financial District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/2-world-trade-center/" aria-label="Open 2 World Trade Center">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/2-world-trade-center.webp" alt="2 World Trade Center — Office in Financial District, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/2-world-trade-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/silverstein-properties/"><span class="nm">Silverstein Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/2-world-trade-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Court Square" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/24-19-jackson-avenue/" aria-label="Open 24-19 Jackson Avenue">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/24-19-jackson-avenue.jpg" alt="24-19 Jackson Avenue — Residences in Court Square, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/24-19-jackson-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tavros-capital/"><span class="nm">Tavros Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/charney-companies/"><span class="nm">Charney Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/incoco-capital/"><span class="nm">Incoco Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/24-19-jackson-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fxcollaborative/"><span class="nm">FXCollaborative</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Midtown East" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/343-madison-ave/" aria-label="Open 343 Madison Ave">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/343-madison-ave.jpg" alt="343 Madison Ave — Office in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/343-madison-ave/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/boston-properties-with-norges-bank-investment-management-45-stake/"><span class="nm">Boston Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/343-madison-ave/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="West Chelsea" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/550-west-21st-street/" aria-label="Open 550 West 21st Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/18c1b9374711-ac1BqZGXnQHGZLJM_STREET_APPROACH_DRAFT_06_DMIAKS-web.jpg" alt="550 West 21st Street — Residences in West Chelsea, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="30">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Midtown East" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/625-madison-avenue/" aria-label="Open 625 Madison Avenue">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york/625-madison-avenue.jpg" alt="625 Madison Avenue — Office in Midtown East, New York" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/625-madison-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-companies/"><span class="nm">Related Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/625-madison-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Hudson Yards" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/70-hudson-yards/" aria-label="Open 70 Hudson Yards">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/70-hudson-yards.jpg" alt="70 Hudson Yards — Office in Hudson Yards, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/70-hudson-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-companies/"><span class="nm">Related Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oxford-properties/"><span class="nm">Oxford Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/70-hudson-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/roger-ferris-partners/"><span class="nm">Roger Ferris + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Jamaica" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jfk-expansion/" aria-label="Open JFK (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/jfk-expansion.jpg" alt="JFK (Expansion) — Travel in Jamaica, Queens, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jfk-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jfk-millennium-partners-vantage-group/"><span class="nm">JFK Millennium Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rxr/"><span class="nm">RXR</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/american-triple-i/"><span class="nm">American Triple I</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jetblue-with-port-authority-of-nynj/"><span class="nm">JetBlue</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jfk-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corgan/"><span class="nm">Corgan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aecom-hunt/"><span class="nm">AECOM Hunt</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Hudson Valley" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/one-only-hudson-valley/" aria-label="Open One&amp;Only Hudson Valley">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/hyde-park/one-only-hudson-valley.jpeg" alt="One&amp;Only Hudson Valley — Hotel in Hudson Valley, Hyde Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-only-hudson-valley/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nolan-reynolds-international/"><span class="nm">Nolan Reynolds International</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kerzner-international/"><span class="nm">Kerzner International</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/culinary-institute-of-america/"><span class="nm">Culinary Institute of America</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-only-hudson-valley/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Rockefeller Center" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nell-new-york/" aria-label="Open The Nell New York">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/d5b38373867d-introducing-nell-hotels-bringing-the-legacy-of-aspens-the-little-nell-to-rockefe" alt="The Nell New York — Hotel in Rockefeller Center, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nell-new-york/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aspen-hospitality/"><span class="nm">Aspen Hospitality</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tishman-speyer/"><span class="nm">Tishman Speyer</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-georgetown-company/"><span class="nm">The Georgetown Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-nell-new-york/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/slce-architects/"><span class="nm">SLCE Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rockwell-group/"><span class="nm">Rockwell Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Williamsburg" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/williamsburg-wharf/" aria-label="Open Williamsburg Wharf">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/williamsburg-wharf.jpg" alt="Williamsburg Wharf — Residences in Williamsburg, Brooklyn" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/williamsburg-wharf/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/naftali-group/"><span class="nm">Naftali Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/williamsburg-wharf/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Gowanus" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/175-third-street.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/charney-companies/"><span class="nm">Charney Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tavros-capital/"><span class="nm">Tavros Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Brooklyn Heights" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/205-montague-street/" aria-label="Open One Montague Place">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/2cdab3912172-IMG_4226-gigapixel-low-resolution-v2-4x-crop.jpg" alt="One Montague Place — Residences in Brooklyn Heights" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/205-montague-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/landau-properties/"><span class="nm">Landau Properties</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/205-montague-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hill-west-architects/"><span class="nm">Hill West Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Lenox Hill" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/255-east-77th-street/" aria-label="Open 255 East 77th Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/255-east-77th-street.jpg" alt="255 East 77th Street — Residences in Lenox Hill, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/255-east-77th-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/naftali-group/"><span class="nm">Naftali Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/255-east-77th-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><span class="nm">Robert A.M. Stern Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hill-west-architects/"><span class="nm">Hill West Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="NoMad" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/262-fifth-avenue/" aria-label="Open 262 Fifth Avenue">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york/262-fifth-avenue.jpg" alt="262 Fifth Avenue — Residences in NoMad, New York" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/262-fifth-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/five-points-development-group/"><span class="nm">Five Points Development Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/262-fifth-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/meganom/"><span class="nm">Meganom</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/norm-architects/"><span class="nm">Norm Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Flatiron District" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/flatiron-building/" aria-label="Open Flatiron Building">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a88d9510b176-gettyimages-1155946045.webp" alt="Flatiron Building — Residences in Flatiron District, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/flatiron-building/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-brodsky-organization/"><span class="nm">The Brodsky Organization</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sorgente-group/"><span class="nm">Sorgente Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/flatiron-building/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/slce-architects/"><span class="nm">SLCE Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-sofield/"><span class="nm">Studio Sofield</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Midtown East" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/malabar-residences/" aria-label="Open Malabar Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/malabar-residences.jpg" alt="Malabar Residences — Residences in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/malabar-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mrr-development-anand-mahindra-rotem-rosen/"><span class="nm">MRR Development (Anand Mahindra &amp; Rotem Rosen)</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/malabar-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oda-architecture/"><span class="nm">ODA Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Midtown East" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/rolex-hq/" aria-label="Open Rolex HQ">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/rolex-hq.jpg" alt="Rolex HQ — Mixed-Use in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rolex-hq/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rolex-sa/"><span class="nm">Rolex SA</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rolex-hq/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/david-chipperfield-architects/"><span class="nm">David Chipperfield Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Hudson Yards" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/sorin/" aria-label="Open Sorin">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/sorin.jpg" alt="Sorin — Residences in Hudson Yards, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sorin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zd-jasper-realty/"><span class="nm">ZD Jasper Realty</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sorin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/archimaera/"><span class="nm">Archimaera</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dxa-studio/"><span class="nm">DXA Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Gramercy Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-willow/" aria-label="Open The Willow">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/the-willow.jpeg" alt="The Willow — Residences in Gramercy Park, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-willow/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/naftali-group/"><span class="nm">Naftali Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-willow/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cookfox-architects/"><span class="nm">COOKFOX Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rockwell-group/"><span class="nm">Rockwell Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Midtown East" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/175-park-ave/" aria-label="Open 175 Park Ave">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/175-park-ave.jpg" alt="175 Park Ave — Mixed-Use in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-park-ave/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rxr-realty/"><span class="nm">RXR Realty</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tf-cornerstone/"><span class="nm">TF Cornerstone</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-park-ave/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Tribeca" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/310-greenwich-street/" aria-label="Open 310 Greenwich Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/310-greenwich-street.jpeg" alt="310 Greenwich Street — Residences in Tribeca, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/310-greenwich-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/vornado-realty-trust/"><span class="nm">Vornado Realty Trust</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stellar-management/"><span class="nm">Stellar Management</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/310-greenwich-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><span class="nm">Morris Adjmi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Midtown East" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/346-madison-avenue/" aria-label="Open 346 Madison Avenue">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/346-madison-avenue.jpeg" alt="346 Madison Avenue — Office in Midtown East, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/346-madison-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sl-green/"><span class="nm">SL Green</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mori-building/"><span class="nm">Mori Building</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/346-madison-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kpf/"><span class="nm">KPF</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Lincoln Square" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/80-west-67th-street/" aria-label="Open 80 West 67th Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york/80-west-67th-street.png" alt="80 West 67th Street — Residences in Lincoln Square, New York" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/80-west-67th-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/extell-development/"><span class="nm">Extell Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/80-west-67th-street/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Hudson Yards" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/affirmation-tower/" aria-label="Open Affirmation Tower">
     <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/03/affirmation-tower-main.jpg" alt="Affirmation Tower — Mixed-Use in Hudson Yards, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/affirmation-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-peebles-corporation/"><span class="nm">The Peebles Corporation</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/witkoff/"><span class="nm">Witkoff</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mckissack-mckissack/"><span class="nm">McKissack &amp; McKissack</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/exact-capital-group/"><span class="nm">Exact Capital Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/affirmation-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oma/"><span class="nm">OMA</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Midtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/penn-station-redevelopment/" aria-label="Open Penn Station Redevelopment">
     <div class="card-img"><img class="card-img-el" src="https://www.mas.org/wp-content/uploads/2017/12/penn-station-rendering-lobby-with-sunshine-pano.jpg" alt="Penn Station Redevelopment — Park in Midtown, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1124,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/penn-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/empire-state-development/"><span class="nm">Empire State Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/vornado/"><span class="nm">Vornado</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/penn-station-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Midtown" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/ruby-new-york-city/" aria-label="Open Ruby New York City">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/ruby-new-york-city.png" alt="Ruby New York City — Hotel in Midtown, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1146,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ruby-new-york-city/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ac-developers/"><span class="nm">Ac Developers</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ihg-hotels-resorts/"><span class="nm">IHG Hotels &amp; Resorts</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ruby-hotels/"><span class="nm">Ruby Hotels</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aimbridge-hospitality/"><span class="nm">Aimbridge Hospitality</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ruby-new-york-city/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Theater District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-wolseley-hotel-new-york/" aria-label="Open The Wolseley Hotel New York">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/the-wolseley-hotel-new-york.webp" alt="The Wolseley Hotel New York — Hotel in Theater District, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1168,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-wolseley-hotel-new-york/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjgh/"><span class="nm">BJGH</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-wolseley-hotel-new-york/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/520-fifth-avenue/" aria-label="Open 520 Fifth Avenue">
     <div class="card-img"><img class="card-img-el" src="https://i0.wp.com/archeyes.com/wp-content/uploads/2025/10/520-Fifth-Avenue-Mixed-Use-Supertall-by-Kohn-Pedersen-Fox-in-Midtown-Manhattan520-FIFTH_FIFTH-AVENUE-HERO_JPEG-2.jpg" alt="520 Fifth Avenue — Mixed-Use in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1190,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/520-fifth-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rabina/"><span class="nm">Rabina</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/520-fifth-avenue/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/faraway-sag-harbor/" aria-label="Open Faraway Sag Harbor">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/sag-harbor/faraway-sag-harbor.jpg" alt="Faraway Sag Harbor — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1212,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/faraway-sag-harbor/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/blue-flag-capital/"><span class="nm">Blue Flag Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bain-capital-real-estate/"><span class="nm">Bain Capital Real Estate</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/collared-martin-hospitality/"><span class="nm">Collared Martin Hospitality</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/faraway-sag-harbor/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/new-highmark-stadium/" aria-label="Open New Highmark Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/orchard-park/new-highmark-stadium.jpg" alt="New Highmark Stadium — Stadium in Orchard Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1234,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pegula-sports-entertainment/"><span class="nm">Pegula Sports &amp; Entertainment</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/erie-county/"><span class="nm">Erie County</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/new-york-state/"><span class="nm">New York State</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-highmark-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="Williamsburg" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/one-domino-square/" aria-label="Open One Domino Square">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/one-domino-square.jpg" alt="One Domino Square — Residences in Williamsburg, Brooklyn" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1256,7 +1289,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-domino-square/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/two-trees-management/"><span class="nm">Two Trees Management</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/one-domino-square/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/selldorf-architects/"><span class="nm">Selldorf Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/studio-museum-in-harlem/" aria-label="Open Studio Museum">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6911/ac46/1072/7b04/d2a3/f1ca/large_jpg/the-studio-museum-in-harlem-opens-its-first-purpose-built-home-by-adjaye-associates_2.jpg" alt="Studio Museum — Museum in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1278,7 +1311,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-studio-museum-in-harlem/"><span class="nm">The Studio Museum in Harlem</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/studio-museum-in-harlem/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adjaye-associates-with-cooper-robertson-studio-zewde-landscape/"><span class="nm">Adjaye Associates</span></a><span class="pp-firm-chip is-plain"><span class="nm">Cooper Robertson</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-henry/" aria-label="Open The Henry">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/the-henry.jpg" alt="The Henry — Residences in New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1300,7 +1333,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-henry/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/naftali-group/"><span class="nm">Naftali Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-henry/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><span class="nm">Robert A.M. Stern Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hill-west-architects/"><span class="nm">Hill West Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="Greenpoint" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-huron/" aria-label="Open The Huron">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooklyn/the-huron.png" alt="The Huron — Residences in Greenpoint, Brooklyn" loading="lazy" decoding="async"></div>
     <div class="card-body">

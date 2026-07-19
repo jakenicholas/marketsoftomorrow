@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,14 +542,14 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">8</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">0</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">6</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">0</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>8</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>6</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -531,19 +564,20 @@
         </div>
         <div class="sp-windows-col">
           <div class="sp-sub">New-supply concentration over the next 36 months — a 23-project pipeline, delivering 8,652 residences and keys.</div>
-          <div class="sp-windows"><div class="sp-win on" title="4 projects · 2,090 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">H2 ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’27</div></div><div class="sp-win" title="8 projects · 1,363 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:42px"></div></div><div class="sp-win-n">8</div><div class="sp-win-l">H2 ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’28</div></div><div class="sp-win" title="4 projects · 540 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:17px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">H2 ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’29</div></div></div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window. 6 more deliver beyond the 36-month horizon. 1 has no public delivery date yet.</div>
+          <div class="sp-windows"><div class="sp-win on" title="4 projects · 2,090 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">Late ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’27</div></div><div class="sp-win" title="8 projects · 1,363 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:42px"></div></div><div class="sp-win-n">8</div><div class="sp-win-l">Late ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’28</div></div><div class="sp-win" title="4 projects · 540 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:17px"></div></div><div class="sp-win-n">4</div><div class="sp-win-l">Late ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’29</div></div></div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window. 6 more deliver beyond the 36-month horizon. 1 has no public delivery date yet.</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="high">Confidence: <em>High</em> · 96% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        <a class="sp-atlas" href="/atlas/">Open the Atlas →</a>
       </div>
       
     </section>
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -552,7 +586,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 8 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Jumeirah 2" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-dubai/" aria-label="Open Aman Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/aman-dubai.png" alt="Aman Dubai — Residences in Jumeirah 2, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -574,7 +608,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-group/"><span class="nm">Aman Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kerry-hill-architects/"><span class="nm">Kerry Hill Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown Dubai" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/" aria-label="Open Baccarat Hotel and Residences Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7de9fca776bc-66ab2604c17ab0afabcf7189_baccarat.webp" alt="Baccarat Hotel and Residences Dubai — Residences in Downtown Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -596,7 +630,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shamal-holding/"><span class="nm">Shamal Holding</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-hotel-and-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-libeskind/"><span class="nm">Studio Libeskind</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Sheikh Zayed Road" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/burj-azizi/" aria-label="Open Burj Azizi">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/burj-azizi.jpeg" alt="Burj Azizi — Mixed-Use in Sheikh Zayed Road, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -618,7 +652,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-azizi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/azizi-developments/"><span class="nm">Azizi Developments</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/burj-azizi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ae7/"><span class="nm">AE7</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Trade Centre" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/corinthia-tower-dubai/" aria-label="Open Corinthia Tower Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/907ce08ac00b-Corinthia-2-1.webp" alt="Corinthia Tower Dubai — Residences in Trade Centre, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -640,7 +674,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-tower-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dubai-general-properties/"><span class="nm">Dubai General Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/corinthia/"><span class="nm">Corinthia</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/corinthia-tower-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/atkinsrealis/"><span class="nm">AtkinsRéalis</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="DIFC" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/janu-residences-dubai/" aria-label="Open Janu Residences Dubai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/dubai/janu-residences-dubai.jpg" alt="Janu Residences Dubai — Mixed-Use in DIFC, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +696,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/janu-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hh-development/"><span class="nm">H&amp;H Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/janu-residences-dubai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/herzog-de-meuron/"><span class="nm">Herzog &amp; de Meuron</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="DIFC / Trade Centre" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/nebula-tower/" aria-label="Open Nebula Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/4079b89d5e53-nebula.png" alt="Nebula Tower — Mixed-Use in DIFC / Trade Centre, Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -687,7 +721,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="2">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/ciel-dubai-marina/" aria-label="Open Ciel Dubai Marina">
     <div class="card-img"><img class="card-img-el" src="https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/news/2025/ciel-dubai-marina-vignette-collection-debuts-as-the-worlds-tallest-hotel-hero-img.jpg" alt="Ciel Dubai Marina — Hotel in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -709,7 +743,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ciel-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-first-group/"><span class="nm">The First Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ciel-dubai-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/norr-group/"><span class="nm">NORR Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/wasl-tower/" aria-label="Open Wasl Tower">
     <div class="card-img"><img class="card-img-el" src="https://prod-waslcdn.wasl.ae/waslae-filesystem/styles/max_2600x2600/azblob/2025-09/700%20X%204006-min_0.jpg?itok=aHng4bKB" alt="Wasl Tower — Mixed-Use in Dubai" loading="lazy" decoding="async"></div>
     <div class="card-body">

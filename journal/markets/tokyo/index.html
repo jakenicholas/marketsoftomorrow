@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,14 +542,14 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">9</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">1</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">5</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">2</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">0</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>9</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Recently Opened</div></div>
     </div>
 
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -531,19 +564,20 @@
         </div>
         <div class="sp-windows-col">
           <div class="sp-sub">New-supply concentration over the next 36 months — a 8-project pipeline, delivering 671 residences and keys.</div>
-          <div class="sp-windows"><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">H2 ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’27</div></div><div class="sp-win" title="2 projects · 131 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:40px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">H2 ’27</div></div><div class="sp-win on" title="2 projects · 210 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">H1 ’28</div></div><div class="sp-win" title="1 projects · 130 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:40px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">H2 ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’29</div></div></div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window. 2 more deliver beyond the 36-month horizon.</div>
+          <div class="sp-windows"><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">Late ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’27</div></div><div class="sp-win" title="2 projects · 131 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:40px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">Late ’27</div></div><div class="sp-win on" title="2 projects · 210 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:64px"></div></div><div class="sp-win-n">2</div><div class="sp-win-l">Early ’28</div></div><div class="sp-win" title="1 projects · 130 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:40px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">Late ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’29</div></div></div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window. 2 more deliver beyond the 36-month horizon.</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="high">Confidence: <em>High</em> · 100% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        <a class="sp-atlas" href="/atlas/">Open the Atlas →</a>
       </div>
       
     </section>
-<section class="section cm-mod" id="cmpMod"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Tokyo vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Tokyo</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="35.1 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">43</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">8 projects · 671 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H1 2028</span></div></div></a><a class="cmp-card" href="/markets/chicago/"><div class="cmp-head"><span class="cmp-city">Chicago</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="35.1 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">43</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">9 projects · 5,307 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2027</span></div></div></a><a class="cmp-card" href="/markets/bahamas/"><div class="cmp-head"><span class="cmp-city">Bahamas</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="34.3 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">42</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">6 projects · 338 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2027</span></div></div></a></div></section><section class="section cm-mod"><div class="cm-eyebrow">Brands arriving</div><div class="cm-title">Who's planting a <em>flag</em></div><div class="cm-sub">Hotel and residence brands with projects in the pipeline.</div><div class="br-row"><a class="br-card" href="/projects/waldorf-astoria-tokyo-nihonbashi/"><span class="br-mono">WA</span><span><span class="br-name">Waldorf Astoria</span><br><span class="br-sub">71 residences · 2027</span></span></a><a class="br-card" href="/projects/raffles-tokyo/"><span class="br-mono">R</span><span><span class="br-name">Raffles</span><br><span class="br-sub">130 keys · 2028</span></span></a><a class="br-card" href="/projects/rosewood-tokyo/"><span class="br-mono">R</span><span><span class="br-name">Rosewood</span><br><span class="br-sub">200 keys · 2030</span></span></a></div></section><section class="section cm-mod"><div class="cm-eyebrow">Delivery horizon</div><div class="cm-title">What opens <em>when</em></div><div class="cm-sub">The pipeline by expected opening year, with each year&#x27;s marquee arrival.</div><div class="ot-row ot-5"><div class="ot-cell"><div class="ot-year">2026</div><div class="ot-n"><b>2 projects</b></div><div class="ot-lead"><b>Mori JP Tower</b>Azabudai</div></div><div class="ot-cell"><div class="ot-year">2027</div><div class="ot-n"><b>2 projects</b> · 131 units</div><div class="ot-lead"><b>Waldorf Astoria Tokyo Nihonbashi</b>Nihonbashi</div></div><div class="ot-cell peak"><span class="ot-peakchip">Peak</span><div class="ot-year">2028</div><div class="ot-n"><b>3 projects</b> · 340 units</div><div class="ot-lead"><b>Raffles Tokyo</b>Hamamatsucho</div></div><div class="ot-cell"><div class="ot-year">2029</div><div class="ot-n"><b>1 project</b></div><div class="ot-lead"><b>Shibuya Upper West Project</b>Shibuya</div></div><div class="ot-cell"><div class="ot-year">2030+</div><div class="ot-n"><b>1 project</b> · 200 units</div><div class="ot-lead"><b>Rosewood Tokyo</b>Roppongi</div></div></div></section><section class="section cm-mod" data-records-market="tokyo"><div class="cm-eyebrow">Market records</div><div class="cm-title">The <em>superlatives</em></div><div class="cm-sub">The pipeline&#x27;s outer edges.</div><div class="rc-row"><div class="rc-card"><div class="rc-k">Tallest in pipeline</div><div class="rc-v">64<small>floors</small></div><div class="rc-s"><b>Mori JP Tower</b></div></div><div class="rc-card"><div class="rc-k">Biggest by units</div><div class="rc-v">200<small>units</small></div><div class="rc-s"><b>Rosewood Tokyo</b></div></div><div class="rc-card"><div class="rc-k">Next to deliver</div><div class="rc-v">H2 ’26</div><div class="rc-s"><b>Takanawa Gateway City Residence</b></div></div></div></section>
+<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#F5A623">43</b> Elevated · 8 projects · peak Early ’28</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-supply" data-jump="m-supply">Supply</a><a class="mkr-jump" href="#m-neighbors" data-jump="m-neighbors">Neighbors</a><a class="mkr-jump" href="#m-brands" data-jump="m-brands">Brands</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-records" data-jump="m-records">Records</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div><section class="section cm-mod" id="m-neighbors"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Tokyo vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Tokyo</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="35.1 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">43</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">8 projects · 671 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Early 2028</span></div></div></a><a class="cmp-card" href="/markets/chicago/"><div class="cmp-head"><span class="cmp-city">Chicago</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="35.1 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">43</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">9 projects · 5,307 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Late 2027</span></div></div></a><a class="cmp-card" href="/markets/bahamas/"><div class="cmp-head"><span class="cmp-city">Bahamas</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-dasharray="34.3 81.7"/></svg><span><span class="cmp-num" style="color:#F5A623">42</span><br><span class="cmp-lvl" style="color:#F5A623">ELEVATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">6 projects · 338 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Late 2027</span></div></div></a></div><div class="cmp-foot"><a class="sp-atlas" href="/atlas/">Open the Atlas →</a></div></section><section class="section cm-mod" id="m-brands"><div class="cm-eyebrow">Brands arriving</div><div class="cm-title">Who's planting a <em>flag</em></div><div class="cm-sub">Hotel and residence brands with projects in the pipeline.</div><div class="br-row"><a class="br-card" href="/projects/waldorf-astoria-tokyo-nihonbashi/"><span class="br-mono">WA</span><span><span class="br-name">Waldorf Astoria</span><br><span class="br-sub">71 residences · 2027</span></span></a><a class="br-card" href="/projects/raffles-tokyo/"><span class="br-mono">R</span><span><span class="br-name">Raffles</span><br><span class="br-sub">130 keys · 2028</span></span></a><a class="br-card" href="/projects/rosewood-tokyo/"><span class="br-mono">R</span><span><span class="br-name">Rosewood</span><br><span class="br-sub">200 keys · 2030</span></span></a></div></section><section class="section cm-mod" id="m-openings"><div class="cm-eyebrow">Delivery horizon</div><div class="cm-title">What opens <em>when</em></div><div class="cm-sub">The pipeline by expected opening year, with each year&#x27;s marquee arrival.</div><div class="ot-row ot-5"><div class="ot-cell" data-mk-yr-cell="2026" role="button" tabindex="0"><div class="ot-year">2026</div><div class="ot-n"><b>2 projects</b></div><div class="ot-lead"><b>Mori JP Tower</b>Azabudai</div></div><div class="ot-cell" data-mk-yr-cell="2027" role="button" tabindex="0"><div class="ot-year">2027</div><div class="ot-n"><b>2 projects</b> · 131 units</div><div class="ot-lead"><b>Waldorf Astoria Tokyo Nihonbashi</b>Nihonbashi</div></div><div class="ot-cell peak" data-mk-yr-cell="2028" role="button" tabindex="0"><span class="ot-peakchip">Peak</span><div class="ot-year">2028</div><div class="ot-n"><b>3 projects</b> · 340 units</div><div class="ot-lead"><b>Raffles Tokyo</b>Hamamatsucho</div></div><div class="ot-cell" data-mk-yr-cell="2029" role="button" tabindex="0"><div class="ot-year">2029</div><div class="ot-n"><b>1 project</b></div><div class="ot-lead"><b>Shibuya Upper West Project</b>Shibuya</div></div><div class="ot-cell" data-mk-yr-cell="later" role="button" tabindex="0"><div class="ot-year">2030+</div><div class="ot-n"><b>1 project</b> · 200 units</div><div class="ot-lead"><b>Rosewood Tokyo</b>Roppongi</div></div></div></section><section class="section cm-mod" id="m-records" data-records-market="tokyo"><div class="cm-eyebrow">Market records</div><div class="cm-title">The <em>superlatives</em></div><div class="cm-sub">The pipeline&#x27;s outer edges.</div><div class="rc-row"><div class="rc-card"><div class="rc-k">Tallest in pipeline</div><div class="rc-v">64<small>floors</small></div><div class="rc-s"><b>Mori JP Tower</b></div></div><div class="rc-card"><div class="rc-k">Biggest by units</div><div class="rc-v">200<small>units</small></div><div class="rc-s"><b>Rosewood Tokyo</b></div></div><div class="rc-card"><div class="rc-k">Next to deliver</div><div class="rc-v">Late ’26</div><div class="rc-s"><b>Takanawa Gateway City Residence</b></div></div></div></section>
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -552,7 +586,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 9 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Hamamatsucho" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/raffles-tokyo/" aria-label="Open Raffles Tokyo">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/raffles-tokyo.webp" alt="Raffles Tokyo — Hotel in Hamamatsucho, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -574,7 +608,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/raffles-tokyo/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/world-trade-center-building-inc/"><span class="nm">World Trade Center Building</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tokyo-tatemono/"><span class="nm">Inc.</span></a><span class="pp-firm-chip is-plain"><span class="nm">Tokyo Tatemono</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/raffles-tokyo/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/layan/"><span class="nm">Layan</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Shibuya" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shibuya-upper-west-project/" aria-label="Open Shibuya Upper West Project">
     <div class="card-img"><img class="card-img-el" src="https://static.dezeen.com/uploads/2022/08/snohetta-shibuya-upper-west-project-tokyo_hero_dezeen_2364_col_0.jpg" alt="Shibuya Upper West Project — Mixed-Use in Shibuya, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -596,7 +630,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shibuya-upper-west-project/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tokyu-corporation/"><span class="nm">Tokyu Corporation</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shibuya-upper-west-project/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei/"><span class="nm">Nikken Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Tokiwabashi" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/" aria-label="Open Torch Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/tokyo-station-city-redevelopment.jpg" alt="Torch Tower — Travel in Tokiwabashi, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -618,7 +652,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jr-east/"><span class="nm">JR East</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/tokyo-station-city-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei/"><span class="nm">Nikken Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Tokiwabashi" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/torch-tower/" aria-label="Open Torch Tower">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/torch-tower.jpg" alt="Torch Tower — Mixed-Use in Tokiwabashi, Tokyo" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Torch Tower</span></div>
     <div class="card-body">
@@ -640,7 +674,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/torch-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mitsubishi-estate/"><span class="nm">Mitsubishi Estate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/torch-tower/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mitsubishi-jisho-sekkei-sou-fujimoto-architects-crown-yuko-nagayama-associates-lower-section/"><span class="nm">Mitsubishi Jisho Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Nihonbashi" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/waldorf-astoria-tokyo-nihonbashi/" aria-label="Open Waldorf Astoria Tokyo Nihonbashi">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/waldorf-astoria-tokyo-nihonbashi.jpg" alt="Waldorf Astoria Tokyo Nihonbashi — Hotel in Nihonbashi, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +696,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-tokyo-nihonbashi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mitsui-fudosan/"><span class="nm">Mitsui Fudosan</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nomura-real-estate-development/"><span class="nm">Nomura Real Estate Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/waldorf-astoria-tokyo-nihonbashi/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nikken-sekkei/"><span class="nm">Nikken Sekkei</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pelli-clarke-partners/"><span class="nm">Pelli Clarke &amp; Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Meguro" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/gajoen-tokyo-lxr-hotels-resorts/" aria-label="Open Gajoen Tokyo, LXR Hotels &amp; Resorts">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/gajoen-tokyo-lxr-hotels-resorts.webp" alt="Gajoen Tokyo, LXR Hotels &amp; Resorts — Hotel in Meguro, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -687,7 +721,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="3">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Takanawa" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/takanawa-gateway-city-residence/" aria-label="Open Takanawa Gateway City Residence">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7d01d3df5427-1655090881334-bezp1RmvXr.jpg" alt="Takanawa Gateway City Residence — Residences in Takanawa, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -709,7 +743,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/takanawa-gateway-city-residence/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/east-japan-railway-company/"><span class="nm">East Japan Railway Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/takanawa-gateway-city-residence/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Roppongi" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-tokyo/" aria-label="Open Rosewood Tokyo">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tokyo/rosewood-tokyo.jpg" alt="Rosewood Tokyo — Mixed-Use in Roppongi, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -731,7 +765,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-tokyo/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mori-building/"><span class="nm">Mori Building</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sumitomo-realty-development/"><span class="nm">Sumitomo Realty &amp; Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-tokyo/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2023" data-mk-nb="Azabudai" data-mk-st="Completed">
   <a class="card-link" href="https://www.oftmw.com/projects/mori-jp-tower/" aria-label="Open Mori JP Tower">
     <div class="card-img"><img class="card-img-el" src="https://mms.businesswire.com/media/20210217006076/en/859592/5/Panoramic_View%28Night%29.jpg" alt="Mori JP Tower — Mixed-Use in Azabudai, Tokyo" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -767,13 +801,14 @@
 
 <script>
 (function(){
-  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
-  if (!proEls.length) return;
   function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
     if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
     if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
   function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
-  withMember(function(mem){ if(!mem||!mem.id) return;
+
+  // ── Pro values (comparison bands + records median) ──
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (proEls.length) withMember(function(mem){ if(!mem||!mem.id) return;
     var markets = {};
     document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
     var rec = document.querySelector('[data-records-market] #rcProVal');
@@ -790,6 +825,122 @@
         }).catch(function(){});
     });
   });
+
+  // ── Sticky rail: pin under the chrome + active-section highlight ──
+  var rail = document.getElementById('mkRail');
+  if (rail) {
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
+    var jumps = rail.querySelectorAll('.mkr-jump');
+    var sections = [];
+    jumps.forEach(function(j){ var el = document.getElementById(j.getAttribute('data-jump')); if (el) sections.push([el, j]); });
+    if ('IntersectionObserver' in window && sections.length) {
+      var current = null;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if (e.isIntersecting) current = e.target; });
+        sections.forEach(function(p){ p[1].classList.toggle('on', p[0] === current); });
+      }, { rootMargin: '-25% 0px -60% 0px' });
+      sections.forEach(function(p){ io.observe(p[0]); });
+    }
+    jumps.forEach(function(j){ j.addEventListener('click', function(ev){
+      var el = document.getElementById(j.getAttribute('data-jump'));
+      if (el) { ev.preventDefault(); var top = el.getBoundingClientRect().top + window.scrollY - rail.offsetHeight - 74; window.scrollTo({top: top, behavior: 'smooth'}); }
+    }); });
+  }
+
+  // ── One filter state: year + neighborhood + status ──
+  var F = { yr: null, nb: null, st: null };
+  var cards = [].slice.call(document.querySelectorAll('.tmw-project-grid .card'));
+  function cardMatch(c){
+    if (F.yr) {
+      var y = c.getAttribute('data-mk-yr') || '';
+      if (F.yr === 'later') { if (!y || parseInt(y, 10) <= (new Date().getFullYear() + 3)) return false; }
+      else if (y !== F.yr) return false;
+    }
+    if (F.nb && (c.getAttribute('data-mk-nb') || '') !== F.nb) return false;
+    if (F.st && (c.getAttribute('data-mk-st') || '') !== F.st) return false;
+    return true;
+  }
+  function railChips(){
+    var box = document.getElementById('mkrFilters');
+    if (!box) return;
+    var chips = [];
+    if (F.yr) chips.push(['yr', F.yr === 'later' ? (new Date().getFullYear() + 4) + '+' : F.yr]);
+    if (F.nb) chips.push(['nb', F.nb]);
+    if (F.st) chips.push(['st', F.st === 'Now Open' ? 'Recently opened' : F.st]);
+    box.innerHTML = chips.map(function(c){ return '<span class="mkr-fchip" data-mkclear="' + c[0] + '">' + c[1] + '<span class="x">✕</span></span>'; }).join('');
+  }
+  function apply(){
+    var shown = 0;
+    cards.forEach(function(c){ var ok = cardMatch(c); c.classList.toggle('mk-hide', !ok); if (ok) shown++; });
+    // stats strip recount from the full card set
+    document.querySelectorAll('.stat[data-mk-stat]').forEach(function(cell){
+      var v = cell.getAttribute('data-mk-stat');
+      var n = 0;
+      cards.forEach(function(c){ if (!cardMatch(c)) return; if (!v || (c.getAttribute('data-mk-st') === v) || (v === 'Now Open' && c.getAttribute('data-mk-st') === 'Now Open')) n++; });
+      var el = cell.querySelector('[data-mk-n]'); if (el) el.textContent = n;
+      cell.classList.toggle('on', !!F.st && v === F.st);
+    });
+    document.querySelectorAll('[data-mk-yr-cell]').forEach(function(el){ el.classList.toggle('on', F.yr === el.getAttribute('data-mk-yr-cell')); });
+    document.querySelectorAll('[data-mk-nb-chip]').forEach(function(el){ el.classList.toggle('on', F.nb === el.getAttribute('data-mk-nb-chip')); });
+    var head = document.querySelector('#m-projects .section-head');
+    if (head) {
+      var note = document.getElementById('mkShowing');
+      var active = F.yr || F.nb || F.st;
+      if (active) {
+        if (!note) { note = document.createElement('div'); note.id = 'mkShowing'; note.className = 'mk-showing'; head.appendChild(note); }
+        note.textContent = 'Showing ' + shown + ' of ' + cards.length + ' — filtered';
+      } else if (note) note.remove();
+    }
+    railChips();
+    if ((F.yr || F.nb || F.st) && window.tmwFunnelTrack) { try { tmwFunnelTrack('market_dash_filter', {yr: F.yr, nb: F.nb, st: F.st}); } catch(_e){} }
+  }
+  document.addEventListener('click', function(ev){
+    var t;
+    if ((t = ev.target.closest('[data-mk-yr-cell]'))) { F.yr = (F.yr === t.getAttribute('data-mk-yr-cell')) ? null : t.getAttribute('data-mk-yr-cell'); apply(); return; }
+    if ((t = ev.target.closest('[data-mk-nb-chip]'))) {
+      if (ev.target.closest('.nb-go')) return;   // the map ↗ keeps its link
+      F.nb = (F.nb === t.getAttribute('data-mk-nb-chip')) ? null : t.getAttribute('data-mk-nb-chip'); apply(); return;
+    }
+    if ((t = ev.target.closest('.stat[data-mk-stat]'))) {
+      var v = t.getAttribute('data-mk-stat');
+      F.st = (!v || F.st === v) ? null : v; apply(); return;
+    }
+    if ((t = ev.target.closest('[data-mkclear]'))) {
+      var k = t.getAttribute('data-mkclear'); F[k] = null; apply(); return;
+    }
+  });
+
+  // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
+  var mv = document.getElementById('m-pulse');
+  if (mv) {
+    var mvCity = mv.getAttribute('data-mk-city');
+    var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
+    function rel(ts){
+      var s = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+      if (s < 86400) return Math.round(s / 3600) + 'h ago';
+      if (s < 86400 * 14) return Math.round(s / 86400) + 'd ago';
+      return new Date(ts).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+    }
+    fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+      if (!p || !p.events) return;
+      var rows = p.events.filter(function(e){ return (e.city || '') === mvCity && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+      if (rows.length < 2) return;
+      var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+      document.getElementById('mvList').innerHTML = rows.slice(0, 5).map(function(e){
+        var col = TAGC[e.tag] || '#A78BFA';
+        var title = esc(e.title || '');
+        if (e.project_title && title.indexOf(esc(e.project_title)) >= 0) title = title.replace(esc(e.project_title), '<b>' + esc(e.project_title) + '</b>');
+        return '<a class="mv-row" href="' + esc(e.link || '#') + '">'
+          + '<span class="mv-dot" style="background:' + col + ';box-shadow:0 0 10px ' + col + '66"></span>'
+          + '<span class="mv-what">' + title + '</span>'
+          + '<span class="mv-tag" style="color:' + col + ';background:rgba(255,255,255,.05)">' + esc(e.tag || 'Update') + '</span>'
+          + '<span class="mv-when">' + rel(e.timestamp) + '</span></a>';
+      }).join('');
+    }).catch(function(){});
+  }
 })();
 </script>
 

@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">43</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">10</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">19</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">5</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">6</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>43</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>10</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>19</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>6</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 43 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2026" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/jacks-bay-club-resort/" aria-label="Open Jack&#x27;s Bay Club &amp; Resort">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/jacks-bay-club-resort.jpeg" alt="Jack&#x27;s Bay Club &amp; Resort — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eleuthera-properties-ltd/"><span class="nm">Eleuthera Properties Ltd</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jacks-bay-club-resort/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2028" data-mk-nb="Southern Northwood" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/olara/" aria-label="Open Olara">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/olara.jpeg" alt="Olara — Residences in Southern Northwood, West Palm Beach" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/olara/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/savanna/"><span class="nm">Savanna</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/olara/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="The Moorings" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/3300-gulf-shore/" aria-label="Open 3300 Gulf Shore">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/3300-gulf-shore.jpg" alt="3300 Gulf Shore — Residences in The Moorings, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/3300-gulf-shore/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kolter-urban/"><span class="nm">Kolter Urban</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/3300-gulf-shore/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mhk-architecture/"><span class="nm">MHK Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Children&#x27;s Bay Cay" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/amancaya/" aria-label="Open Amancaya">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/amancaya.jpeg" alt="Amancaya — Mixed-Use in Children&#x27;s Bay Cay, Exuma, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amancaya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oko-group/"><span class="nm">OKO Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/squircle-capital/"><span class="nm">Squircle Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dona-bertarelli/"><span class="nm">Dona Bertarelli</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amancaya/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jacobsen-studio/"><span class="nm">Jacobsen Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Brickell" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/baccarat-residences-miami/" aria-label="Open Baccarat Residences Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/baccarat-residences-miami.jpg" alt="Baccarat Residences Miami — Residences in Brickell, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-group/"><span class="nm">Related Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/starwood-hotels/"><span class="nm">Starwood Hotels</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/baccarat-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="North Bimini" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/banyan-tree-bimini/" aria-label="Open Banyan Tree Bimini">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/banyan-tree-bimini.webp" alt="Banyan Tree Bimini — Residences in North Bimini, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="37">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Marina Village" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/casa-blake/" aria-label="Open Casa Blake">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/la-ribera/casa-blake.jpeg" alt="Casa Blake — Mixed-Use in Marina Village, La Ribera" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Costa Palmas</span></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/casa-blake/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/irongate-group/"><span class="nm">Irongate Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/casa-blake/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="North Bay Village" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-waterfront-district/" aria-label="Open Continuum Waterfront District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/continuum-waterfront-district.jpg" alt="Continuum Waterfront District — Mixed-Use in North Bay Village, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-waterfront-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/continuum-company/"><span class="nm">Continuum Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-waterfront-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Caye Chapel" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/" aria-label="Open Four Seasons Resort and Residences Caye Chapel">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/caye-chapel/four-seasons-resort-and-residences-caye-chapel.jpg" alt="Four Seasons Resort and Residences Caye Chapel — Hotel" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/four-seasons-hotels-and-resorts/"><span class="nm">Four Seasons Hotels and Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-resort-and-residences-caye-chapel/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Bay Harbor Islands" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/la-baia-north/" aria-label="Open La Baia North">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bay-harbour-islands/la-baia-north.jpeg" alt="La Baia North — Residences in Bay Harbor Islands, Bay Harbour Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/la-baia-north/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/continuum-company/"><span class="nm">Continuum Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/la-baia-north/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/luis-revuelta/"><span class="nm">Luis Revuelta</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Marina District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village/" aria-label="Open Marina Village">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/marina-village.jpg" alt="Marina Village — Residences in Marina District, Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-riviera-beach/"><span class="nm">City of Riviera Beach</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/developer-partner/"><span class="nm">Developer Partner</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reg-architects/"><span class="nm">REG Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Platinum Coast" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/pendry-barbados/" aria-label="Open Pendry Barbados">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/saint-peter/pendry-barbados.jpg" alt="Pendry Barbados — Hotel in Platinum Coast, Saint Peter" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pendry-barbados/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pendry-hotels-resorts/"><span class="nm">Pendry Hotels &amp; Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/pendry-barbados/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-glazier/"><span class="nm">Robert Glazier</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-munge/"><span class="nm">Studio Munge</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="South Eleuthera" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/" aria-label="Open Ritz-Carlton Reserve at Cotton Bay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/ritz-carlton-reserve-at-cotton-bay.jpg" alt="Ritz-Carlton Reserve at Cotton Bay — Residences in South Eleuthera, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cotton-bay-holdings/"><span class="nm">Cotton Bay Holdings</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ritz-carlton-reserve-at-cotton-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/abax-architects/"><span class="nm">ABAX Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tahr-arquitectura/"><span class="nm">TAHR Arquitectura</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Miami River" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/riverside-wharf/" aria-label="Open Riverside Wharf">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/riverside-wharf.jpeg" alt="Riverside Wharf — Mixed-Use in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/riverside-wharf/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/mv-real-estate-holdings-mvreh/"><span class="nm">MV Real Estate Holdings</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/driftwood-capital/"><span class="nm">Driftwood Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/merrimac-ventures/"><span class="nm">Merrimac Ventures</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/riverside-wharf/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cube-3-architects/"><span class="nm">CUBE 3 Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-half-moon-bay-antigua/" aria-label="Open Rosewood Half Moon Bay Antigua">
     <div class="card-img"><img class="card-img-el" src="https://vitainc.com/wp-content/uploads/2020/06/7_Antigua-HMB_Illustrative-Master-Plan_Top-View.jpg" alt="Rosewood Half Moon Bay Antigua — Hotel in Half Moon Bay" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-half-moon-bay-antigua/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/replay-destinations/"><span class="nm">Replay Destinations</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-half-moon-bay-antigua/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-piet-boon/"><span class="nm">Studio Piet Boon</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="PortMiami" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-terminal-g/" aria-label="Open Royal Caribbean: Terminal G">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/royal-caribbean-terminal-g.jpeg" alt="Royal Caribbean: Terminal G — Marina in PortMiami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/royal-caribbean-terminal-g/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/royal-caribbean-group/"><span class="nm">Royal Caribbean Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/port-of-miami/"><span class="nm">Port of Miami</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/royal-caribbean-terminal-g/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/broadway-malyan/"><span class="nm">Broadway Malyan</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Emerald Caye" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/six-senses-residences-belize/" aria-label="Open Six Senses Residences Belize">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/belize/six-senses-residences-belize.jpeg" alt="Six Senses Residences Belize — Mixed-Use in Emerald Caye, Belize" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-residences-belize/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/crdg-llc/"><span class="nm">CRDG LLC</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/six-senses-residences-belize/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-caban/"><span class="nm">Studio CABAN</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Southbank" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/southbank-residences/" aria-label="Open Southbank Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/southbank-residences.jpeg" alt="Southbank Residences — Mixed-Use in Southbank, Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/southbank-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-group/"><span class="nm">Related Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/southbank-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/carlos-ott/"><span class="nm">Carlos Ott</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/msa-architects/"><span class="nm">MSA Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/id-design-international/"><span class="nm">ID &amp; Design International</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Paradise Island" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ocean-club/" aria-label="Open The Ocean Club, Four Seasons Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bahamas/the-ocean-club.jpg" alt="The Ocean Club, Four Seasons Residences — Residences in Paradise Island, Bahamas" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ocean-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/two-roads-development/"><span class="nm">Two Roads Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/access-industries/"><span class="nm">Access Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ocean-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sb-architects/"><span class="nm">SB Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/champalimaud-design/"><span class="nm">Champalimaud Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Gowanus" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/175-third-street.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/charney-companies/"><span class="nm">Charney Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tavros-capital/"><span class="nm">Tavros Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Port Nimara" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/" aria-label="Open Equinox Resort Anguilla Port Nimara">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-valley/equinox-resort-anguilla-port-nimara.jpeg" alt="Equinox Resort Anguilla Port Nimara — Mixed-Use in Port Nimara, South West End, The Valley" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/south-west-harbour-inc/"><span class="nm">South West Harbour Inc.</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sf-investments-ltd/"><span class="nm">SF Investments Ltd.</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/time-equities-inc/"><span class="nm">Time Equities Inc.</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/antillean-developments-inc/"><span class="nm">Antillean Developments Inc.</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/equinox-resort-anguilla-port-nimara/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Lake Austin" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/" aria-label="Open Four Seasons Private Residences Lake Austin">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/69bb2705a7b9-FSLA_Aerial_High_downtown_frame_01_30889177c8.jpg" alt="Four Seasons Private Residences Lake Austin — Residences" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/austin-capital-partners/"><span class="nm">Austin Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lincoln-property-company/"><span class="nm">Lincoln Property Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-private-residences-lake-austin/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lissoni-partners/"><span class="nm">Lissoni &amp; Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Bay Harbor Islands" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/9900-west/" aria-label="Open 9900 West">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bay-harbor-islands/9900-west.webp" alt="9900 West — Residences in Bay Harbor Islands" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/9900-west/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-horizon-group/"><span class="nm">The Horizon Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/9900-west/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/frankel-benayoun-architects/"><span class="nm">Frankel Benayoun Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Costa Palmas" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/amanvari/" aria-label="Open Amanvari">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt="Amanvari — Hotel in Costa Palmas, Los Cabos" loading="lazy" decoding="async"><span class="card-parent-chip">Part of Costa Palmas</span></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amanvari/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/irongate/"><span class="nm">Irongate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amanvari/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elastic-architects/"><span class="nm">Elastic Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="The Abacos" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/montage-cay/" aria-label="Open Montage Cay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/the-abacos/montage-cay.jpg" alt="Montage Cay — Residences in The Abacos" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/montage-cay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-global-financial/"><span class="nm">Sterling Global Financial</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-montage-cay-ltd/"><span class="nm">Sterling Montage Cay Ltd.</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/montage-cay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-c-glazier/"><span class="nm">Robert C. Glazier</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sks-studio/"><span class="nm">SKS Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/port-32-palm-beach-gardens/" aria-label="Open PORT 32 Palm Beach Gardens">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach-gardens/port-32-palm-beach-gardens.webp" alt="PORT 32 Palm Beach Gardens — Marina" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/port-32-palm-beach-gardens/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/port-32-marinas/"><span class="nm">PORT 32 Marinas</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/port-32-palm-beach-gardens/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Vanderbilt Beach" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-naples/" aria-label="Open The Ritz-Carlton Residences, Naples">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/naples/the-ritz-carlton-residences-naples.jpg" alt="The Ritz-Carlton Residences, Naples — Residences in Vanderbilt Beach, Naples" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1124,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-naples/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stock-development/"><span class="nm">STOCK Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/suffolk-construction/"><span class="nm">Suffolk Construction</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-naples/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/curts-gaines-hall-jones-architects/"><span class="nm">Curts Gaines Hall Jones Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/susurrus/"><span class="nm">Susurrus</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/booth-design-group/"><span class="nm">Booth Design Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jkm-lighting-design/"><span class="nm">JKM Lighting Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Sandy Point" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/antara-turks-caicos/" aria-label="Open Anantara Turks &amp; Caicos">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/north-caicos/antara-turks-caicos.jpeg" alt="Anantara Turks &amp; Caicos — Mixed-Use in Sandy Point, North Caicos" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1146,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/antara-turks-caicos/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/octans/"><span class="nm">Octans</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/antara-turks-caicos/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rad/"><span class="nm">RAD</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/meyer-davis/"><span class="nm">Meyer Davis</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="South Causeway Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/causeway-cove/" aria-label="Open Causeway Cove">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90e7e61082be-d305e03831ee6b0a8be20b1f2f1d279e.webp" alt="Causeway Cove — Mixed-Use in South Causeway Island, Fort Pierce" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1168,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/causeway-cove/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/g-flash-g-p-inc/"><span class="nm">G Flash G.P. Inc.</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/causeway-cove/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="North Miami" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/north-miami/continuum-12000.webp" alt="Continuum 12000 Sport &amp; Wellness Residences — Residences in North Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1190,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-12000/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/continuum-company/"><span class="nm">Continuum Company</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aksoy-holding/"><span class="nm">Aksoy Holding</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-12000/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Keystone Point" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/continuum-12000-sport-wellness-residences/" aria-label="Open Continuum 12000 Sport &amp; Wellness Residences">
     <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/ContinuumCompanyLaunchesContinuum12000SportWellnessResidencesOnNorthMiamisWaterfront2.webp" alt="Continuum 12000 Sport &amp; Wellness Residences — Mixed-Use in Keystone Point, North Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1212,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-12000-sport-wellness-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/continuum-companies/"><span class="nm">Continuum Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/continuum-12000-sport-wellness-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/paul-duesing-partners/"><span class="nm">Paul Duesing Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Miami River" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/faena-residences-miami/" aria-label="Open Faena Residences Miami">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/faena-residences-miami.jpg" alt="Faena Residences Miami — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1234,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/faena-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fortune-international-group/"><span class="nm">Fortune International Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kar-properties/"><span class="nm">KAR Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/faena-group/"><span class="nm">Faena Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/faena-residences-miami/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rafael-violy/"><span class="nm">Rafael Viñoly</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Westshore Marina District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-pointe/" aria-label="Open Marina Pointe: Luna">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/marina-pointe.webp" alt="Marina Pointe: Luna — Residences in Westshore Marina District, Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1256,7 +1289,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-pointe/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bti-partners/"><span class="nm">BTI Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-pointe/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2033" data-mk-nb="Il Monte Galala" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-towers-by-tatweer-misr/" aria-label="Open Marina Towers by Tatweer Misr">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/ain-sokhna/marina-towers-by-tatweer-misr.webp" alt="Marina Towers by Tatweer Misr — Mixed-Use in Il Monte Galala, Galala City, Ain Sokhna" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1278,7 +1311,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-towers-by-tatweer-misr/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tatweer-misr/"><span class="nm">Tatweer Misr</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-towers-by-tatweer-misr/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tatweer-misr-design-team/"><span class="nm">Tatweer Misr Design Team</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="North End" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/safe-harbor-rybovich-district/" aria-label="Open Safe Harbor Rybovich District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/safe-harbor-rybovich-district.jpeg" alt="Safe Harbor Rybovich District — Mixed-Use in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1300,7 +1333,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/safe-harbor-rybovich-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/safe-harbor-marinas/"><span class="nm">Safe Harbor Marinas</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/safe-harbor-rybovich-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Central Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-ritz-carlton-residences-fort-lauderdale-beach/" aria-label="Open The Ritz-Carlton Residences, Fort Lauderdale Beach">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/the-ritz-carlton-residences-fort-lauderdale-beach.jpeg" alt="The Ritz-Carlton Residences, Fort Lauderdale Beach — Residences in Central Beach, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1322,7 +1355,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-fort-lauderdale-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/micl/"><span class="nm">MICL</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/admire-capital/"><span class="nm">Admire Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-ritz-carlton-residences-fort-lauderdale-beach/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/garcia-stromberg/"><span class="nm">Garcia Stromberg</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Miami River" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/vista-harbor-residences/" aria-label="Open Vista Harbor Residences">
     <div class="card-img"><img class="card-img-el" src="https://miamipre.com/wp-content/uploads/2026/03/image-7.webp" alt="Vista Harbor Residences — Residences in Miami River" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1344,7 +1377,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vista-harbor-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alta-development/"><span class="nm">Alta Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/vista-harbor-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/formgroup-architects/"><span class="nm">FormGroup Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/adriana-hoyos/"><span class="nm">Adriana Hoyos</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="North End" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/alba/" aria-label="Open Alba">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/alba.jpg" alt="Alba — Residences in North End, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1366,7 +1399,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/alba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bgi-companies/"><span class="nm">BGI Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/blue-road/"><span class="nm">Blue Road</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/alba/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/aqua-at-westshore-yacht-club/" aria-label="Open AQUA at Westshore Yacht Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/tampa/aqua-at-westshore-yacht-club.webp" alt="AQUA at Westshore Yacht Club — Residences in Tampa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1388,7 +1421,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aqua-at-westshore-yacht-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wci-communities/"><span class="nm">WCI Communities</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lennar/"><span class="nm">Lennar</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aqua-at-westshore-yacht-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/curtis-gaines-hall-jones/"><span class="nm">Curtis Gaines Hall Jones</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/briland-club-residences-marina/" aria-label="Open Briland Club Residences &amp; Marina">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/harbour-island/briland-club-residences-marina.jpg" alt="Briland Club Residences &amp; Marina — Residences in Harbour Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1410,7 +1443,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/briland-club-residences-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/4m-harbour-island-ltd/"><span class="nm">4M Harbour Island Ltd.</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-global-advisors/"><span class="nm">Sterling Global Advisors</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-royal-portfolio/"><span class="nm">The Royal Portfolio</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/briland-club-residences-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cma-design-studio/"><span class="nm">CMA Design Studio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bunny-williams/"><span class="nm">Bunny Williams</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/" aria-label="Open Hurricane Hole Superyacht Marina">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/paradise-island/hurricane-hole-superyacht-marina.jpg" alt="Hurricane Hole Superyacht Marina — Marina in Paradise Island" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1432,7 +1465,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-global-financial/"><span class="nm">Sterling Global Financial</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hurricane-hole-superyacht-marina/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Luštica Peninsula" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/lustica-bay/" aria-label="Open Lustica Bay">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/708184f4e789-54222082816_f5a22c57b3_6k-1-.jpeg" alt="Lustica Bay — Mixed-Use in Luštica Peninsula, Tivat" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1454,7 +1487,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lustica-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/orascom-development/"><span class="nm">Orascom Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lustica-bay/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gary-player-design/"><span class="nm">Gary Player Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-strand/" aria-label="Open The Strand">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/providenciales/the-strand.jpeg" alt="The Strand — Residences in Providenciales" loading="lazy" decoding="async"></div>
     <div class="card-body">

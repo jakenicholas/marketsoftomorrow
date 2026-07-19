@@ -577,6 +577,9 @@ def card_html(p: dict) -> str:
     # Filterable status for portfolio tabs (firm pages): completed = Now Open /
     # delivered, everything else = active/in-progress. Inert elsewhere.
     _dlc = (p.get('Delivery') or '').strip().lower()
+    _mk_yr = (re.match(r'^(\d{4})', str(p.get('DeliveryDate') or '')) or [None]) and (re.match(r'^(\d{4})', str(p.get('DeliveryDate') or '')).group(1) if re.match(r'^(\d{4})', str(p.get('DeliveryDate') or '')) else '')
+    _mk_nb = (p.get('Neighborhood') or '').split(',')[0].strip()
+    _mk_st = (p.get('Delivery') or '').strip()
     status_attr = ' data-status="completed"' if ('now open' in _dlc or _dlc in ('open', 'completed', 'delivered')) else ' data-status="active"'
     feat_badge = f'<span class="card-feat-badge" aria-label="Featured project">{FEAT_STAR_SVG}</span>' if featured else ''
 
@@ -659,7 +662,8 @@ def card_html(p: dict) -> str:
         img_alt = esc(_a_title)
 
     return (
-        f'<div class="card{" featured" if featured else ""}"{featured_attrs}{status_attr}>\n'
+        f'<div class="card{" featured" if featured else ""}"{featured_attrs}{status_attr}'
+        f' data-mk-yr="{esc(_mk_yr)}" data-mk-nb="{esc(_mk_nb)}" data-mk-st="{esc(_mk_st)}">\n'
         f'  <a class="card-link" href="{ROOT_URL}/projects/{esc(slug)}/" aria-label="Open {title}">\n'
         f'    <div class="card-img"><img class="card-img-el" src="{img}" alt="{img_alt}" loading="lazy" decoding="async">{feat_badge}{parent_chip_html}</div>\n'
         f'    <div class="card-body">\n'
@@ -688,8 +692,10 @@ def stats_strip_html(projects: list[dict]) -> str:
         ('Recently Opened',    'Now Open',           'no'),
     ]:
         cells.append((label, counts.get(key, 0), cls))
+    ST_VALUE = {'Tracked': '', 'Announced': 'Announced', 'Under Construction': 'Under Construction',
+                'Opening Soon': 'Opening Soon', 'Recently Opened': 'Now Open'}
     return '\n'.join(
-        f'<div class="stat {cls}"><div class="n">{n}</div><div class="l">{label}</div></div>'
+        f'<div class="stat {cls}" data-mk-stat="{esc(ST_VALUE.get(label, ""))}" role="button" tabindex="0"><div class="n" data-mk-n>{n}</div><div class="l">{label}</div></div>'
         for label, n, cls in cells
     )
 
@@ -712,8 +718,18 @@ ATLAS_MODELED_BY_MARKET = collections.Counter(
     v.get('market') for v in _ATLAS_PUB.values() if v.get('modeled') and v.get('market'))
 
 def _fmt_half(half: str) -> str:
-    """'2026H2' → 'H2 ’26'"""
-    return f"{half[4:]} ’{half[2:4]}"
+    """'2026H2' → 'Late ’26' — halves spelled out, never 'H2' jargon."""
+    word = 'Early' if half.endswith('H1') else 'Late'
+    return f"{word} ’{half[2:4]}"
+
+
+US_STATE_NAMES = {'AL':'Alabama','AK':'Alaska','AZ':'Arizona','AR':'Arkansas','CA':'California','CO':'Colorado','CT':'Connecticut','DE':'Delaware','FL':'Florida','GA':'Georgia','HI':'Hawaii','ID':'Idaho','IL':'Illinois','IN':'Indiana','IA':'Iowa','KS':'Kansas','KY':'Kentucky','LA':'Louisiana','ME':'Maine','MD':'Maryland','MA':'Massachusetts','MI':'Michigan','MN':'Minnesota','MS':'Mississippi','MO':'Missouri','MT':'Montana','NE':'Nebraska','NV':'Nevada','NH':'New Hampshire','NJ':'New Jersey','NM':'New Mexico','NY':'New York','NC':'North Carolina','ND':'North Dakota','OH':'Ohio','OK':'Oklahoma','OR':'Oregon','PA':'Pennsylvania','RI':'Rhode Island','SC':'South Carolina','SD':'South Dakota','TN':'Tennessee','TX':'Texas','UT':'Utah','VT':'Vermont','VA':'Virginia','WA':'Washington','WV':'West Virginia','WI':'Wisconsin','WY':'Wyoming','DC':'Washington DC'}
+
+def _atlas_link_html(m: dict) -> str:
+    st = (m.get('state') or '').strip()
+    if st and st in US_STATE_NAMES:
+        return f'<a class="sp-atlas" href="/atlas/?state={esc(st)}">{esc(US_STATE_NAMES[st])} in the Atlas →</a>'
+    return '<a class="sp-atlas" href="/atlas/">Open the Atlas →</a>'
 
 def supply_pressure_html(m: dict | None) -> str:
     if not m:
@@ -750,7 +766,7 @@ def supply_pressure_html(m: dict | None) -> str:
     conf = m['confidence'].capitalize()
     dated_pct = round(m['provenance']['dated_share'] * 100)
     return f'''
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -766,15 +782,38 @@ def supply_pressure_html(m: dict | None) -> str:
         <div class="sp-windows-col">
           <div class="sp-sub">{esc(sub)}</div>
           <div class="sp-windows">{''.join(bars)}</div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window.{(' ' + esc(extras_line)) if extras_line else ''}</div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window.{(' ' + esc(extras_line)) if extras_line else ''}</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: <em>{esc(conf)}</em> · {dated_pct}% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        {_atlas_link_html(m)}
       </div>
       {market_band_html(m)}
     </section>'''
+
+
+def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list[tuple[str, str]]) -> str:
+    """Sticky dashboard rail: market vitals + jump chips + live-filter chips.
+    Sticks just below the journal chrome (top set at runtime)."""
+    me = (atlas_intel.get('markets') or {}).get(market_slug)
+    vitals = ''
+    if me:
+        col = SUPPLY_LEVEL_COLOR.get(me['level'], '#1FDF67')
+        peak = ''
+        ws = [w for w in (me.get('windows') or []) if w['units']]
+        if ws:
+            w = max(ws, key=lambda w: w['units'])
+            peak = f" · peak {_fmt_half(w['half'])}"
+        vitals = (f'<span class="mkr-vitals"><b style="color:{col}">{me["score"]}</b> {esc(me["level"])}'
+                  f' · {me["pipeline_projects"]} projects{esc(peak)}</span>')
+    chips = ''.join(f'<a class="mkr-jump" href="#{jid}" data-jump="{jid}">{esc(label)}</a>' for jid, label in jumps)
+    return (f'<div class="mk-rail" id="mkRail">'
+            f'{vitals}'
+            f'<nav class="mkr-jumps" aria-label="Page sections">{chips}</nav>'
+            f'<div class="mkr-filters" id="mkrFilters"></div>'
+            f'</div>')
 
 def market_band_html(m: dict) -> str:
     """Submarket median pricing band (Surface A aggregate) — Pro-gated. The
@@ -913,7 +952,7 @@ def journal_city_html(city: str, projects: list[dict]) -> str:
                      f'<div class="jc-img">{imgs}<span class="jc-chip">{esc(chip)}</span></div>'
                      f'<div class="jc-body"><div class="jc-title">{esc(a["title"])}</div>'
                      f'<div class="jc-meta">{esc(ds)}</div></div></a>')
-    return (f'<section class="section cm-mod">'
+    return (f'<section class="section cm-mod" id="m-journal">'
             + _mod_head('From the Journal', f'Our coverage of <em>{esc(city)}</em>',
                         'The latest stories from the projects shaping the city.')
             + f'<div class="jc-grid">{"".join(cards)}</div></section>')
@@ -947,10 +986,10 @@ def moved_city_html(city: str) -> str:
                    f'<span class="mv-what">{title_html}</span>'
                    f'<span class="mv-tag" style="color:{col};background:{bgc}">{esc(tag)}</span>'
                    f'<span class="mv-when">{ts.strftime("%b %-d")}</span></a>')
-    return (f'<section class="section cm-mod">'
+    return (f'<section class="section cm-mod" id="m-pulse" data-mk-city="{esc(city)}">'
             + _mod_head('The last 30 days', f'What <em>moved</em> in {esc(city)}',
                         'Milestones logged across the pipeline this month.')
-            + f'<div class="mv-list">{"".join(out)}</div></section>')
+            + f'<div class="mv-list" id="mvList">{"".join(out)}</div></section>')
 
 def openings_timeline_html(city: str, projects: list[dict]) -> str:
     today = datetime.date.today()
@@ -987,9 +1026,10 @@ def openings_timeline_html(city: str, projects: list[dict]) -> str:
         lead = ''
         if b['lead']:
             lead = f'<div class="ot-lead"><b>{esc(b["lead"][0])}</b>{esc(b["lead"][1])}</div>'
-        cells.append(f'<div class="ot-cell{peakc}">{chip}<div class="ot-year">{label}</div>'
+        yr_attr = key if key != 'later' else 'later'
+        cells.append(f'<div class="ot-cell{peakc}" data-mk-yr-cell="{yr_attr}" role="button" tabindex="0">{chip}<div class="ot-year">{label}</div>'
                      f'<div class="ot-n"><b>{b["projects"]} project{"s" if b["projects"] != 1 else ""}</b>{units_bit}</div>{lead}</div>')
-    return (f'<section class="section cm-mod">'
+    return (f'<section class="section cm-mod" id="m-openings">'
             + _mod_head('Delivery horizon', 'What opens <em>when</em>',
                         "The pipeline by expected opening year, with each year's marquee arrival.")
             + f'<div class="ot-row ot-{len(cells)}">{"".join(cells)}</div></section>')
@@ -1003,11 +1043,12 @@ def neighborhoods_html(city: str, projects: list[dict]) -> str:
     chips = [(nb, n) for nb, n in counts.most_common(6) if n >= 2]
     if len(chips) < 2: return ''
     out = ''.join(
-        f'<a class="nb-chip" href="/map/?q={esc(slugify(nb).replace("-", "+"))}+{esc(slugify(city).replace("-", "+"))}">'
-        f'{esc(nb)} <span class="nb-n">{n}</span></a>' for nb, n in chips)
-    return (f'<section class="section cm-mod">'
+        f'<span class="nb-chip" data-mk-nb-chip="{esc(nb)}" role="button" tabindex="0">'
+        f'{esc(nb)} <span class="nb-n">{n}</span>'
+        f'<a class="nb-go" href="/map/?q={esc(slugify(nb).replace("-", "+"))}+{esc(slugify(city).replace("-", "+"))}" title="See {esc(nb)} on the map" aria-label="See {esc(nb)} on the map">↗</a></span>' for nb, n in chips)
+    return (f'<section class="section cm-mod" id="m-areas">'
             + _mod_head("Where it's happening", f'{esc(city)}, <em>block by block</em>',
-                        'Active projects by neighborhood — tap through to see them on the map.')
+                        'Tap a neighborhood to filter this page — or jump to it on the map.')
             + f'<div class="nb-row">{out}</div></section>')
 
 def brands_html(city: str, projects: list[dict]) -> str:
@@ -1033,7 +1074,7 @@ def brands_html(city: str, projects: list[dict]) -> str:
         href = f'/projects/{esc((p.get("Slug") or "").strip().lower())}/'
         cards.append(f'<a class="br-card" href="{href}"><span class="br-mono">{esc(mono)}</span>'
                      f'<span><span class="br-name">{esc(b)}</span><br><span class="br-sub">{esc(sub)}</span></span></a>')
-    return (f'<section class="section cm-mod">'
+    return (f'<section class="section cm-mod" id="m-brands">'
             + _mod_head('Brands arriving', "Who's planting a <em>flag</em>",
                         'Hotel and residence brands with projects in the pipeline.')
             + f'<div class="br-row">{"".join(cards)}</div></section>')
@@ -1065,7 +1106,7 @@ def records_html(city: str, projects: list[dict], market_slug: str) -> str:
         if datetime.date(y, mo, 28) >= today: dated.append((y, mo, p))
     if dated:
         y, mo, nxt = min(dated, key=lambda t: (t[0], t[1]))
-        cards.append(('Next to deliver', f'H{1 if mo <= 6 else 2} ’{str(y)[2:]}', nxt))
+        cards.append(('Next to deliver', f'{"Early" if mo <= 6 else "Late"} ’{str(y)[2:]}', nxt))
     if len(cards) < 3: return ''
     html_cards = ''.join(
         f'<div class="rc-card"><div class="rc-k">{esc(k)}</div><div class="rc-v">{v}</div>'
@@ -1075,7 +1116,7 @@ def records_html(city: str, projects: list[dict], market_slug: str) -> str:
         html_cards += ('<div class="rc-card pro"><div class="rc-k">Median projected pricing<span class="rc-pro-tag">Pro</span></div>'
                        '<div class="rc-v rc-blur" id="rcProVal">$•,•••<small>/ sq ft</small></div>'
                        f'<div class="rc-s">at delivery · across <b>{modeled} modeled projects</b></div></div>')
-    return (f'<section class="section cm-mod" data-records-market="{esc(market_slug)}">'
+    return (f'<section class="section cm-mod" id="m-records" data-records-market="{esc(market_slug)}">'
             + _mod_head('Market records', 'The <em>superlatives</em>', "The pipeline's outer edges.")
             + f'<div class="rc-row">{html_cards}</div></section>')
 
@@ -1097,7 +1138,8 @@ def compare_city_html(city: str, market_slug: str, atlas_intel: dict) -> str:
         ws = m.get('windows') or []
         if not ws or not any(w['units'] for w in ws): return '—'
         w = max(ws, key=lambda w: w['units'])
-        return f"H{w['half'][5:]} {w['half'][:4]}" if 'H' in w['half'] else w['half']
+        h = w['half']
+        return (('Early ' if h.endswith('H1') else 'Late ') + h[:4]) if 'H' in h else h
     def card(slug_, m, self_=False):
         col = SUPPLY_LEVEL_COLOR.get(m['level'], '#1FDF67')
         dash = 81.7 * max(m['score'], 2) / 100.0
@@ -1117,21 +1159,23 @@ def compare_city_html(city: str, market_slug: str, atlas_intel: dict) -> str:
                 f'<div class="cmp-r"><span class="k">Peak window</span><span class="v">{esc(peak_of(m))}</span></div>'
                 f'{band}</div></a>')
     cards = card(market_slug, me, True) + ''.join(card(s, m) for s, m in peers[:2])
-    return (f'<section class="section cm-mod" id="cmpMod">'
+    return (f'<section class="section cm-mod" id="m-neighbors">'
             + _mod_head('How it compares', f'{esc(city)} vs. <em>the neighbors</em>',
                         'Supply pressure, pipeline scale and modeled pricing, side by side.')
-            + f'<div class="cmp-grid">{cards}</div></section>')
+            + f'<div class="cmp-grid">{cards}</div>'
+            + f'<div class="cmp-foot">{_atlas_link_html(me)}</div></section>')
 
 CITY_MODULES_JS = """
 <script>
 (function(){
-  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
-  if (!proEls.length) return;
   function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
     if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
     if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
   function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
-  withMember(function(mem){ if(!mem||!mem.id) return;
+
+  // ── Pro values (comparison bands + records median) ──
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (proEls.length) withMember(function(mem){ if(!mem||!mem.id) return;
     var markets = {};
     document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
     var rec = document.querySelector('[data-records-market] #rcProVal');
@@ -1148,6 +1192,122 @@ CITY_MODULES_JS = """
         }).catch(function(){});
     });
   });
+
+  // ── Sticky rail: pin under the chrome + active-section highlight ──
+  var rail = document.getElementById('mkRail');
+  if (rail) {
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
+    var jumps = rail.querySelectorAll('.mkr-jump');
+    var sections = [];
+    jumps.forEach(function(j){ var el = document.getElementById(j.getAttribute('data-jump')); if (el) sections.push([el, j]); });
+    if ('IntersectionObserver' in window && sections.length) {
+      var current = null;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if (e.isIntersecting) current = e.target; });
+        sections.forEach(function(p){ p[1].classList.toggle('on', p[0] === current); });
+      }, { rootMargin: '-25% 0px -60% 0px' });
+      sections.forEach(function(p){ io.observe(p[0]); });
+    }
+    jumps.forEach(function(j){ j.addEventListener('click', function(ev){
+      var el = document.getElementById(j.getAttribute('data-jump'));
+      if (el) { ev.preventDefault(); var top = el.getBoundingClientRect().top + window.scrollY - rail.offsetHeight - 74; window.scrollTo({top: top, behavior: 'smooth'}); }
+    }); });
+  }
+
+  // ── One filter state: year + neighborhood + status ──
+  var F = { yr: null, nb: null, st: null };
+  var cards = [].slice.call(document.querySelectorAll('.tmw-project-grid .card'));
+  function cardMatch(c){
+    if (F.yr) {
+      var y = c.getAttribute('data-mk-yr') || '';
+      if (F.yr === 'later') { if (!y || parseInt(y, 10) <= (new Date().getFullYear() + 3)) return false; }
+      else if (y !== F.yr) return false;
+    }
+    if (F.nb && (c.getAttribute('data-mk-nb') || '') !== F.nb) return false;
+    if (F.st && (c.getAttribute('data-mk-st') || '') !== F.st) return false;
+    return true;
+  }
+  function railChips(){
+    var box = document.getElementById('mkrFilters');
+    if (!box) return;
+    var chips = [];
+    if (F.yr) chips.push(['yr', F.yr === 'later' ? (new Date().getFullYear() + 4) + '+' : F.yr]);
+    if (F.nb) chips.push(['nb', F.nb]);
+    if (F.st) chips.push(['st', F.st === 'Now Open' ? 'Recently opened' : F.st]);
+    box.innerHTML = chips.map(function(c){ return '<span class="mkr-fchip" data-mkclear="' + c[0] + '">' + c[1] + '<span class="x">✕</span></span>'; }).join('');
+  }
+  function apply(){
+    var shown = 0;
+    cards.forEach(function(c){ var ok = cardMatch(c); c.classList.toggle('mk-hide', !ok); if (ok) shown++; });
+    // stats strip recount from the full card set
+    document.querySelectorAll('.stat[data-mk-stat]').forEach(function(cell){
+      var v = cell.getAttribute('data-mk-stat');
+      var n = 0;
+      cards.forEach(function(c){ if (!cardMatch(c)) return; if (!v || (c.getAttribute('data-mk-st') === v) || (v === 'Now Open' && c.getAttribute('data-mk-st') === 'Now Open')) n++; });
+      var el = cell.querySelector('[data-mk-n]'); if (el) el.textContent = n;
+      cell.classList.toggle('on', !!F.st && v === F.st);
+    });
+    document.querySelectorAll('[data-mk-yr-cell]').forEach(function(el){ el.classList.toggle('on', F.yr === el.getAttribute('data-mk-yr-cell')); });
+    document.querySelectorAll('[data-mk-nb-chip]').forEach(function(el){ el.classList.toggle('on', F.nb === el.getAttribute('data-mk-nb-chip')); });
+    var head = document.querySelector('#m-projects .section-head');
+    if (head) {
+      var note = document.getElementById('mkShowing');
+      var active = F.yr || F.nb || F.st;
+      if (active) {
+        if (!note) { note = document.createElement('div'); note.id = 'mkShowing'; note.className = 'mk-showing'; head.appendChild(note); }
+        note.textContent = 'Showing ' + shown + ' of ' + cards.length + ' — filtered';
+      } else if (note) note.remove();
+    }
+    railChips();
+    if ((F.yr || F.nb || F.st) && window.tmwFunnelTrack) { try { tmwFunnelTrack('market_dash_filter', {yr: F.yr, nb: F.nb, st: F.st}); } catch(_e){} }
+  }
+  document.addEventListener('click', function(ev){
+    var t;
+    if ((t = ev.target.closest('[data-mk-yr-cell]'))) { F.yr = (F.yr === t.getAttribute('data-mk-yr-cell')) ? null : t.getAttribute('data-mk-yr-cell'); apply(); return; }
+    if ((t = ev.target.closest('[data-mk-nb-chip]'))) {
+      if (ev.target.closest('.nb-go')) return;   // the map ↗ keeps its link
+      F.nb = (F.nb === t.getAttribute('data-mk-nb-chip')) ? null : t.getAttribute('data-mk-nb-chip'); apply(); return;
+    }
+    if ((t = ev.target.closest('.stat[data-mk-stat]'))) {
+      var v = t.getAttribute('data-mk-stat');
+      F.st = (!v || F.st === v) ? null : v; apply(); return;
+    }
+    if ((t = ev.target.closest('[data-mkclear]'))) {
+      var k = t.getAttribute('data-mkclear'); F[k] = null; apply(); return;
+    }
+  });
+
+  // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
+  var mv = document.getElementById('m-pulse');
+  if (mv) {
+    var mvCity = mv.getAttribute('data-mk-city');
+    var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
+    function rel(ts){
+      var s = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+      if (s < 86400) return Math.round(s / 3600) + 'h ago';
+      if (s < 86400 * 14) return Math.round(s / 86400) + 'd ago';
+      return new Date(ts).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+    }
+    fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+      if (!p || !p.events) return;
+      var rows = p.events.filter(function(e){ return (e.city || '') === mvCity && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+      if (rows.length < 2) return;
+      var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+      document.getElementById('mvList').innerHTML = rows.slice(0, 5).map(function(e){
+        var col = TAGC[e.tag] || '#A78BFA';
+        var title = esc(e.title || '');
+        if (e.project_title && title.indexOf(esc(e.project_title)) >= 0) title = title.replace(esc(e.project_title), '<b>' + esc(e.project_title) + '</b>');
+        return '<a class="mv-row" href="' + esc(e.link || '#') + '">'
+          + '<span class="mv-dot" style="background:' + col + ';box-shadow:0 0 10px ' + col + '66"></span>'
+          + '<span class="mv-what">' + title + '</span>'
+          + '<span class="mv-tag" style="color:' + col + ';background:rgba(255,255,255,.05)">' + esc(e.tag || 'Update') + '</span>'
+          + '<span class="mv-when">' + rel(e.timestamp) + '</span></a>';
+      }).join('');
+    }).catch(function(){});
+  }
 })();
 </script>"""
 
@@ -1563,6 +1723,39 @@ def render_page(
     .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }}
     .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }}
     .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }}
+    /* Dashboard rail */
+    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }}
+    .mk-rail::-webkit-scrollbar {{ display:none; }}
+    .mkr-vitals {{ flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }}
+    .mkr-vitals b {{ font-size:15px; font-weight:700; }}
+    .mkr-jumps {{ display:flex; gap:2px; flex:0 0 auto; }}
+    .mkr-jump {{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }}
+    .mkr-jump:hover {{ color:#fff; }}
+    .mkr-jump.on {{ background:rgba(167,139,250,.16); color:#A78BFA; }}
+    .mkr-filters {{ display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }}
+    .mkr-fchip {{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }}
+    .mkr-fchip .x {{ font-size:10px; opacity:.85; }}
+    /* filter controls */
+    .stat[data-mk-stat] {{ cursor:pointer; transition:border-color .15s; }}
+    .stat.on {{ border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }}
+    .ot-cell[data-mk-yr-cell] {{ cursor:pointer; transition:border-color .15s; }}
+    .ot-cell.on {{ border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }}
+    .nb-chip {{ cursor:pointer; }}
+    .nb-chip.on {{ border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }}
+    .nb-go {{ margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }}
+    .nb-go:hover {{ color:#fff; }}
+    .card.mk-hide {{ display:none !important; }}
+    .mk-showing {{ font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }}
+    .sp-atlas, .cmp-foot a {{ font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }}
+    .sp-atlas:hover, .cmp-foot a:hover {{ text-decoration:underline; }}
+    .cmp-foot {{ margin-top:14px; text-align:right; }}
+    @media (max-width:760px) {{ .mkr-vitals {{ display:none; }} }}
     /* City intelligence modules */
     .section.cm-mod {{ background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }}
     .cm-eyebrow {{ font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }}
@@ -1886,7 +2079,7 @@ def render_page(
 {supply_html}
 {city_modules_top}
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -3513,12 +3706,15 @@ def main():
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
             supply_html=supply_for(city),
-            city_modules_top=(compare_city_html(city, slugify(city), ATLAS_INTEL)
-                              + brands_html(city, bucket)
-                              + openings_timeline_html(city, bucket)
-                              + records_html(city, bucket, slugify(city))
-                              + neighborhoods_html(city, bucket)
-                              + moved_city_html(city)),
+            city_modules_top=(lambda mods: market_rail_html(city, slugify(city), ATLAS_INTEL,
+                              [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
+                              + ''.join(h for _, h in mods))([
+                                  (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
+                                  (('m-brands', 'Brands'), brands_html(city, bucket)),
+                                  (('m-openings', 'Openings'), openings_timeline_html(city, bucket)),
+                                  (('m-records', 'Records'), records_html(city, bucket, slugify(city))),
+                                  (('m-areas', 'Areas'), neighborhoods_html(city, bucket)),
+                                  (('m-pulse', 'Pulse'), moved_city_html(city))]),
             city_modules_mid=(journal_city_html(city, bucket) + CITY_MODULES_JS),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),

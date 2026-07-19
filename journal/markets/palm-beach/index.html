@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,14 +542,14 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">7</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">2</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">2</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">0</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>7</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>0</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
-    <section class="section sp-mod" aria-label="Supply pressure">
+    <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
         <div class="sp-gauge-col">
           <div class="sp-eyebrow">Supply pressure</div>
@@ -531,19 +564,20 @@
         </div>
         <div class="sp-windows-col">
           <div class="sp-sub">New-supply concentration over the next 36 months — a 5-project pipeline, delivering 44 residences and keys.</div>
-          <div class="sp-windows"><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H2 ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’27</div></div><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">H2 ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’28</div></div><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">H2 ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">H1 ’29</div></div></div>
-          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window. 3 have no public delivery date yet.</div>
+          <div class="sp-windows"><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Late ’26</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’27</div></div><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">Late ’27</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’28</div></div><div class="sp-win" title="1 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">1</div><div class="sp-win-l">Late ’28</div></div><div class="sp-win" title="0 projects · 0 units"><div class="sp-bar-wrap"><div class="sp-bar" style="height:4px"></div></div><div class="sp-win-n">0</div><div class="sp-win-l">Early ’29</div></div></div>
+          <div class="sp-windows-cap"><b>Projects delivering per six-month window</b> — bar height reflects the residences and keys landing in that window. 3 have no public delivery date yet.</div>
         </div>
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="low">Confidence: <em>Low</em> · 40% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
+        <a class="sp-atlas" href="/atlas/?state=FL">Florida in the Atlas →</a>
       </div>
       
     </section>
-<section class="section cm-mod" id="cmpMod"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Palm Beach vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Palm Beach</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="4.1 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">5</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">5 projects · 44 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">—</span></div></div></a><a class="cmp-card" href="/markets/miami-beach/"><div class="cmp-head"><span class="cmp-city">Miami Beach</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#FF5C5C" stroke-width="5" stroke-linecap="round" stroke-dasharray="78.4 81.7"/></svg><span><span class="cmp-num" style="color:#FF5C5C">96</span><br><span class="cmp-lvl" style="color:#FF5C5C">SATURATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">18 projects · 2,521 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2027</span></div></div></a><a class="cmp-card" href="/markets/miami/"><div class="cmp-head"><span class="cmp-city">Miami</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#FF5C5C" stroke-width="5" stroke-linecap="round" stroke-dasharray="75.2 81.7"/></svg><span><span class="cmp-num" style="color:#FF5C5C">92</span><br><span class="cmp-lvl" style="color:#FF5C5C">SATURATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">79 projects · 29,949 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2028</span></div><div class="cmp-r"><span class="k">Median projected</span><span class="v blur cmp-band" data-market="miami">$•,••• / sq ft</span></div></div></a></div></section><section class="section cm-mod" data-records-market="palm-beach"><div class="cm-eyebrow">Market records</div><div class="cm-title">The <em>superlatives</em></div><div class="cm-sub">The pipeline&#x27;s outer edges.</div><div class="rc-row"><div class="rc-card"><div class="rc-k">Tallest in pipeline</div><div class="rc-v">5<small>floors</small></div><div class="rc-s"><b>OLIN Palm Beach</b></div></div><div class="rc-card"><div class="rc-k">Biggest by units</div><div class="rc-v">32<small>units</small></div><div class="rc-s"><b>OLIN Palm Beach</b></div></div><div class="rc-card"><div class="rc-k">Next to deliver</div><div class="rc-v">H2 ’27</div><div class="rc-s"><b>Saks Fifth Redevelopment</b></div></div></div></section><section class="section cm-mod"><div class="cm-eyebrow">The last 30 days</div><div class="cm-title">What <em>moved</em> in Palm Beach</div><div class="cm-sub">Milestones logged across the pipeline this month.</div><div class="mv-list"><a class="mv-row" href="https://www.oftmw.com/map/?project=thesocietyofthefourarts"><span class="mv-dot" style="background:#FFD300;box-shadow:0 0 10px #FFD30066"></span><span class="mv-what"><b>The Society of the Four Arts</b>  Broke ground</span><span class="mv-tag" style="color:#FFD300;background:rgba(255,211,0,.09)">Broke ground</span><span class="mv-when">Jul 17</span></a><a class="mv-row" href="https://www.oftmw.com/map/?project=thesocietyofthefourarts"><span class="mv-dot" style="background:#A78BFA;box-shadow:0 0 10px #A78BFA66"></span><span class="mv-what"><b>The Society of the Four Arts</b>  Under construction</span><span class="mv-tag" style="color:#A78BFA;background:rgba(167,139,250,.14)">Under construction</span><span class="mv-when">Jul 14</span></a></div></section>
+<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#1FDF67">5</b> Balanced · 5 projects</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-supply" data-jump="m-supply">Supply</a><a class="mkr-jump" href="#m-neighbors" data-jump="m-neighbors">Neighbors</a><a class="mkr-jump" href="#m-records" data-jump="m-records">Records</a><a class="mkr-jump" href="#m-pulse" data-jump="m-pulse">Pulse</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div><section class="section cm-mod" id="m-neighbors"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Palm Beach vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Palm Beach</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="4.1 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">5</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">5 projects · 44 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">—</span></div></div></a><a class="cmp-card" href="/markets/miami-beach/"><div class="cmp-head"><span class="cmp-city">Miami Beach</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#FF5C5C" stroke-width="5" stroke-linecap="round" stroke-dasharray="78.4 81.7"/></svg><span><span class="cmp-num" style="color:#FF5C5C">96</span><br><span class="cmp-lvl" style="color:#FF5C5C">SATURATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">18 projects · 2,521 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Late 2027</span></div></div></a><a class="cmp-card" href="/markets/miami/"><div class="cmp-head"><span class="cmp-city">Miami</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#FF5C5C" stroke-width="5" stroke-linecap="round" stroke-dasharray="75.2 81.7"/></svg><span><span class="cmp-num" style="color:#FF5C5C">92</span><br><span class="cmp-lvl" style="color:#FF5C5C">SATURATED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">79 projects · 29,949 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Late 2028</span></div><div class="cmp-r"><span class="k">Median projected</span><span class="v blur cmp-band" data-market="miami">$•,••• / sq ft</span></div></div></a></div><div class="cmp-foot"><a class="sp-atlas" href="/atlas/?state=FL">Florida in the Atlas →</a></div></section><section class="section cm-mod" id="m-records" data-records-market="palm-beach"><div class="cm-eyebrow">Market records</div><div class="cm-title">The <em>superlatives</em></div><div class="cm-sub">The pipeline&#x27;s outer edges.</div><div class="rc-row"><div class="rc-card"><div class="rc-k">Tallest in pipeline</div><div class="rc-v">5<small>floors</small></div><div class="rc-s"><b>OLIN Palm Beach</b></div></div><div class="rc-card"><div class="rc-k">Biggest by units</div><div class="rc-v">32<small>units</small></div><div class="rc-s"><b>OLIN Palm Beach</b></div></div><div class="rc-card"><div class="rc-k">Next to deliver</div><div class="rc-v">Late ’27</div><div class="rc-s"><b>Saks Fifth Redevelopment</b></div></div></div></section><section class="section cm-mod" id="m-pulse" data-mk-city="Palm Beach"><div class="cm-eyebrow">The last 30 days</div><div class="cm-title">What <em>moved</em> in Palm Beach</div><div class="cm-sub">Milestones logged across the pipeline this month.</div><div class="mv-list" id="mvList"><a class="mv-row" href="https://www.oftmw.com/map/?project=thesocietyofthefourarts"><span class="mv-dot" style="background:#FFD300;box-shadow:0 0 10px #FFD30066"></span><span class="mv-what"><b>The Society of the Four Arts</b>  Broke ground</span><span class="mv-tag" style="color:#FFD300;background:rgba(255,211,0,.09)">Broke ground</span><span class="mv-when">Jul 17</span></a><a class="mv-row" href="https://www.oftmw.com/map/?project=thesocietyofthefourarts"><span class="mv-dot" style="background:#A78BFA;box-shadow:0 0 10px #A78BFA66"></span><span class="mv-what"><b>The Society of the Four Arts</b>  Under construction</span><span class="mv-tag" style="color:#A78BFA;background:rgba(167,139,250,.14)">Under construction</span><span class="mv-when">Jul 14</span></a></div></section>
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -552,7 +586,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 7 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="" data-mk-nb="Palm Beach Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/palm-beach-residences/" aria-label="Open OLIN Palm Beach">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/palm-beach-residences.jpg" alt="OLIN Palm Beach — Residences in Palm Beach Island" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -574,7 +608,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oko-group/"><span class="nm">OKO Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cain-international/"><span class="nm">Cain International</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/palm-beach-residences/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oma/"><span class="nm">OMA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Worth Avenue" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/saks-fifth-redevelopment/" aria-label="Open Saks Fifth Redevelopment">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/saks-fifth-redevelopment.webp" alt="Saks Fifth Redevelopment — Retail in Worth Avenue, Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -596,7 +630,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/saks-fifth-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oconnor-capital-partners/"><span class="nm">O&#x27;Connor Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/saks-fifth-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fairfax-sammons-architecture/"><span class="nm">Fairfax &amp; Sammons Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Midtown" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/" aria-label="Open The Society of the Four Arts">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/the-society-of-the-four-arts-renovation.jpeg" alt="The Society of the Four Arts — Cultural in Midtown, Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -618,7 +652,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/society-of-four-arts/"><span class="nm">Society of Four Arts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-society-of-the-four-arts-renovation/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/the-breakers-family-entertainment-center/" aria-label="Open The Breakers Family Entertainment Center">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/the-breakers-family-entertainment-center.jpeg" alt="The Breakers Family Entertainment Center — Entertainment in Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -640,7 +674,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-breakers-family-entertainment-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-breakers-palm-beach/"><span class="nm">The Breakers Palm Beach</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-breakers-family-entertainment-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hart-howerton/"><span class="nm">Hart Howerton</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="South End" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/3031-s-ocean/" aria-label="Open 3031 S. Ocean">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/3031-s-ocean.webp" alt="3031 S. Ocean — Residences in South End, Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +696,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/3031-s-ocean/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/copperline-partners/"><span class="nm">Copperline Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/3031-s-ocean/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fairfax-sammons-architects/"><span class="nm">Fairfax &amp; Sammons Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/glazer-hall/" aria-label="Open Glazer Hall">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/glazer-hall.webp" alt="Glazer Hall — Entertainment in Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -687,7 +721,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="1">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-vineta-hotel/" aria-label="Open The Vineta Hotel">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/the-vineta-hotel.jpg" alt="The Vineta Hotel — Hotel in Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -720,16 +754,17 @@
   <div class="lead"><h3>Most active architects</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/spina-orourke-partners/">Spina O&#x27;Rourke + Partners</a></div><div class="count">3 projects</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/oma/">OMA</a></div><div class="count">1 project</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/fairfax-sammons-architecture/">Fairfax &amp; Sammons Architecture</a></div><div class="count">1 project</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/hart-howerton/">Hart Howerton</a></div><div class="count">1 project</div></div></div>
 </div>
     </section>
-<section class="section cm-mod"><div class="cm-eyebrow">From the Journal</div><div class="cm-title">Our coverage of <em>Palm Beach</em></div><div class="cm-sub">The latest stories from the projects shaping the city.</div><div class="jc-grid"><a class="jc-card" href="https://www.oftmw.com/post/?slug=the-breakers-begins-demolition-to-nearly-quadruple-its-family-entertainment-center"><div class="jc-img"><span class="jc-chip">Journal</span></div><div class="jc-body"><div class="jc-title">The Breakers begins demolition to nearly quadruple its family entertainment center</div><div class="jc-meta">Jun 2, 2026</div></div></a><a class="jc-card" href="https://www.oftmw.com/post/oetker-hotels-opens-its-first-u-s-property-in-palm-beach"><div class="jc-img"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d2f12b1ee4534d54baded9172c3f1fe2~mv2.jpg" alt="" loading="lazy"><span class="jc-chip">Hotels</span></div><div class="jc-body"><div class="jc-title">Oetker Hotels opens its first U.S. property in Palm Beach</div><div class="jc-meta">Feb 28, 2026</div></div></a><a class="jc-card" href="https://www.oftmw.com/post/inside-tutto-mare-palm-beach-s-first-true-intracoastal-waterfront-restaurant"><div class="jc-img"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4d21a3085e7443e2816b19a2df42e5a3~mv2.jpg" alt="" loading="lazy"><span class="jc-chip">Food &amp; Drink</span></div><div class="jc-body"><div class="jc-title">Inside Tutto Mare, Palm Beach’s first true Intracoastal waterfront restaurant</div><div class="jc-meta">Dec 15, 2025</div></div></a></div></section>
+<section class="section cm-mod" id="m-journal"><div class="cm-eyebrow">From the Journal</div><div class="cm-title">Our coverage of <em>Palm Beach</em></div><div class="cm-sub">The latest stories from the projects shaping the city.</div><div class="jc-grid"><a class="jc-card" href="https://www.oftmw.com/post/?slug=the-breakers-begins-demolition-to-nearly-quadruple-its-family-entertainment-center"><div class="jc-img"><span class="jc-chip">Journal</span></div><div class="jc-body"><div class="jc-title">The Breakers begins demolition to nearly quadruple its family entertainment center</div><div class="jc-meta">Jun 2, 2026</div></div></a><a class="jc-card" href="https://www.oftmw.com/post/oetker-hotels-opens-its-first-u-s-property-in-palm-beach"><div class="jc-img"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d2f12b1ee4534d54baded9172c3f1fe2~mv2.jpg" alt="" loading="lazy"><span class="jc-chip">Hotels</span></div><div class="jc-body"><div class="jc-title">Oetker Hotels opens its first U.S. property in Palm Beach</div><div class="jc-meta">Feb 28, 2026</div></div></a><a class="jc-card" href="https://www.oftmw.com/post/inside-tutto-mare-palm-beach-s-first-true-intracoastal-waterfront-restaurant"><div class="jc-img"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4d21a3085e7443e2816b19a2df42e5a3~mv2.jpg" alt="" loading="lazy"><span class="jc-chip">Food &amp; Drink</span></div><div class="jc-body"><div class="jc-title">Inside Tutto Mare, Palm Beach’s first true Intracoastal waterfront restaurant</div><div class="jc-meta">Dec 15, 2025</div></div></a></div></section>
 <script>
 (function(){
-  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
-  if (!proEls.length) return;
   function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
     if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
     if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
   function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
-  withMember(function(mem){ if(!mem||!mem.id) return;
+
+  // ── Pro values (comparison bands + records median) ──
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (proEls.length) withMember(function(mem){ if(!mem||!mem.id) return;
     var markets = {};
     document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
     var rec = document.querySelector('[data-records-market] #rcProVal');
@@ -746,6 +781,122 @@
         }).catch(function(){});
     });
   });
+
+  // ── Sticky rail: pin under the chrome + active-section highlight ──
+  var rail = document.getElementById('mkRail');
+  if (rail) {
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
+    var jumps = rail.querySelectorAll('.mkr-jump');
+    var sections = [];
+    jumps.forEach(function(j){ var el = document.getElementById(j.getAttribute('data-jump')); if (el) sections.push([el, j]); });
+    if ('IntersectionObserver' in window && sections.length) {
+      var current = null;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if (e.isIntersecting) current = e.target; });
+        sections.forEach(function(p){ p[1].classList.toggle('on', p[0] === current); });
+      }, { rootMargin: '-25% 0px -60% 0px' });
+      sections.forEach(function(p){ io.observe(p[0]); });
+    }
+    jumps.forEach(function(j){ j.addEventListener('click', function(ev){
+      var el = document.getElementById(j.getAttribute('data-jump'));
+      if (el) { ev.preventDefault(); var top = el.getBoundingClientRect().top + window.scrollY - rail.offsetHeight - 74; window.scrollTo({top: top, behavior: 'smooth'}); }
+    }); });
+  }
+
+  // ── One filter state: year + neighborhood + status ──
+  var F = { yr: null, nb: null, st: null };
+  var cards = [].slice.call(document.querySelectorAll('.tmw-project-grid .card'));
+  function cardMatch(c){
+    if (F.yr) {
+      var y = c.getAttribute('data-mk-yr') || '';
+      if (F.yr === 'later') { if (!y || parseInt(y, 10) <= (new Date().getFullYear() + 3)) return false; }
+      else if (y !== F.yr) return false;
+    }
+    if (F.nb && (c.getAttribute('data-mk-nb') || '') !== F.nb) return false;
+    if (F.st && (c.getAttribute('data-mk-st') || '') !== F.st) return false;
+    return true;
+  }
+  function railChips(){
+    var box = document.getElementById('mkrFilters');
+    if (!box) return;
+    var chips = [];
+    if (F.yr) chips.push(['yr', F.yr === 'later' ? (new Date().getFullYear() + 4) + '+' : F.yr]);
+    if (F.nb) chips.push(['nb', F.nb]);
+    if (F.st) chips.push(['st', F.st === 'Now Open' ? 'Recently opened' : F.st]);
+    box.innerHTML = chips.map(function(c){ return '<span class="mkr-fchip" data-mkclear="' + c[0] + '">' + c[1] + '<span class="x">✕</span></span>'; }).join('');
+  }
+  function apply(){
+    var shown = 0;
+    cards.forEach(function(c){ var ok = cardMatch(c); c.classList.toggle('mk-hide', !ok); if (ok) shown++; });
+    // stats strip recount from the full card set
+    document.querySelectorAll('.stat[data-mk-stat]').forEach(function(cell){
+      var v = cell.getAttribute('data-mk-stat');
+      var n = 0;
+      cards.forEach(function(c){ if (!cardMatch(c)) return; if (!v || (c.getAttribute('data-mk-st') === v) || (v === 'Now Open' && c.getAttribute('data-mk-st') === 'Now Open')) n++; });
+      var el = cell.querySelector('[data-mk-n]'); if (el) el.textContent = n;
+      cell.classList.toggle('on', !!F.st && v === F.st);
+    });
+    document.querySelectorAll('[data-mk-yr-cell]').forEach(function(el){ el.classList.toggle('on', F.yr === el.getAttribute('data-mk-yr-cell')); });
+    document.querySelectorAll('[data-mk-nb-chip]').forEach(function(el){ el.classList.toggle('on', F.nb === el.getAttribute('data-mk-nb-chip')); });
+    var head = document.querySelector('#m-projects .section-head');
+    if (head) {
+      var note = document.getElementById('mkShowing');
+      var active = F.yr || F.nb || F.st;
+      if (active) {
+        if (!note) { note = document.createElement('div'); note.id = 'mkShowing'; note.className = 'mk-showing'; head.appendChild(note); }
+        note.textContent = 'Showing ' + shown + ' of ' + cards.length + ' — filtered';
+      } else if (note) note.remove();
+    }
+    railChips();
+    if ((F.yr || F.nb || F.st) && window.tmwFunnelTrack) { try { tmwFunnelTrack('market_dash_filter', {yr: F.yr, nb: F.nb, st: F.st}); } catch(_e){} }
+  }
+  document.addEventListener('click', function(ev){
+    var t;
+    if ((t = ev.target.closest('[data-mk-yr-cell]'))) { F.yr = (F.yr === t.getAttribute('data-mk-yr-cell')) ? null : t.getAttribute('data-mk-yr-cell'); apply(); return; }
+    if ((t = ev.target.closest('[data-mk-nb-chip]'))) {
+      if (ev.target.closest('.nb-go')) return;   // the map ↗ keeps its link
+      F.nb = (F.nb === t.getAttribute('data-mk-nb-chip')) ? null : t.getAttribute('data-mk-nb-chip'); apply(); return;
+    }
+    if ((t = ev.target.closest('.stat[data-mk-stat]'))) {
+      var v = t.getAttribute('data-mk-stat');
+      F.st = (!v || F.st === v) ? null : v; apply(); return;
+    }
+    if ((t = ev.target.closest('[data-mkclear]'))) {
+      var k = t.getAttribute('data-mkclear'); F[k] = null; apply(); return;
+    }
+  });
+
+  // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
+  var mv = document.getElementById('m-pulse');
+  if (mv) {
+    var mvCity = mv.getAttribute('data-mk-city');
+    var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
+    function rel(ts){
+      var s = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+      if (s < 86400) return Math.round(s / 3600) + 'h ago';
+      if (s < 86400 * 14) return Math.round(s / 86400) + 'd ago';
+      return new Date(ts).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+    }
+    fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+      if (!p || !p.events) return;
+      var rows = p.events.filter(function(e){ return (e.city || '') === mvCity && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+      if (rows.length < 2) return;
+      var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+      document.getElementById('mvList').innerHTML = rows.slice(0, 5).map(function(e){
+        var col = TAGC[e.tag] || '#A78BFA';
+        var title = esc(e.title || '');
+        if (e.project_title && title.indexOf(esc(e.project_title)) >= 0) title = title.replace(esc(e.project_title), '<b>' + esc(e.project_title) + '</b>');
+        return '<a class="mv-row" href="' + esc(e.link || '#') + '">'
+          + '<span class="mv-dot" style="background:' + col + ';box-shadow:0 0 10px ' + col + '66"></span>'
+          + '<span class="mv-what">' + title + '</span>'
+          + '<span class="mv-tag" style="color:' + col + ';background:rgba(255,255,255,.05)">' + esc(e.tag || 'Update') + '</span>'
+          + '<span class="mv-when">' + rel(e.timestamp) + '</span></a>';
+      }).join('');
+    }).catch(function(){});
+  }
 })();
 </script>
 

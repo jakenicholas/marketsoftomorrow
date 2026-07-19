@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">55</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">18</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">21</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">5</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">5</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>55</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>18</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>21</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>5</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 55 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card featured" data-featured="1" data-status="active">
+<div class="card featured" data-featured="1" data-status="active" data-mk-yr="2032" data-mk-nb="Hudson Yards" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/hudson-yards-phase-2/" aria-label="Open Hudson Yards West">
     <div class="card-img"><img class="card-img-el" src="https://newyorkyimby.com/wp-content/uploads/2024/08/A.png" alt="Hudson Yards West — Mixed-Use in Hudson Yards, New York City" loading="lazy" decoding="async"><span class="card-feat-badge" aria-label="Featured project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.95 6.55 7.18.75-5.35 4.82 1.55 7.05L12 18l-6.33 3.67 1.55-7.05L1.87 9.8l7.18-.75L12 2.5z"/></svg></span></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-companies/"><span class="nm">Related Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oxford-properties/"><span class="nm">Oxford Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wynn-resorts/"><span class="nm">Wynn Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/hudson-yards-phase-2/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="One Beverly Hills" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/aman-beverly-hills/" aria-label="Open Aman Beverly Hills">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/beverly-hills/aman-beverly-hills.jpg" alt="Aman Beverly Hills — Mixed-Use in One Beverly Hills" loading="lazy" decoding="async"><span class="card-parent-chip">Part of One Beverly Hills</span></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aman-resorts/"><span class="nm">Aman Resorts</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cain-international/"><span class="nm">Cain International</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/eldridge-industries/"><span class="nm">Eldridge Industries</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aman-beverly-hills/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Lower Broadway" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/bridgestone-arena/" aria-label="Open Bridgestone Arena">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/bridgestone-arena.jpg" alt="Bridgestone Arena — Entertainment in Lower Broadway, Nashville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bridgestone-arena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-nashville-predators/"><span class="nm">The Nashville Predators</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-cordish-companies/"><span class="nm">The Cordish Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/bridgestone-arena/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="East End" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/buffalo-bayou-east/" aria-label="Open Buffalo Bayou East">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/6582d810c7ff-2024.04.29_TMP_Aerial-Rendering1_Japhet-Edit_Small.jpg" alt="Buffalo Bayou East — Park in East End, Houston" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/buffalo-bayou-east/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/buffalo-bayou-partnership/"><span class="nm">Buffalo Bayou Partnership</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/buffalo-bayou-east/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/michael-van-valkenburgh-associates/"><span class="nm">Michael Van Valkenburgh Associates</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Canada Water" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/canada-water-masterplan/" aria-label="Open Canada Water Masterplan">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/canada-water-masterplan.jpg" alt="Canada Water Masterplan — Mixed-Use in Canada Water, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/canada-water-masterplan/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/british-land/"><span class="nm">British Land</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/australiansuper/"><span class="nm">AustralianSuper</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/canada-water-masterplan/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/allies-and-morrison/"><span class="nm">Allies and Morrison</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Carolina Sandhills" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/candyroot-lodge/" aria-label="Open Candyroot Lodge">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/south-carolina/candyroot-lodge.jpg" alt="Candyroot Lodge — Golf in Carolina Sandhills, Jefferson" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="49">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Central" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/central-yards/" aria-label="Open Central Yards">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/aaccda984aba-Image-2-Iconic-theatre-exterior-scaled.jpg" alt="Central Yards — Mixed-Use in Central, Hong Kong" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/central-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henderson-land-development/"><span class="nm">Henderson Land Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/central-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/al-a/"><span class="nm">AL_A</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/unstudio/"><span class="nm">UNStudio</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lead8/"><span class="nm">Lead8</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Nora District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/court-club/" aria-label="Open Court Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/court-club.jpeg" alt="Court Club — Park in Nora District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/court-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ndt-development/"><span class="nm">NDT Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ccre/"><span class="nm">CCRE</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/saber-capital/"><span class="nm">Saber Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/court-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Currie Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/currie-park/" aria-label="Open Currie Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/currie-park.png" alt="Currie Park — Entertainment in Currie Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/currie-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><span class="nm">City of West Palm Beach</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/currie-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/olin/"><span class="nm">OLIN</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Diriyah" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/diriyah-gate/" aria-label="Open Diriyah Gate">
     <div class="card-img"><img class="card-img-el" src="https://redvertex.com/files/stories/redvertex-127.jpg?6e3c4e8c7c" alt="Diriyah Gate — Mixed-Use in Diriyah" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/diriyah-gate/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/diriyah-gate-development-authority/"><span class="nm">Diriyah Gate Development Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/diriyah-gate/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/diriyah-gate-development-authority/"><span class="nm">Diriyah Gate Development Authority</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown Jacksonville" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-jacksonville/" aria-label="Open Four Seasons Hotel and Residences Jacksonville">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/jacksonville/four-seasons-hotel-and-residences-jacksonville.jpeg" alt="Four Seasons Hotel and Residences Jacksonville — Residences in Downtown Jacksonville" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-jacksonville/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/iguana-investments-florida/"><span class="nm">Iguana Investments Florida</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/four-seasons-hotel-and-residences-jacksonville/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oda/"><span class="nm">ODA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/greg-matthews-studio/"><span class="nm">Greg Matthews Studio</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Central Riyadh (former airport)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/king-salman-park/" aria-label="Open King Salman Park">
     <div class="card-img"><img class="card-img-el" src="https://omrania.com/wp-content/uploads/Omrania-King-Salman-Park-Riyadh-Saudi-Arabia-KSA-3.jpg" alt="King Salman Park — Mixed-Use in Central Riyadh (former airport)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/king-salman-park-foundation/"><span class="nm">King Salman Park Foundation</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/king-salman-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/omrania/"><span class="nm">Omrania</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henning-larsen-architects/"><span class="nm">Henning Larsen Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Marina District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/marina-village/" aria-label="Open Marina Village">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/riviera-beach/marina-village.jpg" alt="Marina Village — Residences in Marina District, Riviera Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-riviera-beach/"><span class="nm">City of Riviera Beach</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/developer-partner/"><span class="nm">Developer Partner</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/marina-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/reg-architects/"><span class="nm">REG Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Overtown" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/miami-signature-bridge/" aria-label="Open Miami Signature Bridge">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/miami-signature-bridge.webp" alt="Miami Signature Bridge — Park in Overtown, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-signature-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fdot/"><span class="nm">FDOT</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-miami/"><span class="nm">City of Miami</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/miami-signature-bridge/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/donald-macdonald-architects/"><span class="nm">Donald MacDonald Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Former Sherbrooke Golf &amp;amp; Country Club site" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/nokosi-golf-club/" aria-label="Open NOKOSI Golf Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/lantana/nokosi-golf-club.jpeg" alt="NOKOSI Golf Club — Golf in Former Sherbrooke Golf &amp;amp; Country Club site, Lantana" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nokosi-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/nicklaus-design/"><span class="nm">Nicklaus Design</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/twg-global/"><span class="nm">TWG Global</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nokosi-golf-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/spina-orourke-partners/"><span class="nm">Spina O&#x27;Rourke + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Oakridge" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/oakridge-park/" aria-label="Open Oakridge Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/472af5a1e83e-Gallery_Rendering_1.jpg" alt="Oakridge Park — Mixed-Use in Oakridge, Vancouver" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oakridge-park/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oakridge-park/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Worth Avenue" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/saks-fifth-redevelopment/" aria-label="Open Saks Fifth Redevelopment">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/palm-beach/saks-fifth-redevelopment.webp" alt="Saks Fifth Redevelopment — Retail in Worth Avenue, Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/saks-fifth-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oconnor-capital-partners/"><span class="nm">O&#x27;Connor Capital Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/saks-fifth-redevelopment/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/fairfax-sammons-architecture/"><span class="nm">Fairfax &amp; Sammons Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Hollywood Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/sofi-stadium-district/" aria-label="Open SoFi Stadium District">
     <div class="card-img"><img class="card-img-el" src="https://www.archpaper.com/wp-content/uploads/2022/09/Cosm_HollywoodPark-copy.jpg" alt="SoFi Stadium District — Mixed-Use in Hollywood Park, Inglewood" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -926,7 +959,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kroenke-sports-entertainment/"><span class="nm">Kroenke Sports &amp; Entertainment</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/sofi-stadium-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks-architects/"><span class="nm">HKS Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="The 78" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-78/" aria-label="Open The 78">
     <div class="card-img"><img class="card-img-el" src="https://www.costar.com/_next/image?url=https%3A%2F%2Fcostar.brightspotcdn.com%2Fdims4%2Fdefault%2Fd7d30b4%2F2147483647%2Fstrip%2Ftrue%2Fcrop%2F2100x1400%2B0%2B0%2Fresize%2F2100x1400!%2Fquality%2F100%2F%3Furl%3Dhttp%253A%252F%252Fcostar-brightspot.s3.us-east-1.amazonaws.com%252F40%252F1c%252F2b5adc414056a1eee36fc82a8b1d%252Fdpi.jpg&amp;w=3840&amp;q=75" alt="The 78 — Residences in The 78, Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -948,7 +981,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-78/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-midwest/"><span class="nm">Related Midwest</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-78/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="North Platinum Corridor" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-mix/" aria-label="Open The Mix">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/frisco/the-mix.jpg" alt="The Mix — Mixed-Use in North Platinum Corridor, Frisco" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -970,7 +1003,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-mix/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-retail-connection/"><span class="nm">The Retail Connection</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/streetlights-residential/"><span class="nm">StreetLights Residential</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-mix/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/the-power-district/" aria-label="Open The Power District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/salt-lake-city/the-power-district.jpg" alt="The Power District — Mixed-Use in Salt Lake City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -992,7 +1025,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-power-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/larry-h-miller-real-estate/"><span class="nm">Larry H. Miller Real Estate</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-power-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hok/"><span class="nm">HOK</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Kelly Park Corridor" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/wyld-oaks/" aria-label="Open Wyld Oaks">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/apopka/wyld-oaks.jpg" alt="Wyld Oaks — Mixed-Use in Kelly Park Corridor, Apopka" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1014,7 +1047,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wyld-oaks/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wyld-oaks/"><span class="nm">Wyld Oaks</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wyld-oaks/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Gowanus" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/175-third-street/" aria-label="Open 175 Third Street">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/new-york-city/175-third-street.jpg" alt="175 Third Street — Residences in Gowanus, New York City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1036,7 +1069,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/charney-companies/"><span class="nm">Charney Companies</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tavros-capital/"><span class="nm">Tavros Capital</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/175-third-street/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Halawa" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/aloha-stadium/" aria-label="Open Aloha Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/honolulu/aloha-stadium.jpg" alt="Aloha Stadium — Mixed-Use in Halawa, Honolulu" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1058,7 +1091,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aloha-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/aloha-halawa-district-partners-development-ventures-group/"><span class="nm">Aloha Halawa District Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/stanford-carr-development/"><span class="nm">Stanford Carr Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ameresco/"><span class="nm">Ameresco</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cordish-companies/"><span class="nm">Cordish Companies</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/aloha-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rma-architects/"><span class="nm">RMA Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sb-architects/"><span class="nm">SB Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/henning-larsen/"><span class="nm">Henning Larsen</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alakea-design-group/"><span class="nm">Alakea Design Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wcit-architects/"><span class="nm">WCIT Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="Herston" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/brisbane-olympic-stadium/" aria-label="Open Brisbane Olympic Stadium">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brisbane/brisbane-olympic-stadium.jpeg" alt="Brisbane Olympic Stadium — Stadium in Herston, Brisbane" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1080,7 +1113,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/brisbane-olympic-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/queensland-government/"><span class="nm">Queensland Government</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/games-independent-infrastructure-and-coordination-authority/"><span class="nm">Games Independent Infrastructure and Coordination Authority</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/brisbane-olympic-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cox-architecture/"><span class="nm">Cox Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hassell/"><span class="nm">Hassell</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/azusa-sekkei/"><span class="nm">Azusa Sekkei</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="East Bank" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/eastpoint/" aria-label="Open Eastpoint">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/eastpoint.jpeg" alt="Eastpoint — Mixed-Use in East Bank, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
@@ -1102,7 +1135,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/eastpoint/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/the-fallon-company/"><span class="nm">The Fallon Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/eastpoint/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks/"><span class="nm">HKS</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/michael-hsu-office-of-architecture/"><span class="nm">Michael Hsu Office of Architecture</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gresham-smith/"><span class="nm">Gresham Smith</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/morris-adjmi-architects/"><span class="nm">Morris Adjmi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Chamartín" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/madrid-nuevo-norte-bbva-tower-towers/" aria-label="Open Madrid Nuevo Norte">
     <div class="card-img"><img class="card-img-el" src="https://www.bbva.com/wp-content/uploads/2018/07/Imagen-2.jpg" alt="Madrid Nuevo Norte — Residences in Chamartín, Madrid" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1124,7 +1157,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/madrid-nuevo-norte-bbva-tower-towers/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bbva/"><span class="nm">BBVA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dcn-madrid/"><span class="nm">DCN Madrid</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/madrid-nuevo-norte-bbva-tower-towers/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/herzog-de-meuron/"><span class="nm">Herzog &amp; de Meuron</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2031" data-mk-nb="River North" data-mk-st="Breaking Ground">
   <a class="card-link" href="https://www.oftmw.com/projects/oracle-campus/" aria-label="Open Oracle Campus">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/oracle-campus.jpeg" alt="Oracle Campus — Hotel in River North, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
@@ -1146,7 +1179,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oracle-campus/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oracle/"><span class="nm">Oracle</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/oracle-campus/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Duck Key" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/coral-cay-waterpark/" aria-label="Open Coral Cay Adventure Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/florida-keys/coral-cay-waterpark.webp" alt="Coral Cay Adventure Park — Entertainment in Duck Key, Florida Keys" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1168,7 +1201,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coral-cay-waterpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hawks-cay-resort/"><span class="nm">Hawks Cay Resort</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/coral-cay-waterpark/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cuhaci-peterson/"><span class="nm">Cuhaci Peterson</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Northwood" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/district-at-northwood/" aria-label="Open District at Northwood">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/district-at-northwood.jpg" alt="District at Northwood — Residences in Northwood, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1190,7 +1223,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/district-at-northwood/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/immocorp-ventures/"><span class="nm">Immocorp Ventures</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/district-at-northwood/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kobi-karp-architecture/"><span class="nm">Kobi Karp</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Flagler Village" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/fat-village/" aria-label="Open FAT Village">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/fat-village.webp" alt="FAT Village — Mixed-Use in Flagler Village, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1212,7 +1245,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/fat-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hines/"><span class="nm">Hines</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/urban-street-development/"><span class="nm">Urban Street Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/fat-village/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/scb/"><span class="nm">SCB</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dlr-group/"><span class="nm">DLR Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="PortMiami" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/royal-caribbean-hq/" aria-label="Open Royal Caribbean HQ">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/royal-caribbean-hq.webp" alt="Royal Caribbean HQ — Office in PortMiami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1234,7 +1267,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/royal-caribbean-hq/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/royal-caribbean-group/"><span class="nm">Royal Caribbean Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/royal-caribbean-hq/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hok/"><span class="nm">HOK</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Lake Lytal Park" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/" aria-label="Open YMCA of the Palm Beaches">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ymca-of-the-palm-beaches-flagship-community-center.avif" alt="YMCA of the Palm Beaches — Mixed-Use in Lake Lytal Park, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1256,7 +1289,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ymca-of-the-palm-beaches/"><span class="nm">YMCA of the Palm Beaches</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ymca-of-the-palm-beaches-flagship-community-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pbk-architects/"><span class="nm">PBK Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/pbk-architects-1/"><span class="nm">PBK Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown Boca Raton" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/boca-raton-city-hall/" aria-label="Open Boca Raton City Hall">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/boca-raton/boca-raton-city-hall.jpeg" alt="Boca Raton City Hall — Entertainment in Downtown Boca Raton" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1278,7 +1311,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/boca-raton-city-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra/"><span class="nm">Terra</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/frisbie-group/"><span class="nm">Frisbie Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-boca-raton/"><span class="nm">City of Boca Raton</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/boca-raton-city-hall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown West Palm Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/central-waterfront-park/" aria-label="Open Central Waterfront Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/central-waterfront-park.jpeg" alt="Central Waterfront Park — Park in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1300,7 +1333,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/central-waterfront-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-west-palm-beach/"><span class="nm">City of West Palm Beach</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/central-waterfront-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ojb-landscape-architecture/"><span class="nm">OJB Landscape Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Earls Court" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/earls-court-development/" aria-label="Open Earls Court Development">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/london/earls-court-development.jpg" alt="Earls Court Development — Mixed-Use in Earls Court, London" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1322,7 +1355,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/earls-court-development/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/earls-court-development-company/"><span class="nm">The Earls Court Development Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/earls-court-development/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hawkins-brown/"><span class="nm">Hawkins\Brown</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/studio-egret-west/"><span class="nm">Studio Egret West</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sla/"><span class="nm">SLA</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2032" data-mk-nb="Lincoln Park" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/lincoln-yards/" aria-label="Open Foundry Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/chicago/lincoln-yards.jpg" alt="Foundry Park — Residences in Lincoln Park, Chicago" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1344,7 +1377,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lincoln-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/sterling-bay/"><span class="nm">Sterling Bay</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lincoln-yards/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Historic Gas Plant District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-burg-bid/" aria-label="Open Historic Gas Plant District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/st-petersburg/the-burg-bid.jpeg" alt="Historic Gas Plant District — Mixed-Use in Historic Gas Plant District, St. Petersburg" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1366,7 +1399,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-burg-bid/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/blake-investment-partners/"><span class="nm">Blake Investment Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-group/"><span class="nm">Related Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-burg-bid/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/wannemacher-jensen-architects/"><span class="nm">Wannemacher Jensen Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Watson Island" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/jungle-island/" aria-label="Open Jungle Island">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/jungle-island.jpeg" alt="Jungle Island — Mixed-Use in Watson Island, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1388,7 +1421,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jungle-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/esj-capital-partners/"><span class="nm">ESJ Capital Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/terra-group/"><span class="nm">Terra Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jungle-island/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/bjarke-ingels-group/"><span class="nm">Bjarke Ingels Group</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Downtown Orlando" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/lake-eola-expansion/" aria-label="Open Lake Eola Expansion">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/orlando/lake-eola-expansion.jpeg" alt="Lake Eola Expansion — Park in Downtown Orlando" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1410,7 +1443,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lake-eola-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/city-of-orlando/"><span class="nm">City of Orlando</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lake-eola-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/cph-inc-mark-adams/"><span class="nm">CPH Inc.</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Little Haiti" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/magic-city-innovation-district/" aria-label="Open Magic City Innovation District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/magic-city-innovation-district.avif" alt="Magic City Innovation District — Mixed-Use in Little Haiti, Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1432,7 +1465,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/magic-city-innovation-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dragon-global/"><span class="nm">Dragon Global</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/plaza-equity-partners/"><span class="nm">Plaza Equity Partners</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/magic-city-innovation-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Midtown Miami" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/midtown-park/" aria-label="Open Midtown Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/midtown-park.jpeg" alt="Midtown Park — Mixed-Use in Midtown Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1454,7 +1487,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/midtown-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rosso-development/"><span class="nm">Rosso Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/midtown-development/"><span class="nm">Midtown Development</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/midtown-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Crown Center" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/" aria-label="Open New Kansas City Royals Stadium">
     <div class="card-img"><img class="card-img-el" src="https://gray-kctv-prod.gtv-cdn.com/resizer/v2/YEDKVX4BE5DABA7MZI5WUJ3ESE.jpg?auth=ddf49ec71e3316bddbec6ef2d7932dc50a0114dc31da903fd3a04ab300bb4804&amp;width=1920&amp;height=1080&amp;smart=true" alt="New Kansas City Royals Stadium — Stadium in Crown Center, Kansas City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1476,7 +1509,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kansas-city-royals/"><span class="nm">Kansas City Royals</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hallmark-cards/"><span class="nm">Hallmark Cards</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/new-kansas-city-royals-stadium/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/populous/"><span class="nm">Populous</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Downtown West Palm Beach" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/ross-private-club/" aria-label="Open Palm Harbor Club">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/ross-private-club.jpg" alt="Palm Harbor Club — Entertainment in Downtown West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1498,7 +1531,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ross-private-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/leisure-resorts-llc-chase-enterprises/"><span class="nm">Leisure Resorts</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/ross-private-club/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/robert-am-stern-architects/"><span class="nm">Robert A.M. Stern Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Xiaoshan District" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/qiantang-bay-cultural-district/" aria-label="Open Qiantang Bay Cultural District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/509cdffc6910-02_zha_library_qiantang-bay-cultural-district_render-by-proloog.jpg" alt="Qiantang Bay Cultural District — Cultural in Xiaoshan District, Hangzhou" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1520,7 +1553,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qiantang-bay-cultural-district/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qiantang-bay-cultural-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zaha-hadid-architects/"><span class="nm">Zaha Hadid Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Bahia Mar" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/st-regis-bahia-mar/" aria-label="Open St. Regis Bahia Mar">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/fort-lauderdale/st-regis-bahia-mar.jpeg" alt="St. Regis Bahia Mar — Entertainment in Bahia Mar, Fort Lauderdale" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1542,7 +1575,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/st-regis-bahia-mar/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-group/"><span class="nm">Related Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/tate-capital/"><span class="nm">Tate Capital</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rok-acquisitions/"><span class="nm">Rok Acquisitions</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/st-regis-bahia-mar/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Wasioto Bend" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/the-east-bend/" aria-label="Open The East Bend">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/nashville/the-east-bend.png" alt="The East Bend — Mixed-Use in Wasioto Bend, Nashville" loading="lazy" decoding="async"><span class="card-parent-chip">Part of East Bank</span></div>
     <div class="card-body">
@@ -1564,7 +1597,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-east-bend/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-east-bend/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2029" data-mk-nb="Bridgeland Central" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/toro-district/" aria-label="Open Toro District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/cypress/toro-district.jpg" alt="Toro District — Mixed-Use in Bridgeland Central, Cypress" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1586,7 +1619,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/toro-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/howard-hughes/"><span class="nm">Howard Hughes</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/houston-texans/"><span class="nm">Houston Texans</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/toro-district/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="K-Park" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/wingrove-academy/" aria-label="Open Wingrove Academy">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wellington/wingrove-academy.jpeg" alt="Wingrove Academy — Education in K-Park, Wellington" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1608,7 +1641,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wingrove-academy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elevated-operator-backed-by-stephen-ross-related-ross/"><span class="nm">ElevatED</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/related-ross/"><span class="nm">Related Ross</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/wingrove-academy/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/elkus-manfredi-architects/"><span class="nm">Elkus Manfredi Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="SoSo" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/woodlawn-cemetery/" aria-label="Open Woodlawn Cemetery">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/woodlawn-cemetery.jpeg" alt="Woodlawn Cemetery — Park in SoSo, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1630,7 +1663,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/woodlawn-cemetery/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/friends-of-woodlawn/"><span class="nm">Friends of Woodlawn</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/woodlawn-cemetery/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2030" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/amaala/" aria-label="Open AMAALA">
     <div class="card-img"><img class="card-img-el" src="https://dcxnozgahgy2a.cloudfront.net/AcuCustom/Sitename/DAM/378/render-red-sea-global-amaala-resort1.webp" alt="AMAALA — Residences in Saudi Arabia" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1652,7 +1685,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amaala/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/red-sea-global/"><span class="nm">Red Sea Global</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/amaala/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hks-architects/"><span class="nm">HKS Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="Town of Rome" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-commons/" aria-label="Open Commons">
     <div class="card-img"><img class="card-img-el" src="https://i-p.rmcdn.net/5e0a91adebe8423aeb96d913/5230951/image-be5680dc-3b2f-48ca-9f68-87fad2bf8566.jpg?e=webp&amp;cX=0&amp;cY=0&amp;cW=1999&amp;cH=1333" alt="Commons — Golf in Town of Rome, Nekoosa" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1674,7 +1707,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-commons/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/dream-golf/"><span class="nm">Dream Golf</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/the-commons/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jim-craig/"><span class="nm">Jim Craig</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/deer-valley-resort-expansion/" aria-label="Open Deer Valley Resort (Expansion)">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/park-city/deer-valley-resort-expansion.jpg" alt="Deer Valley Resort (Expansion) — Hotel in Park City" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1696,7 +1729,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/deer-valley-resort-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/alterra-mountain-company/"><span class="nm">Alterra Mountain Company</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/deer-valley-resort-expansion/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/se-group/"><span class="nm">SE Group</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/oda-architecture/"><span class="nm">ODA Architecture</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/" aria-label="Open Nu Stadium at Miami Freedom Park">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/nu-stadium-at-miami-freedom-park.jpeg" alt="Nu Stadium at Miami Freedom Park — Stadium in Miami" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -1718,7 +1751,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/miami-freedom-park-llc-david-beckham/"><span class="nm">Miami Freedom Park</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jorge-jose-mas/"><span class="nm">Jorge &amp; Jose Mas)</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/nu-stadium-at-miami-freedom-park/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/manica/"><span class="nm">MANICA</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/arquitectonica/"><span class="nm">Arquitectonica</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Nora District" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/the-nora-district/" aria-label="Open The Nora District">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/west-palm-beach/the-nora-district.jpeg" alt="The Nora District — Mixed-Use in Nora District, West Palm Beach" loading="lazy" decoding="async"></div>
     <div class="card-body">

@@ -98,6 +98,39 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* Dashboard rail */
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+      background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
+      box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
+    .mk-rail::-webkit-scrollbar { display:none; }
+    .mkr-vitals { flex:0 0 auto; font-size:12.5px; color:rgba(255,255,255,.72); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .mkr-vitals b { font-size:15px; font-weight:700; }
+    .mkr-jumps { display:flex; gap:2px; flex:0 0 auto; }
+    .mkr-jump { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+      color:rgba(255,255,255,.55); text-decoration:none; padding:7px 11px; border-radius:999px; white-space:nowrap; transition:color .15s, background .15s; }
+    .mkr-jump:hover { color:#fff; }
+    .mkr-jump.on { background:rgba(167,139,250,.16); color:#A78BFA; }
+    .mkr-filters { display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+    .mkr-fchip { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:650; color:#A78BFA;
+      background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.4); border-radius:999px; padding:6px 12px;
+      cursor:pointer; white-space:nowrap; box-shadow:0 0 14px rgba(167,139,250,.16); }
+    .mkr-fchip .x { font-size:10px; opacity:.85; }
+    /* filter controls */
+    .stat[data-mk-stat] { cursor:pointer; transition:border-color .15s; }
+    .stat.on { border-color:rgba(167,139,250,.55) !important; box-shadow:0 0 18px rgba(167,139,250,.14); }
+    .ot-cell[data-mk-yr-cell] { cursor:pointer; transition:border-color .15s; }
+    .ot-cell.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 20px rgba(31,223,103,.14); }
+    .nb-chip { cursor:pointer; }
+    .nb-chip.on { border-color:rgba(31,223,103,.55); box-shadow:0 0 16px rgba(31,223,103,.14); }
+    .nb-go { margin-left:2px; color:rgba(255,255,255,.4); text-decoration:none; font-size:12px; padding:2px 4px; }
+    .nb-go:hover { color:#fff; }
+    .card.mk-hide { display:none !important; }
+    .mk-showing { font-size:12px; color:rgba(167,139,250,.9); margin-top:6px; font-weight:600; }
+    .sp-atlas, .cmp-foot a { font-size:12px; font-weight:700; color:#A78BFA; text-decoration:none; white-space:nowrap; }
+    .sp-atlas:hover, .cmp-foot a:hover { text-decoration:underline; }
+    .cmp-foot { margin-top:14px; text-align:right; }
+    @media (max-width:760px) { .mkr-vitals { display:none; } }
     /* City intelligence modules */
     .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
     .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
@@ -509,16 +542,16 @@
     </section>
 
     <div class="stats" aria-label="Status breakdown">
-<div class="stat "><div class="n">18</div><div class="l">Tracked</div></div>
-<div class="stat an"><div class="n">1</div><div class="l">Announced</div></div>
-<div class="stat uc"><div class="n">12</div><div class="l">Under Construction</div></div>
-<div class="stat os"><div class="n">3</div><div class="l">Opening Soon</div></div>
-<div class="stat no"><div class="n">2</div><div class="l">Recently Opened</div></div>
+<div class="stat " data-mk-stat="" role="button" tabindex="0"><div class="n" data-mk-n>18</div><div class="l">Tracked</div></div>
+<div class="stat an" data-mk-stat="Announced" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Announced</div></div>
+<div class="stat uc" data-mk-stat="Under Construction" role="button" tabindex="0"><div class="n" data-mk-n>12</div><div class="l">Under Construction</div></div>
+<div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>3</div><div class="l">Opening Soon</div></div>
+<div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Recently Opened</div></div>
     </div>
 
 
 
-    <section class="section">
+    <section class="section" id="m-projects">
       <div class="section-head">
         <div>
           <div class="section-eyebrow">Featured projects</div>
@@ -527,7 +560,7 @@
         <div class="section-meta"><a class="see-all-pill gopro-pill" data-gopro href="https://www.oftmw.com/map/?upgrade=1">Unlock all 18 &rarr;</a></div>
       </div>
       <div class="grid tmw-project-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Luohu District" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/chengjian-meiyuan/" aria-label="Open Chengjian Meiyuan">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ddddf04de14e-341067_N39_screenhd.jpg" alt="Chengjian Meiyuan — Mixed-Use in Luohu District, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -549,7 +582,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chengjian-meiyuan/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/chengjian-meiyuan/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woods-bagot/"><span class="nm">Woods Bagot</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Suzhou CBD" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/china-overseas-suzhou-supertall/" aria-label="Open China Overseas Suzhou Supertall">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a7464bb411f5-221161_000_N57_large-1662645178-scaled.jpg" alt="China Overseas Suzhou Supertall — Mixed-Use in Suzhou CBD" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -571,7 +604,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/china-overseas-suzhou-supertall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/china-overseas/"><span class="nm">China Overseas</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/china-overseas-suzhou-supertall/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Yangjing" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/lujiazui-taikoo-yuan/" aria-label="Open Lujiazui Taikoo Yuan">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/198a79e0d259-lujiazui-taikoo-yuan-residences.jpg" alt="Lujiazui Taikoo Yuan — Mixed-Use in Yangjing, Shanghai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -593,7 +626,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lujiazui-taikoo-yuan/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/swire-properties/"><span class="nm">Swire Properties</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/lujiazui-group/"><span class="nm">Lujiazui Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/lujiazui-taikoo-yuan/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/make-architects/"><span class="nm">Make Architects</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Hongling" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/luohu-financial-innovation-plaza/" aria-label="Open Luohu Financial Innovation Plaza">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/891a4164383f-341067_N36_screenhd.jpg" alt="Luohu Financial Innovation Plaza — Mixed-Use in Hongling, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -615,7 +648,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/luohu-financial-innovation-plaza/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-construction-group/"><span class="nm">Shenzhen Construction Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/luohu-financial-innovation-plaza/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woods-bagot/"><span class="nm">Woods Bagot</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Nanshan" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/rosewood-shenzhen/" aria-label="Open Rosewood Shenzhen">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/5098a1683db6-rosewood-shenzhen-hero.jpg" alt="Rosewood Shenzhen — Hotel in Nanshan, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -637,7 +670,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-shenzhen/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rosewood/"><span class="nm">Rosewood</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/rosewood-shenzhen/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/rosewood/"><span class="nm">Rosewood</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Houhai" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/rong-museum-of-art/" aria-label="Open Róng Museum of Art">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/08d1504564f6-Ole-Scheeren-Rong-Museum-Zhu-Yumeng-01.webp" alt="Róng Museum of Art — Museum in Houhai, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -662,7 +695,7 @@
       </div>
       <div class="tmw-locked" data-locked-count="12">
         <div class="grid tmw-project-grid tmw-locked-grid">
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="North Bund" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shanghai-north-bund-center/" aria-label="Open Shanghai North Bund Center">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/16233598806c-3257_N95_News_cSAN-2160x1215.webp" alt="Shanghai North Bund Center — Mixed-Use in North Bund, Shanghai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -684,7 +717,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-north-bund-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shanghai-industrial-development/"><span class="nm">Shanghai Industrial Development</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shanghai-city-investment-group/"><span class="nm">Shanghai City Investment (Group)</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shanghai-construction-engineering-group/"><span class="nm">Shanghai Construction Engineering Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-north-bund-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/east-china-architectural-design-and-research-institute/"><span class="nm">East China Architectural Design and Research Institute</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2030" data-mk-nb="Nanshan (Shenzhen Bay)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shenzhen-bay-super-headquarters-base/" aria-label="Open Shenzhen Bay Super Headquarters Base">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/a5a91e6f3607-av_179703-crop.jpg" alt="Shenzhen Bay Super Headquarters Base — Office in Nanshan (Shenzhen Bay)" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -706,7 +739,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-bay-super-headquarters-base/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-municipal-government/"><span class="nm">Shenzhen Municipal Government</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-bay-super-headquarters-base/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/skidmore-owings-merrill/"><span class="nm">Skidmore</span></a><span class="pp-firm-chip is-plain"><span class="nm">Owings &amp; Merrill</span></span></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Luohu CBD" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shenzhen-cloud-of-innovation-center/" aria-label="Open Shenzhen Cloud of Innovation Center">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/56e8a529fb67-341067_N36_screenhd.jpg" alt="Shenzhen Cloud of Innovation Center — Mixed-Use in Luohu CBD, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -728,7 +761,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-cloud-of-innovation-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-chengjian-group/"><span class="nm">Shenzhen Chengjian Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-cloud-of-innovation-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/woods-bagot/"><span class="nm">Woods Bagot</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="Shekou (Dongjiaotou)" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/shenzhen-opera-house/" aria-label="Open Shenzhen Opera House">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/bd855f07d358-shenzhen-opera-house-jean-nouvel-china-architecture_dezeen_2364_hero.jpg" alt="Shenzhen Opera House — Cultural in Shekou (Dongjiaotou), Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -750,7 +783,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-municipal-government/"><span class="nm">Shenzhen Municipal Government</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/ateliers-jean-nouvel/"><span class="nm">Ateliers Jean Nouvel</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="" data-mk-nb="Suzhou Industrial Park" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/suzhou-zhongnan-center/" aria-label="Open Suzhou Zhongnan Center">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/1bb7c74a4cec-Suzhou-Zhongnan_Center_sky_atrium_1596559166.jpg" alt="Suzhou Zhongnan Center — Residences in Suzhou Industrial Park" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -772,7 +805,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/suzhou-zhongnan-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zhongnan-construction-group/"><span class="nm">Zhongnan Construction Group</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/suzhou-zhongnan-center/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/gensler/"><span class="nm">Gensler</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2028" data-mk-nb="West Bund" data-mk-st="Under Construction">
   <a class="card-link" href="https://www.oftmw.com/projects/west-bund-central/" aria-label="Open West Bund Central">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/43657bdf2907-c01_02-scaled.webp" alt="West Bund Central — Mixed-Use in West Bund, Shanghai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -794,7 +827,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/west-bund-central/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/hongkong-land/"><span class="nm">Hongkong Land</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/west-bund-central/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/kohn-pedersen-fox/"><span class="nm">Kohn Pedersen Fox</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Qianhai" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/qianhai-museum/" aria-label="Open Qianhai Museum">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/60cdbb07b4d4-qianhai-museum_scad-fcdt_original_1.jpg" alt="Qianhai Museum — Museum in Qianhai, Nanshan District, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -816,7 +849,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developers</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qianhai-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-municipal-government/"><span class="nm">Shenzhen Municipal Government</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/national-museum-of-china/"><span class="nm">National Museum of China</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/qianhai-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/he-jingtang/"><span class="nm">He Jingtang</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Expo Houtan" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/shanghai-grand-opera-house/" aria-label="Open Shanghai Grand Opera House">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/699c/23b5/37d1/5901/88d3/5b6f/large_jpg/first-look-at-snohettas-shanghai-grand-opera-house-as-construction-nears-completion_3.jpg" alt="Shanghai Grand Opera House — Cultural in Expo Houtan, Shanghai" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -838,7 +871,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-grand-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shanghai-grand-theatre-arts-center/"><span class="nm">Shanghai Grand Theatre Arts Center</span></a></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shanghai-grand-opera-house/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/snhetta/"><span class="nm">Snøhetta</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2026" data-mk-nb="Pingshan" data-mk-st="Opening Soon">
   <a class="card-link" href="https://www.oftmw.com/projects/shenzhen-natural-history-museum/" aria-label="Open Shenzhen Natural History Museum">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/b9ef8bfaf301-Shenzhen-Natural-History-Museum_View-01_Aerial-scaled.jpg" alt="Shenzhen Natural History Museum — Museum in Pingshan, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -860,7 +893,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-natural-history-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/shenzhen-municipal-construction-and-public-works-administration/"><span class="nm">Shenzhen Municipal Construction and Public Works Administration</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/shenzhen-natural-history-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/3xn/"><span class="nm">3XN</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/b-h-architects/"><span class="nm">B+H Architects</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/zhubo-design/"><span class="nm">Zhubo Design</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="active">
+<div class="card" data-status="active" data-mk-yr="2027" data-mk-nb="Shenzhen Bay Super Headquarters Base" data-mk-st="Announced">
   <a class="card-link" href="https://www.oftmw.com/projects/jd-museum/" aria-label="Open JD Museum">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/ffe84aa07cb7-jd-museum-shenzhen.jpg" alt="JD Museum — Museum in Shenzhen Bay Super Headquarters Base" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -882,7 +915,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jd-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/jd-com/"><span class="nm">JD.com</span></a></div></div><div class="pp-firm-group"><div class="k">Architects</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/jd-museum/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/buro-ole-scheeren/"><span class="nm">Büro Ole Scheeren</span></a><a class="pp-firm-chip" href="https://www.oftmw.com/firm/neri-hu-design-and-research-office/"><span class="nm">Neri&amp;Hu Design and Research Office</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2025" data-mk-nb="Qianhai" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/grand-bayview-qianhai/" aria-label="Open Grand Bayview Qianhai">
     <div class="card-img"><img class="card-img-el" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/233d6f2a17be-grand-bayview-qianhai-residential-towers-foster-plus-partners_3.jpg" alt="Grand Bayview Qianhai — Residences in Qianhai, Shenzhen" loading="lazy" decoding="async"></div>
     <div class="card-body">
@@ -904,7 +937,7 @@
   </a>
   <div class="card-firms-wrap"><div class="pp-firms"><div class="pp-firm-group"><div class="k">Developer</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-bayview-qianhai/"><span class="pp-firm-chip is-empty"><span class="nm">—</span></span></div></div><div class="pp-firm-group"><div class="k">Architect</div><div class="pp-firm-chips" data-more="https://www.oftmw.com/projects/grand-bayview-qianhai/"><a class="pp-firm-chip" href="https://www.oftmw.com/firm/foster-partners/"><span class="nm">Foster + Partners</span></a></div></div></div></div>
 </div>
-<div class="card" data-status="completed">
+<div class="card" data-status="completed" data-mk-yr="2026" data-mk-nb="" data-mk-st="Now Open">
   <a class="card-link" href="https://www.oftmw.com/projects/suzhou-museum-of-contemporary-art/" aria-label="Open Suzhou Museum of Contemporary Art">
     <div class="card-img"><img class="card-img-el" src="https://images.adsttc.com/media/images/6912/f914/11d9/5649/b6a2/6728/large_jpg/bigs-suzhou-museum-of-contemporary-art-in-china-nears-completion-with-materialism-exhibition_13.jpg" alt="Suzhou Museum of Contemporary Art — Museum in Suzhou" loading="lazy" decoding="async"></div>
     <div class="card-body">
