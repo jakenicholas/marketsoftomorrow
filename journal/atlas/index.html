@@ -79,7 +79,8 @@
   .mc-box { background: linear-gradient(120deg, rgba(167,139,250,.10), rgba(255,211,0,.03)); border: 1px solid rgba(167,139,250,.30); border-radius: 18px; padding: 22px 24px; }
   .mc-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 12px; align-items: end; margin: 0; }
   .mc-field label { display:block; font-family: var(--mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase; color: var(--purple-bright,#A78BFA); margin-bottom: 8px; font-weight: 600; }
-  .mc-field select { width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 13px 15px; font-family: var(--sans); font-size: 14px; color: #fff; appearance: none; cursor: pointer; }
+  .mc-field select { width: 100%; background: rgba(0,0,0,.45); border: 1px solid rgba(167,139,250,.32); border-radius: 10px; padding: 13px 15px; font-family: var(--sans); font-size: 14px; color: var(--mute,#9AA39C); appearance: none; cursor: pointer; }
+  .mc-field select.has-val { color: #fff; }
   .mc-field select:focus { outline: 0; border-color: var(--purple-bright,#A78BFA); }
   .mc-go { font-family: var(--mono); font-size: 11px; letter-spacing:.12em; text-transform: uppercase; font-weight: 700; padding: 13px 22px; border-radius: 10px; background: var(--purple,#A78BFA); color: #0a0a0a; border: 0; cursor: pointer; white-space: nowrap; }
   .mc-go:hover { filter: brightness(1.08); }
@@ -1279,15 +1280,15 @@
               <div class="mc-sug" id="acs-sug"></div>
             </div>
           <form class="mc-row" id="atlas-calc-form">
-            <div class="mc-field"><select id="ac-place">
+            <div class="mc-field"><select id="ac-place" class="${placeVal ? 'has-val' : ''}">
               <option value="">All markets</option>
               <optgroup label="States">${stateOpts}</optgroup>
               <optgroup label="Cities">${cityOpts}</optgroup>
             </select></div>
-            <div class="mc-field"><select id="ac-cat">
+            <div class="mc-field"><select id="ac-cat" class="${(currentTypeFilter && currentTypeFilter !== 'ALL') ? 'has-val' : ''}">
               <option value="">All categories</option>${catOpts}
             </select></div>
-            <div class="mc-field"><select id="ac-year">
+            <div class="mc-field"><select id="ac-year" class="${currentYearFilter ? 'has-val' : ''}">
               <option value="">Any delivery year</option>${yearOpts}
             </select></div>
             <button type="submit" class="mc-go">Show me →</button>
@@ -2732,6 +2733,10 @@
       } else return '';
       return `<div class="atlas-sticky-filters" id="atlasStickyFilters">${inner}</div>`;
     }
+    document.addEventListener('change', function (e) {
+      const sel = e.target.closest('.mc-field select');
+      if (sel) sel.classList.toggle('has-val', !!sel.value);
+    });
     document.addEventListener('click', function (e) {
       const chip = e.target.closest('#atlasStickyFilters .ash-chip');
       if (!chip) return;
