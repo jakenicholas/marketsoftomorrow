@@ -734,16 +734,18 @@ def supply_pressure_html(m: dict | None) -> str:
         bars.append(
             f'<div class="sp-win{on}" title="{w["projects"]} projects · {w["units"]:,} units">'
             f'<div class="sp-bar-wrap"><div class="sp-bar" style="height:{h}px"></div></div>'
-            f'<div class="sp-win-n">{w["projects"]}p</div>'
+            f'<div class="sp-win-n">{w["projects"]}</div>'
             f'<div class="sp-win-l">{esc(_fmt_half(w["half"]))}</div>'
             f'</div>'
         )
     extras = []
     if m['later']['projects']:
-        extras.append(f"{m['later']['projects']} more beyond 36 months")
+        _lp = m['later']['projects']
+        extras.append(f"{_lp} more " + ('delivers' if _lp == 1 else 'deliver') + " beyond the 36-month horizon")
     if m['undated_projects']:
-        extras.append(f"{m['undated_projects']} without a public date")
-    extras_line = (' · '.join(extras)) if extras else ''
+        _up = m['undated_projects']
+        extras.append(f"{_up} " + ('has' if _up == 1 else 'have') + " no public delivery date yet")
+    extras_line = ('. '.join(e[0].upper() + e[1:] for e in extras) + '.') if extras else ''
     conf = m['confidence'].capitalize()
     dated_pct = round(m['provenance']['dated_share'] * 100)
     return f'''
@@ -763,11 +765,11 @@ def supply_pressure_html(m: dict | None) -> str:
         <div class="sp-windows-col">
           <div class="sp-sub">{esc(sub)}</div>
           <div class="sp-windows">{''.join(bars)}</div>
-          <div class="sp-windows-cap">Deliveries by half-year{(' · ' + esc(extras_line)) if extras_line else ''}</div>
+          <div class="sp-windows-cap"><b>Projects delivering per half-year window</b> — bar height reflects the residences and keys landing in that window.{(' ' + esc(extras_line)) if extras_line else ''}</div>
         </div>
       </div>
       <div class="sp-foot">
-        <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: {esc(conf)} · {dated_pct}% of deliveries dated</span>
+        <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: <em>{esc(conf)}</em> · {dated_pct}% of deliveries dated</span>
         <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
       </div>
       {market_band_html(m)}
@@ -1216,8 +1218,9 @@ def render_page(
     /* Stats */
     .stats {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 32px 0; border-bottom:1px solid var(--hair); }}
     /* Atlas Intelligence · supply pressure */
-    .sp-mod {{ background:radial-gradient(640px 240px at 12% 0%, rgba(167,139,250,0.10), transparent 60%), rgba(255,255,255,0.03); border:1px solid rgba(167,139,250,0.26); border-radius:16px; padding:24px 28px 18px; margin-top:26px; box-shadow:0 0 44px rgba(167,139,250,0.10), inset 0 0 34px rgba(167,139,250,0.04); }}
-    .sp-grid {{ display:grid; grid-template-columns:190px 1fr; gap:26px; align-items:center; }}
+    .section.sp-mod {{ background:radial-gradient(640px 240px at 12% 0%, rgba(167,139,250,0.10), transparent 60%), rgba(255,255,255,0.03); border:1px solid rgba(167,139,250,0.26); border-radius:16px; padding:30px 38px 24px; margin-top:26px; box-shadow:0 0 44px rgba(167,139,250,0.10), inset 0 0 34px rgba(167,139,250,0.04); }}
+    @media (max-width:760px) {{ .section.sp-mod {{ padding:22px 20px 18px; }} }}
+    .sp-grid {{ display:grid; grid-template-columns:190px 1fr; gap:36px; align-items:center; }}
     .sp-eyebrow {{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#A78BFA; margin-bottom:10px; display:flex; align-items:center; gap:8px; }}
     .sp-eyebrow::before {{ content:''; width:6px; height:6px; border-radius:50%; background:#A78BFA; box-shadow:0 0 11px 2px rgba(167,139,250,.8); flex:0 0 auto; }}
     .sp-gauge {{ width:100%; max-width:190px; display:block; }}
@@ -1230,13 +1233,15 @@ def render_page(
     .sp-bar-wrap {{ height:64px; display:flex; align-items:flex-end; justify-content:center; }}
     .sp-bar {{ width:70%; max-width:44px; border-radius:5px 5px 2px 2px; background:rgba(255,255,255,.16); }}
     .sp-win.on .sp-bar {{ background:#A78BFA; }}
-    .sp-win-n {{ font-family:var(--mono); font-size:10px; color:rgba(255,255,255,.6); margin-top:5px; font-variant-numeric:tabular-nums; }}
-    .sp-win-l {{ font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.38); margin-top:1px; white-space:nowrap; }}
-    .sp-windows-cap {{ font-family:var(--mono); font-size:9.5px; color:rgba(255,255,255,.38); margin-top:9px; }}
+    .sp-win-n {{ font-family:var(--sans); font-size:13.5px; font-weight:650; color:#fff; margin-top:7px; font-variant-numeric:tabular-nums; }}
+    .sp-win-l {{ font-family:var(--sans); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:rgba(255,255,255,.45); margin-top:2px; white-space:nowrap; }}
+    .sp-windows-cap {{ font-family:var(--sans); font-size:12px; color:rgba(255,255,255,.52); margin-top:11px; line-height:1.5; }}
+    .sp-windows-cap b {{ color:rgba(255,255,255,.78); font-weight:600; }}
     .sp-foot {{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,.07); margin-top:16px; padding-top:11px; }}
-    .sp-conf {{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:4px 10px; }}
-    .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.3); }}
-    .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.3); }}
+    .sp-conf {{ font-family:var(--serif); font-size:13.5px; font-weight:500; letter-spacing:.01em; color:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:6px 15px; }}
+    .sp-conf em {{ font-style:italic; }}
+    .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }}
+    .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }}
     .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }}
     .stat {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }}
     .stat .n {{ font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }}
