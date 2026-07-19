@@ -16334,21 +16334,29 @@
               }
               if (!rows) return;
               cur.innerHTML = `<div class="pa-box">${rows}</div>`; cur.hidden = false;
+
+      window.__tmwWithMember = window.__tmwWithMember || function (cb, t) {
+        t = t || 0;
+        var ms = window.$memberstackDom;
+        if (ms && ms.getCurrentMember) { ms.getCurrentMember().then(function (r) { cb(r && r.data); }).catch(function () { cb(null); }); return; }
+        if (t > 40) { cb(null); return; }
+        setTimeout(function () { window.__tmwWithMember(cb, t + 1); }, 500);
+      };
               const proj = cur.querySelector('.pa-proj');
               if (proj) {
-                const ms = window.$memberstackDom;
-                if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
-                  const mem = r && r.data;
+                window.__tmwWithMember(function (mem) {
                   if (!mem || !mem.id) return;
                   fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: aSlug, member_id: mem.id }) })
                     .then(r2 => r2.json())
                     .then(j => {
                       if (!j || !j.found || j.gated || !j.model) return;
-                      const v = proj.querySelector('.pa-val');
-                      v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
-                      v.style.color = '#A78BFA';
+                      const cur2 = document.getElementById('pmAtlasChips');
+                      const p2 = cur2 && cur2.querySelector('.pa-proj .pa-val');
+                      if (!p2) return;
+                      p2.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
+                      p2.style.color = '#A78BFA';
                     }).catch(() => {});
-                }).catch(() => {});
+                });
               }
             });
           }
@@ -17221,23 +17229,32 @@
                 if (!intelBox.querySelector('.pa-box')) intelBox.insertAdjacentHTML('beforeend', boxHtml);
               } else if (tries < 10) { tries++; setTimeout(place, 200); return; }
               else if (!aMount.querySelector('.pa-box')) { aMount.insertAdjacentHTML('beforeend', boxHtml); }
+
+      window.__tmwWithMember = window.__tmwWithMember || function (cb, t) {
+        t = t || 0;
+        var ms = window.$memberstackDom;
+        if (ms && ms.getCurrentMember) { ms.getCurrentMember().then(function (r) { cb(r && r.data); }).catch(function () { cb(null); }); return; }
+        if (t > 40) { cb(null); return; }
+        setTimeout(function () { window.__tmwWithMember(cb, t + 1); }, 500);
+      };
               const proj = root.querySelector('.popup-atlas .pa-proj');
               if (proj && !proj.dataset.painted) {
                 proj.dataset.painted = '1';
-                const ms = window.$memberstackDom;
-                if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
-                  const mem = r && r.data;
+                window.__tmwWithMember(function (mem) {
                   if (!mem || !mem.id) return;
                   fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: aSlug, member_id: mem.id }) })
                     .then(r2 => r2.json())
                     .then(j => {
                       if (!j || !j.found || j.gated || !j.model) return;
-                      const v = proj.querySelector('.pa-val');
+                      const el2 = activePopup && activePopup.getElement && activePopup.getElement();
+                      const p2 = el2 && el2.querySelector('.popup-atlas .pa-proj');
+                      if (!p2) return;
+                      const v = p2.querySelector('.pa-val');
                       v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
                       v.style.color = '#A78BFA';
-                      const lk = proj.querySelector('.pa-lock'); if (lk) lk.remove();
+                      const lk = p2.querySelector('.pa-lock'); if (lk) lk.remove();
                     }).catch(() => {});
-                }).catch(() => {});
+                });
               }
             })();
           });
