@@ -790,7 +790,6 @@ def supply_pressure_html(m: dict | None) -> str:
       </div>
       <div class="sp-foot">
         <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: <em>{esc(conf)}</em> · {dated_pct}% of deliveries dated</span>
-        <span class="sp-onyx">Onyx intelligence · modeled from the delivery pipeline</span>
         {_atlas_link_html(m)}
       </div>
       {market_band_html(m)}
@@ -961,7 +960,7 @@ def market_band_html(m: dict) -> str:
         </div>
       </div>
       <style>
-        .sp-band{{border-top:1px solid rgba(255,255,255,.07);margin-top:12px;padding-top:13px}}
+        .sp-band{{border-top:1px solid rgba(255,255,255,.07);margin-top:24px;padding-top:22px}}
         .sp-band-head{{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}}
         .sp-band-k{{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45)}}
         .sp-band-pill{{font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(167,139,250,.14);color:#A78BFA;border:1px solid rgba(167,139,250,.28)}}
