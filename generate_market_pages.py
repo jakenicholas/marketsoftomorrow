@@ -714,6 +714,7 @@ try:
 except Exception:
     _ATLAS_PUB = {}
 MARKETS_WITH_PAGES = set()   # filled in main() once city pages are decided
+ATLAS_INTEL = None           # set in main(); region modules read it
 ATLAS_MODELED_BY_MARKET = collections.Counter(
     v.get('market') for v in _ATLAS_PUB.values() if v.get('modeled') and v.get('market'))
 
@@ -793,6 +794,66 @@ def supply_pressure_html(m: dict | None) -> str:
       {market_band_html(m)}
     </section>'''
 
+
+
+def region_markets_html(label: str, cities_in_state, by_city) -> str:
+    """Scored market chips for every city in the region that has a page —
+    the region rollup's answer to the supply hero."""
+    chips = []
+    for city, n in cities_in_state.most_common(14):
+        cslug = slugify(city)
+        has_page = cslug in MARKETS_WITH_PAGES
+        mk = ATLAS_INTEL['markets'].get(cslug) if (ATLAS_INTEL and has_page) else None
+        href = f'/markets/{cslug}/' if has_page else f'/map/?q={esc(slugify(city).replace("-", "+"))}'
+        if mk:
+            col = SUPPLY_LEVEL_COLOR.get(mk['level'], '#1FDF67')
+            score = f'<b style="color:{col}">{mk["score"]}</b>'
+            dot = f'<i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:{col};box-shadow:0 0 8px {col};margin-right:2px"></i>'
+        else:
+            score, dot = f'<span class="nb-n">{n}</span>', ''
+        chips.append(f'<a class="nb-chip" href="{href}" style="text-decoration:none">{dot}{esc(city)} {score}</a>')
+    if len(chips) < 2: return ''
+    return (f'<section class="section cm-mod" id="m-markets">'
+            + _mod_head('The local markets', f'{esc(label)}, <em>market by market</em>',
+                        'Every city with a dedicated market page — scored by supply pressure where modeled.')
+            + f'<div class="nb-row">{"".join(chips)}</div></section>')
+
+def region_compare_html(label: str, cities_in_state) -> str:
+    """Top three scored markets in the region, side by side."""
+    if not ATLAS_INTEL: return ''
+    rows = []
+    for city, _n in cities_in_state.most_common():
+        cslug = slugify(city)
+        mk = ATLAS_INTEL['markets'].get(cslug)
+        if mk and cslug in MARKETS_WITH_PAGES:
+            rows.append((cslug, mk))
+    rows.sort(key=lambda kv: -kv[1]['score'])
+    if len(rows) < 2: return ''
+    def peak_of(m):
+        ws = [w for w in (m.get('windows') or []) if w['units']]
+        if not ws: return '—'
+        return _fmt_half(max(ws, key=lambda w: w['units'])['half'])
+    cards = ''
+    for slug_, m in rows[:3]:
+        col = SUPPLY_LEVEL_COLOR.get(m['level'], '#1FDF67')
+        dash = 81.7 * max(m['score'], 2) / 100.0
+        band = (f'<div class="cmp-r"><span class="k">Median projected</span><span class="v blur cmp-band" data-market="{esc(slug_)}">$•,••• / sq ft</span></div>'
+                if ATLAS_MODELED_BY_MARKET.get(slug_, 0) >= 2 else '')
+        cards += (f'<a class="cmp-card" href="/markets/{esc(slug_)}/">'
+                  f'<div class="cmp-head"><span class="cmp-city">{esc(m["city"])}</span></div>'
+                  f'<div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38">'
+                  f'<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/>'
+                  f'<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="{col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{dash:.1f} 81.7"/></svg>'
+                  f'<span><span class="cmp-num" style="color:{col}">{m["score"]}</span><br>'
+                  f'<span class="cmp-lvl" style="color:{col}">{esc(m["level"].upper())}</span></span></div>'
+                  f'<div class="cmp-rows">'
+                  f'<div class="cmp-r"><span class="k">Pipeline</span><span class="v">{m["pipeline_projects"]} projects · {m["pipeline_units"]:,} units</span></div>'
+                  f'<div class="cmp-r"><span class="k">Peak window</span><span class="v">{esc(peak_of(m))}</span></div>'
+                  f'{band}</div></a>')
+    return (f'<section class="section cm-mod" id="m-neighbors">'
+            + _mod_head('How they compare', f'The hottest markets in <em>{esc(label)}</em>',
+                        'Supply pressure, pipeline scale and modeled pricing, side by side.')
+            + f'<div class="cmp-grid">{cards}</div></section>')
 
 def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list[tuple[str, str]]) -> str:
     """Sticky dashboard rail: market vitals + jump chips + live-filter chips.
@@ -957,11 +1018,12 @@ def journal_city_html(city: str, projects: list[dict]) -> str:
                         'The latest stories from the projects shaping the city.')
             + f'<div class="jc-grid">{"".join(cards)}</div></section>')
 
-def moved_city_html(city: str) -> str:
+def moved_city_html(label: str, cities: set | None = None) -> str:
+    cities = cities or {label}
     now = datetime.datetime.now(datetime.timezone.utc)
     rows = []
     for ev in PULSE_EVENTS:
-        if (ev.get('city') or '').strip() != city: continue
+        if (ev.get('city') or '').strip() not in cities: continue
         try:
             ts = datetime.datetime.fromisoformat(str(ev.get('timestamp', '')).replace('Z', '+00:00'))
         except Exception:
@@ -986,8 +1048,8 @@ def moved_city_html(city: str) -> str:
                    f'<span class="mv-what">{title_html}</span>'
                    f'<span class="mv-tag" style="color:{col};background:{bgc}">{esc(tag)}</span>'
                    f'<span class="mv-when">{ts.strftime("%b %-d")}</span></a>')
-    return (f'<section class="section cm-mod" id="m-pulse" data-mk-city="{esc(city)}">'
-            + _mod_head('The last 30 days', f'What <em>moved</em> in {esc(city)}',
+    return (f'<section class="section cm-mod" id="m-pulse" data-mk-city="{esc("|".join(sorted(cities)))}">'
+            + _mod_head('The last 30 days', f'What <em>moved</em> in {esc(label)}',
                         'Milestones logged across the pipeline this month.')
             + f'<div class="mv-list" id="mvList">{"".join(out)}</div></section>')
 
@@ -1281,7 +1343,7 @@ CITY_MODULES_JS = """
   // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
   var mv = document.getElementById('m-pulse');
   if (mv) {
-    var mvCity = mv.getAttribute('data-mk-city');
+    var mvCities = (mv.getAttribute('data-mk-city') || '').split('|');
     var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
     function rel(ts){
       var s = (Date.now() - new Date(ts).getTime()) / 1000;
@@ -1292,7 +1354,7 @@ CITY_MODULES_JS = """
     }
     fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
       if (!p || !p.events) return;
-      var rows = p.events.filter(function(e){ return (e.city || '') === mvCity && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      var rows = p.events.filter(function(e){ return mvCities.indexOf(e.city || '') >= 0 && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
       rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
       if (rows.length < 2) return;
       var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
@@ -3054,6 +3116,16 @@ def render_state_page(state_label: str, state_code: str, bucket: list[dict],
         map_search=state_label,
         intel_city='', intel_type='',     # state-level — no single city/type prefix
         body_copy_html=body_copy,
+        city_modules_top=(lambda mods: market_rail_html(state_label, state_slug, ATLAS_INTEL or {'markets': {}},
+                          [j for j, h in mods if h] + [('m-projects', 'Projects')])
+                          + ''.join(h for _, h in mods))([
+                              (('m-markets', 'Markets'), region_markets_html(state_label, cities_in_state, by_city)),
+                              (('m-neighbors', 'Compare'), region_compare_html(state_label, cities_in_state)),
+                              (('m-brands', 'Brands'), brands_html(state_label, bucket)),
+                              (('m-openings', 'Openings'), openings_timeline_html(state_label, bucket)),
+                              (('m-records', 'Records'), records_html(state_label, bucket, state_slug)),
+                              (('m-pulse', 'Pulse'), moved_city_html(state_label, set(cities_in_state)))]),
+        city_modules_mid=(journal_city_html(state_label, bucket) + CITY_MODULES_JS),
         faqs=state_faqs[:12],
         status_sections=status_sections_html(bucket, type_plural='projects', location_phrase=state_label),
     )
@@ -3552,6 +3624,7 @@ def main():
 
     # Atlas Intelligence: one supply-pressure compute for every market, shared
     # by every page in this run (same math that writes atlas-intel.json).
+    global ATLAS_INTEL
     ATLAS_INTEL = compute_atlas_intel(projects)
     MARKETS_WITH_PAGES.clear()
     MARKETS_WITH_PAGES.update(slugify(c) for c, b in by_city.items() if len(b) >= CITY_MIN)
@@ -3645,6 +3718,14 @@ def main():
             intel_city=city, intel_type=ptype,
             body_copy_html=long_copy,
             supply_html=supply_for(city),
+            city_modules_top=(lambda mods: market_rail_html(city, slugify(city), ATLAS_INTEL,
+                              [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
+                              + ''.join(h for _, h in mods))([
+                                  (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
+                                  (('m-openings', 'Openings'), openings_timeline_html(city, by_city.get(city, bucket))),
+                                  (('m-areas', 'Areas'), neighborhoods_html(city, by_city.get(city, bucket))),
+                                  (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]),
+            city_modules_mid=CITY_MODULES_JS,
             faqs=faqs_city_type(city, ptype, bucket),
             extra_jsonld=place_jsonld(city),
             status_sections=status_sections_html(
@@ -3714,7 +3795,7 @@ def main():
                                   (('m-openings', 'Openings'), openings_timeline_html(city, bucket)),
                                   (('m-records', 'Records'), records_html(city, bucket, slugify(city))),
                                   (('m-areas', 'Areas'), neighborhoods_html(city, bucket)),
-                                  (('m-pulse', 'Pulse'), moved_city_html(city))]),
+                                  (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]),
             city_modules_mid=(journal_city_html(city, bucket) + CITY_MODULES_JS),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),

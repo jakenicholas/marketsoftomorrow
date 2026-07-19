@@ -812,8 +812,9 @@ def render_page(firm, firm_projects, stats, coverage_items):
             else (MARKET_ROOT_URL + '/map/?q=' + e(city) + '+' + e(title))
         if mk and has_page:
             col = _MK_LEVEL_COLOR.get(mk['level'], '#1FDF67')
-            eyebrow = (f'<span style="color:{col};font-weight:700">{mk["score"]}</span>'
-                       f' · {e(mk["level"])} · {mk["pipeline_projects"]}-project pipeline')
+            eyebrow = (f'<span style="font-family:var(--serif);font-size:13.5px;text-transform:none;letter-spacing:.01em">'
+                       f'<span style="color:{col};font-weight:700">{mk["score"]}</span>'
+                       f' · {e(mk["level"])} · {mk["pipeline_projects"]}-project pipeline</span>')
         else:
             eyebrow = 'City'
         return (f'<a class="rel-card" href="{href}">'

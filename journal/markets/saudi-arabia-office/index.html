@@ -575,7 +575,7 @@
       </div>
       
     </section>
-
+<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#1FDF67">0</b> Balanced · 4 projects</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-supply" data-jump="m-supply">Supply</a><a class="mkr-jump" href="#m-neighbors" data-jump="m-neighbors">Neighbors</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div><section class="section cm-mod" id="m-neighbors"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Saudi Arabia vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Saudi Arabia</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="1.6 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">0</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">4 projects · 104,000 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">—</span></div></div></a><a class="cmp-card" href="/markets/riyadh/"><div class="cmp-head"><span class="cmp-city">Riyadh</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="8.2 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">10</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">4 projects · 0 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">—</span></div></div></a><a class="cmp-card" href="/markets/houston/"><div class="cmp-head"><span class="cmp-city">Houston</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="16.3 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">20</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">6 projects · 608 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">Late 2028</span></div></div></a></div><div class="cmp-foot"><a class="sp-atlas" href="/atlas/">Open the Atlas →</a></div></section><section class="section cm-mod" id="m-openings"><div class="cm-eyebrow">Delivery horizon</div><div class="cm-title">What opens <em>when</em></div><div class="cm-sub">The pipeline by expected opening year, with each year&#x27;s marquee arrival.</div><div class="ot-row ot-2"><div class="ot-cell" data-mk-yr-cell="2028" role="button" tabindex="0"><div class="ot-year">2028</div><div class="ot-n"><b>1 project</b></div><div class="ot-lead"><b>Jeddah Tower</b>Jeddah Economic City</div></div><div class="ot-cell peak" data-mk-yr-cell="later" role="button" tabindex="0"><span class="ot-peakchip">Peak</span><div class="ot-year">2030+</div><div class="ot-n"><b>3 projects</b> · 104,000 units</div><div class="ot-lead"><b>New Murabba</b>Northwest Riyadh</div></div></div></section>
 
     <section class="section" id="m-projects">
       <div class="section-head">
@@ -662,6 +662,150 @@
 </div>
     </section>
 
+<script>
+(function(){
+  function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
+    if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
+    if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
+  function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
+
+  // ── Pro values (comparison bands + records median) ──
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (proEls.length) withMember(function(mem){ if(!mem||!mem.id) return;
+    var markets = {};
+    document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
+    var rec = document.querySelector('[data-records-market] #rcProVal');
+    var recM = rec ? document.querySelector('[data-records-market]').getAttribute('data-records-market') : null;
+    if (recM) markets[recM] = 1;
+    Object.keys(markets).forEach(function(mk){
+      fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({market:mk,member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){ if(!j||!j.found||j.gated) return;
+          document.querySelectorAll('.cmp-band[data-market="'+mk+'"]').forEach(function(el){
+            el.textContent = money(j.median_psf) + ' / sq ft'; el.classList.remove('blur');
+          });
+          if (recM === mk && rec) { rec.innerHTML = money(j.median_psf) + '<small>/ sq ft</small>'; rec.classList.remove('rc-blur'); }
+        }).catch(function(){});
+    });
+  });
+
+  // ── Sticky rail: pin under the chrome + active-section highlight ──
+  var rail = document.getElementById('mkRail');
+  if (rail) {
+    function setTop(){ var h = document.querySelector('.tmw-chrome-head'); rail.style.top = ((h ? h.offsetHeight : 0) + 8) + 'px'; }
+    setTop(); window.addEventListener('resize', setTop); setTimeout(setTop, 600);
+    var jumps = rail.querySelectorAll('.mkr-jump');
+    var sections = [];
+    jumps.forEach(function(j){ var el = document.getElementById(j.getAttribute('data-jump')); if (el) sections.push([el, j]); });
+    if ('IntersectionObserver' in window && sections.length) {
+      var current = null;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ if (e.isIntersecting) current = e.target; });
+        sections.forEach(function(p){ p[1].classList.toggle('on', p[0] === current); });
+      }, { rootMargin: '-25% 0px -60% 0px' });
+      sections.forEach(function(p){ io.observe(p[0]); });
+    }
+    jumps.forEach(function(j){ j.addEventListener('click', function(ev){
+      var el = document.getElementById(j.getAttribute('data-jump'));
+      if (el) { ev.preventDefault(); var top = el.getBoundingClientRect().top + window.scrollY - rail.offsetHeight - 74; window.scrollTo({top: top, behavior: 'smooth'}); }
+    }); });
+  }
+
+  // ── One filter state: year + neighborhood + status ──
+  var F = { yr: null, nb: null, st: null };
+  var cards = [].slice.call(document.querySelectorAll('.tmw-project-grid .card'));
+  function cardMatch(c){
+    if (F.yr) {
+      var y = c.getAttribute('data-mk-yr') || '';
+      if (F.yr === 'later') { if (!y || parseInt(y, 10) <= (new Date().getFullYear() + 3)) return false; }
+      else if (y !== F.yr) return false;
+    }
+    if (F.nb && (c.getAttribute('data-mk-nb') || '') !== F.nb) return false;
+    if (F.st && (c.getAttribute('data-mk-st') || '') !== F.st) return false;
+    return true;
+  }
+  function railChips(){
+    var box = document.getElementById('mkrFilters');
+    if (!box) return;
+    var chips = [];
+    if (F.yr) chips.push(['yr', F.yr === 'later' ? (new Date().getFullYear() + 4) + '+' : F.yr]);
+    if (F.nb) chips.push(['nb', F.nb]);
+    if (F.st) chips.push(['st', F.st === 'Now Open' ? 'Recently opened' : F.st]);
+    box.innerHTML = chips.map(function(c){ return '<span class="mkr-fchip" data-mkclear="' + c[0] + '">' + c[1] + '<span class="x">✕</span></span>'; }).join('');
+  }
+  function apply(){
+    var shown = 0;
+    cards.forEach(function(c){ var ok = cardMatch(c); c.classList.toggle('mk-hide', !ok); if (ok) shown++; });
+    // stats strip recount from the full card set
+    document.querySelectorAll('.stat[data-mk-stat]').forEach(function(cell){
+      var v = cell.getAttribute('data-mk-stat');
+      var n = 0;
+      cards.forEach(function(c){ if (!cardMatch(c)) return; if (!v || (c.getAttribute('data-mk-st') === v) || (v === 'Now Open' && c.getAttribute('data-mk-st') === 'Now Open')) n++; });
+      var el = cell.querySelector('[data-mk-n]'); if (el) el.textContent = n;
+      cell.classList.toggle('on', !!F.st && v === F.st);
+    });
+    document.querySelectorAll('[data-mk-yr-cell]').forEach(function(el){ el.classList.toggle('on', F.yr === el.getAttribute('data-mk-yr-cell')); });
+    document.querySelectorAll('[data-mk-nb-chip]').forEach(function(el){ el.classList.toggle('on', F.nb === el.getAttribute('data-mk-nb-chip')); });
+    var head = document.querySelector('#m-projects .section-head');
+    if (head) {
+      var note = document.getElementById('mkShowing');
+      var active = F.yr || F.nb || F.st;
+      if (active) {
+        if (!note) { note = document.createElement('div'); note.id = 'mkShowing'; note.className = 'mk-showing'; head.appendChild(note); }
+        note.textContent = 'Showing ' + shown + ' of ' + cards.length + ' — filtered';
+      } else if (note) note.remove();
+    }
+    railChips();
+    if ((F.yr || F.nb || F.st) && window.tmwFunnelTrack) { try { tmwFunnelTrack('market_dash_filter', {yr: F.yr, nb: F.nb, st: F.st}); } catch(_e){} }
+  }
+  document.addEventListener('click', function(ev){
+    var t;
+    if ((t = ev.target.closest('[data-mk-yr-cell]'))) { F.yr = (F.yr === t.getAttribute('data-mk-yr-cell')) ? null : t.getAttribute('data-mk-yr-cell'); apply(); return; }
+    if ((t = ev.target.closest('[data-mk-nb-chip]'))) {
+      if (ev.target.closest('.nb-go')) return;   // the map ↗ keeps its link
+      F.nb = (F.nb === t.getAttribute('data-mk-nb-chip')) ? null : t.getAttribute('data-mk-nb-chip'); apply(); return;
+    }
+    if ((t = ev.target.closest('.stat[data-mk-stat]'))) {
+      var v = t.getAttribute('data-mk-stat');
+      F.st = (!v || F.st === v) ? null : v; apply(); return;
+    }
+    if ((t = ev.target.closest('[data-mkclear]'))) {
+      var k = t.getAttribute('data-mkclear'); F[k] = null; apply(); return;
+    }
+  });
+
+  // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
+  var mv = document.getElementById('m-pulse');
+  if (mv) {
+    var mvCities = (mv.getAttribute('data-mk-city') || '').split('|');
+    var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
+    function rel(ts){
+      var s = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+      if (s < 86400) return Math.round(s / 3600) + 'h ago';
+      if (s < 86400 * 14) return Math.round(s / 86400) + 'd ago';
+      return new Date(ts).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+    }
+    fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+      if (!p || !p.events) return;
+      var rows = p.events.filter(function(e){ return mvCities.indexOf(e.city || '') >= 0 && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+      if (rows.length < 2) return;
+      var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+      document.getElementById('mvList').innerHTML = rows.slice(0, 5).map(function(e){
+        var col = TAGC[e.tag] || '#A78BFA';
+        var title = esc(e.title || '');
+        if (e.project_title && title.indexOf(esc(e.project_title)) >= 0) title = title.replace(esc(e.project_title), '<b>' + esc(e.project_title) + '</b>');
+        return '<a class="mv-row" href="' + esc(e.link || '#') + '">'
+          + '<span class="mv-dot" style="background:' + col + ';box-shadow:0 0 10px ' + col + '66"></span>'
+          + '<span class="mv-what">' + title + '</span>'
+          + '<span class="mv-tag" style="color:' + col + ';background:rgba(255,255,255,.05)">' + esc(e.tag || 'Update') + '</span>'
+          + '<span class="mv-when">' + rel(e.timestamp) + '</span></a>';
+      }).join('');
+    }).catch(function(){});
+  }
+})();
+</script>
 
     <section class="section">
       <div class="intel" data-intel-city="Saudi Arabia" data-intel-type="Office">

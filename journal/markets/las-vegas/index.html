@@ -777,7 +777,7 @@
   // ── Live pulse refresh (module 8): hourly-fresh Moved feed ──
   var mv = document.getElementById('m-pulse');
   if (mv) {
-    var mvCity = mv.getAttribute('data-mk-city');
+    var mvCities = (mv.getAttribute('data-mk-city') || '').split('|');
     var TAGC = {'Broke ground':'#FFD300','Topped out':'#FFD300','Sales launch':'#A78BFA','Now open':'#1FDF67','Opened':'#1FDF67','Approved':'#1FDF67','Financing':'#e6c574','Tracking':'#A78BFA','Opening soon':'#C4B5FD'};
     function rel(ts){
       var s = (Date.now() - new Date(ts).getTime()) / 1000;
@@ -788,7 +788,7 @@
     }
     fetch('/map/pulse.json', {cache: 'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
       if (!p || !p.events) return;
-      var rows = p.events.filter(function(e){ return (e.city || '') === mvCity && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
+      var rows = p.events.filter(function(e){ return mvCities.indexOf(e.city || '') >= 0 && (Date.now() - new Date(e.timestamp).getTime()) < 45 * 86400000; });
       rows.sort(function(a, b){ return new Date(b.timestamp) - new Date(a.timestamp); });
       if (rows.length < 2) return;
       var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
