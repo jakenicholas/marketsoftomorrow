@@ -994,6 +994,10 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         #homeAtlasIntel .hai-sp-label{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(167,139,250,.85);flex:0 0 auto;align-self:center;margin-right:2px;text-shadow:0 0 10px rgba(167,139,250,.5)}
         #homeAtlasIntel .hai-psf.on{filter:none;opacity:1;color:#A78BFA;text-shadow:0 0 14px rgba(167,139,250,.45)}
         #homeAtlasIntel .hai-band{width:100%;height:34px;margin-top:10px;display:block}
+        #homeAtlasIntel .hai-scn{display:flex;gap:14px;margin-top:9px;font-size:11px;color:rgba(255,255,255,.55)}
+        #homeAtlasIntel .hai-scn b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
+        #homeAtlasIntel .hai-blur{filter:blur(5px);user-select:none;opacity:.85}
+        #homeAtlasIntel .hai-scn b.on{filter:none;opacity:1;color:#A78BFA}
         #homeAtlasIntel .hai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
         #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700}
         #homeAtlasIntel .hai-eyebrow i{width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 10px 1px #A78BFA}
@@ -1023,9 +1027,13 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
       fetch('/map/atlas-projections-public.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
         if(!d||!d.projects) return;
         var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-        var rows=Object.keys(d.projects).map(function(k){var v=d.projects[k];v._slug=k;return v;})
+        var PINS=['waldorf-astoria-residences-miami','one-beverly-hills','520-fifth-avenue'];
+        var all=Object.keys(d.projects).map(function(k){var v=d.projects[k];v._slug=k;return v;})
           .filter(function(v){return v.modeled&&v.title;})
           .sort(function(a,b){return (b.confidence==='high')-(a.confidence==='high')||(b.comp_count||0)-(a.comp_count||0);});
+        var rows=[];
+        PINS.forEach(function(s){ var hit=all.filter(function(v){return v._slug===s;})[0]; if(hit) rows.push(hit); });
+        all.forEach(function(v){ if(rows.length<3 && rows.indexOf(v)<0) rows.push(v); });
         if(rows.length<3) return;
         document.getElementById('haiSub').textContent='Modeled pricing at delivery now live for '+rows.length+' pre-construction projects';
         document.getElementById('haiGrid').innerHTML=rows.slice(0,3).map(function(v){
@@ -1034,6 +1042,7 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
             +'<div class="hai-meta">'+esc(v.city||'')+(v.delivery_label?' · '+esc(v.delivery_label):'')+'</div>'
             +'<div class="hai-row"><span class="hai-psf">$•,•••</span><span class="hai-unit">/ sq ft at delivery</span>'
             +'<span class="hai-conf">'+esc((v.confidence||'').toUpperCase())+' · '+(v.comp_count||0)+' comps</span></div>'
+            +'<div class="hai-scn"><span>Sell-out <b class="hai-sell hai-blur">··</b> months</span><span>Pace <b class="hai-pace hai-blur">·.·</b> units/mo</span></div>'
             +'<svg class="hai-band" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">'
             +'<path d="M0,24 L40,22 L80,19 L120,15 L160,11 L200,6 L200,14 L160,18 L120,22 L80,25 L40,27 L0,29 Z" fill="rgba(31,223,103,0.14)"/>'
             +'<path d="M0,27 L40,25 L80,22 L120,18 L160,14 L200,9" fill="none" stroke="#1FDF67" stroke-width="1.6" stroke-linecap="round"/>'
@@ -1055,6 +1064,11 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
                 var card=document.querySelectorAll('#haiGrid .hai-card')[i];
                 var el=card&&card.querySelector('.hai-psf');
                 if(el){el.textContent='$'+Math.round(j.model.proj_psf_delivery).toLocaleString('en-US');el.classList.add('on');}
+                var base=(j.model.scenarios||{}).base||{};
+                var se=card&&card.querySelector('.hai-sell');
+                if(se&&base.sellout_months!=null){se.textContent=base.sellout_months;se.classList.add('on');se.classList.remove('hai-blur');}
+                var pa=card&&card.querySelector('.hai-pace');
+                if(pa&&base.pace!=null){pa.textContent=base.pace;pa.classList.add('on');pa.classList.remove('hai-blur');}
               }).catch(function(){});
           });
         });

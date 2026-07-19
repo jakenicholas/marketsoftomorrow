@@ -641,12 +641,13 @@
           .ai-legend .sw{width:14px;height:8px;border-radius:3px}
           .ai-comps{margin-top:22px;border-top:1px solid var(--ai-stroke);padding-top:18px}
           .ai-comps h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ai-muted2);margin-bottom:12px;font-weight:600}
-          .ai-crow{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px}
+          .ai-crow{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px;text-decoration:none;color:inherit}
+          a.ai-crow:hover .cn{color:#A78BFA}
           .ai-crow .cn{flex:1;color:#f4f4f5;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-          .ai-crow .cm{color:var(--ai-muted);font-size:12px;white-space:nowrap}
-          .ai-crow .cb{width:56px;height:4px;border-radius:2px;background:var(--ai-stroke2);position:relative;overflow:hidden;flex:0 0 auto}
+          .ai-crow .cm{color:var(--ai-muted);font-size:12px;white-space:nowrap;flex:0 0 128px;text-align:right}
+          .ai-crow .cb{width:60px;height:4px;border-radius:2px;background:var(--ai-stroke2);position:relative;overflow:hidden;flex:0 0 60px}
           .ai-crow .cb i{position:absolute;left:0;top:0;bottom:0;background:var(--ai-green);opacity:.6;border-radius:2px}
-          .ai-crow .cp{font-family:var(--ai-mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+          .ai-crow .cp{font-family:var(--ai-mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap;flex:0 0 72px;text-align:left}
           .ai-conf{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:11.5px;color:var(--ai-muted);background:var(--ai-panel2);border:1px solid var(--ai-stroke);padding:7px 13px;border-radius:999px}
           .ai-conf i{width:6px;height:6px;border-radius:50%;background:var(--ai-purple)}
           .ai-toggle{display:inline-flex;background:var(--ai-panel2);border:1px solid var(--ai-stroke);border-radius:12px;padding:4px;gap:2px;margin:18px 0 22px}
@@ -839,7 +840,7 @@
             var box = document.getElementById('aiComps');
             var rows = (m.comps || []).map(function(c){
               var maxP = Math.max.apply(null, m.comps.map(function(x){ return x.psf_modeled; }));
-              return '<div class="ai-crow"><span class="cn">' + c.title + '</span><span class="cm">' + c.miles + ' mi · ' + c.meta + '</span><div class="cb"><i style="width:' + Math.round(c.psf_modeled / maxP * 100) + '%"></i></div><span class="cp">' + money(c.psf_modeled) + '</span></div>';
+              return '<a class="ai-crow" href="/projects/' + encodeURIComponent(c.slug) + '/"><span class="cn">' + c.title + '</span><span class="cm">' + c.miles + ' mi · ' + c.meta + '</span><div class="cb"><i style="width:' + Math.round(c.psf_modeled / maxP * 100) + '%"></i></div><span class="cp">' + money(c.psf_modeled) + '</span></a>';
             }).join('');
             box.innerHTML = '<h4>Comparable set — basis for projection (modeled current $/sq ft)</h4>' + rows;
             ['aiCardA', 'aiCardB'].forEach(function(id){ document.getElementById(id).classList.remove('ai-locked'); });

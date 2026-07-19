@@ -866,7 +866,53 @@ def onyx_flagship_html(market_slug: str) -> str:
     if not cands: return ''
     cands.sort(key=lambda kv: ((kv[1].get('confidence') == 'high'), kv[1].get('comp_count', 0)), reverse=True)
     row = PROJECTS_BY_SLUG.get(cands[0][0])
-    return onyx_project_card(row) if row else ''
+    if not row: return ''
+    card = onyx_project_card(row)
+    # "More Onyx projections" — the market's other modeled projects as compact
+    # teasers so the section never reads as one pet project.
+    more = ''
+    for s, v in cands[1:4]:
+        p = PROJECTS_BY_SLUG.get(s)
+        if not p: continue
+        more += (f'<a class="om-card" data-slug="{esc(s)}" href="/projects/{esc(s)}/">'
+                 f'<span class="om-name">{esc(p.get("Title") or s)}</span>'
+                 f'<span class="om-meta">{esc(v.get("delivery_label") or "")} · {esc((v.get("confidence") or "").capitalize())} · {v.get("comp_count", 0)} comps</span>'
+                 f'<span class="om-psf">$•,•••<i>/ sq ft</i></span></a>')
+    if more:
+        card += (f'<div class="om-more"><div class="om-more-l">More Onyx projections in this market</div>'
+                 f'<div class="om-row">{more}</div></div>')
+    return card
+
+
+_TOP_CACHE = {}
+def city_top(city, bucket):
+    key = ('city', city)
+    if key not in _TOP_CACHE:
+        mods = [
+            (('atlasIntel', 'Pricing'), onyx_flagship_html(slugify(city))),
+            (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
+            (('m-brands', 'Brands'), brands_html(city, bucket)),
+            (('m-openings', 'Openings'), openings_timeline_html(city, bucket)),
+            (('m-records', 'Records'), records_html(city, bucket, slugify(city))),
+            (('m-areas', 'Areas'), neighborhoods_html(city, bucket)),
+            (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]
+        rail = market_rail_html(city, slugify(city), ATLAS_INTEL,
+            [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
+        _TOP_CACHE[key] = (rail, ''.join(h for _, h in mods))
+    return _TOP_CACHE[key]
+
+def citytype_top(city, full_bucket):
+    key = ('ct', city)
+    if key not in _TOP_CACHE:
+        mods = [
+            (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
+            (('m-openings', 'Openings'), openings_timeline_html(city, full_bucket)),
+            (('m-areas', 'Areas'), neighborhoods_html(city, full_bucket)),
+            (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]
+        rail = market_rail_html(city, slugify(city), ATLAS_INTEL,
+            [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
+        _TOP_CACHE[key] = (rail, ''.join(h for _, h in mods))
+    return _TOP_CACHE[key]
 
 def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list[tuple[str, str]]) -> str:
     """Sticky dashboard rail: market vitals + jump chips + live-filter chips.
@@ -1256,6 +1302,14 @@ CITY_MODULES_JS = """
     var rec = document.querySelector('[data-records-market] #rcProVal');
     var recM = rec ? document.querySelector('[data-records-market]').getAttribute('data-records-market') : null;
     if (recM) markets[recM] = 1;
+    document.querySelectorAll('.om-card').forEach(function(card){
+      fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:card.getAttribute('data-slug'),member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){ if(!j||!j.found||j.gated||!j.model) return;
+          var el=card.querySelector('.om-psf');
+          el.innerHTML=money(j.model.proj_psf_delivery)+'<i>/ sq ft</i>'; el.classList.add('on');
+        }).catch(function(){});
+    });
     Object.keys(markets).forEach(function(mk){
       fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({market:mk,member_id:mem.id})})
         .then(function(r){return r.json();})
@@ -1636,6 +1690,7 @@ def render_page(
     faqs: list[tuple[str, str]] = None,  # [(question, answer_html), ...] — both displayed + emitted as FAQPage JSON-LD
     extra_jsonld: str = '',     # additional schema.org blocks (Place, etc.)
     status_sections: str = '',  # H2 sub-sections by status, exact-match search phrases
+    rail_html: str = '',        # sticky dashboard rail (sits above the supply hero)
     supply_html: str = '',      # Atlas Intelligence Surface C (city/market pages)
     city_modules_top: str = '',   # moved / openings / neighborhoods (city pages)
     city_modules_mid: str = '',   # brands / records / journal / comparison + Pro JS
@@ -1798,8 +1853,20 @@ def render_page(
     .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }}
     .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }}
     .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }}
+    /* More Onyx projections teasers */
+    .om-more {{ margin:-6px 0 26px; }}
+    .om-more-l {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(167,139,250,.8); margin:0 0 9px 2px; }}
+    .om-row {{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }}
+    @media (max-width:800px) {{ .om-row {{ grid-template-columns:1fr; }} }}
+    .om-card {{ display:block; text-decoration:none; color:inherit; background:rgba(255,255,255,.03); border:1px solid rgba(167,139,250,.22); border-radius:12px; padding:13px 15px; transition:border-color .15s; }}
+    .om-card:hover {{ border-color:rgba(167,139,250,.5); }}
+    .om-name {{ display:block; font-weight:600; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+    .om-meta {{ display:block; font-size:10.5px; color:rgba(255,255,255,.45); margin-top:2px; }}
+    .om-psf {{ display:block; font-size:17px; font-weight:700; margin-top:7px; filter:blur(6px); opacity:.85; user-select:none; font-variant-numeric:tabular-nums; }}
+    .om-psf i {{ font-style:normal; font-size:10px; color:rgba(255,255,255,.45); margin-left:3px; }}
+    .om-psf.on {{ filter:none; opacity:1; color:#A78BFA; }}
     /* Dashboard rail */
-    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+    .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:16px;
       background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
       border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
       box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }}
@@ -2151,6 +2218,7 @@ def render_page(
     <div class="stats" aria-label="Status breakdown">
 {stats_html}
     </div>
+{rail_html}
 {supply_html}
 {city_modules_top}
 
@@ -2994,6 +3062,22 @@ def render_html_sitemap(out_path: str, city_pages, type_pages, state_pages, city
         f.write(page)
 
 
+
+def _state_top(state_label, state_slug, bucket, cities_in_state, by_city):
+    key = ('state', state_slug)
+    if key not in _TOP_CACHE:
+        mods = [
+            (('m-markets', 'Markets'), region_markets_html(state_label, cities_in_state, by_city)),
+            (('m-neighbors', 'Compare'), region_compare_html(state_label, cities_in_state)),
+            (('m-brands', 'Brands'), brands_html(state_label, bucket)),
+            (('m-openings', 'Openings'), openings_timeline_html(state_label, bucket)),
+            (('m-records', 'Records'), records_html(state_label, bucket, state_slug)),
+            (('m-pulse', 'Pulse'), moved_city_html(state_label, set(cities_in_state)))]
+        rail = market_rail_html(state_label, state_slug, ATLAS_INTEL or {'markets': {}},
+            [j for j, h in mods if h] + [('m-projects', 'Projects')])
+        _TOP_CACHE[key] = (rail, ''.join(h for _, h in mods))
+    return _TOP_CACHE[key]
+
 def render_state_page(state_label: str, state_code: str, bucket: list[dict],
                       by_city: dict, by_city_type: dict, city_to_state: dict) -> str:
     """Generate a /markets/<state>/ rollup page. Aggregates every project
@@ -3129,15 +3213,8 @@ def render_state_page(state_label: str, state_code: str, bucket: list[dict],
         map_search=state_label,
         intel_city='', intel_type='',     # state-level — no single city/type prefix
         body_copy_html=body_copy,
-        city_modules_top=(lambda mods: market_rail_html(state_label, state_slug, ATLAS_INTEL or {'markets': {}},
-                          [j for j, h in mods if h] + [('m-projects', 'Projects')])
-                          + ''.join(h for _, h in mods))([
-                              (('m-markets', 'Markets'), region_markets_html(state_label, cities_in_state, by_city)),
-                              (('m-neighbors', 'Compare'), region_compare_html(state_label, cities_in_state)),
-                              (('m-brands', 'Brands'), brands_html(state_label, bucket)),
-                              (('m-openings', 'Openings'), openings_timeline_html(state_label, bucket)),
-                              (('m-records', 'Records'), records_html(state_label, bucket, state_slug)),
-                              (('m-pulse', 'Pulse'), moved_city_html(state_label, set(cities_in_state)))]),
+        rail_html=_state_top(state_label, state_slug, bucket, cities_in_state, by_city)[0],
+        city_modules_top=_state_top(state_label, state_slug, bucket, cities_in_state, by_city)[1],
         city_modules_mid=(journal_city_html(state_label, bucket) + CITY_MODULES_JS),
         faqs=state_faqs[:12],
         status_sections=status_sections_html(bucket, type_plural='projects', location_phrase=state_label),
@@ -3733,13 +3810,8 @@ def main():
             intel_city=city, intel_type=ptype,
             body_copy_html=long_copy,
             supply_html=supply_for(city),
-            city_modules_top=(lambda mods: market_rail_html(city, slugify(city), ATLAS_INTEL,
-                              [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
-                              + ''.join(h for _, h in mods))([
-                                  (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
-                                  (('m-openings', 'Openings'), openings_timeline_html(city, by_city.get(city, bucket))),
-                                  (('m-areas', 'Areas'), neighborhoods_html(city, by_city.get(city, bucket))),
-                                  (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]),
+            rail_html=citytype_top(city, by_city.get(city, bucket))[0],
+            city_modules_top=citytype_top(city, by_city.get(city, bucket))[1],
             city_modules_mid=CITY_MODULES_JS,
             faqs=faqs_city_type(city, ptype, bucket),
             extra_jsonld=place_jsonld(city),
@@ -3802,16 +3874,8 @@ def main():
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
             supply_html=supply_for(city),
-            city_modules_top=(lambda mods: market_rail_html(city, slugify(city), ATLAS_INTEL,
-                              [('m-supply', 'Supply')] + [j for j, h in mods if h] + [('m-projects', 'Projects')])
-                              + ''.join(h for _, h in mods))([
-                                  (('atlasIntel', 'Pricing'), onyx_flagship_html(slugify(city))),
-                                  (('m-neighbors', 'Neighbors'), compare_city_html(city, slugify(city), ATLAS_INTEL)),
-                                  (('m-brands', 'Brands'), brands_html(city, bucket)),
-                                  (('m-openings', 'Openings'), openings_timeline_html(city, bucket)),
-                                  (('m-records', 'Records'), records_html(city, bucket, slugify(city))),
-                                  (('m-areas', 'Areas'), neighborhoods_html(city, bucket)),
-                                  (('m-pulse', 'Pulse'), moved_city_html(city, {city}))]),
+            rail_html=city_top(city, bucket)[0],
+            city_modules_top=city_top(city, bucket)[1],
             city_modules_mid=(journal_city_html(city, bucket) + CITY_MODULES_JS),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),

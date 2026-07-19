@@ -98,8 +98,20 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* More Onyx projections teasers */
+    .om-more { margin:-6px 0 26px; }
+    .om-more-l { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(167,139,250,.8); margin:0 0 9px 2px; }
+    .om-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    @media (max-width:800px) { .om-row { grid-template-columns:1fr; } }
+    .om-card { display:block; text-decoration:none; color:inherit; background:rgba(255,255,255,.03); border:1px solid rgba(167,139,250,.22); border-radius:12px; padding:13px 15px; transition:border-color .15s; }
+    .om-card:hover { border-color:rgba(167,139,250,.5); }
+    .om-name { display:block; font-weight:600; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .om-meta { display:block; font-size:10.5px; color:rgba(255,255,255,.45); margin-top:2px; }
+    .om-psf { display:block; font-size:17px; font-weight:700; margin-top:7px; filter:blur(6px); opacity:.85; user-select:none; font-variant-numeric:tabular-nums; }
+    .om-psf i { font-style:normal; font-size:10px; color:rgba(255,255,255,.45); margin-left:3px; }
+    .om-psf.on { filter:none; opacity:1; color:#A78BFA; }
     /* Dashboard rail */
-    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap;
+    .mk-rail { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:16px;
       background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
       border:1px solid rgba(255,255,255,.09); border-radius:999px; padding:8px 10px 8px 18px; margin-top:22px;
       box-shadow:0 10px 34px rgba(0,0,0,.45); overflow-x:auto; scrollbar-width:none; }
@@ -549,6 +561,7 @@
 <div class="stat os" data-mk-stat="Opening Soon" role="button" tabindex="0"><div class="n" data-mk-n>2</div><div class="l">Opening Soon</div></div>
 <div class="stat no" data-mk-stat="Now Open" role="button" tabindex="0"><div class="n" data-mk-n>1</div><div class="l">Recently Opened</div></div>
     </div>
+<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#F5A623">66</b> Elevated · 6 projects · peak Late ’26</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-supply" data-jump="m-supply">Supply</a><a class="mkr-jump" href="#atlasIntel" data-jump="atlasIntel">Pricing</a><a class="mkr-jump" href="#m-neighbors" data-jump="m-neighbors">Neighbors</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-records" data-jump="m-records">Records</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div>
 
     <section class="section sp-mod" id="m-supply" aria-label="Supply pressure">
       <div class="sp-grid">
@@ -576,7 +589,7 @@
       </div>
       
     </section>
-<div class="mk-rail" id="mkRail"><span class="mkr-vitals"><b style="color:#F5A623">66</b> Elevated · 6 projects · peak Late ’26</span><nav class="mkr-jumps" aria-label="Page sections"><a class="mkr-jump" href="#m-supply" data-jump="m-supply">Supply</a><a class="mkr-jump" href="#atlasIntel" data-jump="atlasIntel">Pricing</a><a class="mkr-jump" href="#m-neighbors" data-jump="m-neighbors">Neighbors</a><a class="mkr-jump" href="#m-openings" data-jump="m-openings">Openings</a><a class="mkr-jump" href="#m-records" data-jump="m-records">Records</a><a class="mkr-jump" href="#m-projects" data-jump="m-projects">Projects</a></nav><div class="mkr-filters" id="mkrFilters"></div></div>
+
       <div class="pp-sec ai-sec" id="atlasIntel" data-slug="the-ritz-carlton-residences-palm-beach-gardens" data-supply="Elevated">
         <style>
           .ai-sec{--ai-panel:rgba(255,255,255,0.03);--ai-panel2:rgba(255,255,255,0.05);--ai-stroke:rgba(255,255,255,0.08);--ai-stroke2:rgba(255,255,255,0.12);--ai-green:#1FDF67;--ai-green-dim:rgba(31,223,103,0.14);--ai-purple:#A78BFA;--ai-purple-dim:rgba(167,139,250,0.14);--ai-amber:#F5A623;--ai-red:#FF5C5C;--ai-muted:#8a8a90;--ai-muted2:#5f5f66;--ai-mono:"SF Mono",ui-monospace,Menlo,monospace}
@@ -607,12 +620,13 @@
           .ai-legend .sw{width:14px;height:8px;border-radius:3px}
           .ai-comps{margin-top:22px;border-top:1px solid var(--ai-stroke);padding-top:18px}
           .ai-comps h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ai-muted2);margin-bottom:12px;font-weight:600}
-          .ai-crow{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px}
+          .ai-crow{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:13px;text-decoration:none;color:inherit}
+          a.ai-crow:hover .cn{color:#A78BFA}
           .ai-crow .cn{flex:1;color:#f4f4f5;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-          .ai-crow .cm{color:var(--ai-muted);font-size:12px;white-space:nowrap}
-          .ai-crow .cb{width:56px;height:4px;border-radius:2px;background:var(--ai-stroke2);position:relative;overflow:hidden;flex:0 0 auto}
+          .ai-crow .cm{color:var(--ai-muted);font-size:12px;white-space:nowrap;flex:0 0 128px;text-align:right}
+          .ai-crow .cb{width:60px;height:4px;border-radius:2px;background:var(--ai-stroke2);position:relative;overflow:hidden;flex:0 0 60px}
           .ai-crow .cb i{position:absolute;left:0;top:0;bottom:0;background:var(--ai-green);opacity:.6;border-radius:2px}
-          .ai-crow .cp{font-family:var(--ai-mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+          .ai-crow .cp{font-family:var(--ai-mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap;flex:0 0 72px;text-align:left}
           .ai-conf{display:inline-flex;align-items:center;gap:8px;margin-top:16px;font-size:11.5px;color:var(--ai-muted);background:var(--ai-panel2);border:1px solid var(--ai-stroke);padding:7px 13px;border-radius:999px}
           .ai-conf i{width:6px;height:6px;border-radius:50%;background:var(--ai-purple)}
           .ai-toggle{display:inline-flex;background:var(--ai-panel2);border:1px solid var(--ai-stroke);border-radius:12px;padding:4px;gap:2px;margin:18px 0 22px}
@@ -805,7 +819,7 @@
             var box = document.getElementById('aiComps');
             var rows = (m.comps || []).map(function(c){
               var maxP = Math.max.apply(null, m.comps.map(function(x){ return x.psf_modeled; }));
-              return '<div class="ai-crow"><span class="cn">' + c.title + '</span><span class="cm">' + c.miles + ' mi · ' + c.meta + '</span><div class="cb"><i style="width:' + Math.round(c.psf_modeled / maxP * 100) + '%"></i></div><span class="cp">' + money(c.psf_modeled) + '</span></div>';
+              return '<a class="ai-crow" href="/projects/' + encodeURIComponent(c.slug) + '/"><span class="cn">' + c.title + '</span><span class="cm">' + c.miles + ' mi · ' + c.meta + '</span><div class="cb"><i style="width:' + Math.round(c.psf_modeled / maxP * 100) + '%"></i></div><span class="cp">' + money(c.psf_modeled) + '</span></a>';
             }).join('');
             box.innerHTML = '<h4>Comparable set — basis for projection (modeled current $/sq ft)</h4>' + rows;
             ['aiCardA', 'aiCardB'].forEach(function(id){ document.getElementById(id).classList.remove('ai-locked'); });
@@ -1026,6 +1040,14 @@
     var rec = document.querySelector('[data-records-market] #rcProVal');
     var recM = rec ? document.querySelector('[data-records-market]').getAttribute('data-records-market') : null;
     if (recM) markets[recM] = 1;
+    document.querySelectorAll('.om-card').forEach(function(card){
+      fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:card.getAttribute('data-slug'),member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){ if(!j||!j.found||j.gated||!j.model) return;
+          var el=card.querySelector('.om-psf');
+          el.innerHTML=money(j.model.proj_psf_delivery)+'<i>/ sq ft</i>'; el.classList.add('on');
+        }).catch(function(){});
+    });
     Object.keys(markets).forEach(function(mk){
       fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({market:mk,member_id:mem.id})})
         .then(function(r){return r.json();})
