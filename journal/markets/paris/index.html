@@ -98,6 +98,80 @@
     .sp-conf[data-conf="high"] { color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }
     .sp-conf[data-conf="low"] { color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }
     .sp-onyx { font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }
+    /* City intelligence modules */
+    .section.cm-mod { background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }
+    .cm-eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }
+    .cm-title { font-family:var(--serif); font-weight:600; font-size:27px; letter-spacing:-.02em; line-height:1.08; margin-bottom:4px; }
+    .cm-title em { font-style:italic; color:#A78BFA; }
+    .cm-sub { color:rgba(255,255,255,.5); font-size:13.5px; margin-bottom:20px; }
+    .jc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .jc-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; overflow:hidden; text-decoration:none; color:inherit; display:block; transition:border-color .15s; }
+    .jc-card:hover { border-color:rgba(255,255,255,0.2); }
+    .jc-img { height:120px; background:linear-gradient(140deg,#20242b,#14161a); position:relative; overflow:hidden; }
+    .jc-img img { width:100%; height:100%; object-fit:cover; display:block; }
+    .jc-chip { position:absolute; top:9px; left:9px; font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; background:rgba(10,10,10,.78); border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:4px 9px; color:#e6c574; }
+    .jc-body { padding:13px 15px 15px; }
+    .jc-title { font-family:var(--serif); font-weight:500; font-size:16.5px; line-height:1.25; letter-spacing:-.01em; }
+    .jc-meta { color:rgba(255,255,255,.45); font-size:11.5px; margin-top:7px; }
+    .mv-list { display:flex; flex-direction:column; }
+    .mv-row { display:flex; align-items:center; gap:14px; padding:13px 2px; border-bottom:1px solid rgba(255,255,255,0.07); text-decoration:none; color:inherit; }
+    .mv-row:last-child { border-bottom:none; }
+    .mv-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+    .mv-what { font-size:14.5px; font-weight:500; min-width:0; }
+    .mv-what b { font-weight:650; }
+    .mv-tag { font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; border-radius:6px; padding:3px 8px; flex:0 0 auto; }
+    .mv-when { margin-left:auto; color:rgba(255,255,255,.45); font-size:12px; flex:0 0 auto; font-variant-numeric:tabular-nums; }
+    .ot-row { display:grid; gap:12px; grid-template-columns:repeat(5,1fr); }
+    .ot-row.ot-4 { grid-template-columns:repeat(4,1fr); } .ot-row.ot-3 { grid-template-columns:repeat(3,1fr); } .ot-row.ot-2 { grid-template-columns:repeat(2,1fr); }
+    .ot-cell { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:16px 16px 14px; position:relative; }
+    .ot-cell.peak { border-color:rgba(167,139,250,.4); box-shadow:0 0 24px rgba(167,139,250,.12); }
+    .ot-year { font-family:var(--serif); font-weight:600; font-size:26px; letter-spacing:-.02em; }
+    .ot-n { color:rgba(255,255,255,.5); font-size:12px; margin-top:3px; }
+    .ot-n b { color:#fff; font-weight:600; }
+    .ot-lead { margin-top:11px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.07); font-size:12px; color:rgba(255,255,255,.5); line-height:1.45; }
+    .ot-lead b { color:#fff; font-weight:600; display:block; font-size:12.5px; }
+    .ot-peakchip { position:absolute; top:12px; right:12px; font-size:9px; font-weight:700; letter-spacing:.12em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:3px 8px; background:rgba(167,139,250,.14); }
+    .nb-row { display:flex; flex-wrap:wrap; gap:9px; }
+    .nb-chip { display:inline-flex; align-items:center; gap:9px; text-decoration:none; color:inherit; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:999px; padding:9px 8px 9px 16px; font-size:13.5px; font-weight:550; transition:border-color .15s; }
+    .nb-chip:hover { border-color:rgba(31,223,103,.45); }
+    .nb-n { background:rgba(31,223,103,.12); border:1px solid rgba(31,223,103,.3); color:#1FDF67; border-radius:999px; font-size:11px; font-weight:700; padding:3px 9px; font-variant-numeric:tabular-nums; }
+    .br-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .br-card { display:flex; align-items:center; gap:13px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:13px 15px; text-decoration:none; color:inherit; transition:border-color .15s; }
+    .br-card:hover { border-color:rgba(230,197,116,.45); }
+    .br-mono { width:42px; height:42px; flex:0 0 auto; border-radius:50%; border:1px solid rgba(230,197,116,.4); color:#e6c574; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:16px; font-weight:500; background:rgba(230,197,116,.06); box-shadow:0 0 16px rgba(230,197,116,.1); }
+    .br-name { font-size:13.5px; font-weight:600; line-height:1.2; }
+    .br-sub { color:rgba(255,255,255,.45); font-size:11px; margin-top:2px; }
+    .rc-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .rc-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:16px 17px 14px; }
+    .rc-k { font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:650; margin-bottom:8px; }
+    .rc-v { font-family:var(--serif); font-weight:600; font-size:24px; letter-spacing:-.02em; }
+    .rc-v small { font-size:13px; color:rgba(255,255,255,.5); font-family:var(--sans); font-weight:500; margin-left:3px; }
+    .rc-s { color:rgba(255,255,255,.5); font-size:12px; margin-top:4px; }
+    .rc-s b { color:#fff; font-weight:550; }
+    .rc-card.pro { border-color:rgba(167,139,250,.32); background:radial-gradient(240px 120px at 20% 0%,rgba(167,139,250,.10),transparent 60%),rgba(255,255,255,0.05); }
+    .rc-blur { filter:blur(7px); user-select:none; opacity:.85; }
+    .rc-pro-tag { float:right; font-size:9px; font-weight:700; letter-spacing:.1em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:2px 8px; }
+    .cmp-grid { display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; }
+    .cmp-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:17px 18px; text-decoration:none; color:inherit; }
+    .cmp-card.self { border-color:rgba(167,139,250,.4); box-shadow:0 0 26px rgba(167,139,250,.12); }
+    .cmp-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+    .cmp-city { font-family:var(--serif); font-weight:600; font-size:18px; letter-spacing:-.015em; }
+    .cmp-you { font-size:9px; font-weight:700; letter-spacing:.12em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:3px 8px; }
+    .cmp-score { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .cmp-g { width:52px; height:32px; flex:0 0 auto; }
+    .cmp-num { font-size:21px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .cmp-lvl { font-size:9.5px; font-weight:700; letter-spacing:.12em; }
+    .cmp-rows { display:flex; flex-direction:column; gap:7px; }
+    .cmp-r { display:flex; justify-content:space-between; font-size:12.5px; gap:10px; }
+    .cmp-r .k { color:rgba(255,255,255,.5); }
+    .cmp-r .v { font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }
+    .cmp-r .v.blur { filter:blur(6px); user-select:none; opacity:.85; }
+    @media (max-width:900px) {
+      .jc-grid,.br-row,.rc-row { grid-template-columns:repeat(2,1fr); }
+      .ot-row,.ot-row.ot-4,.ot-row.ot-3 { grid-template-columns:repeat(2,1fr); }
+      .cmp-grid { grid-template-columns:1fr; }
+      .section.cm-mod { padding:20px 18px; }
+    }
     .stat { background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }
     .stat .n { font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }
     .stat .l { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }
@@ -468,6 +542,7 @@
       
     </section>
 
+
     <section class="section">
       <div class="section-head">
         <div>
@@ -552,6 +627,34 @@
   <div class="lead"><h3>Most active architects</h3><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/socit-du-grand-paris/">Société du Grand Paris</a></div><div class="count">1 project</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/barthelemy-grino-architectes/">Barthélémy Griño Architectes</a></div><div class="count">1 project</div></div><div class="lead-row"><div class="name"><a href="https://www.oftmw.com/firm/herzog-de-meuron/">Herzog &amp; de Meuron</a></div><div class="count">1 project</div></div></div>
 </div>
     </section>
+<section class="section cm-mod" id="cmpMod"><div class="cm-eyebrow">How it compares</div><div class="cm-title">Paris vs. <em>the neighbors</em></div><div class="cm-sub">Supply pressure, pipeline scale and modeled pricing, side by side.</div><div class="cmp-grid"><a class="cmp-card self" href="#"><div class="cmp-head"><span class="cmp-city">Paris</span><span class="cmp-you">This page</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="14.7 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">18</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">3 projects · 140 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2027</span></div></div></a><a class="cmp-card" href="/markets/houston/"><div class="cmp-head"><span class="cmp-city">Houston</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="16.3 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">20</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">6 projects · 608 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2028</span></div></div></a><a class="cmp-card" href="/markets/raleigh/"><div class="cmp-head"><span class="cmp-city">Raleigh</span></div><div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38"><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/><path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="#1FDF67" stroke-width="5" stroke-linecap="round" stroke-dasharray="18.8 81.7"/></svg><span><span class="cmp-num" style="color:#1FDF67">23</span><br><span class="cmp-lvl" style="color:#1FDF67">BALANCED</span></span></div><div class="cmp-rows"><div class="cmp-r"><span class="k">Pipeline</span><span class="v">7 projects · 2,861 units</span></div><div class="cmp-r"><span class="k">Peak window</span><span class="v">H2 2028</span></div></div></a></div></section>
+<script>
+(function(){
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (!proEls.length) return;
+  function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
+    if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
+    if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
+  function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
+  withMember(function(mem){ if(!mem||!mem.id) return;
+    var markets = {};
+    document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
+    var rec = document.querySelector('[data-records-market] #rcProVal');
+    var recM = rec ? document.querySelector('[data-records-market]').getAttribute('data-records-market') : null;
+    if (recM) markets[recM] = 1;
+    Object.keys(markets).forEach(function(mk){
+      fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({market:mk,member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){ if(!j||!j.found||j.gated) return;
+          document.querySelectorAll('.cmp-band[data-market="'+mk+'"]').forEach(function(el){
+            el.textContent = money(j.median_psf) + ' / sq ft'; el.classList.remove('blur');
+          });
+          if (recM === mk && rec) { rec.innerHTML = money(j.median_psf) + '<small>/ sq ft</small>'; rec.classList.remove('rc-blur'); }
+        }).catch(function(){});
+    });
+  });
+})();
+</script>
 
     <section class="section">
       <div class="intel" data-intel-city="Paris" data-intel-type="">

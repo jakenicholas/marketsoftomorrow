@@ -707,6 +707,7 @@ try:
         _ATLAS_PUB = json.load(_f).get('projects', {})
 except Exception:
     _ATLAS_PUB = {}
+MARKETS_WITH_PAGES = set()   # filled in main() once city pages are decided
 ATLAS_MODELED_BY_MARKET = collections.Counter(
     v.get('market') for v in _ATLAS_PUB.values() if v.get('modeled') and v.get('market'))
 
@@ -832,6 +833,323 @@ def market_band_html(m: dict) -> str:
         try{{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_market_band_view',{{market:el.getAttribute('data-market')}});}}catch(_e){{}}
       }})();
       </script>'''
+
+
+# ─── City intelligence modules (approved mockups, 2026-07-18) ────────────────
+# Seven data-gated modules for city pages. Every module renders ONLY when its
+# data is rich enough for the city — small markets stay clean. Split into a
+# "motion" cluster (right after the supply hero) and a "context" cluster
+# (after the firms panel): moved / openings / neighborhoods up top, brands /
+# records / journal / comparison below.
+try:
+    with open('journal/map/articles.json', encoding='utf-8') as _f:
+        ARTICLES_BY_SLUG = json.load(_f)
+except Exception:
+    ARTICLES_BY_SLUG = {}
+try:
+    with open('pulse.json', encoding='utf-8') as _f:
+        PULSE_EVENTS = json.load(_f).get('events', [])
+except Exception:
+    PULSE_EVENTS = []
+
+LUXE_BRANDS = ['Mandarin Oriental', 'Ritz-Carlton', 'Ritz Carlton', 'Four Seasons', 'St. Regis', 'Waldorf Astoria',
+    'Aman', 'Rosewood', 'Six Senses', 'Cheval Blanc', 'One&Only', 'Raffles', 'Fairmont', 'Peninsula',
+    'Shangri-La', 'Park Hyatt', 'Grand Hyatt', 'Andaz', 'Thompson', 'Pendry', 'Viceroy', 'Auberge',
+    'Montage', 'Edition', 'Mondrian', 'SLS', 'Delano', 'Faena', 'Standard', 'Kimpton', 'Conrad',
+    'JW Marriott', 'W Hotel', 'Nobu', 'Bulgari', 'Baccarat', 'Armani', 'Porsche Design', 'Bentley',
+    'Mercedes-Benz', 'Aston Martin', 'Lamborghini', 'Pagani', 'Dolce', 'Missoni', 'Diesel', 'Elle',
+    'Karl Lagerfeld', 'Cipriani', 'Casa Tua', 'Mr. C', 'Jean-Georges', 'Major Food', 'Meliá',
+    'Palm Tree', 'Kygo', 'Soho House', 'Trump', 'Hard Rock', 'Corinthia', 'Jumeirah', 'Oetker',
+    'Regent', 'Langham', 'Sofitel', 'Kempinski', 'Banyan Tree', 'Anantara', 'Alila', '1 Hotel']
+
+MV_TAG_STYLE = {
+    'Broke ground':  ('#FFD300', 'rgba(255,211,0,.09)'),
+    'Topped out':    ('#FFD300', 'rgba(255,211,0,.09)'),
+    'Sales launch':  ('#A78BFA', 'rgba(167,139,250,.14)'),
+    'Now open':      ('#1FDF67', 'rgba(31,223,103,.14)'),
+    'Opened':        ('#1FDF67', 'rgba(31,223,103,.14)'),
+    'Approved':      ('#1FDF67', 'rgba(31,223,103,.14)'),
+    'Financing':     ('#e6c574', 'rgba(230,197,116,.1)'),
+    'Tracking':      ('#A78BFA', 'rgba(167,139,250,.14)'),
+    'Opening soon':  ('#C4B5FD', 'rgba(196,181,253,.12)'),
+    'Move-ins':      ('#FFB45E', 'rgba(255,180,94,.09)'),
+}
+
+def _mod_head(eyebrow: str, title_html: str, sub: str) -> str:
+    return (f'<div class="cm-eyebrow">{esc(eyebrow)}</div>'
+            f'<div class="cm-title">{title_html}</div>'
+            f'<div class="cm-sub">{esc(sub)}</div>')
+
+def _article_chip(title: str) -> str:
+    t = title.lower()
+    if re.search(r'restaurant|chef|dining|coffee|donut|bakery|bistro|omakase|steakhouse|cuisine|menu|michelin', t): return 'Food & Drink'
+    if re.search(r'hotel|resort|suite|hospitality|rooms|keys', t): return 'Hotels'
+    if re.search(r'open|opens|opening|debut|arriv|launch', t): return 'Openings'
+    return 'Journal'
+
+def journal_city_html(city: str, projects: list[dict]) -> str:
+    arts = []
+    for p in projects:
+        slug = (p.get('Slug') or '').strip().lower()
+        for a in ARTICLES_BY_SLUG.get(slug, []):
+            if a.get('title') and a.get('link'):
+                arts.append(a)
+    seen, uniq = set(), []
+    for a in sorted(arts, key=lambda a: a.get('published_at') or '', reverse=True):
+        if a['link'] in seen: continue
+        seen.add(a['link']); uniq.append(a)
+    if len(uniq) < 2: return ''
+    cards = []
+    for a in uniq[:3]:
+        chip = _article_chip(a['title'])
+        img = (a.get('image') or '').strip()
+        imgs = f'<img src="{esc(img)}" alt="" loading="lazy">' if img else ''
+        try:
+            d = datetime.datetime.fromisoformat(str(a.get('published_at', '')).replace('Z', '+00:00'))
+            ds = d.strftime('%b %-d, %Y')
+        except Exception:
+            ds = ''
+        cards.append(f'<a class="jc-card" href="{esc(a["link"])}">'
+                     f'<div class="jc-img">{imgs}<span class="jc-chip">{esc(chip)}</span></div>'
+                     f'<div class="jc-body"><div class="jc-title">{esc(a["title"])}</div>'
+                     f'<div class="jc-meta">{esc(ds)}</div></div></a>')
+    return (f'<section class="section cm-mod">'
+            + _mod_head('From the Journal', f'Our coverage of <em>{esc(city)}</em>',
+                        'The latest stories from the projects shaping the city.')
+            + f'<div class="jc-grid">{"".join(cards)}</div></section>')
+
+def moved_city_html(city: str) -> str:
+    now = datetime.datetime.now(datetime.timezone.utc)
+    rows = []
+    for ev in PULSE_EVENTS:
+        if (ev.get('city') or '').strip() != city: continue
+        try:
+            ts = datetime.datetime.fromisoformat(str(ev.get('timestamp', '')).replace('Z', '+00:00'))
+        except Exception:
+            continue
+        if (now - ts).days > 45: continue
+        rows.append((ts, ev))
+    rows.sort(key=lambda x: x[0], reverse=True)
+    if len(rows) < 2: return ''
+    out = []
+    for ts, ev in rows[:5]:
+        tag = (ev.get('tag') or 'Update').strip()
+        col, bgc = MV_TAG_STYLE.get(tag, ('#A78BFA', 'rgba(167,139,250,.14)'))
+        title = ev.get('title') or ''
+        pt = ev.get('project_title') or ''
+        if pt and pt in title:
+            title_html = esc(title).replace(esc(pt), f'<b>{esc(pt)}</b>', 1)
+        else:
+            title_html = esc(title)
+        link = ev.get('link') or '#'
+        out.append(f'<a class="mv-row" href="{esc(link)}">'
+                   f'<span class="mv-dot" style="background:{col};box-shadow:0 0 10px {col}66"></span>'
+                   f'<span class="mv-what">{title_html}</span>'
+                   f'<span class="mv-tag" style="color:{col};background:{bgc}">{esc(tag)}</span>'
+                   f'<span class="mv-when">{ts.strftime("%b %-d")}</span></a>')
+    return (f'<section class="section cm-mod">'
+            + _mod_head('The last 30 days', f'What <em>moved</em> in {esc(city)}',
+                        'Milestones logged across the pipeline this month.')
+            + f'<div class="mv-list">{"".join(out)}</div></section>')
+
+def openings_timeline_html(city: str, projects: list[dict]) -> str:
+    today = datetime.date.today()
+    buckets = {}
+    for p in projects:
+        if (p.get('Delivery') or '').strip() == 'Now Open': continue
+        raw = str(p.get('DeliveryDate') or '').strip()
+        m = re.match(r'^(\d{4})', raw)
+        if not m: continue
+        y = int(m.group(1))
+        if y < today.year: y = today.year
+        key = y if y <= today.year + 3 else 'later'
+        b = buckets.setdefault(key, {'projects': 0, 'units': 0, 'lead': None, 'lead_score': -1})
+        u = 0
+        for fld in ('Units', 'Keys'):
+            rawu = str(p.get(fld) or '').replace(',', '').strip()
+            if rawu.isdigit(): u = int(rawu); break
+        b['projects'] += 1; b['units'] += u
+        score = (1000000 if is_featured(p) else 0) + u
+        if score > b['lead_score']:
+            b['lead_score'] = score
+            nb = (p.get('Neighborhood') or '').split(',')[0].strip()
+            b['lead'] = (p.get('Title') or '', nb or (f"{u:,} residences" if u else 'marquee arrival'))
+    years = [y for y in buckets if y != 'later']
+    if len(buckets) < 2 or sum(b['projects'] for b in buckets.values()) < 4: return ''
+    peak = max(buckets, key=lambda k: buckets[k]['units'])
+    cells = []
+    for key in sorted(years) + (['later'] if 'later' in buckets else []):
+        b = buckets[key]
+        label = f'{key}' if key != 'later' else f'{today.year + 4}+'
+        peakc = ' peak' if key == peak else ''
+        chip = '<span class="ot-peakchip">Peak</span>' if key == peak else ''
+        units_bit = f' · {b["units"]:,} units' if b['units'] else ''
+        lead = ''
+        if b['lead']:
+            lead = f'<div class="ot-lead"><b>{esc(b["lead"][0])}</b>{esc(b["lead"][1])}</div>'
+        cells.append(f'<div class="ot-cell{peakc}">{chip}<div class="ot-year">{label}</div>'
+                     f'<div class="ot-n"><b>{b["projects"]} project{"s" if b["projects"] != 1 else ""}</b>{units_bit}</div>{lead}</div>')
+    return (f'<section class="section cm-mod">'
+            + _mod_head('Delivery horizon', 'What opens <em>when</em>',
+                        "The pipeline by expected opening year, with each year's marquee arrival.")
+            + f'<div class="ot-row ot-{len(cells)}">{"".join(cells)}</div></section>')
+
+def neighborhoods_html(city: str, projects: list[dict]) -> str:
+    counts = collections.Counter()
+    for p in projects:
+        if (p.get('Delivery') or '').strip() == 'Now Open': continue
+        nb = (p.get('Neighborhood') or '').split(',')[0].strip()
+        if nb and nb.lower() != city.lower(): counts[nb] += 1
+    chips = [(nb, n) for nb, n in counts.most_common(6) if n >= 2]
+    if len(chips) < 2: return ''
+    out = ''.join(
+        f'<a class="nb-chip" href="/map/?q={esc(slugify(nb).replace("-", "+"))}+{esc(slugify(city).replace("-", "+"))}">'
+        f'{esc(nb)} <span class="nb-n">{n}</span></a>' for nb, n in chips)
+    return (f'<section class="section cm-mod">'
+            + _mod_head("Where it's happening", f'{esc(city)}, <em>block by block</em>',
+                        'Active projects by neighborhood — tap through to see them on the map.')
+            + f'<div class="nb-row">{out}</div></section>')
+
+def brands_html(city: str, projects: list[dict]) -> str:
+    found = {}
+    for p in projects:
+        if (p.get('Delivery') or '').strip() not in ('Announced', 'Breaking Ground', 'Under Construction', 'Opening Soon'):
+            continue
+        title = p.get('Title') or ''
+        for b in LUXE_BRANDS:
+            if b.lower() in title.lower() and b not in found:
+                yr = (str(p.get('DeliveryDate') or '')[:4]) or ''
+                u = 0
+                for fld in ('Units', 'Keys'):
+                    rawu = str(p.get(fld) or '').replace(',', '').strip()
+                    if rawu.isdigit(): u = int(rawu); break
+                unit_word = 'keys' if (not str(p.get('Units') or '').strip() and str(p.get('Keys') or '').strip()) else 'residences'
+                sub = ' · '.join(x for x in [f'{u:,} {unit_word}' if u else '', yr] if x)
+                mono = ''.join(w[0] for w in b.replace('-', ' ').split()[:2]).upper()
+                found[b] = (p, sub or 'in the pipeline', mono)
+    if len(found) < 2: return ''
+    cards = []
+    for b, (p, sub, mono) in sorted(found.items(), key=lambda kv: kv[1][0].get('DeliveryDate') or '9999')[:8]:
+        href = f'/projects/{esc((p.get("Slug") or "").strip().lower())}/'
+        cards.append(f'<a class="br-card" href="{href}"><span class="br-mono">{esc(mono)}</span>'
+                     f'<span><span class="br-name">{esc(b)}</span><br><span class="br-sub">{esc(sub)}</span></span></a>')
+    return (f'<section class="section cm-mod">'
+            + _mod_head('Brands arriving', "Who's planting a <em>flag</em>",
+                        'Hotel and residence brands with projects in the pipeline.')
+            + f'<div class="br-row">{"".join(cards)}</div></section>')
+
+def records_html(city: str, projects: list[dict], market_slug: str) -> str:
+    fwd = [p for p in projects if (p.get('Delivery') or '').strip() != 'Now Open']
+    if len(fwd) < 4: return ''
+    def _units(p):
+        for fld in ('Units', 'Keys'):
+            rawu = str(p.get(fld) or '').replace(',', '').strip()
+            if rawu.isdigit(): return int(rawu)
+        return 0
+    def _floors(p):
+        raw = str(p.get('Floors') or '').strip()
+        return int(raw) if raw.isdigit() else 0
+    cards = []
+    tall = max(fwd, key=_floors)
+    if _floors(tall):
+        cards.append(('Tallest in pipeline', f'{_floors(tall)}<small>floors</small>', tall))
+    big = max(fwd, key=_units)
+    if _units(big):
+        cards.append(('Biggest by units', f'{_units(big):,}<small>units</small>', big))
+    today = datetime.date.today()
+    dated = []
+    for p in fwd:
+        m = re.match(r'^(\d{4})(?:-(\d{1,2}))?', str(p.get('DeliveryDate') or ''))
+        if not m: continue
+        y, mo = int(m.group(1)), int(m.group(2) or 12)
+        if datetime.date(y, mo, 28) >= today: dated.append((y, mo, p))
+    if dated:
+        y, mo, nxt = min(dated, key=lambda t: (t[0], t[1]))
+        cards.append(('Next to deliver', f'H{1 if mo <= 6 else 2} ’{str(y)[2:]}', nxt))
+    if len(cards) < 3: return ''
+    html_cards = ''.join(
+        f'<div class="rc-card"><div class="rc-k">{esc(k)}</div><div class="rc-v">{v}</div>'
+        f'<div class="rc-s"><b>{esc(p.get("Title") or "")}</b></div></div>' for k, v, p in cards[:3])
+    modeled = ATLAS_MODELED_BY_MARKET.get(market_slug, 0)
+    if modeled >= 2:
+        html_cards += ('<div class="rc-card pro"><div class="rc-k">Median projected pricing<span class="rc-pro-tag">Pro</span></div>'
+                       '<div class="rc-v rc-blur" id="rcProVal">$•,•••<small>/ sq ft</small></div>'
+                       f'<div class="rc-s">at delivery · across <b>{modeled} modeled projects</b></div></div>')
+    return (f'<section class="section cm-mod" data-records-market="{esc(market_slug)}">'
+            + _mod_head('Market records', 'The <em>superlatives</em>', "The pipeline's outer edges.")
+            + f'<div class="rc-row">{html_cards}</div></section>')
+
+def compare_city_html(city: str, market_slug: str, atlas_intel: dict) -> str:
+    me = atlas_intel['markets'].get(market_slug)
+    if not me: return ''
+    peers = [(s, m) for s, m in atlas_intel['markets'].items()
+             if s != market_slug and m.get('region') == me.get('region')
+             and s in MARKETS_WITH_PAGES and m.get('pipeline_projects', 0) >= 4]
+    peers.sort(key=lambda kv: -kv[1]['score'])
+    if len(peers) < 2:
+        extra = [(s, m) for s, m in atlas_intel['markets'].items()
+                 if s != market_slug and s in MARKETS_WITH_PAGES
+                 and m.get('pipeline_projects', 0) >= 6 and (s, m) not in peers]
+        extra.sort(key=lambda kv: abs(kv[1]['score'] - me['score']))
+        peers += extra[: 2 - len(peers)]
+    if len(peers) < 2: return ''
+    def peak_of(m):
+        ws = m.get('windows') or []
+        if not ws or not any(w['units'] for w in ws): return '—'
+        w = max(ws, key=lambda w: w['units'])
+        return f"H{w['half'][5:]} {w['half'][:4]}" if 'H' in w['half'] else w['half']
+    def card(slug_, m, self_=False):
+        col = SUPPLY_LEVEL_COLOR.get(m['level'], '#1FDF67')
+        dash = 81.7 * max(m['score'], 2) / 100.0
+        you = '<span class="cmp-you">This page</span>' if self_ else ''
+        band = f'<div class="cmp-r"><span class="k">Median projected</span><span class="v blur cmp-band" data-market="{esc(slug_)}">$•,••• / sq ft</span></div>' \
+            if ATLAS_MODELED_BY_MARKET.get(slug_, 0) >= 2 else ''
+        href = '#' if self_ else f'/markets/{esc(slug_)}/'
+        return (f'<a class="cmp-card{" self" if self_ else ""}" href="{href}">'
+                f'<div class="cmp-head"><span class="cmp-city">{esc(m["city"])}</span>{you}</div>'
+                f'<div class="cmp-score"><svg class="cmp-g" viewBox="0 0 64 38">'
+                f'<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/>'
+                f'<path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="{col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{dash:.1f} 81.7"/></svg>'
+                f'<span><span class="cmp-num" style="color:{col}">{m["score"]}</span><br>'
+                f'<span class="cmp-lvl" style="color:{col}">{esc(m["level"].upper())}</span></span></div>'
+                f'<div class="cmp-rows">'
+                f'<div class="cmp-r"><span class="k">Pipeline</span><span class="v">{m["pipeline_projects"]} projects · {m["pipeline_units"]:,} units</span></div>'
+                f'<div class="cmp-r"><span class="k">Peak window</span><span class="v">{esc(peak_of(m))}</span></div>'
+                f'{band}</div></a>')
+    cards = card(market_slug, me, True) + ''.join(card(s, m) for s, m in peers[:2])
+    return (f'<section class="section cm-mod" id="cmpMod">'
+            + _mod_head('How it compares', f'{esc(city)} vs. <em>the neighbors</em>',
+                        'Supply pressure, pipeline scale and modeled pricing, side by side.')
+            + f'<div class="cmp-grid">{cards}</div></section>')
+
+CITY_MODULES_JS = """
+<script>
+(function(){
+  var proEls = document.querySelectorAll('.cmp-band, #rcProVal');
+  if (!proEls.length) return;
+  function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
+    if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
+    if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
+  function money(n){return '$'+Math.round(n).toLocaleString('en-US');}
+  withMember(function(mem){ if(!mem||!mem.id) return;
+    var markets = {};
+    document.querySelectorAll('.cmp-band').forEach(function(el){ markets[el.getAttribute('data-market')] = 1; });
+    var rec = document.querySelector('[data-records-market] #rcProVal');
+    var recM = rec ? document.querySelector('[data-records-market]').getAttribute('data-records-market') : null;
+    if (recM) markets[recM] = 1;
+    Object.keys(markets).forEach(function(mk){
+      fetch('https://tmw.jake-ab7.workers.dev/atlas/market-band',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({market:mk,member_id:mem.id})})
+        .then(function(r){return r.json();})
+        .then(function(j){ if(!j||!j.found||j.gated) return;
+          document.querySelectorAll('.cmp-band[data-market="'+mk+'"]').forEach(function(el){
+            el.textContent = money(j.median_psf) + ' / sq ft'; el.classList.remove('blur');
+          });
+          if (recM === mk && rec) { rec.innerHTML = money(j.median_psf) + '<small>/ sq ft</small>'; rec.classList.remove('rc-blur'); }
+        }).catch(function(){});
+    });
+  });
+})();
+</script>"""
 
 def _count_firms(projects: list[dict], name_field: str, slug_field: str) -> tuple[collections.Counter, dict[str,str]]:
     """Tally how many projects each firm appears on, and remember its slug.
@@ -1084,6 +1402,8 @@ def render_page(
     extra_jsonld: str = '',     # additional schema.org blocks (Place, etc.)
     status_sections: str = '',  # H2 sub-sections by status, exact-match search phrases
     supply_html: str = '',      # Atlas Intelligence Surface C (city/market pages)
+    city_modules_top: str = '',   # moved / openings / neighborhoods (city pages)
+    city_modules_mid: str = '',   # brands / records / journal / comparison + Pro JS
 ) -> str:
     faqs = faqs or []
     canonical = ROOT_URL + canonical_path
@@ -1243,6 +1563,80 @@ def render_page(
     .sp-conf[data-conf="high"] {{ color:#1FDF67; border-color:rgba(31,223,103,.42); background:rgba(31,223,103,.07); box-shadow:0 0 22px rgba(31,223,103,.22), inset 0 0 14px rgba(31,223,103,.06); text-shadow:0 0 12px rgba(31,223,103,.45); }}
     .sp-conf[data-conf="low"] {{ color:#F5A623; border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06); box-shadow:0 0 18px rgba(245,166,35,.16); }}
     .sp-onyx {{ font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; color:rgba(167,139,250,.9); text-shadow:0 0 12px rgba(167,139,250,.5); }}
+    /* City intelligence modules */
+    .section.cm-mod {{ background:var(--panel,rgba(255,255,255,0.03)); background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:26px 30px; margin-top:26px; }}
+    .cm-eyebrow {{ font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:600; margin-bottom:6px; }}
+    .cm-title {{ font-family:var(--serif); font-weight:600; font-size:27px; letter-spacing:-.02em; line-height:1.08; margin-bottom:4px; }}
+    .cm-title em {{ font-style:italic; color:#A78BFA; }}
+    .cm-sub {{ color:rgba(255,255,255,.5); font-size:13.5px; margin-bottom:20px; }}
+    .jc-grid {{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }}
+    .jc-card {{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; overflow:hidden; text-decoration:none; color:inherit; display:block; transition:border-color .15s; }}
+    .jc-card:hover {{ border-color:rgba(255,255,255,0.2); }}
+    .jc-img {{ height:120px; background:linear-gradient(140deg,#20242b,#14161a); position:relative; overflow:hidden; }}
+    .jc-img img {{ width:100%; height:100%; object-fit:cover; display:block; }}
+    .jc-chip {{ position:absolute; top:9px; left:9px; font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; background:rgba(10,10,10,.78); border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:4px 9px; color:#e6c574; }}
+    .jc-body {{ padding:13px 15px 15px; }}
+    .jc-title {{ font-family:var(--serif); font-weight:500; font-size:16.5px; line-height:1.25; letter-spacing:-.01em; }}
+    .jc-meta {{ color:rgba(255,255,255,.45); font-size:11.5px; margin-top:7px; }}
+    .mv-list {{ display:flex; flex-direction:column; }}
+    .mv-row {{ display:flex; align-items:center; gap:14px; padding:13px 2px; border-bottom:1px solid rgba(255,255,255,0.07); text-decoration:none; color:inherit; }}
+    .mv-row:last-child {{ border-bottom:none; }}
+    .mv-dot {{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }}
+    .mv-what {{ font-size:14.5px; font-weight:500; min-width:0; }}
+    .mv-what b {{ font-weight:650; }}
+    .mv-tag {{ font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; border-radius:6px; padding:3px 8px; flex:0 0 auto; }}
+    .mv-when {{ margin-left:auto; color:rgba(255,255,255,.45); font-size:12px; flex:0 0 auto; font-variant-numeric:tabular-nums; }}
+    .ot-row {{ display:grid; gap:12px; grid-template-columns:repeat(5,1fr); }}
+    .ot-row.ot-4 {{ grid-template-columns:repeat(4,1fr); }} .ot-row.ot-3 {{ grid-template-columns:repeat(3,1fr); }} .ot-row.ot-2 {{ grid-template-columns:repeat(2,1fr); }}
+    .ot-cell {{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:16px 16px 14px; position:relative; }}
+    .ot-cell.peak {{ border-color:rgba(167,139,250,.4); box-shadow:0 0 24px rgba(167,139,250,.12); }}
+    .ot-year {{ font-family:var(--serif); font-weight:600; font-size:26px; letter-spacing:-.02em; }}
+    .ot-n {{ color:rgba(255,255,255,.5); font-size:12px; margin-top:3px; }}
+    .ot-n b {{ color:#fff; font-weight:600; }}
+    .ot-lead {{ margin-top:11px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.07); font-size:12px; color:rgba(255,255,255,.5); line-height:1.45; }}
+    .ot-lead b {{ color:#fff; font-weight:600; display:block; font-size:12.5px; }}
+    .ot-peakchip {{ position:absolute; top:12px; right:12px; font-size:9px; font-weight:700; letter-spacing:.12em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:3px 8px; background:rgba(167,139,250,.14); }}
+    .nb-row {{ display:flex; flex-wrap:wrap; gap:9px; }}
+    .nb-chip {{ display:inline-flex; align-items:center; gap:9px; text-decoration:none; color:inherit; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:999px; padding:9px 8px 9px 16px; font-size:13.5px; font-weight:550; transition:border-color .15s; }}
+    .nb-chip:hover {{ border-color:rgba(31,223,103,.45); }}
+    .nb-n {{ background:rgba(31,223,103,.12); border:1px solid rgba(31,223,103,.3); color:#1FDF67; border-radius:999px; font-size:11px; font-weight:700; padding:3px 9px; font-variant-numeric:tabular-nums; }}
+    .br-row {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }}
+    .br-card {{ display:flex; align-items:center; gap:13px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:13px 15px; text-decoration:none; color:inherit; transition:border-color .15s; }}
+    .br-card:hover {{ border-color:rgba(230,197,116,.45); }}
+    .br-mono {{ width:42px; height:42px; flex:0 0 auto; border-radius:50%; border:1px solid rgba(230,197,116,.4); color:#e6c574; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:16px; font-weight:500; background:rgba(230,197,116,.06); box-shadow:0 0 16px rgba(230,197,116,.1); }}
+    .br-name {{ font-size:13.5px; font-weight:600; line-height:1.2; }}
+    .br-sub {{ color:rgba(255,255,255,.45); font-size:11px; margin-top:2px; }}
+    .rc-row {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }}
+    .rc-card {{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:13px; padding:16px 17px 14px; }}
+    .rc-k {{ font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:rgba(255,255,255,.38); font-weight:650; margin-bottom:8px; }}
+    .rc-v {{ font-family:var(--serif); font-weight:600; font-size:24px; letter-spacing:-.02em; }}
+    .rc-v small {{ font-size:13px; color:rgba(255,255,255,.5); font-family:var(--sans); font-weight:500; margin-left:3px; }}
+    .rc-s {{ color:rgba(255,255,255,.5); font-size:12px; margin-top:4px; }}
+    .rc-s b {{ color:#fff; font-weight:550; }}
+    .rc-card.pro {{ border-color:rgba(167,139,250,.32); background:radial-gradient(240px 120px at 20% 0%,rgba(167,139,250,.10),transparent 60%),rgba(255,255,255,0.05); }}
+    .rc-blur {{ filter:blur(7px); user-select:none; opacity:.85; }}
+    .rc-pro-tag {{ float:right; font-size:9px; font-weight:700; letter-spacing:.1em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:2px 8px; }}
+    .cmp-grid {{ display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; }}
+    .cmp-card {{ background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:17px 18px; text-decoration:none; color:inherit; }}
+    .cmp-card.self {{ border-color:rgba(167,139,250,.4); box-shadow:0 0 26px rgba(167,139,250,.12); }}
+    .cmp-head {{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }}
+    .cmp-city {{ font-family:var(--serif); font-weight:600; font-size:18px; letter-spacing:-.015em; }}
+    .cmp-you {{ font-size:9px; font-weight:700; letter-spacing:.12em; color:#A78BFA; border:1px solid rgba(167,139,250,.35); border-radius:999px; padding:3px 8px; }}
+    .cmp-score {{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }}
+    .cmp-g {{ width:52px; height:32px; flex:0 0 auto; }}
+    .cmp-num {{ font-size:21px; font-weight:700; font-variant-numeric:tabular-nums; }}
+    .cmp-lvl {{ font-size:9.5px; font-weight:700; letter-spacing:.12em; }}
+    .cmp-rows {{ display:flex; flex-direction:column; gap:7px; }}
+    .cmp-r {{ display:flex; justify-content:space-between; font-size:12.5px; gap:10px; }}
+    .cmp-r .k {{ color:rgba(255,255,255,.5); }}
+    .cmp-r .v {{ font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }}
+    .cmp-r .v.blur {{ filter:blur(6px); user-select:none; opacity:.85; }}
+    @media (max-width:900px) {{
+      .jc-grid,.br-row,.rc-row {{ grid-template-columns:repeat(2,1fr); }}
+      .ot-row,.ot-row.ot-4,.ot-row.ot-3 {{ grid-template-columns:repeat(2,1fr); }}
+      .cmp-grid {{ grid-template-columns:1fr; }}
+      .section.cm-mod {{ padding:20px 18px; }}
+    }}
     .stat {{ background: rgba(255,255,255,.02); border: 1px solid var(--hair); border-radius: 12px; padding: 18px; }}
     .stat .n {{ font-family:var(--serif); font-size: 32px; font-weight: 500; letter-spacing:-.018em; color: var(--white); line-height: 1; }}
     .stat .l {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color: var(--mute); margin-top: 10px; }}
@@ -1490,6 +1884,7 @@ def render_page(
 {stats_html}
     </div>
 {supply_html}
+{city_modules_top}
 
     <section class="section">
       <div class="section-head">
@@ -1505,6 +1900,7 @@ def render_page(
     <section class="section">
 {firms_html}
     </section>
+{city_modules_mid}
 
     <section class="section">
       <div class="intel" data-intel-city="{esc(intel_city)}" data-intel-type="{esc(intel_type)}">
@@ -2964,6 +3360,8 @@ def main():
     # Atlas Intelligence: one supply-pressure compute for every market, shared
     # by every page in this run (same math that writes atlas-intel.json).
     ATLAS_INTEL = compute_atlas_intel(projects)
+    MARKETS_WITH_PAGES.clear()
+    MARKETS_WITH_PAGES.update(slugify(c) for c, b in by_city.items() if len(b) >= CITY_MIN)
     def supply_for(city: str) -> str:
         return supply_pressure_html(ATLAS_INTEL['markets'].get(slugify(city)))
 
@@ -3115,6 +3513,12 @@ def main():
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
             supply_html=supply_for(city),
+            city_modules_top=(moved_city_html(city) + openings_timeline_html(city, bucket)
+                              + neighborhoods_html(city, bucket)),
+            city_modules_mid=(brands_html(city, bucket) + records_html(city, bucket, slugify(city))
+                              + journal_city_html(city, bucket)
+                              + compare_city_html(city, slugify(city), ATLAS_INTEL)
+                              + CITY_MODULES_JS),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),
             status_sections=status_sections_html(
