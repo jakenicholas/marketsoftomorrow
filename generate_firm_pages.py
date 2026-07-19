@@ -496,6 +496,24 @@ JS_TABS = ""  # unused — tabs removed in v2 redesign
 
 
 
+
+# Market chips: supply score + page existence, from the Atlas Intelligence
+# layer. Chips only link to market pages that actually exist.
+try:
+    with open('journal/map/atlas-intel.json', encoding='utf-8') as _f:
+        _ATLAS_MK = json.load(_f).get('markets', {})
+except Exception:
+    _ATLAS_MK = {}
+try:
+    with open('journal/markets-index.json', encoding='utf-8') as _f:
+        _MK_PAGES = set(json.load(_f).values())
+except Exception:
+    _MK_PAGES = set()
+_MK_LEVEL_COLOR = {'Balanced': '#1FDF67', 'Elevated': '#F5A623', 'Saturated': '#FF5C5C'}
+
+def _fmt_half_words(half):
+    return ('Early' if str(half).endswith('H1') else 'Late') + ' \u2019' + str(half)[2:4]
+
 def e(s):
     """HTML-escape, treating None as empty string."""
     return html.escape(str(s) if s is not None else '', quote=True)
@@ -786,11 +804,23 @@ def render_page(firm, firm_projects, stats, coverage_items):
     # in this generator which city pages exist; the market generator will 404-
     # avoid by linking back to the map for cities without hubs. The simpler
     # rule: ≥3 projects in a city → link to a market page; else map fallback.
-    cities_html = ''.join(
-        f'<a class="rel-card" href="{(MARKET_ROOT_URL + "/markets/" + market_slugify(city) + "/") if n >= 3 else (MARKET_ROOT_URL + "/map/?q=" + e(city) + "+" + e(title))}">'
-        f'<div class="city">City</div><div class="name">{e(city)}</div><div class="count">{n} project{"s" if n != 1 else ""} →</div></a>'
-        for city, n in top_cities
-    ) or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No mapped cities yet.</div>'
+    def _city_card(city, n):
+        cslug = market_slugify(city)
+        mk = _ATLAS_MK.get(cslug)
+        has_page = cslug in _MK_PAGES
+        href = (MARKET_ROOT_URL + '/markets/' + cslug + '/') if has_page \
+            else (MARKET_ROOT_URL + '/map/?q=' + e(city) + '+' + e(title))
+        if mk and has_page:
+            col = _MK_LEVEL_COLOR.get(mk['level'], '#1FDF67')
+            eyebrow = (f'<span style="color:{col};font-weight:700">{mk["score"]}</span>'
+                       f' · {e(mk["level"])} · {mk["pipeline_projects"]}-project pipeline')
+        else:
+            eyebrow = 'City'
+        return (f'<a class="rel-card" href="{href}">'
+                f'<div class="city">{eyebrow}</div><div class="name">{e(city)}</div>'
+                f'<div class="count">{n} project{"s" if n != 1 else ""} →</div></a>')
+    cities_html = ''.join(_city_card(city, n) for city, n in top_cities) \
+        or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No mapped cities yet.</div>'
 
     # Collaborators — links to /firm/<other-slug>/. Skip empty-slug entries.
     if collabs:

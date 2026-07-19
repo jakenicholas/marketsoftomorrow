@@ -1123,6 +1123,75 @@ except Exception:
 
 ATLAS_WORKER = 'https://tmw.jake-ab7.workers.dev'
 
+
+# ── Market context preview (chips into /markets/) ───────────────────────────
+# A compact market card under the Atlas Intelligence section: supply score,
+# pipeline, peak window in plain English, and the project's own neighborhood,
+# all funneling to the city's market page. Renders only when that page exists.
+try:
+    with open('journal/map/atlas-intel.json', encoding='utf-8') as _f:
+        ATLAS_MK_INTEL = json.load(_f).get('markets', {})
+except Exception:
+    ATLAS_MK_INTEL = {}
+try:
+    with open('journal/markets-index.json', encoding='utf-8') as _f:
+        MK_PAGE_SLUGS = set(json.load(_f).values())
+except Exception:
+    MK_PAGE_SLUGS = set()
+MK_LEVEL_COLOR = {'Balanced': '#1FDF67', 'Elevated': '#F5A623', 'Saturated': '#FF5C5C'}
+
+def _half_words(half):
+    return ('Early' if str(half).endswith('H1') else 'Late') + ' \u2019' + str(half)[2:4]
+
+def market_context_html(row):
+    city = (row.get('City') or '').strip()
+    if not city:
+        return ''
+    cslug = slugify(city)
+    mk = ATLAS_MK_INTEL.get(cslug)
+    if not mk or cslug not in MK_PAGE_SLUGS:
+        return ''
+    col = MK_LEVEL_COLOR.get(mk['level'], '#1FDF67')
+    dash = 81.7 * max(mk['score'], 2) / 100.0
+    peak = ''
+    ws = [w for w in (mk.get('windows') or []) if w['units']]
+    if ws:
+        w = max(ws, key=lambda w: w['units'])
+        peak = f" · peak {_half_words(w['half'])}"
+    nb = (row.get('Neighborhood') or '').split(',')[0].strip()
+    nb_chip = f'<span class="mc-nb">{html.escape(nb)}</span>' if nb and nb.lower() != city.lower() else ''
+    return f'''
+      <div class="pp-sec">
+        <style>
+          .mc-card{{display:flex;align-items:center;gap:18px;text-decoration:none;color:inherit;
+            background:radial-gradient(520px 200px at 10% 0%,rgba(167,139,250,.10),transparent 60%),rgba(255,255,255,.03);
+            border:1px solid rgba(167,139,250,.26);border-radius:16px;padding:18px 22px;
+            box-shadow:0 0 38px rgba(167,139,250,.09), inset 0 0 28px rgba(167,139,250,.04);transition:border-color .15s}}
+          .mc-card:hover{{border-color:rgba(167,139,250,.5)}}
+          .mc-g{{width:58px;height:36px;flex:0 0 auto}}
+          .mc-mid{{min-width:0;flex:1}}
+          .mc-eyebrow{{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(167,139,250,.85);font-weight:700;margin-bottom:4px}}
+          .mc-line{{font-size:14px;color:rgba(255,255,255,.85);font-weight:500}}
+          .mc-line b{{font-size:16px;font-weight:700}}
+          .mc-sub{{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px}}
+          .mc-nb{{display:inline-block;margin-left:8px;font-size:10.5px;font-weight:700;color:#1FDF67;border:1px solid rgba(31,223,103,.35);border-radius:999px;padding:2px 9px;vertical-align:1px}}
+          .mc-cta{{flex:0 0 auto;font-size:12.5px;font-weight:700;color:#A78BFA;white-space:nowrap}}
+          @media(max-width:700px){{.mc-card{{flex-wrap:wrap}}.mc-cta{{width:100%;text-align:right}}}}
+        </style>
+        <a class="mc-card" href="/markets/{cslug}/">
+          <svg class="mc-g" viewBox="0 0 64 38" aria-hidden="true">
+            <path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 6 34 A 26 26 0 0 1 58 34" fill="none" stroke="{col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{dash:.1f} 81.7"/>
+          </svg>
+          <span class="mc-mid">
+            <span class="mc-eyebrow">The {html.escape(city)} market</span>
+            <span class="mc-line"><b style="color:{col}">{mk['score']}</b> · {html.escape(mk['level'])} supply{nb_chip}</span>
+            <span class="mc-sub">{mk['pipeline_projects']}-project pipeline · {mk['pipeline_units']:,} residences and keys{html.escape(peak)}</span>
+          </span>
+          <span class="mc-cta">Explore the market →</span>
+        </a>
+      </div>'''
+
 def atlas_intel_section_html(row):
     slug = (row.get('Slug') or '').strip().lower()
     meta = ATLAS_PROJ_PUBLIC.get(slug)
@@ -1709,6 +1778,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     # never depends on a rolling feed window.
     dossier_html = dossier_section_html(row, articles)
     atlas_intel_html = atlas_intel_section_html(row)
+    market_ctx_html = market_context_html(row)
 
     # ── Quick answers (FAQ) ──────────────────────────────────────────────────
     # Dossier/spec-derived Q&As targeting the questions people actually Google
@@ -2993,6 +3063,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
       {about_section}
       {firms_section}
       {atlas_intel_html}
+      {market_ctx_html}
       <div class="pp-sec"><div class="pp-sec-h">Location</div>{map_preview_html(lat, lng, map_url)}</div>
       {updates_section_html}
       {family_section}
