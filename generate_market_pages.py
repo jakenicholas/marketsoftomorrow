@@ -3513,12 +3513,13 @@ def main():
             map_search=city, intel_city=city, intel_type='',
             body_copy_html=long_copy,
             supply_html=supply_for(city),
-            city_modules_top=(moved_city_html(city) + openings_timeline_html(city, bucket)
-                              + neighborhoods_html(city, bucket)),
-            city_modules_mid=(brands_html(city, bucket) + records_html(city, bucket, slugify(city))
-                              + journal_city_html(city, bucket)
-                              + compare_city_html(city, slugify(city), ATLAS_INTEL)
-                              + CITY_MODULES_JS),
+            city_modules_top=(compare_city_html(city, slugify(city), ATLAS_INTEL)
+                              + brands_html(city, bucket)
+                              + openings_timeline_html(city, bucket)
+                              + records_html(city, bucket, slugify(city))
+                              + neighborhoods_html(city, bucket)
+                              + moved_city_html(city)),
+            city_modules_mid=(journal_city_html(city, bucket) + CITY_MODULES_JS),
             faqs=faqs_city(city, bucket),
             extra_jsonld=place_jsonld(city),
             status_sections=status_sections_html(
