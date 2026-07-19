@@ -5399,10 +5399,17 @@
   .pa-val { filter: blur(5px); opacity: 0.8; user-select: none; }
   .pa-val.pa-on { filter: none; opacity: 1; color: #A78BFA; }
   .pa-lock { margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; color: #A78BFA; border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; padding: 2px 7px; }
-  .pm-atlas { display: flex; flex-direction: column; gap: 5px; margin: 14px 0 4px; }
-  .pm-atlas .popup-atlas-chip { font-size: 12px; padding: 7px 11px; text-decoration: none; color: rgba(255,255,255,0.82); }
-  .pm-atlas a.popup-atlas-chip:hover { border-color: rgba(167,139,250,0.5); }
-  .pm-atlas .pa-go { margin-left: auto; color: rgba(167,139,250,0.9); font-weight: 700; font-size: 11px; }
+  .pm-atlas { margin: 16px 0 26px; }
+  .pa-box { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.22); border-radius: 10px; padding: 4px 12px; box-shadow: 0 0 14px rgba(167,139,250,0.10); }
+  .pa-row { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.82); padding: 7px 0; }
+  .pa-row + .pa-row { border-top: 1px solid rgba(255,255,255,0.07); }
+  .pa-row b { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .pa-go { margin-left: auto; color: rgba(167,139,250,0.9); font-weight: 700; font-size: 11px; text-decoration: none; white-space: nowrap; }
+  .pa-go:hover { color: #C4B5FD; }
+  /* popup variant: sits inside the purple TMW Intelligence block, replacing
+     the "TMW estimates…" caption — same inset-box footprint */
+  .popup-intel .pa-box { background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); box-shadow: none; margin-top: 7px; padding: 2px 10px; }
+  .popup-intel .pa-row { font-size: 11px; padding: 6px 0; }
   .popup-content .popup-intel-eyebrow {
     display: flex;
     align-items: center;
@@ -16299,9 +16306,8 @@
           else { websiteLink.href = '#'; websiteLink.hidden = true; }
         }
 
-        // Atlas Intelligence chips: market supply score (links to the market
-        // page when it exists) + projected-pricing teaser (Pro paint, values
-        // server-verified — never in the public payload).
+        // Atlas Intelligence: ONE combined box — supply pressure + projected
+        // pricing (Pro paint server-verified; values never in public payload).
         try {
           const box = document.getElementById('pmAtlasChips');
           if (box) {
@@ -16317,20 +16323,17 @@
               const mk = ai && ai.markets && ai.markets[cSlug];
               const pm = pub && pub.projects && pub.projects[aSlug];
               const hasPage = idx && Object.values(idx).indexOf(cSlug) >= 0;
-              let out = '';
+              let rows = '';
               if (mk) {
                 const col = mk.level === 'Saturated' ? '#FF5C5C' : mk.level === 'Elevated' ? '#F5A623' : '#1FDF67';
-                const inner = `<span class="pa-dot" style="background:${col}"></span>Supply pressure <b style="color:${col}">${mk.score}</b>&nbsp;· ${mk.level}` +
-                  (hasPage ? `<span class="pa-go">${p.city} market →</span>` : '');
-                out += hasPage
-                  ? `<a class="popup-atlas-chip" href="/markets/${cSlug}/">${inner}</a>`
-                  : `<div class="popup-atlas-chip">${inner}</div>`;
+                rows += `<div class="pa-row"><span class="pa-dot" style="background:${col}"></span>Supply pressure <b style="color:${col}">${mk.score}</b>&nbsp;· ${mk.level}` +
+                  (hasPage ? `<a class="pa-go" href="/markets/${cSlug}/">${p.city} market →</a>` : '') + `</div>`;
               }
               if (pm && pm.modeled) {
-                out += `<a class="popup-atlas-chip pa-proj" href="${projectShareUrl(p.title)}"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><span class="pa-lock">Pro</span></a>`;
+                rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><a class="pa-go" href="${projectShareUrl(p.title)}">Full projection →</a></div>`;
               }
-              if (!out) return;
-              cur.innerHTML = out; cur.hidden = false;
+              if (!rows) return;
+              cur.innerHTML = `<div class="pa-box">${rows}</div>`; cur.hidden = false;
               const proj = cur.querySelector('.pa-proj');
               if (proj) {
                 const ms = window.$memberstackDom;
@@ -16343,8 +16346,7 @@
                       if (!j || !j.found || j.gated || !j.model) return;
                       const v = proj.querySelector('.pa-val');
                       v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
-                      v.classList.add('pa-on');
-                      const lk = proj.querySelector('.pa-lock'); if (lk) lk.remove();
+                      v.style.color = '#A78BFA';
                     }).catch(() => {});
                 }).catch(() => {});
               }
@@ -17179,55 +17181,68 @@
         }
       } catch (err) { /* never let intel break the popup */ }
 
-      // Atlas Intelligence chips: supply-pressure score (public) + projected
-      // pricing summary (Pro-gated — the value is fetched per verified member
-      // at runtime and is never in any public payload). Independent of the
-      // delivery-intel block above so either can render without the other.
+      // Atlas Intelligence: swap the "TMW estimates…" caption inside the
+      // purple intel block for ONE combined box (supply pressure + projected
+      // pricing) with the identical inset footprint. Values stay Pro-gated.
       try {
         const aMount = activePopup.getElement().querySelector('.popup-intel-mount');
         if (aMount) {
           const aSlug = window.pyStyleSlug
             ? window.pyStyleSlug(f.properties.title)
             : (f.properties.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          const cName = f.properties.city || '';
+          const cSlug = cName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
           window.__atlasIntelP = window.__atlasIntelP || fetch('/map/atlas-intel.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
           window.__atlasPubP = window.__atlasPubP || fetch('/map/atlas-projections-public.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
           Promise.all([window.__atlasIntelP, window.__atlasPubP]).then(([ai, pub]) => {
-            if (!document.body.contains(aMount)) return;
-            const sp = ai && ai.projects && ai.projects[aSlug];
+            const mk = ai && ai.markets && ai.markets[cSlug];
             const pm = pub && pub.projects && pub.projects[aSlug];
-            let chips = '';
-            if (sp && sp.score != null) {
-              const col = sp.level === 'Saturated' ? '#FF5C5C' : sp.level === 'Elevated' ? '#F5A623' : '#1FDF67';
-              chips += `<div class="popup-atlas-chip"><span class="pa-dot" style="background:${col}"></span>Supply pressure <b style="color:${col}">${sp.score}</b>&nbsp;· ${sp.level}</div>`;
+            let rows = '';
+            if (mk) {
+              const col = mk.level === 'Saturated' ? '#FF5C5C' : mk.level === 'Elevated' ? '#F5A623' : '#1FDF67';
+              rows += `<div class="pa-row"><span class="pa-dot" style="background:${col}"></span>Supply pressure <b style="color:${col}">${mk.score}</b>&nbsp;· ${mk.level}</div>`;
             }
             if (pm && pm.modeled) {
-              chips += `<div class="popup-atlas-chip pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><span class="pa-lock">Pro</span></div>`;
+              rows += `<div class="pa-row pa-proj"><span class="pa-dot" style="background:#A78BFA"></span>Projected pricing <b class="pa-val">$•,•••/sf</b><span class="pa-lock">Pro</span></div>`;
             }
-            if (!chips) return;
-            const box = document.createElement('div');
-            box.className = 'popup-atlas';
-            box.innerHTML = chips;
-            aMount.parentNode.insertBefore(box, aMount.nextSibling);
-            const proj = box.querySelector('.pa-proj');
-            if (proj) {
-              const ms = window.$memberstackDom;
-              if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
-                const mem = r && r.data;
-                if (!mem || !mem.id) return;
-                fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: aSlug, member_id: mem.id }) })
-                  .then(r2 => r2.json())
-                  .then(j => {
-                    if (!j || !j.found || j.gated || !j.model) return;
-                    const v = proj.querySelector('.pa-val');
-                    v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
-                    v.classList.add('pa-on');
-                    const lk = proj.querySelector('.pa-lock'); if (lk) lk.remove();
-                  }).catch(() => {});
-              }).catch(() => {});
-            }
+            if (!rows) return;
+            const boxHtml = `<div class="pa-box popup-atlas">${rows}</div>`;
+            // The intel block renders asynchronously; poll briefly so we can
+            // replace its caption in place (fall back to the mount if it
+            // never appears — e.g. no delivery estimate for this project).
+            let tries = 0;
+            (function place() {
+              const root = activePopup.getElement();
+              if (!root || !document.body.contains(aMount)) return;
+              const intelBox = root.querySelector('.popup-intel');
+              if (intelBox) {
+                const cap = intelBox.querySelector('.popup-intel-pattern, .popup-intel-sub');
+                if (cap) cap.remove();
+                if (!intelBox.querySelector('.pa-box')) intelBox.insertAdjacentHTML('beforeend', boxHtml);
+              } else if (tries < 10) { tries++; setTimeout(place, 200); return; }
+              else if (!aMount.querySelector('.pa-box')) { aMount.insertAdjacentHTML('beforeend', boxHtml); }
+              const proj = root.querySelector('.popup-atlas .pa-proj');
+              if (proj && !proj.dataset.painted) {
+                proj.dataset.painted = '1';
+                const ms = window.$memberstackDom;
+                if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
+                  const mem = r && r.data;
+                  if (!mem || !mem.id) return;
+                  fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: aSlug, member_id: mem.id }) })
+                    .then(r2 => r2.json())
+                    .then(j => {
+                      if (!j || !j.found || j.gated || !j.model) return;
+                      const v = proj.querySelector('.pa-val');
+                      v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
+                      v.style.color = '#A78BFA';
+                      const lk = proj.querySelector('.pa-lock'); if (lk) lk.remove();
+                    }).catch(() => {});
+                }).catch(() => {});
+              }
+            })();
           });
         }
-      } catch (err) { /* atlas chips must never break the popup */ }
+      } catch (err) { /* atlas box must never break the popup */ }
 
       // Wire up Learn More via addEventListener (avoids inline-onclick apostrophe
       // bugs for project titles/cities containing single quotes, e.g. "Maison d'Or")
