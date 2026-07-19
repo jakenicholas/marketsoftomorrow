@@ -436,6 +436,8 @@ FIRM_CSS = """
     .rel-card .count { font-family: var(--mono); font-size: 11px; color: var(--purple-bright); margin-top: 8px; }
 
     /* Pro CTA */
+    /* Pro members never see the upsell (journal-auth.js sets html.tmw-paid) */
+    html.tmw-paid .pro-cta { display: none; }
     .pro-cta { margin-top: 38px; padding: 32px; background: linear-gradient(120deg, rgba(255,211,0,.08), rgba(167,139,250,.04)); border: 1px solid rgba(255,211,0,.32); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
     .pro-cta .l { font-family: var(--serif); font-size: 19px; line-height: 1.4; color: var(--white); max-width: 50ch; font-weight: 500; }
     .pro-cta .l em { font-style: italic; color: var(--gold); font-weight: 400; }

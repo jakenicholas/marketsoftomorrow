@@ -179,6 +179,8 @@
     .rel-card .count { font-family: var(--mono); font-size: 11px; color: var(--purple-bright); margin-top: 8px; }
 
     /* Pro CTA */
+    /* Pro members never see the upsell (journal-auth.js sets html.tmw-paid) */
+    html.tmw-paid .pro-cta { display: none; }
     .pro-cta { margin-top: 38px; padding: 32px; background: linear-gradient(120deg, rgba(255,211,0,.08), rgba(167,139,250,.04)); border: 1px solid rgba(255,211,0,.32); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
     .pro-cta .l { font-family: var(--serif); font-size: 19px; line-height: 1.4; color: var(--white); max-width: 50ch; font-weight: 500; }
     .pro-cta .l em { font-style: italic; color: var(--gold); font-weight: 400; }
@@ -275,6 +277,7 @@
     html.tmw-paid .tmw-locked-grid { filter: none; opacity: 1; pointer-events: auto; user-select: auto; max-height: none; overflow: visible; -webkit-mask-image: none; mask-image: none; }
     html.tmw-paid .tmw-gate { display: none; }
     html.tmw-paid .gopro-pill { display: none; }
+    html.tmw-paid .pro-cta { display: none; }
     html.tmw-paid .tmw-free-only { display: none; }
     html.tmw-paid .tmw-paid-only { display: inline; }
     .tmw-loadmore { display: block; margin: 20px auto 0; font-family: var(--sans); font-size: 13px; font-weight: 600; color: #B9A6FF; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.32); border-radius: 999px; padding: 12px 28px; cursor: pointer; transition: background .15s, border-color .15s; }
