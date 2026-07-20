@@ -227,7 +227,11 @@ function injectArticleJsonLd(post, url, desc) {
       image: post.image ? [post.image] : undefined,
       datePublished: post.published_iso || post.pubDate || undefined,
       dateModified: post.updated_iso || post.published_iso || post.pubDate || undefined,
-      author: post.author_name ? { '@type': 'Person', name: post.author_name } : { '@type': 'Organization', name: 'Markets of Tomorrow' },
+      author: post.author_name
+        ? (/^jake nicholas$/i.test(post.author_name)
+            ? { '@type': 'Person', name: post.author_name, url: 'https://www.oftmw.com/team', sameAs: ['https://www.oftmw.com/team', 'https://www.linkedin.com/in/jake-nicholas/'] }
+            : { '@type': 'Person', name: post.author_name })
+        : { '@type': 'Organization', name: 'Markets of Tomorrow' },
       publisher: { '@type': 'Organization', name: 'Markets of Tomorrow', logo: { '@type': 'ImageObject', url: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png' } },
       mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     };
@@ -272,8 +276,18 @@ function renderArticle(post) {
   if (deck && deck.length > 30 && deck.length < 240) deckEl.textContent = deck;
   else deckEl.style.display = 'none';
 
-  // Byline
-  document.getElementById('article-author').textContent = post.author || 'Markets of Tomorrow';
+  // Byline — when the author is Jake Nicholas, link the name to /team (plain, no
+  // underline or link color) so his articles tie back to his founder entity.
+  var _authName = post.author || 'Markets of Tomorrow', _authEl = document.getElementById('article-author');
+  if (/^jake nicholas$/i.test(_authName)) {
+    _authEl.textContent = '';
+    var _al = document.createElement('a');
+    _al.href = '/team/'; _al.textContent = _authName;
+    _al.style.color = 'inherit'; _al.style.textDecoration = 'none';
+    _authEl.appendChild(_al);
+  } else {
+    _authEl.textContent = _authName;
+  }
   document.getElementById('article-date').textContent = post.pubDate ? formatLongDate(post.pubDate) : '';
 
   // Cover image
