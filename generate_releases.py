@@ -136,7 +136,7 @@ EDITIONS = [
     "dek": "One shared brain that learns from every edit, Deep mode, and the day we deleted a 29,000-token prompt and the answers got better.",
     "date_iso": "2026-07-05", "date_label": "July 5, 2026",
     "window": "The week of June 28, 2026",
-    "cover": "ed1-0.jpg",
+    "cover": "ed1-0.jpg", "cover_pos": "left",
     "linkedin": "https://www.linkedin.com/pulse/model-cheapest-part-jake-nicholas-irmue",
     "body": [
       ("p", "This week we deleted a 29,000-token prompt from our AI, and the answers got better."),
@@ -228,9 +228,9 @@ a{color:inherit;text-decoration:none}
 .rel-hero .sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(17px,2.1vw,21px);color:var(--mute2);margin-top:16px;max-width:56ch}
 .rel-list{display:flex;flex-direction:column;gap:20px;padding:38px 0 90px}
 .rel-list[hidden],.dig-list[hidden]{display:none}
-.rel-card{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:center;padding:16px 0 16px 16px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
+.rel-card{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:center;padding:16px 0 16px 16px;border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(167,139,250,.035),transparent 60%);transition:border-color .2s,transform .2s,box-shadow .2s}
 .rel-card:hover{border-color:rgba(167,139,250,.42);transform:translateY(-2px);box-shadow:0 24px 60px -30px rgba(167,139,250,.5)}
-.rel-card .rc-media{position:relative;overflow:hidden;background:#111;aspect-ratio:16/9;align-self:center;border-radius:12px}
+.rel-card .rc-media{position:relative;overflow:hidden;background:#111;aspect-ratio:3/2;align-self:center;border-radius:12px}
 .rel-card .rc-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
 .rel-card:hover .rc-media img{transform:scale(1.05)}
 .rel-card .rc-body{padding:4px 24px 4px 0;display:flex;flex-direction:column;justify-content:center;min-width:0}
@@ -348,9 +348,14 @@ def build_index():
     # Backend view: the LinkedIn build-log editions
     cards = []
     for ed in EDITIONS:
+        # cover_pos: which part of the cover survives the 3:2 side-crop.
+        # Default center (even left+right trim); "left" keeps the left edge
+        # and trims only from the right (edition 1's map fills the right half).
+        pos = ed.get("cover_pos", "center")
+        pos_style = ' style="object-position:left center"' if pos == "left" else ''
         cards.append(f"""
     <a class="rel-card" href="/releases/{e(ed['slug'])}/">
-      <div class="rc-media"><img src="/releases/img/{e(ed['cover'])}" alt="{e(ed['title'])}" loading="lazy"></div>
+      <div class="rc-media"><img src="/releases/img/{e(ed['cover'])}" alt="{e(ed['title'])}" loading="lazy"{pos_style}></div>
       <div class="rc-body">
         <div class="rc-meta"><span class="rc-no">No. {ed['num']:02d}</span><span>·</span><span>{e(ed['date_label'])}</span></div>
         <h2>{e(ed['title'])}</h2>
