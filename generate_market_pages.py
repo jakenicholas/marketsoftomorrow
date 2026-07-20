@@ -1872,6 +1872,8 @@ def render_page(
     .mk-ok-l i, .mk-ok-chip i {{ width:6px; height:6px; border-radius:50%; background:#A78BFA; box-shadow:0 0 11px 2px rgba(167,139,250,.8); }}
     .mk-ok-chip {{ display:inline-flex; align-items:center; gap:7px; padding:5px 11px; border-radius:999px; background:rgba(167,139,250,.14); border:1px solid rgba(167,139,250,.28); color:#A78BFA; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }}
     #atlasIntel .ai-kicker {{ display:none !important; }}
+    /* Breathing room between the supply-pressure hero and the projected-pricing card */
+    #atlasIntel {{ margin-top:44px; }}
     /* Dashboard rail */
     .mk-rail {{ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:16px;
       background:rgba(10,10,10,.92); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
