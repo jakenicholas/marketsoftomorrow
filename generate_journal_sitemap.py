@@ -80,6 +80,7 @@ def main():
     for p in ("golf", "restaurants", "hotels"):
         out.append(url_tag(f"{BASE}/{p}/", today, "0.8", "weekly"))
     out.append(url_tag(f"{BASE}/media/", today, "0.6", "monthly"))
+    out.append(url_tag(f"{BASE}/team/", today, "0.8", "monthly"))
     out.append(url_tag(f"{BASE}/search/", today, "0.4", "monthly"))
     for it in posts:
         slug = it.get("slug")
