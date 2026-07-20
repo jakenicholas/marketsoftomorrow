@@ -3,15 +3,15 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 385
+      "count": 386
     },
     {
       "type": "Hotel",
-      "count": 204
+      "count": 207
     },
     {
       "type": "Mixed-Use",
-      "count": 75
+      "count": 76
     },
     {
       "type": "Golf",
@@ -39,7 +39,7 @@
     },
     {
       "type": "Cultural",
-      "count": 10
+      "count": 11
     },
     {
       "type": "Park",
@@ -21479,29 +21479,6 @@
       ]
     },
     {
-      "st": "AE",
-      "ty": "Residences",
-      "sl": "Construction",
-      "yr": 2028,
-      "sm": "2023-09",
-      "ci": "Dubai",
-      "u": 76,
-      "k": 0,
-      "fl": 75,
-      "dv": [
-        [
-          "Nakheel",
-          "nakheel"
-        ]
-      ],
-      "ar": [
-        [
-          "Benjelloun Piper Architecture",
-          "benjelloun-piper-architecture"
-        ]
-      ]
-    },
-    {
       "st": "Other",
       "ty": "Mixed-Use",
       "sl": "Construction",
@@ -21754,19 +21731,149 @@
         ]
       ],
       "ar": []
+    },
+    {
+      "st": "SC",
+      "ty": "Residences",
+      "sl": "Announced",
+      "yr": 2028,
+      "sm": null,
+      "ci": "Charleston",
+      "u": 140,
+      "k": 0,
+      "fl": 0,
+      "dv": [],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Now Open",
+      "yr": null,
+      "sm": null,
+      "ci": "San Diego",
+      "u": 0,
+      "k": 135,
+      "fl": 8,
+      "dv": [
+        [
+          "Hilton",
+          "hilton"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "AE",
+      "ty": "Residences",
+      "sl": "Construction",
+      "yr": 2030,
+      "sm": null,
+      "ci": "Dubai",
+      "u": 522,
+      "k": 0,
+      "fl": 100,
+      "dv": [
+        [
+          "Deyaar Development",
+          "deyaar-development"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Cultural",
+      "sl": "Opening Soon",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Shenzhen",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [],
+      "ar": [
+        [
+          "MAD Architects",
+          "mad-architects"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Construction",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Suzhou",
+      "u": 0,
+      "k": 146,
+      "fl": 0,
+      "dv": [
+        [
+          "Sungent Holdings",
+          "sungent-holdings"
+        ],
+        [
+          "Hongkong Land",
+          "hongkong-land"
+        ]
+      ],
+      "ar": [
+        [
+          "ZNA",
+          "zna"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Mixed-Use",
+      "sl": "Construction",
+      "yr": 2028,
+      "sm": null,
+      "ci": "Chengdu",
+      "u": 0,
+      "k": 0,
+      "fl": 101,
+      "dv": [
+        [
+          "Greenland Group",
+          "greenland-group"
+        ]
+      ],
+      "ar": [
+        [
+          "Adrian Smith + Gordon Gill Architecture",
+          "adrian-smith-gordon-gill-architecture"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Announced",
+      "yr": 2026,
+      "sm": null,
+      "ci": "",
+      "u": 0,
+      "k": 167,
+      "fl": 0,
+      "dv": [],
+      "ar": []
     }
   ],
   "hero_stats": {
-    "total_projects": 869,
+    "total_projects": 875,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
-    "under_construction": 342,
-    "opening_this_year": 130
+    "under_construction": 344,
+    "opening_this_year": 133
   },
   "scale": {
-    "units": 298538,
-    "keys": 57886,
-    "floors": 15112
+    "units": 299124,
+    "keys": 58334,
+    "floors": 15246
   },
   "leaderboards": {
     "developers": [
@@ -21904,6 +22011,18 @@
         ]
       },
       {
+        "name": "Hilton",
+        "slug": "hilton",
+        "sub": "Singapore",
+        "count": 6,
+        "states": [
+          "Other",
+          "UK",
+          "JP",
+          "FL"
+        ]
+      },
+      {
         "name": "Four Seasons Hotels and Resorts",
         "slug": "four-seasons-hotels-and-resorts",
         "sub": "Mykonos",
@@ -21937,18 +22056,6 @@
         "sub": "Miami",
         "count": 5,
         "states": [
-          "FL"
-        ]
-      },
-      {
-        "name": "Hilton",
-        "slug": "hilton",
-        "sub": "Singapore",
-        "count": 5,
-        "states": [
-          "Other",
-          "UK",
-          "JP",
           "FL"
         ]
       },
@@ -22232,6 +22339,15 @@
         ]
       },
       {
+        "name": "MAD Architects",
+        "slug": "mad-architects",
+        "sub": "Los Angeles",
+        "count": 7,
+        "states": [
+          "Other"
+        ]
+      },
+      {
         "name": "Olson Kundig",
         "slug": "olson-kundig",
         "sub": "Riviera Nayarit",
@@ -22304,15 +22420,6 @@
         "states": [
           "JP",
           "TX"
-        ]
-      },
-      {
-        "name": "MAD Architects",
-        "slug": "mad-architects",
-        "sub": "Los Angeles",
-        "count": 6,
-        "states": [
-          "Other"
         ]
       },
       {
@@ -22466,19 +22573,19 @@
         ]
       },
       {
+        "name": "Shenzhen",
+        "sub": "12 developments \u00b7 8 developers",
+        "count": 12,
+        "states": [
+          "Other"
+        ]
+      },
+      {
         "name": "Tokyo",
         "sub": "12 developments \u00b7 15 developers",
         "count": 12,
         "states": [
           "JP"
-        ]
-      },
-      {
-        "name": "Shenzhen",
-        "sub": "11 developments \u00b7 8 developers",
-        "count": 11,
-        "states": [
-          "Other"
         ]
       },
       {
@@ -22546,6 +22653,14 @@
         ]
       },
       {
+        "name": "Charleston",
+        "sub": "7 developments \u00b7 7 developers",
+        "count": 7,
+        "states": [
+          "SC"
+        ]
+      },
+      {
         "name": "Dallas",
         "sub": "7 developments \u00b7 10 developers",
         "count": 7,
@@ -22586,14 +22701,6 @@
         ]
       },
       {
-        "name": "Charleston",
-        "sub": "6 developments \u00b7 7 developers",
-        "count": 6,
-        "states": [
-          "SC"
-        ]
-      },
-      {
         "name": "Houston",
         "sub": "6 developments \u00b7 7 developers",
         "count": 6,
@@ -22622,7 +22729,7 @@
       {
         "name": "Residences",
         "sub": "44% of pipeline",
-        "count": 385,
+        "count": 386,
         "states": [
           "FL",
           "Other",
@@ -22637,8 +22744,8 @@
       },
       {
         "name": "Hotel",
-        "sub": "23% of pipeline",
-        "count": 204,
+        "sub": "24% of pipeline",
+        "count": 207,
         "states": [
           "Other",
           "FL",
@@ -22656,7 +22763,7 @@
       {
         "name": "Mixed-Use",
         "sub": "9% of pipeline",
-        "count": 75,
+        "count": 76,
         "states": [
           "Other",
           "FL",
@@ -22748,7 +22855,7 @@
       {
         "name": "Cultural",
         "sub": "1% of pipeline",
-        "count": 10,
+        "count": 11,
         "states": [
           "Other",
           "FL",
@@ -24788,8 +24895,8 @@
           ]
         },
         {
-          "name": "Nakheel",
-          "slug": "nakheel",
+          "name": "Deyaar Development",
+          "slug": "deyaar-development",
           "sub": "Dubai",
           "count": 1,
           "states": [
@@ -25054,15 +25161,6 @@
         {
           "name": "DAR Consult",
           "slug": "dar-consult",
-          "sub": "Dubai",
-          "count": 1,
-          "states": [
-            "AE"
-          ]
-        },
-        {
-          "name": "Benjelloun Piper Architecture",
-          "slug": "benjelloun-piper-architecture",
           "sub": "Dubai",
           "count": 1,
           "states": [
@@ -27594,8 +27692,8 @@
       "cities": [
         {
           "name": "Charleston",
-          "sub": "6 developments \u00b7 7 developers",
-          "count": 6,
+          "sub": "7 developments \u00b7 7 developers",
+          "count": 7,
           "states": [
             "SC"
           ]
@@ -27628,7 +27726,7 @@
       "types": [
         {
           "name": "Hotel",
-          "sub": "44% of pipeline",
+          "sub": "40% of pipeline",
           "count": 4,
           "states": [
             "Other",
@@ -27646,7 +27744,7 @@
         },
         {
           "name": "Golf",
-          "sub": "33% of pipeline",
+          "sub": "30% of pipeline",
           "count": 3,
           "states": [
             "Other",
@@ -27658,8 +27756,8 @@
         },
         {
           "name": "Residences",
-          "sub": "11% of pipeline",
-          "count": 1,
+          "sub": "20% of pipeline",
+          "count": 2,
           "states": [
             "FL",
             "Other",
@@ -28304,9 +28402,9 @@
         "under_construction": 22
       },
       "scale": {
-        "units": 9065,
+        "units": 9511,
         "keys": 1043,
-        "floors": 1607
+        "floors": 1632
       },
       "status_distribution": [
         {
@@ -28763,18 +28861,18 @@
     },
     "SC": {
       "hero_stats": {
-        "total_projects": 9,
+        "total_projects": 10,
         "under_construction": 2
       },
       "scale": {
-        "units": 373,
+        "units": 513,
         "keys": 577,
         "floors": 12
       },
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 4
+          "count": 5
         },
         {
           "label": "Breaking Ground",
@@ -29396,7 +29494,7 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 243
+      "count": 245
     },
     {
       "label": "Breaking Ground",
@@ -29404,15 +29502,15 @@
     },
     {
       "label": "Construction",
-      "count": 342
+      "count": 344
     },
     {
       "label": "Opening Soon",
-      "count": 107
+      "count": 108
     },
     {
       "label": "Now Open",
-      "count": 142
+      "count": 143
     }
   ],
   "momentum": [
@@ -29480,7 +29578,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 130
+      "count": 133
     },
     {
       "year": 2027,
@@ -29488,7 +29586,7 @@
     },
     {
       "year": 2028,
-      "count": 158
+      "count": 159
     },
     {
       "year": 2029,
@@ -29496,7 +29594,7 @@
     },
     {
       "year": 2030,
-      "count": 52
+      "count": 53
     }
   ],
   "available_states": [
@@ -29538,7 +29636,7 @@
     {
       "code": "SC",
       "label": "South Carolina",
-      "count": 9
+      "count": 10
     },
     {
       "code": "NC",
