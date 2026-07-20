@@ -92,7 +92,7 @@
         '<li><a href="/golf/">Golf</a></li><li><a href="/restaurants/">Restaurants</a></li>' +
         '<li><a href="/hotels/">Hotels</a></li></ul></div>' +
       '<div><h4>Company</h4><ul>' +
-        '<li><a href="/media/">About Us</a></li>' +
+        '<li><a href="/team/">About Us</a></li>' +
         '<li><a href="/media/">Advertise</a></li>' +
         '<li><a href="/media/#cta">Contact</a></li>' +
         '<li><a href="#" onclick="window.tmwFooterSubscribe(event);return false;">Subscribe</a></li>' +
