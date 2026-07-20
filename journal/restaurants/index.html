@@ -238,6 +238,28 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 
 /* ============== RANKING — magazine-style alternating rows ============== */
 .ranking{display:flex; flex-direction:column; gap:80px; margin-top:30px}
+/* rank-movement ticker (rise/fall vs the latest snapshot) */
+.mv{font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.03em; font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; gap:2px; white-space:nowrap}
+.mv.up{color:var(--green)}
+.mv.dn{color:#E0714E}
+.mv.hd{color:var(--mute)}
+.mv.nw{color:var(--gold-soft); letter-spacing:.1em}
+.ri-move{display:inline-flex; align-items:center; margin-left:11px; vertical-align:middle}
+.snap-panel{display:none; max-width:760px; margin:22px auto 0; padding:22px 24px; border:1px solid var(--hair-2); border-radius:16px; background:rgba(255,255,255,.02)}
+body.edit-mode .snap-panel{display:block}
+.snap-panel .snap-head{display:flex; align-items:center; justify-content:space-between; gap:14px}
+.snap-panel h3{font-family:var(--serif); font-weight:600; font-size:20px; color:var(--white); margin:0}
+.snap-take{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; padding:9px 16px; border-radius:8px; border:1px solid var(--gold); color:var(--gold-soft); background:rgba(230,197,116,.08); cursor:pointer; transition:all .15s}
+.snap-take:hover{background:rgba(230,197,116,.16)}
+.snap-take:disabled{opacity:.5; cursor:default}
+.snap-sub{font-family:var(--mono); font-size:11px; color:var(--mute); margin:6px 0 14px; letter-spacing:.04em}
+.snap-list{display:flex; flex-direction:column; gap:1px}
+.snap-row{display:flex; align-items:center; gap:14px; padding:11px 2px; border-top:1px solid var(--hair)}
+.snap-date{font-family:var(--mono); font-size:13px; color:var(--white); font-weight:600; font-variant-numeric:tabular-nums}
+.snap-n{font-family:var(--mono); font-size:11px; color:var(--mute); letter-spacing:.06em}
+.snap-del{margin-left:auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); background:none; border:1px solid var(--hair-2); border-radius:8px; padding:6px 12px; cursor:pointer; transition:all .15s}
+.snap-del:hover{color:var(--danger); border-color:var(--danger)}
+.snap-empty{font-family:var(--mono); font-size:12px; color:var(--mute); line-height:1.6; padding:6px 0}
 .rank-item{
   display:grid;
   grid-template-columns:1fr 1.15fr;
@@ -1556,6 +1578,64 @@ function hookSort() {
   });
 }
 
+// == Ranking snapshots + rise/fall movement ==
+// A snapshot stores the ranking order (ids) on a date. The up/down ticker on
+// each item compares the live rank to that item's rank in the LATEST snapshot.
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function latestSnapshot(){ var a=(DATA.snapshots||[]); if(!a.length) return null; return a.slice().sort(function(x,y){ return x.date<y.date?1:(x.date>y.date?-1:0); })[0]; }
+function movementFor(id, rankNum){
+  var snap=latestSnapshot(); if(!snap||!Array.isArray(snap.order)) return null;
+  var pi=snap.order.indexOf(id); if(pi===-1) return {k:'nw'};
+  var delta=(pi+1)-rankNum;
+  if(delta>0) return {k:'up',n:delta}; if(delta<0) return {k:'dn',n:-delta}; return {k:'hd'};
+}
+function tickerHtml(mv){ if(!mv) return '';
+  if(mv.k==='nw') return '<span class="mv nw">NEW</span>';
+  if(mv.k==='hd') return '<span class="mv hd">–</span>';
+  if(mv.k==='up') return '<span class="mv up">▲'+mv.n+'</span>';
+  return '<span class="mv dn">▼'+mv.n+'</span>';
+}
+async function saveDoc(){
+  var token=getStoredToken(); if(!token) throw new Error('No admin token stored.');
+  var payload=Object.assign({}, DATA, {__updatedBy:'web-editor'});
+  var res=await fetch(LIST_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
+  if(res.status===401){ localStorage.removeItem(TOKEN_KEY); throw new Error('Token rejected, re-enter to retry.'); }
+  if(!res.ok) throw new Error('Save failed ('+res.status+')');
+  return res.json();
+}
+function renderSnapPanel(){
+  var host=document.getElementById('ranking'); if(!host) return;
+  var el=document.getElementById('snapPanel');
+  if(!el){ el=document.createElement('section'); el.id='snapPanel'; el.className='snap-panel'; host.parentNode.insertBefore(el, host.nextSibling); }
+  var snaps=(DATA.snapshots||[]).slice().sort(function(a,b){ return a.date<b.date?1:-1; });
+  var rows = snaps.length ? snaps.map(function(sn){
+    var n=(sn.count!=null)?sn.count:(Array.isArray(sn.order)?sn.order.length:0);
+    return '<div class="snap-row"><span class="snap-date">'+escapeHtml(sn.date)+'</span><span class="snap-n">'+n+' entries</span><button type="button" class="snap-del" data-del="'+escapeAttr(sn.date)+'">Delete</button></div>';
+  }).join('') : '<div class="snap-empty">No snapshots yet. Take one to set the baseline. The up and down tickers show how far each entry has moved since your latest snapshot.</div>';
+  el.innerHTML = '<div class="snap-head"><h3>Ranking snapshots</h3><button type="button" class="snap-take" id="snapTake">Take snapshot</button></div>'
+    + '<div class="snap-sub">The up and down tickers compare the live ranking to your most recent snapshot.</div>'
+    + '<div class="snap-list">'+rows+'</div>';
+  document.getElementById('snapTake').onclick=takeSnapshot;
+  el.querySelectorAll('[data-del]').forEach(function(b){ b.onclick=function(){ deleteSnapshot(b.getAttribute('data-del')); }; });
+}
+async function takeSnapshot(){
+  var btn=document.getElementById('snapTake'); if(btn){ btn.disabled=true; btn.textContent='Saving...'; }
+  try{
+    DATA.snapshots=(DATA.snapshots||[]).filter(function(sn){ return sn.date!==todayISO(); });
+    DATA.snapshots.push({ date:todayISO(), order:DATA.items.map(function(i){ return i.id; }), count:DATA.items.length });
+    await saveDoc();
+    toast('Snapshot saved, baseline set','success');
+    renderRanking();
+  }catch(e){ toast(e.message||'Snapshot failed','error'); }
+  if(btn){ btn.disabled=false; btn.textContent='Take snapshot'; }
+}
+async function deleteSnapshot(date){
+  if(!confirm('Delete the '+date+' snapshot?')) return;
+  DATA.snapshots=(DATA.snapshots||[]).filter(function(sn){ return sn.date!==date; });
+  try{ await saveDoc(); toast('Snapshot deleted','success'); renderRanking(); }
+  catch(e){ toast(e.message||'Delete failed','error'); }
+}
+
 // ===================================================================
 // RANKING render
 // ===================================================================
@@ -1571,6 +1651,7 @@ function renderRanking() {
     return rankItemHtml(it, originalIdx, visibleIdx);
   }).join('') || `<div style="padding:60px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:13px; letter-spacing:.1em">No courses in this region yet.</div>`;
   hookRowInteractions();
+  renderSnapPanel();
 }
 
 function rankItemHtml(it, originalIdx, visibleIdx) {
@@ -1602,7 +1683,7 @@ function rankItemHtml(it, originalIdx, visibleIdx) {
       </div>
     </div>
     <div class="ri-body">
-      <div class="ri-loc" data-edit="location">${escapeHtml(it.location || '')}</div>
+      <div class="ri-loc" data-edit="location">${escapeHtml(it.location || '')}</div>${(function(){ var mv=movementFor(it.id, rankNum); return mv ? '<span class="ri-move">'+tickerHtml(mv)+'</span>' : ''; })()}
       <h2 class="ri-name" data-edit="name">${escapeHtml(it.name || '')}</h2>
       <div class="ri-meta">
         ${it.architect ? `<span class="ri-chip arch" data-edit="architect">⚐ ${escapeHtml(it.architect)}</span>` : '<span class="ri-chip arch" data-edit="architect" data-placeholder="+ Chef"></span>'}

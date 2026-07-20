@@ -42,7 +42,8 @@
       '.iv-row:first-child{border-top:0}' +
       '.iv-head{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); background:rgba(255,255,255,.025)}' +
       '.iv-row:not(.iv-head):hover{background:rgba(230,197,116,.05)}' +
-      '.iv-rk{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--gold-soft); font-variant-numeric:tabular-nums; letter-spacing:-.01em}' +
+      '.iv-rk{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--gold-soft); font-variant-numeric:tabular-nums; letter-spacing:-.01em; display:inline-flex; align-items:baseline; gap:7px}' +
+      '.iv-mv{font-size:11px}' +
       '.iv-nm{font-weight:600; color:var(--white); font-size:15px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}' +
       '.iv-nm a{color:inherit; text-decoration:none}' +
       '.iv-nm a:hover{color:var(--gold-soft)}' +
@@ -197,8 +198,10 @@
         var href = cta ? (cta.getAttribute('href') || '') : '';
         var name = txt('.ri-name');
         var nm = (href && href !== '#') ? ('<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(name) + '</a>') : esc(name);
+        var mvEl = c.querySelector('.ri-move');
+        var mvH = mvEl ? mvEl.innerHTML : '';
         return '<div class="iv-row">' +
-          '<span class="iv-rk">' + esc(txt('.ri-rank')) + '</span>' +
+          '<span class="iv-rk">' + esc(txt('.ri-rank')) + (mvH ? ' <span class="iv-mv">' + mvH + '</span>' : '') + '</span>' +
           '<span class="iv-nm">' + nm + '</span>' +
           '<span class="iv-lc">' + esc(txt('.ri-loc')) + '</span>' +
           '<span class="iv-dt">' + esc(details) + '</span></div>';
