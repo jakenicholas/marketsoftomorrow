@@ -3216,6 +3216,7 @@
   // Push the query list to the worker so the same member resumes on any device.
   // Debounced + best-effort; the localStorage copy remains the offline fallback.
   function saveThreadToServer(){
+    return;   // session-only history (2026-07-19): no cloud mirror, no cross-visit restore
     clearTimeout(_serverSaveTimer);
     _serverSaveTimer = setTimeout(function(){
       _resolveMid().then(function(mid){
@@ -3257,6 +3258,7 @@
   // The ts gate means this device's OWN saves never trigger a re-adopt, and a
   // pending local save isn't clobbered (cloud ts only advances once it lands).
   function _reconcileCloud(){
+    return;   // session-only history: never adopt another device's thread mid-session
     if (!root.classList.contains('open')) return;
     // NEVER adopt-and-replay a cloud thread once the user is actively using THIS
     // one. _resumeReplay clears the thread and re-runs every query, which races
@@ -3278,7 +3280,7 @@
   // even with both screens visible (no focus change). The listeners below make a
   // device-switch (tab regains focus/visibility) sync instantly.
   var _syncPoll = null;
-  function _startSyncPoll(){ clearInterval(_syncPoll); _syncPoll = setInterval(_reconcileCloud, 10000); }
+  function _startSyncPoll(){ /* session-only history: cloud sync disabled */ }
   function _stopSyncPoll(){ clearInterval(_syncPoll); _syncPoll = null; }
   try {
     document.addEventListener('visibilitychange', function(){ if (!document.hidden) _reconcileCloud(); });
@@ -3292,15 +3294,17 @@
     if (!_userInteracted && qs.length) {
       try { var stored = readThread(); if (stored && stored.length > qs.length) return; } catch(_){}
     }
+    // SESSION-SCOPED (2026-07-19): the conversation lives for the browser
+    // session only — reloads and same-tab navigation keep it, closing the
+    // site clears it. Fresh visits always start at the teach screen.
     try {
-      if (qs.length) localStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
-      else localStorage.removeItem(_THREAD_KEY);
+      if (qs.length) sessionStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
+      else sessionStorage.removeItem(_THREAD_KEY);
     } catch(_){}
-    saveThreadToServer();   // mirror to the member's cloud thread (logged-in only)
   }
   function readThread(){
     try {
-      var raw = localStorage.getItem(_THREAD_KEY); if (!raw) return null;
+      var raw = sessionStorage.getItem(_THREAD_KEY); if (!raw) return null;
       var o = JSON.parse(raw);
       if (o && Array.isArray(o.qs) && o.qs.length && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.qs;
     } catch(_){}
@@ -3341,16 +3345,9 @@
     var baseQs = readThread();
     if (!baseQs) { var _r0 = readLastQuery(); if (_r0) baseQs = [_r0]; }
     if (baseQs && baseQs.length) { _userInteracted = false; _resumeReplay(baseQs, function(){ submitQuery(initialQuery); }); return; }
-    // No local thread (cache cleared / different device): check the cloud, but don't
-    // stall the answer if it's slow or the user is logged out.
-    var fired = false;
-    var t = setTimeout(function(){ if (!fired) { fired = true; submitQuery(initialQuery); } }, 1500);
-    fetchServerThread().then(function(res){
-      if (fired) return; fired = true; clearTimeout(t);
-      var serverQs = res && res.qs;
-      if (serverQs && serverQs.length) { _userInteracted = false; _resumeReplay(serverQs, function(){ submitQuery(initialQuery); }); }
-      else submitQuery(initialQuery);
-    }).catch(function(){ if (!fired) { fired = true; clearTimeout(t); submitQuery(initialQuery); } });
+    // No session thread: start clean with this query (no cloud restore —
+    // history is session-only by design, 2026-07-19).
+    submitQuery(initialQuery);
   }
   // Prior turns (oldest→newest, capped) as { q, answer } for the LLM's context.
   function threadHistory(){
@@ -3373,15 +3370,18 @@
   // and coming back. Re-running a remembered query is free (it's already counted
   // in tmwIntel.seen and the LLM answer is server-cached), so restore is cheap.
   var _RESUME_KEY = 'tmw_intel_lastq';
+  // One-time migration: history used to live in localStorage (persisted across
+  // visits). Session-scoped now — clear any legacy copies.
+  try { localStorage.removeItem('tmw_intel_thread'); localStorage.removeItem('tmw_intel_lastq'); } catch (_) {}
   var _RESUME_TTL = 7 * 24 * 3600 * 1000;   // a week — long enough to "return", not forever
   function saveLastQuery(q){
     try {
-      if (q && String(q).trim()) localStorage.setItem(_RESUME_KEY, JSON.stringify({ q: String(q).trim(), ts: Date.now() }));
+      if (q && String(q).trim()) sessionStorage.setItem(_RESUME_KEY, JSON.stringify({ q: String(q).trim(), ts: Date.now() }));
     } catch(_){}
   }
   function readLastQuery(){
     try {
-      var raw = localStorage.getItem(_RESUME_KEY); if (!raw) return null;
+      var raw = sessionStorage.getItem(_RESUME_KEY); if (!raw) return null;
       var o = JSON.parse(raw);
       if (o && o.q && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.q;
     } catch(_){}
@@ -5682,37 +5682,9 @@
       _userInteracted = false;   // fresh open: a pending cloud-resume may take over
       var localKey = (localQs || []).join('');
       if (localQs && localQs.length) { _resumeReplay(localQs); }
-      else { input.value = ''; setState('starter'); }   // teach for now; the cloud check may replace it
-
-      // Always reconcile with the cloud. fetchServerThread resolves the member
-      // itself and returns null when logged out, so this is a safe no-op then.
-      fetchServerThread().then(function(res){
-        var serverQs = res && res.qs;
-        if (res && res.ts) _syncedTs = res.ts;   // baseline for live polling
-        if (!serverQs || !serverQs.length) {
-          if (localQs && localQs.length) saveThreadToServer();   // cloud empty: migrate this device up
-          return;
-        }
-        // Adopt the cloud thread (a more-recently-active device) only if the user
-        // has not started a new turn since open and it differs from what we replayed.
-        // (compare cloud to local below)
-        if (!_userInteracted && serverQs.join('') !== localKey) {
-          _resumeReplay(serverQs);
-        }
-      });
+      else { input.value = ''; setState('starter'); }
+      // Session-only history: no cloud reconcile — the session thread is the whole story.
     }
-    // Defocus map / page elements so iOS doesn't pop the keyboard awkwardly
-    try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(_){}
-    // Focus after the transition starts so the bar is in place
-    setTimeout(function(){ try { input.focus({ preventScroll:true }); } catch(_){ input.focus(); } }, 180);
-    // Kick off data load now so by the time they type results are ready
-    loadData();
-    // Update the URL so the Studio sees this user is in the spotlight, then
-    // fire a heartbeat ping right away so the activity feed updates without
-    // waiting for the 60s interval.
-    pushHash();
-    try { if (window.__tmwPing) window.__tmwPing(); } catch(_){}
-    _startSyncPoll();   // live cross-device sync while open
   }
   function close(){
     if (!root.classList.contains('open')) return;
@@ -5765,7 +5737,7 @@
     _pendingCtx = null; _currentTurnCtx = null;   // drop any source-article context
     _thread = [];
     if (_threadEl) _threadEl.innerHTML = '';
-    try { localStorage.removeItem(_THREAD_KEY); } catch (_) {}
+    try { sessionStorage.removeItem(_THREAD_KEY); } catch (_) {}
     if (input) { input.value = ''; try { onInput(); } catch (_) {} }
     setState('starter');
     if (bodyEl) bodyEl.scrollTop = 0;
