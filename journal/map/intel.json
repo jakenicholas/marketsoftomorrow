@@ -13668,57 +13668,39 @@
       "delivery_speculative": false
     },
     "corinthia-tower-dubai": {
-      "estimate_years": 3.6,
-      "estimate_label": "~3.6 years",
-      "range_low": 2.5,
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
       "range_high": 4.3,
       "confidence": "low",
-      "comparable_count": 4,
+      "comparable_count": 1,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.34,
-      "avg_distance_km": 12198.3,
-      "avg_distance_mi": 7579.6,
+      "avg_match_score": 0.64,
+      "avg_distance_km": 11002.7,
+      "avg_distance_mi": 6836.7,
       "scale_used": true,
       "firm_signal": null,
       "source": "comparables",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Dubai",
       "comparables": [
         {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.34,
-          "distance_km": 12598.9,
-          "distance_mi": 7828.6
-        },
-        {
-          "name": "Casa Bella Residences Miami",
-          "slug": "casa-bella-residences-miami",
-          "location": "Miami",
-          "years": 2.5,
-          "score": 0.34,
-          "distance_km": 12597.0,
-          "distance_mi": 7827.4
-        },
-        {
-          "name": "E11EVEN® Club Hotel & Residences",
-          "slug": "e11even-club-hotel-residences",
-          "location": "Miami",
-          "years": 4.3,
-          "score": 0.34,
-          "distance_km": 12597.7,
-          "distance_mi": 7827.8
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.64,
+          "distance_km": 11002.7,
+          "distance_mi": 6836.7
         }
       ],
-      "pattern_summary": "Among 4 residences projects in TMW's data, the median build time is 3.6 years (range 2.5–4.3).",
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true,
-      "is_mixed_use": false
+      "is_mixed_use": true
     },
     "senna-tower": {
       "estimate_years": 2.8,
@@ -13979,6 +13961,23 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
+    "mandarin-oriental-residences-kanai": {
+      "estimate_years": 2.5,
+      "estimate_label": "~2.5 years",
+      "days_out": 895,
+      "delivery_date": "2028-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
     "arc-at-south-bank": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
@@ -14153,18 +14152,18 @@
       "is_mixed_use": false
     },
     "qianhai-museum": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 164,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 0.16,
+      "estimate_label": "57 days",
+      "days_out": 57,
+      "delivery_date": "2026-09-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Museum",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
+      "pattern_summary": "Targeted for opening in 57 days.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -14186,19 +14185,54 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
+    "one-pengrui": {
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.64,
+      "avg_distance_km": 12895.4,
+      "avg_distance_mi": 8012.8,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.64,
+          "distance_km": 12895.4,
+          "distance_mi": 8012.8
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false,
+      "is_mixed_use": true
+    },
     "the-ritz-carlton-residences-paradise-valley": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 164,
-      "delivery_date": "2026-12-31",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 529,
+      "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
       "confidence": "medium",
-      "project_type": "Residences",
+      "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~5 months based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
@@ -14697,14 +14731,14 @@
   "stats": {
     "high": 6,
     "medium": 17,
-    "low": 68,
-    "known_date": 520,
+    "low": 69,
+    "known_date": 521,
     "completed": 66,
-    "skipped": 105,
+    "skipped": 103,
     "no_type": 0,
     "firm_boosted": 39,
     "speculative_softened": 203,
     "district": 11,
-    "mixed_use_adjusted": 23
+    "mixed_use_adjusted": 25
   }
 }
