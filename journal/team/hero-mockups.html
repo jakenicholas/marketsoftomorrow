@@ -32,30 +32,20 @@ a{color:inherit}
 @keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){.amb{animation:none}}
 
-/* ── live ticker ──────────────────────────────────────────────── */
-.ticker{position:relative; z-index:3; display:flex; align-items:center; gap:0; border-bottom:1px solid var(--hair); background:rgba(7,8,7,.7); backdrop-filter:blur(10px); height:44px; overflow:hidden}
-.ticker-label{display:flex; align-items:center; gap:9px; padding:0 20px; height:100%; border-right:1px solid var(--hair); flex:0 0 auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-glow); font-weight:700; white-space:nowrap; background:rgba(167,139,250,.06)}
+/* live dot (used by the eyebrow) */
 .live-dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 1.6s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
-.ticker-vp{flex:1; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent); mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
-.ticker-track{display:inline-flex; align-items:center; white-space:nowrap; animation:scroll 52s linear infinite}
-.ticker:hover .ticker-track{animation-play-state:paused}
-@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.ti{display:inline-flex; align-items:center; gap:9px; padding:0 26px; font-size:13px; color:var(--mute2); transition:color .2s; cursor:default}
-.ti:hover{color:var(--white)}
-.ti .dot{width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 7px rgba(167,139,250,.7); flex:0 0 auto}
-.ti .city{color:var(--mute); font-size:11.5px}
 
 /* ── hero ─────────────────────────────────────────────────────── */
-.hero{position:relative; z-index:2; min-height:calc(100vh - 44px); display:flex; align-items:center; padding:40px 0}
+.hero{position:relative; z-index:2; min-height:100vh; display:flex; align-items:center; padding:40px 0}
 .wrap{max-width:1200px; margin:0 auto; padding:0 48px; width:100%}
-.hgrid{display:grid; grid-template-columns:400px 1fr; gap:70px; align-items:center}
+.hgrid{display:grid; grid-template-columns:260px 1fr; gap:60px; align-items:center}
 
 /* interactive photo */
 .pcard{position:relative; perspective:1000px; flex:0 0 auto}
-.pcard .frame{position:relative; border-radius:26px; overflow:hidden; aspect-ratio:5/6; border:1px solid rgba(167,139,250,.34);
+.pcard .frame{position:relative; border-radius:20px; overflow:hidden; aspect-ratio:1/1; border:1px solid rgba(167,139,250,.22);
   transform-style:preserve-3d; transition:transform .18s ease-out;
-  box-shadow:0 50px 130px -30px rgba(167,139,250,.75), 0 0 0 1px rgba(167,139,250,.12)}
+  box-shadow:0 24px 60px -30px rgba(167,139,250,.38), 0 0 0 1px rgba(167,139,250,.07)}
 .pcard .frame img{width:100%; height:100%; object-fit:cover; object-position:center 16%}
 .pcard .frame::after{content:""; position:absolute; inset:0; background:radial-gradient(circle at var(--gx,50%) var(--gy,40%), rgba(185,166,255,.28), transparent 55%); opacity:0; transition:opacity .25s; pointer-events:none}
 .pcard:hover .frame::after{opacity:1}
@@ -90,12 +80,6 @@ a{color:inherit}
 <body>
 <div class="amb"></div>
 
-<!-- live ticker -->
-<div class="ticker">
-  <div class="ticker-label"><span class="live-dot"></span>Tracking now</div>
-  <div class="ticker-vp"><div class="ticker-track" id="tt"></div></div>
-</div>
-
 <!-- interactive hero -->
 <section class="hero">
   <div class="wrap">
@@ -125,19 +109,6 @@ a{color:inherit}
 </section>
 
 <script>
-// ── live ticker: real tracked projects ──
-var PROJECTS=[
- ["The Perigon","Miami Beach"],["One Beverly Hills","Beverly Hills"],["Cipriani Residences Brickell","Miami"],
- ["Aman Miami Beach","Miami Beach"],["The St. Regis Residences","Miami"],["Waldorf Astoria Residences","Miami"],
- ["Mandarin Oriental Residences","West Palm Beach"],["Faena Residences","Miami"],["The Raleigh Rosewood","Miami Beach"],
- ["Four Seasons Coconut Grove","Miami"],["Ritz-Carlton Residences","South Beach"],["The Standard Residences","Brickell"],
- ["St. Regis Bahia Mar","Fort Lauderdale"],["Baccarat Residences","Miami"],["Six Senses","New York"],["Rosewood","Beverly Hills"]
-];
-(function(){
-  var html=PROJECTS.map(function(p){return '<span class="ti"><span class="dot"></span>'+p[0]+' <span class="city">'+p[1]+'</span></span>';}).join('');
-  document.getElementById('tt').innerHTML=html+html; // duplicate for seamless loop
-})();
-
 // ── count-up stats ──
 function countUp(el){
   var to=+el.getAttribute('data-to'), suf=el.getAttribute('data-suf'), t0=null, dur=1400;
