@@ -32,9 +32,10 @@
     "url": "https://oftmw.com"
   },
   "email": "jake@oftmw.com",
+  "image": "https://www.oftmw.com/team/jake-nicholas.jpg",
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Palm Beach Gardens",
+    "addressLocality": "West Palm Beach",
     "addressRegion": "FL",
     "addressCountry": "US"
   },
@@ -70,10 +71,12 @@
 html{scroll-behavior:smooth}
 body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; overflow-x:hidden; line-height:1.5}
 body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.10), transparent 60%),
-            radial-gradient(800px 700px at -10% 30%, rgba(111,168,255,.05), transparent 55%),
-            radial-gradient(700px 600px at 110% 95%, rgba(167,139,250,.06), transparent 55%),
-            radial-gradient(720px 520px at 6% 62%, rgba(230,197,116,.06), transparent 60%)}
+  background:radial-gradient(1000px 720px at 82% -6%, rgba(167,139,250,.22), transparent 60%),
+            radial-gradient(860px 660px at -8% 22%, rgba(167,139,250,.15), transparent 58%),
+            radial-gradient(780px 640px at 108% 86%, rgba(185,166,255,.17), transparent 58%),
+            radial-gradient(720px 560px at 10% 98%, rgba(167,139,250,.13), transparent 60%),
+            radial-gradient(640px 460px at 50% 44%, rgba(111,168,255,.06), transparent 62%),
+            radial-gradient(680px 480px at 96% 40%, rgba(31,223,103,.05), transparent 60%)}
 .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 32px}
 section{padding:78px 0; position:relative}
 .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); font-weight:600; margin-bottom:20px}
@@ -95,12 +98,12 @@ a{color:inherit}
 /* founder */
 #founder{padding-top:64px}
 .founder{display:grid; grid-template-columns:300px 1fr; gap:48px; align-items:start}
-.f-photo{position:relative; width:300px; height:360px; border-radius:20px; overflow:hidden; border:1px solid var(--hair2); background:linear-gradient(150deg,#15181a,#0c0e0d); display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+.f-photo{position:relative; width:300px; height:360px; border-radius:20px; overflow:hidden; border:1px solid rgba(167,139,250,.30); background:linear-gradient(150deg,#15181a,#0c0e0d); display:flex; align-items:center; justify-content:center; flex:0 0 auto; box-shadow:0 34px 96px -22px rgba(167,139,250,.55), 0 0 0 1px rgba(167,139,250,.10)}
 .f-photo img{width:100%; height:100%; object-fit:cover; display:block}
 .f-photo .mono{font-family:var(--serif); font-weight:900; font-size:96px; color:rgba(255,255,255,.10); letter-spacing:-.03em}
 .f-photo .tag{position:absolute; bottom:12px; left:12px; right:12px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); text-align:center}
 .f-role{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:14px}
-.f-name{margin-bottom:26px}
+.f-name{margin-bottom:26px; text-shadow:0 0 72px rgba(167,139,250,.32)}
 .f-bio p{color:var(--cream); font-size:16.5px; line-height:1.72; font-weight:300; margin-bottom:18px; max-width:62ch}
 .f-bio p b{font-weight:600; color:var(--white)}
 .f-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:28px}
@@ -125,6 +128,15 @@ a{color:inherit}
 #cta h2{margin-bottom:16px}
 #cta .lede{margin-bottom:28px}
 
+/* about Markets of Tomorrow */
+#about-tmw .thead{margin-bottom:32px}
+.about-copy{max-width:66ch}
+.about-copy p{color:var(--cream); font-size:16.5px; line-height:1.72; font-weight:300; margin-bottom:18px}
+.about-copy p b{font-weight:600; color:var(--white)}
+.about-link{display:inline-flex; align-items:center; gap:8px; color:var(--purple-glow); font-weight:600; text-decoration:none; border-bottom:1px solid rgba(185,166,255,.42); padding-bottom:2px; font-size:15px; transition:.2s; text-shadow:0 0 22px rgba(167,139,250,.4)}
+.about-link:hover{border-color:var(--purple-glow); color:#d3c6ff}
+.about-link svg{width:16px; height:16px}
+
 @media(max-width:820px){
   .founder{grid-template-columns:1fr; gap:28px}
   .f-photo{width:100%; height:320px}
@@ -140,14 +152,13 @@ a{color:inherit}
   <div class="wrap">
     <div class="founder">
       <div class="f-photo">
-        <span class="mono">JN</span>
-        <span class="tag">Photo coming soon</span>
+        <img src="/team/jake-nicholas.jpg" alt="Jake Nicholas, Founder and CEO of Markets of Tomorrow">
       </div>
       <div>
         <div class="f-role">Founder &amp; CEO &middot; Markets of Tomorrow</div>
         <h1 class="f-name">Jake Nicholas</h1>
         <div class="f-bio">
-          <p>Jake Nicholas is the founder and CEO of <b>Markets of Tomorrow</b>, a luxury real estate development intelligence platform tracking what&rsquo;s being built next across hospitality, residential, golf, and dining. Based in Palm Beach Gardens, Florida, he built the company around a simple thesis: the most valuable real estate stories are the ones told before the ribbon is cut.</p>
+          <p>Jake Nicholas is the founder and CEO of <b>Markets of Tomorrow</b>, a luxury real estate development intelligence platform tracking what&rsquo;s being built next across hospitality, residential, golf, and dining. Based in West Palm Beach, Florida, he built the company around a simple thesis: the most valuable real estate stories are the ones told before the ribbon is cut.</p>
           <p>Under Nicholas, Markets of Tomorrow has grown into two connected products. The editorial arm covers marquee developments across South Florida, West Palm Beach and Miami above all, alongside notable projects worldwide. The <b>Map of Tomorrow</b>, the company&rsquo;s interactive development-tracking tool, pairs that coverage with <b>TMW Intelligence</b>, a predictive engine that forecasts delivery timelines from comparable projects.</p>
           <p>Nicholas leads editorial, product, and the company&rsquo;s paid-media work with luxury hospitality and real estate clients.</p>
         </div>
@@ -170,7 +181,7 @@ a{color:inherit}
     </div>
     <div class="tgrid">
       <div class="tcard glass">
-        <div class="tc-photo"><span class="mono">JN</span></div>
+        <div class="tc-photo"><img src="/team/jake-nicholas.jpg" alt="Jake Nicholas"></div>
         <div>
           <div class="tc-name">Jake Nicholas</div>
           <div class="tc-role">Founder &amp; CEO</div>
@@ -185,6 +196,22 @@ a{color:inherit}
           <div class="tc-det">Hospitality partnerships and coverage.<br><a href="mailto:kait@oftmw.com">kait@oftmw.com</a></div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── About Markets of Tomorrow ─────────────────────────────────────────── -->
+<section id="about-tmw" style="padding-top:0">
+  <div class="wrap">
+    <div class="thead">
+      <div class="eyebrow" style="color:var(--purple-glow); text-shadow:0 0 24px rgba(167,139,250,.5)">About Markets of Tomorrow</div>
+      <h2>Tracking what the world builds next.</h2>
+    </div>
+    <div class="about-copy">
+      <p>Markets of Tomorrow is a real-time journal and data platform tracking the world&rsquo;s most significant new developments in hospitality, residential, golf, and dining.</p>
+      <p>A global journal backed by a real-time database of <b>1,000+ daily tracked projects</b> worldwide, powered by an interactive Map, data Atlas, and our proprietary AI research layer, <b>TMW Intelligence</b>, built for predictive forecasting, natural-language search, and comparable-project analysis.</p>
+      <p>We reach <b>8M+ people a month</b>, with focus markets in Florida, New York, Tennessee, the Caribbean, and the Rockies, plus <b>Hotels of Tomorrow</b>, our global travel arm.</p>
+      <p style="margin-top:26px"><a class="about-link" href="https://www.oftmw.com/media">Explore our reach and the brands we work with <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></p>
     </div>
   </div>
 </section>
