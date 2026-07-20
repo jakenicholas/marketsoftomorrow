@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Team hero mockups</title>
+<title>Team hero — interactive</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --green:#1FDF67; --green-soft:#42EB81;
@@ -15,126 +15,150 @@
   --gold:#e6c574; --gold-soft:#f0d68a;
   --ink:#070807; --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
   --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
-  --sans:'Inter',sans-serif; --serif:'Fraunces',Georgia,serif;
+  --sans:'Inter',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--ink); color:var(--cream); font-family:var(--sans); -webkit-font-smoothing:antialiased; overflow-x:hidden}
 img{display:block}
-.wrap{max-width:1180px; margin:0 auto; padding:0 40px; position:relative; z-index:2}
-.eyebrow{font-family:var(--sans); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--green); font-weight:700}
-.mock-label{max-width:1180px; margin:0 auto; padding:60px 40px 14px; font-family:var(--sans); font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft); font-weight:700}
-.mock-label span{color:var(--mute); font-weight:400; letter-spacing:.04em; text-transform:none; margin-left:10px}
-.divider{height:1px; background:linear-gradient(90deg,transparent,var(--hair2),transparent); max-width:1180px; margin:40px auto 0}
-h1{font-family:var(--serif); color:var(--white); letter-spacing:-.03em; line-height:1}
+a{color:inherit}
 
-/* shared stat styling */
-.pill{display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:rgba(167,139,250,.10); border:1px solid rgba(167,139,250,.34); color:var(--purple-glow); font-size:13px; font-weight:600; letter-spacing:.01em; box-shadow:0 0 24px -6px rgba(167,139,250,.4)}
+/* ── drifting purple ambience ─────────────────────────────────── */
+.amb{position:fixed; inset:-20%; z-index:0; pointer-events:none; filter:blur(10px);
+  background:radial-gradient(680px 560px at 22% 32%, rgba(167,139,250,.30), transparent 60%),
+            radial-gradient(620px 540px at 82% 62%, rgba(185,166,255,.22), transparent 60%),
+            radial-gradient(520px 460px at 60% 12%, rgba(111,168,255,.10), transparent 60%),
+            radial-gradient(540px 480px at 12% 92%, rgba(167,139,250,.18), transparent 60%);
+  animation:drift 18s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.amb{animation:none}}
 
-/* ═══════════ OPTION 1 — THE COVER (cinematic full-bleed) ═══════════ */
-.h-cover{position:relative; min-height:88vh; display:flex; align-items:center; overflow:hidden;
-  background:radial-gradient(1100px 800px at 70% 30%, rgba(167,139,250,.28), transparent 60%), radial-gradient(700px 600px at 5% 90%, rgba(167,139,250,.14), transparent 60%)}
-.h-cover .cover-photo{position:absolute; top:0; right:0; bottom:0; width:52%; z-index:1;
-  background:url('/team/jake-nicholas.jpg') center 20%/cover no-repeat;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%, #000 42%); mask-image:linear-gradient(90deg,transparent 0%, #000 42%)}
-.h-cover .cover-photo::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,var(--ink) 0%, transparent 46%), radial-gradient(circle at 74% 44%, rgba(167,139,250,.34), transparent 55%); mix-blend-mode:normal}
-.h-cover .eyebrow{margin-bottom:26px}
-.cover-name{font-size:clamp(64px,10vw,140px); font-weight:900; text-shadow:0 0 90px rgba(167,139,250,.45)}
-.cover-line{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(19px,2.2vw,28px); color:var(--cream); max-width:20ch; margin:30px 0 40px; line-height:1.35}
-.cover-line em{font-style:italic; color:var(--purple-glow); text-shadow:0 0 30px rgba(167,139,250,.5)}
-.statrow{display:flex; gap:44px}
-.statrow > div b{font-family:var(--serif); font-weight:600; font-size:34px; color:var(--white); display:block; line-height:1; text-shadow:0 0 30px rgba(167,139,250,.35)}
-.statrow > div span{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); margin-top:8px; display:block}
+/* ── live ticker ──────────────────────────────────────────────── */
+.ticker{position:relative; z-index:3; display:flex; align-items:center; gap:0; border-bottom:1px solid var(--hair); background:rgba(7,8,7,.7); backdrop-filter:blur(10px); height:44px; overflow:hidden}
+.ticker-label{display:flex; align-items:center; gap:9px; padding:0 20px; height:100%; border-right:1px solid var(--hair); flex:0 0 auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--purple-glow); font-weight:700; white-space:nowrap; background:rgba(167,139,250,.06)}
+.live-dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.ticker-vp{flex:1; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent); mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.ticker-track{display:inline-flex; align-items:center; white-space:nowrap; animation:scroll 52s linear infinite}
+.ticker:hover .ticker-track{animation-play-state:paused}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{display:inline-flex; align-items:center; gap:9px; padding:0 26px; font-size:13px; color:var(--mute2); transition:color .2s; cursor:default}
+.ti:hover{color:var(--white)}
+.ti .dot{width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 7px rgba(167,139,250,.7); flex:0 0 auto}
+.ti .city{color:var(--mute); font-size:11.5px}
 
-/* ═══════════ OPTION 2 — THE MONUMENT (centered, oversized) ═══════════ */
-.h-monument{position:relative; min-height:92vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:80px 40px; overflow:hidden;
-  background:radial-gradient(900px 900px at 50% 34%, rgba(167,139,250,.24), transparent 58%)}
-.mon-photo{width:130px; height:130px; border-radius:50%; overflow:hidden; border:1px solid rgba(167,139,250,.4); margin-bottom:34px; position:relative;
-  box-shadow:0 0 0 8px rgba(167,139,250,.06), 0 30px 90px -20px rgba(167,139,250,.7)}
-.mon-photo img{width:100%; height:100%; object-fit:cover; object-position:center 15%}
-.mon-eyebrow{margin-bottom:22px}
-.mon-name{font-size:clamp(60px,11vw,168px); font-weight:900; letter-spacing:-.04em; line-height:.92; text-shadow:0 0 100px rgba(167,139,250,.5)}
-.mon-name .glow{background:linear-gradient(180deg,#fff 30%, var(--purple-glow)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
-.mon-line{font-family:var(--serif); font-weight:300; font-size:clamp(18px,2vw,24px); color:var(--mute2); margin:30px 0 40px}
-.pillrow{display:flex; gap:14px; flex-wrap:wrap; justify-content:center}
+/* ── hero ─────────────────────────────────────────────────────── */
+.hero{position:relative; z-index:2; min-height:calc(100vh - 44px); display:flex; align-items:center; padding:40px 0}
+.wrap{max-width:1200px; margin:0 auto; padding:0 48px; width:100%}
+.hgrid{display:grid; grid-template-columns:400px 1fr; gap:70px; align-items:center}
 
-/* ═══════════ OPTION 3 — THE FEATURE (editorial split + data panel) ═══════════ */
-.h-feature{position:relative; padding:96px 0; overflow:hidden;
-  background:radial-gradient(800px 700px at 88% 12%, rgba(167,139,250,.22), transparent 58%), radial-gradient(700px 600px at 4% 96%, rgba(167,139,250,.13), transparent 60%)}
-.feat-grid{display:grid; grid-template-columns:380px 1fr; gap:64px; align-items:center}
-.feat-photo{position:relative; border-radius:24px; overflow:hidden; aspect-ratio:4/5; border:1px solid rgba(167,139,250,.32);
-  box-shadow:0 40px 110px -24px rgba(167,139,250,.6), 0 0 0 1px rgba(167,139,250,.1)}
-.feat-photo img{width:100%; height:100%; object-fit:cover; object-position:center 18%}
-.feat-tag{position:absolute; left:16px; bottom:16px; font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--white); background:rgba(167,139,250,.24); border:1px solid rgba(167,139,250,.4); padding:8px 14px; border-radius:999px; backdrop-filter:blur(10px)}
-.feat-eyebrow{margin-bottom:18px}
-.feat-name{font-size:clamp(48px,6vw,92px); font-weight:900; letter-spacing:-.03em; text-shadow:0 0 80px rgba(167,139,250,.4); margin-bottom:22px}
-.feat-bio{font-size:16.5px; line-height:1.7; color:var(--cream); font-weight:300; max-width:52ch; margin-bottom:30px}
-.feat-bio b{color:var(--white); font-weight:600}
-.feat-panel{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; border-radius:18px; overflow:hidden; border:1px solid var(--hair); background:var(--hair); margin-bottom:28px}
-.feat-panel > div{background:rgba(20,23,20,.7); padding:22px 20px; backdrop-filter:blur(10px)}
-.feat-panel b{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--purple-glow); display:block; line-height:1; text-shadow:0 0 24px rgba(167,139,250,.5)}
-.feat-panel span{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); margin-top:9px; display:block; line-height:1.3}
-.btn{display:inline-flex; align-items:center; gap:8px; padding:13px 22px; border-radius:999px; font-family:var(--sans); font-size:12px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; text-decoration:none; background:rgba(31,223,103,.10); border:1px solid rgba(31,223,103,.4); color:var(--green-soft)}
+/* interactive photo */
+.pcard{position:relative; perspective:1000px; flex:0 0 auto}
+.pcard .frame{position:relative; border-radius:26px; overflow:hidden; aspect-ratio:5/6; border:1px solid rgba(167,139,250,.34);
+  transform-style:preserve-3d; transition:transform .18s ease-out;
+  box-shadow:0 50px 130px -30px rgba(167,139,250,.75), 0 0 0 1px rgba(167,139,250,.12)}
+.pcard .frame img{width:100%; height:100%; object-fit:cover; object-position:center 16%}
+.pcard .frame::after{content:""; position:absolute; inset:0; background:radial-gradient(circle at var(--gx,50%) var(--gy,40%), rgba(185,166,255,.28), transparent 55%); opacity:0; transition:opacity .25s; pointer-events:none}
+.pcard:hover .frame::after{opacity:1}
+.pcard .badge{position:absolute; left:16px; bottom:16px; z-index:2; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:#fff; background:rgba(167,139,250,.26); border:1px solid rgba(167,139,250,.45); padding:8px 13px; border-radius:999px; backdrop-filter:blur(10px); transform:translateZ(40px)}
 
-@media(max-width:820px){
-  .h-cover .cover-photo{width:100%; opacity:.35; -webkit-mask-image:linear-gradient(180deg,transparent, #000 70%); mask-image:linear-gradient(180deg,transparent, #000 70%)}
-  .statrow{gap:26px}
-  .feat-grid{grid-template-columns:1fr; gap:32px}
-  .feat-panel{grid-template-columns:1fr}
+/* text column */
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:22px; display:flex; align-items:center; gap:10px}
+.hname{font-family:var(--serif); font-weight:900; font-size:clamp(52px,7vw,104px); letter-spacing:-.035em; line-height:.94; color:var(--white); text-shadow:0 0 90px rgba(167,139,250,.45); margin-bottom:24px}
+.rot{font-family:var(--serif); font-weight:300; font-size:clamp(19px,2.1vw,27px); color:var(--cream); line-height:1.4; margin-bottom:40px}
+.rot .word{color:var(--purple-glow); font-style:italic; font-weight:400; text-shadow:0 0 26px rgba(167,139,250,.6); display:inline-block; min-width:5ch; transition:opacity .32s, transform .32s}
+.rot .word.out{opacity:0; transform:translateY(-8px)}
+.stats{display:flex; gap:16px; margin-bottom:40px; flex-wrap:wrap}
+.stat{flex:1 1 0; min-width:130px; padding:20px 22px; border-radius:16px; border:1px solid var(--hair); background:rgba(255,255,255,.03); transition:.25s; position:relative; overflow:hidden}
+.stat:hover{border-color:rgba(167,139,250,.5); background:rgba(167,139,250,.07); transform:translateY(-3px); box-shadow:0 20px 50px -20px rgba(167,139,250,.5)}
+.stat b{font-family:var(--serif); font-weight:600; font-size:34px; color:var(--white); display:block; line-height:1; letter-spacing:-.02em; text-shadow:0 0 30px rgba(167,139,250,.35)}
+.stat span{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:11px; display:block}
+.actions{display:flex; gap:12px; flex-wrap:wrap}
+.btn{display:inline-flex; align-items:center; gap:8px; padding:13px 22px; border-radius:999px; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; text-decoration:none; transition:.2s; border:1px solid transparent}
+.btn svg{width:15px; height:15px}
+.btn.g{background:rgba(31,223,103,.10); border-color:rgba(31,223,103,.4); color:var(--green-soft)}
+.btn.g:hover{background:rgba(31,223,103,.2); border-color:var(--green); transform:translateY(-1px)}
+.btn.p{background:rgba(167,139,250,.10); border-color:rgba(167,139,250,.4); color:var(--purple-glow)}
+.btn.p:hover{background:rgba(167,139,250,.2); border-color:var(--purple-glow); transform:translateY(-1px)}
+
+@media(max-width:860px){
+  .hgrid{grid-template-columns:1fr; gap:34px; text-align:left}
+  .pcard{max-width:300px}
+  .wrap{padding:0 28px}
 }
 </style>
 </head>
 <body>
+<div class="amb"></div>
 
-<div class="mock-label">Option 1 — The Cover <span>Cinematic full-bleed. Photo bleeds in from the right under a purple wash; oversized name; thesis line; scale stats.</span></div>
-<section class="h-cover">
-  <div class="cover-photo"></div>
+<!-- live ticker -->
+<div class="ticker">
+  <div class="ticker-label"><span class="live-dot"></span>Tracking now</div>
+  <div class="ticker-vp"><div class="ticker-track" id="tt"></div></div>
+</div>
+
+<!-- interactive hero -->
+<section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Founder &amp; CEO &middot; Markets of Tomorrow</div>
-    <h1 class="cover-name">Jake<br>Nicholas</h1>
-    <p class="cover-line">Telling the most valuable real estate stories <em>before the ribbon is cut.</em></p>
-    <div class="statrow">
-      <div><b>8M+</b><span>Monthly reach</span></div>
-      <div><b>1,000+</b><span>Tracked projects</span></div>
-      <div><b>5</b><span>Focus markets</span></div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<div class="mock-label">Option 2 — The Monument <span>Centered and monumental. Haloed portrait, massive gradient name, glowing stat pills. Maximum impact.</span></div>
-<section class="h-monument">
-  <div class="mon-photo"><img src="/team/jake-nicholas.jpg" alt="Jake Nicholas"></div>
-  <div class="eyebrow mon-eyebrow">Founder &amp; CEO &middot; Markets of Tomorrow</div>
-  <h1 class="mon-name">Jake <span class="glow">Nicholas</span></h1>
-  <p class="mon-line">The founder building Markets of Tomorrow.</p>
-  <div class="pillrow">
-    <span class="pill">8M+ monthly reach</span>
-    <span class="pill">1,000+ tracked projects</span>
-    <span class="pill">TMW Intelligence</span>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<div class="mock-label">Option 3 — The Feature <span>Editorial split. Framed portrait with a floating tag, name + bio, and a live data panel of the platform's scale.</span></div>
-<section class="h-feature">
-  <div class="wrap feat-grid">
-    <div class="feat-photo"><img src="/team/jake-nicholas.jpg" alt="Jake Nicholas"><span class="feat-tag">Founder &amp; CEO</span></div>
-    <div>
-      <div class="eyebrow feat-eyebrow">Markets of Tomorrow</div>
-      <h1 class="feat-name">Jake Nicholas</h1>
-      <p class="feat-bio">Founder and CEO of <b>Markets of Tomorrow</b>, the real-time journal and data platform tracking what the world builds next across hospitality, residential, golf, and dining. Based in West Palm Beach.</p>
-      <div class="feat-panel">
-        <div><b>8M+</b><span>Monthly reach</span></div>
-        <div><b>1,000+</b><span>Daily tracked projects</span></div>
-        <div><b>TMW Intel</b><span>Predictive AI layer</span></div>
+    <div class="hgrid">
+      <div class="pcard" id="pcard">
+        <div class="frame" id="frame">
+          <img src="/team/jake-nicholas.jpg" alt="Jake Nicholas">
+          <span class="badge">Founder &amp; CEO</span>
+        </div>
       </div>
-      <a class="btn" href="mailto:jake@oftmw.com">jake@oftmw.com</a>
+      <div>
+        <div class="eyebrow"><span class="live-dot"></span>Founder &amp; CEO &middot; Markets of Tomorrow</div>
+        <h1 class="hname">Jake Nicholas</h1>
+        <p class="rot">Building the intelligence layer for the future of <span class="word" id="rot">hospitality</span>.</p>
+        <div class="stats">
+          <div class="stat"><b data-to="8" data-suf="M+" id="s1">0</b><span>Monthly reach</span></div>
+          <div class="stat"><b data-to="1000" data-suf="+" id="s2">0</b><span>Tracked projects</span></div>
+          <div class="stat"><b data-to="5" data-suf="" id="s3">0</b><span>Focus markets</span></div>
+        </div>
+        <div class="actions">
+          <a class="btn g" href="mailto:jake@oftmw.com">jake@oftmw.com</a>
+          <a class="btn p" href="https://www.oftmw.com/media">The platform <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<div style="height:80px"></div>
+<script>
+// ── live ticker: real tracked projects ──
+var PROJECTS=[
+ ["The Perigon","Miami Beach"],["One Beverly Hills","Beverly Hills"],["Cipriani Residences Brickell","Miami"],
+ ["Aman Miami Beach","Miami Beach"],["The St. Regis Residences","Miami"],["Waldorf Astoria Residences","Miami"],
+ ["Mandarin Oriental Residences","West Palm Beach"],["Faena Residences","Miami"],["The Raleigh Rosewood","Miami Beach"],
+ ["Four Seasons Coconut Grove","Miami"],["Ritz-Carlton Residences","South Beach"],["The Standard Residences","Brickell"],
+ ["St. Regis Bahia Mar","Fort Lauderdale"],["Baccarat Residences","Miami"],["Six Senses","New York"],["Rosewood","Beverly Hills"]
+];
+(function(){
+  var html=PROJECTS.map(function(p){return '<span class="ti"><span class="dot"></span>'+p[0]+' <span class="city">'+p[1]+'</span></span>';}).join('');
+  document.getElementById('tt').innerHTML=html+html; // duplicate for seamless loop
+})();
+
+// ── count-up stats ──
+function countUp(el){
+  var to=+el.getAttribute('data-to'), suf=el.getAttribute('data-suf'), t0=null, dur=1400;
+  function fmt(v){ return (to>=1000 ? Math.round(v).toLocaleString() : Math.round(v)) + suf; }
+  function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/dur); var e=1-Math.pow(1-k,3); el.textContent=fmt(to*e); if(k<1)requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
+['s1','s2','s3'].forEach(function(id){ countUp(document.getElementById(id)); });
+
+// ── rotating sector word ──
+var WORDS=['hospitality','residential','golf','dining'], wi=0, wEl=document.getElementById('rot');
+setInterval(function(){ wEl.classList.add('out'); setTimeout(function(){ wi=(wi+1)%WORDS.length; wEl.textContent=WORDS[wi]; wEl.classList.remove('out'); },320); },2200);
+
+// ── photo mouse-parallax tilt + glow follow ──
+var pcard=document.getElementById('pcard'), frame=document.getElementById('frame');
+pcard.addEventListener('mousemove',function(e){
+  var r=pcard.getBoundingClientRect(), px=(e.clientX-r.left)/r.width, py=(e.clientY-r.top)/r.height;
+  frame.style.transform='rotateY('+((px-.5)*14)+'deg) rotateX('+((.5-py)*14)+'deg) translateZ(0)';
+  frame.style.setProperty('--gx',(px*100)+'%'); frame.style.setProperty('--gy',(py*100)+'%');
+});
+pcard.addEventListener('mouseleave',function(){ frame.style.transform='rotateY(0) rotateX(0)'; });
+</script>
 </body>
 </html>
