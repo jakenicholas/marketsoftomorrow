@@ -1043,9 +1043,20 @@ async function handleAtlasProjectionFull(req, env, origin) {
     return json({ gated: true }, { status: 403 }, env, origin);
   }
   try {
-    const row = await env.DB.prepare('SELECT model_json, confidence, comp_count, updated_at FROM atlas_projection WHERE slug=?').bind(slug).first();
+    const row = await env.DB.prepare('SELECT model_json, raw_json, confidence, comp_count, updated_at FROM atlas_projection WHERE slug=?').bind(slug).first();
     if (!row || !row.model_json) return json({ found: false }, {}, env, origin);
     const model = atlasSanitize(JSON.parse(row.model_json));
+    // Surface the subject project's own sell-through from the authored research
+    // row (pct_sold is never estimated — the backfill drops unsourced values)
+    // so the card can show a headline "% sold" for the project itself, not just
+    // the comps. Attached after sanitize; it's the same fact the comps expose.
+    try {
+      const raw = row.raw_json ? JSON.parse(row.raw_json) : null;
+      if (raw && typeof raw.pct_sold === 'number') {
+        model.pct_sold = raw.pct_sold;
+        if (raw.pct_sold_asof) model.pct_sold_asof = String(raw.pct_sold_asof);
+      }
+    } catch (_) {}
     return json({ found: true, gated: false, slug, model, updated_at: row.updated_at }, {}, env, origin);
   } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
 }

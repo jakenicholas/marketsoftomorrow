@@ -665,6 +665,9 @@
           .ai-headline .d{margin-left:auto;font-size:13px;font-weight:600;color:var(--ai-green);background:var(--ai-green-dim);padding:5px 10px;border-radius:8px}
           .ai-note{color:var(--ai-muted);font-size:13px;margin-bottom:22px}
           .ai-note b{color:var(--ai-purple);font-weight:600}
+          .ai-sold{display:inline-flex;align-items:baseline;gap:9px;margin:4px 0 18px;padding:9px 16px;border-left:2px solid var(--ai-green);background:linear-gradient(90deg,var(--ai-green-dim),transparent);border-radius:0 11px 11px 0}
+          .ai-sold .sv{font-size:33px;font-weight:680;letter-spacing:-.02em;color:var(--ai-green);font-variant-numeric:tabular-nums;line-height:1}
+          .ai-sold .sl{font-size:12.5px;color:var(--ai-muted);font-weight:500}
           .ai-band{position:relative;height:140px;margin:4px 0}
           .ai-band svg{width:100%;height:100%;overflow:visible}
           .ai-axis{display:flex;justify-content:space-between;margin-top:10px}
@@ -726,6 +729,7 @@
             <span class="u">/ sq ft at delivery</span>
             <span class="d ai-val" id="aiDelta" hidden></span>
           </div>
+          <div class="ai-sold" id="aiSold" hidden><span class="sv" id="aiSoldV">•</span><span class="sl" id="aiSoldL">sold</span></div>
           <div class="ai-note" id="aiBandNote">Projected band <b class="ai-val">$•,••• – $•,•••</b> — modeled from 4 comparable launches nearby.</div>
           <div class="ai-band">
             <svg viewBox="0 0 800 140" preserveAspectRatio="none" id="aiBandSvg">
@@ -868,6 +872,14 @@
             document.getElementById('aiPsf').textContent = money(m.proj_psf_delivery);
             var d = document.getElementById('aiDelta');
             if (m.delta_vs_launch_pct != null) { d.hidden = false; d.textContent = (m.delta_vs_launch_pct >= 0 ? '+' : '') + m.delta_vs_launch_pct + '% vs. launch'; if (m.delta_vs_launch_pct < 0) { d.style.color = '#FF5C5C'; d.style.background = 'rgba(255,92,92,0.14)'; } }
+            var soldEl = document.getElementById('aiSold');
+            if (soldEl && typeof m.pct_sold === 'number') {
+              document.getElementById('aiSoldV').textContent = m.pct_sold + '%';
+              var soldLab = 'sold';
+              if (m.pct_sold_asof) { var _p = String(m.pct_sold_asof).split('-'), _MON = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; if (_p.length >= 2 && _MON[+_p[1]]) soldLab += ' · as of ' + _MON[+_p[1]] + ' ' + _p[0]; }
+              document.getElementById('aiSoldL').textContent = soldLab;
+              soldEl.hidden = false;
+            }
             document.getElementById('aiBandNote').innerHTML = 'Projected band <b>' + money(m.proj_psf_band[0]) + ' – ' + money(m.proj_psf_band[1]) + '</b> — a ±' + Math.round(m.band_pct * 100) + '% interval derived from ' + m.comp_count + ' comparable launches nearby.';
             paintBand(m);
             var box = document.getElementById('aiComps');
