@@ -2729,21 +2729,31 @@
           </a>`).join('') + `</div>
           <div class="asp-foot">Projections are modeled estimates with transparent comp bases — never listings. Full bands, comps and scenarios live on each project page.</div>
         </div>`;
-      // Pro paint: one server-verified fetch per visible card.
-      const ms = window.$memberstackDom;
-      if (ms && ms.getCurrentMember) ms.getCurrentMember().then(r => {
-        const mem = r && r.data;
-        if (!mem || !mem.id) return;
-        [hero].concat(shown).forEach(v => {
-          fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
-            .then(r2 => r2.json())
-            .then(j => {
-              if (!j || !j.found || j.gated || !j.model) return;
-              const el = sec.querySelector(`[data-slug="${v.slug}"] .apj-psf`);
-              if (el) { el.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US'); el.classList.add('on'); }
-            }).catch(() => {});
-        });
-      }).catch(() => {});
+      // Pro paint: one server-verified fetch per visible card. Memberstack
+      // loads async (journal-auth injects the script) and normally resolves
+      // AFTER this section's JSON, so poll for $memberstackDom instead of
+      // reading it once — a single early miss used to leave every projected
+      // number blurred for paid members, permanently (no retry).
+      (function paintProjPro(tries) {
+        const ms = window.$memberstackDom;
+        if (!ms || !ms.getCurrentMember) {
+          if (tries > 0) setTimeout(function () { paintProjPro(tries - 1); }, 300);
+          return;
+        }
+        ms.getCurrentMember().then(r => {
+          const mem = r && r.data;
+          if (!mem || !mem.id) return;
+          [hero].concat(shown).forEach(v => {
+            fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
+              .then(r2 => r2.json())
+              .then(j => {
+                if (!j || !j.found || j.gated || !j.model) return;
+                const el = sec.querySelector(`[data-slug="${v.slug}"] .apj-psf`);
+                if (el) { el.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US'); el.classList.add('on'); }
+              }).catch(() => {});
+          });
+        }).catch(() => {});
+      })(40);
     }
 
     // Sticky-bar filter chips: active filters (with ✕) when set, quick
