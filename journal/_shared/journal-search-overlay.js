@@ -2893,10 +2893,31 @@
   }
   // Instant "we're not tracking any X in Y yet." — shown the moment a typed /
   // iconic query resolves to zero results, instead of a loader that never fills.
+  function renderWebAnswer(q, answer, sources){
+    var srcs = (sources || []).slice(0, 3).map(function(s){
+      var host = ''; try { host = new URL(s.url).hostname.replace(/^www\./, ''); } catch (_) { host = s.url; }
+      return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="color:#1FDF67;text-decoration:none;font-size:11.5px;margin-right:12px">' + esc(host) + ' \u2197</a>';
+    }).join('');
+    slotIntel.innerHTML = '<div class="tmw-ov-sec" style="padding:18px 20px;border:1px solid rgba(167,139,250,.3);border-radius:14px;background:rgba(167,139,250,.06)">'
+      + '<div style="font-size:15px;line-height:1.7;color:#ECEAE5">' + esc(answer) + '</div>'
+      + (srcs ? '<div style="margin-top:10px">' + srcs + '</div>' : '')
+      + '<div style="margin-top:12px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(167,139,250,.8)">From the web \u00b7 not yet in the TMW database</div></div>';
+    slotHero.innerHTML = ''; slotRows.innerHTML = ''; slotProjGrid.innerHTML = '';
+    slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = '';
+    setState('results');
+  }
+
   // BEYOND-THE-DATABASE fallback: instead of a dead "nothing matched" state,
   // ask the worker's /answer-web (Claude + live web search, TMW voice). The
   // static empty state now only appears if this call itself fails.
   function webFallback(q, token){
+    // Repeat visit / replay: a previously fetched web answer renders instantly.
+    var _wc = cachedAnswer(q);
+    if (_wc) {
+      var _wg = cachedGrounding(q) || {};
+      renderWebAnswer(q, _wc, (_wg && _wg.web_sources) || []);
+      return;
+    }
     if (_replaying) { setState('empty'); return; }
     slotIntel.innerHTML = '<div class="tmw-ov-sec" id="tmwWebFb" style="padding:18px 20px;border:1px solid rgba(167,139,250,.3);border-radius:14px;background:rgba(167,139,250,.06)">'
       + '<div style="font-size:13.5px;color:#9AA39C;font-style:italic">Nothing in our database yet \u2014 Onyx is searching the wider web\u2026</div></div>';
@@ -2907,16 +2928,9 @@
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (token !== _renderToken) return;
-        var box = document.getElementById('tmwWebFb');
-        if (!box) return;
         if (j && j.answer) {
-          var srcs = (j.sources || []).slice(0, 3).map(function(s){
-            var host = ''; try { host = new URL(s.url).hostname.replace(/^www\./, ''); } catch (_) { host = s.url; }
-            return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="color:#1FDF67;text-decoration:none;font-size:11.5px;margin-right:12px">' + esc(host) + ' \u2197</a>';
-          }).join('');
-          box.innerHTML = '<div style="font-size:15px;line-height:1.7;color:#ECEAE5">' + esc(j.answer) + '</div>'
-            + (srcs ? '<div style="margin-top:10px">' + srcs + '</div>' : '')
-            + '<div style="margin-top:12px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(167,139,250,.8)">From the web \u00b7 not yet in the TMW database</div>';
+          renderWebAnswer(q, j.answer, j.sources || []);
+          cacheAnswer(q, j.answer, { web_sources: (j.sources || []).slice(0, 3) });
         } else {
           setState('empty');
         }
@@ -3378,7 +3392,10 @@
   // Remember the LLM answer per query so reopening (or re-asking) shows it
   // INSTANTLY instead of flashing the deterministic database sentence and then
   // swapping in the LLM. Users should see ONE answer — the LLM's — not two.
-  var _ANS_KEY = 'tmw_intel_ans', _ANS_TTL = 24 * 3600 * 1000;   // matches the worker's 24h server cache
+  // 7-DAY device cache (was 24h — 'come back tomorrow' repeat visits burned
+  // a fresh LLM call). The worker's own 24h cache still refreshes server-side;
+  // an instant slightly-aged answer beats a spinner every time.
+  var _ANS_KEY = 'tmw_intel_ans', _ANS_TTL = 7 * 24 * 3600 * 1000;
   function _normKey(q){ return String(q || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
   function _ansMap(){ try { return JSON.parse(localStorage.getItem(_ANS_KEY) || '{}'); } catch(_){ return {}; } }
   function cacheAnswer(q, a, g){
@@ -3388,7 +3405,7 @@
       var keys = Object.keys(m);
       // 120-entry cap (was 40 — heavy sessions evicted answers the thread still
       // referenced, so a resume re-queried turns it should have had on hand).
-      while (keys.length > 120) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; keys.shift(); }
+      while (keys.length > 200) { keys.sort(function(x, y){ return (m[x].ts || 0) - (m[y].ts || 0); }); delete m[keys[0]]; keys.shift(); }
       localStorage.setItem(_ANS_KEY, JSON.stringify(m));
     } catch(_){}
   }
