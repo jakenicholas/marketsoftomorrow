@@ -16354,7 +16354,7 @@
                       const p2 = cur2 && cur2.querySelector('.pa-proj .pa-val');
                       if (!p2) return;
                       p2.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
-                      p2.style.color = '#A78BFA';
+                      p2.classList.add('pa-on');   // lift the blur (was never applied → Pro saw the value blurred)
                     }).catch(() => {});
                 });
               }
@@ -17251,7 +17251,7 @@
                       if (!p2) return;
                       const v = p2.querySelector('.pa-val');
                       v.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US') + '/sf at delivery';
-                      v.style.color = '#A78BFA';
+                      v.classList.add('pa-on');   // lift the blur (was never applied → Pro saw the value blurred)
                       const lk = p2.querySelector('.pa-lock'); if (lk) lk.remove();
                     }).catch(() => {});
                 });
