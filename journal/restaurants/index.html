@@ -284,12 +284,6 @@ body:not(.edit-mode) .ri-chip:empty{display:none}
 .btn-cta{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; padding:12px 22px; border-radius:999px; background:var(--green); color:var(--ink); display:inline-flex; align-items:center; gap:7px; transition:all .2s}
 .btn-cta:hover{background:var(--green-soft); transform:translateY(-1px)}
 .btn-cta svg{width:12px; height:12px}
-.like-btn{margin-left:auto; display:inline-flex; align-items:center; gap:7px; color:var(--mute); transition:color .2s; padding:8px 12px; border-radius:999px}
-.like-btn:hover{color:var(--green-soft)}
-.like-btn.liked{color:var(--green)}
-.like-btn svg{width:15px; height:15px; transition:transform .2s}
-.like-btn.liked svg{transform:scale(1.15); fill:var(--green)}
-.like-count{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em}
 
 /* divider rule between ranks */
 .ranking .rank-item + .rank-item::before{content:""; position:absolute; top:-40px; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--hair-2), transparent)}
@@ -1492,43 +1486,9 @@ async function loadList() {
   // so iconic-view.js's Map view can't read manual lat/lng overrides
   // off it. Explicit assignment fixes that.
   window.DATA = doc;
-  seedSyntheticHearts(DATA.items || []);
   applyDocToHeader();
   buildRegionPills();
   renderRanking();
-}
-
-// Per-item synthetic heart count for the .like-count badge. Monotone
-// descending by rank (rank 1 ~135 hearts, drifting down) with a small
-// deterministic jitter so the numbers don't read as a perfect linear
-// series. Hash-based jitter is keyed off the item id so refreshing the
-// page shows the same numbers (and so the order is reproducible across
-// devices). The 'monotone' guarantee is enforced by Math.min against
-// the previous rank's value -- a jitter that would push rank N above
-// rank N-1 gets clamped, never the reverse.
-function seedSyntheticHearts(items) {
-  if (!Array.isArray(items) || !items.length) return;
-  function hash(s) {
-    let h = 0;
-    s = String(s || '');
-    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-    return Math.abs(h);
-  }
-  const START = 135;          // rank 1 count
-  const STEP  = 6;            // average drop per rank
-  const FLOOR = 8;            // never go below this
-  let prev = START + 99;      // sentinel above any real value
-  items.forEach((it, idx) => {
-    const rank   = idx + 1;
-    const ideal  = START - (rank - 1) * STEP;
-    const seed   = hash(it.id || it.name || ('r' + rank));
-    const jitter = (seed % 5) - 2;        // -2..+2
-    let v = ideal + jitter;
-    v = Math.min(v, prev - 1);            // strict monotone descending
-    v = Math.max(v, FLOOR);
-    it.likes = v;
-    prev = v;
-  });
 }
 
 function applyDocToHeader() {
@@ -1655,10 +1615,6 @@ function rankItemHtml(it, originalIdx, visibleIdx) {
           Visit Website
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </a>` : ''}
-        <button class="like-btn" data-like>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14s-5-3.5-5-7a3 3 0 015-2.236A3 3 0 0113 7c0 3.5-5 7-5 7z"/></svg>
-          <span class="like-count">${it.likes || 0}</span>
-        </button>
       </div>
     </div>
   </article>`;
@@ -1670,20 +1626,6 @@ function rankItemHtml(it, originalIdx, visibleIdx) {
 function hookRowInteractions() {
   document.querySelectorAll('.rank-item').forEach(row => {
     const id = row.dataset.id;
-
-    // Like button (public — persists to localStorage only for now)
-    const likeBtn = row.querySelector('[data-like]');
-    if (likeBtn) {
-      const liked = isLiked(id);
-      if (liked) likeBtn.classList.add('liked');
-      likeBtn.addEventListener('click', e => {
-        e.preventDefault(); e.stopPropagation();
-        toggleLiked(id);
-        likeBtn.classList.toggle('liked');
-        const c = likeBtn.querySelector('.like-count');
-        c.textContent = Number(c.textContent || 0) + (likeBtn.classList.contains('liked') ? 1 : -1);
-      });
-    }
 
     // === Edit-mode interactions below ===
     if (!document.body.classList.contains('edit-mode')) return;
@@ -2319,10 +2261,6 @@ function renderNews(items) {
 // ===================================================================
 // LIKE STORAGE
 // ===================================================================
-const LIKE_KEY = 'tmw-likes-v1';
-function getLikes() { try { return JSON.parse(localStorage.getItem(LIKE_KEY) || '{}'); } catch { return {}; } }
-function isLiked(id) { return !!getLikes()[id]; }
-function toggleLiked(id) { const m = getLikes(); m[id] = !m[id]; localStorage.setItem(LIKE_KEY, JSON.stringify(m)); }
 
 // ===================================================================
 // TOAST
