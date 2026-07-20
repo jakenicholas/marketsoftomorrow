@@ -39,7 +39,10 @@
     "addressRegion": "FL",
     "addressCountry": "US"
   },
-  "url": "https://oftmw.com/team"
+  "url": "https://oftmw.com/team",
+  "sameAs": [
+    "https://www.linkedin.com/in/jake-nicholas/"
+  ]
 }
 </script>
 
@@ -109,9 +112,9 @@ a{color:inherit}
 .live-dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 1.6s ease-in-out infinite; display:inline-block}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 #founder .eyebrow{display:flex; align-items:center; gap:10px}
-.hname{font-family:var(--serif); font-weight:900; font-size:clamp(46px,6vw,88px); letter-spacing:-.035em; line-height:.95; color:var(--white); text-shadow:0 0 90px rgba(167,139,250,.45); margin-bottom:22px}
+.hname{font-family:var(--serif); font-weight:600; font-size:clamp(30px,4vw,50px); letter-spacing:-.01em; line-height:1.05; color:var(--white); text-shadow:0 0 50px rgba(167,139,250,.28); margin-bottom:18px}
 .rot{font-family:var(--serif); font-weight:300; font-size:clamp(18px,2vw,26px); color:var(--cream); line-height:1.4; margin-bottom:36px; max-width:30ch}
-.rot .word{color:var(--purple-glow); font-style:italic; font-weight:400; text-shadow:0 0 26px rgba(167,139,250,.6); display:inline-block; min-width:5ch; transition:opacity .32s, transform .32s}
+.rot .word{color:var(--purple-glow); font-style:italic; font-weight:400; text-shadow:0 0 26px rgba(167,139,250,.6); display:inline-block; transition:opacity .32s, transform .32s}
 .rot .word.out{opacity:0; transform:translateY(-8px)}
 .stats{display:flex; gap:14px; margin-bottom:34px; flex-wrap:wrap}
 .stat{flex:1 1 0; min-width:120px; padding:18px 20px; border-radius:16px; border:1px solid var(--hair); background:rgba(255,255,255,.03); transition:.25s}
@@ -121,7 +124,14 @@ a{color:inherit}
 .f-bio{margin-top:58px; max-width:64ch}
 .f-bio p{color:var(--cream); font-size:16.5px; line-height:1.72; font-weight:300; margin-bottom:18px}
 .f-bio p b{font-weight:600; color:var(--white)}
-.f-actions{display:flex; gap:12px; flex-wrap:wrap}
+.bio-links{display:flex; align-items:center; gap:28px; margin-top:34px; flex-wrap:wrap}
+.txtlink{display:inline-flex; align-items:center; gap:7px; color:var(--white); text-decoration:none; font-size:15px; font-weight:500; transition:color .2s}
+.txtlink:hover{color:var(--green-soft)}
+.txtlink svg{width:13px; height:13px; opacity:.65}
+.socials{display:inline-flex; align-items:center; gap:16px}
+.socials a{color:var(--white); opacity:.72; transition:opacity .2s, transform .2s; display:inline-flex}
+.socials a:hover{opacity:1; transform:translateY(-1px)}
+.socials svg{width:19px; height:19px}
 
 /* team grid */
 .thead{max-width:640px; margin-bottom:40px}
@@ -173,17 +183,13 @@ a{color:inherit}
         </div>
       </div>
       <div>
-        <div class="eyebrow"><span class="live-dot"></span>Founder &amp; CEO &middot; Markets of Tomorrow</div>
+        <div class="eyebrow"><span class="live-dot"></span>Founder &amp; CEO</div>
         <h1 class="hname">Jake Nicholas</h1>
-        <p class="rot">The global journal and intelligence layer for the future of <span class="word" id="rot">hospitality</span>.</p>
+        <p class="rot">The global journal and intelligence layer for the future of <span class="word" id="rot">hospitality.</span></p>
         <div class="stats">
           <div class="stat"><b data-to="8" data-suf="M+" id="s1">0</b><span>Monthly reach</span></div>
           <div class="stat"><b data-to="1000" data-suf="+" id="s2">0</b><span>Tracked projects</span></div>
           <div class="stat"><b data-to="5" data-suf="" id="s3">0</b><span>Focus markets</span></div>
-        </div>
-        <div class="f-actions">
-          <a class="btn btn-green" href="mailto:jake@oftmw.com">jake@oftmw.com</a>
-          <a class="btn btn-ghost" href="https://www.oftmw.com/media">Media kit &amp; reach <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
         </div>
       </div>
     </div>
@@ -191,7 +197,14 @@ a{color:inherit}
       <p>Jake Nicholas is the founder and CEO of <b>Markets of Tomorrow</b>, a luxury real estate development intelligence platform tracking what&rsquo;s being built next across hospitality, residential, golf, and dining. Based in West Palm Beach, Florida, he built the company around a simple thesis: the most valuable real estate stories are the ones told before the ribbon is cut.</p>
       <p>Under Nicholas, Markets of Tomorrow has grown into two connected products. The editorial arm covers marquee developments across South Florida, West Palm Beach and Miami above all, alongside notable projects worldwide. The <b>Map of Tomorrow</b>, the company&rsquo;s interactive development-tracking tool, pairs that coverage with <b>TMW Intelligence</b>, a predictive engine that forecasts delivery timelines from comparable projects.</p>
       <p>Nicholas leads product, partnerships, and global coverage across luxury hospitality and real estate.</p>
-    </div>
+      <div class="bio-links">
+        <a class="txtlink" href="mailto:jake@oftmw.com">jake@oftmw.com <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+        <a class="txtlink" href="https://www.oftmw.com/media">Media kit &amp; reach <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>
+        <span class="socials">
+          <a href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener" aria-label="Markets of Tomorrow on Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5.6"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.6" cy="6.4" r="1.15" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.linkedin.com/in/jake-nicholas/" target="_blank" rel="noopener" aria-label="Jake Nicholas on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.73v20.53C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.73C24 .78 23.2 0 22.22 0z"/></svg></a>
+        </span>
+      </div>
   </div>
 </section>
 
@@ -263,7 +276,7 @@ function countUp(el){
 }
 ['s1','s2','s3'].forEach(function(id){ var el=document.getElementById(id); if(el) countUp(el); });
 // rotating sector word
-var WORDS=['hospitality','residential','golf','dining'], wi=0, wEl=document.getElementById('rot');
+var WORDS=['hospitality.','residential.','golf.','dining.'], wi=0, wEl=document.getElementById('rot');
 if(wEl) setInterval(function(){ wEl.classList.add('out'); setTimeout(function(){ wi=(wi+1)%WORDS.length; wEl.textContent=WORDS[wi]; wEl.classList.remove('out'); },320); },2200);
 // photo mouse-parallax tilt + glow follow
 var pcard=document.getElementById('pcard'), frame=document.getElementById('frame');
