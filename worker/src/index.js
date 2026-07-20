@@ -1108,6 +1108,68 @@ async function handleAdminAtlasCoverage(req, env, origin) {
 // recent invoices. Rendered by the Analytics profile modal's "Account history"
 // section — the plan pill only shows the CURRENT state, which reads "free" for
 // someone whose trial/Pro lapsed and hides that they ever subscribed.
+// POST /answer-web { q } — Onyx's BEYOND-THE-DATABASE fallback. When the
+// client-side search finds nothing in our corpus, it calls this instead of
+// showing "nothing matched": Claude answers from live web search in TMW's
+// voice, clearly framed as outside our tracked coverage. Cached 6h per query.
+async function handleAnswerWeb(req, env, origin) {
+  if (!env.ANTHROPIC_API_KEY) return json({ answer: null, reason: 'unconfigured' }, {}, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const q = String(b.q || '').trim().slice(0, 300);
+  if (!q) return json({ answer: null }, {}, env, origin);
+  const sig = await sha256Hex('answerweb-v1|' + q.toLowerCase());
+  const cacheKey = new Request('https://answerweb.tmw.internal/' + sig, { method: 'GET' });
+  const cache = caches.default;
+  const reply = (bodyStr) => new Response(bodyStr, {
+    status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(env, origin) },
+  });
+  try { const hit = await cache.match(cacheKey); if (hit) return reply(await hit.text()); } catch (_) {}
+  const SYS = 'You are Onyx, the real-estate intelligence engine for Markets of Tomorrow (a luxury hospitality and development publication). '
+    + 'The user searched our database and nothing matched, so answer from web search instead. '
+    + 'Be concise: 2-4 sentences, under 110 words, plain prose (no headers, no bullet lists, no markdown). '
+    + 'American English, imperial units. Never use em dashes. '
+    + 'If the query is about a real project, developer, market or trend, give the most useful current facts. '
+    + 'If the query is unanswerable or nonsensical, say so briefly and suggest asking about a project, firm or city instead. '
+    + 'Do not fabricate specifics you did not find.';
+  let out = { answer: null, sources: [] };
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 25000);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', signal: ctrl.signal,
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: SMART_ANSWER_MODEL, max_tokens: 700, system: SYS,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+        messages: [{ role: 'user', content: q }],
+      }),
+    });
+    clearTimeout(to);
+    if (resp.ok) {
+      const data = await resp.json();
+      const texts = [], srcs = [];
+      for (const blk of (data.content || [])) {
+        if (blk.type === 'text') {
+          texts.push(blk.text);
+          for (const c of (blk.citations || [])) {
+            if (c && c.url && !srcs.some(s => s.url === c.url)) srcs.push({ url: c.url, title: c.title || '' });
+          }
+        }
+      }
+      const answer = texts.join('').trim();
+      if (answer) out = { answer, sources: srcs.slice(0, 4) };
+    }
+  } catch (_) { /* fall through with null answer */ }
+  const bodyStr = JSON.stringify(out);
+  try {
+    if (out.answer) {
+      await cache.put(cacheKey, new Response(bodyStr, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=21600' } }));
+      logIntelAnswer(env, q, out.answer, 'web-fallback');
+    }
+  } catch (_) {}
+  return reply(bodyStr);
+}
+
 async function handleAdminMemberHistory(req, env, origin, url) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.STRIPE_SECRET_KEY) return json({ configured: false, subs: [], invoices: [] }, {}, env, origin);
@@ -13741,6 +13803,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/answer-web')                return await handleAnswerWeb(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/atlas/projection-full')     return await handleAtlasProjectionFull(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/atlas/market-band')         return await handleAtlasMarketBand(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/atlas/projection')    return await handleAdminAtlasUpsert(request, env, origin);

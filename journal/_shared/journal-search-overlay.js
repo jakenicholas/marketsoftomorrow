@@ -1331,8 +1331,8 @@
     +   '</div>'
     + '</div>'
     + '<div data-state="empty" class="tmw-ov-empty tmw-ov-hidden">'
-    +   '<h3>Nothing matched in the database</h3>'
-    +   '<p>We’re on it! Check back within 48 hours and we’ll have more added to that area. In the meantime, try asking more about a firm, city, or specific project.</p>'
+    +   '<h3>We came up empty on that one</h3>'
+    +   '<p>Try a firm, a city, or a specific project name, or ask again in a moment and Onyx will take another pass.</p>'
     + '</div>';
 
   var root = document.createElement('div');
@@ -2893,6 +2893,37 @@
   }
   // Instant "we're not tracking any X in Y yet." — shown the moment a typed /
   // iconic query resolves to zero results, instead of a loader that never fills.
+  // BEYOND-THE-DATABASE fallback: instead of a dead "nothing matched" state,
+  // ask the worker's /answer-web (Claude + live web search, TMW voice). The
+  // static empty state now only appears if this call itself fails.
+  function webFallback(q, token){
+    if (_replaying) { setState('empty'); return; }
+    slotIntel.innerHTML = '<div class="tmw-ov-sec" id="tmwWebFb" style="padding:18px 20px;border:1px solid rgba(167,139,250,.3);border-radius:14px;background:rgba(167,139,250,.06)">'
+      + '<div style="font-size:13.5px;color:#9AA39C;font-style:italic">Nothing in our database yet \u2014 Onyx is searching the wider web\u2026</div></div>';
+    slotHero.innerHTML = ''; slotRows.innerHTML = ''; slotProjGrid.innerHTML = '';
+    slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = '';
+    setState('results');
+    fetch(WORKER_URL + '/answer-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (token !== _renderToken) return;
+        var box = document.getElementById('tmwWebFb');
+        if (!box) return;
+        if (j && j.answer) {
+          var srcs = (j.sources || []).slice(0, 3).map(function(s){
+            var host = ''; try { host = new URL(s.url).hostname.replace(/^www\./, ''); } catch (_) { host = s.url; }
+            return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="color:#1FDF67;text-decoration:none;font-size:11.5px;margin-right:12px">' + esc(host) + ' \u2197</a>';
+          }).join('');
+          box.innerHTML = '<div style="font-size:15px;line-height:1.7;color:#ECEAE5">' + esc(j.answer) + '</div>'
+            + (srcs ? '<div style="margin-top:10px">' + srcs + '</div>' : '')
+            + '<div style="margin-top:12px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:rgba(167,139,250,.8)">From the web \u00b7 not yet in the TMW database</div>';
+        } else {
+          setState('empty');
+        }
+      })
+      .catch(function(){ if (token === _renderToken) setState('empty'); });
+  }
+
   function buildNoResultsAnswer(s, q){
     var noun = s.iconic ? (ICONIC_NOUN[s.iconic] || 'results')
       : (s.typeLabel ? (s.typeLabel.toLowerCase() + (/s$/.test(s.typeLabel) ? '' : ' projects')) : 'projects');
@@ -3613,6 +3644,30 @@
       _lastResultsTotal = 1;
       _lastResultKind = 'spotlight';
       setState('results');
+      return;
+    }
+
+    // ── BUSINESS INQUIRY ("get featured", advertising, sponsorship, press) ──
+    // Anyone asking how to be featured/advertise is a LEAD, not a search miss.
+    // Route them straight to /media + media@oftmw.com, never a zero-state.
+    var MEDIA_RE = /\b(get\s+featured|be\s+featured|feature\s+(us|me|my|our)|(how\s+(do\s+i|to|can\s+i)\s+|want\s+to\s+|can\s+i\s+)advertise|advertise\s+(with|on)\b|advertising\s+(rates?|options?|opportunit\w*|costs?|packages?)|sponsor(ship)?\s+(opportunit\w*|rates?|options?|packages?)|sponsor\s+(a\s+post|an?\s+article|content)|media\s*kit|press\s*kit|pr\s+(contact|inquiry)|list\s+my\s+(project|property|development)|add\s+my\s+(project|property|development)|submit\s+(a\s+|my\s+|our\s+)?(project|property|development|listing)|work\s+with\s+(you|tmw|markets\s+of\s+tomorrow)|partner(ship)?\s+with\s+(you|tmw)|partnership\s+opportunit\w*)\b/i;
+    if (MEDIA_RE.test(q)) {
+      slotIntel.innerHTML = '<div class="tmw-ov-sec" style="padding:20px 22px;border:1px solid rgba(167,139,250,.35);border-radius:15px;background:radial-gradient(420px 160px at 12% 0%,rgba(167,139,250,.14),transparent 60%),rgba(167,139,250,.06);box-shadow:0 0 30px rgba(167,139,250,.12)">'
+        + '<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700;margin-bottom:9px">Partner with Markets of Tomorrow</div>'
+        + '<div style="font-size:15px;line-height:1.65;color:#ECEAE5">Want your project, brand or firm featured? We work with developers, hospitality brands and agencies on features, placements and campaigns across the journal, the map and the newsletter. Start on our media page, or email us directly and we\u2019ll come back fast.</div>'
+        + '<div style="display:flex;gap:10px;margin-top:15px;flex-wrap:wrap">'
+        + '<a href="https://www.oftmw.com/media" style="text-decoration:none;background:#A78BFA;color:#0a0a0a;font-weight:700;font-size:13px;padding:10px 17px;border-radius:999px">Media &amp; partnerships \u2192</a>'
+        + '<a href="mailto:media@oftmw.com" style="text-decoration:none;border:1px solid rgba(167,139,250,.45);color:#A78BFA;font-weight:700;font-size:13px;padding:10px 17px;border-radius:999px">media@oftmw.com</a>'
+        + '</div></div>';
+      slotHero.innerHTML = ''; slotRows.innerHTML = ''; slotProjGrid.innerHTML = '';
+      slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = '';
+      sResults.setAttribute('data-filter', 'spotlight');
+      sEmpty.classList.add('tmw-ov-hidden');
+      _lastResultsTotal = 1;
+      _lastResultKind = 'media-inquiry';
+      setState('results');
+      try { if (!_replaying && window.tmwIntel && window.tmwIntel.track) window.tmwIntel.track(q, { source: 'overlay', media_inquiry: 1 }); } catch (_) {}
+      try { if (window.tmwFunnelTrack) tmwFunnelTrack('media_inquiry_search', { q: q }); } catch (_) {}
       return;
     }
 
@@ -4900,7 +4955,7 @@
             window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
           }
         } catch(_){}
-        setState('empty');
+        webFallback(q, token);
       };
       // SEMANTIC RESCUE: keyword search dead-ended — fall back to meaning-based
       // retrieval over the whole corpus before showing "nothing matched". Maps
@@ -5159,7 +5214,7 @@
           window.tmwIntel.trackSearch(q, { source: 'overlay', results: 0 });
         }
       } catch (_) {}
-      setState('empty');
+      webFallback(q, token);
       return;
     }
 
