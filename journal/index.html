@@ -463,6 +463,65 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* =================================================================== */
 .bar{background:linear-gradient(180deg, #0a0c0b 0%, var(--ink) 100%); border-bottom:1px solid var(--hair); padding:4px 0}
 .bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
+
+/* ── Add Filters system ── */
+.fbtn{display:inline-flex; align-items:center; gap:8px; flex:none;
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:600;
+  color:#C4B5FD; border:1px solid rgba(167,139,250,.45); border-radius:999px; padding:8px 15px;
+  background:rgba(167,139,250,.07); cursor:pointer; transition:background .2s, box-shadow .2s}
+.fbtn:hover{background:rgba(167,139,250,.14); box-shadow:0 0 18px rgba(167,139,250,.25)}
+.fbtn svg{width:13px; height:13px}
+.fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px;
+  border-radius:999px; background:#C4B5FD; color:#0a0a0a; font-weight:700; font-size:9px; padding:0 4px}
+.ftokens{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
+.ftok{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase; color:#C4B5FD; border:1px solid rgba(167,139,250,.45);
+  background:rgba(167,139,250,.1); border-radius:999px; padding:7px 13px; cursor:pointer; white-space:nowrap}
+.ftok .x{opacity:.7; font-size:12px; line-height:1}
+.ftok:hover .x{opacity:1}
+.fclearbar{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--mute); background:none; border:0; cursor:pointer; padding:7px 4px; flex:none}
+.fclearbar:hover{color:var(--cream)}
+.fpanel{overflow:hidden}
+.fpanel .wrap{display:block; padding-top:16px; padding-bottom:18px}
+.fpanel.open{animation:fpDrop .4s cubic-bezier(.22,1,.36,1) both}
+@keyframes fpDrop{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)}}
+.fp-search{display:flex; align-items:center; gap:10px; border:1px solid rgba(167,139,250,.35);
+  background:rgba(255,255,255,.02); border-radius:999px; padding:11px 18px; margin:0 auto 14px;
+  color:var(--mute); width:100%}
+.fp-search svg{width:14px; height:14px; flex:none}
+.fp-search input{flex:1; background:none; border:0; outline:0; color:var(--cream);
+  font-family:var(--sans); font-size:13.5px; min-width:0}
+.fp-search input::placeholder{color:var(--mute)}
+/* bubbly open: the search pops from pill-width to full width with a spring */
+.fpanel.open .fp-search{animation:fpPop .6s cubic-bezier(.34,1.56,.64,1) both; transform-origin:center}
+@keyframes fpPop{
+  0%{width:240px; opacity:0; transform:scale(.88)}
+  55%{width:100%; opacity:1; transform:scale(1.02); box-shadow:0 0 26px rgba(167,139,250,.3)}
+  75%{transform:scale(.995)}
+  100%{width:100%; transform:scale(1); box-shadow:0 0 14px rgba(167,139,250,.12)}}
+.fp-sec{display:grid; grid-template-columns:92px 1fr; gap:12px; align-items:start; padding:10px 0; border-top:1px solid var(--hair)}
+.fp-lbl{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); padding-top:9px}
+.fp-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
+.fp-row::-webkit-scrollbar{display:none}
+.fp-row .pill{flex:none}
+.fp-row .pill.msel{color:#0a0a0a; background:#C4B5FD; border-color:#C4B5FD; font-weight:700}
+.fp-actions{display:flex; align-items:center; gap:16px; margin-top:14px}
+.fp-apply{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+  color:#0a0a0a; background:#C4B5FD; border:0; border-radius:999px; padding:11px 22px; cursor:pointer;
+  box-shadow:0 0 24px rgba(167,139,250,.3); transition:box-shadow .2s, transform .15s}
+.fp-apply:hover{box-shadow:0 0 34px rgba(167,139,250,.5); transform:translateY(-1px)}
+.fp-clear{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--mute); background:none; border:0; cursor:pointer}
+.fp-clear:hover{color:var(--cream)}
+.grid-section.fdim{opacity:.35; pointer-events:none}
+.grid-section{transition:opacity .3s}
+@media(max-width:760px){
+  .fp-sec{grid-template-columns:1fr; gap:6px}
+  .fp-lbl{padding-top:0}
+  .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none}
+  .ftokens::-webkit-scrollbar{display:none}
+}
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
 .pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px;
@@ -786,7 +845,13 @@ footer .ft-logo .tmw-wordmark{width:118px}
 
 <!-- ==================== FILTER BAR ==================== -->
 <div class="bar" id="filterbar">
-  <div class="wrap">
+  <div class="wrap" id="barRest">
+    <button class="fbtn" id="fbtn" type="button" aria-expanded="false" aria-controls="fpanel">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
+      Filters<span class="fbadge" id="fbadge" hidden>0</span>
+    </button>
+    <div class="ftokens" id="ftokens" hidden></div>
+    <button class="fclearbar" id="fclearBar" type="button" hidden>Clear</button>
     <div class="pills" id="pills">
       <button class="pill on" data-cat="*">All</button>
     </div>
@@ -794,6 +859,21 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
       <input id="search" type="search" placeholder="Search stories…" aria-label="Search">
     </label>
+  </div>
+  <div class="fpanel" id="fpanel" hidden>
+    <div class="wrap">
+      <label class="fp-search" id="fpSearchWrap">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input id="fpsearch" type="search" placeholder="Search stories…" aria-label="Search stories">
+      </label>
+      <div class="fp-sec"><span class="fp-lbl">Location</span><div class="fp-row" id="fpLoc"></div></div>
+      <div class="fp-sec"><span class="fp-lbl">Type</span><div class="fp-row" id="fpType"></div></div>
+      <div class="fp-sec"><span class="fp-lbl">Date</span><div class="fp-row" id="fpDate"></div></div>
+      <div class="fp-actions">
+        <button class="fp-apply" id="fpApply" type="button">Show all stories</button>
+        <button class="fp-clear" id="fpClear" type="button">Clear all</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1857,10 +1937,179 @@ document.getElementById('loadmore').addEventListener('click', () => {
   renderGrid();
 });
 
+// ---------------------------------------------------------------
+// Add Filters panel — multi-select Location × Type × Date on top of
+// the existing region pills. Panel selections, once applied, replace
+// the single-pick pill row (tokens ride in the bar) until cleared.
+// ---------------------------------------------------------------
+// Types match headline + categories only — a condo tower whose excerpt
+// mentions its ground-floor restaurant is not a Restaurants story.
+const TYPE_FILTERS = [
+  { key: 'residential', label: 'Residential', re: /residenc|condo|penthouse|apartment|villa|estates|mansion|real estate|branded home|luxury home|housing|tower/ },
+  { key: 'hotels',      label: 'Hotels',      re: /hotel|resort|hospitality|lodge/ },
+  { key: 'restaurants', label: 'Restaurants', re: /restaurant|food & drink|dining|chef|michelin|steakhouse|omakase|caf(e|é)|bakery|eatery|culinary|cocktail/ },
+  { key: 'golf',        label: 'Golf',        re: /golf|country club|links course/ },
+  { key: 'wellness',    label: 'Wellness',    re: /wellness|\bspa\b|longevity|pilates|fitness|bathhouse|sauna/ },
+  { key: 'clubs',       label: 'Clubs',       re: /private club|members[- ]only|members club|beach club|yacht club|social club|supper club/ },
+  { key: 'travel',      label: 'Travel',      re: /airport|terminal|private jet|marina|cruise|yacht|airline|brightline|rail line/ },
+];
+// Locations reuse the region pills' category matchers ('hotels' there is a vertical, not a place).
+const LOC_FILTERS = CATEGORY_BUCKETS.filter(b => b.key !== '*' && b.key !== 'hotels');
+const DATE_FILTERS = [
+  { key: 'any', label: 'Any time',      ok: () => true },
+  { key: 'w1',  label: 'This week',     ok: ts => ts >= Date.now() - 7  * 864e5 },
+  { key: 'm1',  label: 'This month',    ok: ts => ts >= Date.now() - 31 * 864e5 },
+  { key: 'm3',  label: 'Last 3 months', ok: ts => ts >= Date.now() - 92 * 864e5 },
+  { key: 'yr',  label: 'This year',     ok: ts => new Date(ts).getFullYear() === new Date().getFullYear() },
+  { key: 'y25', label: '2025',          ok: ts => new Date(ts).getFullYear() === 2025 },
+];
+let FSEL     = { loc: new Set(), type: new Set(), date: 'any' };   // pending (panel open)
+let FAPPLIED = null;                                               // committed
+
+function advActive() {
+  return !!(FAPPLIED && (FAPPLIED.loc.size || FAPPLIED.type.size || FAPPLIED.date !== 'any'));
+}
+function tsOf(it) {
+  if (it._ts === undefined) it._ts = Date.parse(it.pubDate || '') || 0;
+  return it._ts;
+}
+function advMatch(it, sel) {
+  if (sel.loc.size) {
+    const cats = it.categories || [];
+    if (![...sel.loc].some(k => { const b = LOC_FILTERS.find(f => f.key === k); return b && cats.some(b.match); })) return false;
+  }
+  if (sel.type.size) {
+    const hay = ((it.title || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
+    if (![...sel.type].some(k => { const t = TYPE_FILTERS.find(f => f.key === k); return t && t.re.test(hay); })) return false;
+  }
+  if (sel.date !== 'any') {
+    const d = DATE_FILTERS.find(f => f.key === sel.date);
+    if (d && !d.ok(tsOf(it))) return false;
+  }
+  return true;
+}
+
+const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel');
+const fpsearch = document.getElementById('fpsearch'), mainSearch = document.getElementById('search');
+
+function fpChipRow(elId, list, selSet, single) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  list.forEach(f => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pill' + ((single ? FSEL.date === f.key : selSet.has(f.key)) ? ' msel' : '');
+    b.textContent = f.label;
+    b.addEventListener('click', () => {
+      if (single) { FSEL.date = f.key; }
+      else { selSet.has(f.key) ? selSet.delete(f.key) : selSet.add(f.key); }
+      fpChipRow(elId, list, selSet, single);
+      fpCount();
+    });
+    el.appendChild(b);
+  });
+}
+function fpRenderAll() {
+  fpChipRow('fpLoc',  LOC_FILTERS,  FSEL.loc);
+  fpChipRow('fpType', TYPE_FILTERS, FSEL.type);
+  fpChipRow('fpDate', DATE_FILTERS, null, true);
+  fpCount();
+}
+function fpCount() {
+  const q = (fpsearch.value || '').trim().toLowerCase();
+  const none = !FSEL.loc.size && !FSEL.type.size && FSEL.date === 'any' && !q;
+  let n = 0;
+  if (!none) {
+    n = ALL_ITEMS.filter(it => {
+      if (!advMatch(it, FSEL)) return false;
+      if (q) {
+        const hay = (it.title + ' ' + (it.summary || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }).length;
+  }
+  document.getElementById('fpApply').textContent = none ? 'Show all stories' : 'Show ' + n + ' ' + (n === 1 ? 'story' : 'stories');
+}
+function fpOpen() {
+  FSEL = FAPPLIED ? { loc: new Set(FAPPLIED.loc), type: new Set(FAPPLIED.type), date: FAPPLIED.date } : { loc: new Set(), type: new Set(), date: 'any' };
+  fpsearch.value = SEARCH_Q;
+  fpRenderAll();
+  document.getElementById('barRest').style.display = 'none';
+  fpanel.hidden = false;
+  fpanel.classList.add('open');
+  fbtn.setAttribute('aria-expanded', 'true');
+  const gs = document.querySelector('.grid-section'); if (gs) gs.classList.add('fdim');
+  setTimeout(() => { try { fpsearch.focus({ preventScroll: true }); } catch (e) {} }, 380);
+}
+function fpClose() {
+  fpanel.hidden = true;
+  fpanel.classList.remove('open');
+  document.getElementById('barRest').style.display = '';
+  fbtn.setAttribute('aria-expanded', 'false');
+  const gs = document.querySelector('.grid-section'); if (gs) gs.classList.remove('fdim');
+}
+fbtn.addEventListener('click', () => { fpanel.hidden ? fpOpen() : fpClose(); });
+fpsearch.addEventListener('input', fpCount);
+fpsearch.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fpApply').click(); });
+document.getElementById('fpClear').addEventListener('click', () => {
+  FSEL = { loc: new Set(), type: new Set(), date: 'any' };
+  fpsearch.value = '';
+  fpRenderAll();
+});
+document.getElementById('fpApply').addEventListener('click', () => {
+  FAPPLIED = { loc: new Set(FSEL.loc), type: new Set(FSEL.type), date: FSEL.date };
+  SEARCH_Q = (fpsearch.value || '').trim().toLowerCase();
+  mainSearch.value = fpsearch.value;
+  VISIBLE_N = PAGE_SIZE;
+  if (advActive()) ACTIVE_CAT = '*';
+  fpClose();
+  renderBarState();
+  applyFilters();
+});
+document.getElementById('fclearBar').addEventListener('click', () => {
+  FAPPLIED = null;
+  VISIBLE_N = PAGE_SIZE;
+  renderBarState();
+  applyFilters();
+});
+function renderBarState() {
+  const on = advActive();
+  const tok = document.getElementById('ftokens');
+  document.getElementById('pills').style.display = on ? 'none' : '';
+  document.getElementById('fclearBar').hidden = !on;
+  tok.hidden = !on;
+  const badge = document.getElementById('fbadge');
+  if (!on) { badge.hidden = true; tok.innerHTML = ''; return; }
+  const parts = [];
+  FAPPLIED.loc.forEach(k => { const f = LOC_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'loc', key: k, label: f.label }); });
+  FAPPLIED.type.forEach(k => { const f = TYPE_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'type', key: k, label: f.label }); });
+  if (FAPPLIED.date !== 'any') { const f = DATE_FILTERS.find(x => x.key === FAPPLIED.date); if (f) parts.push({ dim: 'date', key: f.key, label: f.label }); }
+  badge.textContent = parts.length; badge.hidden = false;
+  tok.innerHTML = '';
+  parts.forEach(p => {
+    const t = document.createElement('button');
+    t.type = 'button'; t.className = 'ftok';
+    t.innerHTML = escapeHtml(p.label) + ' <span class="x">&times;</span>';
+    t.addEventListener('click', () => {
+      if (p.dim === 'loc') FAPPLIED.loc.delete(p.key);
+      else if (p.dim === 'type') FAPPLIED.type.delete(p.key);
+      else FAPPLIED.date = 'any';
+      VISIBLE_N = PAGE_SIZE;
+      renderBarState();
+      applyFilters();
+    });
+    tok.appendChild(t);
+  });
+}
+
 function applyFilters() {
   const bucket = CATEGORY_BUCKETS.find(b => b.key === ACTIVE_CAT);
   FILTERED = ALL_ITEMS.filter(it => {
-    if (bucket && bucket.key !== '*') {
+    if (advActive()) {
+      // Add-Filters panel selections take over from the single region pill.
+      if (!advMatch(it, FAPPLIED)) return false;
+    } else if (bucket && bucket.key !== '*') {
       const cats = it.categories || [];
       if (!cats.some(bucket.match)) return false;
     }
