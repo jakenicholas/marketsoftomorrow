@@ -136,7 +136,7 @@ EDITIONS = [
     "dek": "One shared brain that learns from every edit, Deep mode, and the day we deleted a 29,000-token prompt and the answers got better.",
     "date_iso": "2026-07-05", "date_label": "July 5, 2026",
     "window": "The week of June 28, 2026",
-    "cover": "ed1-0.jpg", "cover_pos": "left",
+    "cover": "ed1-0.jpg", "cover_pos": "left", "cover_aspect": "1000/720",
     "linkedin": "https://www.linkedin.com/pulse/model-cheapest-part-jake-nicholas-irmue",
     "body": [
       ("p", "This week we deleted a 29,000-token prompt from our AI, and the answers got better."),
@@ -353,9 +353,13 @@ def build_index():
         # and trims only from the right (edition 1's map fills the right half).
         pos = ed.get("cover_pos", "center")
         pos_style = ' style="object-position:left center"' if pos == "left" else ''
+        # cover_aspect: override the media box ratio to match a pre-cropped
+        # cover exactly (w/h), so nothing gets trimmed top/bottom.
+        asp = ed.get("cover_aspect")
+        media_style = f' style="aspect-ratio:{asp}"' if asp else ''
         cards.append(f"""
     <a class="rel-card" href="/releases/{e(ed['slug'])}/">
-      <div class="rc-media"><img src="/releases/img/{e(ed['cover'])}" alt="{e(ed['title'])}" loading="lazy"{pos_style}></div>
+      <div class="rc-media"{media_style}><img src="/releases/img/{e(ed['cover'])}" alt="{e(ed['title'])}" loading="lazy"{pos_style}></div>
       <div class="rc-body">
         <div class="rc-meta"><span class="rc-no">No. {ed['num']:02d}</span><span>·</span><span>{e(ed['date_label'])}</span></div>
         <h2>{e(ed['title'])}</h2>
