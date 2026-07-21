@@ -369,10 +369,11 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* =================================================================== */
 /* FEATURED STORY CARD — contained, rounded "newsstand cover"            */
 /* =================================================================== */
-/* Hero flows into the filter bar: the section lifts from ink to the bar's
-   tone so the two read as one continuous zone (the old vertical-tabs pill
-   used to bridge this seam). The .bar gradient below settles back to ink. */
-.story-section{padding:34px 0 60px; background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 40%, #0c0e0d 78%, #111413 100%); position:relative}
+/* Hero flows into the filter bar: a barely-there lift from ink at the very
+   bottom of the section, continued by .bar, so the seam disappears without
+   ever reading as a pale band. Bottom padding tightened from 60px — that
+   space existed to house the old overlapping vertical-tabs pill. */
+.story-section{padding:34px 0 26px; background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 72%, #0a0c0b 100%); position:relative}
 .story-card{
   position:relative;
   max-width:1320px;
@@ -435,7 +436,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .story-card .sc-more svg{width:14px; height:14px; transition:transform .2s}
 
 @media(max-width:760px){
-  .story-section{padding:18px 14px 56px}
+  .story-section{padding:18px 14px 24px}
   /* V1 — photo dominates: the existing gold "Featured" pill stays top-left, the
      headline + Read more are anchored to the bottom over a tight dark strip, and
      the excerpt is hidden so the image carries the card. */
@@ -460,7 +461,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* =================================================================== */
 /* FILTER BAR                                                           */
 /* =================================================================== */
-.bar{background:linear-gradient(180deg, #111413 0%, #0c0e0d 55%, var(--ink) 100%); border-bottom:1px solid var(--hair); padding:4px 0}
+.bar{background:linear-gradient(180deg, #0a0c0b 0%, var(--ink) 100%); border-bottom:1px solid var(--hair); padding:4px 0}
 .bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
