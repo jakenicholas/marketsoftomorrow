@@ -254,8 +254,12 @@
   .apj-bar-n { font-family: var(--mono, monospace); font-size: 9.5px; color: rgba(255,255,255,0.4); width: 56px; flex: 0 0 auto; text-align: right; }
   .apj-bar-val { width: 92px; flex: 0 0 auto; text-align: right; }
   .apj-bar-val .apj-psf { font-size: 15px; }
-  .apj-axis { display: flex; justify-content: space-between; padding: 2px 10px 0 192px; font-family: var(--mono, monospace); font-size: 9px; color: rgba(255,255,255,0.3); font-variant-numeric: tabular-nums; }
-  @media (max-width: 720px) { .apj-bar-name { width: 108px; } .apj-bar-n { display: none; } .apj-axis { padding-left: 132px; } }
+  /* Axis paddings mirror the row columns exactly (left: pad+name+gap · right: pad+val+n+gaps)
+     so the min sits at the line's start and the max at its right end. */
+  .apj-axis { display: flex; justify-content: space-between; padding: 2px 186px 0 192px; font-family: var(--mono, monospace); font-size: 9px; color: rgba(255,255,255,0.3); font-variant-numeric: tabular-nums; }
+  .apj-axis span:first-child { transform: translateX(-50%); }
+  .apj-axis span:last-child { transform: translateX(50%); }
+  @media (max-width: 720px) { .apj-bar-name { width: 108px; } .apj-bar-n { display: none; } .apj-axis { padding-left: 132px; padding-right: 116px; } }
   .apj-more { display: block; width: 100%; text-align: center; font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(167,139,250,0.85); background: none; border: 1px solid rgba(167,139,250,0.25); border-radius: 9px; padding: 9px 0; margin-top: 10px; cursor: pointer; transition: all .15s; }
   .apj-more:hover { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.5); }
   .apj-cmp-k { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: rgba(167,139,250,0.85); margin: 20px 0 12px; }
