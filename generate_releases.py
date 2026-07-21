@@ -50,6 +50,8 @@ DIGEST_TITLES = {
     '2026-06-23': '$1 Billion Districts, New Restaurants & Wellness Concepts',
     '2026-06-30': 'New Autonomous Car Network, Clubs, and Condos',
     '2026-07-07': 'Groundbreakings, Luxury Condos & Wellness',
+    '2026-07-15': 'New Condos, Wellness & New Features',
+    '2026-07-21': 'Home Premiums, New Hotels & More',
 }
 DIGEST_SKIP = {'2026-06-03', '2026-06-10'}
 
