@@ -1324,10 +1324,12 @@ const CATEGORY_BUCKETS = [
   { key: 'asia',        label: 'Asia',        hidden: true, re: /asia|tokyo|japan|singapore|hong kong|bangkok|bali|thailand/ },
 ];
 
-// Type buckets read the whole story, not just its (region-first) categories.
+// Type buckets read the headline + categories, NOT the summary — a condo
+// tower whose excerpt mentions its ground-floor restaurant is not a
+// Restaurants story. Volumes stay healthy on title+categories alone.
 function bucketMatches(bucket, it) {
   if (!bucket || bucket.key === '*') return true;
-  const hay = ((it.title || '') + ' ' + (it.summary || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
+  const hay = ((it.title || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
   return bucket.re.test(hay);
 }
 
