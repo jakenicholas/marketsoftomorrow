@@ -2744,10 +2744,19 @@
       // (avg $/sq ft per market) up top; tapping a market shows its comparable set,
       // tapping several compares them. Keeps the section short until you dig in.
       const tc = s => String(s || '').replace(/\b\w/g, c => c.toUpperCase());
+      // Boroughs fold into their parent market (Brooklyn is New York City).
+      const MKT_ALIAS = {
+        'brooklyn': { market: 'new-york-city', city: 'New York City' },
+        'manhattan': { market: 'new-york-city', city: 'New York City' },
+        'queens': { market: 'new-york-city', city: 'New York City' },
+      };
       const groups = {};
       rows.forEach(v => {
-        const key = v.market || (v.city || '').toLowerCase();
-        if (!groups[key]) groups[key] = { market: key, city: v.city || tc(key), items: [] };
+        let key = v.market || (v.city || '').toLowerCase();
+        let cityLabel = v.city || tc(key);
+        const al = MKT_ALIAS[key];
+        if (al) { key = al.market; cityLabel = al.city; }
+        if (!groups[key]) groups[key] = { market: key, city: cityLabel, items: [] };
         groups[key].items.push(v);
       });
       projMarkets = Object.values(groups).sort((a, b) => b.items.length - a.items.length);
@@ -2836,7 +2845,7 @@
           <a class="apj-comp" data-slug="${v.slug}" href="/projects/${encodeURIComponent(v.slug)}/">
             <span class="apj-comp-nm">${v.title}</span>
             <span class="apj-comp-sub">${v.delivery_label || v.city || ''}</span>
-            <span class="apj-psf">$•,•••</span><span class="apj-unit">/ sq ft</span>
+            <span class="apj-psf${v._psf != null ? ' on' : ''}">${v._psf != null ? apjDollar(v._psf) : '$•,•••'}</span><span class="apj-unit">/ sq ft</span>
           </a>`).join('');
         const more = capped ? `<button type="button" class="apj-more" data-more="${g.market}">Load ${g.items.length - COMP_CAP} more</button>` : '';
         return `<div class="apj-mkt" data-market="${g.market}">

@@ -1072,7 +1072,11 @@ async function handleAtlasMarketBand(req, env, origin) {
     return json({ gated: true }, { status: 403 }, env, origin);
   }
   try {
-    const rs = await env.DB.prepare('SELECT slug, model_json FROM atlas_projection WHERE city_slug=? AND model_json IS NOT NULL').bind(market).all();
+    // Boroughs fold into their parent market (the Atlas groups Brooklyn under
+    // New York City) — the median must cover the same set the client displays.
+    const MKT_PARTS = { 'new-york-city': ['new-york-city', 'brooklyn', 'manhattan', 'queens'] };
+    const keys = MKT_PARTS[market] || [market];
+    const rs = await env.DB.prepare(`SELECT slug, model_json FROM atlas_projection WHERE city_slug IN (${keys.map(() => '?').join(',')}) AND model_json IS NOT NULL`).bind(...keys).all();
     const rows = (rs.results || []).map(r => { try { return { slug: r.slug, m: JSON.parse(r.model_json) }; } catch (_) { return null; } }).filter(Boolean);
     if (rows.length < 2) return json({ found: false, projects: rows.length }, {}, env, origin);
     const mids = rows.map(r => r.m.proj_psf_delivery).filter(Number.isFinite).sort((a, b) => a - b);
