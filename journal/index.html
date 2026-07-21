@@ -462,7 +462,8 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* FILTER BAR                                                           */
 /* =================================================================== */
 .bar{background:linear-gradient(180deg, #0a0c0b 0%, var(--ink) 100%); border-bottom:1px solid var(--hair); padding:4px 0}
-.bar .wrap{display:flex; align-items:center; gap:18px; justify-content:space-between}
+.bar .wrap{display:flex; align-items:center; gap:12px; justify-content:flex-start}
+.bar .search{margin-left:auto; flex:none}
 
 /* ── Add Filters system ── */
 .fbtn{display:inline-flex; align-items:center; gap:8px; flex:none;
@@ -502,7 +503,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   100%{width:100%; transform:scale(1); box-shadow:0 0 14px rgba(167,139,250,.12)}}
 .fp-sec{display:grid; grid-template-columns:92px 1fr; gap:12px; align-items:start; padding:10px 0; border-top:1px solid var(--hair)}
 .fp-lbl{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); padding-top:9px}
-.fp-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none}
+.fp-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
+          mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
 .fp-row::-webkit-scrollbar{display:none}
 .fp-row .pill{flex:none}
 .fp-row .pill.msel{color:#0a0a0a; background:#C4B5FD; border-color:#C4B5FD; font-weight:700}
@@ -514,8 +517,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .fp-clear{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--mute); background:none; border:0; cursor:pointer}
 .fp-clear:hover{color:var(--cream)}
-.grid-section.fdim{opacity:.35; pointer-events:none}
-.grid-section{transition:opacity .3s}
+.fp-close{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:#FF8A8A; background:none; border:0; cursor:pointer}
+.fp-close:hover{color:#FFB3B3}
 @media(max-width:760px){
   .fp-sec{grid-template-columns:1fr; gap:6px}
   .fp-lbl{padding-top:0}
@@ -524,7 +528,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 }
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
-.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px;
+.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px 15px 0;
   -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);}
 .pills::-webkit-scrollbar{display:none}
@@ -872,6 +876,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
       <div class="fp-actions">
         <button class="fp-apply" id="fpApply" type="button">Show all stories</button>
         <button class="fp-clear" id="fpClear" type="button">Clear all</button>
+        <button class="fp-close" id="fpClose" type="button">Close</button>
       </div>
     </div>
   </div>
@@ -1966,8 +1971,15 @@ const DATE_FILTERS = [
 let FSEL     = { loc: new Set(), type: new Set(), date: 'any' };   // pending (panel open)
 let FAPPLIED = null;                                               // committed
 
+// While the panel is open the feed live-previews the pending selection;
+// once closed, the committed selection governs.
+function curSel() {
+  const fp = document.getElementById('fpanel');
+  return (fp && !fp.hidden) ? FSEL : FAPPLIED;
+}
 function advActive() {
-  return !!(FAPPLIED && (FAPPLIED.loc.size || FAPPLIED.type.size || FAPPLIED.date !== 'any'));
+  const sel = curSel();
+  return !!(sel && (sel.loc.size || sel.type.size || sel.date !== 'any'));
 }
 function tsOf(it) {
   if (it._ts === undefined) it._ts = Date.parse(it.pubDate || '') || 0;
@@ -2005,6 +2017,9 @@ function fpChipRow(elId, list, selSet, single) {
       else { selSet.has(f.key) ? selSet.delete(f.key) : selSet.add(f.key); }
       fpChipRow(elId, list, selSet, single);
       fpCount();
+      // live preview: the feed below tracks every toggle instantly
+      VISIBLE_N = PAGE_SIZE;
+      applyFilters();
     });
     el.appendChild(b);
   });
@@ -2039,34 +2054,43 @@ function fpOpen() {
   fpanel.hidden = false;
   fpanel.classList.add('open');
   fbtn.setAttribute('aria-expanded', 'true');
-  const gs = document.querySelector('.grid-section'); if (gs) gs.classList.add('fdim');
   setTimeout(() => { try { fpsearch.focus({ preventScroll: true }); } catch (e) {} }, 380);
 }
-function fpClose() {
-  fpanel.hidden = true;
-  fpanel.classList.remove('open');
-  document.getElementById('barRest').style.display = '';
-  fbtn.setAttribute('aria-expanded', 'false');
-  const gs = document.querySelector('.grid-section'); if (gs) gs.classList.remove('fdim');
-}
-fbtn.addEventListener('click', () => { fpanel.hidden ? fpOpen() : fpClose(); });
-fpsearch.addEventListener('input', fpCount);
-fpsearch.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fpApply').click(); });
-document.getElementById('fpClear').addEventListener('click', () => {
-  FSEL = { loc: new Set(), type: new Set(), date: 'any' };
-  fpsearch.value = '';
-  fpRenderAll();
-});
-document.getElementById('fpApply').addEventListener('click', () => {
+// Every way out of the panel commits the pending selection — the feed has
+// been live-previewing it, so closing must never snap back to older state.
+function commitAndClose() {
   FAPPLIED = { loc: new Set(FSEL.loc), type: new Set(FSEL.type), date: FSEL.date };
   SEARCH_Q = (fpsearch.value || '').trim().toLowerCase();
   mainSearch.value = fpsearch.value;
   VISIBLE_N = PAGE_SIZE;
-  if (advActive()) ACTIVE_CAT = '*';
-  fpClose();
+  if (FAPPLIED.loc.size || FAPPLIED.type.size || FAPPLIED.date !== 'any') ACTIVE_CAT = '*';
+  fpanel.hidden = true;
+  fpanel.classList.remove('open');
+  document.getElementById('barRest').style.display = '';
+  fbtn.setAttribute('aria-expanded', 'false');
   renderBarState();
   applyFilters();
+}
+fbtn.addEventListener('click', () => { fpanel.hidden ? fpOpen() : commitAndClose(); });
+fpsearch.addEventListener('input', () => {
+  SEARCH_Q = (fpsearch.value || '').trim().toLowerCase();
+  mainSearch.value = fpsearch.value;
+  VISIBLE_N = PAGE_SIZE;
+  fpCount();
+  applyFilters();
 });
+fpsearch.addEventListener('keydown', e => { if (e.key === 'Enter') commitAndClose(); });
+document.getElementById('fpClear').addEventListener('click', () => {
+  FSEL = { loc: new Set(), type: new Set(), date: 'any' };
+  fpsearch.value = '';
+  SEARCH_Q = '';
+  mainSearch.value = '';
+  VISIBLE_N = PAGE_SIZE;
+  fpRenderAll();
+  applyFilters();
+});
+document.getElementById('fpApply').addEventListener('click', commitAndClose);
+document.getElementById('fpClose').addEventListener('click', commitAndClose);
 document.getElementById('fclearBar').addEventListener('click', () => {
   FAPPLIED = null;
   VISIBLE_N = PAGE_SIZE;
@@ -2108,7 +2132,7 @@ function applyFilters() {
   FILTERED = ALL_ITEMS.filter(it => {
     if (advActive()) {
       // Add-Filters panel selections take over from the single region pill.
-      if (!advMatch(it, FAPPLIED)) return false;
+      if (!advMatch(it, curSel())) return false;
     } else if (bucket && bucket.key !== '*') {
       const cats = it.categories || [];
       if (!cats.some(bucket.match)) return false;
