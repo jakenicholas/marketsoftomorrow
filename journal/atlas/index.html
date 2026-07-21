@@ -232,6 +232,25 @@
   .apj-comp-nm { flex: 1; min-width: 0; font-size: 14px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .15s; }
   .apj-comp-sub { font-family: var(--mono, monospace); font-size: 9.5px; letter-spacing: .04em; color: rgba(255,255,255,0.4); flex: 0 0 auto; }
   .apj-comp .apj-psf { font-size: 15px; flex: 0 0 auto; }
+  /* Market comparison chart (the compact overview: tap to filter / compare) */
+  .apj-chart { margin-bottom: 8px; }
+  .apj-chart-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .apj-chart-lead { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .05em; color: rgba(255,255,255,0.45); }
+  .apj-chart-act { font-family: var(--mono, monospace); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: rgba(167,139,250,0.85); background: none; border: 0; cursor: pointer; padding: 0 0 0 14px; }
+  .apj-chart-act:hover { color: #A78BFA; }
+  .apj-bar { display: flex; align-items: center; gap: 14px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: background .15s, border-color .15s; border: 1px solid transparent; }
+  .apj-bar:hover { background: rgba(255,255,255,0.03); }
+  .apj-bar.sel { background: rgba(167,139,250,0.09); border-color: rgba(167,139,250,0.4); }
+  .apj-bar-name { width: 168px; flex: 0 0 auto; font-size: 13.5px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .apj-bar.sel .apj-bar-name { color: #C9BCF7; }
+  .apj-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden; min-width: 40px; }
+  .apj-bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, rgba(167,139,250,0.45), #A78BFA); border-radius: 999px; transition: width .55s cubic-bezier(.2,.7,.3,1); }
+  .apj-bar-n { font-family: var(--mono, monospace); font-size: 9.5px; color: rgba(255,255,255,0.4); width: 56px; flex: 0 0 auto; text-align: right; }
+  .apj-bar-val { width: 92px; flex: 0 0 auto; text-align: right; }
+  .apj-bar-val .apj-psf { font-size: 15px; }
+  @media (max-width: 720px) { .apj-bar-name { width: 108px; } .apj-bar-n { display: none; } }
+  .apj-cmp-k { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: rgba(167,139,250,0.85); margin: 20px 0 12px; }
+  .apj-empty { font-family: var(--mono, monospace); font-size: 12px; color: rgba(255,255,255,0.45); padding: 22px 4px; text-align: center; }
 
   /* Leaderboard rows become clickable links to /architects/<slug>/ or
      /developers/<slug>/ — those firm pages live on map.oftmw.com (they 404
@@ -2683,6 +2702,7 @@
     // Shape cards from the public file; Pro members get the modeled PSF per
     // card painted from the worker (server-verified, absent from public data).
     let projShape = null, projShapeP = null;
+    let projMarkets = [], projSel = new Set(), projAvg = {}, projMemberId = null, projCompDone = new Set();
     function renderProjectionsSection() { return '<section class="atlas-section" id="atlasProjSec"></section>'; }
     function loadProjSec() {
       if (projShape) { fillProjSec(); return; }
@@ -2711,8 +2731,9 @@
         });
       }
       if (rows.length < ((pStFilter || pCiFilter) ? 1 : 3)) { sec.innerHTML = ''; return; }
-      // Group the modeled projects by MARKET. Each market shows an average (the
-      // worker's median band) with the comparable set — the projects behind it.
+      // Group the modeled projects by MARKET, then render a compact comparison chart
+      // (avg $/sq ft per market) up top; tapping a market shows its comparable set,
+      // tapping several compares them. Keeps the section short until you dig in.
       const tc = s => String(s || '').replace(/\b\w/g, c => c.toUpperCase());
       const groups = {};
       rows.forEach(v => {
@@ -2720,8 +2741,63 @@
         if (!groups[key]) groups[key] = { market: key, city: v.city || tc(key), items: [] };
         groups[key].items.push(v);
       });
-      const markets = Object.values(groups).sort((a, b) => b.items.length - a.items.length);
-      const panels = markets.map(g => {
+      projMarkets = Object.values(groups).sort((a, b) => b.items.length - a.items.length);
+      // Keep any prior selection valid; default to the largest market on first fill.
+      const valid = new Set(projMarkets.map(g => g.market));
+      projSel = new Set([...projSel].filter(m => valid.has(m)));
+      if (!projSel.size && projMarkets.length) projSel.add(projMarkets[0].market);
+      sec.innerHTML = `
+        <div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Onyx <em>projections</em></h2>
+          <p class="atlas-section-sub">Average modeled price at delivery by market. Tap a market to see the projects behind it; tap more to compare. Values are a Pro surface.</p>
+        </div></div>
+        <div class="apj-chart">
+          <div class="apj-chart-top">
+            <span class="apj-chart-lead" id="apjLead">Average $/sq ft at delivery, by market</span>
+            <span><button type="button" class="apj-chart-act" id="apjSelAll">Show all</button><button type="button" class="apj-chart-act" id="apjSelNone">Clear</button></span>
+          </div>
+          <div id="apjBars"></div>
+        </div>
+        <div id="apjDetail"></div>
+        <div class="asp-foot" style="margin-top:6px">Market averages are the median of each market's modeled projections — transparent comp bases, never listings. Full bands, comps and scenarios live on each project page.</div>`;
+      const selAll = document.getElementById('apjSelAll'), selNone = document.getElementById('apjSelNone');
+      if (selAll) selAll.onclick = () => { projSel = new Set(projMarkets.map(g => g.market)); renderProjBars(); renderProjDetail(); };
+      if (selNone) selNone.onclick = () => { projSel = new Set(); renderProjBars(); renderProjDetail(); };
+      renderProjBars();
+      renderProjDetail();
+      paintProjPro(40);
+    }
+    const APJ_W = 'https://tmw.jake-ab7.workers.dev';
+    const apjDollar = n => '$' + Math.round(n).toLocaleString('en-US');
+    function renderProjBars() {
+      const host = document.getElementById('apjBars'); if (!host) return;
+      const vals = projMarkets.map(g => projAvg[g.market] && projAvg[g.market].median).filter(Number.isFinite);
+      const max = vals.length ? Math.max(...vals) : 0;
+      const lead = document.getElementById('apjLead');
+      if (lead) lead.textContent = projSel.size > 1 ? ('Comparing ' + projSel.size + ' markets') : 'Average $/sq ft at delivery, by market';
+      host.innerHTML = projMarkets.map(g => {
+        const a = projAvg[g.market]; const has = a && Number.isFinite(a.median);
+        const w = (has && max) ? Math.max(6, Math.round(a.median / max * 100)) : 0;
+        return `<div class="apj-bar${projSel.has(g.market) ? ' sel' : ''}" data-market="${g.market}">
+          <span class="apj-bar-name">${g.city}</span>
+          <span class="apj-bar-track"><span class="apj-bar-fill" style="width:${w}%"></span></span>
+          <span class="apj-bar-n">${g.items.length} proj</span>
+          <span class="apj-bar-val"><span class="apj-psf apj-bar-psf${has ? ' on' : ''}">${has ? apjDollar(a.median) : '$•,•••'}</span></span>
+        </div>`;
+      }).join('');
+      host.querySelectorAll('.apj-bar').forEach(b => b.onclick = () => {
+        const m = b.dataset.market;
+        if (projSel.has(m)) projSel.delete(m); else projSel.add(m);
+        renderProjBars(); renderProjDetail();
+      });
+    }
+    function renderProjDetail() {
+      const host = document.getElementById('apjDetail'); if (!host) return;
+      const sel = projMarkets.filter(g => projSel.has(g.market));
+      if (!sel.length) { host.innerHTML = '<div class="apj-empty">Tap a market above to see the projects behind its average.</div>'; return; }
+      const head = sel.length > 1 ? `<div class="apj-cmp-k">Comparing · ${sel.map(g => g.city).join(' · ')}</div>` : '';
+      host.innerHTML = head + sel.map(g => {
+        const a = projAvg[g.market];
         const comps = g.items.map(v => `
           <a class="apj-comp" data-slug="${v.slug}" href="/projects/${encodeURIComponent(v.slug)}/">
             <span class="apj-comp-nm">${v.title}</span>
@@ -2730,74 +2806,60 @@
           </a>`).join('');
         return `<div class="apj-mkt" data-market="${g.market}">
           <div class="apj-mkt-head">
-            <div>
-              <div class="apj-mkt-name">${g.city}</div>
-              <div class="apj-mkt-sub">${g.items.length} projected project${g.items.length > 1 ? 's' : ''} · modeled, never listings</div>
-            </div>
-            <div class="apj-mkt-avg">
-              <div class="apj-avg-k">Market average · at delivery</div>
-              <div class="apj-avg-row"><span class="apj-psf apj-mkt-psf">$•,•••</span><span class="apj-unit">/ sq ft</span></div>
-              <div class="apj-mkt-band">Band <span class="apj-b apj-band-lo">$•••</span> – <span class="apj-b apj-band-hi">$•••</span></div>
-            </div>
+            <div><div class="apj-mkt-name">${g.city}</div>
+              <div class="apj-mkt-sub">${g.items.length} projected project${g.items.length > 1 ? 's' : ''} · modeled, never listings</div></div>
+            <div class="apj-mkt-avg"><div class="apj-avg-k">Market average · at delivery</div>
+              <div class="apj-avg-row"><span class="apj-psf apj-mkt-psf${a && Number.isFinite(a.median) ? ' on' : ''}">${a && Number.isFinite(a.median) ? apjDollar(a.median) : '$•,•••'}</span><span class="apj-unit">/ sq ft</span></div>
+              <div class="apj-mkt-band">Band <span class="apj-b apj-band-lo${a && a.band ? ' on' : ''}">${a && a.band ? apjDollar(a.band[0]) : '$•••'}</span> – <span class="apj-b apj-band-hi${a && a.band ? ' on' : ''}">${a && a.band ? apjDollar(a.band[1]) : '$•••'}</span></div></div>
           </div>
           <div class="apj-comps-k">Comparable set · the projects behind this average</div>
           ${comps}
         </div>`;
       }).join('');
-      sec.innerHTML = `
-        <div class="atlas-section-head"><div>
-          <h2 class="atlas-section-title">Onyx <em>projections</em></h2>
-          <p class="atlas-section-sub">Modeled pricing at delivery, averaged by market — every figure carries a transparent comp basis. Values are a Pro surface.</p>
-        </div></div>
-        ${panels}
-        <div class="asp-foot" style="margin-top:6px">Market averages are the median of each market's modeled projections — transparent comp bases, never listings. Full bands, comps and scenarios live on each project page.</div>`;
-
-      // Pro paint: the market average from /atlas/market-band (median + band), and
-      // each project's PSF from /atlas/projection-full. Memberstack loads async, so
-      // poll for $memberstackDom rather than reading it once (a single early miss
-      // used to leave every number blurred for paid members permanently).
-      const W = 'https://tmw.jake-ab7.workers.dev';
-      const dollar = n => '$' + Math.round(n).toLocaleString('en-US');
-      (function paintProjPro(tries) {
-        const ms = window.$memberstackDom;
-        if (!ms || !ms.getCurrentMember) {
-          if (tries > 0) setTimeout(function () { paintProjPro(tries - 1); }, 300);
-          return;
-        }
-        ms.getCurrentMember().then(r => {
-          const mem = r && r.data;
-          if (!mem || !mem.id) return;
-          markets.forEach(g => {
-            const panel = sec.querySelector('.apj-mkt[data-market="' + g.market + '"]');
-            // Market average (median + band). Falls back to the single project when a market has one.
-            const paintAvg = (median, band) => {
-              if (!panel) return;
-              const avg = panel.querySelector('.apj-mkt-psf');
-              if (avg && Number.isFinite(median)) { avg.textContent = dollar(median); avg.classList.add('on'); }
-              const lo = panel.querySelector('.apj-band-lo'), hi = panel.querySelector('.apj-band-hi');
-              if (band && band.length === 2) {
-                if (lo && Number.isFinite(band[0])) { lo.textContent = dollar(band[0]); lo.classList.add('on'); }
-                if (hi && Number.isFinite(band[1])) { hi.textContent = dollar(band[1]); hi.classList.add('on'); }
-              }
-            };
-            if (g.items.length >= 2) {
-              fetch(W + '/atlas/market-band', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ market: g.market, member_id: mem.id }) })
-                .then(x => x.json()).then(j => { if (j && j.found && !j.gated) paintAvg(j.median_psf, j.band); }).catch(() => {});
-            }
-            // Each project's PSF (the comparable set).
-            g.items.forEach(v => {
-              fetch(W + '/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
-                .then(x => x.json()).then(j => {
-                  if (!j || !j.found || j.gated || !j.model) return;
-                  const el = sec.querySelector('[data-slug="' + v.slug + '"] .apj-psf');
-                  if (el) { el.textContent = dollar(j.model.proj_psf_delivery); el.classList.add('on'); }
-                  // Single-project market: its number is the market average.
-                  if (g.items.length < 2) paintAvg(j.model.proj_psf_delivery, j.model.proj_psf_band);
-                }).catch(() => {});
-            });
-          });
-        }).catch(() => {});
-      })(40);
+      paintComps();
+    }
+    function paintComps() {
+      if (!projMemberId) return;
+      const sec = document.getElementById('atlasProjSec'); if (!sec) return;
+      projMarkets.filter(g => projSel.has(g.market)).forEach(g => {
+        g.items.forEach(v => {
+          if (projCompDone.has(v.slug)) {
+            // already fetched — re-paint into the (re-rendered) row if we have it cached
+            return;
+          }
+          projCompDone.add(v.slug);
+          fetch(APJ_W + '/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: projMemberId }) })
+            .then(x => x.json()).then(j => {
+              if (!j || !j.found || j.gated || !j.model) return;
+              v._psf = j.model.proj_psf_delivery;
+              const el = sec.querySelector('[data-slug="' + v.slug + '"] .apj-psf');
+              if (el) { el.textContent = apjDollar(v._psf); el.classList.add('on'); }
+              if (g.items.length < 2 && !projAvg[g.market]) { projAvg[g.market] = { median: v._psf, band: j.model.proj_psf_band }; renderProjBars(); renderProjDetail(); }
+            }).catch(() => {});
+        });
+      });
+      // Re-paint any cached comps whose rows just re-rendered.
+      projMarkets.filter(g => projSel.has(g.market)).forEach(g => g.items.forEach(v => {
+        if (v._psf != null) { const el = sec.querySelector('[data-slug="' + v.slug + '"] .apj-psf'); if (el && !el.classList.contains('on')) { el.textContent = apjDollar(v._psf); el.classList.add('on'); } }
+      }));
+    }
+    function paintProjPro(tries) {
+      const ms = window.$memberstackDom;
+      if (!ms || !ms.getCurrentMember) { if (tries > 0) setTimeout(() => paintProjPro(tries - 1), 300); return; }
+      ms.getCurrentMember().then(r => {
+        const mem = r && r.data; if (!mem || !mem.id) return;
+        projMemberId = mem.id;
+        // Market averages for the chart (multi-project markets); paint bars as they land.
+        projMarkets.filter(g => g.items.length >= 2).forEach(g => {
+          fetch(APJ_W + '/atlas/market-band', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ market: g.market, member_id: mem.id }) })
+            .then(x => x.json()).then(j => {
+              if (!j || !j.found || j.gated || !Number.isFinite(j.median_psf)) return;
+              projAvg[g.market] = { median: j.median_psf, band: j.band };
+              renderProjBars(); renderProjDetail();
+            }).catch(() => {});
+        });
+        paintComps();
+      }).catch(() => {});
     }
 
     // Sticky-bar filter chips: active filters (with ✕) when set, quick
