@@ -8579,8 +8579,8 @@
       "delivery_speculative": true
     },
     "janu-turks-caicos": {
-      "estimate_years": 3.0,
-      "estimate_label": "~3 years",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
       "range_low": 1.6,
       "range_high": 8.1,
       "confidence": "low",
@@ -8592,7 +8592,15 @@
       "avg_distance_km": 1822.3,
       "avg_distance_mi": 1132.3,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Aman Group",
+        "count": 1,
+        "median_years": 4.25,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
       "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
@@ -8625,7 +8633,7 @@
           "distance_mi": 668.2
         }
       ],
-      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1).",
+      "pattern_summary": "Among 3 hotel projects in TMW's data, the median build time is 3 years (range 1.6–8.1). Adjusted to ~3.5 years for Aman Group's own track record (~4.2-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -14702,7 +14710,7 @@
     "completed": 66,
     "skipped": 102,
     "no_type": 0,
-    "firm_boosted": 39,
+    "firm_boosted": 40,
     "speculative_softened": 202,
     "district": 11,
     "mixed_use_adjusted": 25
