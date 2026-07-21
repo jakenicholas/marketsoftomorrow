@@ -474,10 +474,12 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .fbtn svg{width:13px; height:13px}
 .fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px;
   border-radius:999px; background:#C4B5FD; color:#0a0a0a; font-weight:700; font-size:9px; padding:0 4px}
-.ftokens{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
-.ftok{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10px;
-  letter-spacing:.1em; text-transform:uppercase; color:#C4B5FD; border:1px solid rgba(167,139,250,.45);
-  background:rgba(167,139,250,.1); border-radius:999px; padding:7px 13px; cursor:pointer; white-space:nowrap}
+/* tokens row keeps the pill row's exact vertical rhythm + type spec so the
+   bar height does not change between states */
+.ftokens{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; padding:15px 0}
+.ftok{display:inline-flex; align-items:center; gap:7px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px;
+  letter-spacing:.12em; text-transform:uppercase; font-weight:500; color:#C4B5FD; border:1px solid rgba(167,139,250,.45);
+  background:rgba(167,139,250,.1); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap}
 .ftok .x{opacity:.7; font-size:12px; line-height:1}
 .ftok:hover .x{opacity:1}
 .fclearbar{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
@@ -507,6 +509,10 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
 .fp-row::-webkit-scrollbar{display:none}
+/* once a chip row is scrolled, fade the left edge too — no hard clip line */
+.fp-row.has-left, .pills.has-left{
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent);
+          mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent)}
 .fp-row .pill{flex:none}
 .fp-row .pill.msel{color:#0a0a0a; background:#C4B5FD; border-color:#C4B5FD; font-weight:700}
 .fp-actions{display:flex; align-items:center; gap:16px; margin-top:14px}
@@ -2091,6 +2097,13 @@ document.getElementById('fpClear').addEventListener('click', () => {
 });
 document.getElementById('fpApply').addEventListener('click', commitAndClose);
 document.getElementById('fpClose').addEventListener('click', commitAndClose);
+// Scroll-aware left fade: chip rows only soften their left edge once scrolled,
+// so the first chip stays crisp at rest but nothing ever hard-clips mid-pill.
+document.querySelectorAll('.pills, .fp-row').forEach(el => {
+  const f = () => el.classList.toggle('has-left', el.scrollLeft > 4);
+  el.addEventListener('scroll', f, { passive: true });
+  f();
+});
 document.getElementById('fclearBar').addEventListener('click', () => {
   FAPPLIED = null;
   VISIBLE_N = PAGE_SIZE;
