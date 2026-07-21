@@ -431,31 +431,6 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .story-card .sc-more:hover{color:var(--green); gap:14px}
 .story-card .sc-more svg{width:14px; height:14px; transition:transform .2s}
 
-/* Bottom-center tab pills that bleed over the card edge */
-.story-card .sc-tabs{
-  position:absolute; left:50%; bottom:0;
-  transform:translate(-50%, 50%);
-  z-index:3;
-  display:flex; gap:10px;
-  padding:6px;
-  background:rgba(7,8,7,.78);
-  backdrop-filter:var(--glass); -webkit-backdrop-filter:var(--glass);
-  border:1px solid var(--hair-2);
-  border-radius:999px;
-  box-shadow:0 18px 40px -10px rgba(0,0,0,.6);
-}
-.story-card .sc-tab{
-  font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase;
-  font-weight:600;
-  padding:12px 24px;
-  border-radius:999px;
-  color:var(--cream);
-  transition:all .2s ease;
-  white-space:nowrap;
-}
-.story-card .sc-tab:hover{background:rgba(255,255,255,.06); color:var(--white)}
-.story-card .sc-tab.on{background:var(--white); color:var(--ink); font-weight:700}
-
 @media(max-width:760px){
   .story-section{padding:18px 14px 56px}
   /* V1 — photo dominates: the existing gold "Featured" pill stays top-left, the
@@ -475,8 +450,6 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   .story-card .sc-bg::after{background:
      linear-gradient(180deg, rgba(7,8,7,.5) 0%, rgba(7,8,7,0) 15%),
      linear-gradient(180deg, transparent 0%, transparent 48%, rgba(7,8,7,.78) 80%, rgba(7,8,7,.96) 100%)}
-  .story-card .sc-tab{padding:10px 16px; font-size:11px; letter-spacing:.14em}
-  .story-card .sc-tabs{padding:5px; gap:6px}
 }
 
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -804,12 +777,6 @@ footer .ft-logo .tmw-wordmark{width:118px}
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </a>
     </div>
-    <nav class="sc-tabs" aria-label="Verticals">
-      <a class="sc-tab on" href="/">News</a>
-      <a class="sc-tab" href="/restaurants/">Restaurants</a>
-      <a class="sc-tab" href="/hotels/">Hotels</a>
-      <a class="sc-tab" href="/golf/">Golf</a>
-    </nav>
   </article>
 </section>
 
@@ -1325,32 +1292,44 @@ const PULSE_MAX     = 8;                               // visible items in the s
 const PLACEMENT     = 'home';                          // page-specific tag for ad targeting
 const PAGE_SIZE     = 9;
 
-// Region filter tags. Categories are region-first (derived by the worker), so
-// each bucket matches its region label. buildPills() only shows buckets that
-// have stories, so empty regions never render an empty tag.
-// Broad region matching so the same bucket works whether the category is the
-// worker-derived region ("Florida") or a Wix RSS category ("Florida of
-// Tomorrow", "Miami"). buildPills() hides buckets with no stories.
+// Feed filter pills — TYPE-first (2026-07-21 redesign): the visible pills cut
+// the feed by what a story is about (residential, hotels, restaurants…), not
+// where it is. Categories alone are region-first, so type buckets match a
+// blob of title + summary + categories (see bucketMatches). Region buckets
+// remain below with hidden:true — they never render as pills but keep the
+// header/footer "Focus Markets" deep links (/?market=florida) resolving; a
+// deep-linked hidden bucket renders as a temporary active pill.
 const CATEGORY_BUCKETS = [
-  { key: '*',            label: 'All',         match: () => true },
-  // Hotels is a vertical (the worker derives a "Hotels" category from hotel/
-  // resort/hospitality keywords), placed first so the footer "Focus Markets ›
-  // Hotels" link (/?market=hotels) resolves to this bucket.
-  { key: 'hotels',       label: 'Hotels',      match: c => /hotel|resort|hospitality/i.test(c) },
-  { key: 'florida',      label: 'Florida',     match: c => /florida|miami|palm beach|orlando|tampa|jacksonville|sarasota|naples|fort lauderdale|boca|brickell|wynwood|delray/i.test(c) },
-  { key: 'new-york',     label: 'New York',    match: c => /new york|nyc|manhattan|brooklyn|hamptons|hudson|queens|tribeca|soho/i.test(c) },
-  { key: 'tennessee',    label: 'Tennessee',   match: c => /tennessee|nashville|memphis|knoxville/i.test(c) },
-  { key: 'caribbean',    label: 'Caribbean',   match: c => /caribbean|bahamas|turks|caicos|jamaica|cayman|antigua|barbados|aruba|bermuda|anguilla|nevis/i.test(c) },
-  { key: 'rockies',      label: 'Rockies',     match: c => /rockies|aspen|vail|jackson hole|telluride|park city|colorado|utah|wyoming|montana/i.test(c) },
-  { key: 'europe',       label: 'Europe',      match: c => /europe|london|paris|milan|rome|madrid|barcelona|lisbon|monaco|ibiza|santorini|italy|france|spain|portugal|greece/i.test(c) },
-  { key: 'hawaii',       label: 'Hawaii',      match: c => /hawaii|maui|kauai|oahu|honolulu|lanai|waikiki/i.test(c) },
-  { key: 'california',   label: 'California',  match: c => /california|los angeles|san francisco|beverly hills|malibu|napa|palm springs|san diego/i.test(c) },
-  { key: 'texas',        label: 'Texas',       match: c => /texas|austin|dallas|houston|san antonio/i.test(c) },
-  { key: 'carolinas',    label: 'Carolinas',   match: c => /carolina|charleston|asheville|kiawah|charlotte/i.test(c) },
-  { key: 'mexico',       label: 'Mexico',      match: c => /mexico|cabo|tulum|cancun|riviera maya/i.test(c) },
-  { key: 'middle-east',  label: 'Middle East', match: c => /middle east|dubai|abu dhabi|saudi|qatar|doha|riyadh/i.test(c) },
-  { key: 'asia',         label: 'Asia',        match: c => /asia|tokyo|japan|singapore|hong kong|bangkok|bali|thailand/i.test(c) },
+  { key: '*',           label: 'All',         re: null },
+  { key: 'residential', label: 'Residential', re: /residenc|condo|penthouse|apartment|villa|estates|mansion|real estate|branded home|luxury home|housing|tower/ },
+  { key: 'hotels',      label: 'Hotels',      re: /hotel|resort|hospitality|lodge/ },
+  { key: 'restaurants', label: 'Restaurants', re: /restaurant|food & drink|dining|chef|michelin|steakhouse|omakase|caf(e|é)|bakery|eatery|culinary|cocktail/ },
+  { key: 'golf',        label: 'Golf',        re: /golf|country club|links course/ },
+  { key: 'wellness',    label: 'Wellness',    re: /wellness|\bspa\b|longevity|pilates|fitness|bathhouse|sauna/ },
+  { key: 'clubs',       label: 'Clubs',       re: /private club|members[- ]only|members club|beach club|yacht club|social club|supper club/ },
+  { key: 'travel',      label: 'Travel',      re: /airport|terminal|private jet|marina|cruise|yacht|airline|brightline|rail line/ },
+  // Hidden region buckets: deep-link targets only (?market=<key>).
+  { key: 'florida',     label: 'Florida',     hidden: true, re: /florida|miami|palm beach|orlando|tampa|jacksonville|sarasota|naples|fort lauderdale|boca|brickell|wynwood|delray/ },
+  { key: 'new-york',    label: 'New York',    hidden: true, re: /new york|nyc|manhattan|brooklyn|hamptons|hudson|queens|tribeca|soho/ },
+  { key: 'tennessee',   label: 'Tennessee',   hidden: true, re: /tennessee|nashville|memphis|knoxville/ },
+  { key: 'caribbean',   label: 'Caribbean',   hidden: true, re: /caribbean|bahamas|turks|caicos|jamaica|cayman|antigua|barbados|aruba|bermuda|anguilla|nevis/ },
+  { key: 'rockies',     label: 'Rockies',     hidden: true, re: /rockies|aspen|vail|jackson hole|telluride|park city|colorado|utah|wyoming|montana/ },
+  { key: 'europe',      label: 'Europe',      hidden: true, re: /europe|london|paris|milan|rome|madrid|barcelona|lisbon|monaco|ibiza|santorini|italy|france|spain|portugal|greece/ },
+  { key: 'hawaii',      label: 'Hawaii',      hidden: true, re: /hawaii|maui|kauai|oahu|honolulu|lanai|waikiki/ },
+  { key: 'california',  label: 'California',  hidden: true, re: /california|los angeles|san francisco|beverly hills|malibu|napa|palm springs|san diego/ },
+  { key: 'texas',       label: 'Texas',       hidden: true, re: /texas|austin|dallas|houston|san antonio/ },
+  { key: 'carolinas',   label: 'Carolinas',   hidden: true, re: /carolina|charleston|asheville|kiawah|charlotte/ },
+  { key: 'mexico',      label: 'Mexico',      hidden: true, re: /mexico|cabo|tulum|cancun|riviera maya/ },
+  { key: 'middle-east', label: 'Middle East', hidden: true, re: /middle east|dubai|abu dhabi|saudi|qatar|doha|riyadh/ },
+  { key: 'asia',        label: 'Asia',        hidden: true, re: /asia|tokyo|japan|singapore|hong kong|bangkok|bali|thailand/ },
 ];
+
+// Type buckets read the whole story, not just its (region-first) categories.
+function bucketMatches(bucket, it) {
+  if (!bucket || bucket.key === '*') return true;
+  const hay = ((it.title || '') + ' ' + (it.summary || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
+  return bucket.re.test(hay);
+}
 
 // ---------------------------------------------------------------
 // Bootstrap
@@ -1850,17 +1829,23 @@ function buildPills() {
   const pillEl = document.getElementById('pills');
   pillEl.innerHTML = '';
   CATEGORY_BUCKETS.forEach(bucket => {
+    // Hidden (region) buckets only render while deep-link-selected via ?market=.
+    if (bucket.hidden && bucket.key !== ACTIVE_CAT) return;
     const count = bucket.key === '*'
       ? ALL_ITEMS.length
-      : ALL_ITEMS.filter(it => (it.categories || []).some(bucket.match)).length;
+      : ALL_ITEMS.filter(it => bucketMatches(bucket, it)).length;
     if (bucket.key !== '*' && count === 0) return;
     const btn = document.createElement('button');
     btn.className = 'pill' + (bucket.key === ACTIVE_CAT ? ' on' : '');
     btn.dataset.cat = bucket.key;
     btn.textContent = bucket.label;   // count removed per design
     btn.addEventListener('click', () => {
+      const wasHidden = (CATEGORY_BUCKETS.find(b => b.key === ACTIVE_CAT) || {}).hidden;
       ACTIVE_CAT = bucket.key;
       VISIBLE_N = PAGE_SIZE;
+      // Leaving a deep-linked region pill (?market=…): rebuild so the
+      // temporary hidden-bucket pill drops back out of the row.
+      if (wasHidden) { buildPills(); applyFilters(); return; }
       document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.cat === ACTIVE_CAT));
       // Keep the just-selected pill IN the viewport. The pill row is
       // horizontally scrollable on mobile (overflow-x:auto), so a pill
@@ -1890,8 +1875,7 @@ function applyFilters() {
   const bucket = CATEGORY_BUCKETS.find(b => b.key === ACTIVE_CAT);
   FILTERED = ALL_ITEMS.filter(it => {
     if (bucket && bucket.key !== '*') {
-      const cats = it.categories || [];
-      if (!cats.some(bucket.match)) return false;
+      if (!bucketMatches(bucket, it)) return false;
     }
     if (SEARCH_Q) {
       const hay = (it.title + ' ' + (it.summary || '') + ' ' + (it.categories || []).join(' ')).toLowerCase();
