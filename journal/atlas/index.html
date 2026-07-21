@@ -215,6 +215,23 @@
   .apj-psf.on { filter: none; opacity: 1; color: var(--purple, #A78BFA); }
   .apj-unit { font-size: 10px; color: rgba(255,255,255,0.42); }
   .apj-conf { margin-left: auto; font-family: var(--mono, monospace); font-size: 8.5px; letter-spacing: .06em; color: rgba(167,139,250,0.8); border: 1px solid rgba(167,139,250,0.3); border-radius: 999px; padding: 2px 7px; }
+  /* Onyx projections by MARKET: a market-average headline + the comparable set (the projects behind it) */
+  .apj-mkt { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px 22px; margin-bottom: 14px; }
+  .apj-mkt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .apj-mkt-name { font-family: var(--serif); font-weight: 600; font-size: 23px; letter-spacing: -.02em; color: #fff; }
+  .apj-mkt-sub { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .06em; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .apj-mkt-avg { text-align: right; }
+  .apj-avg-k { font-family: var(--mono, monospace); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(167,139,250,0.85); font-weight: 700; margin-bottom: 4px; }
+  .apj-avg-row { display: flex; align-items: baseline; gap: 7px; justify-content: flex-end; }
+  .apj-mkt-avg .apj-psf { font-size: 30px; }
+  .apj-mkt-band { font-family: var(--mono, monospace); font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+  .apj-b { filter: blur(5px); user-select: none; } .apj-b.on { filter: none; color: rgba(167,139,250,0.9); }
+  .apj-comps-k { font-family: var(--mono, monospace); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 15px 0 4px; }
+  .apj-comp { display: flex; align-items: center; gap: 14px; padding: 9px 2px; border-top: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; }
+  .apj-comp:hover .apj-comp-nm { color: #A78BFA; }
+  .apj-comp-nm { flex: 1; min-width: 0; font-size: 14px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .15s; }
+  .apj-comp-sub { font-family: var(--mono, monospace); font-size: 9.5px; letter-spacing: .04em; color: rgba(255,255,255,0.4); flex: 0 0 auto; }
+  .apj-comp .apj-psf { font-size: 15px; flex: 0 0 auto; }
 
   /* Leaderboard rows become clickable links to /architects/<slug>/ or
      /developers/<slug>/ — those firm pages live on map.oftmw.com (they 404
@@ -2694,46 +2711,53 @@
         });
       }
       if (rows.length < ((pStFilter || pCiFilter) ? 1 : 3)) { sec.innerHTML = ''; return; }
-      const hero = rows[0];
-      const shown = rows.slice(1, 9);
-      const heroHtml = `
-        <a class="apj-hero" data-slug="${hero.slug}" href="/projects/${encodeURIComponent(hero.slug)}/">
-          <div class="apj-hero-l">
-            <div class="apj-hero-k">Projected pricing at delivery</div>
-            <div class="apj-hero-name">${hero.title}</div>
-            <div class="apj-hero-meta">${hero.city || ''}${hero.delivery_label ? ' · Coming ' + hero.delivery_label : ''}</div>
-            <div class="apj-hero-row"><span class="apj-psf apj-hero-psf">$•,•••</span><span class="apj-unit">/ sq ft at delivery</span></div>
-            <div class="apj-hero-conf">Confidence: ${(hero.confidence || '').charAt(0).toUpperCase() + (hero.confidence || '').slice(1)} · ${hero.comp_count} comps · modeled, never listings</div>
+      // Group the modeled projects by MARKET. Each market shows an average (the
+      // worker's median band) with the comparable set — the projects behind it.
+      const tc = s => String(s || '').replace(/\b\w/g, c => c.toUpperCase());
+      const groups = {};
+      rows.forEach(v => {
+        const key = v.market || (v.city || '').toLowerCase();
+        if (!groups[key]) groups[key] = { market: key, city: v.city || tc(key), items: [] };
+        groups[key].items.push(v);
+      });
+      const markets = Object.values(groups).sort((a, b) => b.items.length - a.items.length);
+      const panels = markets.map(g => {
+        const comps = g.items.map(v => `
+          <a class="apj-comp" data-slug="${v.slug}" href="/projects/${encodeURIComponent(v.slug)}/">
+            <span class="apj-comp-nm">${v.title}</span>
+            <span class="apj-comp-sub">${v.delivery_label || v.city || ''}</span>
+            <span class="apj-psf">$•,•••</span><span class="apj-unit">/ sq ft</span>
+          </a>`).join('');
+        return `<div class="apj-mkt" data-market="${g.market}">
+          <div class="apj-mkt-head">
+            <div>
+              <div class="apj-mkt-name">${g.city}</div>
+              <div class="apj-mkt-sub">${g.items.length} projected project${g.items.length > 1 ? 's' : ''} · modeled, never listings</div>
+            </div>
+            <div class="apj-mkt-avg">
+              <div class="apj-avg-k">Market average · at delivery</div>
+              <div class="apj-avg-row"><span class="apj-psf apj-mkt-psf">$•,•••</span><span class="apj-unit">/ sq ft</span></div>
+              <div class="apj-mkt-band">Band <span class="apj-b apj-band-lo">$•••</span> – <span class="apj-b apj-band-hi">$•••</span></div>
+            </div>
           </div>
-          <svg class="apj-hero-band" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
-            <defs><linearGradient id="apjBandG" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="rgba(31,223,103,0.02)"/><stop offset="100%" stop-color="rgba(31,223,103,0.22)"/></linearGradient></defs>
-            <path d="M0,60 L60,56 L120,50 L180,42 L240,33 L300,22 L300,44 L240,52 L180,60 L120,66 L60,71 L0,75 Z" fill="url(#apjBandG)"/>
-            <path d="M0,68 L60,64 L120,58 L180,51 L240,43 L300,33" fill="none" stroke="#1FDF67" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="300" cy="33" r="3.5" fill="#1FDF67"/>
-            <line x1="60" y1="8" x2="60" y2="82" stroke="rgba(255,255,255,0.14)" stroke-dasharray="3 4"/>
-          </svg>
-          <span class="apj-hero-cta">Full projection →</span>
-        </a>`;
+          <div class="apj-comps-k">Comparable set · the projects behind this average</div>
+          ${comps}
+        </div>`;
+      }).join('');
       sec.innerHTML = `
         <div class="atlas-section-head"><div>
           <h2 class="atlas-section-title">Onyx <em>projections</em></h2>
-          <p class="atlas-section-sub">Modeled pricing at delivery for ${rows.length} pre-construction projects — every number carries a comp basis and a confidence read. Values are a Pro surface.</p>
+          <p class="atlas-section-sub">Modeled pricing at delivery, averaged by market — every figure carries a transparent comp basis. Values are a Pro surface.</p>
         </div></div>
-        <div class="atlas-panel">` + heroHtml + `<div class="apj-grid" style="margin-top:14px">` + shown.map(v =>
-          `<a class="apj-card" data-slug="${v.slug}" href="/projects/${encodeURIComponent(v.slug)}/">
-            <div class="apj-name">${v.title}</div>
-            <div class="apj-meta">${v.city || ''}${v.delivery_label ? ' · ' + v.delivery_label : ''}</div>
-            <div class="apj-row"><span class="apj-psf">$•,•••</span><span class="apj-unit">/ sq ft at delivery</span>
-            <span class="apj-conf">${(v.confidence || '').toUpperCase()} · ${v.comp_count || 0} comps</span></div>
-          </a>`).join('') + `</div>
-          <div class="asp-foot">Projections are modeled estimates with transparent comp bases — never listings. Full bands, comps and scenarios live on each project page.</div>
-        </div>`;
-      // Pro paint: one server-verified fetch per visible card. Memberstack
-      // loads async (journal-auth injects the script) and normally resolves
-      // AFTER this section's JSON, so poll for $memberstackDom instead of
-      // reading it once — a single early miss used to leave every projected
-      // number blurred for paid members, permanently (no retry).
+        ${panels}
+        <div class="asp-foot" style="margin-top:6px">Market averages are the median of each market's modeled projections — transparent comp bases, never listings. Full bands, comps and scenarios live on each project page.</div>`;
+
+      // Pro paint: the market average from /atlas/market-band (median + band), and
+      // each project's PSF from /atlas/projection-full. Memberstack loads async, so
+      // poll for $memberstackDom rather than reading it once (a single early miss
+      // used to leave every number blurred for paid members permanently).
+      const W = 'https://tmw.jake-ab7.workers.dev';
+      const dollar = n => '$' + Math.round(n).toLocaleString('en-US');
       (function paintProjPro(tries) {
         const ms = window.$memberstackDom;
         if (!ms || !ms.getCurrentMember) {
@@ -2743,14 +2767,34 @@
         ms.getCurrentMember().then(r => {
           const mem = r && r.data;
           if (!mem || !mem.id) return;
-          [hero].concat(shown).forEach(v => {
-            fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
-              .then(r2 => r2.json())
-              .then(j => {
-                if (!j || !j.found || j.gated || !j.model) return;
-                const el = sec.querySelector(`[data-slug="${v.slug}"] .apj-psf`);
-                if (el) { el.textContent = '$' + Math.round(j.model.proj_psf_delivery).toLocaleString('en-US'); el.classList.add('on'); }
-              }).catch(() => {});
+          markets.forEach(g => {
+            const panel = sec.querySelector('.apj-mkt[data-market="' + g.market + '"]');
+            // Market average (median + band). Falls back to the single project when a market has one.
+            const paintAvg = (median, band) => {
+              if (!panel) return;
+              const avg = panel.querySelector('.apj-mkt-psf');
+              if (avg && Number.isFinite(median)) { avg.textContent = dollar(median); avg.classList.add('on'); }
+              const lo = panel.querySelector('.apj-band-lo'), hi = panel.querySelector('.apj-band-hi');
+              if (band && band.length === 2) {
+                if (lo && Number.isFinite(band[0])) { lo.textContent = dollar(band[0]); lo.classList.add('on'); }
+                if (hi && Number.isFinite(band[1])) { hi.textContent = dollar(band[1]); hi.classList.add('on'); }
+              }
+            };
+            if (g.items.length >= 2) {
+              fetch(W + '/atlas/market-band', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ market: g.market, member_id: mem.id }) })
+                .then(x => x.json()).then(j => { if (j && j.found && !j.gated) paintAvg(j.median_psf, j.band); }).catch(() => {});
+            }
+            // Each project's PSF (the comparable set).
+            g.items.forEach(v => {
+              fetch(W + '/atlas/projection-full', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: v.slug, member_id: mem.id }) })
+                .then(x => x.json()).then(j => {
+                  if (!j || !j.found || j.gated || !j.model) return;
+                  const el = sec.querySelector('[data-slug="' + v.slug + '"] .apj-psf');
+                  if (el) { el.textContent = dollar(j.model.proj_psf_delivery); el.classList.add('on'); }
+                  // Single-project market: its number is the market average.
+                  if (g.items.length < 2) paintAvg(j.model.proj_psf_delivery, j.model.proj_psf_band);
+                }).catch(() => {});
+            });
           });
         }).catch(() => {});
       })(40);
