@@ -475,8 +475,14 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px;
   border-radius:999px; background:#C4B5FD; color:#0a0a0a; font-weight:700; font-size:9px; padding:0 4px}
 /* tokens row keeps the pill row's exact vertical rhythm + type spec so the
-   bar height does not change between states */
-.ftokens{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; padding:15px 0}
+   bar height does not change between states. It scrolls like the pill row —
+   Clear rides inside it as the last item of the stack — with the same
+   right-edge fade, and the search stays anchored outside it. */
+.ftokens{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0; flex:1;
+  overflow-x:auto; scrollbar-width:none; padding:15px 20px 15px 14px; margin-left:-14px;
+  -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
+          mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
+.ftokens::-webkit-scrollbar{display:none}
 /* display:flex would beat the [hidden] attribute — the empty tokens div was
    silently eating a flex gap between the Filters button and the pill row */
 .ftokens[hidden]{display:none}
@@ -484,8 +490,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); border:1px solid rgba(230,197,116,.34);
   background:rgba(230,197,116,.10); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap;
   text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
-.ftok .x{opacity:.7; font-size:12px; line-height:1}
-.ftok:hover .x{opacity:1}
+.ftok .x{color:#FF8A8A; font-size:12px; line-height:1; opacity:.85;
+  text-shadow:0 0 10px rgba(255,138,138,.75), 0 0 3px rgba(255,138,138,.5)}
+.ftok:hover .x{opacity:1; text-shadow:0 0 14px rgba(255,138,138,.95), 0 0 4px rgba(255,138,138,.7)}
 .fclearbar{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--mute); background:none; border:0; cursor:pointer; padding:7px 4px; flex:none}
 .fclearbar:hover{color:var(--cream)}
@@ -517,7 +524,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
           mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
 .fp-row::-webkit-scrollbar{display:none}
 /* once a chip row is scrolled, fade the left edge too — no hard clip line */
-.fp-row.has-left, .pills.has-left{
+.fp-row.has-left, .pills.has-left, .ftokens.has-left{
   -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent)}
 .fp-row .pill{flex:none}
@@ -538,8 +545,8 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 @media(max-width:760px){
   .fp-sec{grid-template-columns:1fr; gap:6px}
   .fp-lbl{padding-top:0}
-  .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:15px 14px; margin:0 -14px}
-  .ftokens::-webkit-scrollbar{display:none}
+  /* icon-only Filters button on mobile — the badge still shows the count */
+  .fbtn .fbtn-lbl{display:none}
   /* breathing room: above the search, around the sides, below the actions.
      .bar .fpanel .wrap so this outranks the later `.bar .wrap` mobile rule,
      which also matches the panel's wrap (the panel lives inside .bar). */
@@ -875,10 +882,9 @@ footer .ft-logo .tmw-wordmark{width:118px}
   <div class="wrap" id="barRest">
     <button class="fbtn" id="fbtn" type="button" aria-expanded="false" aria-controls="fpanel">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
-      Filters<span class="fbadge" id="fbadge" hidden>0</span>
+      <span class="fbtn-lbl">Filters</span><span class="fbadge" id="fbadge" hidden>0</span>
     </button>
     <div class="ftokens" id="ftokens" hidden></div>
-    <button class="fclearbar" id="fclearBar" type="button" hidden>Clear</button>
     <div class="pills" id="pills">
       <button class="pill on" data-cat="*">All</button>
     </div>
@@ -2132,23 +2138,22 @@ document.getElementById('fpApply').addEventListener('click', commitAndClose);
 document.getElementById('fpClose').addEventListener('click', commitAndClose);
 // Scroll-aware left fade: chip rows only soften their left edge once scrolled,
 // so the first chip stays crisp at rest but nothing ever hard-clips mid-pill.
-document.querySelectorAll('.pills, .fp-row').forEach(el => {
+document.querySelectorAll('.pills, .fp-row, .ftokens').forEach(el => {
   const f = () => el.classList.toggle('has-left', el.scrollLeft > 4);
   el.addEventListener('scroll', f, { passive: true });
   f();
 });
 fbadgeSync();   // ?market= deep links land with an active pill — count it
-document.getElementById('fclearBar').addEventListener('click', () => {
+function clearAllFilters() {
   FAPPLIED = null;
   VISIBLE_N = PAGE_SIZE;
   renderBarState();
   applyFilters();
-});
+}
 function renderBarState() {
   const on = advActive();
   const tok = document.getElementById('ftokens');
   document.getElementById('pills').style.display = on ? 'none' : '';
-  document.getElementById('fclearBar').hidden = !on;
   tok.hidden = !on;
   const badge = document.getElementById('fbadge');
   if (!on) {
@@ -2179,6 +2184,13 @@ function renderBarState() {
     });
     tok.appendChild(t);
   });
+  // Clear rides inside the token stack so it scrolls with the pills.
+  const clr = document.createElement('button');
+  clr.type = 'button'; clr.className = 'fclearbar'; clr.textContent = 'Clear';
+  clr.style.flex = 'none';
+  clr.addEventListener('click', clearAllFilters);
+  tok.appendChild(clr);
+  tok.scrollLeft = 0;
 }
 
 function applyFilters() {
