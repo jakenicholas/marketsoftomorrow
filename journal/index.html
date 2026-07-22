@@ -514,7 +514,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 52px), transparent)}
 .fp-row .pill{flex:none}
-.fp-row .pill.msel{color:#0a0a0a; background:#C4B5FD; border-color:#C4B5FD; font-weight:700}
+/* selected chips wear the same gold "active" look as the main pill row */
+.fp-row .pill.msel{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700;
+  text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .fp-actions{display:flex; align-items:center; gap:16px; margin-top:14px}
 .fp-apply{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
   color:#0a0a0a; background:#C4B5FD; border:0; border-radius:999px; padding:11px 22px; cursor:pointer;
@@ -1924,6 +1926,7 @@ function buildPills() {
       ACTIVE_CAT = bucket.key;
       VISIBLE_N = PAGE_SIZE;
       document.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.dataset.cat === ACTIVE_CAT));
+      fbadgeSync();
       // Keep the just-selected pill IN the viewport. The pill row is
       // horizontally scrollable on mobile (overflow-x:auto), so a pill
       // farther down the row gets cut off the right edge -- the user
@@ -1935,6 +1938,7 @@ function buildPills() {
     });
     pillEl.appendChild(btn);
   });
+  fbadgeSync();   // deep-linked ?market= arrives with an active pill
 }
 
 document.getElementById('search').addEventListener('input', (e) => {
@@ -2052,8 +2056,22 @@ function fpCount() {
   }
   document.getElementById('fpApply').textContent = none ? 'Show all stories' : 'Show ' + n + ' ' + (n === 1 ? 'story' : 'stories');
 }
+// The quick region pills are shortcuts into the same filter system: the
+// badge counts an active pill, and opening the panel seeds it as a selection.
+function fbadgeSync() {
+  if (advActive()) return;   // renderBarState owns the badge in token mode
+  const badge = document.getElementById('fbadge');
+  if (ACTIVE_CAT && ACTIVE_CAT !== '*') { badge.textContent = '1'; badge.hidden = false; }
+  else badge.hidden = true;
+}
 function fpOpen() {
   FSEL = FAPPLIED ? { loc: new Set(FAPPLIED.loc), type: new Set(FAPPLIED.type), date: FAPPLIED.date } : { loc: new Set(), type: new Set(), date: 'any' };
+  // A gold-active region pill carries into the panel as a selection
+  // ('hotels' is the one vertical in that row, so it seeds Type).
+  if (!FSEL.loc.size && !FSEL.type.size && FSEL.date === 'any' && ACTIVE_CAT && ACTIVE_CAT !== '*') {
+    if (ACTIVE_CAT === 'hotels') FSEL.type.add('hotels');
+    else if (LOC_FILTERS.some(f => f.key === ACTIVE_CAT)) FSEL.loc.add(ACTIVE_CAT);
+  }
   fpsearch.value = SEARCH_Q;
   fpRenderAll();
   document.getElementById('barRest').style.display = 'none';
@@ -2104,6 +2122,7 @@ document.querySelectorAll('.pills, .fp-row').forEach(el => {
   el.addEventListener('scroll', f, { passive: true });
   f();
 });
+fbadgeSync();   // ?market= deep links land with an active pill — count it
 document.getElementById('fclearBar').addEventListener('click', () => {
   FAPPLIED = null;
   VISIBLE_N = PAGE_SIZE;
@@ -2117,7 +2136,7 @@ function renderBarState() {
   document.getElementById('fclearBar').hidden = !on;
   tok.hidden = !on;
   const badge = document.getElementById('fbadge');
-  if (!on) { badge.hidden = true; tok.innerHTML = ''; return; }
+  if (!on) { tok.innerHTML = ''; fbadgeSync(); return; }
   const parts = [];
   FAPPLIED.loc.forEach(k => { const f = LOC_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'loc', key: k, label: f.label }); });
   FAPPLIED.type.forEach(k => { const f = TYPE_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'type', key: k, label: f.label }); });
