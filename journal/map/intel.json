@@ -846,7 +846,7 @@
       "start_speculative": false,
       "delivery_speculative": false
     },
-    "cipriani-residences-brickell": {
+    "cipriani-residences-miami": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
       "days_out": 893,
@@ -1408,21 +1408,57 @@
       "delivery_speculative": true
     },
     "ponce-park": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 893,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 2.9,
+      "estimate_label": "~2.9 years",
+      "range_low": 1.7,
+      "range_high": 4.8,
+      "confidence": "medium",
+      "comparable_count": 16,
+      "good_count": 3,
+      "exact_count": 3,
+      "used_relaxed": false,
+      "avg_match_score": 0.52,
+      "avg_distance_km": 1214.8,
+      "avg_distance_mi": 754.8,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "comparables": [
+        {
+          "name": "Vita at Grove Isle",
+          "slug": "vita-at-grove-isle",
+          "location": "Coconut Grove",
+          "years": 2.0,
+          "score": 0.85,
+          "distance_km": 4.2,
+          "distance_mi": 2.6
+        },
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.85,
+          "distance_km": 2.8,
+          "distance_mi": 1.7
+        },
+        {
+          "name": "The Village at Coral Gables",
+          "slug": "the-village-at-coral-gables",
+          "location": "Coral Gables",
+          "years": 2.3,
+          "score": 0.7,
+          "distance_km": 0.9,
+          "distance_mi": 0.6
+        }
+      ],
+      "pattern_summary": "Among 16 residences projects in TMW's data, the median build time is 2.9 years (range 1.7–4.8).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "the-village-at-coral-gables": {
       "estimate_years": 2.3,
@@ -1914,38 +1950,56 @@
       "delivery_speculative": false
     },
     "grand-hyatt-convention-center-hotel": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.7,
+      "estimate_label": "~3.7 years",
+      "range_low": 1.6,
+      "range_high": 8.1,
+      "confidence": "low",
+      "comparable_count": 2,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.33,
+      "avg_distance_km": 709.8,
+      "avg_distance_mi": 441.0,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Arquitectonica",
+        "count": 12,
+        "median_years": 3.07,
+        "stddev_years": 1.75,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "comparables": [
+        {
+          "name": "Dolly Parton's SongTeller Hotel",
+          "slug": "dolly-partons-songteller-hotel",
+          "location": "Nashville",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 1314.5,
+          "distance_mi": 816.8
+        },
+        {
+          "name": "The Belgrove Resort & Spa",
+          "slug": "the-belgrove-resort-spa",
+          "location": "West Palm Beach",
+          "years": 8.1,
+          "score": 0.31,
+          "distance_km": 105.0,
+          "distance_mi": 65.3
+        }
+      ],
+      "pattern_summary": "Among 2 hotel projects in TMW's data, the median build time is 4.8 years (range 1.6–8.1). Adjusted to ~3.7 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
-    },
-    "the-alton-miami-beach": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Mixed-Use",
-      "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "the-shore-club-resort-residences": {
       "estimate_years": 1.5,
@@ -2084,23 +2138,6 @@
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
-    },
-    "royal-caribbean-terminal-g": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Marina",
-      "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
     },
     "fat-village": {
       "estimate_years": 0.4,
@@ -2851,21 +2888,21 @@
       "delivery_speculative": true
     },
     "summit-brickell": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1258,
+      "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "edition-residences-miami-edgewater": {
       "estimate_years": 0.4,
@@ -4364,23 +4401,6 @@
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
-    },
-    "westgate-village-palm-beach-kennel-club-redevelopment": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 893,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
-      "project_type": "Mixed-Use",
-      "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
-      "dates_speculative": true,
-      "start_speculative": true,
-      "delivery_speculative": true
     },
     "saks-fifth-redevelopment": {
       "estimate_years": 1.5,
@@ -7618,21 +7638,57 @@
       "delivery_speculative": true
     },
     "canal-by-iq-concept-aventura": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
+      "estimate_years": 2.4,
+      "estimate_label": "~2.4 years",
+      "range_low": 1.0,
+      "range_high": 4.8,
+      "confidence": "high",
+      "comparable_count": 13,
+      "good_count": 5,
+      "exact_count": 5,
+      "used_relaxed": false,
+      "avg_match_score": 0.58,
+      "avg_distance_km": 1230.2,
+      "avg_distance_mi": 764.4,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "comparables": [
+        {
+          "name": "Eturna Beachside Residences",
+          "slug": "eturna-beachside-residences",
+          "location": "Hollywood",
+          "years": 2.2,
+          "score": 1.0,
+          "distance_km": 10.3,
+          "distance_mi": 6.4
+        },
+        {
+          "name": "Arbor Coconut Grove",
+          "slug": "arbor-coconut-grove",
+          "location": "Miami",
+          "years": 8.4,
+          "score": 0.88,
+          "distance_km": 26.3,
+          "distance_mi": 16.4
+        },
+        {
+          "name": "Vita at Grove Isle",
+          "slug": "vita-at-grove-isle",
+          "location": "Coconut Grove",
+          "years": 2.0,
+          "score": 0.85,
+          "distance_km": 25.0,
+          "distance_mi": 15.5
+        }
+      ],
+      "pattern_summary": "Among 13 residences projects in TMW's data, the median build time is 2.4 years (range 1–4.8).",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true
+      "delivery_speculative": true,
+      "is_mixed_use": false
     },
     "7-park-residences-hallandale": {
       "estimate_years": 1.5,
@@ -10696,21 +10752,65 @@
       "delivery_speculative": false
     },
     "one-fort-myers": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 4.2,
+      "estimate_label": "~4.2 years",
+      "range_low": 1.9,
+      "range_high": 5.2,
+      "confidence": "low",
+      "comparable_count": 19,
+      "good_count": 1,
+      "exact_count": 1,
+      "used_relaxed": true,
+      "avg_match_score": 0.46,
+      "avg_distance_km": 1111.5,
+      "avg_distance_mi": 690.6,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Behar Font & Partners",
+        "count": 2,
+        "median_years": 5.18,
+        "stddev_years": 3.19,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.55
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "Southwest Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "comparables": [
+        {
+          "name": "Forté on Flagler",
+          "slug": "fort-on-flagler",
+          "location": "West Palm Beach",
+          "years": 3.8,
+          "score": 0.76,
+          "distance_km": 180.8,
+          "distance_mi": 112.3
+        },
+        {
+          "name": "The Henry",
+          "slug": "the-henry",
+          "location": "New York City",
+          "years": 3.0,
+          "score": 0.64,
+          "distance_km": 1731.8,
+          "distance_mi": 1076.1
+        },
+        {
+          "name": "Alba",
+          "slug": "alba",
+          "location": "West Palm Beach",
+          "years": 2.8,
+          "score": 0.61,
+          "distance_km": 180.9,
+          "distance_mi": 112.4
+        }
+      ],
+      "pattern_summary": "Among 19 residences projects in TMW's data, the median build time is 3 years (range 1.9–5.2). Adjusted to ~4.2 years for Behar Font & Partners's own track record (~5.2-year typical pace across 2 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "one-park-sarasota": {
       "estimate_years": 0.7,
@@ -14771,7 +14871,7 @@
       "delivery_speculative": false,
       "is_mixed_use": false
     },
-    "palace-museum-north-branch": {
+    "patina-tianjin": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
       "days_out": 162,
@@ -14779,28 +14879,11 @@
       "source": "known_date",
       "precision": "year",
       "confidence": "high",
-      "project_type": "Museum",
-      "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
-    "patina-tianjin": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
       "project_type": "Hotel",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "pattern_summary": "Targeted for opening in ~5 months.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -14840,18 +14923,18 @@
       "delivery_speculative": false
     },
     "rosewood-residences-dubai": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 877,
-      "delivery_date": "2028-12-15",
+      "estimate_years": 3.5,
+      "estimate_label": "~3.5 years",
+      "days_out": 1258,
+      "delivery_date": "2029-12-31",
       "source": "known_date",
-      "precision": "month",
+      "precision": "year",
       "confidence": "high",
       "project_type": "Residences",
       "metro": "Dubai",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~3.5 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -14994,33 +15077,33 @@
       "delivery_speculative": true
     },
     "franck-muller-vanguard": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
+      "estimate_years": 1.0,
+      "estimate_label": "~1 year",
+      "days_out": 420,
+      "delivery_date": "2027-09-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "medium",
       "project_type": "Residences",
       "metro": "Dubai",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "pattern_summary": "TMW estimates an opening in ~1 year based on project type and current stage.",
       "dates_speculative": true,
       "start_speculative": true,
       "delivery_speculative": true
     }
   },
   "stats": {
-    "high": 6,
-    "medium": 17,
-    "low": 71,
-    "known_date": 532,
+    "high": 7,
+    "medium": 18,
+    "low": 73,
+    "known_date": 524,
     "completed": 66,
-    "skipped": 101,
+    "skipped": 105,
     "no_type": 0,
-    "firm_boosted": 40,
-    "speculative_softened": 206,
+    "firm_boosted": 42,
+    "speculative_softened": 205,
     "district": 11,
     "mixed_use_adjusted": 26
   }
