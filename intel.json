@@ -2991,21 +2991,57 @@
       "delivery_speculative": false
     },
     "domus-brickell-center": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 527,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
+      "range_low": 1.9,
+      "range_high": 4.0,
+      "confidence": "medium",
+      "comparable_count": 12,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 0.46,
+      "avg_distance_km": 257.1,
+      "avg_distance_mi": 159.8,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "comparables": [
+        {
+          "name": "E11EVEN® Club Hotel & Residences",
+          "slug": "e11even-club-hotel-residences",
+          "location": "Miami",
+          "years": 4.3,
+          "score": 0.85,
+          "distance_km": 2.3,
+          "distance_mi": 1.4
+        },
+        {
+          "name": "Casa Bella Residences Miami",
+          "slug": "casa-bella-residences-miami",
+          "location": "Miami",
+          "years": 2.5,
+          "score": 0.7,
+          "distance_km": 2.9,
+          "distance_mi": 1.8
+        },
+        {
+          "name": "Nautilus 220",
+          "slug": "nautilus-220",
+          "location": "Lake Park",
+          "years": 3.2,
+          "score": 0.61,
+          "distance_km": 115.5,
+          "distance_mi": 71.8
+        }
+      ],
+      "pattern_summary": "Among 12 residences projects in TMW's data, the median build time is 3 years (range 1.9–4).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "the-william": {
       "estimate_years": 3.5,
@@ -15096,9 +15132,9 @@
   },
   "stats": {
     "high": 7,
-    "medium": 18,
+    "medium": 19,
     "low": 73,
-    "known_date": 524,
+    "known_date": 523,
     "completed": 66,
     "skipped": 105,
     "no_type": 0,
