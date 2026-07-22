@@ -490,7 +490,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   color:var(--mute); background:none; border:0; cursor:pointer; padding:7px 4px; flex:none}
 .fclearbar:hover{color:var(--cream)}
 .fpanel{overflow:hidden}
-.fpanel .wrap{display:block; padding:24px 40px 28px}
+.bar .fpanel .wrap{display:block; padding:24px 40px 28px}
 .fpanel.open{animation:fpDrop .4s cubic-bezier(.22,1,.36,1) both}
 @keyframes fpDrop{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)}}
 .fp-search{display:flex; align-items:center; gap:10px; border:1px solid rgba(167,139,250,.35);
@@ -540,8 +540,10 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   .fp-lbl{padding-top:0}
   .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:15px 14px; margin:0 -14px}
   .ftokens::-webkit-scrollbar{display:none}
-  /* breathing room: above the search, around the sides, below the actions */
-  .fpanel .wrap{padding:22px 16px 28px}
+  /* breathing room: above the search, around the sides, below the actions.
+     .bar .fpanel .wrap so this outranks the later `.bar .wrap` mobile rule,
+     which also matches the panel's wrap (the panel lives inside .bar). */
+  .bar .fpanel .wrap{padding:22px 16px 28px}
   /* the hero-to-filter gradient needs a stronger lift on mobile — the tall
      hero card compresses the fade zone into near-invisibility otherwise */
   .story-section{background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 45%, #0b0d0c 100%)}
