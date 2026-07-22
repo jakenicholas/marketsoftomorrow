@@ -481,8 +481,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
    silently eating a flex gap between the Filters button and the pill row */
 .ftokens[hidden]{display:none}
 .ftok{display:inline-flex; align-items:center; gap:7px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px;
-  letter-spacing:.12em; text-transform:uppercase; font-weight:500; color:#C4B5FD; border:1px solid rgba(167,139,250,.45);
-  background:rgba(167,139,250,.1); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap}
+  letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); border:1px solid rgba(230,197,116,.34);
+  background:rgba(230,197,116,.10); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap;
+  text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
 .ftok .x{opacity:.7; font-size:12px; line-height:1}
 .ftok:hover .x{opacity:1}
 .fclearbar{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
@@ -508,7 +509,10 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   100%{width:100%; transform:scale(1); box-shadow:0 0 14px rgba(167,139,250,.12)}}
 .fp-sec{display:grid; grid-template-columns:92px 1fr; gap:12px; align-items:start; padding:10px 0; border-top:1px solid var(--hair)}
 .fp-lbl{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); padding-top:9px}
-.fp-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;
+/* padding gives the gold glow room to render inside the scroll clip box on
+   all four sides; the negative margins cancel it out of the layout */
+.fp-row{display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+  padding:14px 20px 14px 14px; margin:-14px 0 -12px -14px;
   -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
 .fp-row::-webkit-scrollbar{display:none}
@@ -534,7 +538,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 @media(max-width:760px){
   .fp-sec{grid-template-columns:1fr; gap:6px}
   .fp-lbl{padding-top:0}
-  .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none}
+  .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:15px 14px; margin:0 -14px}
   .ftokens::-webkit-scrollbar{display:none}
 }
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
