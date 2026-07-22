@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-05.2';
+export const ONTOLOGY_VERSION = '2026-07-21.1';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -91,7 +91,8 @@ export const ONTOLOGY = {
   categories: {
     rules: [
       'NO tool or automation may mint a new category — every post write path passes through knownCategoryOrBlank (unknown label → saved uncategorized). Categories are created deliberately, only in the Studio Categories tab.',
-      'Article categories use the exact curated forms ("X of Tomorrow", "All Food & Drinks", city names like "New York City") — near-misses are dropped, not fuzzy-matched.',
+      'Article categories use the exact curated forms ("X of Tomorrow", city names like "New York City") — near-misses are dropped, not fuzzy-matched.',
+      'Type tags are FLAT, one per vertical: "Food & Drinks", "Hotels", "Golf", "Wellness", "Clubs", "Travel", "Residential". Never compound region-type tags ("Florida Food & Drinks" is retired, 2026-07-21) — a story\'s geography comes from its market/city categories and combines with the flat type by logic.',
       'main_category is the editor\'s PRIMARY placement and the authoritative GEOGRAPHY for an article — an article tagged both "London" and "New York City" belongs where main_category says.',
     ],
   },
