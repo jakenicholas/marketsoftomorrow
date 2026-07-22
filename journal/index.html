@@ -473,7 +473,10 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .fbtn:hover{background:rgba(167,139,250,.14); box-shadow:0 0 18px rgba(167,139,250,.25)}
 .fbtn svg{width:13px; height:13px}
 .fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px;
-  border-radius:999px; background:#C4B5FD; color:#0a0a0a; font-weight:700; font-size:9px; padding:0 4px}
+  border-radius:999px; background:#C4B5FD; color:#0a0a0a; font-weight:700; font-size:9px; padding:0 4px;
+  /* the button's letter-spacing pads a lone digit's right side and the page
+     line-height inflates the glyph box — both push the number off-center */
+  letter-spacing:0; line-height:1}
 /* tokens row keeps the pill row's exact vertical rhythm + type spec so the
    bar height does not change between states. It scrolls like the pill row —
    Clear rides inside it as the last item of the stack — with the same
