@@ -462,7 +462,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* FILTER BAR                                                           */
 /* =================================================================== */
 .bar{background:linear-gradient(180deg, #0a0c0b 0%, var(--ink) 100%); border-bottom:1px solid var(--hair); padding:4px 0}
-.bar .wrap{display:flex; align-items:center; gap:12px; justify-content:flex-start}
+.bar .wrap{display:flex; align-items:center; gap:12px; justify-content:flex-start; padding:0 40px}
 .bar .search{margin-left:auto; flex:none}
 
 /* ── Add Filters system ── */
@@ -490,7 +490,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   color:var(--mute); background:none; border:0; cursor:pointer; padding:7px 4px; flex:none}
 .fclearbar:hover{color:var(--cream)}
 .fpanel{overflow:hidden}
-.fpanel .wrap{display:block; padding-top:16px; padding-bottom:18px}
+.fpanel .wrap{display:block; padding:24px 40px 28px}
 .fpanel.open{animation:fpDrop .4s cubic-bezier(.22,1,.36,1) both}
 @keyframes fpDrop{from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)}}
 .fp-search{display:flex; align-items:center; gap:10px; border:1px solid rgba(167,139,250,.35);
@@ -540,6 +540,12 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   .fp-lbl{padding-top:0}
   .ftokens{overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; padding:15px 14px; margin:0 -14px}
   .ftokens::-webkit-scrollbar{display:none}
+  /* breathing room: above the search, around the sides, below the actions */
+  .fpanel .wrap{padding:22px 16px 28px}
+  /* the hero-to-filter gradient needs a stronger lift on mobile — the tall
+     hero card compresses the fade zone into near-invisibility otherwise */
+  .story-section{background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 45%, #0b0d0c 100%)}
+  .bar{background:linear-gradient(180deg, #0b0d0c 0%, var(--ink) 100%)}
 }
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
@@ -556,7 +562,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
    padding so the row spans the whole device width (the last pill reaches/runs off
    the right edge, making the horizontal scroll obvious). The first "All" pill is
    still offset by .pills' own left padding (which also protects its gold glow). */
-@media(max-width:760px){.pills{padding-right:0} .bar .wrap{padding:0}}
+@media(max-width:760px){.bar .wrap{padding:0 16px}}
 .search{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.03); min-width:220px; transition:border-color .2s}
 .search:focus-within{border-color:var(--green)}
 .search input{border:0; outline:0; background:transparent; font:inherit; font-size:13px; width:100%; color:var(--white)}
