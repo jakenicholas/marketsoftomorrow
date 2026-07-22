@@ -477,6 +477,9 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* tokens row keeps the pill row's exact vertical rhythm + type spec so the
    bar height does not change between states */
 .ftokens{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; padding:15px 0}
+/* display:flex would beat the [hidden] attribute — the empty tokens div was
+   silently eating a flex gap between the Filters button and the pill row */
+.ftokens[hidden]{display:none}
 .ftok{display:inline-flex; align-items:center; gap:7px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px;
   letter-spacing:.12em; text-transform:uppercase; font-weight:500; color:#C4B5FD; border:1px solid rgba(167,139,250,.45);
   background:rgba(167,139,250,.1); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap}
@@ -536,7 +539,7 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 }
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
-.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px 15px 0;
+.pills{display:flex; gap:8px; overflow-x:auto; overflow-y:visible; flex:1; scrollbar-width:none; -ms-overflow-style:none; padding:15px 20px 15px 14px; margin-left:-14px;
   -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);
           mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent);}
 .pills::-webkit-scrollbar{display:none}
