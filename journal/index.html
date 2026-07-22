@@ -2136,7 +2136,14 @@ function renderBarState() {
   document.getElementById('fclearBar').hidden = !on;
   tok.hidden = !on;
   const badge = document.getElementById('fbadge');
-  if (!on) { tok.innerHTML = ''; fbadgeSync(); return; }
+  if (!on) {
+    tok.innerHTML = '';
+    // returning to the pill row: its gold active state must match ACTIVE_CAT
+    // (commit resets it to '*', so a stale Florida pill would otherwise stay lit)
+    document.querySelectorAll('#pills .pill').forEach(p => p.classList.toggle('on', p.dataset.cat === ACTIVE_CAT));
+    fbadgeSync();
+    return;
+  }
   const parts = [];
   FAPPLIED.loc.forEach(k => { const f = LOC_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'loc', key: k, label: f.label }); });
   FAPPLIED.type.forEach(k => { const f = TYPE_FILTERS.find(x => x.key === k); if (f) parts.push({ dim: 'type', key: k, label: f.label }); });
