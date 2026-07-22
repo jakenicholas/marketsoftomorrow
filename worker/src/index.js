@@ -3629,6 +3629,122 @@ async function handlePostCategories(env, origin) {
   return json({ categories }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } }, env, origin);
 }
 
+// ── AI tag suggestions for the post editor ─────────────────────────────
+// The taxonomy direction (2026-07-21): ONE flat type tag per concept
+// (Food & Drinks, Hotels, Golf, Wellness, Clubs, Travel, Residential) that
+// combines with region categories by logic — never compound region-type
+// tags like "Florida Food & Drinks". The main city stays the main category.
+const FLAT_TYPE_TAGS = ['Food & Drinks', 'Hotels', 'Golf', 'Wellness', 'Clubs', 'Travel', 'Residential'];
+
+// POST /admin/suggest-tags { post_id } → { suggestions: [{tag, reason}] }
+// Suggests from the KNOWN vocabulary only (existing categories + the flat
+// type tags) — the category firewall applies to machine suggestions too.
+// It learns from the editor's own feedback: tags Jake dismissed on this
+// post are hard-excluded, and globally often-dismissed tags are demoted.
+async function handleSuggestTags(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.ANTHROPIC_API_KEY) return json({ error: 'AI not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const postId = b.post_id;
+  if (!postId) return json({ error: 'post_id required' }, { status: 400 }, env, origin);
+  const post = await env.DB.prepare('SELECT id, title, excerpt, body_html, categories, main_category FROM posts WHERE id = ?1 OR slug = ?1').bind(String(postId)).first();
+  if (!post) return json({ error: 'post not found' }, { status: 404 }, env, origin);
+
+  const applied = safeJsonArray(post.categories);
+  // Known vocabulary: everything already in use, plus the flat type tags.
+  const vocab = new Set(FLAT_TYPE_TAGS);
+  try {
+    const rows = await env.DB.prepare("SELECT DISTINCT categories FROM posts WHERE categories IS NOT NULL AND categories != '' AND categories != '[]' LIMIT 3000").all();
+    for (const r of (rows.results || [])) for (const c of safeJsonArray(r.categories)) if (c) vocab.add(c);
+  } catch (e) {}
+  // Compound region-type legacy tags ("Florida Food & Drinks", "All Food &
+  // Drinks") are excluded from the suggestible set — the flat tag + region
+  // combination replaces them going forward.
+  const isCompoundLegacy = (c) => /food & drinks$/i.test(c) && c.toLowerCase() !== 'food & drinks';
+  const suggestible = [...vocab].filter(c => !applied.includes(c) && !isCompoundLegacy(c));
+
+  // Feedback loop: dismissals recorded via /admin/tag-feedback.
+  let dismissedHere = [], oftenDismissed = [];
+  try {
+    const fb = await env.DB.prepare("SELECT props_json FROM events WHERE event_name = 'tag_feedback' ORDER BY ts DESC LIMIT 400").all();
+    const counts = {};
+    for (const r of (fb.results || [])) {
+      let p; try { p = JSON.parse(r.props_json || '{}'); } catch { continue; }
+      if (p.action === 'dismissed') {
+        if (String(p.post_id) === String(post.id)) dismissedHere.push(p.tag);
+        counts[p.tag] = (counts[p.tag] || 0) + 1;
+      }
+    }
+    oftenDismissed = Object.entries(counts).filter(([, n]) => n >= 4).map(([t]) => t);
+  } catch (e) {}
+
+  const bodyText = String(post.body_html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 4000);
+  const SYS = 'You tag articles for Markets of Tomorrow, a luxury real-estate and hospitality publication. '
+    + 'Suggest up to 6 tags for the article, ONLY from the allowed vocabulary given. Rules: '
+    + '1) Suggest a flat type tag (Food & Drinks, Hotels, Golf, Wellness, Clubs, Travel, Residential) whenever the article clearly covers that vertical. '
+    + '2) Suggest region/market tags for OTHER places the story meaningfully involves (a New York restaurant group opening in Miami earns the New York market tag). '
+    + '3) Never suggest compound region-type tags like "Florida Food & Drinks" — the flat type tag plus the region tag replaces them. '
+    + '4) Never suggest tags already on the article, and never invent tags outside the vocabulary. '
+    + '5) Quality over quantity: only tags a reader filtering the site would genuinely expect this story under. '
+    + 'Return STRICT JSON: {"suggestions":[{"tag":"...","reason":"one short clause"}]} and nothing else.';
+  const USER = 'ARTICLE\nTitle: ' + (post.title || '') + '\nExcerpt: ' + (post.excerpt || '') + '\nBody: ' + bodyText
+    + '\n\nALREADY TAGGED: ' + JSON.stringify(applied) + ' (main: ' + (post.main_category || '') + ')'
+    + '\n\nALLOWED VOCABULARY: ' + JSON.stringify(suggestible.slice(0, 400))
+    + (dismissedHere.length ? '\n\nDO NOT SUGGEST (dismissed on this article): ' + JSON.stringify(dismissedHere) : '')
+    + (oftenDismissed.length ? '\n\nDEMOTE (the editor usually dismisses these): ' + JSON.stringify(oftenDismissed) : '');
+  let suggestions = [];
+  let dbg = { modelStatus: 0, raw: '' };
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 20000);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', signal: ctrl.signal,
+      headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: SMART_ANSWER_MODEL, max_tokens: 500, system: SYS, messages: [{ role: 'user', content: USER }] }),
+    });
+    clearTimeout(to);
+    dbg.modelStatus = resp.status;
+    if (resp.ok) {
+      const data = await resp.json();
+      const txt = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+      dbg.raw = txt.slice(0, 500);
+      const m = txt.match(/\{[\s\S]*\}/);
+      if (m) {
+        const parsed = JSON.parse(m[0]);
+        // Server-side firewall: only vocabulary tags survive, canonical casing.
+        const canon = new Map([...vocab].map(v => [v.toLowerCase(), v]));
+        const seen = new Set(applied.map(a => a.toLowerCase()));
+        for (const s of (parsed.suggestions || [])) {
+          const t = canon.get(String(s.tag || '').trim().toLowerCase());
+          if (t && !seen.has(t.toLowerCase()) && !dismissedHere.some(d => d.toLowerCase() === t.toLowerCase())) {
+            seen.add(t.toLowerCase());
+            suggestions.push({ tag: t, reason: String(s.reason || '').slice(0, 120) });
+          }
+          if (suggestions.length >= 6) break;
+        }
+      }
+    }
+  } catch (e) { dbg.raw = 'ERR: ' + (e.message || String(e)); }
+  const out = { suggestions };
+  if (new URL(req.url).searchParams.get('debug') === '1') out.debug = dbg;
+  return json(out, {}, env, origin);
+}
+
+// POST /admin/tag-feedback { post_id, tag, action: 'added'|'dismissed' }
+// The learning half of the loop — dismissals feed back into suggest-tags.
+async function handleTagFeedback(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const tag = String(b.tag || '').trim().slice(0, 80);
+  const action = b.action === 'added' ? 'added' : 'dismissed';
+  if (!tag || !b.post_id) return json({ error: 'post_id and tag required' }, { status: 400 }, env, origin);
+  try {
+    await env.DB.prepare("INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1, 'studio', 'tag_feedback', ?2)")
+      .bind(Math.floor(Date.now() / 1000), JSON.stringify({ post_id: b.post_id, tag, action })).run();
+  } catch (e) { return json({ error: 'log failed' }, { status: 500 }, env, origin); }
+  return json({ ok: true }, {}, env, origin);
+}
+
 // GET /admin/categories — every category with its post count (membership) and
 // how many posts have it as their MAIN category. Powers the Studio's category
 // manager. Admin-gated (exposes the full corpus).
@@ -13823,6 +13939,8 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/trial-eligible')          return await handleTrialEligible(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/cancel-subscription') return await handleAdminCancelSub(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/answer-web')                return await handleAnswerWeb(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/atlas/projection-full')     return await handleAtlasProjectionFull(request, env, origin);
