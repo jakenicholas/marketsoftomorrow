@@ -10742,8 +10742,11 @@ async function handlePostView(req, env, origin) {
   const ok = () => new Response(null, { status: 204, headers: corsHeaders(env, origin) });
   if (!env.DB) return ok();
 
-  const ua = (req.headers.get('User-Agent') || '');
-  if (!ua || VIEW_BOT_RE.test(ua)) return ok();
+  // Full scanner filter INCLUDING the network check (datacenter/ASN origins).
+  // Email link-security scanners execute JS with real-browser UAs, so the UA
+  // regex alone counted their newsletter pre-click bursts as article views.
+  // Trade-off (accepted): the rare reader egressing via a cloud VPN is skipped.
+  if (isScannerHit(req, true)) return ok();
 
   let slug = '';
   try {
