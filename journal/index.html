@@ -547,14 +547,19 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
   .fp-lbl{padding-top:0}
   /* icon-only Filters button on mobile — the badge still shows the count */
   .fbtn .fbtn-lbl{display:none}
+  .fbtn{padding:8px 11px; gap:6px}
   /* breathing room: above the search, around the sides, below the actions.
      .bar .fpanel .wrap so this outranks the later `.bar .wrap` mobile rule,
      which also matches the panel's wrap (the panel lives inside .bar). */
   .bar .fpanel .wrap{padding:22px 16px 28px}
   /* the hero-to-filter gradient needs a stronger lift on mobile — the tall
      hero card compresses the fade zone into near-invisibility otherwise */
-  .story-section{background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 45%, #0b0d0c 100%)}
-  .bar{background:linear-gradient(180deg, #0b0d0c 0%, var(--ink) 100%)}
+  /* plateau across the seam: the section eases up to #0c0e0d well before its
+     bottom edge and HOLDS it, the bar starts on the same flat tone and only
+     eases back down in its lower half — no slope change at the joint, so no
+     visible line on OLED */
+  .story-section{background:linear-gradient(180deg, var(--ink) 0%, var(--ink) 35%, #0c0e0d 78%, #0c0e0d 100%)}
+  .bar{background:linear-gradient(180deg, #0c0e0d 0%, #0c0e0d 35%, var(--ink) 100%)}
 }
 /* vertical padding gives the .pill.on gold glow room so overflow-x:auto doesn't clip it top/bottom */
 /* Right-edge gradient fade so the pills dissolve into the dark instead of a hard cut. */
