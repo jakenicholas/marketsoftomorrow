@@ -1108,6 +1108,88 @@ async function loadArticles() {
   return _articlesCache;
 }
 
+// ── Internal auto-linking ────────────────────────────────────────────────
+// "If we have a project, firm, or place in the database, use that hyperlink
+// instead of an external URL." Deterministic post-pass over generated article
+// Markdown (never trust the author model to know slugs):
+//   pass 1 — existing [anchor](external) links whose anchor text IS a tracked
+//            entity get their URL rewritten to the internal page; attribution
+//            links ("The Real Deal") match nothing and survive untouched.
+//   pass 2 — the first plain-text mention of each tracked entity becomes a
+//            link. Longest names first so "Waldorf Astoria Residences Miami"
+//            wins before "Miami", capped so articles never read link-stuffed.
+//            Headings, image lines, and existing links are left alone.
+const FIRMS_INDEX_URL = 'https://www.oftmw.com/map/firms-flat.json';
+const MARKETS_INDEX_URL = 'https://www.oftmw.com/markets-index.json';
+let _linkEntsCache = null;
+async function loadLinkEntities() {
+  if (_linkEntsCache) return _linkEntsCache;
+  const j = (u) => fetch(u, { cf: { cacheTtl: 3600 } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const [projects, firms, mkts] = await Promise.all([loadProjects().catch(() => []), j(FIRMS_INDEX_URL), j(MARKETS_INDEX_URL)]);
+  const ents = [];
+  const seen = new Set();
+  const push = (name, url) => {
+    const key = String(name || '').trim().toLowerCase();
+    if (key.length < 4 || seen.has(key)) return;   // too-short names false-match everywhere
+    seen.add(key);
+    ents.push({ name: String(name).trim(), url });
+  };
+  // Priority on name collisions: projects, then firms, then markets.
+  for (const p of projects || []) if (p.Title && p.Slug) push(p.Title, 'https://www.oftmw.com/projects/' + p.Slug + '/');
+  for (const role of ['architects', 'developers']) {
+    for (const f of (firms && firms[role]) || []) {
+      if (f.name && f.slug && (f.project_count || 0) >= 1) push(f.name, 'https://www.oftmw.com/firm/' + f.slug + '/');
+    }
+  }
+  for (const [city, slug] of Object.entries(mkts || {})) push(city, 'https://www.oftmw.com/markets/' + slug + '/');
+  ents.sort((a, b) => b.name.length - a.name.length);   // longest first
+  _linkEntsCache = ents;
+  return ents;
+}
+function autoLinkInternalMd(md, ents) {
+  let text = String(md || '');
+  const report = { rewritten: 0, added: 0 };
+  const lcAll = text.toLowerCase();
+  const cands = (ents || []).filter((e) => lcAll.includes(e.name.toLowerCase()));
+  if (!cands.length) return { md: text, report };
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // pass 1 — rewrite external links whose anchor text is a tracked entity
+  const byName = new Map(cands.map((e) => [e.name.toLowerCase(), e]));
+  text = text.replace(/(!?)\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, bang, anchor, url) => {
+    if (bang) return m;                          // images untouched
+    if (/oftmw\.com/i.test(url)) return m;       // already internal
+    const ent = byName.get(anchor.trim().toLowerCase());
+    if (!ent) return m;
+    report.rewritten++;
+    return '[' + anchor + '](' + ent.url + ')';
+  });
+  // pass 2 — link the first plain-text mention of each entity
+  const CAP = 8;
+  for (const ent of cands) {
+    if (report.added >= CAP) break;
+    if (text.toLowerCase().includes('](' + ent.url.toLowerCase())) continue;   // already links there
+    const re = new RegExp('(^|[^\\w\\[\\]])(' + esc(ent.name) + ')(?![\\w\\]])', 'i');
+    const lines = text.split('\n');
+    let done = false;
+    for (let i = 0; i < lines.length && !done; i++) {
+      if (/^\s*#/.test(lines[i]) || /^\s*!\[/.test(lines[i])) continue;   // headings + image lines
+      const parts = lines[i].split(/(!?\[[^\]]*\]\([^)]*\))/);
+      for (let s = 0; s < parts.length && !done; s++) {
+        if (/^!?\[/.test(parts[s])) continue;    // inside an existing link/image
+        const m = parts[s].match(re);
+        if (m) {
+          const idx = m.index + m[1].length;
+          parts[s] = parts[s].slice(0, idx) + '[' + m[2] + '](' + ent.url + ')' + parts[s].slice(idx + m[2].length);
+          done = true; report.added++;
+          lines[i] = parts.join('');
+        }
+      }
+    }
+    if (done) text = lines.join('\n');
+  }
+  return { md: text, report };
+}
+
 function projectSummary(p) {
   const n = (v) => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v));
   return {
@@ -2276,7 +2358,7 @@ const IMPL = {
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>"}.',
-      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately).',
+      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
     ].filter(Boolean).join('\n\n');
     const usr = [
       'TOPIC: ' + topic,
@@ -2303,6 +2385,14 @@ const IMPL = {
         styleReport.remaining = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' }).map((w) => w.issue);
       }
     } catch (_) {}
+    // Internal auto-linking: tracked projects/firms/markets link to their
+    // oftmw.com pages (external URLs on those anchors get rewritten too) —
+    // keeps readers on-site. Runs AFTER the style-fix cycle so links survive.
+    let linkReport = { rewritten: 0, added: 0 };
+    try {
+      const al = autoLinkInternalMd(gen.body_markdown, await loadLinkEntities());
+      gen.body_markdown = al.md; linkReport = al.report;
+    } catch (_) {}
     let images = [];
     if (args.folder) {
       const rows = await env.DB.prepare(`SELECT url FROM media WHERE folder = ?1 AND (mime_type LIKE 'image/%' OR mime_type IS NULL) ORDER BY uploaded_at DESC`).bind(String(args.folder)).all();
@@ -2327,6 +2417,7 @@ const IMPL = {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
       grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
       style_check: styleReport,
+      internal_links: linkReport,
       photos_used: images.length,
       note: 'Article draft written with Fable 5, grounded in the shared TMW brain. Review/finish in the Studio AI tab: ' + article.edit_url,
     };
@@ -2354,7 +2445,11 @@ const IMPL = {
     const usr = 'INSTRUCTION: ' + instruction + '\n\nCURRENT ARTICLE:\n' + current;
     const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
     if (!revised || !revised.trim()) throw new Error('revision failed — the editor model returned nothing. Try again or edit manually.');
-    const res = await IMPL.update_post_draft({ slug, body_markdown: revised.trim() }, env);
+    // Re-apply internal auto-linking: the revise input is stripHtml'd (links
+    // are lost), so tracked projects/firms/markets get re-linked on-site here.
+    let revBody = revised.trim();
+    try { revBody = autoLinkInternalMd(revBody, await loadLinkEntities()).md; } catch (_) {}
+    const res = await IMPL.update_post_draft({ slug, body_markdown: revBody }, env);
     const lintR = lintCanon({ title: String(row.title || ''), body: revised, excerpt: 'x', kind: 'article' });
     return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length }, style_warnings: lintR.length ? lintR : undefined, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '". Review in the Studio.' };
   },
