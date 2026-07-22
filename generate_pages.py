@@ -710,6 +710,11 @@ DOSSIER_ORDER = [
     'halfway', 'topping-out', 'tenant', 'tco', 'coming-soon', 'move-in', 'bookings', 'grand-opening',
 ]
 DOSSIER_RANK = {k: i for i, k in enumerate(DOSSIER_ORDER)}
+
+# Editorially BANNED cited sources — mirror of ONTOLOGY.writes.banned_source_domains
+# (worker/src/ontology.js). Entries citing these domains render UNSOURCED and are
+# outranked by any entry with an approved source.
+BANNED_SOURCE_DOMAINS = ('palmbeachnow.com',)
 DOSSIER_LABEL = {
     'announced': 'Announced', 'financing': 'Financing secured', 'breaking-ground': 'Broke ground',
     'construction': 'Under construction', 'going-vertical': 'Going vertical', 'halfway': 'Halfway there',
@@ -819,11 +824,17 @@ def build_milestones(row, articles=None):
     cur_phase = DOSSIER_STATUS_TO_PHASE.get(cur_status, 'announced')
 
     def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note='', at=''):
+        # Editorially BANNED sources (mirror of ONTOLOGY.writes.banned_source_domains)
+        # are never citable: strip the URL and demote to unsourced so any entry
+        # with an approved source outranks this one for the phase.
+        dom = _url_domain(source_url)
+        if dom and any(dom == b or dom.endswith('.' + b) for b in BANNED_SOURCE_DOMAINS):
+            source_url, dom, sourced = '', '', False
         return {
             'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
             'label': _phase_label(row, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
-            'source_url': source_url or '', 'source_domain': _url_domain(source_url),
+            'source_url': source_url or '', 'source_domain': dom,
             'estimated': bool(estimated), 'sourced': bool(sourced),
             'note': (note or '').strip(), 'at': at or '',
         }

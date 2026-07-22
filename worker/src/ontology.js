@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-21.1';
+export const ONTOLOGY_VERSION = '2026-07-22.1';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -111,7 +111,13 @@ export const ONTOLOGY = {
 
   // ── Write routing (which tool writes where) ───────────────────────────────
   writes: {
+    // Editorially BANNED source domains — never citable in the dossier or any
+    // milestone/status write. Enforced deterministically on the write path
+    // (update_project_status rejects them) AND the page generator strips them
+    // from existing entries so they can never render as a citation.
+    banned_source_domains: ['palmbeachnow.com'],
     rules: [
+      'BANNED cited sources: palmbeachnow.com is not an approved source — never cite it in a milestone, status change, or article; find a different credible source or skip the update.',
       'update_project_status → LIVE map writes: dates and spec fields (units/floors/keys/gfa_sqft, neighborhood, and the address fields street/postal_code/country) always auto-apply; status changes apply directly (mode "apply") or queue for one-tap review (mode "propose") for ambiguous/thin/multi-step cases.',
       'propose_project_edit → REVIEW QUEUE, never live (param target_slug). match_project resolves by name first.',
       'The construction sweep must NOT overwrite a specific curated neighborhood tag with a vaguer one — fill blanks or refine to MORE specific only.',

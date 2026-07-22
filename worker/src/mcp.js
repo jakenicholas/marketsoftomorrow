@@ -53,6 +53,7 @@ const ARTICLES_URL = 'https://www.oftmw.com/map/articles.json';
 // hand-written copy of this order in a tool description once drifted from the
 // enforced order — never restate it; render from ONTOLOGY.
 const STATUS_ORDER = ONTOLOGY.statuses.order;
+const BANNED_SOURCE_DOMAINS = (ONTOLOGY.writes && ONTOLOGY.writes.banned_source_domains) || [];
 function statusRank(s) { const i = STATUS_ORDER.indexOf(String(s || '').toLowerCase()); return i < 0 ? 0 : i; }
 const MILESTONE_PHASES = ONTOLOGY.milestones.phases;
 
@@ -3403,6 +3404,13 @@ const IMPL = {
     const newStatus = String(args.new_status || '').toLowerCase().trim();
     if (newStatus && !STATUS_ORDER.includes(newStatus)) throw new Error('new_status must be one of: ' + STATUS_ORDER.join(', '));
     const sourceUrl = String(args.source_url || '').trim();
+    // Editorially BANNED sources — never citable in the dossier. Same
+    // deterministic-guard pattern as the category firewall: enforced on the
+    // write path, not left to routine-prompt goodwill.
+    if (sourceUrl) {
+      const bad = BANNED_SOURCE_DOMAINS.find((d) => { try { return new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, '').endsWith(d); } catch (_) { return false; } });
+      if (bad) throw new Error('source_url domain "' + bad + '" is NOT an approved cited source (editorially banned). Cite a different credible source for this update — or, if the event is only reported there, skip it.');
+    }
     // A self-evident DATE CORRECTION (clearing/estimating an impossible date from the
     // project's own state) needs no external article — but MUST carry a note.
     const dateCorrection = args.date_correction === true;
