@@ -9964,10 +9964,11 @@ async function handleMediaRenameFolder(req, env, origin) {
   let moved = 0;
   const r1 = await env.DB.prepare('UPDATE media SET folder = ?1 WHERE folder = ?2').bind(to, from).run();
   moved += (r1 && r1.meta && r1.meta.changes) || 0;
-  // descendants — rewrite the "from / " prefix to "to / " (escape LIKE wildcards in `from`)
-  const likeFrom = from.replace(/[\\%_]/g, '\\$&') + ' / %';
-  const r2 = await env.DB.prepare("UPDATE media SET folder = ?1 || substr(folder, ?2) WHERE folder LIKE ?3 ESCAPE '\\'")
-    .bind(to, from.length + 1, likeFrom).run();
+  // descendants — rewrite the "from / " prefix to "to / ". Prefix-compare with
+  // substr instead of LIKE: D1 throws "LIKE pattern too complex" on long paths.
+  const fromPrefix = from + ' / ';
+  const r2 = await env.DB.prepare('UPDATE media SET folder = ?1 || substr(folder, ?2) WHERE substr(folder, 1, ?3) = ?4')
+    .bind(to, from.length + 1, fromPrefix.length, fromPrefix).run();
   moved += (r2 && r2.meta && r2.meta.changes) || 0;
   // carry the folder registration (favorite / empty-folder) over to the new name
   try {
@@ -9989,17 +9990,19 @@ async function handleMediaDeleteFolder(req, env, origin) {
   const name = String(b.name || '').trim();
   if (!name || name.length > 200 || /[<>\\\x00-\x1f\x7f]/.test(name)) return json({ error: 'invalid folder name' }, { status: 400 }, env, origin);
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_folders (name TEXT PRIMARY KEY, favorite INTEGER DEFAULT 0, created_at INTEGER)`).run();
-  const likeDesc = name.replace(/[\\%_]/g, '\\$&') + ' / %';
+  // Descendant match via substr prefix-compare, not LIKE: D1 throws
+  // "LIKE pattern too complex" on long paths.
+  const descPrefix = name + ' / ';
   // Collect every object key in this folder + its descendants, then drop them
   // from R2 (batched) and the index.
-  const rows = await env.DB.prepare("SELECT key FROM media WHERE folder = ?1 OR folder LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).all();
+  const rows = await env.DB.prepare('SELECT key FROM media WHERE folder = ?1 OR substr(folder, 1, ?2) = ?3').bind(name, descPrefix.length, descPrefix).all();
   const keys = (rows.results || []).map(r => r.key).filter(Boolean);
   for (let i = 0; i < keys.length; i += 900) {
     try { await env.MEDIA.delete(keys.slice(i, i + 900)); } catch (e) { console.warn('R2 folder delete failed', e); }
   }
   try {
-    await env.DB.prepare("DELETE FROM media WHERE folder = ?1 OR folder LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).run();
-    await env.DB.prepare("DELETE FROM media_folders WHERE name = ?1 OR name LIKE ?2 ESCAPE '\\'").bind(name, likeDesc).run();
+    await env.DB.prepare('DELETE FROM media WHERE folder = ?1 OR substr(folder, 1, ?2) = ?3').bind(name, descPrefix.length, descPrefix).run();
+    await env.DB.prepare('DELETE FROM media_folders WHERE name = ?1 OR substr(name, 1, ?2) = ?3').bind(name, descPrefix.length, descPrefix).run();
   } catch (e) {
     return json({ error: 'DB delete failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
