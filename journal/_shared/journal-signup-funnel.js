@@ -38,7 +38,7 @@
   var DELAY_MS = OPTS.delayMs || 3000;
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
-  var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments with TMW Intelligence — forecasts, data, and updates.';
+  var HEADLINE = OPTS.headline || 'Track tomorrow\'s developments with TMW Intelligence: forecasts, data, and updates.';
   var EVENT = OPTS.event || 'subscribe_market';   // analytics event name; article pages override to 'subscribe_article'
 
   function mark(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }

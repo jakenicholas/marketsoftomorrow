@@ -767,8 +767,19 @@ section.grid-section{padding:60px 0 90px; position:relative}
 .quicklinks{padding:80px 0; border-top:1px solid var(--hair); background:linear-gradient(180deg, transparent, rgba(255,255,255,.015))}
 .quicklinks h2{font-size:clamp(26px,3.2vw,40px); margin-bottom:10px}
 .quicklinks .sub{color:var(--mute-2); margin-bottom:32px; max-width:60ch; font-weight:300}
-.qgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+.qgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
 @media(max-width:880px){.qgrid{grid-template-columns:1fr}}
+/* pillar accents: d = travel (terracotta) */
+.qcard.d::after{background:radial-gradient(120% 100% at 100% 0%, rgba(224,113,78,.26), transparent 60%)}
+.qcard.d .qe{color:#E0876A}
+/* pillar number + inline sub-links */
+.qnum{position:absolute; top:18px; right:22px; font-family:var(--serif); font-style:italic; font-weight:600; font-size:44px; color:rgba(255,255,255,.07); z-index:0; line-height:1}
+.qlinks{display:flex; flex-wrap:wrap; gap:7px; margin:16px 0 18px; position:relative; z-index:1}
+.qlink{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute-2); border:1px solid var(--hair-2); border-radius:999px; padding:5px 11px; transition:color .15s, border-color .15s}
+.qcard:hover .qlink{color:var(--white)}
+.qmedia-row{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:22px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
+.qmedia-row a{color:var(--mute-2); border-bottom:1px solid var(--hair-2); padding-bottom:2px; transition:color .15s}
+.qmedia-row a:hover{color:var(--white)}
 .qcard{background:var(--panel); color:var(--white); padding:30px 28px 28px; border-radius:18px; position:relative; overflow:hidden; min-height:240px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--hair); transition:transform .25s ease, border-color .25s ease}
 .qcard:hover{transform:translateY(-4px); border-color:var(--hair-2)}
 .qcard::after{content:""; position:absolute; inset:0; opacity:.5; pointer-events:none;
@@ -1252,39 +1263,63 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
 <!-- ==================== QUICK LINKS ==================== -->
 <section class="quicklinks">
   <div class="wrap">
-    <h2>The network beyond the headlines</h2>
-    <p class="sub">Markets of Tomorrow is more than a journal — it's an audience network, an intelligence engine, and a live map of what's being built next.</p>
+    <h2>Everything we build, in four parts</h2>
+    <p class="sub">Markets of Tomorrow is a news network, a live development database, a travel program, and the definitive lists. Here is the whole machine.</p>
     <div class="qgrid">
-      <a href="https://map.oftmw.com" class="qcard a">
-        <span class="qe">Map of Tomorrow</span>
+      <a href="/" class="qcard a">
+        <span class="qnum">01</span>
+        <span class="qe">The News</span>
         <div>
-          <h3>See every project on a live map</h3>
-          <p>3,400+ hotel, residential, and mixed-use developments tracked across the US &amp; Caribbean.</p>
+          <h3>Original reporting on what's next</h3>
+          <p>Daily coverage of the projects, openings, and money shaping tomorrow's markets — 1,400+ stories across seven focus markets.</p>
+          <span class="qlinks"><span class="qlink">The Latest</span><span class="qlink">Focus Markets</span><span class="qlink">The Tuesday Brief</span></span>
         </div>
-        <span class="qarr">Open the map
+        <span class="qarr">Read the journal
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </span>
       </a>
-      <a href="/media/" class="qcard b">
-        <span class="qe">Media Kit</span>
+      <a href="https://map.oftmw.com" class="qcard b">
+        <span class="qnum">02</span>
+        <span class="qe">The Data</span>
         <div>
-          <h3>Reach 8.1M readers every month</h3>
-          <p>Hospitality, real estate, food, and luxury — six outlets, one network, decision-maker audience.</p>
+          <h3>Every project, tracked live</h3>
+          <p>3,400+ developments on a live map, the Atlas pipeline with projected pricing, and Onyx — ask it anything about what's being built.</p>
+          <span class="qlinks"><span class="qlink">The Map</span><span class="qlink">The Atlas</span><span class="qlink">Onyx Intelligence</span></span>
         </div>
-        <span class="qarr">View audience reach
+        <span class="qarr">Open the database
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </span>
       </a>
-      <a href="#newsletter" class="qcard c">
-        <span class="qe">The Newsletter</span>
+      <a href="/travel/" class="qcard d">
+        <span class="qnum">03</span>
+        <span class="qe">The Travel</span>
         <div>
-          <h3>Get the weekly pulse, free</h3>
-          <p>One curated email every Tuesday — the seven markets shaping the week ahead.</p>
+          <h3>We go, so you know</h3>
+          <p>Our team reports from the field — 69 markets visited, new openings stayed and tested, itineraries you can follow.</p>
+          <span class="qlinks"><span class="qlink">Trips</span><span class="qlink">Markets Visited</span><span class="qlink">Openings</span></span>
         </div>
-        <span class="qarr">Subscribe
+        <span class="qarr">Follow the travels
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </span>
       </a>
+      <a href="/restaurants/" class="qcard c">
+        <span class="qnum">04</span>
+        <span class="qe">The Lists</span>
+        <div>
+          <h3>The Iconic Lists, ranked live</h3>
+          <p>The definitive restaurants, hotels, and golf — ranked, and moving. Watch who rises, who falls, and who just made the cut.</p>
+          <span class="qlinks"><span class="qlink">Restaurants</span><span class="qlink">Hotels</span><span class="qlink">Golf</span></span>
+        </div>
+        <span class="qarr">See the rankings
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </span>
+      </a>
+    </div>
+    <div class="qmedia-row">
+      <span>Work with us:</span>
+      <a href="/media/">Media kit &amp; audience reach</a>
+      <span>·</span>
+      <a href="#newsletter">The Tuesday newsletter</a>
     </div>
   </div>
 </section>

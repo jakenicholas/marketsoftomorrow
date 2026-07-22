@@ -374,10 +374,10 @@
       }
       if (/^\/firm\//.test(p)) {
         var firm = heroName();
-        if (firm) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + firm + '? Unlock TMW Intelligence — forecasts, the full pipeline, and updates.', eyebrow: 'The Future Is Here', source: 'firm_page' };
+        if (firm) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + firm + '? Unlock TMW Intelligence: forecasts, the full pipeline, and updates.', eyebrow: 'The Future Is Here', source: 'firm_page' };
       } else if (/^\/projects\//.test(p)) {
         var proj = heroName();
-        if (proj) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + proj + '? Unlock TMW Intelligence — forecasts, data, and live updates.', eyebrow: 'The Future Is Here', source: 'project_page' };
+        if (proj) window.TMW_FUNNEL_OPTS = { headline: 'Following ' + proj + '? Unlock TMW Intelligence: forecasts, data, and live updates.', eyebrow: 'The Future Is Here', source: 'project_page' };
       } else if (/^\/post\//.test(p)) {
         window.TMW_FUNNEL_OPTS = { headline: 'Create a free account to access TMW Intelligence and website features', eyebrow: 'The Future Is Here', source: 'article', event: 'subscribe_article' };
       }
@@ -439,10 +439,10 @@
 
         var headline, eyebrow;
         if (place) {
-          headline = 'Following ' + place + '? Unlock TMW Intelligence — forecasts, the full pipeline, and updates.';
+          headline = 'Following ' + place + '? Unlock TMW Intelligence: forecasts, the full pipeline, and updates.';
           eyebrow = place + ' · TMW Intelligence';
         } else {
-          headline = 'Track tomorrow\'s developments with TMW Intelligence — forecasts, data, and updates.';
+          headline = 'Track tomorrow\'s developments with TMW Intelligence: forecasts, data, and updates.';
           eyebrow = 'The Future Is Here';
         }
         window.TMW_FUNNEL_OPTS = { headline: headline, eyebrow: eyebrow, source: 'market_page' };
