@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-22.1';
+export const ONTOLOGY_VERSION = '2026-07-22.2';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -106,7 +106,53 @@ export const ONTOLOGY = {
       'Geography beats words: an article\'s linked project city or main_category outranks a place name appearing in its title/excerpt (origin-qualifier mentions like "London\'s Gymkhana debuts NYC concept" belong to the destination).',
       'A place query\'s project set is AUTHORITATIVE scope — never compare its size against loose keyword matches.',
       'Every project carries a STRUCTURED ADDRESS: street (street line), city, postal_code (zip), country (spelled-out nation), plus US state (auto-derived from lat/lng). US rows get country="United States" automatically; international rows are backfilled by the construction sweep. Answer "what is the address of X" from these fields, and country resolves country-level searches.',
+      'GEOGRAPHY IS A TREE (2026-07-21): a post is tagged with its most specific place; ancestors are implied by geo_parents below and auto-applied by tooling (the editor auto-adds them; filters may expand them). "United States" is always implied for US content and never needs tagging.',
     ],
+
+    // Category geography: child → immediate parent, walked transitively.
+    // Keys/values are canonical category names as they exist in the corpus.
+    // Parents that are not (yet) real categories (e.g. "Europe") stay listed —
+    // consumers only auto-apply a parent that exists in the category master.
+    geo_parents: {
+      // Florida
+      'Miami': 'Florida of Tomorrow', 'The Palm Beaches': 'Florida of Tomorrow', 'Broward': 'Florida of Tomorrow',
+      'Tampa Bay': 'Florida of Tomorrow', 'Orlando': 'Florida of Tomorrow', 'Jacksonville': 'Florida of Tomorrow',
+      'Naples': 'Florida of Tomorrow', 'Sarasota': 'Florida of Tomorrow', 'The Florida Keys': 'Florida of Tomorrow',
+      'Treasure Coast': 'Florida of Tomorrow', 'Space Coast': 'Florida of Tomorrow', 'Daytona Beach': 'Florida of Tomorrow',
+      'Florida Panhandle': 'Florida of Tomorrow', 'Florida': 'Florida of Tomorrow', 'Marina Pointe': 'Tampa Bay',
+      // Tennessee
+      'Nashville': 'Tennessee of Tomorrow', 'Memphis': 'Tennessee of Tomorrow', 'Knoxville': 'Tennessee of Tomorrow',
+      'East Tennessee': 'Tennessee of Tomorrow', 'West Tennessee': 'Tennessee of Tomorrow', 'Bowling Green': 'Tennessee of Tomorrow',
+      // New York
+      'Brooklyn': 'New York City', 'Greenwich Village': 'New York City', 'New York City': 'New York of Tomorrow',
+      'The Hamptons': 'New York of Tomorrow', 'New Jersey': 'New York of Tomorrow',
+      // Rockies
+      'Aspen': 'Colorado', 'Denver': 'Colorado', 'Park City': 'Utah', 'Moab': 'Utah', 'Jackson Hole': 'Wyoming',
+      'Colorado': 'Rockies of Tomorrow', 'Utah': 'Rockies of Tomorrow', 'Wyoming': 'Rockies of Tomorrow',
+      'Montana': 'Rockies of Tomorrow', 'Idaho': 'Rockies of Tomorrow', 'Rockies': 'Rockies of Tomorrow',
+      // Caribbean
+      'The Abacos': 'The Bahamas', 'The Bahamas': 'Caribbean of Tomorrow', 'Aruba': 'Caribbean of Tomorrow',
+      'British Virgin Islands': 'Caribbean of Tomorrow', 'Cayman Islands': 'Caribbean of Tomorrow',
+      'Dominican Republic': 'Caribbean of Tomorrow', 'Puerto Rico': 'Caribbean of Tomorrow',
+      'Sint Maarten': 'Caribbean of Tomorrow', 'St. Maarten': 'Caribbean of Tomorrow', 'Turks and Caicos': 'Caribbean of Tomorrow',
+      // Mexico + Latin America
+      'Cancún': 'Mexico', 'Costa Mujeres': 'Mexico', 'Cabo San Lucas': 'Los Cabos', 'Los Cabos': 'Baja California',
+      'Baja California': 'Mexico',
+      // US at large (country level stays implied — no parent for these)
+      'Austin': 'Texas', 'Dallas': 'Texas', 'Seattle': 'Washington', 'Charleston': 'Carolinas',
+      'Las Vegas': 'Nevada', 'Boston': 'Massachusetts', 'Sierra Nevada': 'California',
+      // Europe (parent "Europe" applies once that category exists)
+      'Florence': 'Italy', 'Nice': 'France', 'French Riviera': 'France', 'Ibiza': 'Spain', 'Andalusia': 'Spain',
+      'Mykonos': 'Greece', 'Paros': 'Greece', 'Copenhagen': 'Denmark', 'Stockholm': 'Sweden',
+      'Italy': 'Europe', 'France': 'Europe', 'Spain': 'Europe', 'Greece': 'Europe', 'Portugal': 'Europe',
+      'Germany': 'Europe', 'Denmark': 'Europe', 'Sweden': 'Europe', 'Norway': 'Europe', 'Hungary': 'Europe',
+      'Croatia': 'Europe', 'London': 'Europe',
+      // Asia + Indian Ocean
+      'Tokyo': 'Japan', 'Ella': 'Sri Lanka', 'Japan': 'Asia', 'China': 'Asia', 'Singapore': 'Asia',
+      'Malaysia': 'Asia', 'Indonesia': 'Asia', 'Thailand': 'Asia', 'Sri Lanka': 'Asia', 'Maldives': 'Asia',
+      // Middle East + Africa + Canada
+      'Dubai': 'United Arab Emirates', 'Kenya': 'Africa', 'Morocco': 'Africa', 'Toronto': 'Canada',
+    },
   },
 
   // ── Write routing (which tool writes where) ───────────────────────────────

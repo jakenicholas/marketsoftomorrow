@@ -3805,12 +3805,21 @@ async function handleCategoriesMerge(req, env, origin) {
   if (!from || !to || from === to || to.length > 120) return json({ error: 'from and to (distinct) are required' }, { status: 400 }, env, origin);
   const now = Math.floor(Date.now() / 1000);
   const like = '%"' + from.replace(/[%_\\]/g, '\\$&') + '"%';
-  const rows = (await env.DB.prepare("SELECT id, categories FROM posts WHERE categories LIKE ?1 ESCAPE '\\'").bind(like).all()).results || [];
+  const rows = (await env.DB.prepare("SELECT id, categories, main_category FROM posts WHERE categories LIKE ?1 ESCAPE '\\' OR main_category = ?2").bind(like, from).all()).results || [];
   const stmt = env.DB.prepare('UPDATE posts SET categories = ?1, main_category = ?2, updated_at = ?3 WHERE id = ?4');
+  // In-place semantics (changed 2026-07-21): `from` becomes `to` where it sat,
+  // deduped, and main_category follows ONLY where it was `from`. The old
+  // behavior promoted `to` to MAIN on every touched post, which clobbered
+  // city mains en masse during the Food & Drinks consolidation.
   const batch = rows.map(r => {
-    let cats = safeJsonArray(r.categories).filter(c => c && c !== from && c !== to);
-    cats.unshift(to);   // `to` becomes main + first
-    return stmt.bind(JSON.stringify(cats), to, now, r.id);
+    const seen = new Set();
+    const cats = [];
+    for (const c of safeJsonArray(r.categories)) {
+      const v = (c === from) ? to : c;
+      if (v && !seen.has(v)) { seen.add(v); cats.push(v); }
+    }
+    const main = (r.main_category === from) ? to : r.main_category;
+    return stmt.bind(JSON.stringify(cats), main, now, r.id);
   });
   try { await _runBatched(env, batch); } catch (e) { return json({ error: 'merge failed: ' + (e.message || e) }, { status: 500 }, env, origin); }
   return json({ ok: true, merged: batch.length, from, to }, {}, env, origin);
