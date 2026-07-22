@@ -577,7 +577,13 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 .search input{border:0; outline:0; background:transparent; font:inherit; font-size:13px; width:100%; color:var(--white)}
 .search input::placeholder{color:var(--mute)}
 .search svg{width:14px; height:14px; color:var(--mute); flex:0 0 auto}
-@media(max-width:780px){.search{display:none}}
+/* Mobile: the bar search compresses to an anchored icon button on the right
+   (input hidden); tapping it opens the filter panel with its full-width
+   search. It never scrolls with the token stack. */
+@media(max-width:780px){
+  .search{min-width:0; flex:none; padding:9px 11px}
+  .search input{display:none}
+}
 
 /* =================================================================== */
 /* CARD GRID                                                            */
@@ -2142,6 +2148,13 @@ document.querySelectorAll('.pills, .fp-row, .ftokens').forEach(el => {
   const f = () => el.classList.toggle('has-left', el.scrollLeft > 4);
   el.addEventListener('scroll', f, { passive: true });
   f();
+});
+// Mobile: the anchored search icon opens the panel (its input is hidden there).
+document.querySelector('.bar .search').addEventListener('click', (e) => {
+  if (window.matchMedia('(max-width:780px)').matches) {
+    e.preventDefault();
+    if (fpanel.hidden) fpOpen();
+  }
 });
 fbadgeSync();   // ?market= deep links land with an active pill — count it
 function clearAllFilters() {
