@@ -95,6 +95,15 @@
             display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:600;color:var(--purple-soft)}
   .stop-loc{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
   .stop-tools{margin-left:auto}
+  /* Mobile: the topline pills clash when they wrap against margin-left:auto.
+     Stack instead: nights on the first line, tag + client pill left on the second. */
+  @media(max-width:560px){
+    .stop-topline{align-items:flex-start}
+    .stop-topline .stop-loc{flex:1 0 100%}
+    .stop-topline .tag{margin-left:0}
+    .stop-topline .stop-tools{margin-left:0}
+  }
+
   .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,38px);line-height:1.1;letter-spacing:-.01em;color:var(--white);margin-top:10px}
   .stop-date{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--purple-soft);margin-top:4px}
   .vibe{margin-top:15px;font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
