@@ -192,7 +192,7 @@
   .stop-partner .pt-cats{margin:0}
   .stop-partner .pt-cta{margin-top:0}
   @media(max-width:560px){ button.pt-tile.stop-partner{width:100%} }
-  /* per-location "Express interest" text link */
+  /* per-location "Request partnership" text link */
   .stop-express{display:inline-flex;align-items:center;gap:6px;margin-top:18px;background:none;border:0;padding:0;cursor:pointer;
     font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
   .stop-express:hover .pt-arw{transform:translateX(3px)}
@@ -308,7 +308,7 @@
     <button class="pm-x" id="pmX" aria-label="Close">✕</button>
     <div id="pmBody">
       <div class="pm-k">Open Partnerships</div>
-      <h3 id="pmTitle">Express interest</h3>
+      <h3 id="pmTitle">Request partnership</h3>
       <p class="pm-sub" id="pmSub">Tell us a little about you and we’ll be in touch.</p>
       <form id="pmForm" novalidate autocomplete="on">
         <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
@@ -357,18 +357,18 @@ const ICONS = {
 
 const STOPS = [
   // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
-  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Airbnb', noClient:true,
+  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Airbnb', noClient:true, confirmed:true,
     in:{ start:true, date:'September 3', mode:'flight', note:'Depart home, arrive Rome the 4th' },
     vibe:'Opening nights in the Eternal City: a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
       'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg'] },
 
-  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true,
+  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true, confirmed:true,
     in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
     vibe:'Fair Verona on the Adige: the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
     logi:[], imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
 
-  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', noClient:true,
+  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', noClient:true, confirmed:true,
     in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
     vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
@@ -387,8 +387,7 @@ const STOPS = [
     logi:[['Transit','Fly Aegean the morning of Sept 14, connecting through Athens (ATH), landing in Mykonos at <b>2:10 PM</b>.']],
     imgs:[
       'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
-      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
-      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/775299805.jpg?k=af00d6a610d3ec2a5fd0eb815f5e7a01d354571ca9f7e3a654aa1cd0b8f532a7&o='] },
+      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
 
   { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true,
     in:{ date:'Sept 16', mode:'ferry', note:'Ferry to Santorini' },
@@ -519,15 +518,15 @@ function stopHtml(s, marker){
            : jprPill('J/PR','Client');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
   // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
-  // Every location gets an "Express interest" action; hotel-seeking stops get a
-  // single-row "Looking for [Hotel partner] Express interest →".
+  // Every location gets an "Request partnership" action; hotel-seeking stops get a
+  // single-row "Looking for [Hotel partner] Request partnership →".
   var partnerCta = s.pending
     ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'" data-type="Hotel">'
       +   '<span class="sp-lead">Looking for</span>'
       +   '<span class="pt-cats"><span>Hotel partner</span></span>'
-      +   '<span class="pt-cta">Express interest <span class="pt-arw">→</span></span>'
+      +   '<span class="pt-cta">Request partnership <span class="pt-arw">→</span></span>'
       + '</button>'
-    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
+    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Request partnership <span class="pt-arw">→</span></button>';
   return '<section class="'+cls+'">'
     + galleryHtml(s.imgs)
     + '<div class="stop-info">'
@@ -664,7 +663,7 @@ function partnerBoxHtml(){
       +   '<div class="pt-city">'+s.loc+'</div>'
       +   '<div class="pt-when">'+s.nights+'</div>'
       +   '<div class="pt-cats"><span>Hotel partner</span></div>'
-      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      +   '<div class="pt-cta">Request partnership <span class="pt-arw">→</span></div>'
       + '</button>';
   }).join('');
   return '<section class="partners">'
@@ -718,7 +717,7 @@ function initPartnerModal(){
   function open(c, type){
     c = c || '';
     form.dataset.city = c;   // bind city to the form so submit can't read a stale value
-    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
+    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Request partnership';
     sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
                       : 'Tell us a little about you and we’ll be in touch.';
     form.reset(); msg.textContent=''; msg.className='pm-msg';
@@ -732,7 +731,7 @@ function initPartnerModal(){
   var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
   back.addEventListener('click', function(e){ if(e.target === back) close(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
-  // Open from any partner tile or per-location "Express interest" button
+  // Open from any partner tile or per-location "Request partnership" button
   // (event-delegated, tiles are rendered dynamically).
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');

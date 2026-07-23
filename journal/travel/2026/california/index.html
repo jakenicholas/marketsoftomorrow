@@ -192,7 +192,7 @@
   .stop-partner .pt-cats{margin:0}
   .stop-partner .pt-cta{margin-top:0}
   @media(max-width:560px){ button.pt-tile.stop-partner{width:100%} }
-  /* per-location "Express interest" text link */
+  /* per-location "Request partnership" text link */
   .stop-express{display:inline-flex;align-items:center;gap:6px;margin-top:18px;background:none;border:0;padding:0;cursor:pointer;
     font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
   .stop-express:hover .pt-arw{transform:translateX(3px)}
@@ -308,7 +308,7 @@
     <button class="pm-x" id="pmX" aria-label="Close">✕</button>
     <div id="pmBody">
       <div class="pm-k">Open Partnerships</div>
-      <h3 id="pmTitle">Express interest</h3>
+      <h3 id="pmTitle">Request partnership</h3>
       <p class="pm-sub" id="pmSub">Tell us a little about you and we’ll be in touch.</p>
       <form id="pmForm" novalidate autocomplete="on">
         <div class="pm-field"><label for="pmName">Your name</label><input id="pmName" name="name" autocomplete="name" required></div>
@@ -431,15 +431,15 @@ function stopHtml(s, marker){
            : jprPill(s.client || 'Client', 'Partner');
   var stayLine = s.stayPending ? '<span class="stay-pending">'+s.stayPending+'</span>' : s.stay;
   // Order: images → date (gray, top) + pill → hotel (title) → location (red) → notes → CTA.
-  // Every location gets an "Express interest" action; hotel-seeking stops get a
-  // single-row "Looking for [Hotel partner] Express interest →".
+  // Every location gets an "Request partnership" action; hotel-seeking stops get a
+  // single-row "Looking for [Hotel partner] Request partnership →".
   var partnerCta = s.pending
     ? '<button type="button" class="pt-tile stop-partner" data-partner="'+esc(s.loc)+'" data-type="Hotel">'
       +   '<span class="sp-lead">Looking for</span>'
       +   '<span class="pt-cats"><span>Hotel partner</span></span>'
-      +   '<span class="pt-cta">Express interest <span class="pt-arw">→</span></span>'
+      +   '<span class="pt-cta">Request partnership <span class="pt-arw">→</span></span>'
       + '</button>'
-    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Express interest <span class="pt-arw">→</span></button>';
+    : '<button type="button" class="stop-express" data-partner="'+esc(s.loc)+'">Request partnership <span class="pt-arw">→</span></button>';
   return '<section class="'+cls+'">'
     + galleryHtml(s.imgs, s.imgPos)
     + '<div class="stop-info">'
@@ -575,7 +575,7 @@ function partnerBoxHtml(){
       +   '<div class="pt-city">'+s.loc+'</div>'
       +   '<div class="pt-when">'+s.nights+'</div>'
       +   '<div class="pt-cats"><span>Hotel partner</span></div>'
-      +   '<div class="pt-cta">Express interest <span class="pt-arw">→</span></div>'
+      +   '<div class="pt-cta">Request partnership <span class="pt-arw">→</span></div>'
       + '</button>';
   }).join('');
   return '<section class="partners">'
@@ -629,7 +629,7 @@ function initPartnerModal(){
   function open(c, type){
     c = c || '';
     form.dataset.city = c;   // bind city to the form so submit can't read a stale value
-    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
+    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Request partnership';
     sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
                       : 'Tell us a little about you and we’ll be in touch.';
     form.reset(); msg.textContent=''; msg.className='pm-msg';
@@ -643,7 +643,7 @@ function initPartnerModal(){
   var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
   back.addEventListener('click', function(e){ if(e.target === back) close(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
-  // Open from any partner tile or per-location "Express interest" button
+  // Open from any partner tile or per-location "Request partnership" button
   // (event-delegated, tiles are rendered dynamically).
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');

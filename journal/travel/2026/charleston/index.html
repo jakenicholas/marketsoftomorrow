@@ -192,7 +192,7 @@
   .stop-partner .pt-cats{margin:0}
   .stop-partner .pt-cta{margin-top:0}
   @media(max-width:560px){ button.pt-tile.stop-partner{width:100%} }
-  /* per-location "Express interest" text link */
+  /* per-location "Request partnership" text link */
   .stop-express{display:inline-flex;align-items:center;gap:6px;margin-top:18px;background:none;border:0;padding:0;cursor:pointer;
     font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--terra)}
   .stop-express:hover .pt-arw{transform:translateX(3px)}
@@ -543,7 +543,7 @@ function initPartnerModal(){
   function open(c, type){
     c = c || '';
     form.dataset.city = c;   // bind city to the form so submit can't read a stale value
-    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Express interest';
+    titleEl.textContent = c ? 'Partner in ' + String(c).split(',')[0] : 'Request partnership';
     sub.innerHTML = c ? 'You’re inquiring about <span class="pm-city">'+esc(c)+'</span>. Share your details and we’ll be in touch.'
                       : 'Tell us a little about you and we’ll be in touch.';
     form.reset(); msg.textContent=''; msg.className='pm-msg';
@@ -557,7 +557,7 @@ function initPartnerModal(){
   var c2 = document.getElementById('pmClose2'); if(c2) c2.addEventListener('click', close);
   back.addEventListener('click', function(e){ if(e.target === back) close(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
-  // Open from any partner tile or per-location "Express interest" button
+  // Open from any partner tile or per-location "Request partnership" button
   // (event-delegated — tiles are rendered dynamically).
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');
