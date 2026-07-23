@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <meta name="robots" content="noindex, nofollow">
-<title>Private Itinerary — Markets of Tomorrow</title>
+<title>Private Itinerary · Markets of Tomorrow</title>
 <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
 <style>
   :root{
-    /* full Mediterranean LIGHT colorway — beige page, brown ink, terracotta/gold accents */
+    /* full Mediterranean LIGHT colorway, beige page, brown ink, terracotta/gold accents */
     --ink:#F2E9D7; --ink2:#ECE1CD; --panel:#E7DCC6; --hair:rgba(74,57,43,.13); --hair2:rgba(74,57,43,.22);
     --text:#4A392B; --mute:#8C7862; --mute2:#5E4C3C; --white:#3E2F22;
     --purple:#A8813A; --purple-soft:#B0603A; --gold:#B58A35; --gold-soft:#C79A3E;
@@ -39,7 +39,7 @@
   header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
   /* soft cream halo so the title reads over any image behind it */
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
-  /* dates + meta are small and overlap the busier photo — give them a tighter, stronger cream halo */
+  /* dates + meta are small and overlap the busier photo, give them a tighter, stronger cream halo */
   .hero-dates,.hero-meta{text-shadow:0 1px 2px rgba(243,235,220,.92),0 0 11px rgba(243,235,220,.95),0 0 22px rgba(243,235,220,.7)}
   .hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--mute2);margin-bottom:20px}
   .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,7vw,66px);line-height:1.02;letter-spacing:-.02em;color:var(--brown)}
@@ -50,7 +50,7 @@
 
   /* Crossfading image is dropped to the lower ~60% of the taller header, leaving a
      beige upper band for the title to breathe. Its top edge melts into that beige and
-     its bottom melts into the page below — cream veil, no harsh edge either end. */
+     its bottom melts into the page below, cream veil, no harsh edge either end. */
   .topshow{position:absolute;left:0;right:0;bottom:0;height:66%;overflow:hidden;background:var(--cream)}
   .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.95) brightness(1.02)}
   .topshow .ts-img.on{opacity:1}
@@ -120,7 +120,7 @@
   .ss-slide{flex:0 0 100%;height:100%}
   .ss-slide img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
   .ss-slide img.loaded{opacity:1}
-  /* Bare chevron arrows + top-right "n / N" counter — matches the journal article gallery. */
+  /* Bare chevron arrows + top-right "n / N" counter, matches the journal article gallery. */
   .ss-arrow{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none;border:0;padding:0;
             color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;z-index:3;
             transition:opacity .22s,color .22s,filter .22s,transform .22s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
@@ -229,6 +229,8 @@
   .stop.pending .stop-num,.stop.tentative .stop-num{border-style:dashed;color:var(--mute)}
   .tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;vertical-align:middle;margin-left:8px}
   .tag.tentative{color:var(--terra);border:1px solid rgba(176,96,58,.4);background:rgba(176,96,58,.08)}
+  .tag.confirmed{color:#2F7D4E;border:1px solid rgba(47,125,78,.45);background:rgba(47,125,78,.09)}
+  .tag.inworks{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.05)}
   .tag.pending{color:var(--mute);border:1px solid var(--hair2);background:rgba(74,57,43,.04)}
   .stay-pending{color:var(--mute);font-style:italic;font-weight:500}
 
@@ -239,7 +241,7 @@
   .rm-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,4vw,34px);color:var(--brown)}
   .rm-frame{border:1px solid var(--hair2);border-radius:16px;padding:0;overflow:hidden;box-shadow:0 8px 30px rgba(74,57,43,.10)}
   .rm-map{width:100%;height:min(58vh,480px)}
-  /* Outer wrapper is positioned by Mapbox via transform on every zoom/pan — it must
+  /* Outer wrapper is positioned by Mapbox via transform on every zoom/pan, it must
      carry NO transform or transition of its own, or the pin lags/drifts behind the map. */
   .rm-marker{width:28px;height:28px}
   .rm-dot{width:28px;height:28px;border-radius:50%;background:#F5EEDF;border:2px solid #B0603A;color:#8a3f22;
@@ -291,7 +293,7 @@
     <div class="topshow" id="topshow" aria-hidden="true"></div>
     <header class="hero">
       <div class="wrap">
-        <div class="hero-eyebrow">August 1 — 9, 2026</div>
+        <div class="hero-eyebrow">August 1 – 9, 2026</div>
         <h1>Pacific Coast Highway<br><em>&amp;</em> Napa Valley</h1>
         <div class="hero-dates">5 Stays · California</div>
       </div>
@@ -332,7 +334,7 @@
     <div class="pm-done" id="pmDone" style="display:none">
       <div class="pm-check">✓</div>
       <h3>Thank you</h3>
-      <p class="pm-sub">Your details are in — we’ve emailed you a copy and our team will follow up shortly.</p>
+      <p class="pm-sub">Your details are in, we’ve emailed you a copy and our team will follow up shortly.</p>
       <button class="pm-submit" id="pmClose2" type="button" style="margin-top:18px;width:100%">Close</button>
     </div>
   </div>
@@ -354,29 +356,24 @@ const ICONS = {
 };
 
 const STOPS = [
-  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn', imgPos:'center 72%',
-    in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown — the journey begins' },
-    vibe:'Opening in the heart of Silicon Valley — a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
+  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn', confirmed:true, imgPos:'center 72%',
+    in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown, the journey begins' },
+    vibe:'Opening in the heart of Silicon Valley, a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
     logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
 
-  { loc:'Big Sur, California', nights:'2 Nights · Aug 4 → 6', stay:'Highway 1 & the Coast', pending:true, tentative:true,
+  { loc:'Big Sur, California', nights:'1 Night · Aug 4 → 5', stay:'Highway 1 & the Coast', pending:true, inworks:true,
     in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
-    vibe:'The most dramatic stretch of the Pacific Coast Highway — Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
+    vibe:'The most dramatic stretch of the Pacific Coast Highway, Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
     logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
     imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
 
-  { loc:'Berkeley, California', nights:'2 Nights · Aug 4 → 6', stay:'Claremont Resort & Spa', client:'Quinn', tentative:true,
-    in:{ or:true },
-    vibe:'A storied hilltop resort above the Bay — Mediterranean-white architecture, a classic spa, and sweeping views across to San Francisco and the Golden Gate.',
-    logi:[], imgs:['https://ohanare.com/wp-content/uploads/2023/05/Claremont-Resort-Club-updated.png'] },
-
-  { loc:'Napa Valley, California', nights:'1 Night · Aug 6 → 7', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
-    in:{ date:'Aug 6', mode:'car', note:'Berkeley → Napa Valley' },
-    vibe:'', logi:[], imgs:['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUZtSo1myOibIIP7BpcBDhQ5Gchyp_4Rc3eYfYHUzqgJ8lCcsHwCGIDJQN&s=10'] },
+  { loc:'Napa Valley, California', nights:'2 Nights · Aug 5 → 7', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+    in:{ date:'Aug 5', mode:'car', note:'Big Sur → Napa Valley' },
+    vibe:'', logi:[], imgs:['https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg'] },
 
   { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true,
     in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
-    vibe:'Closing the loop in the capital — a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
+    vibe:'Closing the loop in the capital, a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
     logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
 ];
 
@@ -424,7 +421,9 @@ function logiHtml(logi){
 function stopHtml(s, marker){
   var cls = 'stop' + (s.pending?' pending':'') + (s.tentative?' tentative':'');
   // Tentative keeps its own tag; the old "Pending" tag is replaced by a client pill.
-  var tag = s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
+  var tag = s.confirmed ? '<span class="tag confirmed">Confirmed</span>'
+          : s.inworks ? '<span class="tag inworks">In the works</span>'
+          : s.tentative ? '<span class="tag tentative">Tentative</span>' : '';
   // Every tile carries a client bubble: J/PR for client stays, "Private" for the
   // Italian legs, and "Open to partner" where a hotel partner isn't locked yet.
   var pill = s.pending ? jprPill('Open to Partnerships', null, false, 'jpr-open')   // red filled, matches the homepage
@@ -457,10 +456,10 @@ function stopHtml(s, marker){
     + '</section>';
 }
 
-// Top hero slideshow — crossfade through the trip's highlight images (up to 2 per
+// Top hero slideshow, crossfade through the trip's highlight images (up to 2 per
 // stop). Auto-advances every 3.5s to bring the Mediterranean top to life.
 function buildTopShow(){
-  // Single static hero — the Big Sur image used on the /travel card (no auto-shuffle).
+  // Single static hero, the Big Sur image used on the /travel card (no auto-shuffle).
   var pick = ['https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg'];
   if(!pick.length) return;
   var el = document.getElementById('topshow');
@@ -532,7 +531,7 @@ function initRouteMap(tries){
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), 'top-right');
   var b = new mapboxgl.LngLatBounds(); pts.forEach(function(p){ b.extend([p.lng, p.lat]); });
   // These don't need tiles to finish loading, so run immediately (the 'load' event
-  // can stall behind tile requests) — fit the view + drop the numbered markers now.
+  // can stall behind tile requests), fit the view + drop the numbered markers now.
   map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 });
   pts.forEach(function(p){
     var m = document.createElement('div'); m.className = 'rm-marker'; m.innerHTML = '<span class="rm-dot">'+p.n+'</span>';
@@ -540,7 +539,7 @@ function initRouteMap(tries){
       .setPopup(new mapboxgl.Popup({ offset:18, closeButton:false }).setHTML('<span class="rm-pop"><b>'+p.n+'</b> · '+p.loc+'</span>'))
       .addTo(map);
   });
-  // The dashed route line needs the style loaded (not tiles) — add it as soon as
+  // The dashed route line needs the style loaded (not tiles), add it as soon as
   // the style is ready, whether that's already happened or fires later.
   function addRoute(){
     if(map.getSource('route')) return;
@@ -560,7 +559,7 @@ function initRouteMap(tries){
   // Keep the projection synced to the container. Without this the map can init at a
   // stale size (it's far down the page / inside the fade-in), so its center is off
   // and markers appear to drift as you zoom in/out. Resize once it's really sized,
-  // when it scrolls into view, and on window resize — then re-fit so pins stay put.
+  // when it scrolls into view, and on window resize, then re-fit so pins stay put.
   function sync(refit){ try{ map.resize(); if(refit) map.fitBounds(b, { padding:{ top:56, bottom:56, left:56, right:56 }, maxZoom:6.6, duration:0 }); }catch(e){} }
   [150, 450, 1000].forEach(function(d){ setTimeout(function(){ sync(true); }, d); });
   try{ new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting) sync(false); }); }, { threshold:0.15 }).observe(el); }catch(e){}
@@ -616,7 +615,7 @@ function render(){
 
   initSlideshows();
   initRouteMap();
-  // (Image lightbox intentionally disabled — no full-screen/zoom on images.)
+  // (Image lightbox intentionally disabled, no full-screen/zoom on images.)
 }
 
 // ── Partner enquiry modal ──
@@ -645,7 +644,7 @@ function initPartnerModal(){
   back.addEventListener('click', function(e){ if(e.target === back) close(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && back.classList.contains('on')) close(); });
   // Open from any partner tile or per-location "Express interest" button
-  // (event-delegated — tiles are rendered dynamically).
+  // (event-delegated, tiles are rendered dynamically).
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('.pt-tile[data-partner], .stop-express[data-partner]');
     if(t){ e.preventDefault(); open(t.getAttribute('data-partner'), t.getAttribute('data-type')); }
@@ -669,10 +668,10 @@ function initPartnerModal(){
       .then(function(res){
         if(res.ok && res.j && res.j.ok){ bodyEl.style.display='none'; doneEl.style.display=''; }
         else { submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
-               msg.textContent = (res.j && res.j.error) || 'Something went wrong — please email media@oftmw.com.'; }
+               msg.textContent = (res.j && res.j.error) || 'Something went wrong, please email media@oftmw.com.'; }
       })
       .catch(function(){ submit.disabled=false; submit.textContent='Send inquiry'; msg.className='pm-msg err';
-        msg.textContent='Network error — please email media@oftmw.com.'; });
+        msg.textContent='Network error, please email media@oftmw.com.'; });
   });
 }
 
