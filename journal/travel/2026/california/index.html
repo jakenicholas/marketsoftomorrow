@@ -605,7 +605,7 @@ function render(){
   html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
   document.getElementById('tl').innerHTML = html;
 
-  // Reveal images: inline onload misses images already complete (cache/fast) —
+  // Reveal images: inline onload misses images already complete (cache/fast),
   // sweep once so none stay stuck at opacity:0, and catch the rest via load/error.
   Array.prototype.forEach.call(document.querySelectorAll('.ss-slide img'), function(im){
     if(im.complete && im.naturalWidth>0){ im.classList.add('loaded'); return; }
