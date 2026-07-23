@@ -253,12 +253,13 @@
   .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
   .mapboxgl-popup-tip{border-top-color:#F5EEDF!important;border-bottom-color:#F5EEDF!important}
   .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
-  .rm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px 20px;margin-top:22px}
-  .rm-li{display:flex;align-items:baseline;gap:10px;font-size:13.5px}
+  .rm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px 26px;margin-top:22px}
+  .rm-li{display:flex;align-items:baseline;gap:10px;font-size:13.5px;white-space:nowrap}
+  .rm-lead{flex:1;min-width:14px;border-bottom:1px dotted var(--hair2);transform:translateY(-3px)}
   .rm-n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(176,96,58,.5);color:var(--terra);
         font-family:var(--serif);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;align-self:center}
-  .rm-nm{color:var(--brown);font-weight:500}
-  .rm-dt{margin-left:auto;color:var(--mute);font-family:var(--serif);font-style:italic;font-size:12.5px;white-space:nowrap}
+  .rm-nm{color:var(--brown);font-weight:500;overflow:hidden;text-overflow:ellipsis}
+  .rm-dt{flex:0 0 auto;color:var(--mute);font-family:var(--serif);font-style:italic;font-size:12.5px;white-space:nowrap}
 
   /* ── Final exit / tip ── */
   .exit{margin-top:26px;padding:38px 0 20px;border-top:1px solid var(--hair);text-align:center}
@@ -597,9 +598,20 @@ function routePoints(){
 function routeMapHtml(){
   var pts = routePoints();
   if(pts.length < 2) return '';
+  // Compact legend labels — the full loc stays on the stops + pins; the legend
+  // uses one-line names so the grid rows never wrap and stay aligned.
+  var SHORT = {
+    'Rome, Italy':'Rome', 'Verona, Italy':'Verona', 'Venice, Italy':'Venice',
+    'Lake Como, Italy or Dubrovnik, Croatia':'Como or Dubrovnik',
+    'Mykonos':'Mykonos', 'Santorini, Greece':'Santorini',
+    'Athens Riviera':'Athens Riviera', 'Athens · Historic Center':'Central Athens',
+    'Lake Bled, Slovenia':'Lake Bled', 'Southeast Slovenia':'Southeast Slovenia',
+    'The Dolomites, Italy':'The Dolomites', 'St. Moritz, Switzerland':'St. Moritz',
+    'Gstaad, Switzerland':'Gstaad', 'Zurich or Geneva, Switzerland':'Zurich or Geneva'
+  };
   var legend = '<div class="rm-legend">'+pts.map(function(p){
     var dt = p.nights.indexOf('·')>=0 ? p.nights.split('·').pop().trim() : p.nights;
-    return '<div class="rm-li"><span class="rm-n">'+p.n+'</span><span class="rm-nm">'+p.loc+'</span><span class="rm-dt">'+dt+'</span></div>';
+    return '<div class="rm-li"><span class="rm-n">'+p.n+'</span><span class="rm-nm">'+(SHORT[p.loc]||p.loc.split(',')[0])+'</span><span class="rm-lead"></span><span class="rm-dt">'+dt+'</span></div>';
   }).join('')+'</div>';
   return '<section class="routemap"><div class="rm-head"><div class="rm-k">The Route</div><h2>One arc, drawn across Europe</h2></div>'
     + '<div class="rm-frame"><div id="rmap" class="rm-map"></div></div>' + legend + '</section>';
