@@ -102,7 +102,8 @@
 
   var css = [
     '.tmw-chrome-head{position:sticky; top:0; z-index:60; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
-    '.tmw-chrome-head nav.main{position:relative; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
+    /* padding:0 is load-bearing — the .wrap owns the 14px vertical padding. Some pages (media proposals) carry a leftover generic `nav{padding:14px 0}` from a removed custom nav that would otherwise leak onto nav.main and DOUBLE the header height (99px vs 71px). Hardcoding it here keeps the chrome self-owned. */
+    '.tmw-chrome-head nav.main{position:relative; padding:0; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
     '.tmw-chrome-head nav.main .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:14px; padding-bottom:14px; gap:24px; max-width:1240px; margin:0 auto; padding-left:28px; padding-right:28px}',
     // Hide the raw nav (flat region links + Open Map CTA) + hex until journal-dock
     // consolidates them into the universal menu, so the un-transformed chrome
