@@ -2125,6 +2125,17 @@ function fpCount() {
     }).length;
   }
   document.getElementById('fpApply').textContent = none ? 'Show all stories' : 'Show ' + n + ' ' + (n === 1 ? 'story' : 'stories');
+  // Keep the Filters-pill badge in sync with the LIVE panel selection so
+  // "Clear all" (and every toggle) resets it immediately, not only on close.
+  // fpCount runs on every panel mutation; the badge counts filter dims only
+  // (loc + type + date) — the search field is separate and never counted.
+  badgeFromSel(FSEL);
+}
+// Set the Filters-pill badge from a selection's active-dimension count.
+function badgeFromSel(sel) {
+  const badge = document.getElementById('fbadge');
+  const n = sel ? (sel.loc.size + sel.type.size + (sel.date !== 'any' ? 1 : 0)) : 0;
+  badge.textContent = n; badge.hidden = n === 0;
 }
 // The quick region pills are shortcuts into the same filter system: the
 // badge counts an active pill, and opening the panel seeds it as a selection.
