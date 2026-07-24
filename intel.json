@@ -9583,21 +9583,65 @@
       "delivery_speculative": false
     },
     "the-birdsall-auberge-resorts-collection": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 525,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.6,
+      "estimate_label": "~3.6 years",
+      "range_low": 1.6,
+      "range_high": 8.1,
+      "confidence": "low",
+      "comparable_count": 4,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.41,
+      "avg_distance_km": 1355.4,
+      "avg_distance_mi": 842.2,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Kohn Pedersen Fox",
+        "count": 5,
+        "median_years": 4.29,
+        "stddev_years": 1.65,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Hotel",
       "metro": "Houston",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
+      "comparables": [
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.64,
+          "distance_km": 1410.0,
+          "distance_mi": 876.2
+        },
+        {
+          "name": "Dolly Parton's SongTeller Hotel",
+          "slug": "dolly-partons-songteller-hotel",
+          "location": "Nashville",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 1077.7,
+          "distance_mi": 669.6
+        },
+        {
+          "name": "The Belgrove Resort & Spa",
+          "slug": "the-belgrove-resort-spa",
+          "location": "West Palm Beach",
+          "years": 8.1,
+          "score": 0.34,
+          "distance_km": 1538.3,
+          "distance_mi": 955.8
+        }
+      ],
+      "pattern_summary": "Among 4 hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–8.1). Adjusted to ~3.6 years for Kohn Pedersen Fox's own track record (~4.3-year typical pace across 5 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "rodeo-dunes": {
       "estimate_years": 3.5,
@@ -15152,12 +15196,12 @@
   "stats": {
     "high": 7,
     "medium": 20,
-    "low": 72,
-    "known_date": 523,
+    "low": 73,
+    "known_date": 522,
     "completed": 67,
     "skipped": 104,
     "no_type": 0,
-    "firm_boosted": 41,
+    "firm_boosted": 42,
     "speculative_softened": 204,
     "district": 11,
     "mixed_use_adjusted": 26
