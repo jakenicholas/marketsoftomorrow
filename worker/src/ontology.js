@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-22.2';
+export const ONTOLOGY_VERSION = '2026-07-27.1';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -60,6 +60,7 @@ export const ONTOLOGY = {
       'Always pass effective_date (when the event actually happened, not when we discovered it) plus source_url.',
       'Date milestones by the EVENT, never the publication: match the date grain to the source (a precise day only when the source states one, else YYYY-MM or YYYY) and never date a milestone AFTER the article that reports it.',
       'Re-logging a phase with a better date/source is the correction mechanism — the dossier renders the most-recently-recorded entry per phase, so a fresh log supersedes the old automatically. Never re-log identical data.',
+      'PHASED DISTRICTS put their phases IN the story (2026-07-27, The Waterfront Daniel Island pattern): log each completed phase as a move-in milestone whose note reads "Phase N complete: <what it delivered>", and each phase groundbreaking as a backfilled construction entry noting the phase name and expected completion. The dossier timeline then itemizes the build-out phase by phase instead of leaving one delivery date to misrepresent the whole community — the district\'s single delivery date is only the ACTIVE phase\'s.',
     ],
   },
 
