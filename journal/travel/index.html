@@ -216,7 +216,7 @@ var TRIPS = [
   { title:'Pacific Coast Highway & Napa Valley', place:'California', date:'August 1 — 9, 2026', upcoming:true, openCTA:true, start:'2026-08-01', end:'2026-08-09',
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
-    partners:['Quinn','Nobu Hotels'] },
+    partners:['Quinn','Nobu Hotels','J/PR','MacArthur Place Sonoma'] },
   { title:'Charleston', place:'Charleston, South Carolina', date:'July 17 – 21, 2026', upcoming:true, start:'2026-07-17', end:'2026-07-21',
     href:'/travel/2026/charleston/',
     img:'https://www.charlestoncvb.com/assets/images/home/collage-1.jpg',
@@ -311,10 +311,11 @@ function tripHtml(t, i){
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
     +   partnersHtml(t.partners, t.openCTA)
-    +   (t.href ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
+    +   ((t.href && st !== 'ended') ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
     + '</div>';
   var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '');
-  return t.href
+  // Ended trips are non-clickable (no detail link, no "View itinerary") even if they still carry an href.
+  return (t.href && st !== 'ended')
     ? '<a class="'+cls+'" href="'+esc(t.href)+'">'+inner+'</a>'
     : '<article class="'+cls+'">'+inner+'</article>';
 }
