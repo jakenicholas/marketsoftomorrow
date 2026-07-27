@@ -341,7 +341,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 /* alternative tiers (client deliver section) */
 .alt-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--mute); margin:60px auto 20px; text-align:center; display:flex; align-items:center; justify-content:center; gap:18px}
 .alt-eyebrow::before,.alt-eyebrow::after{content:""; width:60px; height:1px; background:var(--hair2)}
-.alt-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+.alt-grid{display:grid; grid-template-columns:minmax(0,560px); justify-content:center; gap:18px}
 .alt-tier{padding:34px 32px; display:flex; flex-direction:column; position:relative; overflow:hidden}
 .alt-tier::before{content:""; position:absolute; top:-50px; right:-50px; width:160px; height:160px; background:radial-gradient(circle,rgba(230,197,116,.14),transparent 70%); pointer-events:none}
 .alt-tier .at-lab{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:14px; position:relative}
@@ -1023,9 +1023,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
 <script src="/_shared/intelligence.js" defer></script>
 
 
-<!-- ==================== PROVEN RESULTS (shared, synced · /_shared/case-studies.js) ==================== -->
-<div data-tmw-cases data-match="bahamas,caribbean,private-island,resort,branded-residence,waterfront,luxury" data-headline="a comparable resort &amp; branded residence" data-limit="2"></div>
-<script src="/_shared/case-studies.js" defer></script>
+
 
 
 <section id="routes">
@@ -1076,7 +1074,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
       <div class="eyebrow reveal">The Packages</div>
       <h2 class="reveal d1">Start with one drive. Grow the<br class="m-br"> rights as the work earns them.</h2>
       <p class="lede reveal d2">Every tier bundles three things: the production fee for the shoot, the license that governs where <span class="hl-gold">Braman</span> may use the work, and the editorial placement across our network. Priced against our published rate card, so the arithmetic is visible.</p>
-      <div class="mkt-pills reveal d2"><span class="mkt-lab">Running on</span><a class="mkt-pill primary" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener">Florida of Tomorrow</a><span class="mkt-lab">+ additional focus-market push from</span><a class="mkt-pill" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener">Hotels of Tomorrow</a><a class="mkt-pill" href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">Markets of Tomorrow</a></div>
+      <div class="mkt-pills reveal d2"><span class="mkt-lab">Running on</span><a class="mkt-pill primary" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener">Florida of Tomorrow</a><span class="mkt-lab">+ additional focus-market push from</span><a class="mkt-pill" href="https://www.instagram.com/newyorkoftomorrow" target="_blank" rel="noopener">New York of Tomorrow</a><a class="mkt-pill" href="https://www.instagram.com/marketsoftomorrow" target="_blank" rel="noopener">Markets of Tomorrow</a></div>
     </div>
 
     <div class="alt-eyebrow reveal">Option A &middot; The Collection</div>
@@ -1090,10 +1088,11 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <div class="d"><span class="dot"></span><span>(2) Collaborative social media post inclusions</span></div>
           <div class="d"><span class="dot"></span><span>Monthly Meta stories</span></div>
           <div class="d"><span class="dot"></span><span>Complete photo and video ownership</span></div>
-          <div class="d"><span class="dot"></span><span>Official automotive Partner of Tomorrow, visible on every webpage</span></div>
+          <div class="d"><span class="dot"></span><span>Additional focus market push</span></div>
           <div class="d"><span class="dot"></span><span>Daily website banner</span></div>
           <div class="d"><span class="dot"></span><span>Weekly newsletter banner</span></div>
           <div class="d"><span class="dot"></span><span>Featured spotlight in our Database · Map, Atlas, TMW Intelligence</span></div>
+          <div class="d"><span class="dot"></span><span>Official automotive Partner of Tomorrow, visible on every webpage</span></div>
         </div>
       </div>
       <div class="invest glass reveal d2">
@@ -1102,8 +1101,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         <div class="note">One drive</div>
         <div class="term">
           <div class="k">Term</div>
-          <div class="v">Six months &middot; $4,000 monthly</div>
-          <div class="x">50% deposit, balance net 15 on delivery.</div>
+          <div class="v">Six months</div>
         </div>
       </div>
     </div>
@@ -1119,9 +1117,9 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
           <div class="d"><span class="dot"></span><span>(1) Collaborative social media post inclusion</span></div>
           <div class="d"><span class="dot"></span><span>Monthly Meta stories</span></div>
           <div class="d"><span class="dot"></span><span>Complete photo and video ownership</span></div>
-          <div class="d"><span class="dot"></span><span>Official automotive Partner of Tomorrow, visible on every webpage</span></div>
-          <div class="d"><span class="dot"></span><span>Daily website banner</span></div>
           <div class="d"><span class="dot"></span><span>Weekly newsletter banner</span></div>
+          <div class="d"><span class="dot"></span><span>Daily website banner</span></div>
+          <div class="d"><span class="dot"></span><span>Official automotive Partner of Tomorrow, visible on every webpage</span></div>
           <div class="d"><span class="dot"></span><span>Featured spotlight in our Database · Map, Atlas, TMW Intelligence</span></div>
         </div>
       </div>
@@ -1132,7 +1130,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between}
         <div class="term">
           <div class="k">Term</div>
           <div class="v">Three-year license</div>
-          <div class="x">50% deposit, balance net 15 on delivery.</div>
         </div>
       </div>
     </div>
