@@ -11865,6 +11865,38 @@ async function handleSmartAnswer(request, env, origin) {
   try { body = await request.json(); } catch { return fail('bad_json'); }
   if (!body || typeof body !== 'object') return fail('bad_body');
 
+  // ── Abuse gate (added after the 2026-07-27 scrape: ~1,000 anon entity lookups
+  // in a day burned ~21M Sonnet tokens; the anon cap was client-side only). A
+  // signed-in member (mem_*) passes and rides the account quotas. Everyone else:
+  //   1) datacenter/scanner traffic is refused outright (same isScannerHit filter
+  //      as the view beacon — scrapers fire from cloud ASNs, readers don't);
+  //   2) anonymous answers are capped per-IP per rolling 24h, SERVER-side, so
+  //      rotating anon ids no longer resets the allowance.
+  // Gated responses return { answer:null, gated:true } — the search page falls
+  // back to its deterministic answer, so a capped human still gets results.
+  const gateMember = String(body.member || '').slice(0, 120).trim();
+  if (!/^mem_/.test(gateMember)) {
+    const gq = String(body.q || '').slice(0, 120);
+    const now0 = Math.floor(Date.now() / 1000);
+    if (isScannerHit(request, true)) {
+      try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,'scanner','intel_gated',?2)`).bind(now0, JSON.stringify({ why: 'scanner', q: gq })).run(); } catch (_) {}
+      return json({ answer: null, gated: true }, {}, env, origin);
+    }
+    const ANON_IP_DAILY_CAP = 12;
+    const gip = request.headers.get('CF-Connecting-IP') || '';
+    if (gip && env.DB) {
+      try {
+        const ipKey = 'ip:' + (await sha256Hex(gip)).slice(0, 32);
+        const r = await env.DB.prepare(`SELECT COUNT(*) n FROM events WHERE event_name='intel_anon_ip' AND member_id=?1 AND ts>=?2`).bind(ipKey, now0 - 86400).first();
+        if ((Number(r && r.n) || 0) >= ANON_IP_DAILY_CAP) {
+          try { await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,'intel_gated',?3)`).bind(now0, ipKey, JSON.stringify({ why: 'ip_cap', q: gq })).run(); } catch (_) {}
+          return json({ answer: null, gated: true }, {}, env, origin);
+        }
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?1,?2,'intel_anon_ip',?3)`).bind(now0, ipKey, JSON.stringify({ q: gq })).run();
+      } catch (_) { /* gate is best-effort — never block a legit reader on a DB hiccup */ }
+    }
+  }
+
   // Minimal validation — this endpoint spends money, so reject anything that
   // isn't a real resolved smart query coming from the search page.
   const q = String(body.q || '').slice(0, 200).trim();
