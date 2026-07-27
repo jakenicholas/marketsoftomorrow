@@ -823,7 +823,7 @@ def build_milestones(row, articles=None):
     cur_status = _dossier_status_code(row.get('Delivery', ''))
     cur_phase = DOSSIER_STATUS_TO_PHASE.get(cur_status, 'announced')
 
-    def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note='', at=''):
+    def entry(phase, date_str='', source_url='', estimated=False, sourced=False, note='', at='', label_override=None):
         # Editorially BANNED sources (mirror of ONTOLOGY.writes.banned_source_domains)
         # are never citable: strip the URL and demote to unsourced so any entry
         # with an approved source outranks this one for the phase.
@@ -832,7 +832,7 @@ def build_milestones(row, articles=None):
             source_url, dom, sourced = '', '', False
         return {
             'phase': phase, 'rank': DOSSIER_RANK.get(phase, 0),
-            'label': _phase_label(row, phase),
+            'label': label_override or _phase_label(row, phase),
             'date': date_str or '', 'date_display': _fmt_event_date(date_str),
             'source_url': source_url or '', 'source_domain': dom,
             'estimated': bool(estimated), 'sourced': bool(sourced),
@@ -840,15 +840,16 @@ def build_milestones(row, articles=None):
         }
 
     found = {}
-    def consider(e):
-        prev = found.get(e['phase'])
+    def consider(e, key=None):
+        key = key or e['phase']
+        prev = found.get(key)
         if prev is None:
-            found[e['phase']] = e
+            found[key] = e
             return
         # Prefer a sourced entry over an unsourced fallback.
         if e['sourced'] != prev['sourced']:
             if e['sourced']:
-                found[e['phase']] = e
+                found[key] = e
             return
         # Equally sourced: the most RECENTLY recorded entry wins. When the
         # construction sweep re-logs a milestone with a corrected/refined event
@@ -857,9 +858,27 @@ def build_milestones(row, articles=None):
         # Tie-break (same/no record stamp) to whichever carries an explicit date.
         ea, pa = (e.get('at') or ''), (prev.get('at') or '')
         if ea > pa or (ea == pa and e['date'] and not prev['date']):
-            found[e['phase']] = e
+            found[key] = e
 
     # 1) status_history: milestone events + status transitions.
+    # PHASED DISTRICTS (ontology 2026-07-27): an entry whose note reads
+    # "Phase N …" is a phase-scoped event — it gets its OWN timeline row,
+    # labeled from the note's leading clause ("Phase I complete"), instead of
+    # collapsing into the shared per-phase slot where only the latest phase
+    # would survive. The remainder of the note (what the phase delivered)
+    # stays as the ⓘ tooltip.
+    _phase_note_re = re.compile(r'^Phase\s+([IVXLC]+|\d+)\b', re.I)
+    def _phase_split(note):
+        note = (note or '').strip()
+        m = _phase_note_re.match(note)
+        if not m:
+            return None, note
+        head, sep, rest = note.partition(':')
+        head = head.strip()
+        if sep and 0 < len(head) <= 60:
+            return head, rest.strip()
+        return None, note
+
     for h in (row.get('StatusHistory') or []):
         if not isinstance(h, dict):
             continue
@@ -871,11 +890,15 @@ def build_milestones(row, articles=None):
         if t == 'milestone':
             ph = (h.get('phase') or '').strip().lower()
             if ph in DOSSIER_RANK:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', ''), at=rec))
+                plabel, pnote = _phase_split(h.get('note', ''))
+                e = entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=pnote, at=rec, label_override=plabel)
+                consider(e, key=(ph + '::' + plabel.lower()) if plabel else None)
         else:
             ph = DOSSIER_STATUS_TO_PHASE.get((h.get('to') or '').strip().lower())
             if ph:
-                consider(entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=h.get('note', ''), at=rec))
+                plabel, pnote = _phase_split(h.get('note', ''))
+                e = entry(ph, ev or rec[:10], h.get('source_url', ''), estimated=not ev, sourced=True, note=pnote, at=rec, label_override=plabel)
+                consider(e, key=(ph + '::' + plabel.lower()) if plabel else None)
 
     # 2) field anchors.
     start_date = (row.get('StartDate', '') or '').strip()
@@ -1008,6 +1031,14 @@ def build_milestones(row, articles=None):
 
     entries = []
     for phase in DOSSIER_ORDER:
+        # Phase-scoped rows (PHASED DISTRICTS, ontology 2026-07-27) ride under
+        # composite keys 'phase::<label>' — every one is a sourced, dated,
+        # real event ("Phase I complete …"), so they all render, each as its
+        # own row, regardless of whether the canonical slot is filled.
+        for _k in sorted(k for k in found if k.startswith(phase + '::')):
+            pm = found[_k]
+            pm['projected'] = False
+            entries.append(pm)
         m = found.get(phase)
         rank = DOSSIER_RANK[phase]
         is_current = (phase == cur_phase)
