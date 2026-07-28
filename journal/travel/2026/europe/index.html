@@ -309,16 +309,10 @@
 
   /* [hidden] must beat the class's display:flex, or toggling the password
      field just shows BOTH inputs (it sets the attribute but not the paint). */
-  .lock-form[hidden], .lock-toggle[hidden]{display:none !important}
   .lock-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 auto 6px;max-width:460px}
   .lock-in{flex:1 1 240px;min-width:0;padding:13px 16px;border:1px solid var(--hair2);border-radius:999px;
     background:#fff;font-family:inherit;font-size:14.5px;color:inherit}
   .lock-in:focus{outline:none;border-color:var(--terra,#B0603A)}
-  .lock-pw{margin-top:14px}
-  .lock-toggle{background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;
-    color:var(--mute2,#6b6b6b);text-decoration:underline;text-underline-offset:3px;padding:6px}
-  .lock-toggle:hover{color:var(--terra,#B0603A)}
-  .lock-form-pw{margin-top:12px}
   .lock-msg{margin-top:14px;font-size:13.5px;color:var(--mute2,#6b6b6b);min-height:18px}
   .lock-msg.err{color:#B0603A}
 </style>
@@ -721,19 +715,12 @@ function gateHtml(){
   return '<div class="lockbox">'
     + '<div class="lock-k">Private itinerary</div>'
     + '<h2 class="lock-h">See the full itinerary</h2>'
-    + '<p class="lock-p">Exact stays and dates aren’t public. Leave your email and it opens right up — '
-    + 'or use the access password if we gave you one. Feel free to pass this along to colleagues.</p>'
+    + '<p class="lock-p">Exact stays and dates aren’t public. Leave your email and it opens right up. '
+    + 'Feel free to pass this along to colleagues.</p>'
     + '<form class="lock-form" id="lockForm" novalidate>'
     +   '<input class="lock-in" id="lockEmail" type="email" autocomplete="email" placeholder="you@company.com">'
     +   '<button class="lock-cta" id="lockGo" type="submit">View itinerary <span class="pt-arw">→</span></button>'
     + '</form>'
-    + '<div class="lock-pw"><button type="button" class="lock-toggle" id="lockPwToggle">I have an access password</button>'
-    +   '<button type="button" class="lock-toggle" id="lockBack" hidden>Use my email instead</button>'
-    +   '<form class="lock-form lock-form-pw" id="lockPwForm" hidden novalidate>'
-    +     '<input class="lock-in" id="lockPw" type="password" autocomplete="current-password" placeholder="Access password">'
-    +     '<button class="lock-cta" type="submit">Unlock <span class="pt-arw">→</span></button>'
-    +   '</form>'
-    + '</div>'
     + '<div class="lock-msg" id="lockMsg" role="status"></div>'
     + '</div>';
 }
@@ -761,19 +748,6 @@ function gateHtml(){
     try { buildTopShow(); } catch(e){}
     finish();
     var msg = document.getElementById('lockMsg');
-    var pwToggle = document.getElementById('lockPwToggle');
-    var pwForm = document.getElementById('lockPwForm');
-    var emailForm = document.getElementById('lockForm');
-    var backLink  = document.getElementById('lockBack');
-    function mode(pw){
-      emailForm.hidden = pw; pwForm.hidden = !pw;
-      pwToggle.hidden = pw; backLink.hidden = !pw;
-      msg.textContent = '';
-      var f = document.getElementById(pw ? 'lockPw' : 'lockEmail');
-      if(f) try { f.focus(); } catch(e){}
-    }
-    pwToggle.addEventListener('click', function(){ mode(true); });
-    backLink.addEventListener('click', function(){ mode(false); });
     function submit(body, btn){
       msg.className = 'lock-msg'; msg.textContent = 'Checking…';
       if(btn) btn.disabled = true;
@@ -798,10 +772,6 @@ function gateHtml(){
     document.getElementById('lockForm').addEventListener('submit', function(e){
       e.preventDefault();
       submit({ email: document.getElementById('lockEmail').value.trim() }, document.getElementById('lockGo'));
-    });
-    pwForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      submit({ password: document.getElementById('lockPw').value }, null);
     });
   }
   function initSlideshowsSafe(){ try { initSlideshows(); initRouteMap(); } catch(e){} }

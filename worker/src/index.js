@@ -4076,31 +4076,16 @@ async function handleTravelInvitesBulk(req, env, origin) {
 // signal that matters: it tells us which firm is circulating the itinerary.
 function normEmail(s) { return String(s || '').trim().toLowerCase(); }
 function validEmail(s) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(s); }
-// Constant-time-ish compare so the shared password can't be probed by timing.
-function sameSecret(a, b) {
-  const x = String(a || ''), y = String(b || '');
-  if (!x || !y || x.length !== y.length) return false;
-  let d = 0;
-  for (let i = 0; i < x.length; i++) d |= x.charCodeAt(i) ^ y.charCodeAt(i);
-  return d === 0;
-}
 async function handleTravelAccess(req, env, origin) {
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const slug = String(b.slug || '*').trim().toLowerCase();
+  // EMAIL ONLY. The shared-password path was removed deliberately: it produced
+  // anonymous 'password-holder' rows, which is precisely the blind spot the
+  // analytics exist to close. Everyone identifies themselves now.
   const email = normEmail(b.email);
-  const pw = String(b.password || '');
-  let identity = '', method = '';
-  if (pw) {
-    if (!env.TRAVEL_PASSWORD) return json({ error: 'Password access is not set up yet.' }, { status: 400 }, env, origin);
-    if (!sameSecret(pw, env.TRAVEL_PASSWORD)) return json({ error: "That password doesn't match." }, { status: 401 }, env, origin);
-    identity = email && validEmail(email) ? email : 'password-holder';
-    method = 'password';
-  } else if (email) {
-    if (!validEmail(email)) return json({ error: 'Please enter a valid email.' }, { status: 400 }, env, origin);
-    identity = email; method = 'email';
-  } else {
-    return json({ error: 'Enter an email or the access password.' }, { status: 400 }, env, origin);
-  }
+  if (!email) return json({ error: 'Enter your email to view the itinerary.' }, { status: 400 }, env, origin);
+  if (!validEmail(email)) return json({ error: 'Please enter a valid email.' }, { status: 400 }, env, origin);
+  const identity = email, method = 'email';
   const domain = identity.includes('@') ? identity.split('@')[1] : '';
   try {
     if (env.DB) {
