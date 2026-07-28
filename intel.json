@@ -12521,57 +12521,21 @@
       "delivery_speculative": false
     },
     "manazel-al-hadawi": {
-      "estimate_years": 2.4,
-      "estimate_label": "~2.4 years",
-      "range_low": 1.0,
-      "range_high": 4.8,
-      "confidence": "low",
-      "comparable_count": 14,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.36,
-      "avg_distance_km": 11732.8,
-      "avg_distance_mi": 7290.4,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 0.2,
+      "estimate_label": "~3 months",
+      "days_out": 79,
+      "delivery_date": "2026-10-15",
+      "source": "known_date",
+      "precision": "month",
+      "confidence": "high",
       "project_type": "Residences",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "Inscription",
-          "slug": "inscription",
-          "location": "West Palm Beach",
-          "years": 2.0,
-          "score": 0.49,
-          "distance_km": 11922.8,
-          "distance_mi": 7408.5
-        },
-        {
-          "name": "The Spruce",
-          "slug": "the-spruce",
-          "location": "West Palm Beach",
-          "years": 2.4,
-          "score": 0.49,
-          "distance_km": 11920.4,
-          "distance_mi": 7407.0
-        },
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.34,
-          "distance_km": 12036.7,
-          "distance_mi": 7479.3
-        }
-      ],
-      "pattern_summary": "Among 14 residences projects in TMW's data, the median build time is 2.4 years (range 1–4.8).",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~3 months.",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "delivery_speculative": false
     },
     "trinity-hills": {
       "estimate_years": 2.1,
@@ -15318,37 +15282,28 @@
       "is_mixed_use": false
     },
     "rosewood-san-francisco": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 156,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Hotel",
-      "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
-    "trump-international-hotel-tower-gold-coast": {
-      "estimate_years": 2.3,
-      "estimate_label": "~2.3 years",
+      "estimate_years": 3.6,
+      "estimate_label": "~3.6 years",
       "range_low": 1.6,
-      "range_high": 3.0,
-      "confidence": "low",
-      "comparable_count": 2,
+      "range_high": 8.1,
+      "confidence": "medium",
+      "comparable_count": 4,
       "good_count": 0,
       "exact_count": 0,
       "used_relaxed": true,
-      "avg_match_score": 0.49,
-      "avg_distance_km": 14474.8,
-      "avg_distance_mi": 8994.2,
+      "avg_match_score": 0.39,
+      "avg_distance_km": 3440.4,
+      "avg_distance_mi": 2137.8,
       "scale_used": true,
-      "firm_signal": null,
+      "firm_signal": {
+        "firm": "Pelli Clarke & Partners",
+        "count": 4,
+        "median_years": 4.26,
+        "stddev_years": 0.2,
+        "role": "architect",
+        "consistent": true,
+        "blend_weight": 0.65
+      },
       "source": "comparables",
       "project_type": "Hotel",
       "metro": "Other",
@@ -15359,8 +15314,17 @@
           "location": "Naples",
           "years": 3.0,
           "score": 0.64,
-          "distance_km": 14589.6,
-          "distance_mi": 9065.6
+          "distance_km": 4006.5,
+          "distance_mi": 2489.5
+        },
+        {
+          "name": "Siari, a Ritz-Carlton Reserve",
+          "slug": "siari-a-ritz-carlton-reserve",
+          "location": "Riviera Nayarit",
+          "years": 1.6,
+          "score": 0.34,
+          "distance_km": 2479.6,
+          "distance_mi": 1540.7
         },
         {
           "name": "Dolly Parton's SongTeller Hotel",
@@ -15368,15 +15332,50 @@
           "location": "Nashville",
           "years": 1.6,
           "score": 0.34,
-          "distance_km": 14360.0,
-          "distance_mi": 8922.9
+          "distance_km": 3150.4,
+          "distance_mi": 1957.6
         }
       ],
-      "pattern_summary": "Among 2 hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–3).",
+      "pattern_summary": "Among 4 hotel projects in TMW's data, the median build time is 2.3 years (range 1.6–8.1). Pelli Clarke & Partners delivers a consistent ~4.3-year pace across 4 projects, adjusting this estimate to ~3.6 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
+    },
+    "trump-international-hotel-tower-gold-coast": {
+      "estimate_years": 4.3,
+      "estimate_label": "~4.3 years",
+      "range_low": 4.3,
+      "range_high": 4.3,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.49,
+      "avg_distance_km": 15499.2,
+      "avg_distance_mi": 9630.8,
+      "scale_used": true,
+      "firm_signal": null,
+      "source": "comparables",
+      "project_type": "Mixed-Use",
+      "metro": "Other",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.49,
+          "distance_km": 15499.2,
+          "distance_mi": 9630.8
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–4.3 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true,
+      "is_mixed_use": true
     },
     "harper-on-swan": {
       "estimate_years": 2.9,
@@ -15504,15 +15503,15 @@
   },
   "stats": {
     "high": 7,
-    "medium": 22,
-    "low": 77,
+    "medium": 23,
+    "low": 76,
     "known_date": 522,
     "completed": 67,
     "skipped": 110,
     "no_type": 0,
-    "firm_boosted": 42,
+    "firm_boosted": 43,
     "speculative_softened": 204,
     "district": 11,
-    "mixed_use_adjusted": 26
+    "mixed_use_adjusted": 27
   }
 }
