@@ -36,9 +36,6 @@
   .topwrap{position:relative;overflow:hidden;min-height:88vh;background:var(--ink)}
   /* pull the content up so the first box sits over the lower edge of the hero image */
   #tl{position:relative;z-index:5;margin-top:-6vh}
-  /* locked: shrink the hero so the unlock card sits near the fold */
-  #doc.gated .topwrap{min-height:56vh}
-  #doc.gated .lockbox{margin-top:0}
   header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
   /* soft cream halo so the title reads over any image behind it */
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
@@ -289,8 +286,10 @@
   #lb .lb-x{position:absolute;top:20px;right:24px;color:var(--mute2);font-size:26px;line-height:1;cursor:pointer;font-family:var(--sans)}
 
   /* ── Private-itinerary lock panel (shown without a personal link) ── */
-  .lockbox{max-width:660px;margin:40px auto 72px;padding:44px 40px;border:1px solid var(--hair2);
-    border-radius:20px;background:rgba(0,0,0,.02);text-align:center}
+  /* same creamy panel as .partners so locked and unlocked read as one design */
+  .lockbox{max-width:660px;margin:6px auto 60px;padding:44px 40px;border:1px solid var(--hair2);
+    border-radius:18px;background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);
+    box-shadow:0 10px 34px rgba(74,57,43,.09);text-align:center}
   .lock-k{font-family:var(--mono,inherit);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
     color:var(--terra,#B0603A);font-weight:700;margin-bottom:14px}
   .lock-h{font-family:var(--serif,Georgia,serif);font-size:clamp(24px,3.4vw,34px);font-weight:600;
@@ -743,6 +742,7 @@ function gateHtml(){
       .then(function(x){
         if(!x.ok || !x.j || !x.j.stops || !x.j.stops.length) return false;
         STOPS = x.j.stops;
+        doc.classList.remove('gated');
         render();
         return true;
       }).catch(function(){ return false; });
