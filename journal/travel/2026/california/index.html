@@ -671,6 +671,13 @@ function render(){
     im.addEventListener('load',  function(){ im.classList.add('loaded'); });
     im.addEventListener('error', function(){ var sl=im.closest('.ss-slide'); if(sl) sl.style.display='none'; });
   });
+  // Same guard for the plan tiles — a cached image can finish before the inline
+  // onload is wired, which would otherwise leave the photo stuck at opacity:0.
+  Array.prototype.forEach.call(document.querySelectorAll('.todo-ph img'), function(im){
+    if(im.complete && im.naturalWidth>0){ im.classList.add('loaded'); return; }
+    im.addEventListener('load',  function(){ im.classList.add('loaded'); });
+    im.addEventListener('error', function(){ var ph=im.closest('.todo-ph'); if(ph) ph.remove(); });
+  });
 
   initSlideshows();
   initRouteMap();
