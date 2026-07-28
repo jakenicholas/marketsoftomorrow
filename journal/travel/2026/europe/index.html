@@ -36,6 +36,9 @@
   .topwrap{position:relative;overflow:hidden;min-height:88vh;background:var(--ink)}
   /* pull the content up so the first box sits over the lower edge of the hero image */
   #tl{position:relative;z-index:5;margin-top:-6vh}
+  /* locked: shrink the hero so the unlock card sits near the fold */
+  #doc.gated .topwrap{min-height:56vh}
+  #doc.gated .lockbox{margin-top:0}
   header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
   /* soft cream halo so the title reads over any image behind it */
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
@@ -465,6 +468,7 @@ function stopHtml(s, marker){
 function buildTopShow(){
   var pick = [];
   STOPS.forEach(function(s){ if(s.imgs && s.imgs.length) pick.push(s.imgs[0]); });   // first image of each location
+  if(!pick.length) pick = (typeof HERO_IMGS !== 'undefined' ? HERO_IMGS : []);       // gated: public scenery
   if(!pick.length) return;
   var el = document.getElementById('topshow');
   el.innerHTML = pick.map(function(f,i){
@@ -701,6 +705,9 @@ function initPartnerModal(){
 var ITIN_ENDPOINT   = 'https://tmw.jake-ab7.workers.dev/travel-itinerary';
 var ACCESS_ENDPOINT = 'https://tmw.jake-ab7.workers.dev/travel-access';
 var TKEY = 'tmwTravelPass';
+// Public scenery for the hero — city/landscape only, never a stay photo,
+// so the locked page still feels alive without revealing where we sleep.
+var HERO_IMGS = ["https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg", "https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg"];
 function gateHtml(){
   return '<div class="lockbox">'
     + '<div class="lock-k">Private itinerary</div>'
@@ -712,6 +719,7 @@ function gateHtml(){
     +   '<button class="lock-cta" id="lockGo" type="submit">View itinerary <span class="pt-arw">→</span></button>'
     + '</form>'
     + '<div class="lock-pw"><button type="button" class="lock-toggle" id="lockPwToggle">I have an access password</button>'
+    +   '<button type="button" class="lock-toggle" id="lockBack" hidden>Use my email instead</button>'
     +   '<form class="lock-form lock-form-pw" id="lockPwForm" hidden novalidate>'
     +     '<input class="lock-in" id="lockPw" type="password" autocomplete="current-password" placeholder="Access password">'
     +     '<button class="lock-cta" type="submit">Unlock <span class="pt-arw">→</span></button>'
@@ -739,15 +747,23 @@ function gateHtml(){
   function showGate(){
     var tl = document.getElementById('tl');
     if(tl) tl.innerHTML = gateHtml();
+    doc.classList.add('gated');
+    try { buildTopShow(); } catch(e){}
     finish();
     var msg = document.getElementById('lockMsg');
     var pwToggle = document.getElementById('lockPwToggle');
     var pwForm = document.getElementById('lockPwForm');
-    pwToggle.addEventListener('click', function(){
-      pwForm.hidden = !pwForm.hidden;
-      pwToggle.style.display = pwForm.hidden ? '' : 'none';
-      if(!pwForm.hidden) document.getElementById('lockPw').focus();
-    });
+    var emailForm = document.getElementById('lockForm');
+    var backLink  = document.getElementById('lockBack');
+    function mode(pw){
+      emailForm.hidden = pw; pwForm.hidden = !pw;
+      pwToggle.hidden = pw; backLink.hidden = !pw;
+      msg.textContent = '';
+      var f = document.getElementById(pw ? 'lockPw' : 'lockEmail');
+      if(f) try { f.focus(); } catch(e){}
+    }
+    pwToggle.addEventListener('click', function(){ mode(true); });
+    backLink.addEventListener('click', function(){ mode(false); });
     function submit(body, btn){
       msg.className = 'lock-msg'; msg.textContent = 'Checking…';
       if(btn) btn.disabled = true;
@@ -775,8 +791,7 @@ function gateHtml(){
     });
     pwForm.addEventListener('submit', function(e){
       e.preventDefault();
-      submit({ password: document.getElementById('lockPw').value,
-               email: document.getElementById('lockEmail').value.trim() }, null);
+      submit({ password: document.getElementById('lockPw').value }, null);
     });
   }
   function initSlideshowsSafe(){ try { initSlideshows(); initRouteMap(); } catch(e){} }
