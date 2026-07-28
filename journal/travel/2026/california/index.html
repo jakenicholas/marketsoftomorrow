@@ -296,6 +296,18 @@
     background:transparent;color:var(--terra,#B0603A);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
     font-weight:700;padding:13px 22px;border-radius:999px;font-family:inherit;transition:all .2s}
   .lock-cta:hover{background:var(--terra,#B0603A);color:#fff}
+
+  .lock-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 auto 6px;max-width:460px}
+  .lock-in{flex:1 1 240px;min-width:0;padding:13px 16px;border:1px solid var(--hair2);border-radius:999px;
+    background:#fff;font-family:inherit;font-size:14.5px;color:inherit}
+  .lock-in:focus{outline:none;border-color:var(--terra,#B0603A)}
+  .lock-pw{margin-top:14px}
+  .lock-toggle{background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;
+    color:var(--mute2,#6b6b6b);text-decoration:underline;text-underline-offset:3px;padding:6px}
+  .lock-toggle:hover{color:var(--terra,#B0603A)}
+  .lock-form-pw{margin-top:12px}
+  .lock-msg{margin-top:14px;font-size:13.5px;color:var(--mute2,#6b6b6b);min-height:18px}
+  .lock-msg.err{color:#B0603A}
 </style>
 </head>
 <body>
@@ -673,42 +685,102 @@ function initPartnerModal(){
 // ── Boot: PRIVATE itinerary ──
 // The detailed stops (hotels, exact nights, transit times) are deliberately NOT
 // in this page's source — hiding them with JS would be defeated by view-source.
-// They live server-side and are released only when a per-recipient signed link
-// (?k=…) verifies. No link → the public teaser + a way to request access.
-var ITIN_ENDPOINT = 'https://tmw.jake-ab7.workers.dev/travel-itinerary';
-function lockedHtml(){
+// They live server-side and are released after a lightweight unlock: leave an
+// email, or use the shared password. The link is MEANT to be forwarded (the
+// colleague who books the stay is often the one we want), so this is an
+// analytics checkpoint, not a lock.
+var ITIN_ENDPOINT   = 'https://tmw.jake-ab7.workers.dev/travel-itinerary';
+var ACCESS_ENDPOINT = 'https://tmw.jake-ab7.workers.dev/travel-access';
+var TKEY = 'tmwTravelPass';
+function gateHtml(){
   return '<div class="lockbox">'
     + '<div class="lock-k">Private itinerary</div>'
-    + '<h2 class="lock-h">Detailed stays are shared privately</h2>'
-    + '<p class="lock-p">For the safety of our team, exact hotels and nightly dates aren\u2019t published here. '
-    + 'If we sent you a personal link, open the itinerary from that link. Otherwise, tell us about your property '
-    + 'and we\u2019ll share the relevant dates with you directly.</p>'
-    + '<button type="button" class="pt-tile lock-cta" data-partner="" data-type="Hotel">'
-    +   'Request partnership <span class="pt-arw">\u2192</span></button>'
+    + '<h2 class="lock-h">See the full itinerary</h2>'
+    + '<p class="lock-p">Exact stays and dates aren’t public. Leave your email and it opens right up — '
+    + 'or use the access password if we gave you one. Feel free to pass this along to colleagues.</p>'
+    + '<form class="lock-form" id="lockForm" novalidate>'
+    +   '<input class="lock-in" id="lockEmail" type="email" autocomplete="email" placeholder="you@company.com">'
+    +   '<button class="lock-cta" id="lockGo" type="submit">View itinerary <span class="pt-arw">→</span></button>'
+    + '</form>'
+    + '<div class="lock-pw"><button type="button" class="lock-toggle" id="lockPwToggle">I have an access password</button>'
+    +   '<form class="lock-form lock-form-pw" id="lockPwForm" hidden novalidate>'
+    +     '<input class="lock-in" id="lockPw" type="password" autocomplete="current-password" placeholder="Access password">'
+    +     '<button class="lock-cta" type="submit">Unlock <span class="pt-arw">→</span></button>'
+    +   '</form>'
+    + '</div>'
+    + '<div class="lock-msg" id="lockMsg" role="status"></div>'
     + '</div>';
 }
 (function(){
   var doc = document.getElementById('doc');
-  var k = new URLSearchParams(location.search).get('k') || '';
   function finish(){
     initPartnerModal();
     setTimeout(function(){ doc.classList.add('reveal'); }, 30);
   }
-  function locked(){
-    var tl = document.getElementById('tl');
-    if(tl) tl.innerHTML = lockedHtml();
-    finish();
+  function load(tok){
+    return fetch(ITIN_ENDPOINT + '?slug=' + encodeURIComponent(TRIP_SLUG) + '&k=' + encodeURIComponent(tok))
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+      .then(function(x){
+        if(!x.ok || !x.j || !x.j.stops || !x.j.stops.length) return false;
+        STOPS = x.j.stops;
+        render();
+        return true;
+      }).catch(function(){ return false; });
   }
-  if(!k){ locked(); return; }
-  fetch(ITIN_ENDPOINT + '?slug=' + encodeURIComponent(TRIP_SLUG) + '&k=' + encodeURIComponent(k))
-    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
-    .then(function(x){
-      if(!x.ok || !x.j || !x.j.stops || !x.j.stops.length){ locked(); return; }
-      STOPS = x.j.stops;
-      render();
-      finish();
-    })
-    .catch(function(){ locked(); });
+  function showGate(){
+    var tl = document.getElementById('tl');
+    if(tl) tl.innerHTML = gateHtml();
+    finish();
+    var msg = document.getElementById('lockMsg');
+    var pwToggle = document.getElementById('lockPwToggle');
+    var pwForm = document.getElementById('lockPwForm');
+    pwToggle.addEventListener('click', function(){
+      pwForm.hidden = !pwForm.hidden;
+      pwToggle.style.display = pwForm.hidden ? '' : 'none';
+      if(!pwForm.hidden) document.getElementById('lockPw').focus();
+    });
+    function submit(body, btn){
+      msg.className = 'lock-msg'; msg.textContent = 'Checking…';
+      if(btn) btn.disabled = true;
+      body.slug = TRIP_SLUG;
+      fetch(ACCESS_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+        .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+        .then(function(x){
+          if(!x.ok || !x.j.token){
+            msg.className = 'lock-msg err';
+            msg.textContent = (x.j && x.j.error) || 'Something went wrong. Try again.';
+            if(btn) btn.disabled = false;
+            return;
+          }
+          try { localStorage.setItem(TKEY, x.j.token); } catch(e){}
+          load(x.j.token).then(function(ok){
+            if(ok){ initSlideshowsSafe(); }
+            else { msg.className='lock-msg err'; msg.textContent='Could not load the itinerary. Try again.'; if(btn) btn.disabled=false; }
+          });
+        })
+        .catch(function(){ msg.className='lock-msg err'; msg.textContent='Network error. Try again.'; if(btn) btn.disabled=false; });
+    }
+    document.getElementById('lockForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      submit({ email: document.getElementById('lockEmail').value.trim() }, document.getElementById('lockGo'));
+    });
+    pwForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      submit({ password: document.getElementById('lockPw').value,
+               email: document.getElementById('lockEmail').value.trim() }, null);
+    });
+  }
+  function initSlideshowsSafe(){ try { initSlideshows(); initRouteMap(); } catch(e){} }
+  // A saved unlock (or a legacy per-recipient ?k= link) skips the form.
+  var k = new URLSearchParams(location.search).get('k') || '';
+  var saved = '';
+  try { saved = localStorage.getItem(TKEY) || ''; } catch(e){}
+  var tok = k || saved;
+  if(!tok){ showGate(); return; }
+  load(tok).then(function(ok){
+    if(ok){ if(k){ try { localStorage.setItem(TKEY, k); } catch(e){} } finish(); }
+    else { try { localStorage.removeItem(TKEY); } catch(e){} showGate(); }
+  });
 })();
 </script>
 </body>

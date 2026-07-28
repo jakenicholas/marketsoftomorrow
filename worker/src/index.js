@@ -4068,6 +4068,106 @@ async function handleTravelInvitesBulk(req, env, origin) {
   const csv = 'recipient,link\n' + links.map(l => '"' + l.to.replace(/"/g, '""') + '","' + l.url + '"').join('\n');
   return json({ ok: true, slug, count: links.length, links, csv }, {}, env, origin);
 }
+// POST /travel-access { slug, email? , password? } → a 30-day viewer token.
+// The link is meant to be FORWARDED (a contact passing it to the colleague who
+// actually books the stay is the win), so access is deliberately low-friction:
+// leave an email, or use the shared password we give friends. Neither is proof
+// of identity — the point is ANALYTICS, not a lock. The email DOMAIN is the
+// signal that matters: it tells us which firm is circulating the itinerary.
+function normEmail(s) { return String(s || '').trim().toLowerCase(); }
+function validEmail(s) { return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(s); }
+// Constant-time-ish compare so the shared password can't be probed by timing.
+function sameSecret(a, b) {
+  const x = String(a || ''), y = String(b || '');
+  if (!x || !y || x.length !== y.length) return false;
+  let d = 0;
+  for (let i = 0; i < x.length; i++) d |= x.charCodeAt(i) ^ y.charCodeAt(i);
+  return d === 0;
+}
+async function handleTravelAccess(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '*').trim().toLowerCase();
+  const email = normEmail(b.email);
+  const pw = String(b.password || '');
+  let identity = '', method = '';
+  if (pw) {
+    if (!env.TRAVEL_PASSWORD) return json({ error: 'Password access is not set up yet.' }, { status: 400 }, env, origin);
+    if (!sameSecret(pw, env.TRAVEL_PASSWORD)) return json({ error: "That password doesn't match." }, { status: 401 }, env, origin);
+    identity = email && validEmail(email) ? email : 'password-holder';
+    method = 'password';
+  } else if (email) {
+    if (!validEmail(email)) return json({ error: 'Please enter a valid email.' }, { status: 400 }, env, origin);
+    identity = email; method = 'email';
+  } else {
+    return json({ error: 'Enter an email or the access password.' }, { status: 400 }, env, origin);
+  }
+  const domain = identity.includes('@') ? identity.split('@')[1] : '';
+  try {
+    if (env.DB) {
+      await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)').bind(
+        Math.floor(Date.now() / 1000), 'travel:' + identity, 'travel_access_unlock',
+        JSON.stringify({
+          identity, method, domain, slug,
+          ip: req.headers.get('CF-Connecting-IP') || '',
+          country: (req.cf && req.cf.country) || '',
+          city: (req.cf && req.cf.city) || '',
+          ua: (req.headers.get('User-Agent') || '').slice(0, 200),
+          ref: (req.headers.get('Referer') || '').slice(0, 200),
+        }),
+      ).run();
+    }
+  } catch (_) {}
+  // '*' so one unlock covers every trip — re-prompting per page would just push
+  // people to screenshot and forward the content instead.
+  const token = await mintTravelToken(env, '*', identity, 30);
+  return json({ ok: true, token, viewer: identity }, {}, env, origin);
+}
+
+// GET /travel-access-log (admin) → who has been opening the itineraries.
+// Grouped by firm domain, because "which agency is circulating this" is the
+// question worth answering.
+async function handleTravelAccessLog(req, env, origin, url) {
+  if (!env.DB) return json({ error: 'no DB' }, { status: 500 }, env, origin);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get('days'), 10) || 90, 1), 365);
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT ts, event_name, props_json FROM events
+        WHERE event_name IN ('travel_access_unlock','travel_itinerary_view') AND ts >= ?1
+        ORDER BY ts DESC LIMIT 1000`).bind(since).all();
+    const rows = (rs.results || []).map(r => {
+      let p = {}; try { p = JSON.parse(r.props_json || '{}'); } catch (_) {}
+      return {
+        ts: r.ts, at: new Date(r.ts * 1000).toISOString(),
+        kind: r.event_name === 'travel_access_unlock' ? 'unlock' : 'view',
+        identity: p.identity || p.to || '', method: p.method || '',
+        domain: p.domain || ((p.identity || p.to || '').split('@')[1] || ''),
+        slug: p.slug || '', country: p.country || '', city: p.city || '', ip: p.ip || '',
+      };
+    });
+    const byDomain = {}, byPerson = {};
+    for (const r of rows) {
+      const d = r.domain || '(no email)';
+      byDomain[d] = byDomain[d] || { domain: d, unlocks: 0, views: 0, people: new Set() };
+      byDomain[d][r.kind === 'unlock' ? 'unlocks' : 'views']++;
+      if (r.identity) byDomain[d].people.add(r.identity);
+      if (r.identity) {
+        byPerson[r.identity] = byPerson[r.identity] || { identity: r.identity, unlocks: 0, views: 0, last: r.at, countries: new Set() };
+        byPerson[r.identity][r.kind === 'unlock' ? 'unlocks' : 'views']++;
+        if (r.country) byPerson[r.identity].countries.add(r.country);
+      }
+    }
+    return json({
+      ok: true, days, total: rows.length,
+      firms: Object.values(byDomain).map(d => ({ ...d, people: d.people.size }))
+        .sort((a, b) => (b.unlocks + b.views) - (a.unlocks + a.views)),
+      people: Object.values(byPerson).map(p => ({ ...p, countries: [...p.countries] }))
+        .sort((a, b) => (b.unlocks + b.views) - (a.unlocks + a.views)),
+      recent: rows.slice(0, 200),
+    }, {}, env, origin);
+  } catch (e) { return json({ error: String(e.message || e) }, { status: 502 }, env, origin); }
+}
+
 async function handleTravelItinerary(req, env, origin, url) {
   const slug = (url.searchParams.get('slug') || '').trim().toLowerCase();
   const k = url.searchParams.get('k') || '';
@@ -14347,6 +14447,15 @@ export default {
         const denied = await requireAdminToken(request, env, origin);
         if (denied) return denied;
         return await handleTravelInvitesBulk(request, env, origin);
+      }
+      // Public unlock: leave an email, or use the shared password.
+      if (request.method === 'POST' && url.pathname === '/travel-access') {
+        return await handleTravelAccess(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/travel-access-log') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleTravelAccessLog(request, env, origin, url);
       }
       if (request.method === 'GET' && url.pathname === '/travel-itinerary') {
         return await handleTravelItinerary(request, env, origin, url);
