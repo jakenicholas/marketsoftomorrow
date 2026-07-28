@@ -137,8 +137,11 @@ def main():
     out.append('</urlset>\n')
     with open(f"{OUT_DIR}/sitemap.xml", "w", encoding="utf-8") as f:
         f.write("\n".join(out))
+    # /travel is a SAFETY surface (where the team physically is, and when), so it
+    # stays out of search entirely — belt and suspenders alongside the pages' own
+    # noindex. It is never in the sitemap either.
     with open(f"{OUT_DIR}/robots.txt", "w", encoding="utf-8") as f:
-        f.write("User-agent: *\nAllow: /\n\nSitemap: " + BASE + "/sitemap.xml\n")
+        f.write("User-agent: *\nAllow: /\nDisallow: /travel/\n\nSitemap: " + BASE + "/sitemap.xml\n")
 
     # Total image count for the summary line
     total_imgs = sum(len(v) for v in project_imgs.values())

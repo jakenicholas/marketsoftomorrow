@@ -19,6 +19,7 @@ import { handleMcp, autoPromoteOpenedProjects } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
+import { TRAVEL_STOPS } from './travel-data.js';
 
 // ---------------------------------------------------------------------------
 // CORS helpers
@@ -4022,6 +4023,84 @@ async function handlePreviewToken(req, env, origin, url) {
   );
   const workerHost = new URL(req.url).origin;
   return json({ token, url: workerHost + '/post-preview?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(token) }, {}, env, origin);
+}
+
+// ─── Private travel itineraries ──────────────────────────────────────────────
+// The /travel detail pages are a SAFETY surface: exact hotels, dates and
+// transit times reveal where the team physically is. So the detail never ships
+// in page source — it lives in travel-data.js and is served only here, after a
+// per-recipient signed token verifies. Identity is ASSIGNED by the link (not
+// self-reported), so it cannot be faked, and every open is logged for
+// attribution + leak detection (one link opening from many IPs = forwarded).
+//
+// GET /travel-invite?slug=<trip|*>&to=<recipient>&days=N   (admin) → one link
+// POST /travel-invites {slug, days, to:[...]}              (admin) → bulk
+// GET  /travel-itinerary?slug=<trip>&k=<token>             → gated detail JSON
+function travelSecret(env) { return previewSecret(env); }
+async function mintTravelToken(env, slug, to, days) {
+  return await signPayload({
+    t: 'travel', slug: slug || '*', to: String(to || '').slice(0, 120),
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * (Number(days) > 0 ? Number(days) : 120),
+  }, travelSecret(env));
+}
+function travelLinkFor(slug, token) {
+  const path = slug && slug !== '*' ? '/travel/2026/' + encodeURIComponent(slug) + '/' : '/travel/';
+  return 'https://www.oftmw.com' + path + '?k=' + encodeURIComponent(token);
+}
+async function handleTravelInvite(req, env, origin, url) {
+  const slug = (url.searchParams.get('slug') || '*').trim().toLowerCase();
+  const to = (url.searchParams.get('to') || '').trim();
+  const days = url.searchParams.get('days');
+  if (!to) return json({ error: 'to (recipient name or email) is required — it is what makes the link attributable' }, { status: 400 }, env, origin);
+  const token = await mintTravelToken(env, slug, to, days);
+  return json({ ok: true, to, slug, url: travelLinkFor(slug, token) }, {}, env, origin);
+}
+async function handleTravelInvitesBulk(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '*').trim().toLowerCase();
+  const list = Array.isArray(b.to) ? b.to : String(b.to || '').split(/[\n,]+/);
+  const rec = list.map(x => String(x || '').trim()).filter(Boolean);
+  if (!rec.length) return json({ error: 'to[] is required' }, { status: 400 }, env, origin);
+  if (rec.length > 500) return json({ error: 'max 500 recipients per call' }, { status: 400 }, env, origin);
+  const links = [];
+  for (const to of rec) links.push({ to, url: travelLinkFor(slug, await mintTravelToken(env, slug, to, b.days)) });
+  // CSV makes it a paste-into-mail-merge job rather than 100 manual copies.
+  const csv = 'recipient,link\n' + links.map(l => '"' + l.to.replace(/"/g, '""') + '","' + l.url + '"').join('\n');
+  return json({ ok: true, slug, count: links.length, links, csv }, {}, env, origin);
+}
+async function handleTravelItinerary(req, env, origin, url) {
+  const slug = (url.searchParams.get('slug') || '').trim().toLowerCase();
+  const k = url.searchParams.get('k') || '';
+  if (!slug || !TRAVEL_STOPS[slug]) return json({ error: 'unknown trip' }, { status: 404 }, env, origin);
+  let tok = null;
+  try { if (k) tok = await verifyPayload(k, travelSecret(env)); } catch (_) {}
+  const okToken = !!(tok && tok.t === 'travel' && (tok.slug === '*' || tok.slug === slug));
+  if (!okToken) {
+    // Admins can always read it (Studio preview); everyone else gets the teaser.
+    const denied = await requireAdminToken(req, env, origin);
+    if (denied) return json({ gated: true, error: 'This itinerary is private. Open it from your personal link.' }, { status: 403 }, env, origin);
+  }
+  // Log the open: who, which trip, from where. This is the attribution and
+  // leak-detection record — a single recipient's link opening from many IPs
+  // is the signal that it was forwarded.
+  try {
+    if (env.DB) {
+      await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)').bind(
+        Math.floor(Date.now() / 1000),
+        'travel:' + (tok && tok.to ? tok.to : 'admin'),
+        'travel_itinerary_view',
+        JSON.stringify({
+          slug, to: (tok && tok.to) || 'admin',
+          ip: req.headers.get('CF-Connecting-IP') || '',
+          country: (req.cf && req.cf.country) || '',
+          ua: (req.headers.get('User-Agent') || '').slice(0, 200),
+          ref: (req.headers.get('Referer') || '').slice(0, 200),
+        }),
+      ).run();
+    }
+  } catch (_) { /* logging must never block the view */ }
+  return json({ ok: true, gated: false, slug, viewer: (tok && tok.to) || 'admin', stops: TRAVEL_STOPS[slug] },
+    { headers: { 'Cache-Control': 'no-store' } }, env, origin);
 }
 
 // GET /post-preview?slug=<slug>&pt=<token> — social-share shim for an article
@@ -14255,6 +14334,22 @@ export default {
       // the handler: published, or a valid preview token, or admin).
       if (request.method === 'GET' && url.pathname === '/post-preview') {
         return await handleArticlePreview(request, env, origin, url);
+      }
+      // ── Private travel itineraries ───────────────────────────────────
+      // Minting is admin-only; reading is gated INSIDE the handler by the
+      // per-recipient signed token (or admin).
+      if (request.method === 'GET' && url.pathname === '/travel-invite') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleTravelInvite(request, env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/travel-invites') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleTravelInvitesBulk(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/travel-itinerary') {
+        return await handleTravelItinerary(request, env, origin, url);
       }
       // ── Social carousels ─────────────────────────────────────────────
       // Admin CRUD (gated), token-minting endpoint, and the public

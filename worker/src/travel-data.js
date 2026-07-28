@@ -1,0 +1,153 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PRIVATE TRAVEL ITINERARIES — the sensitive layer of /travel.
+//
+// Exact hotels, exact dates, and transit times are NOT published in any static
+// page (view-source would defeat a client-side hide). They live here and are
+// served ONLY by /travel-itinerary after a per-recipient signed token verifies.
+// The public pages ship a city+month teaser instead.
+//
+// Edit these the same way you used to edit the itinerary pages.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const TRAVEL_STOPS = {
+  california: [
+  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn', confirmed:true, imgPos:'center 72%',
+    in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown, the journey begins' },
+    vibe:'Opening in the heart of Silicon Valley, a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
+    logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
+
+  { loc:'Big Sur, California', nights:'1 Night · Aug 4 → 5', stay:'Highway 1 & the Coast', pending:true, inworks:true,
+    in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
+    vibe:'The most dramatic stretch of the Pacific Coast Highway, Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
+    logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
+    imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
+
+  { loc:'Sonoma, California', nights:'2 Nights · Aug 5 → 7', stay:'MacArthur Place Sonoma', client:'J/PR', confirmed:true,
+    in:{ date:'Aug 5', mode:'car', note:'Big Sur → Sonoma' },
+    vibe:'A historic six-acre estate at the edge of Sonoma’s plaza, where garden cottages, a spa, and the wine country’s ease set the tone for the valley.',
+    logi:[['The Meal','Dinner at Layla.']],
+    imgs:['https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
+
+  { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true,
+    in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
+    vibe:'Closing the loop in the capital, a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
+    logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
+],
+
+  europe: [
+  // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
+  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Airbnb', noClient:true, confirmed:true,
+    in:{ start:true, date:'September 3', mode:'flight', note:'Depart home, arrive Rome the 4th' },
+    vibe:'Opening nights in the Eternal City: a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
+    logi:[], imgs:[
+      'https://www.italyperfect.com/g/photos/upload/sml_845543004-1590582528-ip-info-rome.jpg'] },
+
+  { loc:'Verona, Italy', nights:'4 Nights · Sept 7 → 11', stay:'Hotel Touring', noClient:true, confirmed:true,
+    in:{ date:'Sept 7', mode:'train', note:'Rome → Verona' },
+    vibe:'Fair Verona on the Adige: the Roman arena, frescoed piazzas, and a relaxed Veneto base within easy reach of the northern lakes.',
+    logi:[], imgs:['https://travelthru.com/cdn-cgi/imagedelivery/wZpbJM3t8iED5kIISxeUgQ/506fd17a-fa66-4fb1-d067-0d209a988b00/public'] },
+
+  { loc:'Venice, Italy', nights:'Day Trip · Sept 8', stay:'A Day on the Water', noClient:true, confirmed:true,
+    in:{ date:'Sept 8', mode:'train', note:'Day trip from Verona' },
+    vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
+    logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
+
+  { loc:'Lake Como, Italy or Dubrovnik, Croatia', nights:'3 Nights · Sept 11 → 14', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+    in:{ date:'Sept 11', mode:'flight', note:'Verona → Lake Como or Dubrovnik' },
+    vibe:'Two options for these three nights, and we are open to both: Lake Como or Dubrovnik. The right hotel partnership decides the destination.',
+    logi:[], imgs:[
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Bellagio_and_Lake_Como_from_Menaggio-Varenna_ferry.jpg/1920px-Bellagio_and_Lake_Como_from_Menaggio-Varenna_ferry.jpg',
+      'https://www.geoex.com/_next/image?url=https%3A%2F%2Fkxn3vdktxmez55pl.public.blob.vercel-storage.com%2FDubrovnik_AdobeStock_142786819_1920x1080.png&w=2048&q=75'] },
+
+  // ── Part 1: The Greek Isles & Mainland ──
+  { loc:'Mykonos', nights:'2 Nights · Sept 14 → 16', stay:'Cali Mykonos', confirmed:true,
+    in:{ date:'Sept 14', mode:'flight', note:'Como or Dubrovnik → Mykonos' },
+    vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock, an ultra-exclusive escape away from the intense Mykonos crowds.',
+    logi:[['Transit','Fly Aegean the morning of Sept 14, connecting through Athens (ATH), landing in Mykonos at <b>2:10 PM</b>.']],
+    imgs:[
+      'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
+      'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
+
+  { loc:'Santorini, Greece', nights:'2 Nights · Sept 16 → 18', stay:'Andronis Arcadia', confirmed:true,
+    in:{ date:'Sept 16', mode:'ferry', note:'Ferry to Santorini' },
+    vibe:'Classic Cycladic white-plaster cave suites built into the dramatic volcanic cliffs of Oia, every suite with its own private infinity or heated cave plunge pool facing the deep-blue caldera, and the famous clifftop, candlelit Lycabettus restaurant above the sea.',
+    logi:[['Transit','Ferry from Mykonos to Santorini, about <b>2.5 hours</b>.']],
+    imgs:[
+      'https://media.cntraveler.com/photos/6638fe33e2d99e8ecd3db913/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Pacman%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg',
+      'https://cdn.sanity.io/images/nxpteyfv/goguides/9ca4581e7f31535984243dfa9c08c12c8a30ffeb-1600x1066.jpg',
+      'https://media.cntraveler.com/photos/6638fe274f34977b03728a03/16:9/w_2560%2Cc_limit/Andronis%2520Arcadia%2C%2520Santorini_Main%2520Pool%25203_CREDIT%2520Tryfon%2520Georgopoulos.jpg'] },
+
+  { loc:'Athens Riviera', nights:'2 Nights · Sept 18 → 20', stay:'Four Seasons Astir Palace', inworks:true,
+    in:{ date:'Sept 18', mode:'ferry', note:'Santorini → Port of Piraeus' },
+    vibe:'The crown jewel of the Athens Riviera, in the prestigious enclave of Vouliagmeni, a glamorous 75-acre pine-clad peninsula bringing the golden era of the 1960s Riviera into the present. Three private beaches, a 300-meter waterfront boardwalk, fine dining including Matsuhisa by Nobu and a beachfront Greek taverna, and an exceptional spa, a resort escape just 30 minutes from the city.',
+    logi:[['Transit','Ferry from Santorini to the <b>Port of Piraeus</b>.'],['The Drive','<b>~43-minute drive</b> from Piraeus to Vouliagmeni.']],
+    imgs:[
+      'https://www.grecotel.com/capesounio/wp-content/uploads/sites/14/2024/06/01-athens-riviera-temple-of-poseidon-cape-sounio-grecotel.jpg',
+      'https://www.fourseasons.com/content/dam/fourseasons/images/web/APL/APL_137_original.jpg'] },
+
+  { loc:'Athens · Historic Center', nights:'3 Nights · Sept 20 → 23', stay:'The Dolli at Acropolis', inworks:true,
+    in:{ date:'Sept 20', mode:'car', note:'Vouliagmeni → Athens · private transfer' },
+    vibe:'An acclaimed boutique hotel celebrated for its personalized luxury and a world-class rooftop lounge that places you at eye level with the Acropolis, an ideal base for walking the Plaka and exploring the ancient landmarks.',
+    logi:[['Transit','~30-minute private transfer from Vouliagmeni to central Athens.']],
+    imgs:[
+      'https://www.thedolli.com/wp-content/uploads/2026/01/01-grecotel-hotels-resorts-the-dolli-athens-city-center-1536x1046.jpg',
+      'https://www.thehotelguru.com/_images/98/6f/986fedf825c85c605b4319783c4df931/s1654x900.jpg',
+      'https://latteluxurynews.com/wp-content/uploads/2023/11/16-acropolis-luxury-junior-suite-the-dolli-boutique-hotel-athens-1132x560-1.jpg',
+      'https://www.thedolli.com/wp-content/uploads/2026/06/05-the-dolli-fosters-magic-happenings-grecotel-1536x1046.jpg',
+      'https://www.thedolli.com/wp-content/uploads/2026/01/02-grecotel-the-dolli-hotels-resorts-wines-cocktails-768x613.jpg',
+      'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg'] },
+
+  { loc:'Lake Bled, Slovenia', nights:'2 Nights · Sept 23 → 25', stay:'Private Stay', noClient:true,
+    in:{ date:'Sept 23', mode:'flight', note:'Athens → Ljubljana, then a 45-minute drive' },
+    vibe:'A private lakeside retreat on Slovenia’s storied glacial lake, with its island church and clifftop castle above the emerald water.',
+    logi:[['Transit','Taxi to ATH, then the non-stop Aegean flight to Ljubljana (LJU), about <b>2 hours</b>. Pick up the rental at the airport.'],['The Drive','<b>~45-minute drive</b> northwest to Lake Bled.']],
+    imgs:[
+      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg'] },
+
+  { loc:'Southeast Slovenia', nights:'2 Nights · Sept 25 → 27', stay:'Hotel Grad Otočec', inworks:true,
+    in:{ date:'Sept 25', mode:'car', note:'Lake Bled → Otočec' },
+    vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
+    logi:[['The Drive','<b>~1.5-hour drive</b> southeast on the A2.']],
+    imgs:[
+      'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg',
+      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/134886518.jpg?k=4825d2170dfae86113ecbb4af5d77ac8517c8806f01a3a1f7f94d84a393b4546&o=',
+      'https://www.outthere.travel/wp-content/uploads/2021/01/The-Grad-Otoc%CC%8Cec-Otoc%CC%8Cec-Slovenia_Feat.jpg',
+      'https://images.trvl-media.com/lodging/4000000/3150000/3145300/3145268/b54731d5.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
+
+  { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 27 → 30', stay:'Forestis Dolomites', inworks:true,
+    in:{ date:'Sept 27', mode:'car', note:'Otočec → South Tyrol' },
+    vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
+    logi:[['The Drive','<b>~3.5-hour drive</b> west from Otočec into South Tyrol, up above Bressanone.']],
+    imgs:[
+      'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
+      'https://www.forestis.it/media/1801/forestis-dolomites-luxury-hotel8385.jpg?mode=max&rnd=133778087480000000'] },
+
+  { loc:'St. Moritz, Switzerland', nights:'2 Nights · Sept 30 → Oct 2', stay:'Badrutt’s Palace Hotel', inworks:true,
+    in:{ date:'Sept 30', mode:'car', note:'Italy → Engadin · ~3.5h over the passes' },
+    vibe:'A legendary, historic lakeside palace known as the cradle of alpine luxury. It balances old-world European glamour, vibrant grand dining rooms, and an elite infinity-pool cave complex overlooking Lake St. Moritz.',
+    logi:[['The Drive','<b>~3.5-hour drive</b> (200 km) across the Swiss border into the Engadin valley.']],
+    imgs:[
+      'https://assets.vogue.com/photos/65ccb18a486b55e585379e53/master/w_2560%2Cc_limit/GettyImages-1353085015.jpg',
+      'https://cdn.mos.cms.futurecdn.net/5ZzMN2nehoCLa4BdMUTnxX.jpg',
+      'https://www.engadin.ch/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fy9q53f1k%2Fproduction%2F26b0df592c1566071b17cdf46da1bf609d4d56d4-2400x1600.jpg%3Ffm%3Dwebp%26q%3D90%26w%3D2760%26h%3D1572&w=3840&q=80'] },
+
+  { loc:'Gstaad, Switzerland', nights:'2 Nights · Oct 2 → 4', stay:'The Alpina Gstaad', inworks:true,
+    in:{ date:'Oct 2', mode:'car', note:'St. Moritz → Bernese Oberland · ~4.5h' },
+    vibe:'A masterfully designed, contemporary chalet-style icon. Blending weathered local woodwork with world-class modern art, it boasts Michelin-starred dining, a lavish Six Senses Spa, and sweeping valley views.',
+    logi:[['The Drive','<b>~4.5-hour drive</b> (330 km) east to west across Switzerland to the Bernese Oberland.']],
+    imgs:[
+      'https://www.countryclubuk.com/wp-content/uploads/2026/01/The-Alpina-Gstaad-hotel-2000.jpg',
+      'https://www.thealpinagstaad.ch/media/2964/thealpinagstaad_-6.jpg?mode=max&rnd=132602926050000000',
+      'https://www.thealpinagstaad.ch/media/2731/the-alpina-gstaad-15.jpg?mode=max&rnd=132489757030000000'] },
+
+  { loc:'Zurich or Geneva, Switzerland', nights:'1 Night · Oct 4 → 5', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Oct 4', mode:'car', note:'Gstaad → Zurich / Geneva' },
+    vibe:'', logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
+],
+};
+
+// Public-safe summary per trip (what an ungated visitor may see).
+export const TRAVEL_PUBLIC = {
+  california: { label: 'Pacific Coast Highway & Napa Valley', window: 'August 2026', region: 'California' },
+  europe:     { label: 'Italy, the Adriatic & the Greek Isles', window: 'September – October 2026', region: 'Europe' },
+};

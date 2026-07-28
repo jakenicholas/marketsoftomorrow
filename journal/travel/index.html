@@ -298,16 +298,29 @@ function tripStatus(t){
   }
   return t.upcoming ? 'up' : 'ended';
 }
+// SAFETY: upcoming trips show only a month-grain window, never exact dates.
+// "We are in Sonoma Aug 5–7" is the stalking vector; "California in August" is
+// all a hotel partner needs to pitch us. Past trips keep their full dates.
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function coarseWindow(t){
+  if (!t.start || !t.end) return t.date;
+  var s = new Date(t.start + 'T00:00:00'), e = new Date(t.end + 'T00:00:00');
+  if (isNaN(s) || isNaN(e)) return t.date;
+  var sm = MONTHS[s.getMonth()], em = MONTHS[e.getMonth()], y = e.getFullYear();
+  return sm === em ? sm + ' ' + y : sm + ' – ' + em + ' ' + y;
+}
 function tripHtml(t, i){
-  // Top-right status pill: filled terracotta "Live" while we're there, outlined
-  // "Upcoming" before, gray "Ended" after.
-  var st = tripStatus(t);
-  var label = st === 'live' ? 'Live' : (st === 'up' ? 'Upcoming' : 'Ended');
-  var badge = '<span class="trip-badge '+st+'">'+(st==='live'?'<span class="live-dot"></span>':'')+label+'</span>';
+  // Status pill: outlined "Upcoming" before, gray "Ended" after. There is
+  // deliberately no "Live" state — broadcasting that we are physically
+  // somewhere right now is the highest-risk element on the page.
+  var stRaw = tripStatus(t);
+  var st = stRaw === 'live' ? 'up' : stRaw;
+  var label = st === 'up' ? 'Upcoming' : 'Ended';
+  var badge = '<span class="trip-badge '+st+'">'+label+'</span>';
   var inner =
       '<div class="trip-img">'+imgHtml(t, i)+badge+'</div>'   // badge anchored inside the image
     + '<div class="trip-body">'
-    +   '<div class="trip-date">'+esc(t.date)+'</div>'
+    +   '<div class="trip-date">'+esc(st === 'ended' ? t.date : coarseWindow(t))+'</div>'
     +   '<h2 class="trip-title">'+esc(t.title).replace(/\n/g,'<br>')+'</h2>'
     +   '<div class="trip-place">'+esc(t.place)+'</div>'
     +   partnersHtml(t.partners, t.openCTA)
