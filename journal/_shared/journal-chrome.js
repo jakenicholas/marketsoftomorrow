@@ -101,6 +101,12 @@
       '<div>The Future is Here</div></div></div></footer>';
 
   var css = [
+    /* NO AUTO-ZOOM ON FOCUS. iOS Safari zooms the whole page whenever a focused
+       form control renders below 16px, which is why tapping a search box or an
+       email field yanked the layout. 16px is the exact threshold, so this is the
+       fix — NOT user-scalable=no, which would also rob people of pinch-zoom.
+       Global (not per-page) so any input added later inherits the guard. */
+    '@media (max-width:820px){ input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select { font-size:16px !important; } }',
     '.tmw-chrome-head{position:sticky; top:0; z-index:60; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}',
     /* padding:0 is load-bearing — the .wrap owns the 14px vertical padding. Some pages (media proposals) carry a leftover generic `nav{padding:14px 0}` from a removed custom nav that would otherwise leak onto nav.main and DOUBLE the header height (99px vs 71px). Hardcoding it here keeps the chrome self-owned. */
     '.tmw-chrome-head nav.main{position:relative; padding:0; background:rgba(7,8,7,.78); backdrop-filter:blur(16px) saturate(1.4); -webkit-backdrop-filter:blur(16px) saturate(1.4); border-bottom:1px solid var(--hair)}',
