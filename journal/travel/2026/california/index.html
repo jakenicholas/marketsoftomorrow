@@ -253,11 +253,11 @@
   .mapboxgl-popup-content{background:#F5EEDF;border-radius:8px;padding:7px 11px;box-shadow:0 6px 20px rgba(74,57,43,.25)}
   .mapboxgl-popup-tip{border-top-color:#F5EEDF!important;border-bottom-color:#F5EEDF!important}
   .mapboxgl-ctrl-group{background:#F5EEDF;border:1px solid var(--hair2)!important}
-  .rm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px 20px;margin-top:22px}
-  .rm-li{display:flex;align-items:baseline;gap:10px;font-size:13.5px}
+  .rm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px 22px;margin-top:22px}
+  .rm-li{display:flex;align-items:baseline;gap:10px;font-size:13.5px;white-space:nowrap}
   .rm-n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid rgba(176,96,58,.5);color:var(--terra);
         font-family:var(--serif);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;align-self:center}
-  .rm-nm{color:var(--brown);font-weight:500}
+  .rm-nm{color:var(--brown);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .rm-dt{margin-left:auto;color:var(--mute);font-family:var(--serif);font-style:italic;font-size:12.5px;white-space:nowrap}
 
   /* ── Final exit / tip ── */
@@ -572,7 +572,10 @@ function routeMapHtml(){
   if(pts.length < 2) return '';
   var legend = '<div class="rm-legend">'+pts.map(function(p){
     var dt = p.nights.indexOf('·')>=0 ? p.nights.split('·').pop().trim() : p.nights;
-    return '<div class="rm-li"><span class="rm-n">'+p.n+'</span><span class="rm-nm">'+p.loc+'</span><span class="rm-dt">'+dt+'</span></div>';
+    // City only — every stop is in California, and the repeated state was the
+    // only thing pushing long names like Carmel-by-the-Sea onto a second line.
+    var nm = p.loc.split(',')[0];
+    return '<div class="rm-li"><span class="rm-n">'+p.n+'</span><span class="rm-nm" title="'+p.loc+'">'+nm+'</span><span class="rm-dt">'+dt+'</span></div>';
   }).join('')+'</div>';
   return '<section class="routemap"><div class="rm-head"><div class="rm-k">The Route</div><h2>One route, up the California coast</h2></div>'
     + '<div class="rm-frame"><div id="rmap" class="rm-map"></div></div>' + legend + '</section>';

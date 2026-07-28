@@ -15,7 +15,7 @@ export const TRAVEL_STOPS = {
     in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown, the journey begins' },
     vibe:'Opening in the heart of Silicon Valley, a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
     todo:[
-      { a:'Dinner', t:'Nobu Palo Alto', img:'' },
+      { a:'Dinner', t:'Nobu Restaurant', img:'https://www.nobuhotels.com/palo-alto/content/uploads/2024/11/twilight-nobu-garden-overview.jpg' },
       { a:'Explore', t:'Palo Alto', img:'https://media-production.lp-cdn.com/cdn-cgi/image/format=auto,quality=85,fit=scale-down,width=1280/https://media-production.lp-cdn.com/media/ece5959e-deaf-4894-b0ee-a834a42e3f94' },
       { a:'Explore', t:'Stanford University', img:'https://www.tclf.org/sites/default/files/styles/crop_2000x700/public/thumbnails/image/CA_Stanford_StanfordUniversity_courtesyWikimediaCommons_2011_005_Hero.jpg?itok=B8YAapxD' },
       { a:'Dinner', t:'Macarena', img:'https://www.paloaltoonline.com/wp-content/uploads/2024/12/PA_Macarena_DEC2024_03-1.png' },
@@ -24,7 +24,7 @@ export const TRAVEL_STOPS = {
     ],
     logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
 
-  { loc:'Big Sur, California', nights:'1 Night · Aug 4 → 5', stay:'Highway 1 & the Coast', pending:true, inworks:true,
+  { loc:'Big Sur, California', nights:'1 Night · Aug 4 → 5', stay:'Highway 1 & the Coast', confirmed:true, noClient:true,
     in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
     vibe:'The most dramatic stretch of the Pacific Coast Highway, Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
     logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
@@ -41,7 +41,7 @@ export const TRAVEL_STOPS = {
   { loc:'Sonoma, California', nights:'2 Nights · Aug 5 → 7', stay:'MacArthur Place Sonoma', client:'J/PR', confirmed:true,
     in:{ date:'Aug 5', mode:'car', note:'Big Sur → Sonoma' },
     vibe:'A historic six-acre estate at the edge of Sonoma’s plaza, where garden cottages, a spa, and the wine country’s ease set the tone for the valley.',
-    logi:[['The Meal','Dinner at Layla.']],
+    logi:[],
     todo:[
       { a:'Explore', t:'Napa Valley', img:'https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg' },
       { a:'Dinner', t:'Layla', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/LaylaPatio_3B2B90EA-DDAA-4A4D-BA8AB6EEA23F2FF7_8d47d839-c905-4f0d-900f6c1aa4afc377.jpg' },
@@ -49,7 +49,7 @@ export const TRAVEL_STOPS = {
     ],
     imgs:['https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
 
-  { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true,
+  { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
     vibe:'Closing the loop in the capital, a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
     logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
