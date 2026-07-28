@@ -4111,6 +4111,7 @@ async function handleTravelAccess(req, env, origin) {
           ip: req.headers.get('CF-Connecting-IP') || '',
           country: (req.cf && req.cf.country) || '',
           city: (req.cf && req.cf.city) || '',
+          region: (req.cf && (req.cf.regionCode || req.cf.region)) || '',
           ua: (req.headers.get('User-Agent') || '').slice(0, 200),
           ref: (req.headers.get('Referer') || '').slice(0, 200),
         }),
@@ -4142,7 +4143,13 @@ async function handleTravelAccessLog(req, env, origin, url) {
         kind: r.event_name === 'travel_access_unlock' ? 'unlock' : 'view',
         identity: p.identity || p.to || '', method: p.method || '',
         domain: p.domain || ((p.identity || p.to || '').split('@')[1] || ''),
-        slug: p.slug || '', country: p.country || '', city: p.city || '', ip: p.ip || '',
+        slug: p.slug || '', country: p.country || '', city: p.city || '',
+        region: p.region || '', ip: p.ip || '',
+        // "Nashville, TN" — what actually lets you recognise a password-holder.
+        // Deliberately EMPTY when the edge gave no city: falling back to the
+        // country would mix a bare "US" into the per-person place list and make
+        // one person look like they opened it from two different places.
+        place: [p.city, p.region].filter(Boolean).join(', '),
       };
     });
     const byDomain = {}, byPerson = {};
@@ -4152,16 +4159,17 @@ async function handleTravelAccessLog(req, env, origin, url) {
       byDomain[d][r.kind === 'unlock' ? 'unlocks' : 'views']++;
       if (r.identity) byDomain[d].people.add(r.identity);
       if (r.identity) {
-        byPerson[r.identity] = byPerson[r.identity] || { identity: r.identity, unlocks: 0, views: 0, last: r.at, countries: new Set() };
+        byPerson[r.identity] = byPerson[r.identity] || { identity: r.identity, unlocks: 0, views: 0, last: r.at, countries: new Set(), places: new Set() };
         byPerson[r.identity][r.kind === 'unlock' ? 'unlocks' : 'views']++;
         if (r.country) byPerson[r.identity].countries.add(r.country);
+        if (r.place) byPerson[r.identity].places.add(r.place);
       }
     }
     return json({
       ok: true, days, total: rows.length,
       firms: Object.values(byDomain).map(d => ({ ...d, people: d.people.size }))
         .sort((a, b) => (b.unlocks + b.views) - (a.unlocks + a.views)),
-      people: Object.values(byPerson).map(p => ({ ...p, countries: [...p.countries] }))
+      people: Object.values(byPerson).map(p => ({ ...p, countries: [...p.countries], places: [...p.places] }))
         .sort((a, b) => (b.unlocks + b.views) - (a.unlocks + a.views)),
       recent: rows.slice(0, 200),
     }, {}, env, origin);
@@ -4193,6 +4201,10 @@ async function handleTravelItinerary(req, env, origin, url) {
           slug, to: (tok && tok.to) || 'admin',
           ip: req.headers.get('CF-Connecting-IP') || '',
           country: (req.cf && req.cf.country) || '',
+          // Approx city/region from Cloudflare's edge — the practical way to tell
+          // WHICH password-holder this is ("that's the Nashville contact").
+          city: (req.cf && req.cf.city) || '',
+          region: (req.cf && (req.cf.regionCode || req.cf.region)) || '',
           ua: (req.headers.get('User-Agent') || '').slice(0, 200),
           ref: (req.headers.get('Referer') || '').slice(0, 200),
         }),
