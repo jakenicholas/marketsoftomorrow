@@ -99,12 +99,24 @@
   .mc-sug .k { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute,#9AA39C); flex: none; white-space: nowrap; }
   /* Markets / Categories / Year stay on ONE row on mobile — three short
      labels fit where three sentences did not. The button drops below. */
+  /* MOBILE FILTER ROW — read this before changing a font-size here.
+     journal-chrome.js forces `font-size:16px !important` on every input and
+     select under 820px. That is deliberate: anything smaller makes iOS Safari
+     zoom the page on focus. So:
+       · the INPUT keeps 16px (it is a text field — the real zoom trigger) and
+         only its ::placeholder shrinks, which iOS does not measure.
+       · the SELECTs are overridden, scoped to THIS row rather than globally.
+         Focusing a select opens a picker instead of a caret, so it does not
+         zoom — and keeping the override this narrow means that if it ever did,
+         it is one filter row and not every form on the site.
+     Both land at 13.5px so the placeholder and the selects read as one row. */
   @media (max-width: 720px) {
     .mc-row { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     .mc-go { grid-column: 1 / -1; }
-    .mc-field select { padding: 11px 22px 11px 10px; font-size: 12.5px; background-position: right 6px center; }
-    .mc-search input { font-size: 13px; padding: 12px 14px 12px 38px; }
-    .mc-search input::placeholder { font-size: 12.5px; }
+    .atlas-calc .mc-row .mc-field select { font-size: 13.5px !important;
+      padding: 11px 20px 11px 9px; background-position: right 5px center; }
+    .mc-search input { padding: 12px 14px 12px 36px; }
+    .mc-search input::placeholder { font-size: 13.5px; }
   }
   .atlas-filter-pills {
     display: flex;
@@ -801,7 +813,10 @@
   }
   /* The tab strip is a ONE-LINE horizontal scroller. It was wrapping onto a
      second row on mobile, which turned the app's nav into a paragraph. */
-  .atlas-rail { -webkit-overflow-scrolling: touch; }
+  /* overflow-x:auto also makes the Y axis scrollable, and the tabs' -1px
+     margin (the underline trick) pokes exactly 1px past the box — enough for
+     touch to treat the strip as vertically scrollable. Pin the Y axis shut. */
+  .atlas-rail { -webkit-overflow-scrolling: touch; overflow-y: hidden; }
   @media (max-width: 720px) {
     .atlas-rail { margin: 0 -18px; padding: 0 18px; }
     .atlas-rail-jump { padding: 13px 12px; font-size: 13px; }
