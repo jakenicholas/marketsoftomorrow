@@ -218,8 +218,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .pf-mchip{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#C2C9C3;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:6px 12px;border-radius:999px}
 .pf-mchip.on{background:#1FDF67;border-color:#1FDF67;color:#070807;font-weight:700}
-.pf-thead{display:grid;grid-template-columns:1.6fr 1fr .7fr auto;gap:14px;padding:0 10px 11px;
+.pf-thead{display:grid;grid-template-columns:1.6fr 220px 120px auto;gap:14px;padding:0 10px 11px;
   border-bottom:1px solid rgba(255,255,255,.1);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;font-weight:600}
+.pf-watches{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08)}
+.pf-wh{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.pf-wh h4{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#B9A6FF;font-weight:600;margin:0}
+.pf-addbtn{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#070807;background:#1FDF67;
+  padding:7px 14px;border-radius:999px;text-decoration:none;white-space:nowrap}
+.pf-addbtn:hover{filter:brightness(1.08)}
 .pf-two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:24px}
 @media(max-width:820px){.pf-two{grid-template-columns:1fr}}
 .pf-card{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.028);padding:17px 19px 19px}
@@ -239,14 +245,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .pf-kpi .pf-x{font-size:11px;color:#C2C9C3;margin-top:4px;line-height:1.35}
 .pf-sec-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin:26px 0 12px}
 .pf-book{display:flex;flex-direction:column;gap:1px}
-.pf-row{display:grid;grid-template-columns:1.6fr 1fr .7fr auto;gap:14px;align-items:center;padding:13px 12px;
+.pf-row{display:grid;grid-template-columns:1.6fr 220px 120px auto;gap:14px;align-items:center;padding:13px 12px;
   border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit;border-radius:8px}
 .pf-row:hover{background:rgba(167,139,250,.05)}
 .pf-nm{font-weight:600;color:#fff;font-size:14px}
 .pf-lo{font-size:10.5px;color:#9AA39C;margin-top:3px}
-.pf-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.pf-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;width:200px;max-width:100%}
 .pf-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#18c75a,#42EB81)}
 .pf-st{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#C2C9C3;margin-top:6px;display:block}
+.pf-when{font-size:11.5px;color:#C2C9C3}
 .pf-mv{font-size:10.5px;padding:3px 9px;border-radius:999px;white-space:nowrap}
 .pf-mv.up{color:#42EB81;background:rgba(31,223,103,.1);border:1px solid rgba(31,223,103,.3)}
 .pf-mv.new{color:#B9A6FF;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3)}
@@ -593,14 +600,58 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   // follow sets, projects-flat, this week's moves, and atlas-intel for supply
   // pressure. No new backend.
   var PF_PCT={'announced':12,'breaking ground':33,'under construction':64,'opening soon':88,'now open':100};
+
+  // Relocate the existing "Your watches" surface into My Portfolio. Moving the
+  // real nodes (not clones) keeps every listener and re-render target alive.
+  function pfAttachWatches(){
+    var host=document.getElementById('pfWatches'); if(!host) return;
+    if(host.getAttribute('data-filled')) return;
+    var head=document.getElementById('ownHead'), sub=document.getElementById('ownSub');
+    var search=document.querySelector('.mktsearch'), chips=document.getElementById('mktChips');
+    if(!search||!chips) return;
+    var wrap=document.createElement('div');
+    wrap.innerHTML='<div class="pf-wh"><h4>Your watches</h4>'
+      + '<a class="pf-addbtn" href="/map/">Add more to watchlist →</a></div>';
+    host.appendChild(wrap.firstChild);
+    host.appendChild(search); host.appendChild(chips);
+    // the old Overview headings would now sit above nothing
+    if(head&&head.parentNode) head.parentNode.style.display='none';
+    host.setAttribute('data-filled','1');
+  }
+  function pfOwner(){
+    try{
+      var m=window.__tmwMember||{};
+      var n=(m.name||m.first_name||'').trim();
+      if(n) return n + "'s portfolio";
+      var e=(m.email||(m.auth&&m.auth.email)||'').trim();
+      if(e) return e;
+    }catch(e){}
+    return 'My portfolio';
+  }
   function pfPct(st){ return PF_PCT[String(st||'').toLowerCase()] || 8; }
   function pfMoney(m){
     var n=parseFloat(m); if(!isFinite(n)||n<=0) return '';
     return n>=1000 ? ('$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B') : ('$'+Math.round(n)+'M');
   }
+  // Delivery dates are often VAGUE labels ("Early 2027", "Spring 2027",
+  // "Summer 2030"), not ISO. Treating only ISO as valid left most rows blank.
+  var PF_SEASON={early:'02',spring:'04',summer:'07',fall:'10',autumn:'10',late:'11',winter:'12'};
   function pfDeliveryKey(p){
-    var d=String(p.DeliveryDate||'').slice(0,10);
-    return /^\d{4}/.test(d) ? d : '';
+    var raw=String(p.DeliveryDate||'').trim();
+    if(!raw) return '';
+    if(/^\d{4}(-\d{2})?/.test(raw)) return raw.slice(0,10);
+    var y=(raw.match(/\b(20\d{2})\b/)||[])[1]; if(!y) return '';
+    var w=(raw.toLowerCase().match(/early|spring|summer|fall|autumn|late|winter/)||[])[0];
+    return y+'-'+(w?PF_SEASON[w]:'06');
+  }
+  // What the reader sees: keep the human label when we have one.
+  function pfLabel(p){
+    if(String(p.Delivery||'')==='Now Open') return 'Opened';
+    var raw=String(p.DeliveryDate||'').trim();
+    if(!raw) return '';
+    if(/^\d{4}-\d{2}/.test(raw)) return pfWhen(raw);
+    if(/^\d{4}$/.test(raw)) return raw;
+    return raw;   // "Early 2027", "Summer 2030" — already readable
   }
   // The member's watched projects, resolved against the live project feed.
   function pfWatched(flat, mj){
@@ -641,7 +692,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
       var chip = mv ? '<span class="pf-mv up">▲ '+esc(mv)+'</span>'
                 : (p.FinancingAmountM ? '<span class="pf-mv new">'+pfMoney(p.FinancingAmountM)+'</span>'
                 : '<span class="pf-mv flat">No change</span>');
-      var when = String(p.Delivery||'')==='Now Open' ? 'Opened' : (pfWhen(pfDeliveryKey(p)) || '—');
+      var when = pfLabel(p) || '—';
       return '<a class="pf-row" href="https://www.oftmw.com/projects/'+encodeURIComponent(p.Slug||k)+'/">'
         + '<div><div class="pf-nm">'+esc(p.Title||'')+'</div><div class="pf-lo">'+esc(p.City||'')+(p.PreferredType?' · '+esc(p.PreferredType):'')+'</div></div>'
         + '<div class="pf-prog"><div class="pf-bar"><i style="width:'+pct+'%"></i></div><span class="pf-st">'+esc(p.Delivery||'')+'</span></div>'
@@ -665,14 +716,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     var chips=cities.slice(0,3).map(function(c,i){ return '<span class="pf-mchip'+(i===0?' on':'')+'">'+esc(c)+'</span>'; }).join('');
 
     host.innerHTML='<div class="pf-app">'
-      + '<div class="pf-appbar"><i></i><i></i><i></i><span class="u">oftmw.com / portfolio</span><span class="pro">Pro</span></div>'
+      + '<div class="pf-appbar"><span class="u">'+esc(pfOwner())+'</span><span class="pro">Pro</span></div>'
       + '<div class="pf-inner">'
-      +   '<div class="pf-head"><div><div class="pf-h1">'+esc(topCity?topCity+' book':'Your book')+'</div>'
+      +   '<div class="pf-head"><div><div class="pf-h1">My Book</div>'
       +     '<div class="pf-h2">'+book.length+' project'+(book.length===1?'':'s')+' watched · '+cities.length+' market'+(cities.length===1?'':'s')+'</div></div>'
       +     '<div class="pf-mchips">'+chips+'</div></div>'
       +   kpis
       +   '<div class="pf-thead"><span>Project</span><span>Progress</span><span>Delivery</span><span>Movement</span></div>'
       +   '<div class="pf-book">'+rows+'</div>'
+      +   '<div id="pfWatches" class="pf-watches"></div>'
+      +   '<div id="pfBrief"></div>'
       +   two
       + '</div></div>';
   }
@@ -775,8 +828,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           + '</div>';
         if(!n){
           // No moves is not an empty page — the book itself is the product.
-          body.innerHTML='<div id="pfBook"></div>'+hero;
+          body.innerHTML='<div id="pfBook"></div>';
           try{ pfRender(document.getElementById('pfBook'), flat, mj, {}, intel, []); }catch(e){}
+          try{ var _bs2=document.getElementById('pfBrief'); if(_bs2) _bs2.innerHTML=hero; }catch(e){}
+          try{ pfAttachWatches(); }catch(e){}
           return;
         }
         // Map this week's moves by project so the book can flag what changed.
@@ -785,10 +840,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           var ev=moves[id].ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
           if(k && !movesBySlug[k]) movesBySlug[k]=ev.tag||ev.type||'Moved';
         });
-        body.innerHTML='<div id="pfBook"></div>'
-          + hero
-          + '<div class="brief-sec-h">The moves</div>'
-          + '<div class="brief-list">'+order.map(function(id){
+        // The container owns everything now: book -> Onyx brief -> cards.
+        // "The moves" list is gone; its content lives in What moved + the brief.
+        body.innerHTML='<div id="pfBook"></div>';
+        var _unusedMoves=function(){ return '<div class="brief-list">'+order.map(function(id){
           var x=moves[id], ev=x.ev;
           var title=ev.project_title||ev.title||'';
           var href='https://www.oftmw.com/map/?project='+mapSlug(ev.project_title||ev.project_slug||'');
@@ -799,7 +854,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
             +   '<div class="bi-t">'+esc(title)+'</div>'
             +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+esc(fmtEventDate(x.rdate))+'</div>'
             + '</div></a>';
-        }).join('')+'</div>';
+        }).join('')+'</div>'; };
         var pfRecent = order.slice(0,4).map(function(id){
           var x=moves[id], ev=x.ev;
           var tag=String(ev.tag||ev.type||'moved');
@@ -809,6 +864,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
                    cap: /financ|loan/i.test(tag) };
         });
         try{ pfRender(document.getElementById('pfBook'), flat, mj, movesBySlug, intel, pfRecent); }catch(e){}
+        try{ var _bs=document.getElementById('pfBrief'); if(_bs) _bs.innerHTML=hero; }catch(e){}
+        try{ pfAttachWatches(); }catch(e){}
         // Onyx narrative — server-generated once per member+week (D1-cached).
         // Fails soft: the shimmer collapses away if the endpoint is unreachable.
         var narr=document.getElementById('briefNarr');
