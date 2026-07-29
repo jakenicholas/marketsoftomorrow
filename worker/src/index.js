@@ -5874,6 +5874,9 @@ export async function ensureContactsTable(env) {
     `ALTER TABLE posts ADD COLUMN project_slug TEXT`,
     `ALTER TABLE posts ADD COLUMN source       TEXT DEFAULT NULL`,
     `ALTER TABLE posts ADD COLUMN ai_original_html TEXT DEFAULT NULL`,
+    // Gold-standard voice exemplar: articles the editor pins as "this IS our
+    // voice." The article writer few-shots the best-matching pinned pieces.
+    `ALTER TABLE posts ADD COLUMN voice_exemplar INTEGER DEFAULT 0`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) { /* already exists */ }
   }
@@ -5882,6 +5885,7 @@ export async function ensureContactsTable(env) {
     `CREATE INDEX IF NOT EXISTS idx_posts_project   ON posts(project_slug) WHERE project_slug IS NOT NULL`,
     `CREATE INDEX IF NOT EXISTS idx_posts_type_date ON posts(post_type, published_at DESC)`,
     `CREATE INDEX IF NOT EXISTS idx_posts_source    ON posts(source)       WHERE source       IS NOT NULL`,
+    `CREATE INDEX IF NOT EXISTS idx_posts_exemplar   ON posts(voice_exemplar) WHERE voice_exemplar = 1`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) {}
   }
@@ -11675,13 +11679,81 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
   return '';
 }
 
+// Gold-standard article exemplars — REAL full articles the writer few-shots to
+// MATCH the TMW voice (not abstract rules distilled out of them, which is what
+// made drafts sound generic despite 1,500 articles of history). Pinned pieces
+// (posts.voice_exemplar=1) come first, ranked by relevance to the topic; then we
+// auto-fill with the best-matching / best-performing published articles until we
+// have `limit`. Bodies are stripped to clean text and trimmed to a char budget
+// from the START, so the LEDE (the highest-value voice signal) always survives.
+// Best-effort: returns [] on any failure and never blocks generation.
+export async function articleExemplars(env, { topic = '', place = '', limit = 3, excludeSlug = '', perChars = 1500 } = {}) {
+  if (!env || !env.DB) return [];
+  const exclude = String(excludeSlug || '').toLowerCase();
+  const q = [topic, place].filter(Boolean).join(' ').trim();
+  const chosen = [], seen = new Set();
+  const add = (slug) => { const s = String(slug || '').toLowerCase(); if (s && s !== exclude && !seen.has(s)) { seen.add(s); chosen.push(s); } };
+  // Relevance-by-slug from the article_body index (best chunk score per article).
+  let relScore = null;
+  if (q && retrievalReady(env)) {
+    try {
+      const [vec] = await embedTexts(env, [q]);
+      if (Array.isArray(vec)) {
+        const ms = (await env.VECTORIZE.query(vec, { topK: 40, returnMetadata: 'all' })).matches || [];
+        relScore = new Map();
+        for (const m of ms) {
+          if (!m.metadata || m.metadata.kind !== 'article_body' || !m.metadata.slug) continue;
+          const s = String(m.metadata.slug).toLowerCase();
+          if (!relScore.has(s) || (m.score || 0) > relScore.get(s)) relScore.set(s, m.score || 0);
+        }
+      }
+    } catch (_) {}
+  }
+  // 1) PINNED first — ranked by topic relevance when we have it, else stable order.
+  try {
+    let pins = ((await env.DB.prepare(`SELECT slug FROM posts WHERE status='published' AND voice_exemplar=1`).all()).results || [])
+      .map(r => String(r.slug || '').toLowerCase()).filter(Boolean);
+    if (relScore) pins.sort((a, b) => (relScore.get(b) || 0) - (relScore.get(a) || 0));
+    pins.forEach(add);
+  } catch (_) {}
+  // 2) AUTO-FILL — best relevance matches, then top-viewed, until we reach limit.
+  if (chosen.length < limit && relScore && relScore.size) {
+    [...relScore.entries()].sort((a, b) => b[1] - a[1]).forEach(([s]) => add(s));
+  }
+  if (chosen.length < limit) {
+    try {
+      const top = (await env.DB.prepare(
+        `SELECT p.slug FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug
+         WHERE p.status='published' AND LENGTH(COALESCE(p.body_html,'')) > 800
+         ORDER BY COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) DESC, p.published_at DESC LIMIT 12`
+      ).all()).results || [];
+      top.map(r => r.slug).forEach(add);
+    } catch (_) {}
+  }
+  // Fetch full bodies for the top `limit` chosen slugs, in order.
+  const out = [];
+  for (const slug of chosen) {
+    if (out.length >= limit) break;
+    try {
+      const r = await env.DB.prepare(`SELECT slug, title, excerpt, body_html FROM posts WHERE slug=?1 AND status='published'`).bind(slug).first();
+      if (!r || !r.body_html) continue;
+      let body = htmlToText(r.body_html).trim();
+      if (body.length < 200) continue;
+      if (body.length > perChars) body = body.slice(0, perChars).replace(/\s+\S*$/, '') + ' …';
+      out.push({ slug: r.slug, title: String(r.title || '').slice(0, 200), excerpt: String(r.excerpt || '').slice(0, 300), body });
+    } catch (_) {}
+  }
+  return out;
+}
+
 // Assemble the SHARED brain for an authoring/answering task: house voice
 // (brand_notes) + Onyx's learned answer rules & exemplars (events) + banked
-// evergreen knowledge & the closest real projects/articles (Vectorize). Every
-// piece is best-effort; a failure just omits that piece. Returns { text } ready
-// to drop into a system prompt, plus the structured parts.
-export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6 } = {}) {
-  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [] };
+// evergreen knowledge & the closest real projects/articles (Vectorize). For the
+// ARTICLE surface it also few-shots real gold-standard articles (articleExemplars).
+// Every piece is best-effort; a failure just omits that piece. Returns { text }
+// ready to drop into a system prompt, plus the structured parts.
+export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6, excludeSlug = '' } = {}) {
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [], articleExemplars: [] };
   if (!env || !env.DB) return out;
   if (voice) {
     // Surface FORMAT band — the always-on how-we-write-a-<surface> checklist for the
@@ -12266,10 +12338,44 @@ async function handleSmartAnswer(request, env, origin) {
                     && m.metadata.title && m.metadata.tldr)
           .slice(0, deepMode ? 12 : 4)
           .map(m => ({
+            slug: String(m.metadata.slug || '').slice(0, 200),
             title: String(m.metadata.title).slice(0, 140),
             reported: String(m.metadata.tldr).slice(0, 400),
             url: 'https://www.oftmw.com/post/' + String(m.metadata.slug || '').slice(0, 200) + '/',
           }));
+        // ── ONYX 5 LEVEL 2 ────────────────────────────────────────────────
+        // Level 1 gave the model each story's one-line tldr. But every article
+        // also has 2-3 extracted TAKEAWAYS in post_intel — the concrete facts
+        // the tldr had to leave out ("Levain searched four years before choosing
+        // the 12th Avenue South location"). Those were sitting in D1, unused by
+        // the answer path.
+        //
+        // Cost is one D1 read for the handful of stories we ALREADY decided to
+        // cite — no extra embedding, no extra AI call, and nothing new retrieved.
+        // Stays out of the cached prompt block: it is per-query text.
+        if (rep.length && env.DB) {
+          try {
+            const slugs = rep.map(r => r.slug).filter(Boolean);
+            if (slugs.length) {
+              const ph = slugs.map((_, i) => '?' + (i + 1)).join(',');
+              const pr = await env.DB.prepare(
+                `SELECT slug, takeaways_json FROM post_intel WHERE slug IN (${ph})`
+              ).bind(...slugs).all();
+              const byslug = {};
+              ((pr && pr.results) || []).forEach(row => {
+                let t = [];
+                try { t = JSON.parse(row.takeaways_json || '[]'); } catch (_) { t = []; }
+                if (Array.isArray(t) && t.length) {
+                  byslug[row.slug] = t.map(x => String(x).slice(0, 160)).slice(0, 3);
+                }
+              });
+              rep.forEach(r => { if (byslug[r.slug]) r.points = byslug[r.slug]; });
+            }
+          } catch (_) { /* takeaways are a bonus — never fail the answer for them */ }
+        }
+        // slug was only needed to join against post_intel; drop it so the model
+        // gets the URL as the single canonical way to reference a story.
+        rep.forEach(r => { delete r.slug; });
         if (rep.length) compact.reporting = rep;
         // Banked domain knowledge (Onyx self-study) — expert CONTEXT, not project facts.
         const bg = ms
@@ -12451,7 +12557,11 @@ async function handleSmartAnswer(request, env, origin) {
     'or dates for `related` items, so never invent units, floors, heights, delivery dates, or financials for them — ' +
     'name them, place them, and state their status, but attribute specific numbers only to `top`.' +
     '\n- OUR REPORTING — `reporting`, if present, is Markets of Tomorrow\'s OWN published journalism on the topic: ' +
-    'each item carries the headline, what we reported, and the story URL. This is FIRST-PARTY FACT, the strongest ' +
+    'each item carries the headline, what we reported (`reported`), the story URL, and often `points` — the specific ' +
+    'verified details from that story that the one-line summary had to leave out (an exact address, a timeline, who ' +
+    'chose whom and why). Treat `points` as quotable fact from the same story, not as separate sources: they are the ' +
+    'reason an answer can be specific rather than general, so USE them when they bear on the question. ' +
+    'This is FIRST-PARTY FACT, the strongest ' +
     'evidence you have after `top` — it is what WE broke, verified and published. Use it to answer directly, and ' +
     'when you rely on a piece, attribute it naturally in the prose ("as we reported", "TMW first reported") so the ' +
     'reader knows the claim is ours. Prefer our own reporting over generic knowledge. Do not invent figures beyond ' +
