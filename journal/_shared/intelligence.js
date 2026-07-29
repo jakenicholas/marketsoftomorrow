@@ -623,12 +623,14 @@
     }
     // Tab switch: the map demo vs the Pro portfolio demo.
     (function(){
-      var tabs=m.querySelectorAll('[data-ti-tab]');
+      // init() is scoped to `root`, not the mount element — using `m` here threw
+      // a ReferenceError that aborted the whole component init.
+      var tabs=$all('[data-ti-tab]');
       Array.prototype.forEach.call(tabs,function(b){
         b.addEventListener('click',function(){
           var id=b.getAttribute('data-ti-tab');
           Array.prototype.forEach.call(tabs,function(x){ x.classList.toggle('on',x===b); });
-          Array.prototype.forEach.call(m.querySelectorAll('[data-ti-panel]'),function(pn){
+          Array.prototype.forEach.call($all('[data-ti-panel]'),function(pn){
             pn.hidden = pn.getAttribute('data-ti-panel')!==id;
           });
         });
