@@ -12257,6 +12257,20 @@ async function handleSmartAnswer(request, env, origin) {
           .slice(0, deepMode ? 40 : 6)
           .map(m => ({ name: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         if (rel.length) compact.related = rel;
+        // ONYX 5 — our own journalism as usable FACTS. Article matches used to be
+        // flattened to a bare name, so ~1,470 pieces of original reporting were
+        // retrievable but unusable. Keep the tldr + slug so the model can state
+        // what we reported and cite the story it came from.
+        const rep = ms
+          .filter(m => m.metadata && m.metadata.kind === 'article' && (m.score || 0) >= (deepMode ? 0.50 : 0.58)
+                    && m.metadata.title && m.metadata.tldr)
+          .slice(0, deepMode ? 12 : 4)
+          .map(m => ({
+            title: String(m.metadata.title).slice(0, 140),
+            reported: String(m.metadata.tldr).slice(0, 400),
+            url: 'https://www.oftmw.com/post/' + String(m.metadata.slug || '').slice(0, 200) + '/',
+          }));
+        if (rep.length) compact.reporting = rep;
         // Banked domain knowledge (Onyx self-study) — expert CONTEXT, not project facts.
         const bg = ms
           .filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
@@ -12436,6 +12450,12 @@ async function handleSmartAnswer(request, env, origin) {
     'holds a real match (e.g. a mass-timber tower for a mass-timber question). The ONLY limit: you have no figures ' +
     'or dates for `related` items, so never invent units, floors, heights, delivery dates, or financials for them — ' +
     'name them, place them, and state their status, but attribute specific numbers only to `top`.' +
+    '\n- OUR REPORTING — `reporting`, if present, is Markets of Tomorrow\'s OWN published journalism on the topic: ' +
+    'each item carries the headline, what we reported, and the story URL. This is FIRST-PARTY FACT, the strongest ' +
+    'evidence you have after `top` — it is what WE broke, verified and published. Use it to answer directly, and ' +
+    'when you rely on a piece, attribute it naturally in the prose ("as we reported", "TMW first reported") so the ' +
+    'reader knows the claim is ours. Prefer our own reporting over generic knowledge. Do not invent figures beyond ' +
+    'what the item states, and never attribute our reporting to another outlet.' +
     '\n- BACKGROUND — `background`, if present, is general real-estate domain knowledge our analysts have studied ' +
     '(what a term means, why a sector or market is moving, how a financing/zoning mechanism works). Draw on it to ' +
     'EXPLAIN and add expert context so the answer teaches, but it is NOT a TMW project fact: never present it as a ' +

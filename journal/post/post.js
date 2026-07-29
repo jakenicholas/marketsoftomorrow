@@ -1214,7 +1214,7 @@ function initComments(slug, post) {
 (function () {
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
   var SPARK = '<svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.3 5.9 5.9 2.3-5.9 2.3L12 18.9l-2.3-5.9L3.8 10.7l5.9-2.3z"/></svg>';
-  var HEAD = '<div class="ai-head">' + SPARK + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx 4.1</span></div>';
+  var HEAD = '<div class="ai-head">' + SPARK + '<span>TMW Intelligence</span><span class="live"><i></i>Onyx 5</span></div>';
   var HEXSPIN = '<span class="ai-ask-hex" aria-hidden="true"><svg viewBox="0 0 100 100">'
     + '<polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/>'
     + '<g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g>'

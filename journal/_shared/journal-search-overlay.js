@@ -378,7 +378,7 @@
     + '.tmw-ov-jempty a{color:#e6c574;text-decoration:none}'
     + '.tmw-ov-jempty a:hover{text-decoration:underline}'
 
-    /* Onyx 4.1 — answer-first OVERVIEW lens (the default). Shows the
+    /* Onyx 5 — answer-first OVERVIEW lens (the default). Shows the
        Intelligence answer + hero + a capped taste of each section; the
        counts-bar pills drill into any single category for the full set.
        Caps are scoped to [data-filter="overview"] so the category tabs
@@ -400,7 +400,7 @@
     + 'letter-spacing:.07em;text-transform:uppercase}'
     + '.tmw-ov-seeall:hover{color:#fff}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-seeall{display:inline-flex}'
-    /* Onyx 4.1 model badge — transparent purple fill + glowing purple border */
+    /* Onyx 5 model badge — transparent purple fill + glowing purple border */
     + '.tmw-ov-model{font-size:9px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;'
     + 'color:#D8CCFA;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.75);'
     + 'box-shadow:0 0 10px rgba(167,139,250,.55);padding:2px 8px;border-radius:999px;margin-left:8px;align-self:center}'
@@ -427,7 +427,7 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-intel-foot:not(.has-ground){display:none}'
     + '.tmw-ov-intel-foot .dim{opacity:.55}'
     /* Responses are slimmed to the pure LLM answer: NO "TMW Intelligence" header
-       row (label + Onyx 4.1 / Deep pill) and NO "Thinking / Live answer" status
+       row (label + Onyx 5 / Deep pill) and NO "Thinking / Live answer" status
        pip on top of any answer (loading OR answered). The loader dots (while it
        streams) stay. The sign-up / Go-Pro GATE keeps its header (:not(.gate)). */
     + '.tmw-ov-intel-panel:not(.gate) .tmw-ov-intel-h{display:none}'
@@ -491,7 +491,7 @@
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head h3{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#8a948a}'
     + '[data-state="results"][data-filter="overview"] .tmw-ov-smart-head{margin-bottom:8px}'
     /* Removed: the fact-chip stats grid (the LLM answer already states them) and
-       the inline Onyx 4.1 header badge (moved to the "i" info button). */
+       the inline Onyx 5 header badge (moved to the "i" info button). */
     + '.tmw-ov-intel-stats{display:none!important}'
     + '.tmw-ov-model{display:none!important}'
     /* "i" info button — top-right of the reply card; hover/focus reveals the model. */
@@ -1303,7 +1303,7 @@
     +   '<span>Searching the database</span>'
     + '</div>'
     + '<div data-state="results" class="tmw-ov-hidden">'
-    +   '<button class="tmw-ov-info" type="button" aria-label="Powered by TMW Intelligence, Onyx 4.1"><span aria-hidden="true">i</span><span class="tmw-ov-info-pop">TMW Intelligence · Onyx 4.1</span></button>'
+    +   '<button class="tmw-ov-info" type="button" aria-label="Powered by TMW Intelligence, Onyx 5"><span aria-hidden="true">i</span><span class="tmw-ov-info-pop">TMW Intelligence · Onyx 5</span></button>'
     +   '<div data-slot="filter-pills"></div>'
     +   '<div data-slot="intel-cta"></div>'
     +   '<div data-slot="hero"></div>'
@@ -1412,7 +1412,7 @@
   }
   mountRoot();
 
-  // Relocate the grounding byline ("Onyx 4.1 · Grounded in …") OUT of the intel
+  // Relocate the grounding byline ("Onyx 5 · Grounded in …") OUT of the intel
   // panel and DOWN into that turn's feedback row, so it sits on the same bottom
   // line as Watch / thumbs (below the hero card + project/article grids) on
   // desktop, and wraps to its own line(s) above the actions on mobile. The intel
@@ -1474,11 +1474,11 @@
   }
   function _deepActive(){ return _deep && _isPro(); }
   // Model badge for the intel panel header. Defaults to the armed toggle state so
-  // "Onyx 4.1 Deep" shows the moment a deep query is submitted; pass an explicit
+  // "Onyx 5 Deep" shows the moment a deep query is submitted; pass an explicit
   // bool (from the arrived answer) to force it after the fact.
   function modelBadgeHtml(deep){
     var on = (typeof deep === 'boolean') ? deep : _deepActive();
-    return '<span class="tmw-ov-model' + (on ? ' deep' : '') + '" title="The model powering TMW Intelligence">' + (on ? 'Onyx 4.1 Deep' : 'Onyx 4.1') + '</span>';
+    return '<span class="tmw-ov-model' + (on ? ' deep' : '') + '" title="The model powering TMW Intelligence">' + (on ? 'Onyx 5 Deep' : 'Onyx 5') + '</span>';
   }
   // Sync a rendered panel's model badge to the answer's actual mode (a capped
   // deep request comes back standard, so downgrade the armed "Deep" badge).
@@ -1486,8 +1486,8 @@
     if (!slot) return;
     var m = slot.querySelector('.tmw-ov-model');
     if (!m) return;
-    if (deep) { m.classList.add('deep'); m.textContent = 'Onyx 4.1 Deep'; }
-    else { m.classList.remove('deep'); m.textContent = 'Onyx 4.1'; }
+    if (deep) { m.classList.add('deep'); m.textContent = 'Onyx 5 Deep'; }
+    else { m.classList.remove('deep'); m.textContent = 'Onyx 5'; }
   }
   // Reflect the worker's cap meta after each deep answer ("N of 12 deep left").
   function updateDeepMeta(res){
@@ -2303,7 +2303,7 @@
       +   '<div class="tmw-ov-intel-h">'
       +     '<span class="tmw-ov-intel-spark">'+ICON_HEX+'</span>'
       +     '<span class="lbl">TMW Intelligence</span>'
-      +     '<span class="tmw-ov-model'+(deep?' deep':'')+'" title="The model powering TMW Intelligence">'+(deep?'Onyx 4.1 Deep':'Onyx 4.1')+'</span>'
+      +     '<span class="tmw-ov-model'+(deep?' deep':'')+'" title="The model powering TMW Intelligence">'+(deep?'Onyx 5 Deep':'Onyx 5')+'</span>'
       // The answer's "Live answer" pip lives in the feedback row (relocated there
       // by setState). Omit it from the header on the answer state so it doesn't
       // show twice — the loading/no-answer/error states keep it (no feedback row yet).
@@ -2311,7 +2311,7 @@
       +   '</div>'
       +   '<p class="tmw-ov-intel-ans '+ansClass+'">'+ansHtml+'</p>'
       +   '<div class="tmw-ov-intel-foot' + ((state === 'answer' && grounding && (grounding.p || grounding.a)) ? ' has-ground' : '') + '">'
-      +     '<span class="ai">Onyx 4.1</span> · ' + _groundingLine(state, grounding)
+      +     '<span class="ai">Onyx 5</span> · ' + _groundingLine(state, grounding)
       +   '</div>'
       + '</section>';
   }
@@ -2729,7 +2729,7 @@
       +   '<p class="tmw-ov-intel-ans '+ansCls+'" data-fallback="'+esc(ans.html)+'">'+ansHtml+'</p>'
       +   stats
       +   '<div class="tmw-ov-intel-foot' + ((ground && (ground.p || ground.a)) ? ' has-ground' : '') + '">'
-      +     '<span class="ai">Onyx 4.1</span> · ' + _groundingLine((ground && (ground.p || ground.a)) ? 'answer' : '', ground)
+      +     '<span class="ai">Onyx 5</span> · ' + _groundingLine((ground && (ground.p || ground.a)) ? 'answer' : '', ground)
       +   '</div>'
       +   renderDeepTease(q, ground, s)
       + '</section>';
@@ -4262,7 +4262,7 @@
     // Iconic editorial picks count under Journal now (they're TMW curation, not
     // pipeline projects), so the "best hotels" ask lands on the Journal tab.
     _lastFilterCounts = { intel: true, projects: rows.length, firms: _entCount, iconicArticles: iconicHits.length };
-    // Onyx 4.1 redesign: the smart path defaults to the answer-first OVERVIEW
+    // Onyx 5 redesign: the smart path defaults to the answer-first OVERVIEW
     // too — the Intelligence answer + hero + the ranked rows (and a capped
     // taste of journal), with the counts bar to drill in. Previously pipeline
     // asks ("tallest towers") isolated the Projects tab and HID the answer,
@@ -5246,7 +5246,7 @@
       projects: restProjects.length + (heroProject ? 1 : 0),
       firms:    restFirms.length + restCities.length + (heroFirm ? 1 : 0),
     };
-    // Onyx 4.1 redesign: every query defaults to the answer-first OVERVIEW —
+    // Onyx 5 redesign: every query defaults to the answer-first OVERVIEW —
     // the analyst answer + the single best hero + a capped taste of each
     // section. The counts-bar pills drill into any one category for the full
     // set. A user who explicitly picked a lens last query gets it back via

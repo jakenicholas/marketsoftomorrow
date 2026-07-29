@@ -18,6 +18,10 @@
 # Media kit (lives on the map deploy for now)
 /media-kit       /media/    301
 
+# Intelligence prototype retired — its modules now live on the Atlas page.
+/intelligence        /atlas    301
+/intelligence/*      /atlas    301
+
 # Project detail pages moved from /map/projects/<slug>/ to the site root
 # /projects/<slug>/. 301 the old (indexed) paths so links + SEO carry over.
 /map/projects/*      /projects/:splat    301

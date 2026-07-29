@@ -934,7 +934,7 @@ def market_rail_html(city: str, market_slug: str, atlas_intel: dict, jumps: list
             f'<div class="mkr-filters" id="mkrFilters"></div>'
             f'</div>'
             f'<div class="mk-onyx-kicker"><span class="mk-ok-l"><i></i>Atlas Intelligence</span>'
-            f'<span class="mk-ok-chip"><i></i>Powered by Onyx 4.1</span></div>')
+            f'<span class="mk-ok-chip"><i></i>Powered by Onyx 5</span></div>')
 
 def market_band_html(m: dict) -> str:
     """Submarket median pricing band (Surface A aggregate) — Pro-gated. The
