@@ -658,6 +658,18 @@
 /* The merged Dashboard button. Its own top-level block on purpose: the closure
    above returns early on non-firm pages, so anything appended inside it would
    never load on the journal, map, explore or dashboard. */
+// Shared filter state (city/state/type/status/year) — the contract that lets
+// the Journal|Map|Atlas toggle carry a filter across surfaces. Loaded here so
+// it is present on every page the chrome touches; map/atlas also load it
+// directly (the module self-guards against a double load).
+(function () {
+  if (window.tmwFilters || document.querySelector('script[data-tmw-filters]')) return;
+  var s = document.createElement('script');
+  s.src = '/_shared/tmw-filters.js?v=20260729a';
+  s.setAttribute('data-tmw-filters', '1');
+  document.head.appendChild(s);
+})();
+
 (function () {
   if (document.querySelector('script[data-tmw-dashbtn]')) return;
   var s = document.createElement('script');

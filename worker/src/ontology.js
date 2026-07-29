@@ -199,6 +199,7 @@ export const ONTOLOGY = {
     rules: [
       'CANONICAL FORM IS THE SLUG: city=west-palm-beach, state=FL, type=mixed-use, status=construction, year=2027. Consumers must ALSO accept the legacy display form (city=West%20Palm%20Beach) because live links, embeds and the sitemap still carry it — normalise on read, always write the slug.',
       'PLACE IS TWO PARAMS, NOT ONE: `state` (2-letter US code, uppercase) and `city` (slug). Atlas already owned ?state= and the map already owned ?city=, and they do not collide, so the shared contract extends what shipped rather than inventing a third scheme. A city implies its state; setting a city does not require setting the state.',
+      'YEAR IS CUMULATIVE: year=2027 means "delivering BY the end of 2027", not "delivering in 2027". This is the meaning Atlas already shipped and the more useful pipeline filter; both surfaces must apply it the same way.',
       'STATUS USES THE LIFECYCLE SLUGS from statuses.order — never the display strings. Read through status_aliases so legacy Delivery values still resolve.',
       'An ABSENT param means "no filter on that axis", never "all" as an explicit value. Empty params are stripped from the URL so a clean state is a clean link.',
       'Surfaces own their own view params (map: project/embed/fullscreen/ui; atlas: aview) and must preserve any param they do not recognise when they rewrite the query string — the filter module only ever touches the five it owns.',

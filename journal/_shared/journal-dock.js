@@ -571,11 +571,24 @@
     map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>',
     atlas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'
   };
+  // The toggle is a VIEW SWITCH, not three destinations: whatever the reader
+  // has filtered to (city/state/type/status/year) rides along, so flipping
+  // Map ↔ Atlas keeps the same result set. /_shared/tmw-filters.js owns that
+  // query string. It loads async, so fall back to the bare path until it
+  // lands — the header is rebuilt on the dock's later passes anyway.
+  function surfaceHref(surface, fallback) {
+    try {
+      if (window.tmwFilters && !window.tmwFilters.isEmpty()) {
+        return 'https://www.oftmw.com' + window.tmwFilters.hrefFor(surface);
+      }
+    } catch (e) {}
+    return fallback;
+  }
   function buildToggle(active, mini) {
     var segs = [
-      ['journal', 'Journal', 'https://www.oftmw.com/'],
-      ['map', 'Map', 'https://www.oftmw.com/map'],
-      ['atlas', 'Atlas', 'https://www.oftmw.com/atlas']
+      ['journal', 'Journal', surfaceHref('journal', 'https://www.oftmw.com/')],
+      ['map', 'Map', surfaceHref('map', 'https://www.oftmw.com/map')],
+      ['atlas', 'Atlas', surfaceHref('atlas', 'https://www.oftmw.com/atlas')]
     ];
     return '<div class="tmw-st' + (mini ? ' mini' : '') + '" role="tablist" aria-label="Switch interface">' +
       segs.map(function (s) {
@@ -587,6 +600,26 @@
   // Inject the labelled toggle into every header (nav.main .wrap), right after
   // the logo. Universal — covers the homepage's inline header AND the injected
   // chrome header. Guarded so it's added at most once per header.
+  // Re-point the already-injected toggle whenever the filter changes.
+  function refreshToggleHrefs() {
+    if (!window.tmwFilters) return;
+    var base = { journal: 'https://www.oftmw.com/', map: 'https://www.oftmw.com/map', atlas: 'https://www.oftmw.com/atlas' };
+    document.querySelectorAll('.tmw-st-seg[data-s]').forEach(function (a) {
+      var k = a.getAttribute('data-s');
+      if (base[k]) a.href = surfaceHref(k, base[k]);
+    });
+  }
+  // tmw-filters.js loads async, so poll briefly rather than subscribing to a
+  // module that may not exist yet at parse time.
+  (function subscribeWhenReady(tries) {
+    if (window.tmwFilters) {
+      try { window.tmwFilters.onChange(refreshToggleHrefs); } catch (e) {}
+      refreshToggleHrefs();
+      return;
+    }
+    if ((tries || 0) < 40) setTimeout(function () { subscribeWhenReady((tries || 0) + 1); }, 150);
+  })(0);
+
   function injectSurfaceToggle() {
     var active = tmwSurface();
     var wraps = document.querySelectorAll('nav.main .wrap');

@@ -1241,7 +1241,8 @@
 
   <!-- Universal journal chrome: injects the header (with the Map · Atlas · Journal
        toggle — Atlas active on /atlas) + the bottom dock. -->
-  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/tmw-filters.js"></script>
+<script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
   <!-- Native Pro paywall (window.tmwShowPaywall). Memberstack + _isPaidMember
        come from journal-auth.js, which journal-chrome.js loads on this page. -->
@@ -1375,8 +1376,62 @@
 
     // Deep-linkable state filter: /atlas/?state=FL pre-dials the whole page
     // (market pages' "Florida in the Atlas" links land here).
-    let currentStateFilter = (new URLSearchParams(location.search).get('state') || 'ALL').toUpperCase() || 'ALL';
+    // Shared filter state (/_shared/tmw-filters.js) is the source of truth for
+    // city/state/type/status/year across Map and Atlas. Seed from it so a
+    // filter set on the map survives the jump here; ?state= keeps working on
+    // its own because the module parses it as part of the same contract.
+    function _sf() { return (window.tmwFilters && window.tmwFilters.get()) || {}; }
+    function _sfTypeDisplay(slug) {
+      try { return (window.tmwFilters && window.tmwFilters.TYPE_DISPLAY[slug]) || ''; } catch (e) { return ''; }
+    }
+    function _sfStatusDisplay(slug) {
+      try { return (window.tmwFilters && window.tmwFilters.STATUS_DISPLAY[slug]) || ''; } catch (e) { return ''; }
+    }
+    let currentStateFilter = (_sf().state || new URLSearchParams(location.search).get('state') || 'ALL').toUpperCase() || 'ALL';
+    // Write Atlas's internal state out to the shared query string so the
+    // header toggle can hand it to the map. silent:true — we are the source of
+    // this change; re-rendering on our own echo would loop.
+    function syncSharedFilters() {
+      if (!window.tmwFilters) return;
+      window.tmwFilters.set({
+        city:   currentCityFilter && currentCityFilter !== 'ALL' ? currentCityFilter : null,
+        state:  currentStateFilter && currentStateFilter !== 'ALL' ? currentStateFilter : null,
+        type:   currentTypeFilter && currentTypeFilter !== 'ALL' ? currentTypeFilter : null,
+        status: currentStatusFilter && currentStatusFilter !== 'ALL' ? currentStatusFilter : null,
+        year:   currentYearFilter || null
+      }, { silent: true });
+    }
+    // …and read back changes we did NOT make (back/forward, another surface).
+    // Registered ONCE at load: wireInteractions() re-runs on every render, so
+    // subscribing from there would stack a listener per render.
+    (function subscribeShared(tries) {
+      if (!window.tmwFilters) {
+        if ((tries || 0) < 40) setTimeout(function () { subscribeShared((tries || 0) + 1); }, 150);
+        return;
+      }
+      window.tmwFilters.onChange(function (f) {
+        const nextState  = (f.state || 'ALL').toUpperCase();
+        const nextCity   = window.tmwFilters.cityName() || 'ALL';
+        const nextType   = _sfTypeDisplay(f.type) || 'ALL';
+        const nextStatus = _sfStatusDisplay(f.status) || 'ALL';
+        const nextYear   = f.year || '';
+        if (nextState === currentStateFilter && nextCity === currentCityFilter
+            && nextType === currentTypeFilter && nextStatus === currentStatusFilter
+            && nextYear === currentYearFilter) return;
+        currentStateFilter = nextState; currentCityFilter = nextCity;
+        currentTypeFilter = nextType; currentStatusFilter = nextStatus;
+        currentYearFilter = nextYear;
+        _pcardShown = PCARD_STEP;
+        renderAll();
+      });
+    })(0);
+
+    // The URL is owned by /_shared/tmw-filters.js now. This used to write
+    // ?state= directly; two writers on one query string would race and drop
+    // each other's params, so it delegates to the shared module and falls
+    // back to the old behaviour only if that module failed to load.
     function syncStateUrl() {
+      if (typeof syncSharedFilters === 'function' && window.tmwFilters) { syncSharedFilters(); return; }
       try {
         const u = new URL(location.href);
         if (currentStateFilter && currentStateFilter !== 'ALL') u.searchParams.set('state', currentStateFilter);
@@ -1392,9 +1447,13 @@
     let currentTimelineStatus = 'all';
     let currentTimelineFeatured = false;
 
-    let currentTypeFilter = 'ALL';
-    let currentCityFilter = 'ALL';
-    let currentYearFilter = '';   // '', '2026', '2027'… → projects delivering by end of year
+    let currentTypeFilter = _sfTypeDisplay(_sf().type) || 'ALL';
+    // Status was a MAP-only axis before the shared contract; Atlas carries the
+    // value on every feature (p.delivery), so it can honour it too and the two
+    // surfaces stay equivalent.
+    let currentStatusFilter = _sfStatusDisplay(_sf().status) || 'ALL';
+    let currentCityFilter = (window.tmwFilters && window.tmwFilters.cityName()) || 'ALL';
+    let currentYearFilter = _sf().year || '';   // '', '2026', '2027'… → projects delivering by end of year
     // Global filter context: when any filter is active, every panel reads from
     // a single client recompute over atlasData.projects (the compact per-project
     // array). No filter → the precomputed global fields.
@@ -2060,7 +2119,9 @@
       const ci = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
       const ty = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
       const yr = currentYearFilter ? parseInt(currentYearFilter, 10) : null;
+      const stt = (currentStatusFilter && currentStatusFilter !== 'ALL') ? currentStatusFilter : null;
       return features.map(f => f.properties).filter(p => {
+        if (stt && String(p.delivery || '').trim() !== stt) return false;
         if (st && (cityToState[p.city] || 'Other') !== st) return false;
         if (ci && p.city !== ci) return false;
         if (ty) { const pty = ((p.projectType || '').split(',')[0] || '').trim(); if (pty !== ty) return false; }
@@ -3007,6 +3068,7 @@
       }
       if (currentCityFilter && currentCityFilter !== 'ALL') active.push({ k: 'city', label: currentCityFilter });
       if (currentTypeFilter && currentTypeFilter !== 'ALL') active.push({ k: 'type', label: currentTypeFilter });
+      if (currentStatusFilter && currentStatusFilter !== 'ALL') active.push({ k: 'status', label: currentStatusFilter });
       if (currentYearFilter) active.push({ k: 'year', label: 'By end of ' + currentYearFilter });
       let inner;
       if (active.length) {
@@ -3029,8 +3091,9 @@
       else if (chip.dataset.clear === 'state') currentStateFilter = 'ALL';
       else if (chip.dataset.clear === 'city') currentCityFilter = 'ALL';
       else if (chip.dataset.clear === 'type') currentTypeFilter = 'ALL';
+      else if (chip.dataset.clear === 'status') currentStatusFilter = 'ALL';
       else if (chip.dataset.clear === 'year') currentYearFilter = '';
-      else if (chip.dataset.clear === 'all') { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentYearFilter = ''; }
+      else if (chip.dataset.clear === 'all') { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentStatusFilter = 'ALL'; currentYearFilter = ''; }
       syncStateUrl();
       renderAll();
     });
@@ -3224,6 +3287,7 @@
         else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; }
         currentTypeFilter = (cat && cat.value) ? cat.value : 'ALL';
         currentYearFilter = (yr && yr.value) ? yr.value : '';
+        syncSharedFilters();
         _pcardShown = PCARD_STEP;
         Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });
         const y = window.pageYOffset;

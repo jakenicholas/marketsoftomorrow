@@ -210,9 +210,10 @@
     if (f.type && normType(p.PreferredType || '') !== f.type) return false;
     if (f.status && normStatus(p.Delivery || '') !== f.status) return false;
     if (f.year) {
-      var d = String(p.DeliveryDate || '');
-      var y = (d.match(/\b(19|20)\d{2}\b/) || [])[0];
-      if (y !== f.year) return false;
+      // CUMULATIVE: "delivering BY end of <year>", not "delivering IN <year>".
+      // This is Atlas's shipped meaning and the more useful pipeline filter.
+      var dy = parseInt(String(p.DeliveryDate || '').slice(0, 4), 10);
+      if (!dy || dy > parseInt(f.year, 10)) return false;
     }
     return true;
   }
