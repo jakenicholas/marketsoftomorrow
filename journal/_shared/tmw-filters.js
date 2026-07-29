@@ -36,7 +36,7 @@
 (function () {
   if (window.tmwFilters) return;
 
-  var ONTOLOGY_VERSION = '2026-07-29.1';   // the version this vocabulary mirrors
+  var ONTOLOGY_VERSION = '2026-07-29.2';   // the version this vocabulary mirrors
   var PARAMS = ['city', 'state', 'type', 'status', 'year'];
 
   // ── vocabulary (mirrors ONTOLOGY.filters) ─────────────────────────────────
@@ -56,9 +56,10 @@
     'travel': 'Travel', 'cultural': 'Cultural', 'park': 'Park', 'retail': 'Retail',
     'education': 'Education', 'marina': 'Marina', 'healthcare': 'Healthcare'
   };
-  // Long-tail PreferredType values that are really one of the above. Folding
-  // them here means a filter never silently drops a project; the rows should
-  // still be cleaned upstream.
+  // Long-tail PreferredType values that are really one of the above. A project
+  // may KEEP a preferred custom type name as its display label; these aliases
+  // are how it stays visible without falling out of the canonical filter. Do
+  // not "clean up" the rows — label and filter vocabulary are separate.
   var TYPE_ALIAS = {
     'hospital': 'healthcare', 'country-club': 'golf', 'members-club-and-boutique-hotel': 'hotel'
   };

@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-29.1';
+export const ONTOLOGY_VERSION = '2026-07-29.2';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -185,9 +185,13 @@ export const ONTOLOGY = {
         'travel': 'Travel', 'cultural': 'Cultural', 'park': 'Park', 'retail': 'Retail',
         'education': 'Education', 'marina': 'Marina', 'healthcare': 'Healthcare',
       },
-      // Long-tail PreferredType values that are really one of the above. These
-      // are DATA-CLEANUP candidates, not permanent vocabulary: fold them here
-      // so a filter never silently drops a project, and fix the rows upstream.
+      // Long-tail PreferredType values that are really one of the above.
+      // These are NOT cleanup candidates — DO NOT normalise the rows. A project
+      // may carry a preferred custom type name as its DISPLAY label ("Members
+      // Club & Boutique Hotel" is editorially truer than "Hotel"), and these
+      // aliases exist so filtering still finds it. Label and filter vocabulary
+      // are deliberately separate: the alias is how a custom name stays visible
+      // without falling out of a Hotel filter.
       aliases: {
         'hospital': 'healthcare',
         'country-club': 'golf',
@@ -202,6 +206,7 @@ export const ONTOLOGY = {
     rules: [
       'CANONICAL FORM IS THE SLUG: city=west-palm-beach, state=FL, type=mixed-use, status=construction, year=2027. Consumers must ALSO accept the legacy display form (city=West%20Palm%20Beach) because live links, embeds and the sitemap still carry it — normalise on read, always write the slug.',
       'PLACE IS TWO PARAMS, NOT ONE: `state` (2-letter US code, uppercase) and `city` (slug). Atlas already owned ?state= and the map already owned ?city=, and they do not collide, so the shared contract extends what shipped rather than inventing a third scheme. A city implies its state; setting a city does not require setting the state.',
+      'CUSTOM TYPE NAMES ARE A DISPLAY CONCERN, NOT A DATA ONE: a project may keep a preferred, more specific PreferredType as its visible label (e.g. "Members Club & Boutique Hotel", "Country Club"). Never rewrite those rows to a canonical type to "clean up" the data — that destroys editorial specificity. Add an entry to types.aliases instead so the row still answers the canonical filter.',
       'TYPE MATCHES ANY, NOT THE PRIMARY: filter on the full ProjectType list, never PreferredType and never just the first entry. A mixed-use tower typed "Residences, Hotel, Mixed-Use" is a legitimate hit for all three. Surfaces additionally SUPPRESS a district when one of its own children covers the same type, so filtering Hotel returns The Nora Hotel and not The Nora District — that rule needs the parent/child index and stays surface-side.',
       'YEAR IS CUMULATIVE: year=2027 means "delivering BY the end of 2027", not "delivering in 2027". This is the meaning Atlas already shipped and the more useful pipeline filter; both surfaces must apply it the same way.',
       'STATUS USES THE LIFECYCLE SLUGS from statuses.order — never the display strings. Read through status_aliases so legacy Delivery values still resolve.',
