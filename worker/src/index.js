@@ -8284,6 +8284,30 @@ async function handleEvalScores(req, env, origin) {
     markers = ev.map((e) => ({ ts: e.ts, label: LABELS[e.event_name] || e.event_name }));
   } catch (_) {}
   const current_sig = await brainSignature(env);
+  // Voice-gate series — Turing pass-rate + fingerprint violations per draft.
+  // first_pass = the judge could NOT spot the AI draft on the first attempt
+  // (before any revision). THE voice KPI: it should climb as pins/lessons land.
+  let voice = null;
+  try {
+    const vg = (await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='voice_gate' AND ts >= ?1 ORDER BY ts DESC LIMIT 400`).bind(since).all()).results || [];
+    const recs = vg.map((r) => { try { const p = JSON.parse(r.props_json); p.ts = r.ts; return p; } catch { return null; } }).filter(Boolean);
+    if (recs.length) {
+      const judged = recs.filter((r) => r.first_turing && r.first_turing !== 'skipped');
+      const pct = (a, f) => a.length ? Math.round(100 * a.filter(f).length / a.length) : null;
+      const passF = (r) => !String(r.first_turing).startsWith('caught');
+      const recent = judged.filter((r) => r.ts >= now - 14 * 86400);
+      const prior = judged.filter((r) => r.ts < now - 14 * 86400 && r.ts >= now - 28 * 86400);
+      voice = {
+        n: recs.length, judged: judged.length,
+        first_pass: pct(judged, passF),
+        first_pass_recent: pct(recent, passF), n_recent: recent.length,
+        first_pass_prior: pct(prior, passF),
+        avg_first_violations: recs.length ? Math.round(10 * recs.reduce((s, r) => s + (r.first_violations || 0), 0) / recs.length) / 10 : null,
+        final_pass: pct(recs, (r) => !!r.passed),
+        recent_gates: recs.slice(0, 12).map((r) => ({ ts: r.ts, kind: r.kind, topic: r.topic, first_turing: r.first_turing, first_violations: r.first_violations, passed: r.passed })),
+      };
+    }
+  } catch (_) {}
   // Autopilot status + latest report card, so the panel shows the self-running machine.
   let autopilot = null, report = null;
   try {
@@ -8294,7 +8318,7 @@ async function handleEvalScores(req, env, origin) {
     const rc = await env.DB.prepare(`SELECT props_json, ts FROM events WHERE event_name='brain_report_card' ORDER BY ts DESC LIMIT 1`).first();
     if (rc && rc.props_json) { try { report = JSON.parse(rc.props_json); } catch (_) {} }
   } catch (_) {}
-  return json({ ok: true, days, by_kind, by_sig, markers, current_sig, autopilot, report, recent: rows.slice(0, 40) }, {}, env, origin);
+  return json({ ok: true, days, by_kind, by_sig, markers, current_sig, voice, autopilot, report, recent: rows.slice(0, 40) }, {}, env, origin);
 }
 
 // POST /admin/brain/eval-run — the offline harness (Loop 1). Uses the back-catalog

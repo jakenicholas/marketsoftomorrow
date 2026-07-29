@@ -2384,6 +2384,16 @@ const IMPL = {
       }
       const f = gate.final || gate.initial;
       gate.passed = !f.spec_violations.length && f.turing !== 'caught (high)' && !String(f.turing).startsWith('caught');
+      // Persist the verdict — this is the series the Voice report card trends.
+      try {
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(Math.floor(Date.now() / 1000), 'voice-gate', 'voice_gate', JSON.stringify({
+            kind: 'revise', topic: String(topic || '').slice(0, 140),
+            first_turing: gate.initial.turing, first_violations: gate.initial.spec_violations.length,
+            final_turing: f.turing, final_violations: f.spec_violations.length,
+            revised: !!gate.revised, passed: gate.passed,
+          })).run();
+      } catch (_) {}
       return { text: out, gate };
     } catch (_) { return { text, gate }; }
   },
@@ -2462,6 +2472,16 @@ const IMPL = {
       }
       const fRep = voiceGate.final || voiceGate.initial;
       voiceGate.passed = !fRep.spec_violations.length && !String(fRep.turing).startsWith('caught');
+      // Persist the verdict — this is the series the Voice report card trends.
+      try {
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(Math.floor(Date.now() / 1000), 'voice-gate', 'voice_gate', JSON.stringify({
+            kind: 'generate', topic: topic.slice(0, 140),
+            first_turing: voiceGate.initial.turing, first_violations: voiceGate.initial.spec_violations.length,
+            final_turing: fRep.turing, final_violations: fRep.spec_violations.length,
+            revised: !!voiceGate.revised, passed: voiceGate.passed,
+          })).run();
+      } catch (_) {}
     } catch (_) {}
     // Internal auto-linking: tracked projects/firms/markets link to their
     // oftmw.com pages (external URLs on those anchors get rewritten too) —
