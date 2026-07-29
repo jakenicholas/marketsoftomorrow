@@ -425,10 +425,6 @@
   @media (prefers-reduced-motion: reduce){.tmw-hex .hx-spin{animation:tmwHexSlow 6s ease-in-out infinite}@keyframes tmwHexSlow{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}}
 
   /* ── Intelligence dashboard header ── */
-  .atlas-intel-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;padding:8px 0 22px;border-bottom:1px solid var(--hair);margin-bottom:26px}
-  .atlas-intel-header .ihb-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple-soft);display:flex;align-items:center;gap:9px;margin:10px 0 14px}
-  .atlas-intel-header h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.02em;color:#fff;margin:0}
-  .atlas-intel-header .ihb-sub{color:var(--mute-2);font-size:14px;margin-top:8px;max-width:540px;line-height:1.5}
   .atlas-live{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--green-soft);display:flex;align-items:center;gap:7px;white-space:nowrap}
   .atlas-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:atlasLivePulse 1.8s ease-in-out infinite}
   @keyframes atlasLivePulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -781,42 +777,9 @@
     padding-bottom: 36px;
     align-items: stretch;
   }
-  /* ── Atlas view tabs (Overview / Pipeline) ──────────────────────────
-     Top-level switcher sitting above the state filter. Toggling re-renders
-     the atlas content into either the Overview (leaderboards + outlook +
-     distribution + coverage + recent) or the Pipeline (timeline only). */
-  .atlas-view-tabs {
-    display: inline-flex;
-    gap: 4px;
-    margin: 0 0 22px;
-    padding: 4px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-  }
-  .atlas-view-tab {
-    padding: 9px 18px;
-    background: transparent; border: none;
-    color: rgba(255,255,255,0.55);
-    font-size: 13px; font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: background 0.12s, color 0.12s;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .atlas-view-tab:hover { color: #fff; }
-  .atlas-view-tab.active {
-    background: rgba(31,223,103,0.14);
-    color: #1FDF67;
-  }
-  @media (max-width: 700px) {
-    .atlas-view-tabs { width: 100%; display: flex; }
-    .atlas-view-tab { flex: 1; justify-content: center; padding: 9px 12px; }
-  }
-
-  /* Pinned sub-header: the view tabs (Pipeline/Overview) + the location filter
-     pills stay fixed just below the journal nav; everything else scrolls under.
+  /* Pinned sub-header: the app's tab strip + any active filter chips. The
+     tabs + any active filter chips stay fixed just below the journal nav;
+     everything else scrolls under.
      --atlas-head is the live journal-chrome header height (set by JS). The
      negative side margins + matching padding bleed the bar's background to the
      container edges so scrolling content is fully covered as it passes under. */
@@ -828,7 +791,9 @@
     display: flex; flex-direction: column; align-items: stretch; gap: 10px;
   }
   /* row 1 keeps the old side-by-side layout (view tabs left, filters right) */
-  .ash-row1 { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .ash-row1 { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
+  /* no chips active → the row collapses instead of leaving a gap */
+  .ash-row1:empty { display: none; }
   /* Section jump rail — same control the market pages use (.mk-rail), so the
      two surfaces navigate identically. Scrollspy sets .on. */
   .atlas-rail { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none;
@@ -838,12 +803,22 @@
     font-weight: 700; color: rgba(255,255,255,.55); text-decoration: none; padding: 7px 12px; border-radius: 999px;
     white-space: nowrap; transition: color .15s, background .15s; flex: 0 0 auto; }
   .atlas-rail-jump:hover { color: #fff; }
-  .atlas-rail-jump.on { background: rgba(167,139,250,.16); color: #A78BFA;
-    box-shadow: 0 0 0 1px rgba(167,139,250,.28) inset; }
-  /* the rail is NAVIGATION now, not a scroll shortcut — give it a tab-bar
-     presence so the page reads as an app rather than a long document */
-  .atlas-rail { padding: 5px 6px; }
-  .atlas-rail-jump { padding: 8px 14px; font-size: 10.5px; }
+  /* Identical to the /dashboard/ tab strip: plain text tabs on a hairline,
+     gold underline on the active one. Same rule set, same numbers — the two
+     app surfaces should be indistinguishable at the nav. */
+  .atlas-rail { display: flex; gap: 6px; align-items: stretch;
+    background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.08);
+    border-radius: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
+  .atlas-rail::-webkit-scrollbar { display: none; }
+  .atlas-rail-jump { font-family: var(--sans); font-size: 14px; font-weight: 500;
+    letter-spacing: 0; text-transform: none; color: var(--mute, #9AA39C);
+    text-decoration: none; background: none; border: 0;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    padding: 15px 14px; border-radius: 0; white-space: nowrap; flex: 0 0 auto;
+    transition: color .15s, border-color .15s; }
+  .atlas-rail-jump:hover { color: #ECEAE5; background: none; }
+  .atlas-rail-jump.on { color: #fff; background: none; box-shadow: none;
+    border-bottom-color: var(--gold, #e6c574); }
   @media (max-width: 720px) { .atlas-rail { margin: 0 -6px; } }
   .atlas-sticky-filters { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .atlas-sticky-filters::-webkit-scrollbar { display: none; }
@@ -853,7 +828,6 @@
   .ash-chip.on { background: rgba(167,139,250,0.14); border-color: rgba(167,139,250,0.45); color: #A78BFA; box-shadow: 0 0 14px rgba(167,139,250,0.18); }
   .ash-chip .x { font-size: 10px; opacity: .8; }
   .ash-chip.ash-clear { border-style: dashed; color: rgba(255,255,255,0.5); }
-  .atlas-stickyhead .atlas-view-tabs { margin: 0; align-self: flex-start; }
   .atlas-stickyhead .atlas-filter-bar { margin: 0; }
   @media (max-width: 800px) {
     .atlas-stickyhead { margin: 0 -18px 18px; padding: 10px 18px 11px; gap: 10px; }
@@ -1794,17 +1768,6 @@
       return d ? d.count : 0;
     }
 
-    function renderIntelHeader() {
-      return `
-        <div class="atlas-intel-header">
-          <div>
-            <h1>The Atlas</h1>
-            <div class="ihb-eyebrow">${hexMarker(15)} Markets of Tomorrow · Intelligence</div>
-            <div class="ihb-sub">A live, sourced read on what's being built across our coverage markets — every status, date and count tracked and updated automatically.</div>
-          </div>
-          <div class="atlas-live"><span class="dot"></span>Live · updated continuously</div>
-        </div>`;
-    }
 
     function renderHeadlineTiles() {
       const core = activeCore();
@@ -2374,13 +2337,6 @@
     }
 
     // ── View tabs renderer — Overview vs Pipeline switcher
-    function renderViewTabs() {
-      return `
-        <div class="atlas-view-tabs" role="tablist" aria-label="Atlas view">
-          <button class="atlas-view-tab ${currentAtlasView === 'timeline' ? 'active' : ''}" data-atlas-view="timeline" role="tab" type="button">Pipeline timeline</button>
-          <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
-        </div>`;
-    }
 
     // ── ROUTER ───────────────────────────────────────────────────────────
     // The Atlas is an app, not one long page. Each route renders its own
@@ -2399,7 +2355,10 @@
       { id: 'pricing',  label: 'Pricing'  },
       { id: 'builders', label: 'Builders' },
       { id: 'capital',  label: 'Capital'  },
-      { id: 'movers',   label: 'Movers'   }
+      { id: 'movers',   label: 'Movers'   },
+      // Pipeline used to be a separate view behind its own Overview/Pipeline
+      // toggle above the tabs. It is just another route.
+      { id: 'pipeline', label: 'Pipeline' }
     ];
     const ATLAS_ROUTE_IDS = ATLAS_ROUTES.map(r => r.id);
 
@@ -2418,6 +2377,12 @@
       return ATLAS_ROUTE_IDS.indexOf(id) >= 0 ? id : 'overview';
     }
     let currentRoute = routeFromPath();
+    // currentAtlasView is still read in a few places (timeline scroll anchor,
+    // resize re-render, project prefetch). Keep it derived from the route
+    // rather than leaving two sources of truth for the same thing.
+    function syncViewFromRoute() {
+      currentAtlasView = (currentRoute === 'pipeline') ? 'timeline' : 'stats';
+    }
     // Prefer the pretty path. The ONLY signal that it is unavailable is the
     // reader having arrived on ?view= — either because a link was generated
     // that way, or because the Function did not serve the path. Testing
@@ -2456,7 +2421,17 @@
       // Route changes ARE navigation (unlike filter changes), so pushState.
       if (push !== false) { try { history.pushState({ atlasRoute: id }, '', routeHref(id)); } catch (e) {} }
       _pcardShown = PCARD_STEP;
+      _atlasTlScrolledOnce = false;
       renderAll();
+      // Pipeline needs the project list. The retired Overview/Pipeline toggle
+      // used to kick this fetch; the route has to do it now or the timeline
+      // sits on its loading placeholder forever.
+      if (id === 'pipeline' && !(window.allProjectFeatures && window.allProjectFeatures.length)) {
+        try {
+          ensureProjectsLoaded().then(function () { if (currentRoute === 'pipeline') renderAll(); });
+        } catch (e) {}
+        return;
+      }
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
@@ -3126,10 +3101,7 @@
       if (active.length) {
         inner = active.map(a => `<button class="ash-chip on" data-clear="${a.k}">${escapeHtml(a.label)}<span class="x">✕</span></button>`).join('')
           + `<button class="ash-chip ash-clear" data-clear="all">Clear all</button>`;
-      } else if (states.length) {
-        inner = `<span class="ash-hint">Dial in</span>` + states.map(s =>
-          `<button class="ash-chip" data-state="${escapeHtml(s.code)}">${escapeHtml(s.label)}</button>`).join('');
-      } else return '';
+      } else return '';   // nothing filtered → no chip bar at all
       return `<div class="atlas-sticky-filters" id="atlasStickyFilters">${inner}</div>`;
     }
     document.addEventListener('change', function (e) {
@@ -3155,12 +3127,14 @@
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       syncHeadOffset();
+      syncViewFromRoute();
+      // One header for every route: the tabs, then any active filter chips.
       const stickyhead = '<div class="atlas-stickyhead">'
-        + '<div class="ash-row1">' + renderViewTabs() + renderStickyFilters() + '</div>'
-        + (currentAtlasView === 'timeline' ? '' : renderSectionRail())
+        + renderSectionRail()
+        + '<div class="ash-row1">' + renderStickyFilters() + '</div>'
         + '</div>';
       const sections = [];
-      if (currentAtlasView === 'timeline') {
+      if (currentRoute === 'pipeline') {
         sections.push(stickyhead, renderStateFilter(), renderTimelineSection());
       } else {
         // Every route shares the chrome (header, rail, filters); the body is
@@ -3175,7 +3149,7 @@
           capital:  () => [renderMoneySection()],
           movers:   () => [renderMoversSection()]
         };
-        sections.push(renderIntelHeader(), stickyhead, renderStateFilter());
+        sections.push(stickyhead, renderStateFilter());
         sections.push.apply(sections, (BODY[currentRoute] || BODY.overview)());
         sections.push(renderFootnote());
       }
@@ -3189,7 +3163,7 @@
       // Land the user at the "Today" boundary in timeline view. On the native
       // page the scroll container is the window (not a fixed overlay), so we
       // scroll the boundary element into view just below the sticky header.
-      if (currentAtlasView === 'timeline' && !_atlasTlScrolledOnce) {
+      if (currentRoute === 'pipeline' && !_atlasTlScrolledOnce) {
         const boundary = document.getElementById('atlasTlNowBoundary');
         if (boundary) {
           requestAnimationFrame(() => {
@@ -3285,29 +3259,6 @@
     }
 
     function wireInteractions() {
-      // Atlas view tabs (Overview / Pipeline timeline)
-      document.querySelectorAll('.atlas-view-tab').forEach(t => {
-        t.addEventListener('click', function() {
-          const view = this.dataset.atlasView;
-          if (!view || view === currentAtlasView) return;
-          currentAtlasView = view;
-          _atlasTlScrolledOnce = false;
-          // Switching to the Pipeline view the first time needs the project
-          // list; kick off the fetch and re-render when it resolves.
-          if (view === 'timeline' && !(window.allProjectFeatures && window.allProjectFeatures.length)) {
-            renderAll();           // render hero + "loading" placeholder immediately
-            ensureProjectsLoaded().then(() => {
-              if (currentAtlasView === 'timeline') renderAll();
-            });
-            return;
-          }
-          renderAll();
-          if (view !== 'timeline') {
-            window.scrollTo({ top: 0, behavior: 'auto' });
-          }
-        });
-      });
-
       // Timeline status filter chips
       document.querySelectorAll('.atlas-tl-chip[data-tl-status]').forEach(chip => {
         chip.addEventListener('click', function() {
@@ -3495,12 +3446,15 @@
     // ── Boot ─────────────────────────────────────────────────────────────
     // Allow deep-linking the timeline via ?view=timeline (anything else,
     // including no param, defaults to the instant-rendering Overview).
+    // Legacy deep-links: ?view=timeline and ?aview=timeline both meant the
+    // pipeline before it became a route. Resolve them to the route.
     (function readInitialView() {
       try {
         const params = new URLSearchParams(window.location.search);
-        const v = params.get('view');
-        if (v === 'timeline' || v === 'pipeline') currentAtlasView = 'timeline';
+        const v = params.get('view') || params.get('aview');
+        if (v === 'timeline' || v === 'pipeline') currentRoute = 'pipeline';
       } catch (_) {}
+      syncViewFromRoute();
     })();
 
     function init() {

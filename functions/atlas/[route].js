@@ -18,6 +18,7 @@
 
 const ROUTES = new Set([
   'overview', 'projects', 'supply', 'pricing', 'builders', 'capital', 'movers',
+  'pipeline',
 ]);
 
 export async function onRequest(context) {
