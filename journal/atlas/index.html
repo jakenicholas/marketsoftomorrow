@@ -2124,7 +2124,14 @@
         if (stt && String(p.delivery || '').trim() !== stt) return false;
         if (st && (cityToState[p.city] || 'Other') !== st) return false;
         if (ci && p.city !== ci) return false;
-        if (ty) { const pty = ((p.projectType || '').split(',')[0] || '').trim(); if (pty !== ty) return false; }
+        // ANY of the project's types, not just the first: PreferredType and
+        // ProjectType[0] disagree on 151 of 911 rows, and a tower typed
+        // "Residences, Hotel, Mixed-Use" is a real hit for all three.
+        if (ty) {
+          const tys = String(p.projectTypesStr || p.projectType || '')
+            .split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+          if (tys.indexOf(String(ty).trim().toLowerCase()) < 0) return false;
+        }
         if (yr) { const dy = parseInt(String(p.deliveryDate || '').slice(0, 4), 10); if (!dy || dy > yr) return false; }
         return true;
       });

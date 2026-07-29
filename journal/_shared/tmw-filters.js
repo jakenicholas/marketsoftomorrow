@@ -11,7 +11,7 @@
    THE CONTRACT (canonical form is always the slug):
      ?city=west-palm-beach   place, city level   (the map already owned ?city=)
      ?state=FL               place, state level  (atlas already owned ?state=)
-     ?type=mixed-use         project type        (source field: PreferredType)
+     ?type=mixed-use         project type        (ANY of the ProjectType list)
      ?status=construction    lifecycle slug      (never the display string)
      ?year=2027              delivery year
 
@@ -207,7 +207,17 @@
       var m = st.match(/([A-Z]{2})$/);
       if (!m || m[1] !== f.state) return false;
     }
-    if (f.type && normType(p.PreferredType || '') !== f.type) return false;
+    if (f.type) {
+      // A project matches a type if ANY of its types match. ProjectType is a
+      // comma-separated LIST ("Residences, Hotel, Mixed-Use"); PreferredType is
+      // only the primary and disagrees with the list head on 151 of 911 rows,
+      // so filtering on it would hide real matches. The map additionally
+      // suppresses a district when one of its children covers the same type;
+      // that rule needs the parent/child index and stays surface-side.
+      var types = String(p.ProjectType || p.PreferredType || '')
+        .split(',').map(function (t) { return normType(t); }).filter(Boolean);
+      if (types.indexOf(f.type) < 0) return false;
+    }
     if (f.status && normStatus(p.Delivery || '') !== f.status) return false;
     if (f.year) {
       // CUMULATIVE: "delivering BY end of <year>", not "delivering IN <year>".
