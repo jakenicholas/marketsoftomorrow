@@ -224,6 +224,49 @@
      whole card 40% from its top-left corner, so it covers only the corner. */
   .tmw-intel .intel{position:absolute!important; left:12px!important; top:12px!important; right:auto!important; bottom:auto!important; width:294px!important; margin:0!important; transform:scale(.6); transform-origin:top left}
 }
+
+.tmw-intel .ti-tabs{display:flex; gap:6px; justify-content:center; margin:0 auto 22px; padding:5px; border-radius:999px;
+  background:rgba(255,255,255,.04); border:1px solid var(--hair); width:max-content; max-width:100%; flex-wrap:wrap}
+.tmw-intel .ti-tab{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+  color:var(--mute); background:none; border:0; padding:10px 20px; border-radius:999px; cursor:pointer; transition:all .18s; white-space:nowrap}
+.tmw-intel .ti-tab:hover{color:#fff}
+.tmw-intel .ti-tab.on{background:#fff; color:#070807}
+.tmw-intel .ti-tab .tp{font-size:8.5px; margin-left:7px; padding:2px 6px; border-radius:4px; background:rgba(230,197,116,.18); color:var(--gold-soft); letter-spacing:.1em}
+.tmw-intel .ti-tab.on .tp{background:rgba(7,8,7,.12); color:#6b5a2a}
+.tmw-intel .ti-panel[hidden]{display:none}
+/* portfolio panel */
+.tmw-intel .pf-wrap{padding:24px 22px 26px}
+.tmw-intel .pf-top{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px}
+.tmw-intel .pf-title{font-family:var(--serif); font-size:22px; font-weight:600; color:#fff; letter-spacing:-.01em}
+.tmw-intel .pf-meta{font-size:12px; color:var(--mute); margin-top:4px}
+.tmw-intel .pf-chips{display:flex; gap:6px; flex-wrap:wrap}
+.tmw-intel .pf-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute2);
+  background:rgba(255,255,255,.05); border:1px solid var(--hair); padding:5px 11px; border-radius:999px}
+.tmw-intel .pf-chip.on{background:var(--green); border-color:var(--green); color:#070807; font-weight:700}
+.tmw-intel .pf-k{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:10px; margin-bottom:20px}
+.tmw-intel .pf-kc{padding:13px 15px; border:1px solid var(--hair); border-radius:12px; background:rgba(255,255,255,.025)}
+.tmw-intel .pf-kc b{display:block; font-family:var(--serif); font-size:23px; font-weight:600; color:#fff; line-height:1; letter-spacing:-.02em}
+.tmw-intel .pf-kc b.g{color:var(--green-soft)} .tmw-intel .pf-kc b.p{color:#B9A6FF} .tmw-intel .pf-kc b.r{color:#FF5C5C}
+.tmw-intel .pf-kc span{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:7px}
+.tmw-intel .pf-kc i{font-style:normal; display:block; font-size:10.5px; color:var(--mute2); margin-top:4px}
+.tmw-intel .pf-rows{display:flex; flex-direction:column}
+.tmw-intel .pf-r{display:grid; grid-template-columns:1.5fr 1fr auto; gap:14px; align-items:center; padding:11px 8px; border-bottom:1px solid rgba(255,255,255,.05)}
+.tmw-intel .pf-r:last-child{border-bottom:none}
+.tmw-intel .pf-n{font-size:13.5px; font-weight:600; color:#fff}
+.tmw-intel .pf-c{font-family:var(--mono); font-size:9.5px; color:var(--mute); margin-top:3px}
+.tmw-intel .pf-bar{height:5px; border-radius:99px; background:rgba(255,255,255,.09); overflow:hidden}
+.tmw-intel .pf-bar i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#18c75a,var(--green-soft))}
+.tmw-intel .pf-s{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute2); margin-top:6px; display:block}
+.tmw-intel .pf-m{font-family:var(--mono); font-size:10px; padding:3px 9px; border-radius:999px; white-space:nowrap}
+.tmw-intel .pf-m.up{color:var(--green-soft); background:rgba(31,223,103,.1); border:1px solid rgba(31,223,103,.3)}
+.tmw-intel .pf-m.slip{color:#FF5C5C; background:rgba(255,92,92,.1); border:1px solid rgba(255,92,92,.3)}
+.tmw-intel .pf-m.cap{color:#B9A6FF; background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.3)}
+.tmw-intel .pf-brief{margin-top:18px; padding:16px 18px; border:1px solid rgba(167,139,250,.3); border-radius:13px;
+  background:linear-gradient(180deg,rgba(167,139,250,.09),transparent)}
+.tmw-intel .pf-brief .bk{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#B9A6FF; font-weight:700; margin-bottom:9px}
+.tmw-intel .pf-brief p{font-size:13px; color:var(--mute2); line-height:1.6; margin:0}
+.tmw-intel .pf-brief p b{color:#fff; font-weight:600}
+@media(max-width:640px){ .tmw-intel .pf-r{grid-template-columns:1fr auto} .tmw-intel .pf-prog{display:none} }
 .tmw-intel .btn-pro{font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:.12em; color:var(--gold-soft); border:1px solid rgba(230,197,116,.45); border-radius:5px; padding:2px 6px; line-height:1.2}`;
   var HTML = `<section class="tmw-intel">
   <div class="wrap">
@@ -241,6 +284,12 @@
       </div>
     </div>
 
+    <div class="ti-tabs" role="tablist">
+      <button class="ti-tab on" type="button" data-ti-tab="map">The Database</button>
+      <button class="ti-tab" type="button" data-ti-tab="portfolio">Your Portfolio<span class="tp">PRO</span></button>
+    </div>
+
+    <div class="ti-panel" data-ti-panel="map">
     <div class="app">
       <div class="chrome">
         <div class="dots"><i></i><i></i><i></i></div>
@@ -318,6 +367,71 @@
       <div class="pulse">
         <span class="ptag"><span class="pip"></span>Pulse</span>
         <div class="ptrack"><div class="pmove" id="tiPmove"></div></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="ti-panel" data-ti-panel="portfolio" hidden>
+      <div class="app">
+        <div class="chrome">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <div class="urlbar">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <b>oftmw.com/account</b>
+          </div>
+          <span class="kbd">PRO</span>
+        </div>
+        <div class="pf-wrap">
+          <div class="pf-top">
+            <div>
+              <div class="pf-title">Your book</div>
+              <div class="pf-meta">6 projects watched &middot; 3 markets &middot; updated 4 minutes ago</div>
+            </div>
+            <div class="pf-chips">
+              <span class="pf-chip on">West Palm Beach</span>
+              <span class="pf-chip">Miami</span>
+              <span class="pf-chip">Nashville</span>
+            </div>
+          </div>
+
+          <div class="pf-k">
+            <div class="pf-kc"><b>6</b><span>Watched</span><i>2 moved this week</i></div>
+            <div class="pf-kc"><b class="r">89</b><span>Supply pressure</span><i>Saturated</i></div>
+            <div class="pf-kc"><b class="g">$923M</b><span>Capital nearby</span><i>4 loans</i></div>
+            <div class="pf-kc"><b class="p">$1,950</b><span>Modeled psf</span><i>at delivery</i></div>
+            <div class="pf-kc"><b>Q4 '26</b><span>Next delivery</span><i>YMCA Palm Beaches</i></div>
+          </div>
+
+          <div class="pf-rows">
+            <div class="pf-r">
+              <div><div class="pf-n">South Flagler House</div><div class="pf-c">West Palm Beach &middot; Residences</div></div>
+              <div class="pf-prog"><div class="pf-bar"><i style="width:72%"></i></div><span class="pf-s">Under construction</span></div>
+              <span class="pf-m up">&#9650; Topped out</span>
+            </div>
+            <div class="pf-r">
+              <div><div class="pf-n">Olara</div><div class="pf-c">West Palm Beach &middot; Residences</div></div>
+              <div class="pf-prog"><div class="pf-bar"><i style="width:64%"></i></div><span class="pf-s">Under construction</span></div>
+              <span class="pf-m up">&#9650; 60% sold</span>
+            </div>
+            <div class="pf-r">
+              <div><div class="pf-n">15 CityPlace</div><div class="pf-c">West Palm Beach &middot; Mixed-Use</div></div>
+              <div class="pf-prog"><div class="pf-bar"><i style="width:41%"></i></div><span class="pf-s">Under construction</span></div>
+              <span class="pf-m cap">$772M financing</span>
+            </div>
+            <div class="pf-r">
+              <div><div class="pf-n">Pine Crest School WPB</div><div class="pf-c">West Palm Beach &middot; Education</div></div>
+              <div class="pf-prog"><div class="pf-bar"><i style="width:12%"></i></div><span class="pf-s">Announced</span></div>
+              <span class="pf-m slip">&#9660; Slipped 1 yr</span>
+            </div>
+          </div>
+
+          <div class="pf-brief">
+            <div class="bk">The Tomorrow Brief &middot; every Monday</div>
+            <p><b>South Flagler House</b> topped out and <b>Olara</b> crossed 60% sold. <b>15 CityPlace</b> closed the largest
+            construction loan in West Palm Beach this quarter at <b>$772M</b>, while <b>Pine Crest School</b> slipped a second time.
+            Delivered to your inbox, generated from your book.</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -507,6 +621,19 @@
         return '<span class="pitem"><span class="dot"></span><b>'+esc(p[0])+'</b><span class="age">'+esc(p[1])+'</span></span>';
       }).join('');
     }
+    // Tab switch: the map demo vs the Pro portfolio demo.
+    (function(){
+      var tabs=m.querySelectorAll('[data-ti-tab]');
+      Array.prototype.forEach.call(tabs,function(b){
+        b.addEventListener('click',function(){
+          var id=b.getAttribute('data-ti-tab');
+          Array.prototype.forEach.call(tabs,function(x){ x.classList.toggle('on',x===b); });
+          Array.prototype.forEach.call(m.querySelectorAll('[data-ti-panel]'),function(pn){
+            pn.hidden = pn.getAttribute('data-ti-panel')!==id;
+          });
+        });
+      });
+    })();
     function renderPulse(){ $('#tiPmove').innerHTML = pulseHtml()+pulseHtml(); }
     renderPulse();
 
