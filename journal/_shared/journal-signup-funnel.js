@@ -126,8 +126,8 @@
     function close() { el.classList.remove('show'); setTimeout(function () { el.remove(); }, 350); }
     el.querySelector('.tmw-sub-x').addEventListener('click', close);
     el.addEventListener('click', function (e) { if (e.target === el) close(); });
-    // "Log in" → the login modal (existing account, falls back to /account/).
-    function toLogin() { close(); try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('login'); else location.href = '/account/'; } catch (_) { location.href = '/account/'; } }
+    // "Log in" → the login modal (existing account, falls back to /dashboard/).
+    function toLogin() { close(); try { if (typeof window.tmwAuthModal === 'function') window.tmwAuthModal('login'); else location.href = '/dashboard/'; } catch (_) { location.href = '/dashboard/'; } }
     var loginLink = el.querySelector('.tmw-sub-login');
     if (loginLink) loginLink.addEventListener('click', function (e) { e.preventDefault(); toLogin(); });
 

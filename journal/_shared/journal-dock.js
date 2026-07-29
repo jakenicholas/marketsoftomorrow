@@ -1960,7 +1960,7 @@
       if (typeof window.tmwCelebrateToast !== 'function'){ if (++tries < 30) setTimeout(go, 500); return; }
       try { localStorage.setItem('tmw_brief_toast', wk); } catch(_){}
       window.tmwCelebrateToast({ emoji: '\u2726', title: 'Your weekly brief is ready',
-        sub: 'The moves on your watchlist this week', href: 'https://www.oftmw.com/account/#brief', hold: 7000 });
+        sub: 'The moves on your watchlist this week', href: 'https://www.oftmw.com/dashboard/#brief', hold: 7000 });
     })();
   })();
   function briefCardHtml(){
@@ -1968,7 +1968,7 @@
     var wk = briefWeekOf();
     var dt = new Date(wk + 'T00:00:00');
     var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '<a class="tmw-pulse-brief" href="https://www.oftmw.com/account/#brief" data-brief-week="' + wk + '">'
+    return '<a class="tmw-pulse-brief" href="https://www.oftmw.com/dashboard/#brief" data-brief-week="' + wk + '">'
       + '<span class="pb-eye"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/><path d="M18.5 13.2c.16 1.8 1.04 2.7 2.85 2.9-1.81.15-2.69 1.05-2.85 2.9-.16-1.85-1.04-2.75-2.85-2.9 1.81-.2 2.69-1.1 2.85-2.9Z"/></svg>Your weekly brief</span>'
       + '<span class="pb-t">The moves on your watchlist &mdash; week of ' + MON[dt.getMonth()] + ' ' + dt.getDate() + '</span>'
       + '<span class="pb-cta">Read it &rarr;</span>'
@@ -2355,7 +2355,7 @@
     el.innerHTML='<div class="tmw-ach-ic">'+(o.icon||STAR)+'</div><div class="tmw-ach-bd"><div class="tmw-ach-k">'+o.kicker+'</div><div class="tmw-ach-n">'+o.name+'</div></div>'+(o.sub?'<div class="tmw-ach-xp">'+o.sub+'</div>':'');
     // Tapping any toast takes you to your account (the climb / rewards live there).
     el.style.cursor='pointer'; el.setAttribute('role','link'); el.setAttribute('tabindex','0');
-    function goAccount(){ try{ location.href=(o.href||'/account/'); }catch(e){} }
+    function goAccount(){ try{ location.href=(o.href||'/dashboard/'); }catch(e){} }
     el.addEventListener('click',goAccount);
     el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goAccount(); } });
     w.appendChild(el);
