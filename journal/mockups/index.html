@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts · My Portfolio + The Tomorrow Brief</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-soft:#42EB81; --green-deep:#18c75a;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --red:#FF5C5C; --amber:#F5A623;
+  --ink:#070807; --panel:#121412; --panel2:#171a17;
+  --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(900px 600px at 78% -8%, rgba(31,223,103,.08), transparent 60%),
+            radial-gradient(700px 600px at 8% 40%, rgba(167,139,250,.07), transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 30px}
+.top{padding:60px 0 10px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple);font-weight:700}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,5vw,54px);letter-spacing:-.02em;color:var(--white);margin:14px 0 10px}
+.lede{color:var(--mute2);font-size:17px;max-width:70ch;font-weight:300}
+.note{margin-top:16px;font-size:13px;color:var(--mute);font-family:var(--mono)}
+section{padding:56px 0}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-n{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:.16em}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.4vw,38px);color:var(--white);letter-spacing:-.02em}
+.sec-p{color:var(--mute);font-size:15px;max-width:66ch;margin:10px 0 30px;font-weight:300}
+
+/* ── shared chrome for the mock app ── */
+.app{background:linear-gradient(180deg,var(--panel),var(--ink));border:1px solid var(--hair);border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.app-bar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--hair);background:rgba(255,255,255,.02)}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16)}
+.app-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-left:6px}
+.pro{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:var(--gold-soft);background:rgba(230,197,116,.12);border:1px solid rgba(230,197,116,.4);padding:4px 10px;border-radius:999px}
+.app-body{padding:26px 24px 30px}
+
+/* portfolio */
+.pf-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.pf-h{font-family:var(--serif);font-size:27px;font-weight:600;color:var(--white)}
+.pf-sub{color:var(--mute);font-size:13.5px;margin-top:4px}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute2);
+  background:rgba(255,255,255,.04);border:1px solid var(--hair);padding:6px 12px;border-radius:999px}
+.chip.on{color:var(--ink);background:var(--green);border-color:var(--green);font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:26px}
+.kpi{padding:16px 18px;border:1px solid var(--hair);border-radius:14px;background:rgba(255,255,255,.025)}
+.kpi b{display:block;font-family:var(--serif);font-size:30px;font-weight:600;color:var(--white);letter-spacing:-.02em;line-height:1}
+.kpi b.g{color:var(--green-soft)} .kpi b.p{color:var(--purple-glow)} .kpi b.r{color:var(--red)}
+.kpi span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:9px}
+.kpi i{font-style:normal;font-size:11px;color:var(--mute2);display:block;margin-top:5px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:600;padding:0 10px 12px;border-bottom:1px solid var(--hair)}
+.tbl td{padding:14px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+.tbl tr:hover td{background:rgba(167,139,250,.04)}
+.p-name{font-weight:600;color:var(--white);font-size:14px}
+.p-loc{font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:3px}
+.bar{height:5px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;min-width:96px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green-deep),var(--green-soft))}
+.st{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2);margin-top:6px;display:block}
+.mv{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.mv.up{color:var(--green-soft);background:rgba(31,223,103,.1);border:1px solid rgba(31,223,103,.3)}
+.mv.slip{color:var(--red);background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3)}
+.mv.new{color:var(--purple-glow);background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3)}
+.mv.flat{color:var(--mute);border:1px solid var(--hair)}
+
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:26px}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.card{border:1px solid var(--hair);border-radius:14px;background:rgba(255,255,255,.025);padding:18px 20px 20px}
+.card h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--purple-glow);margin-bottom:14px;font-weight:600}
+.feed{display:flex;flex-direction:column;gap:13px}
+.f-row{display:flex;gap:11px;align-items:flex-start;font-size:13px;color:var(--mute2);line-height:1.45}
+.f-dot{width:6px;height:6px;border-radius:50%;flex:none;margin-top:6px}
+.f-dot.g{background:var(--green);box-shadow:0 0 8px rgba(31,223,103,.7)}
+.f-dot.p{background:var(--purple);box-shadow:0 0 8px rgba(167,139,250,.7)}
+.f-dot.a{background:var(--amber);box-shadow:0 0 8px rgba(245,166,35,.6)}
+.f-row b{color:var(--white);font-weight:600}
+.f-when{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--mute);white-space:nowrap}
+.cap{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.cap:last-child{border-bottom:none}
+.cap .amt{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--gold-soft)}
+.cap .who{color:var(--mute);font-family:var(--mono);font-size:10.5px}
+
+/* email brief */
+.mailwrap{display:grid;grid-template-columns:1fr;justify-items:center}
+.mail{width:100%;max-width:620px;background:#FBF8F2;color:#241c14;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.mail-hdr{padding:12px 18px;background:#efe9dd;border-bottom:1px solid rgba(0,0,0,.08);font-size:12px;color:#6b5c4a;font-family:var(--mono)}
+.mail-hdr b{color:#241c14}
+.mail-body{padding:32px 34px 36px}
+.m-k{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#B0603A;font-weight:700}
+.m-h{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1.12;margin:12px 0 6px;color:#1c1610;letter-spacing:-.01em}
+.m-sub{font-size:14px;color:#6b5c4a;margin-bottom:26px}
+.m-sec{margin-top:26px;padding-top:20px;border-top:1px solid rgba(0,0,0,.1)}
+.m-sec-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a7a66;margin-bottom:14px;font-weight:700}
+.m-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:15px}
+.m-badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;margin-top:2px}
+.m-badge.up{background:#dff5e6;color:#1c7a41}
+.m-badge.slip{background:#fbe3e3;color:#a63232}
+.m-badge.cap{background:#f6ecd7;color:#8a6a1f}
+.m-badge.new{background:#ece6fb;color:#5b45a8}
+.m-t{font-size:14.5px;line-height:1.5}
+.m-t b{color:#1c1610}
+.m-t span{color:#6b5c4a}
+.m-cta{display:inline-block;margin-top:22px;background:#1c1610;color:#FBF8F2;text-decoration:none;font-family:var(--mono);
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:13px 22px;border-radius:999px}
+.m-foot{margin-top:26px;padding-top:18px;border-top:1px solid rgba(0,0,0,.1);font-size:11.5px;color:#8a7a66;line-height:1.6}
+
+.why{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.why div{border:1px solid var(--hair);border-radius:12px;padding:16px 18px;background:rgba(255,255,255,.02)}
+.why b{display:block;color:var(--white);font-size:14px;margin-bottom:6px}
+.why p{font-size:13px;color:var(--mute);line-height:1.5}
+footer{padding:50px 0 70px;color:var(--mute);font-size:13px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="wrap top">
+  <div class="kicker">Concepts · not live</div>
+  <h1>My Portfolio &amp; The Tomorrow Brief</h1>
+  <p class="lede">Two Pro surfaces built from data you already have. Every number, project, lender and market below is pulled from the live database, so this is what it would actually look like on day one, not a filler mockup.</p>
+  <div class="note">903 projects · 278 cities · $160.3B tracked capital · 188 hotels in the pipeline</div>
+</div>
+
+<!-- ══════════ 1. MY PORTFOLIO ══════════ -->
+<section class="wrap">
+  <div class="sec-h"><span class="sec-n">01</span><h2>My Portfolio</h2></div>
+  <p class="sec-p">A member picks the projects, firms and markets they care about. Onyx watches them and keeps a live dashboard. This is the answer to "why do I pay every month" for a developer, broker or capital allocator.</p>
+
+  <div class="app">
+    <div class="app-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="app-title">oftmw.com / portfolio</span>
+      <span class="pro">Pro</span>
+    </div>
+    <div class="app-body">
+
+      <div class="pf-head">
+        <div>
+          <div class="pf-h">West Palm Beach book</div>
+          <div class="pf-sub">6 projects watched · 3 firms · updated 4 minutes ago</div>
+        </div>
+        <div class="chips">
+          <span class="chip on">West Palm Beach</span>
+          <span class="chip">Miami</span>
+          <span class="chip">Nashville</span>
+          <span class="chip">+ add market</span>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><b>6</b><span>Watched</span><i>2 moved this week</i></div>
+        <div class="kpi"><b class="r">89</b><span>Supply pressure</span><i>Saturated · peak Late '27</i></div>
+        <div class="kpi"><b class="g">$923M</b><span>Capital nearby</span><i>4 loans within 2 mi</i></div>
+        <div class="kpi"><b class="p">$1,950</b><span>Modeled psf</span><i>at delivery · high conf.</i></div>
+        <div class="kpi"><b>Q4 '26</b><span>Next delivery</span><i>YMCA of the Palm Beaches</i></div>
+      </div>
+
+      <table class="tbl">
+        <thead><tr><th>Project</th><th>Progress</th><th>Delivery</th><th>Movement</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div class="p-name">South Flagler House</div><div class="p-loc">West Palm Beach · Residences</div></td>
+            <td><div class="bar"><i style="width:72%"></i></div><span class="st">Under construction</span></td>
+            <td>Q2 2027</td>
+            <td><span class="mv up">▲ Topped out</span></td>
+          </tr>
+          <tr>
+            <td><div class="p-name">Olara</div><div class="p-loc">West Palm Beach · Residences</div></td>
+            <td><div class="bar"><i style="width:64%"></i></div><span class="st">Under construction</span></td>
+            <td>Q4 2026</td>
+            <td><span class="mv up">▲ 60% sold</span></td>
+          </tr>
+          <tr>
+            <td><div class="p-name">Dutchman's Pipe</div><div class="p-loc">West Palm Beach · Golf</div></td>
+            <td><div class="bar"><i style="width:100%"></i></div><span class="st">Now open</span></td>
+            <td>Opened</td>
+            <td><span class="mv flat">No change</span></td>
+          </tr>
+          <tr>
+            <td><div class="p-name">15 CityPlace</div><div class="p-loc">West Palm Beach · Mixed-Use</div></td>
+            <td><div class="bar"><i style="width:41%"></i></div><span class="st">Under construction</span></td>
+            <td>2027</td>
+            <td><span class="mv new">$772M financing</span></td>
+          </tr>
+          <tr>
+            <td><div class="p-name">Pine Crest School WPB</div><div class="p-loc">West Palm Beach · Education</div></td>
+            <td><div class="bar"><i style="width:12%"></i></div><span class="st">Announced</span></td>
+            <td>2029</td>
+            <td><span class="mv slip">▼ Slipped 1 yr</span></td>
+          </tr>
+          <tr>
+            <td><div class="p-name">The Belgrove Resort &amp; Spa</div><div class="p-loc">West Palm Beach · Hotel</div></td>
+            <td><div class="bar"><i style="width:33%"></i></div><span class="st">Breaking ground</span></td>
+            <td>2028</td>
+            <td><span class="mv new">$100M · Apollo</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="two">
+        <div class="card">
+          <h4>What moved in your book</h4>
+          <div class="feed">
+            <div class="f-row"><span class="f-dot g"></span><div><b>South Flagler House</b> topped out. Onyx moved delivery confidence to High.</div><span class="f-when">2d</span></div>
+            <div class="f-row"><span class="f-dot p"></span><div><b>15 CityPlace</b> closed a <b>$772M</b> construction loan, the largest in your book.</div><span class="f-when">5d</span></div>
+            <div class="f-row"><span class="f-dot a"></span><div><b>Pine Crest School</b> pushed its opening from 2028 to 2029. Second slip this year.</div><span class="f-when">6d</span></div>
+            <div class="f-row"><span class="f-dot g"></span><div>A new hotel, <b>The Belgrove Resort &amp; Spa</b>, entered your market at 0.8 mi.</div><span class="f-when">1w</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Capital near your book</h4>
+          <div class="cap"><span><b style="color:var(--white)">15 CityPlace</b><br><span class="who">Construction loan</span></span><span class="amt">$772M</span></div>
+          <div class="cap"><span><b style="color:var(--white)">Dutchman's Pipe</b><br><span class="who">Apollo Global Management</span></span><span class="amt">$100M</span></div>
+          <div class="cap"><span><b style="color:var(--white)">The Belgrove</b><br><span class="who">Apollo Global Management</span></span><span class="amt">$100M</span></div>
+          <div class="cap"><span><b style="color:var(--white)">Inscription</b><br><span class="who">Wells Fargo</span></span><span class="amt">$51M</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="why">
+    <div><b>Built on what exists</b><p>Watch list, pulse, financing, supply pressure and Onyx projections are already live. This is assembly, not invention.</p></div>
+    <div><b>The retention lever</b><p>A saved portfolio is switching cost. People do not cancel a subscription that is tracking their own deals.</p></div>
+    <div><b>Feeds the Brief</b><p>Whatever a member puts in the portfolio becomes the content of their weekly email. One input, two products.</p></div>
+  </div>
+</section>
+
+<!-- ══════════ 2. THE TOMORROW BRIEF ══════════ -->
+<section class="wrap">
+  <div class="sec-h"><span class="sec-n">02</span><h2>The Tomorrow Brief</h2></div>
+  <p class="sec-p">The portfolio, delivered. Every Monday, one email per member, generated from their own watch list rather than the general digest. It is the difference between a tool they visit and an analyst who reports to them.</p>
+
+  <div class="mailwrap">
+    <div class="mail">
+      <div class="mail-hdr"><b>Markets of Tomorrow</b> &nbsp;·&nbsp; to jake@oftmw.com &nbsp;·&nbsp; Mon 8:00 AM<br>
+        <b>Your week: a $772M loan, a top-out, and one slip</b></div>
+      <div class="mail-body">
+        <div class="m-k">The Tomorrow Brief · Week of Aug 3</div>
+        <div class="m-h">Three things moved in<br>your markets.</div>
+        <div class="m-sub">Six projects watched across West Palm Beach, Miami and Nashville.</div>
+
+        <div class="m-sec">
+          <div class="m-sec-k">Your projects</div>
+          <div class="m-item"><span class="m-badge up">Milestone</span><div class="m-t"><b>South Flagler House</b> topped out. <span>Delivery confidence raised to High for Q2 2027.</span></div></div>
+          <div class="m-item"><span class="m-badge slip">Slip</span><div class="m-t"><b>Pine Crest School</b> moved to 2029. <span>Second delay this year, now 14 months behind its original date.</span></div></div>
+          <div class="m-item"><span class="m-badge up">Sales</span><div class="m-t"><b>Olara</b> crossed 60% sold. <span>Ahead of the West Palm Beach median pace.</span></div></div>
+        </div>
+
+        <div class="m-sec">
+          <div class="m-sec-k">Money in your markets</div>
+          <div class="m-item"><span class="m-badge cap">$772M</span><div class="m-t"><b>15 CityPlace</b> closed construction financing. <span>The largest loan in West Palm Beach this quarter.</span></div></div>
+          <div class="m-item"><span class="m-badge cap">$100M</span><div class="m-t"><b>Apollo</b> lent again in your market. <span>Second WPB loan in 90 days, a pattern worth watching.</span></div></div>
+        </div>
+
+        <div class="m-sec">
+          <div class="m-sec-k">Opening soon near you</div>
+          <div class="m-item"><span class="m-badge new">Q4 '26</span><div class="m-t"><b>YMCA of the Palm Beaches</b> <span>is the next delivery inside your book.</span></div></div>
+          <div class="m-item"><span class="m-badge new">New</span><div class="m-t"><b>The Belgrove Resort &amp; Spa</b> entered the pipeline <span>0.8 mi from two of your projects.</span></div></div>
+        </div>
+
+        <a class="m-cta" href="#">Open my portfolio →</a>
+
+        <div class="m-foot">Supply pressure in West Palm Beach is <b>89 (Saturated)</b>, peaking Late 2027.<br>
+          You are receiving this because you track 6 projects on Markets of Tomorrow.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why">
+    <div><b>Reuses the digest pipeline</b><p>The newsletter generator, the brain and the watch feed already exist. The new part is the per-member assembly.</p></div>
+    <div><b>A reason to upgrade</b><p>Free members can be shown a blurred Brief for a market they follow. It is the clearest possible upgrade prompt.</p></div>
+    <div><b>Compounds your data</b><p>What people watch tells you what to cover. The Brief is a weekly, honest read on demand.</p></div>
+  </div>
+</section>
+
+<footer class="wrap">Concepts for review · Markets of Tomorrow · noindex</footer>
+</body>
+</html>
