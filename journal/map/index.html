@@ -28096,9 +28096,26 @@
     // ── map → shared ────────────────────────────────────────────────────────
     function pushOutbound() {
       if (_applying) return;
-      var a = window.activeFilters;
-      var typeDisp   = a.desktop.type   !== 'all' ? a.desktop.type   : (a.mobile.type   !== 'all' ? a.mobile.type   : '');
-      var statusDisp = a.desktop.status !== 'all' ? a.desktop.status : (a.mobile.status !== 'all' ? a.mobile.status : '');
+      // Read the SELECTS, not activeFilters. activeFilters is updated by the
+      // map's own change handler, and depending on that handler having run
+      // first makes this an ordering race between two independent listeners —
+      // when the map's handler does not attach, the old version silently wrote
+      // stale state back out. The selects are the ground truth either way.
+      function pick(key) {
+        var ids = IDS[key];
+        for (var i = 0; i < ids.length; i++) {
+          var sel = el(ids[i]);
+          if (sel && sel.value && sel.value !== 'all') return sel.value;
+        }
+        var a = window.activeFilters;
+        if (a) {
+          if (a.desktop[key] && a.desktop[key] !== 'all') return a.desktop[key];
+          if (a.mobile[key]  && a.mobile[key]  !== 'all') return a.mobile[key];
+        }
+        return '';
+      }
+      var typeDisp   = pick('type');
+      var statusDisp = pick('status');
       window.tmwFilters.set({
         type:   typeDisp   || null,     // normalize() folds display → slug
         status: statusDisp || null,
