@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-27.1';
+export const ONTOLOGY_VERSION = '2026-07-29.1';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -156,6 +156,56 @@ export const ONTOLOGY = {
     },
   },
 
+  // ── Filter state (the contract shared by /map/ and /atlas/) ───────────────
+  // Map and Atlas render the SAME projects two ways. Before this existed they
+  // filtered on the same three axes with different controls and different URL
+  // params, so a filter never survived a surface change and every cross-link
+  // dumped the reader back to an unfiltered view. These five params are the
+  // canonical query string BOTH surfaces read on load and write on change, so
+  // the Journal|Map|Atlas toggle is a view switch, not a reset.
+  //
+  // /_shared/tmw-filters.js is the client-side implementation. It carries a
+  // copy of this vocabulary (a browser cannot import worker source) stamped
+  // with the ontology version it was written against — if these drift, that
+  // stamp is how you find out.
+  filters: {
+    params: ['city', 'state', 'type', 'status', 'year'],
+
+    // Project type. Source field on every project row is `PreferredType`;
+    // these slugs are the URL form.
+    types: {
+      order: ['residences', 'mixed-use', 'hotel', 'golf', 'museum', 'office', 'entertainment',
+              'stadium', 'travel', 'cultural', 'park', 'retail', 'education', 'marina', 'healthcare'],
+      display: {
+        'residences': 'Residences', 'mixed-use': 'Mixed-Use', 'hotel': 'Hotel', 'golf': 'Golf',
+        'museum': 'Museum', 'office': 'Office', 'entertainment': 'Entertainment', 'stadium': 'Stadium',
+        'travel': 'Travel', 'cultural': 'Cultural', 'park': 'Park', 'retail': 'Retail',
+        'education': 'Education', 'marina': 'Marina', 'healthcare': 'Healthcare',
+      },
+      // Long-tail PreferredType values that are really one of the above. These
+      // are DATA-CLEANUP candidates, not permanent vocabulary: fold them here
+      // so a filter never silently drops a project, and fix the rows upstream.
+      aliases: {
+        'hospital': 'healthcare',
+        'country-club': 'golf',
+        'members-club-and-boutique-hotel': 'hotel',   // slug() turns '&' into ' and '
+      },
+    },
+
+    // Delivery values seen in the data that are NOT in statuses.display.
+    // 'Complete'/'Completed' predate the canonical list; they mean open.
+    status_aliases: { 'complete': 'open', 'completed': 'open' },
+
+    rules: [
+      'CANONICAL FORM IS THE SLUG: city=west-palm-beach, state=FL, type=mixed-use, status=construction, year=2027. Consumers must ALSO accept the legacy display form (city=West%20Palm%20Beach) because live links, embeds and the sitemap still carry it — normalise on read, always write the slug.',
+      'PLACE IS TWO PARAMS, NOT ONE: `state` (2-letter US code, uppercase) and `city` (slug). Atlas already owned ?state= and the map already owned ?city=, and they do not collide, so the shared contract extends what shipped rather than inventing a third scheme. A city implies its state; setting a city does not require setting the state.',
+      'STATUS USES THE LIFECYCLE SLUGS from statuses.order — never the display strings. Read through status_aliases so legacy Delivery values still resolve.',
+      'An ABSENT param means "no filter on that axis", never "all" as an explicit value. Empty params are stripped from the URL so a clean state is a clean link.',
+      'Surfaces own their own view params (map: project/embed/fullscreen/ui; atlas: aview) and must preserve any param they do not recognise when they rewrite the query string — the filter module only ever touches the five it owns.',
+      'Filter changes use history.replaceState, not pushState: filtering is not navigation, and a filter-per-back-button makes the back button useless.',
+    ],
+  },
+
   // ── Write routing (which tool writes where) ───────────────────────────────
   writes: {
     // Editorially BANNED source domains — never citable in the dossier or any
@@ -212,6 +262,12 @@ export function ontologyText(sections) {
     out.push('\n## Place logic');
     out.push('NYC family: ' + o.places.nyc_family.join(', '));
     o.places.rules.forEach((r) => out.push('- ' + r));
+  }
+  if (want('filters')) {
+    out.push('\n## Filter state (shared by /map/ and /atlas/)');
+    out.push('Params: ' + o.filters.params.join(', '));
+    out.push('Types: ' + o.filters.types.order.join(', '));
+    o.filters.rules.forEach((r) => out.push('- ' + r));
   }
   if (want('writes')) { out.push('\n## Write routing'); o.writes.rules.forEach((r) => out.push('- ' + r)); }
   if (want('articles')) { out.push('\n## Articles & the AI pipeline'); o.articles.rules.forEach((r) => out.push('- ' + r)); }
