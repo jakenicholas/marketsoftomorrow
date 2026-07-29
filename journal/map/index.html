@@ -28038,6 +28038,7 @@
       status: ['locationFilterDesktop', 'locationFilterMobile']   // yes: status
     };
     var _applying = false;   // guard: our own writes must not echo back in
+    var _pushing  = false;   // …and our own push must not re-apply to ourselves
 
     function el(id) { return document.getElementById(id); }
     function ready() {
@@ -28116,11 +28117,17 @@
       }
       var typeDisp   = pick('type');
       var statusDisp = pick('status');
-      window.tmwFilters.set({
-        type:   typeDisp   || null,     // normalize() folds display → slug
-        status: statusDisp || null,
-        year:   window._scrubYear ? String(window._scrubYear) : null
-      }, { silent: true });
+      // NOT silent: the header toggle listens for this so its Map/Atlas hrefs
+      // stay current. Silencing it left the toggle pointing at a stale filter.
+      // _pushing keeps the notify from bouncing straight back into applyInbound.
+      _pushing = true;
+      try {
+        window.tmwFilters.set({
+          type:   typeDisp   || null,     // normalize() folds display → slug
+          status: statusDisp || null,
+          year:   window._scrubYear ? String(window._scrubYear) : null
+        });
+      } finally { setTimeout(function () { _pushing = false; }, 0); }
     }
 
     function wire() {
@@ -28139,7 +28146,7 @@
         slider.addEventListener('input', function () { setTimeout(pushOutbound, 0); });
       }
       // Changes we did not make (back/forward, or a link that carried state).
-      window.tmwFilters.onChange(function () { if (!_applying) applyInbound(); });
+      window.tmwFilters.onChange(function () { if (!_applying && !_pushing) applyInbound(); });
     }
 
     (function boot(tries) {

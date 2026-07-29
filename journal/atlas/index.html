@@ -1399,7 +1399,10 @@
         type:   currentTypeFilter && currentTypeFilter !== 'ALL' ? currentTypeFilter : null,
         status: currentStatusFilter && currentStatusFilter !== 'ALL' ? currentStatusFilter : null,
         year:   currentYearFilter || null
-      }, { silent: true });
+      });
+      // NOT silent: the header toggle listens for this so its Map/Atlas hrefs
+      // stay current. The subscription below short-circuits when the incoming
+      // state already equals ours, so this cannot loop.
     }
     // …and read back changes we did NOT make (back/forward, another surface).
     // Registered ONCE at load: wireInteractions() re-runs on every render, so
