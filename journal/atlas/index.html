@@ -2418,10 +2418,14 @@
       return ATLAS_ROUTE_IDS.indexOf(id) >= 0 ? id : 'overview';
     }
     let currentRoute = routeFromPath();
-    // Did the pretty path actually serve us, or did we land on /atlas/ itself?
-    // If the former, keep using paths; if not, write the query form so links
-    // we generate are ones this deployment can actually resolve.
-    const _pathRoutingWorks = /\/atlas\/[a-z-]+\/?$/.test(location.pathname || '');
+    // Prefer the pretty path. The ONLY signal that it is unavailable is the
+    // reader having arrived on ?view= — either because a link was generated
+    // that way, or because the Function did not serve the path. Testing
+    // "am I on a route path" instead was wrong: on /atlas/ itself that is
+    // false, which made the app root emit ?view= links even though paths work.
+    const _pathRoutingWorks = (function () {
+      try { return !new URLSearchParams(location.search).get('view'); } catch (e) { return true; }
+    })();
 
     function routeHref(id) {
       const q = new URLSearchParams(location.search || '');
