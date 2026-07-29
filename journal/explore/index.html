@@ -45,8 +45,15 @@
   .ask svg{width:19px;height:19px;flex:none}
   .ask input{flex:1;background:none;border:0;outline:none;color:#fff;font-family:var(--sans);font-size:16px}
   .ask input::placeholder{color:var(--mute)}
-  .ask .go{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
-    color:#070807;background:var(--purple-glow);padding:8px 14px;border-radius:999px;border:0;cursor:pointer}
+  /* circle-arrow submit — same control as the Intelligence search bar */
+  .ask .go{height:34px;width:34px;padding:0;flex:none;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);color:rgba(255,255,255,.50);
+    transition:color .2s,transform .2s,background .2s,border-color .2s,box-shadow .2s}
+  .ask .go svg{width:15px;height:15px;flex:none;transition:filter .2s,transform .2s}
+  .ask .go.ready{background:linear-gradient(135deg,#C9B7FF,#B9A6FF);border-color:#B9A6FF;color:#12091f;
+    box-shadow:0 0 18px rgba(185,166,255,.45),0 0 4px rgba(185,166,255,.3)}
+  .ask .go.ready:hover{transform:scale(1.06)}
   .hint{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:44px}
 
   .q{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
@@ -87,7 +94,7 @@
     <div class="ask" id="askBox">
       <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="9" stroke-linejoin="round"/></svg>
       <input id="askInput" type="text" placeholder="Ask anything, or start with a market, firm or project&hellip;" aria-label="Ask Onyx">
-      <button class="go" id="askGo" type="button">Ask Onyx</button>
+      <button class="go" id="askGo" type="button" aria-label="Run search (press Enter)" title="Press Enter to search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </div>
     <div class="hint">Answers are grounded in the live database and our own reporting.</div>
   </div>
@@ -182,30 +189,35 @@
   // ── the ask box hands off to the site-wide Onyx overlay ──
   // The dock owns the overlay; open it with the typed query rather than
   // rebuilding a second search UI here.
-  function ask(q){
+  // The dock lazy-loads /_shared/journal-search-overlay.js, which publishes
+  // window.tmwOverlay = { open(query), openWithPrefix, close, isOpen }. That is
+  // the ONLY supported entry point — open() routes the query through
+  // submitQuery so the answer turn renders. If the script hasn't landed yet
+  // (the dock appends it on mount), wait briefly, then fall back to the
+  // canonical /?q= deep-link, which any page with the overlay bootstraps from.
+  function ask(q, tries){
     q=(q||'').trim();
+    if(!q){ inp.focus(); return; }
     try{
-      if(typeof window.tmwOpenSearch==='function'){ window.tmwOpenSearch(q); return; }
-      var pill=document.querySelector('.tmw-dock-search, [data-tmw-search-open], .dock-search');
-      if(pill){ pill.click();
-        setTimeout(function(){
-          var i=document.querySelector('.tmw-so-input, .so-input, input[data-tmw-search-input]');
-          if(i && q){ i.value=q; i.dispatchEvent(new Event('input',{bubbles:true}));
-            i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})); }
-        }, 340);
-        return;
+      if(window.tmwOverlay && typeof window.tmwOverlay.open==='function'){
+        window.tmwOverlay.open(q); return;
       }
     }catch(e){}
-    // last resort: the journal home handles ?q=
+    tries=(tries||0)+1;
+    if(tries<=12){ setTimeout(function(){ ask(q, tries); }, 150); return; }
     location.href='/?q='+encodeURIComponent(q);
   }
-  var box=document.getElementById('askBox'), inp=document.getElementById('askInput');
-  box.addEventListener('click', function(){ inp.focus(); });
+  var box=document.getElementById('askBox'), inp=document.getElementById('askInput'),
+      go=document.getElementById('askGo');
+  function syncGo(){ go.classList.toggle('ready', !!inp.value.trim()); }
+  box.addEventListener('click', function(e){ if(e.target!==go && !go.contains(e.target)) inp.focus(); });
   inp.addEventListener('focus', function(){ box.classList.add('on'); });
   inp.addEventListener('blur',  function(){ box.classList.remove('on'); });
-  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') ask(inp.value); });
-  document.getElementById('askGo').addEventListener('click', function(){ ask(inp.value); });
+  inp.addEventListener('input', syncGo);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); ask(inp.value); } });
+  go.addEventListener('click', function(){ ask(inp.value); });
   document.getElementById('viewAsk').addEventListener('click', function(e){ e.preventDefault(); ask(inp.value); });
+  syncGo();
 })();
 </script>
 </body>

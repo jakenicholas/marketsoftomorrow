@@ -165,6 +165,15 @@
 .tmw-dash .d-empty{color:var(--d-mute);font-size:14px;padding:22px 2px}
 .tmw-dash .d-cta{display:inline-block;margin-top:14px;background:#1FDF67;color:#070807;text-decoration:none;
   font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:10px 18px;border-radius:999px}
+/* account links — the profile menu is hidden behind the Dashboard button now,
+   so this page has to carry the way into settings, billing and sign-out. */
+.tmw-dash .d-acct{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tmw-dash .d-al{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--d-mute2);text-decoration:none;background:rgba(255,255,255,.045);border:1px solid var(--d-hair);
+  padding:8px 14px;border-radius:999px;cursor:pointer;transition:.16s;white-space:nowrap;font-weight:600}
+.tmw-dash .d-al:hover{color:#fff;border-color:rgba(167,139,250,.6);background:rgba(167,139,250,.1)}
+.tmw-dash .d-al.out{color:var(--d-mute)}
+.tmw-dash .d-al.out:hover{color:#FF8A8A;border-color:rgba(255,92,92,.5);background:rgba(255,92,92,.08)}
 .tmw-dash .d-gate{text-align:center;padding:52px 24px}
 .tmw-dash .d-gate h3{font-family:'Fraunces',Georgia,serif;font-size:26px;color:#fff;margin-bottom:10px}
 .tmw-dash .d-gate p{color:var(--d-mute);font-size:14.5px;max-width:52ch;margin:0 auto 20px;line-height:1.6}
@@ -316,8 +325,20 @@
       }
       var head=document.createElement('div');
       head.className='d-head';
-      head.innerHTML='<div><div class="d-h1">Dashboard</div><div class="d-sub">Your book, your markets, and what moved this week.</div></div>';
+      head.innerHTML='<div><div class="d-h1">Dashboard</div><div class="d-sub">Your book, your markets, and what moved this week.</div></div>'
+        + '<div class="d-acct">'
+        +   '<a class="d-al" href="/account/#overview">Watchlist</a>'
+        +   '<a class="d-al" href="/account/#saved">Saved articles</a>'
+        +   '<a class="d-al" href="/account/#account">Account &amp; billing</a>'
+        +   '<button class="d-al out" type="button" data-d-out>Sign out</button>'
+        + '</div>';
       wrap.appendChild(head);
+      var out=head.querySelector('[data-d-out]');
+      if(out) out.addEventListener('click', function(){
+        var m=window.$memberstackDom;
+        try{ if(m&&m.logout){ m.logout().then(function(){ location.href='/'; }).catch(function(){ location.href='/'; }); return; } }catch(e){}
+        location.href='/';
+      });
       var body=document.createElement('div');
       wrap.appendChild(body);
       render(body, d);
