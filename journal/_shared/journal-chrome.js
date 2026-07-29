@@ -653,14 +653,16 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountClose);
   else mountClose();
 
-  // The merged Dashboard button (purple) replaces the Pulse pill + avatar for
-  // signed-in members. Self-loaded here so every chrome page picks it up.
-  if (!document.querySelector('script[data-tmw-dashbtn]')) {
-    var dbs = document.createElement('script');
-    dbs.src = '/_shared/tmw-dashbtn.js';
-    dbs.defer = true;
-    dbs.setAttribute('data-tmw-dashbtn', '1');
-    document.head.appendChild(dbs);
-  }
+})();
 
+/* The merged Dashboard button. Its own top-level block on purpose: the closure
+   above returns early on non-firm pages, so anything appended inside it would
+   never load on the journal, map, explore or dashboard. */
+(function () {
+  if (document.querySelector('script[data-tmw-dashbtn]')) return;
+  var s = document.createElement('script');
+  s.src = '/_shared/tmw-dashbtn.js';
+  s.defer = true;
+  s.setAttribute('data-tmw-dashbtn', '1');
+  document.head.appendChild(s);
 })();
