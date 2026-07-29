@@ -792,8 +792,6 @@
   }
   /* row 1 keeps the old side-by-side layout (view tabs left, filters right) */
   .ash-row1 { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
-  /* no chips active → the row collapses instead of leaving a gap */
-  .ash-row1:empty { display: none; }
   /* Section jump rail — same control the market pages use (.mk-rail), so the
      two surfaces navigate identically. Scrollspy sets .on. */
   .atlas-rail { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none;
@@ -819,6 +817,32 @@
   .atlas-rail-jump:hover { color: #ECEAE5; background: none; }
   .atlas-rail-jump.on { color: #fff; background: none; box-shadow: none;
     border-bottom-color: var(--gold, #e6c574); }
+  /* Saved views control */
+  .ash-views { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: 0 0 auto; }
+  .avw-save, .avw-toggle { font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em;
+    text-transform: uppercase; font-weight: 700; color: var(--mute-2, #C2C9C3);
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px; padding: 7px 13px; cursor: pointer; white-space: nowrap;
+    transition: color .15s, border-color .15s, background .15s; }
+  .avw-save:hover, .avw-toggle:hover { color: #fff; border-color: rgba(167,139,250,.55); }
+  .avw-save.on { color: #A78BFA; background: rgba(167,139,250,.14); border-color: rgba(167,139,250,.45); }
+  .avw-n { color: var(--mute, #9AA39C); margin-left: 5px; }
+  .avw-wrap { position: relative; }
+  .avw-menu { display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;
+    min-width: 260px; max-height: 320px; overflow-y: auto; background: #101012;
+    border: 1px solid rgba(167,139,250,.3); border-radius: 12px;
+    box-shadow: 0 22px 60px -12px rgba(0,0,0,.85); padding: 5px; }
+  .avw-menu.open { display: block; }
+  .avw-item { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border-radius: 8px;
+    text-decoration: none; color: var(--cream, #ECEAE5); font-size: 13.5px; }
+  .avw-item:hover { background: rgba(167,139,250,.1); }
+  .avw-nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .avw-x { background: none; border: 0; color: var(--mute, #9AA39C); cursor: pointer; font-size: 11px;
+    padding: 2px 4px; border-radius: 4px; flex: none; }
+  .avw-x:hover { color: #FF8A8A; background: rgba(255,92,92,.1); }
+  .avw-empty { padding: 14px 12px; font-size: 12.5px; color: var(--mute, #9AA39C); line-height: 1.5; }
+  @media (max-width: 720px) { .ash-views { margin-left: 0; } }
+
   /* Directory rows — shared by the Markets and Firms routes. */
   .amk-list { display: flex; flex-direction: column; }
   .amk-row { display: grid; grid-template-columns: minmax(0,1fr) 130px 190px 46px; gap: 14px;
@@ -1238,6 +1262,7 @@
   <!-- Universal journal chrome: injects the header (with the Map · Atlas · Journal
        toggle — Atlas active on /atlas) + the bottom dock. -->
   <script src="/_shared/tmw-filters.js"></script>
+  <script src="/_shared/tmw-views.js"></script>
 <script src="/_shared/journal-chrome.js" defer></script>
   <script src="/_shared/journal-dock.js" defer></script>
   <!-- Native Pro paywall (window.tmwShowPaywall). Memberstack + _isPaidMember
@@ -3246,6 +3271,71 @@
       </section>`;
     }
 
+    // ── Saved views ──────────────────────────────────────────────────────
+    // "Save this view" is the whole personalisation story in one control:
+    // route + filter + a name. It is the same object the dashboard will pin,
+    // so there is never a separate "add widget" flow to learn. Members only —
+    // there is nowhere to put it for a signed-out reader.
+    function viewsSignedIn() {
+      try { return !!(window.__tmwMember && window.__tmwMember.id); } catch (e) { return false; }
+    }
+    function currentFilterObj() {
+      try { return (window.tmwFilters && window.tmwFilters.get()) || {}; } catch (e) { return {}; }
+    }
+    var _viewsOpen = false;
+    function mountViews(tries) {
+      var host = document.getElementById('atlasViews');
+      if (!host) return;
+      if (!window.tmwViews || !viewsSignedIn()) {
+        // Both arrive async (script + Memberstack). Retry briefly, then leave
+        // the slot empty rather than flashing a control that cannot work.
+        if ((tries || 0) < 30) { setTimeout(function () { mountViews((tries || 0) + 1); }, 300); }
+        return;
+      }
+      window.tmwViews.list().then(function (views) {
+        var f = currentFilterObj();
+        var hit = window.tmwViews.matching('atlas', currentRoute, f);
+        var items = views.map(function (v) {
+          return '<a class="avw-item" href="' + escapeHtml(window.tmwViews.href(v)) + '" data-view="' + escapeHtml(v.id) + '">'
+            + '<span class="avw-nm">' + escapeHtml(v.name) + '</span>'
+            + '<button class="avw-x" type="button" data-view-del="' + escapeHtml(v.id) + '" aria-label="Remove saved view">&#10005;</button></a>';
+        }).join('') || '<div class="avw-empty">No saved views yet. Filter the Atlas, then save it.</div>';
+        host.innerHTML =
+            '<button class="avw-save' + (hit ? ' on' : '') + '" type="button" data-view-save aria-label="Save this view">'
+          +   (hit ? '&#10003; Saved' : '&#43; Save view')
+          + '</button>'
+          + '<div class="avw-wrap">'
+          +   '<button class="avw-toggle" type="button" data-view-menu>Saved <span class="avw-n">' + views.length + '</span></button>'
+          +   '<div class="avw-menu' + (_viewsOpen ? ' open' : '') + '">' + items + '</div>'
+          + '</div>';
+      });
+    }
+    // Delegated once: the sticky head is rebuilt on every render.
+    document.addEventListener('click', function (e) {
+      if (!window.tmwViews) return;
+      var t = e.target;
+      var del = t.closest && t.closest('[data-view-del]');
+      if (del) {
+        e.preventDefault(); e.stopPropagation();
+        window.tmwViews.remove(del.getAttribute('data-view-del')).then(function () { mountViews(); });
+        return;
+      }
+      var saveBtn = t.closest && t.closest('[data-view-save]');
+      if (saveBtn) {
+        e.preventDefault();
+        var f = currentFilterObj();
+        var hit = window.tmwViews.matching('atlas', currentRoute, f);
+        // Clicking a saved view again un-saves it — same control, both ways.
+        var op = hit ? window.tmwViews.remove(hit.id)
+                     : window.tmwViews.save({ surface: 'atlas', route: currentRoute, filter: f });
+        op.then(function () { mountViews(); });
+        return;
+      }
+      var menu = t.closest && t.closest('[data-view-menu]');
+      if (menu) { e.preventDefault(); _viewsOpen = !_viewsOpen; mountViews(); return; }
+      if (_viewsOpen && !(t.closest && t.closest('.avw-wrap'))) { _viewsOpen = false; mountViews(); }
+    });
+
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
@@ -3255,7 +3345,8 @@
       // One header for every route: the tabs, then any active filter chips.
       const stickyhead = '<div class="atlas-stickyhead">'
         + renderSectionRail()
-        + '<div class="ash-row1">' + renderStickyFilters() + '</div>'
+        + '<div class="ash-row1">' + renderStickyFilters()
+        + '<div class="ash-views" id="atlasViews"></div></div>'
         + '</div>';
       const sections = [];
       if (currentRoute === 'markets') loadSupplyIntel();
@@ -3282,6 +3373,7 @@
       }
       sections.push(renderFooter());
       root.innerHTML = sections.join('');
+      mountViews();
       loadSupplyIntel();
       loadProjSec();
       wireInteractions();
