@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore &middot; Markets of Tomorrow</title>
+<meta name="description" content="Explore every tracked project, firm and market on Markets of Tomorrow. Ask anything, or start with a market, firm, project, opening or capital flow, then choose how to see it.">
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://www.oftmw.com/explore/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.oftmw.com/explore/">
+<meta property="og:title" content="Explore &middot; Markets of Tomorrow">
+<meta property="og:description" content="Ask anything, or start with a market, firm, project, opening or capital flow.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1FDF67; --green-soft:#42EB81; --purple:#A78BFA; --purple-glow:#B9A6FF;
+    --gold:#e6c574; --gold-soft:#f0d68a;
+    --ink:#070807; --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+    --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+    --ink-2:var(--ink); --mute-2:var(--mute); --hair-2:var(--hair2);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(940px 640px at 76% -10%,rgba(167,139,250,.10),transparent 60%),
+              radial-gradient(760px 620px at 4% 36%,rgba(31,223,103,.06),transparent 60%)}
+  main{position:relative;z-index:1}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 30px}
+  .hero{padding:56px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple);font-weight:700}
+  h1{font-family:var(--serif);font-size:clamp(34px,5.4vw,58px);font-weight:600;color:var(--white);letter-spacing:-.025em;margin:14px 0 12px;line-height:1.04}
+  h1 em{font-style:italic;color:var(--purple-glow)}
+  .lede{color:var(--mute2);font-size:17px;max-width:66ch;font-weight:300}
+
+  /* ask */
+  .ask{display:flex;align-items:center;gap:13px;padding:17px 20px;border-radius:15px;
+    border:1px solid rgba(167,139,250,.42);background:rgba(167,139,250,.08);margin:30px 0 8px;
+    cursor:text;transition:.2s}
+  .ask:hover,.ask.on{border-color:rgba(167,139,250,.75);box-shadow:0 0 34px rgba(167,139,250,.18)}
+  .ask svg{width:19px;height:19px;flex:none}
+  .ask input{flex:1;background:none;border:0;outline:none;color:#fff;font-family:var(--sans);font-size:16px}
+  .ask input::placeholder{color:var(--mute)}
+  .ask .go{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    color:#070807;background:var(--purple-glow);padding:8px 14px;border-radius:999px;border:0;cursor:pointer}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:44px}
+
+  .q{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
+  section{padding:0 0 52px}
+  .pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .pill{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);
+    background:rgba(255,255,255,.035);text-decoration:none;color:inherit;transition:.18s}
+  .pill:hover{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.07);transform:translateY(-2px);
+    box-shadow:0 14px 34px rgba(0,0,0,.4)}
+  .pill .ic{width:20px;height:20px;flex:none;stroke:var(--purple-glow);fill:none;stroke-width:1.9}
+  .pill .t{font-size:15px;color:#fff;font-weight:600}
+  .pill .s{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-top:3px;display:block}
+
+  .views{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .view{padding:18px 19px;border-radius:14px;border:1px solid var(--hair);background:rgba(255,255,255,.028);
+    text-decoration:none;color:inherit;transition:.18s;display:block}
+  .view:hover{border-color:rgba(31,223,103,.5);background:rgba(31,223,103,.05);transform:translateY(-2px)}
+  .view .vt{font-size:15px;color:#fff;font-weight:600;margin-bottom:5px}
+  .view .vd{font-size:12.5px;color:var(--mute);line-height:1.5}
+  .view .vk{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-glow);
+    display:block;margin-bottom:9px}
+
+  .note{margin-top:6px;color:var(--mute);font-size:14px;max-width:70ch;font-weight:300;line-height:1.6}
+  .note b{color:var(--cream);font-weight:500}
+  .tmw-chrome-foot{margin-top:40px !important}
+  @media(max-width:640px){ .wrap{padding:0 20px} .ask{flex-wrap:wrap} .ask input{min-width:0;width:100%} }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="wrap hero">
+    <div class="eyebrow">The Database</div>
+    <h1>Every project, firm and<br>market we track. <em>Ask anything.</em></h1>
+    <p class="lede">903 developments across 278 cities, the firms building them, and the capital behind them. Start with a
+      question, or pick where you want to begin.</p>
+
+    <div class="ask" id="askBox">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="9" stroke-linejoin="round"/></svg>
+      <input id="askInput" type="text" placeholder="Ask anything, or start with a market, firm or project&hellip;" aria-label="Ask Onyx">
+      <button class="go" id="askGo" type="button">Ask Onyx</button>
+    </div>
+    <div class="hint">Answers are grounded in the live database and our own reporting.</div>
+  </div>
+
+  <section class="wrap">
+    <div class="q">Start with</div>
+    <div class="pills">
+      <a class="pill" href="/markets/">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <span><span class="t">Markets</span><span class="s" id="cMarkets">cities we cover</span></span>
+      </a>
+      <a class="pill" href="/firm/">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 20v-6h4v6"/></svg>
+        <span><span class="t">Firms</span><span class="s" id="cFirms">developers &amp; architects</span></span>
+      </a>
+      <a class="pill" href="/projects/">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4"/></svg>
+        <span><span class="t">Projects</span><span class="s" id="cProjects">tracked developments</span></span>
+      </a>
+      <a class="pill" href="/atlas/?view=timeline">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span><span class="t">Openings</span><span class="s" id="cOpenings">what's opening next</span></span>
+      </a>
+      <a class="pill" href="/atlas/#money">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+        <span><span class="t">Capital</span><span class="s" id="cCapital">who's lending, where</span></span>
+      </a>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="q">Then see it as</div>
+    <div class="views">
+      <a class="view" href="/projects/">
+        <span class="vk">Detail</span>
+        <div class="vt">A project page</div>
+        <div class="vd">The full record: timeline, developer, architect, financing and projected pricing.</div>
+      </a>
+      <a class="view" href="/map/">
+        <span class="vk">Spatial</span>
+        <div class="vt">On the map</div>
+        <div class="vd">Where it sits, and everything rising around it.</div>
+      </a>
+      <a class="view" href="/atlas/">
+        <span class="vk">Ranked</span>
+        <div class="vt">In the Atlas</div>
+        <div class="vd">Leaderboards, momentum and supply pressure across a market.</div>
+      </a>
+      <a class="view" href="/markets/">
+        <span class="vk">Place</span>
+        <div class="vt">A market page</div>
+        <div class="vd">The whole city: pipeline, who's building, what's coming.</div>
+      </a>
+      <a class="view" href="#" id="viewAsk">
+        <span class="vk">Answered</span>
+        <div class="vt">Answered by Onyx</div>
+        <div class="vd">A written answer, grounded in the database and our reporting.</div>
+      </a>
+    </div>
+    <p class="note">The map, the Atlas, a market page and a project page are all <b>views of the same database</b>. Pick the one
+      that answers your question fastest, or just ask.</p>
+  </section>
+</main>
+
+<script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
+<script>
+(function(){
+  // ── live counts, from the same feeds the rest of the site reads ──
+  function n(x){ return Number(x||0).toLocaleString('en-US'); }
+  function set(id, txt){ var e=document.getElementById(id); if(e) e.textContent=txt; }
+  var J=function(u){ return fetch(u,{cache:'force-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}); };
+  Promise.all([ J('/map/projects-flat.json'), J('/map/firms-flat.json') ]).then(function(o){
+    var p=o[0]||[], f=o[1]||{};
+    if(p.length){
+      var cities={}, soon=0, cap=0;
+      p.forEach(function(x){
+        var c=(x.City||'').trim(); if(c) cities[c]=1;
+        if((x.Delivery||'')==='Opening Soon') soon++;
+        var m=parseFloat(x.FinancingAmountM); if(isFinite(m)) cap+=m;
+      });
+      set('cProjects', n(p.length)+' tracked developments');
+      set('cMarkets',  n(Object.keys(cities).length)+' cities we cover');
+      set('cOpenings', n(soon)+' opening soon');
+      set('cCapital',  '$'+(cap/1000).toFixed(1)+'B tracked');
+    }
+    var a=(f.architects||[]).length, d=(f.developers||[]).length;
+    if(a||d) set('cFirms', n(d)+' developers · '+n(a)+' architects');
+  });
+
+  // ── the ask box hands off to the site-wide Onyx overlay ──
+  // The dock owns the overlay; open it with the typed query rather than
+  // rebuilding a second search UI here.
+  function ask(q){
+    q=(q||'').trim();
+    try{
+      if(typeof window.tmwOpenSearch==='function'){ window.tmwOpenSearch(q); return; }
+      var pill=document.querySelector('.tmw-dock-search, [data-tmw-search-open], .dock-search');
+      if(pill){ pill.click();
+        setTimeout(function(){
+          var i=document.querySelector('.tmw-so-input, .so-input, input[data-tmw-search-input]');
+          if(i && q){ i.value=q; i.dispatchEvent(new Event('input',{bubbles:true}));
+            i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})); }
+        }, 340);
+        return;
+      }
+    }catch(e){}
+    // last resort: the journal home handles ?q=
+    location.href='/?q='+encodeURIComponent(q);
+  }
+  var box=document.getElementById('askBox'), inp=document.getElementById('askInput');
+  box.addEventListener('click', function(){ inp.focus(); });
+  inp.addEventListener('focus', function(){ box.classList.add('on'); });
+  inp.addEventListener('blur',  function(){ box.classList.remove('on'); });
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') ask(inp.value); });
+  document.getElementById('askGo').addEventListener('click', function(){ ask(inp.value); });
+  document.getElementById('viewAsk').addEventListener('click', function(e){ e.preventDefault(); ask(inp.value); });
+})();
+</script>
+</body>
+</html>
