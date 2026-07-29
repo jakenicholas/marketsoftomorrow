@@ -661,7 +661,7 @@
 (function () {
   if (document.querySelector('script[data-tmw-dashbtn]')) return;
   var s = document.createElement('script');
-  s.src = '/_shared/tmw-dashbtn.js';
+  s.src = '/_shared/tmw-dashbtn.js?v=20260729a';
   s.defer = true;
   s.setAttribute('data-tmw-dashbtn', '1');
   document.head.appendChild(s);
