@@ -332,6 +332,8 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     ['jeddah-tower','new-murabba','one-bangkok','olara','south-flagler-house','the-berkeley']
       .forEach(function(sl){if(ROWS.some(function(r){return r.Slug===sl;}))WATCH.add(sl);});
     FOLLOW.add('miami');FOLLOW.add('west-palm-beach');
+    SEEDED=true;   // update the in-memory flag too, or the "sample book" note
+                   // only appears on the SECOND visit (it read the pre-seed value)
     lsSet('tmw_v5_seeded',true);saveWatch();saveFollow();
   }
   function bookIdx(){var o=[];ROWS.forEach(function(r,i){if(r.Slug&&WATCH.has(r.Slug))o.push(i);});return o;}
