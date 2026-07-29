@@ -839,15 +839,19 @@
     background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.08);
     border-radius: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
   .atlas-rail::-webkit-scrollbar { display: none; }
+  /* The active underline is an INSET shadow, not a border with a -1px margin.
+     The margin trick pushed the content box 1px past the scroller, which is
+     what made the strip vertically scrollable on touch; drawing the underline
+     inside the box means there is no overflow to clip or scroll in the first
+     place, and the 2px reads identically. */
   .atlas-rail-jump { font-family: var(--sans); font-size: 14px; font-weight: 500;
     letter-spacing: 0; text-transform: none; color: var(--mute, #9AA39C);
     text-decoration: none; background: none; border: 0;
-    border-bottom: 2px solid transparent; margin-bottom: -1px;
     padding: 15px 14px; border-radius: 0; white-space: nowrap; flex: 0 0 auto;
-    transition: color .15s, border-color .15s; }
+    transition: color .15s, box-shadow .15s; }
   .atlas-rail-jump:hover { color: #ECEAE5; background: none; }
-  .atlas-rail-jump.on { color: #fff; background: none; box-shadow: none;
-    border-bottom-color: var(--gold, #e6c574); }
+  .atlas-rail-jump.on { color: #fff; background: none;
+    box-shadow: inset 0 -2px 0 var(--gold, #e6c574); }
   /* Saved views control */
   .ash-views { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: 0 0 auto; }
   .avw-save, .avw-toggle { font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em;
