@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts &middot; Avatar button + Read / Explore / Mine</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1FDF67; --green-soft:#42EB81; --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --ink:#070807; --panel:#111311; --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+  --sans:'Inter',-apple-system,sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(900px 600px at 78% -8%,rgba(31,223,103,.07),transparent 60%),
+            radial-gradient(700px 600px at 6% 40%,rgba(167,139,250,.07),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 30px}
+.top{padding:58px 0 6px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--purple);font-weight:700}
+h1{font-family:var(--serif);font-size:clamp(32px,5vw,50px);font-weight:600;color:var(--white);letter-spacing:-.02em;margin:14px 0 10px}
+.lede{color:var(--mute2);font-size:16.5px;max-width:74ch;font-weight:300}
+section{padding:48px 0}
+.sh{display:flex;align-items:baseline;gap:13px;margin-bottom:6px}
+.sn{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:.16em}
+h2{font-family:var(--serif);font-size:clamp(24px,3.2vw,34px);font-weight:600;color:var(--white);letter-spacing:-.02em}
+.sp{color:var(--mute);font-size:14.5px;max-width:70ch;margin:10px 0 26px;font-weight:300}
+h3{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--white);margin-bottom:4px}
+.note{font-size:13px;color:var(--mute);line-height:1.55}
+.note b{color:var(--cream);font-weight:600}
+
+/* ── fake header bar ── */
+.bar{display:flex;align-items:center;gap:22px;padding:13px 20px;border:1px solid var(--hair);border-radius:14px;
+  background:rgba(255,255,255,.03);margin-bottom:12px;flex-wrap:wrap}
+.logo{font-family:var(--sans);font-weight:800;font-size:13px;line-height:.95;letter-spacing:-.02em;color:#fff}
+.logo small{display:block;font-size:9px;letter-spacing:.06em;color:var(--mute)}
+.navlinks{display:flex;gap:18px;margin-left:6px}
+.navlinks a{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute2);text-decoration:none}
+.navlinks a.on{color:#fff}
+.right{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+/* current state */
+.pulse-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+  border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.1);font-family:var(--mono);font-size:11px;color:var(--purple-glow)}
+.pulse-pill i{width:6px;height:6px;border-radius:50%;background:var(--purple);display:block}
+.av{width:30px;height:30px;border-radius:50%;border:1px solid var(--hair2);display:flex;align-items:center;justify-content:center;color:#fff;position:relative}
+.av svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.av .star{position:absolute;bottom:-3px;right:-3px;width:13px;height:13px;background:#FFD300;border-radius:50%;border:2px solid var(--ink)}
+
+/* ── option A: one merged button ── */
+.optA{display:inline-flex;align-items:center;gap:9px;padding:5px 13px 5px 6px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s}
+.optA:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.3)}
+.optA .face{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1FDF67,#0f7d3a);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#062a13}
+.optA .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#fff}
+.optA .cnt{font-family:var(--mono);font-size:10px;font-weight:700;color:#070807;background:var(--green);
+  padding:2px 7px;border-radius:999px;line-height:1.4}
+
+/* ── option B: labelled dashboard button + dot ── */
+.optB{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border-radius:999px;
+  border:1px solid rgba(31,223,103,.45);background:rgba(31,223,103,.1);cursor:pointer;transition:.18s}
+.optB:hover{background:rgba(31,223,103,.18)}
+.optB .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--green-soft)}
+.optB .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);animation:bl 1.8s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── option C: avatar with count badge ── */
+.optC{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--hair2);
+  background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s}
+.optC:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.32)}
+.optC .face{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#A78BFA,#5b3fb8);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.optC .badge{position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;
+  background:var(--green);color:#070807;font-family:var(--mono);font-size:9.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--ink)}
+
+/* ── option D: split segmented control ── */
+.optD{display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--hair2);overflow:hidden;background:rgba(255,255,255,.04)}
+.optD .seg{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;cursor:pointer;transition:.18s}
+.optD .seg:hover{background:rgba(255,255,255,.07)}
+.optD .seg+.seg{border-left:1px solid var(--hair)}
+.optD .seg .t{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
+.optD .seg.me .t{color:#fff;font-weight:700}
+.optD .n{font-family:var(--mono);font-size:9.5px;font-weight:800;background:var(--green);color:#070807;padding:2px 6px;border-radius:999px}
+.optD .face{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#1FDF67,#0f7d3a);
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#062a13}
+
+.opt{border:1px solid var(--hair);border-radius:16px;padding:22px 24px 24px;background:rgba(255,255,255,.022);margin-bottom:14px}
+.opt .demo{display:flex;align-items:center;gap:14px;margin:16px 0 14px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:5px;
+  border:1px solid var(--hair2);color:var(--mute)}
+.tag.rec{color:#070807;background:var(--green);border-color:var(--green);font-weight:800}
+
+/* ── explore surface ── */
+.exp{border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02))}
+.exp-in{padding:30px 28px 30px}
+.ask{display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid rgba(167,139,250,.4);
+  background:rgba(167,139,250,.07);margin-bottom:20px}
+.ask .hex{width:17px;height:17px;flex:none}
+.ask input{flex:1;background:none;border:0;outline:none;color:#fff;font-family:var(--sans);font-size:15.5px}
+.ask input::placeholder{color:var(--mute)}
+.q{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:22px 0 11px}
+.pills{display:flex;gap:9px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;border:1px solid var(--hair);
+  background:rgba(255,255,255,.035);cursor:pointer;transition:.18s}
+.pill:hover{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.07);transform:translateY(-1px)}
+.pill .ic{width:15px;height:15px;stroke:var(--purple-glow);fill:none;stroke-width:2}
+.pill .t{font-size:13.5px;color:#fff;font-weight:500}
+.pill .s{font-family:var(--mono);font-size:9.5px;color:var(--mute)}
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:11px}
+.view{padding:15px 16px;border-radius:12px;border:1px solid var(--hair);background:rgba(255,255,255,.03);transition:.18s;cursor:pointer}
+.view:hover{border-color:rgba(31,223,103,.45);background:rgba(31,223,103,.05)}
+.view .vt{font-size:13.5px;color:#fff;font-weight:600;margin-bottom:4px}
+.view .vd{font-size:11.5px;color:var(--mute);line-height:1.45}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--mute)}
+.flow b{color:var(--purple-glow);font-weight:600}
+.arrow{color:var(--mute)}
+footer{padding:46px 0 70px;color:var(--mute);font-size:12.5px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="wrap top">
+  <div class="kick">Concepts &middot; not live</div>
+  <h1>The avatar button &amp; a header built on<br>Read / Explore / Mine</h1>
+  <p class="lede">Two decisions to make. First, how the account control should look now that it competes with the Pulse count. Second,
+    what replaces the Database dropdown once we stop listing tools and start asking people what they want to see.</p>
+</div>
+
+<!-- ══════════ 1. WHAT WE HAVE ══════════ -->
+<section class="wrap">
+  <div class="sh"><span class="sn">00</span><h2>What's there now</h2></div>
+  <p class="sp">Two separate controls sit in the corner: a Pulse count and a profile circle. Neither reads as a button, and the
+    avatar looks like settings, so nobody clicks it expecting their dashboard.</p>
+  <div class="bar">
+    <div class="logo">MARKETS<small>OF TMW</small></div>
+    <div class="navlinks"><a class="on">Global</a><a>Focus Markets</a><a>Database</a><a>The Lists</a></div>
+    <div class="right">
+      <span class="pulse-pill"><i></i>10</span>
+      <span class="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0115 0"/></svg><span class="star"></span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 2. AVATAR OPTIONS ══════════ -->
+<section class="wrap">
+  <div class="sh"><span class="sn">01</span><h2>Four ways to make it a button</h2></div>
+  <p class="sp">The count is the point. A number next to your face means <b>things you track moved</b> — that is a reason to click,
+    where a gear icon never is. Each option below merges the two controls so the corner has one job.</p>
+
+  <div class="opt">
+    <div class="demo">
+      <span class="optA"><span class="face">JN</span><span class="lbl">Dashboard</span><span class="cnt">3</span></span>
+      <span class="tag rec">Recommended</span>
+    </div>
+    <h3>A &middot; One merged button</h3>
+    <p class="note">Face, label and count in a single pill. It is unmistakably a button, it says where it goes, and the number
+      carries the urgency the Pulse pill used to. <b>Replaces both controls.</b> Costs the most horizontal room.</p>
+  </div>
+
+  <div class="opt">
+    <div class="demo">
+      <span class="optB"><span class="dot"></span><span class="lbl">My Dashboard</span></span>
+      <span class="tag">No count</span>
+    </div>
+    <h3>B &middot; Labelled with a live dot</h3>
+    <p class="note">Green pill in the brand's action colour. The pulsing dot signals "something is new" without a number, so it
+      never looks stale. Reads clearly as a destination, but loses the specificity of "3 moved".</p>
+  </div>
+
+  <div class="opt">
+    <div class="demo">
+      <span class="optC"><span class="face">JN</span><span class="badge">3</span></span>
+      <span class="tag">Most compact</span>
+    </div>
+    <h3>C &middot; Avatar with a count badge</h3>
+    <p class="note">The familiar pattern from every app people already use. Smallest footprint, keeps the corner clean.
+      The weakness: it still looks like an account control, so the discovery problem only half goes away.</p>
+  </div>
+
+  <div class="opt">
+    <div class="demo">
+      <span class="optD">
+        <span class="seg"><span class="t">Pulse</span><span class="n">10</span></span>
+        <span class="seg me"><span class="face">JN</span><span class="t">Mine</span><span class="n">3</span></span>
+      </span>
+      <span class="tag">Keeps both</span>
+    </div>
+    <h3>D &middot; Segmented: market news vs my news</h3>
+    <p class="note">Keeps Pulse (what moved everywhere) and adds Mine (what moved in <i>my</i> book) as one control. The most
+      honest information design of the four, because those two numbers genuinely mean different things. Widest option.</p>
+  </div>
+</section>
+
+<!-- ══════════ 3. THE HEADER ══════════ -->
+<section class="wrap">
+  <div class="sh"><span class="sn">02</span><h2>Read / Explore / Mine</h2></div>
+  <p class="sp">Three modes instead of nine features. Everything in the old Database dropdown is either a view of one dataset or
+    a verb performed on an object, so none of it deserves its own door.</p>
+  <div class="bar">
+    <div class="logo">MARKETS<small>OF TMW</small></div>
+    <div class="navlinks"><a class="on">Read</a><a>Explore</a><a>Mine</a></div>
+    <div class="right"><span class="optA"><span class="face">JN</span><span class="lbl">Dashboard</span><span class="cnt">3</span></span></div>
+  </div>
+  <div class="flow">
+    <span><b>Read</b> the journal, pulse, lists</span><span class="arrow">·</span>
+    <span><b>Explore</b> every project, firm, market</span><span class="arrow">·</span>
+    <span><b>Mine</b> your book, watches, brief</span>
+  </div>
+</section>
+
+<!-- ══════════ 4. EXPLORE AS A SEARCH ENGINE ══════════ -->
+<section class="wrap">
+  <div class="sh"><span class="sn">03</span><h2>Explore: ask first, then pick the view</h2></div>
+  <p class="sp">The database isn't the map — the map is one <i>view</i> of it. So is the Atlas, so is a market page, so is a firm
+    page. Explore should ask what you're looking for, then offer the lens.</p>
+
+  <div class="exp">
+    <div class="exp-in">
+      <div class="ask">
+        <svg class="hex" viewBox="0 0 100 100"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="9"/></svg>
+        <input placeholder="Ask anything, or start with a market, firm or project…" readonly>
+      </div>
+
+      <div class="q">Start with</div>
+      <div class="pills">
+        <span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span><span class="t">Markets</span> <span class="s">278 cities</span></span></span>
+        <span class="pill"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16"/></svg><span><span class="t">Firms</span> <span class="s">1,120 developers</span></span></span>
+        <span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg><span><span class="t">Projects</span> <span class="s">903 tracked</span></span></span>
+        <span class="pill"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span><span class="t">Openings</span> <span class="s">113 soon</span></span></span>
+        <span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg><span><span class="t">Capital</span> <span class="s">$160.3B</span></span></span>
+      </div>
+
+      <div class="q">Then see it as</div>
+      <div class="views">
+        <div class="view"><div class="vt">A project page</div><div class="vd">The full record: timeline, firms, financing, projection.</div></div>
+        <div class="view"><div class="vt">On the map</div><div class="vd">Where it sits, and everything around it.</div></div>
+        <div class="view"><div class="vt">In the Atlas</div><div class="vd">Ranked and compared against the market.</div></div>
+        <div class="view"><div class="vt">A market page</div><div class="vd">The whole city: pipeline, supply pressure, who's building.</div></div>
+        <div class="view"><div class="vt">Answered by Onyx</div><div class="vd">A written answer, grounded in the database and our reporting.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="sp" style="margin-top:24px">The shift: today someone must know that "Atlas" means leaderboards before they can use it.
+    Here they say <b>what</b> they want and we offer <b>how</b> to look at it — which is what a search engine does, and what
+    turns nine features into one surface.</p>
+</section>
+
+<footer class="wrap">Concepts for review &middot; Markets of Tomorrow &middot; noindex</footer>
+</body>
+</html>
