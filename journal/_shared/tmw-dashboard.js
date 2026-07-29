@@ -1,5 +1,5 @@
 /* ───────────────────────────────────────────────────────────────────────────
-   TMW Dashboard — the member's portfolio as a real, mountable surface.
+   TMW Dashboard: the member's portfolio as a real, mountable surface.
 
    Usage:  <div data-tmw-dashboard></div>
            <script src="/_shared/tmw-dashboard.js" defer></script>
@@ -165,7 +165,7 @@
 .tmw-dash .d-empty{color:var(--d-mute);font-size:14px;padding:22px 2px}
 .tmw-dash .d-cta{display:inline-block;margin-top:14px;background:#1FDF67;color:#070807;text-decoration:none;
   font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:10px 18px;border-radius:999px}
-/* account links — the profile menu is hidden behind the Dashboard button now,
+/* account links: the profile menu is hidden behind the Dashboard button now,
    so this page has to carry the way into settings, billing and sign-out. */
 .tmw-dash .d-acct{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .tmw-dash .d-al{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
@@ -220,7 +220,7 @@
       return '<a class="d-row" href="/projects/'+encodeURIComponent(p.Slug||k)+'/">'
         + '<div><div class="d-nm">'+esc(p.Title||'')+'</div><div class="d-lo">'+esc(p.City||'')+(p.PreferredType?' · '+esc(p.PreferredType):'')+'</div></div>'
         + '<div class="d-prog"><div class="d-bar2"><i style="width:'+pct(p.Delivery)+'%"></i></div><span class="d-st">'+esc(p.Delivery||'')+'</span></div>'
-        + '<div class="d-when">'+esc(deliveryLabel(p)||'—')+'</div>'
+        + '<div class="d-when">'+esc(deliveryLabel(p)||'–')+'</div>'
         + chip + '</a>';
     }).join('');
 
@@ -319,7 +319,7 @@
       host.innerHTML=''; host.appendChild(wrap);
       if(!d || !d.mem){
         wrap.innerHTML='<div class="d-gate"><h3>Sign in to open your dashboard</h3>'
-          + '<p>Your dashboard tracks the projects, firms and markets you follow — what moved, what got financed, and what delivers next.</p>'
+          + '<p>Your dashboard tracks the projects, firms and markets you follow: what moved, what got financed, and what delivers next.</p>'
           + '<a class="d-cta" href="/map/">Browse the database →</a></div>';
         return;
       }
