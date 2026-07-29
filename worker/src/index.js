@@ -8255,6 +8255,85 @@ async function handleFormatBands(req, env, origin) {
 // GET /admin/brain/eval-scores — the draft-quality trend (Loop 2). Per surface:
 // how much of the AI draft survives to the finish, all-time and recent-vs-prior
 // (is the brain mastering the format?). Body params: days.
+// POST /admin/brain/backfill-scores — retroactively score AI articles written
+// BEFORE the voice gate existed, from their archived ai_original_html snapshot
+// (the untouched machine draft). Deterministic fingerprint score for every
+// candidate; the Turing judge additionally runs for PUBLISHED pieces (judge:
+// 'published' default | 'all' | 'none' — each judged piece costs a model call).
+// Also grades publish-time retention where missing. Events are backdated to
+// the piece's real date so the brain-page trend reads honestly. Paginated:
+// call repeatedly (limit per call) until remaining=0; already-scored slugs are
+// skipped, so it's idempotent.
+async function handleBackfillScores(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const limit = Math.min(Math.max(parseInt(body.limit, 10) || 10, 1), 25);
+  const judge = ['published', 'all', 'none'].includes(body.judge) ? body.judge : 'published';
+  const fp = await getFingerprint(env);
+  await ensureEvalScores(env);
+  const rows = ((await env.DB.prepare(
+    `SELECT id, slug, title, status, body_html, ai_original_html, published_at, updated_at, created_at
+     FROM posts
+     WHERE ai_original_html IS NOT NULL AND LENGTH(ai_original_html) > 200 AND slug IS NOT NULL
+       AND slug NOT IN (SELECT DISTINCT member_id FROM events WHERE event_name='voice_gate')
+     ORDER BY status = 'published' DESC, COALESCE(published_at, updated_at, created_at) DESC
+     LIMIT ?1`
+  ).bind(limit).all()).results || []);
+  let gated = 0, judged = 0, retentions = 0;
+  for (const r of rows) {
+    const when = r.published_at || r.updated_at || r.created_at || Math.floor(Date.now() / 1000);
+    const aiProse = htmlToProse(r.ai_original_html);
+    const vio = fp ? voiceScore(aiProse, fp) : [];
+    let jud = { judged: false };
+    if (judge === 'all' || (judge === 'published' && r.status === 'published')) {
+      try {
+        const jury = (await articleExemplars(env, { topic: String(r.title || ''), limit: 5, excludeSlug: r.slug, perChars: 2600 })).slice(0, 2);
+        jud = await turingJudge(env, { draft: aiProse, real: jury });
+        if (jud.judged) judged++;
+      } catch (_) {}
+    }
+    const turing = jud.judged ? (jud.caught ? 'caught (' + jud.confidence + ')' : 'passed') : 'skipped';
+    try {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(when, String(r.slug), 'voice_gate', JSON.stringify({
+          kind: 'backfill', actor: 'backfill', slug: String(r.slug), topic: String(r.title || '').slice(0, 140),
+          score: genVoiceScore(turing, vio.length),
+          first_turing: turing, first_violations: vio.length,
+          notes: { tells: (jud.tells || []).slice(0, 5).map((t) => String(t).slice(0, 220)), spec: vio.slice(0, 6).map((v) => String(v).slice(0, 160)) },
+          final_turing: turing, final_violations: vio.length, revised: false,
+          passed: !vio.length && !String(turing).startsWith('caught'),
+        })).run();
+      gated++;
+    } catch (_) {}
+    // Publish-time retention, where the publish predates the grading loop.
+    if (r.status === 'published') {
+      try {
+        const has = await env.DB.prepare(`SELECT COUNT(*) n FROM eval_scores WHERE kind='article' AND slug=?1`).bind(r.slug).first();
+        if (!(has && has.n)) {
+          const ai = htmlToText(r.ai_original_html), fin = htmlToText(r.body_html || '');
+          if (ai && fin) {
+            await env.DB.prepare(`INSERT INTO eval_scores (kind, slug, retention, ai_words, final_words, title, brain_sig, ts) VALUES ('article',?1,?2,?3,?4,?5,'backfill',?6)`)
+              .bind(String(r.slug).slice(0, 200), wordDiceSimilarity(ai, fin),
+                ai.split(/\s+/).filter(Boolean).length, fin.split(/\s+/).filter(Boolean).length,
+                String(r.title || '').slice(0, 160), when).run();
+            retentions++;
+          }
+        }
+      } catch (_) {}
+    }
+  }
+  let remaining = 0;
+  try {
+    const c = await env.DB.prepare(
+      `SELECT COUNT(*) n FROM posts WHERE ai_original_html IS NOT NULL AND LENGTH(ai_original_html) > 200 AND slug IS NOT NULL
+       AND slug NOT IN (SELECT DISTINCT member_id FROM events WHERE event_name='voice_gate')`
+    ).first();
+    remaining = (c && c.n) || 0;
+  } catch (_) {}
+  return json({ ok: true, processed: rows.length, gated, judged, retentions, remaining }, {}, env, origin);
+}
+
 // GET /admin/article-score?slug= — the per-article AI scorecard for the post
 // editor sidebar: the generation-time voice-gate verdict (score + who wrote it
 // + the judge's actual notes) and the after-your-edits retention score graded
@@ -11908,6 +11987,14 @@ export function voiceScore(text, fp) {
   return out.slice(0, 12);
 }
 
+// Legible 0-100 generation score from the voice gate's FIRST-attempt verdict:
+// fooling the judge is worth 60, a clean fingerprint the other 40.
+export function genVoiceScore(turing, violCount) {
+  const t = String(turing || 'skipped');
+  const base = t === 'passed' ? 60 : t === 'skipped' ? 40 : t.includes('low') ? 30 : t.includes('medium') ? 20 : 10;
+  return Math.min(100, base + Math.max(0, 40 - 10 * (violCount || 0)));
+}
+
 // THE TURING GATE — adversarial voice discriminator. The draft is planted at a
 // random position among real published TMW articles and a judge is asked to
 // spot the AI-written one and name the tells. If the judge catches the draft,
@@ -15012,6 +15099,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/format-bands') return await handleFormatBands(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/brain/eval-scores') return await handleEvalScores(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/article-score')     return await handleArticleScore(request, env, origin, url);
+      if (request.method === 'POST' && url.pathname === '/admin/brain/backfill-scores') return await handleBackfillScores(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);

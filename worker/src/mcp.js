@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -1127,13 +1127,6 @@ let _linkEntsCache = null;
 // 'studio-connector' (OAuth). Set per-request in handleMcp; read by the
 // voice-gate scorecard events.
 let _mcpActor = 'studio-connector';
-// Legible 0-100 generation score from the voice gate's FIRST-attempt verdict:
-// fooling the judge is worth 60, a clean fingerprint the other 40.
-function genVoiceScore(turing, violCount) {
-  const t = String(turing || 'skipped');
-  const base = t === 'passed' ? 60 : t === 'skipped' ? 40 : t.includes('low') ? 30 : t.includes('medium') ? 20 : 10;
-  return Math.min(100, base + Math.max(0, 40 - 10 * (violCount || 0)));
-}
 async function loadLinkEntities() {
   if (_linkEntsCache) return _linkEntsCache;
   const j = (u) => fetch(u, { cf: { cacheTtl: 3600 } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
