@@ -825,8 +825,21 @@
     background: #0a0a0a;
     margin: 0 -32px 22px; padding: 12px 32px 13px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
-    display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    display: flex; flex-direction: column; align-items: stretch; gap: 10px;
   }
+  /* row 1 keeps the old side-by-side layout (view tabs left, filters right) */
+  .ash-row1 { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  /* Section jump rail — same control the market pages use (.mk-rail), so the
+     two surfaces navigate identically. Scrollspy sets .on. */
+  .atlas-rail { display: flex; align-items: center; gap: 2px; overflow-x: auto; scrollbar-width: none;
+    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 999px; padding: 4px 6px; }
+  .atlas-rail::-webkit-scrollbar { display: none; }
+  .atlas-rail-jump { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    font-weight: 700; color: rgba(255,255,255,.55); text-decoration: none; padding: 7px 12px; border-radius: 999px;
+    white-space: nowrap; transition: color .15s, background .15s; flex: 0 0 auto; }
+  .atlas-rail-jump:hover { color: #fff; }
+  .atlas-rail-jump.on { background: rgba(167,139,250,.16); color: #A78BFA; }
+  @media (max-width: 720px) { .atlas-rail { margin: 0 -6px; } }
   .atlas-sticky-filters { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .atlas-sticky-filters::-webkit-scrollbar { display: none; }
   .ash-hint { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(167,139,250,0.8); flex: 0 0 auto; margin-right: 2px; }
@@ -1566,7 +1579,7 @@
       const ICO_BIG = '<svg viewBox="0 0 24 24"><path d="M4 22V8l6-4v18M14 22V11l6-3v14M4 22h16"/></svg>';
       const cardTlb = (cls, ico, title, more, rows) => `<div class="tlb-card ${cls}"><div class="tlb-ct"><div class="tlb-cl"><span class="tlb-ico">${ico}</span><span class="tlb-ch">${title}</span></div>${more || ''}</div>${rows}</div>`;
       return `
-        <section class="atlas-section">
+        <section class="atlas-section" id="atlasBuilders">
           <style>${_TLB_CSS}</style>
           <div class="atlas-section-head">
             <div>
@@ -1829,7 +1842,7 @@
       const panel = renderMovers();
       if (!panel) return '';
       return `
-        <section class="atlas-section">
+        <section class="atlas-section" id="atlasMovers">
           <div class="atlas-section-head"><div>
             <h2 class="atlas-section-title">Recent <em>movers</em></h2>
             <p class="atlas-section-sub">Sourced milestones logged across the pipeline — last 12 months.</p>
@@ -2058,7 +2071,7 @@
     function renderProjectCards() {
       const list = filterProjectsByCalc();
       if (list === null) {
-        return `<section class="atlas-section"><div class="atlas-section-head"><div>
+        return `<section class="atlas-section" id="atlasProjects"><div class="atlas-section-head"><div>
             <h2 class="atlas-section-title"><em>Tracked</em> projects</h2>
             <p class="atlas-section-sub">Loading the pipeline&hellip;</p>
           </div></div><div class="atlas-tl-empty">Projects loading&hellip;</div></section>`;
@@ -2070,7 +2083,7 @@
       });
       const total = sorted.length;
       if (!total) {
-        return `<section class="atlas-section"><div class="atlas-section-head"><div>
+        return `<section class="atlas-section" id="atlasProjects"><div class="atlas-section-head"><div>
             <h2 class="atlas-section-title"><em>Tracked</em> projects</h2>
             <p class="atlas-section-sub">No projects match the current filter.</p>
           </div></div></section>`;
@@ -2080,7 +2093,7 @@
       const moreBtn = total > shown.length
         ? `<div class="apcards-more-wrap"><button class="apcards-more" type="button" data-pcard-more="1">Load more projects</button></div>`
         : '';
-      return `<section class="atlas-section">
+      return `<section class="atlas-section" id="atlasProjects">
         <div class="atlas-section-head"><div>
           <h2 class="atlas-section-title"><em>Tracked</em> projects</h2>
           <p class="atlas-section-sub">Every project in the filter, with live construction status — ${total} tracked.</p>
@@ -2291,6 +2304,60 @@
           <button class="atlas-view-tab ${currentAtlasView === 'timeline' ? 'active' : ''}" data-atlas-view="timeline" role="tab" type="button">Pipeline timeline</button>
           <button class="atlas-view-tab ${currentAtlasView === 'stats' ? 'active' : ''}" data-atlas-view="stats" role="tab" type="button">Overview</button>
         </div>`;
+    }
+
+    // ── Section jump rail (Overview only) ────────────────────────────────
+    // Mirrors the market pages' .mk-rail: one row of anchors that scrolls the
+    // reader between the big sections, with the current one lit. Section ids
+    // are set on the <section> tags the render* functions emit.
+    const ATLAS_RAIL = [
+      ['atlasSupplySec', 'Supply'],
+      ['atlasProjSec',   'Pricing'],
+      ['atlasBuilders',  'Builders'],
+      ['atlasMoney',     'Capital'],
+      ['atlasMovers',    'Movers'],
+      ['atlasProjects',  'Projects']
+    ];
+    function renderSectionRail() {
+      return '<nav class="atlas-rail" aria-label="Jump to section">'
+        + ATLAS_RAIL.map(function (r) {
+            return '<a class="atlas-rail-jump" href="#' + r[0] + '" data-rail="' + r[0] + '">' + r[1] + '</a>';
+          }).join('')
+        + '</nav>';
+    }
+    // Scroll the target just below BOTH sticky layers (site chrome + this head).
+    function railOffset() {
+      const head = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--atlas-head'), 10) || 64;
+      const sh = document.querySelector('.atlas-stickyhead');
+      return head + (sh ? Math.round(sh.getBoundingClientRect().height) : 0) + 12;
+    }
+    let _railSpy = null;
+    function wireSectionRail() {
+      const rail = document.querySelector('.atlas-rail');
+      if (!rail) return;
+      rail.addEventListener('click', function (e) {
+        const a = e.target && e.target.closest ? e.target.closest('.atlas-rail-jump') : null;
+        if (!a) return;
+        const el = document.getElementById(a.getAttribute('data-rail'));
+        if (!el) return;
+        e.preventDefault();
+        window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - railOffset(), behavior: 'smooth' });
+      });
+      // Scrollspy: the last section whose top has passed the sticky offset wins.
+      if (_railSpy) window.removeEventListener('scroll', _railSpy);
+      _railSpy = function () {
+        const off = railOffset() + 8;
+        let active = null;
+        ATLAS_RAIL.forEach(function (r) {
+          const el = document.getElementById(r[0]);
+          if (el && el.getBoundingClientRect().top <= off) active = r[0];
+        });
+        rail.querySelectorAll('.atlas-rail-jump').forEach(function (a) {
+          a.classList.toggle('on', a.getAttribute('data-rail') === active);
+        });
+      };
+      window.addEventListener('scroll', _railSpy, { passive: true });
+      _railSpy();
     }
 
     // ── Pipeline timeline section — reads window.allProjectFeatures (built
@@ -2614,7 +2681,7 @@
     // Follow the Money — a native atlas-section wrapping the shared money module
     // (/_shared/intel-modules.js), filled async after each render.
     function renderMoneySection() {
-      return '<section class="atlas-section">'
+      return '<section class="atlas-section" id="atlasMoney">'
         + '<div class="atlas-section-head"><div>'
         + '<h2 class="atlas-section-title">Follow the <em>money</em></h2>'
         + '<p class="atlas-section-sub">Every tracked financing — who\'s raising, where it\'s landing, and how much is disclosed.</p>'
@@ -2973,7 +3040,10 @@
       const root = document.getElementById('atlasRoot');
       if (!root) return;
       syncHeadOffset();
-      const stickyhead = '<div class="atlas-stickyhead">' + renderViewTabs() + renderStickyFilters() + '</div>';
+      const stickyhead = '<div class="atlas-stickyhead">'
+        + '<div class="ash-row1">' + renderViewTabs() + renderStickyFilters() + '</div>'
+        + (currentAtlasView === 'timeline' ? '' : renderSectionRail())
+        + '</div>';
       const sections = [];
       if (currentAtlasView === 'timeline') {
         sections.push(stickyhead, renderStateFilter(), renderTimelineSection());
@@ -2998,6 +3068,7 @@
       loadSupplyIntel();
       loadProjSec();
       wireInteractions();
+      wireSectionRail();
       updateLoadMoreBtn(currentLbKey);
       try { if (window.tmwMoney) window.tmwMoney.mountAll(); } catch (e) {}
       // Land the user at the "Today" boundary in timeline view. On the native

@@ -54,6 +54,18 @@
   .ask .go.ready{background:linear-gradient(135deg,#C9B7FF,#B9A6FF);border-color:#B9A6FF;color:#12091f;
     box-shadow:0 0 18px rgba(185,166,255,.45),0 0 4px rgba(185,166,255,.3)}
   .ask .go.ready:hover{transform:scale(1.06)}
+  .ask{position:relative}
+  /* typeahead dropdown — same markup + look as the Atlas master search (.mc-sug) */
+  .mc-sug{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:60;background:#101012;
+    border:1px solid rgba(167,139,250,.32);border-radius:12px;overflow:hidden;display:none;
+    box-shadow:0 22px 60px -12px rgba(0,0,0,.85)}
+  .mc-sug.show{display:block}
+  .mc-sug a{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 16px;font-size:14px;
+    color:var(--cream);border-top:1px solid rgba(255,255,255,.05);cursor:pointer;text-decoration:none}
+  .mc-sug a:first-child{border-top:0}
+  .mc-sug a:hover,.mc-sug a.sel{background:rgba(167,139,250,.10)}
+  .mc-sug .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);
+    flex:none;white-space:nowrap}
   .hint{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:44px}
 
   .q{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
@@ -94,9 +106,10 @@
       question, or pick where you want to begin.</p>
 
     <div class="ask" id="askBox">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="9" stroke-linejoin="round"/></svg>
-      <input id="askInput" type="text" placeholder="Ask anything, or start with a market, firm or project&hellip;" aria-label="Ask Onyx">
+      <svg class="ask-hex" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="9" stroke-linejoin="round"/></svg>
+      <input id="askInput" type="text" placeholder="Search markets, firms and projects, or ask anything&hellip;" autocomplete="off" spellcheck="false" aria-label="Search markets, firms and projects">
       <button class="go" id="askGo" type="button" aria-label="Run search (press Enter)" title="Press Enter to search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <div class="mc-sug" id="askSug"></div>
     </div>
     <div class="hint">Answers are grounded in the live database and our own reporting.</div>
   </div>
@@ -112,7 +125,7 @@
         <svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 20v-6h4v6"/></svg>
         <span><span class="t">Firms</span><span class="s" id="cFirms">developers &amp; architects</span></span>
       </a>
-      <a class="pill" href="/projects/">
+      <a class="pill" href="/atlas/#atlasProjects">
         <svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4"/></svg>
         <span><span class="t">Projects</span><span class="s" id="cProjects">tracked developments</span></span>
       </a>
@@ -120,7 +133,7 @@
         <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
         <span><span class="t">Openings</span><span class="s" id="cOpenings">what's opening next</span></span>
       </a>
-      <a class="pill" href="/atlas/#money">
+      <a class="pill" href="/atlas/#atlasMoney">
         <svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
         <span><span class="t">Capital</span><span class="s" id="cCapital">who's lending, where</span></span>
       </a>
@@ -156,8 +169,6 @@
         <div class="vd">A written answer, grounded in the database and our reporting.</div>
       </a>
     </div>
-    <p class="note">The map, the Atlas, a market page and a project page are all <b>views of the same database</b>. Pick the one
-      that answers your question fastest, or just ask.</p>
   </section>
 </main>
 
@@ -188,36 +199,97 @@
     if(a||d) set('cFirms', n(d)+' developers · '+n(a)+' architects');
   });
 
-  // ── the ask box hands off to the site-wide Onyx overlay ──
-  // The dock owns the overlay; open it with the typed query rather than
-  // rebuilding a second search UI here.
-  // The dock lazy-loads /_shared/journal-search-overlay.js, which publishes
-  // window.tmwOverlay = { open(query), openWithPrefix, close, isOpen }. That is
-  // the ONLY supported entry point — open() routes the query through
-  // submitQuery so the answer turn renders. If the script hasn't landed yet
-  // (the dock appends it on mount), wait briefly, then fall back to the
-  // canonical /?q= deep-link, which any page with the overlay bootstraps from.
+  // ── search: the Atlas master-search typeahead, with Onyx as the fallback ──
+  // Same index and ranking as /atlas/'s wireMasterSearch (markets, developers,
+  // architects, projects) so the two bars behave identically. A query that
+  // matches nothing in the index is still a real question, so Enter falls
+  // through to the Onyx overlay rather than dead-ending.
+  var _idx = null, _idxP = null;
+  function buildIndex(){
+    if(_idxP) return _idxP;
+    var J=function(u){ return (window.__tmwSharedJson ? window.__tmwSharedJson(u)
+      : fetch(u,{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})); };
+    _idxP = Promise.all([ J('/map/firms-flat.json'), J('/map/projects-flat.json') ]).then(function(o){
+      var ff=o[0]||{}, pf=o[1]||[], items=[], seen={};
+      var cityC={};
+      if(Array.isArray(pf)) pf.forEach(function(x){ var c=(x.City||'').trim(); if(c) cityC[c]=(cityC[c]||0)+1; });
+      Object.keys(cityC).filter(function(c){ return cityC[c]>=2; })
+        .forEach(function(c){ items.push({name:c, kind:'Market', n:cityC[c], url:'/markets/'+slug(c)+'/'}); });
+      (ff.developers||[]).forEach(function(f){
+        var u='/firm/'+f.slug+'/';
+        if(f.project_count>0 && !seen[u]){ seen[u]=1; items.push({name:f.name, kind:'Developer', n:f.project_count, url:u}); } });
+      (ff.architects||[]).forEach(function(f){
+        var u='/firm/'+f.slug+'/';
+        if(f.project_count>0 && !seen[u]){ seen[u]=1; items.push({name:f.name, kind:'Architect', n:f.project_count, url:u}); } });
+      if(Array.isArray(pf)) pf.forEach(function(x){
+        if(x.Slug && x.Title) items.push({name:x.Title, kind:'Project', n:0, url:'/projects/'+x.Slug+'/'}); });
+      _idx=items; return items;
+    });
+    return _idxP;
+  }
+  function slug(t){ return String(t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,''); }
+  function escT(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  var box=document.getElementById('askBox'), inp=document.getElementById('askInput'),
+      go=document.getElementById('askGo'), sug=document.getElementById('askSug');
+  var cur=[], sel=-1;
+
+  function renderSug(){
+    if(!cur.length){ sug.classList.remove('show'); sug.innerHTML=''; sel=-1; return; }
+    sug.innerHTML = cur.map(function(it,i){
+      return '<a href="'+escT(it.url||'#')+'" data-i="'+i+'"'+(i===sel?' class="sel"':'')+'>'
+        + '<span>'+escT(it.name)+'</span><span class="k">'+escT(it.kind+(it.n?' · '+it.n:''))+'</span></a>';
+    }).join('');
+    sug.classList.add('show');
+  }
+  function update(){
+    var q=inp.value.trim().toLowerCase();
+    if(q.length<2 || !_idx){ cur=[]; renderSug(); return; }
+    cur=_idx.map(function(it){
+        var n=it.name.toLowerCase(), i=n.indexOf(q);
+        if(i<0) return null;
+        var m = i===0 ? 3 : (n.charAt(i-1)===' ' ? 2 : 1);
+        return { it:it, s:m*1000 + Math.min(it.n||0,999) };
+      }).filter(Boolean)
+      .sort(function(a,b){ return b.s-a.s; })
+      .slice(0,8).map(function(x){ return x.it; });
+    sel=-1; renderSug();
+  }
+
+  // Onyx: window.tmwOverlay.open(query) is published by the dock's lazy-loaded
+  // search overlay; /?q= is the canonical deep-link fallback.
   function ask(q, tries){
     q=(q||'').trim();
     if(!q){ inp.focus(); return; }
-    try{
-      if(window.tmwOverlay && typeof window.tmwOverlay.open==='function'){
-        window.tmwOverlay.open(q); return;
-      }
-    }catch(e){}
+    try{ if(window.tmwOverlay && typeof window.tmwOverlay.open==='function'){ window.tmwOverlay.open(q); return; } }catch(e){}
     tries=(tries||0)+1;
-    if(tries<=12){ setTimeout(function(){ ask(q, tries); }, 150); return; }
+    if(tries<=12){ setTimeout(function(){ ask(q,tries); },150); return; }
     location.href='/?q='+encodeURIComponent(q);
   }
-  var box=document.getElementById('askBox'), inp=document.getElementById('askInput'),
-      go=document.getElementById('askGo');
+  function submit(){
+    if(cur.length && cur[sel<0?0:sel] && sel>=0){ location.href=cur[sel].url; return; }
+    ask(inp.value);
+  }
+
   function syncGo(){ go.classList.toggle('ready', !!inp.value.trim()); }
-  box.addEventListener('click', function(e){ if(e.target!==go && !go.contains(e.target)) inp.focus(); });
-  inp.addEventListener('focus', function(){ box.classList.add('on'); });
+  box.addEventListener('click', function(e){ if(e.target!==go && !go.contains(e.target) && !e.target.closest('.mc-sug')) inp.focus(); });
+  inp.addEventListener('focus', function(){ box.classList.add('on'); buildIndex().then(function(){ if(inp.value.trim().length>=2) update(); }); });
   inp.addEventListener('blur',  function(){ box.classList.remove('on'); });
-  inp.addEventListener('input', syncGo);
-  inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); ask(inp.value); } });
-  go.addEventListener('click', function(){ ask(inp.value); });
+  inp.addEventListener('input', function(){ syncGo(); update(); });
+  inp.addEventListener('keydown', function(e){
+    if(e.key==='ArrowDown'){ if(cur.length){ e.preventDefault(); sel=(sel+1)%cur.length; renderSug(); } }
+    else if(e.key==='ArrowUp'){ if(cur.length){ e.preventDefault(); sel=(sel-1+cur.length)%cur.length; renderSug(); } }
+    else if(e.key==='Enter'){ e.preventDefault(); submit(); }
+    else if(e.key==='Escape'){ cur=[]; renderSug(); inp.blur(); }
+  });
+  sug.addEventListener('mousedown', function(e){
+    var a=e.target && e.target.closest ? e.target.closest('a') : null;
+    if(a){ e.preventDefault(); var it=cur[+a.getAttribute('data-i')]; if(it && it.url) location.href=it.url; }
+  });
+  document.addEventListener('click', function(e){
+    if(!(e.target && e.target.closest && e.target.closest('#askBox'))){ cur=[]; renderSug(); }
+  });
+  go.addEventListener('click', function(){ submit(); });
   document.getElementById('viewAsk').addEventListener('click', function(e){ e.preventDefault(); ask(inp.value); });
   syncGo();
 })();
