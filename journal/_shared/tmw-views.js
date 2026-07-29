@@ -53,12 +53,26 @@
   }
 
   // ── read ──────────────────────────────────────────────────────────────────
+  // Memberstack loads async. Waiting for it is the difference between "this
+  // member has no saved views" and "we could not ask yet" — see list().
+  function msReady() {
+    return new Promise(function (res) {
+      (function go(n) {
+        var m = ms();
+        if (m && m.getMemberJSON) return res(m);
+        if (n > 40) return res(null);            // ~10s, then give up
+        setTimeout(function () { go(n + 1); }, 250);
+      })(0);
+    });
+  }
+  // Resolves to the JSON blob, or null meaning UNKNOWN (not "empty").
   function readJson() {
-    var m = ms();
-    if (!m || !m.getMemberJSON) return Promise.resolve(null);
-    return m.getMemberJSON()
-      .then(function (r) { return (r && r.data && typeof r.data === 'object') ? r.data : {}; })
-      .catch(function () { return null; });
+    return msReady().then(function (m) {
+      if (!m) return null;
+      return m.getMemberJSON()
+        .then(function (r) { return (r && r.data && typeof r.data === 'object') ? r.data : {}; })
+        .catch(function () { return null; });
+    });
   }
 
   function normalize(v) {
@@ -78,7 +92,16 @@
     if (_cache && !force) return Promise.resolve(_cache.slice());
     if (_listP && !force) return _listP;
     _listP = readJson().then(function (j) {
-      var raw = (j && Array.isArray(j[KEY])) ? j[KEY] : [];
+      if (j === null) {
+        // Could not ask — Memberstack never showed up, or the read failed.
+        // Caching this as "no saved views" was a real bug: the dashboard calls
+        // list() on init, before Memberstack resolves, so an empty result got
+        // cached forever and views saved on the Atlas never appeared here.
+        // Leave the cache unset so the next call retries.
+        _listP = null;
+        return [];
+      }
+      var raw = Array.isArray(j[KEY]) ? j[KEY] : [];
       _cache = raw.map(normalize).filter(Boolean);
       return _cache.slice();
     });

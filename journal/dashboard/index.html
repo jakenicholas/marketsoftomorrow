@@ -780,10 +780,17 @@ main.wrap{padding-bottom:70px}
     for(var i=0;i<rows.length;i++){ if(window.tmwFilters.matches(rows[i], view.filter||{})) n++; }
     return n;
   }
-  function renderViews(){
+  function renderViews(tries){
     var body=document.getElementById('svwBody'), lbl=document.getElementById('svwLbl');
     if(!body) return;
-    if(!window.tmwViews){ setTimeout(renderViews,300); return; }
+    // Wait for BOTH the module and a resolved member. Painting the empty state
+    // before Memberstack answers is how a member with saved views got told
+    // they had none.
+    var ready = window.tmwViews && (window.$memberstackDom || (window.__tmwMember && window.__tmwMember.id));
+    if(!ready){
+      if((tries||0) < 40) setTimeout(function(){ renderViews((tries||0)+1); }, 300);
+      return;
+    }
     Promise.all([window.tmwViews.list(), svwProjects()]).then(function(o){
       var views=o[0]||[], rows=o[1]||[];
       if(lbl) lbl.textContent = views.length ? (views.length+' saved') : '';
