@@ -215,8 +215,39 @@
     });
   }
 
+  // Reorder. The stored ARRAY ORDER is the layout — there is no separate
+  // positions/layout object to drift out of sync with the view list. Moving a
+  // tile is moving an array element, which is also why removing one can never
+  // leave a hole in the grid.
+  function move(id, delta) {
+    return list().then(function (cur) {
+      var i = cur.findIndex(function (v) { return v.id === id; });
+      if (i < 0) return false;
+      var j = i + delta;
+      if (j < 0 || j >= cur.length) return false;
+      var next = cur.slice();
+      var tmp = next[i]; next[i] = next[j]; next[j] = tmp;
+      return commit(next);
+    });
+  }
+  // Explicit ordering, for a drag implementation later: pass the ids in the
+  // order you want. Ids missing from the list are ignored; views missing from
+  // the ids keep their relative order at the end, so a stale client cannot
+  // silently delete anything.
+  function reorder(ids) {
+    return list().then(function (cur) {
+      var byId = {};
+      cur.forEach(function (v) { byId[v.id] = v; });
+      var next = [];
+      (ids || []).forEach(function (id) { if (byId[id]) { next.push(byId[id]); delete byId[id]; } });
+      cur.forEach(function (v) { if (byId[v.id]) next.push(v); });
+      return commit(next);
+    });
+  }
+
   window.tmwViews = {
     list: list, save: save, remove: remove, rename: rename,
+    move: move, reorder: reorder,
     matching: matching, href: href, suggestName: suggestName,
     onChange: onChange,
     MAX: MAX,

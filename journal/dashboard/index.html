@@ -232,10 +232,14 @@ main.wrap{padding-bottom:70px}
 .svw .v.dim{color:var(--mute);font-size:20px}
 .svw .n{font-size:13.5px;font-weight:600;color:#fff;margin-top:10px;line-height:1.35}
 .svw .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:6px}
-.svw-x{position:absolute;top:9px;right:9px;background:none;border:0;color:var(--mute);cursor:pointer;
-  font-size:11px;padding:4px 6px;border-radius:6px;opacity:0;transition:.15s}
-.svw:hover .svw-x{opacity:1}
+/* Controls appear on hover so the resting state stays a clean number. */
+.svw-ctl{position:absolute;top:8px;right:8px;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.svw:hover .svw-ctl,.svw:focus-within .svw-ctl{opacity:1}
+.svw-mv,.svw-x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:12px;
+  padding:4px 6px;border-radius:6px;line-height:1}
+.svw-mv:hover{color:#fff;background:rgba(255,255,255,.09)}
 .svw-x:hover{color:#FF8A8A;background:rgba(255,92,92,.12)}
+@media(hover:none){.svw-ctl{opacity:1}}
 .svw-cta{display:inline-block;margin-top:14px;background:#1FDF67;color:#070807;text-decoration:none;
   font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
   padding:10px 18px;border-radius:999px}
@@ -800,13 +804,17 @@ main.wrap{padding-bottom:70px}
           + '<a class="svw-cta" href="/atlas/">Open the Atlas &rarr;</a>';
         return;
       }
-      body.innerHTML='<div class="svw-grid">'+views.map(function(v){
+      body.innerHTML='<div class="svw-grid">'+views.map(function(v,i){
         var c=svwCount(v,rows);
         var big = c===null
           ? '<div class="v dim">'+svwEsc(window.tmwFilters?window.tmwFilters.label(v.filter||{})||'All':'All')+'</div>'
           : '<div class="v">'+c+'</div>';
         return '<a class="svw" href="'+svwEsc(window.tmwViews.href(v))+'">'
-          + '<button class="svw-x" type="button" data-svw-del="'+svwEsc(v.id)+'" aria-label="Remove">&#10005;</button>'
+          + '<div class="svw-ctl">'
+          +   (i>0 ? '<button class="svw-mv" type="button" data-svw-up="'+svwEsc(v.id)+'" aria-label="Move left">&#8592;</button>' : '')
+          +   (i<views.length-1 ? '<button class="svw-mv" type="button" data-svw-dn="'+svwEsc(v.id)+'" aria-label="Move right">&#8594;</button>' : '')
+          +   '<button class="svw-x" type="button" data-svw-del="'+svwEsc(v.id)+'" aria-label="Remove">&#10005;</button>'
+          + '</div>'
           + big
           + '<div class="n">'+svwEsc(v.name)+'</div>'
           + '<div class="k">'+svwEsc(SVW_ROUTE[v.route]||v.route)+(c===null?'':' &middot; projects')+'</div>'
@@ -814,11 +822,18 @@ main.wrap{padding-bottom:70px}
       }).join('')+'</div>';
     });
   }
+  // One delegated handler for the whole grid: it is rebuilt on every change.
   document.addEventListener('click',function(e){
-    var d=e.target.closest && e.target.closest('[data-svw-del]');
-    if(!d||!window.tmwViews) return;
+    if(!window.tmwViews || !e.target.closest) return;
+    var t=e.target;
+    var del=t.closest('[data-svw-del]'), up=t.closest('[data-svw-up]'), dn=t.closest('[data-svw-dn]');
+    if(!del && !up && !dn) return;
+    // These sit inside the tile's <a>, so the navigation has to be stopped.
     e.preventDefault(); e.stopPropagation();
-    window.tmwViews.remove(d.getAttribute('data-svw-del')).then(renderViews);
+    var op = del ? window.tmwViews.remove(del.getAttribute('data-svw-del'))
+           : up  ? window.tmwViews.move(up.getAttribute('data-svw-up'), -1)
+                 : window.tmwViews.move(dn.getAttribute('data-svw-dn'),  1);
+    op.then(function(){ renderViews(); });
   });
 
   function loadBrief(){

@@ -97,7 +97,15 @@
   .mc-sug a:first-child { border-top: 0; }
   .mc-sug a:hover, .mc-sug a.sel { background: rgba(167,139,250,.10); }
   .mc-sug .k { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute,#9AA39C); flex: none; white-space: nowrap; }
-  @media (max-width: 720px) { .mc-row { grid-template-columns: 1fr 1fr; } .mc-go { grid-column: 1 / -1; } }
+  /* Markets / Categories / Year stay on ONE row on mobile — three short
+     labels fit where three sentences did not. The button drops below. */
+  @media (max-width: 720px) {
+    .mc-row { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .mc-go { grid-column: 1 / -1; }
+    .mc-field select { padding: 11px 22px 11px 10px; font-size: 12.5px; background-position: right 6px center; }
+    .mc-search input { font-size: 13px; padding: 12px 14px 12px 38px; }
+    .mc-search input::placeholder { font-size: 12.5px; }
+  }
   .atlas-filter-pills {
     display: flex;
     gap: 8px;
@@ -789,6 +797,14 @@
     margin: 0 -32px 22px; padding: 12px 32px 13px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
     display: flex; flex-direction: column; align-items: stretch; gap: 10px;
+    min-width: 0;
+  }
+  /* The tab strip is a ONE-LINE horizontal scroller. It was wrapping onto a
+     second row on mobile, which turned the app's nav into a paragraph. */
+  .atlas-rail { -webkit-overflow-scrolling: touch; }
+  @media (max-width: 720px) {
+    .atlas-rail { margin: 0 -18px; padding: 0 18px; }
+    .atlas-rail-jump { padding: 13px 12px; font-size: 13px; }
   }
   /* row 1 keeps the old side-by-side layout (view tabs left, filters right) */
   .ash-row1 { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -804,7 +820,7 @@
   /* Identical to the /dashboard/ tab strip: plain text tabs on a hairline,
      gold underline on the active one. Same rule set, same numbers — the two
      app surfaces should be indistinguishable at the nav. */
-  .atlas-rail { display: flex; gap: 6px; align-items: stretch;
+  .atlas-rail { display: flex; gap: 6px; align-items: stretch; flex-wrap: nowrap;
     background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.08);
     border-radius: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
   .atlas-rail::-webkit-scrollbar { display: none; }
@@ -1231,14 +1247,6 @@
     .atlas-coverage-coming-grid { grid-template-columns: 1fr; gap: 28px; padding-bottom: 20px; }
   }
 
-  .atlas-footer {
-    padding: 32px 0 0;
-    text-align: center;
-    color: rgba(255,255,255,0.4);
-    font-size: 12px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    margin-top: 32px;
-  }
 
   .atlas-loading, .atlas-error {
     padding: 80px 0; text-align: center;
@@ -1375,20 +1383,20 @@
           <div class="mc-box">
             <div class="mc-search">
               <svg class="mc-s-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
-              <input id="acs-input" type="text" placeholder="Search anything — markets, firms, projects…" autocomplete="off" spellcheck="false" aria-label="Search markets, firms, and projects">
+              <input id="acs-input" type="text" placeholder="Search markets, firms, projects…" autocomplete="off" spellcheck="false" aria-label="Search markets, firms, and projects">
               <div class="mc-sug" id="acs-sug"></div>
             </div>
           <form class="mc-row" id="atlas-calc-form">
             <div class="mc-field"><select id="ac-place" class="${placeVal ? 'has-val' : ''}">
-              <option value="">All markets</option>
+              <option value="">Markets</option>
               <optgroup label="States">${stateOpts}</optgroup>
               <optgroup label="Cities">${cityOpts}</optgroup>
             </select></div>
             <div class="mc-field"><select id="ac-cat" class="${(currentTypeFilter && currentTypeFilter !== 'ALL') ? 'has-val' : ''}">
-              <option value="">All categories</option>${catOpts}
+              <option value="">Categories</option>${catOpts}
             </select></div>
             <div class="mc-field"><select id="ac-year" class="${currentYearFilter ? 'has-val' : ''}">
-              <option value="">Any delivery year</option>${yearOpts}
+              <option value="">Year</option>${yearOpts}
             </select></div>
             <button type="submit" class="mc-go">Show me →</button>
           </form></div>
@@ -2352,10 +2360,10 @@
       return renderComingSoon();
     }
 
-    function renderFooter() {
-      const ts = atlasData.generated_at ? new Date(atlasData.generated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-      return `<div class="atlas-footer">Atlas · part of <a href="https://oftmw.com" style="color:rgba(255,255,255,0.6);">Markets of Tomorrow</a>${ts ? ' · data updated ' + escapeHtml(ts) : ''}</div>`;
-    }
+    // The "Atlas · part of Markets of Tomorrow · data updated …" credit line is
+    // retired: the universal footer already says whose site this is, and the
+    // line left a band of empty space under every route.
+    function renderFooter() { return ''; }
 
     // Build a city → state lookup from atlas data.
     function buildCityStateMap() {
