@@ -29,15 +29,22 @@
      · ⌘K — jump to any market, type or stage without hunting for its mark.
 
    Palette unchanged from v1 and still validator-derived. New values checked:
-   de-emphasis #3a3a38 (1.69:1 — furniture, deliberately recessive), highlight
-   overlay = the ramp's lightest step #DCD2FF (13.52:1), today marker #e6c574.
+   de-emphasis #3a3a38 (1.69:1 — furniture, deliberately recessive) and the
+   today marker #e6c574.
+
+   The HIGHLIGHT colour is #7DF0C8, and picking it was not cosmetic. The obvious
+   choice — the ordinal ramp's lightest step #DCD2FF — IS lc5 ("Now Open"), so a
+   highlighted bar was indistinguishable from the last lifecycle stage. Measured
+   against every other value in the palette, mint is the only candidate that
+   clears the 15 normal-vision floor on its worst pair (ΔE 15.3 vs the gold
+   marker); white sits at 13.0 and cream at 10.4 against lc5. 13.9:1 on surface.
    ═══════════════════════════════════════════════════════════════════════════ */
 :root{
   --surface:#0e0e0e; --page:#070807;
   --s1:#8f6ff0;
   --lc1:#4b3a8f; --lc2:#6d4fd6; --lc3:#8f6ff0; --lc4:#B9A6FF; --lc5:#DCD2FF;
   --heat1:#0A8046; --heat2:#B98400; --heat3:#E04255;
-  --grid:#1e1e1d; --dim:#3a3a38; --hl:#DCD2FF; --today:#e6c574;
+  --grid:#1e1e1d; --dim:#3a3a38; --hl:#7DF0C8; --today:#e6c574;
   --ink:#ECEAE5; --ink2:#C2C9C3; --mute:#9AA39C;
   --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
   --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -181,7 +188,7 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
   var app = $('app'), tip = $('tip');
 
   var C = { s1:'#8f6ff0', lc:['#4b3a8f','#6d4fd6','#8f6ff0','#B9A6FF','#DCD2FF'],
-            heat:['#0A8046','#B98400','#E04255'], surface:'#0e0e0e', dim:'#3a3a38', hl:'#DCD2FF', today:'#e6c574' };
+            heat:['#0A8046','#B98400','#E04255'], surface:'#0e0e0e', dim:'#3a3a38', hl:'#7DF0C8', today:'#e6c574' };
   var STAGES = [
     { slug:'announced', label:'Announced' }, { slug:'breaking-ground', label:'Breaking Ground' },
     { slug:'construction', label:'Under Construction' }, { slug:'coming-soon', label:'Opening Soon' },
@@ -192,6 +199,7 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
   // ── data + indexes ────────────────────────────────────────────────────────
   var ROWS = [], INTEL = null;
   var IX = { stage:{}, type:{}, city:{}, year:{} };   // key → Set of row indices
+  var PLOTTED = 0;   // rows the swarm can actually place (dated, inside the window)
   var TYPE_LABEL = {}, CITY_LABEL = {};
 
   function slug(t){ return String(t==null?'':t).toLowerCase().trim().replace(/&/g,' and ')
@@ -208,7 +216,11 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
   function gfaOf(r){ var n=parseFloat(String(r.GfaSqFt||'').replace(/[^0-9.]/g,'')); return isFinite(n)&&n>0?n:0; }
   function unitsOf(r){ var n=parseInt(r.Units,10); return isFinite(n)&&n>0?n:0; }
   function fmtM(n){ return n>=1000?'$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B':'$'+Math.round(n)+'M'; }
-  function fmtSq(n){ return n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':Math.round(n/1000)+'K'; }
+  function fmtSq(n){
+    if(n>=1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'')+'B';
+    if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+    return Math.round(n/1000)+'K';
+  }
   function add(map,k,i){ if(!k) return; (map[k]=map[k]||new Set()).add(i); }
 
   function buildIndexes(){
@@ -455,6 +467,13 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
       svg.appendChild(hit);
     });
     host.appendChild(svg);
+    if(HL && items.some(function(d){return d.hl;})){
+      var lg=document.createElement('div'); lg.className='lg';
+      var h=document.createElement('span');
+      var hs=document.createElement('i'); hs.style.background=C.hl; h.appendChild(hs);
+      var ht=document.createElement('span'); ht.textContent='Hovered share'; h.appendChild(ht);
+      lg.appendChild(h); host.appendChild(lg);
+    }
   }
   function measure(idxs){
     if(SORT==='gfa')     return { v:idxs.reduce(function(s,i){return s+gfaOf(ROWS[i]);},0), fmt:fmtSq, unit:'sq ft' };
@@ -507,11 +526,12 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     // deterministic vertical scatter — no Math.random, so the layout is stable
     // across renders (a jitter that moves on every repaint reads as noise).
     var lanes=new Array(Math.ceil(W)).fill(0);
-    var pts=[];
+    var pts=[], countable=0;
     ROWS.forEach(function(r,i){
       var m=monthOf(r); if(!m) return;
       var xp=PL+(W-PL-10)*(m-minY)/(maxY-minY);
       if(xp<PL-4||xp>W) return;
+      countable++;
       var bucket=Math.max(0,Math.min(lanes.length-1,Math.round(xp/4)));
       var k=lanes[bucket]++;
       var yp=(H-PB-7)-((k%9)*9.5)-(Math.floor(k/9)*2);
@@ -524,6 +544,7 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
         fill: hot?C.hl : (on? C.lc[si<0?2:si] : C.dim),
         opacity: on||hot?'1':'.5'}));
     });
+    PLOTTED=countable;
     host.appendChild(svg);
     var lg=document.createElement('div'); lg.className='lg';
     STAGES.forEach(function(s,i){ var w=document.createElement('span');
@@ -703,7 +724,8 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
 
     // charts
     var g=document.createElement('div'); g.className='grid';
-    var cs=card('Every project on one axis','All '+ROWS.length+' by delivery date — dimmed sits outside the filter','Hover to link','full');
+    var cs=card('Every project on one axis',
+      PLOTTED+' of '+ROWS.length+' with a dated delivery — dimmed sits outside the filter','Hover to link','full');
     g.appendChild(cs); BODIES.swarm=cs._body;
     var c1=card('Where everything stands','Lifecycle stage across the slice','Click a stage'); g.appendChild(c1); BODIES.funnel=c1._body;
     var c2=card('What delivers when','Drag across years for a range','Drag or click'); g.appendChild(c2); BODIES.timeline=c2._body;
