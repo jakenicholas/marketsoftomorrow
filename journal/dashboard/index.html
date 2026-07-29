@@ -232,6 +232,19 @@ main.wrap{padding-bottom:70px}
 .svw .v.dim{color:var(--mute);font-size:20px}
 .svw .n{font-size:13.5px;font-weight:600;color:#fff;margin-top:10px;line-height:1.35}
 .svw .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+/* Preset cards — the empty state. */
+.svp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:16px}
+.svp{text-align:left;display:block;padding:18px 19px 17px;border:1px solid var(--hair);border-radius:16px;
+  background:rgba(255,255,255,.028);cursor:pointer;font-family:var(--sans);transition:.16s}
+.svp:hover{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.07);transform:translateY(-2px)}
+.svp.busy{opacity:.55;cursor:default;transform:none}
+.svp-n{font-family:var(--serif);font-size:20px;font-weight:600;color:#fff;letter-spacing:-.01em}
+.svp-b{font-size:13px;color:var(--mute);margin-top:6px;line-height:1.5}
+.svp-l{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--mute2,#C2C9C3);margin-top:13px;padding-top:12px;border-top:1px solid var(--hair);line-height:1.7}
+.svp-go{display:inline-block;margin-top:13px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;color:var(--purple-glow,#B9A6FF)}
+
 /* Controls appear on hover so the resting state stays a clean number. */
 .svw-ctl{position:absolute;top:8px;right:8px;display:flex;gap:2px;opacity:0;transition:opacity .15s}
 .svw:hover .svw-ctl,.svw:focus-within .svw-ctl{opacity:1}
@@ -799,9 +812,20 @@ main.wrap{padding-bottom:70px}
       var views=o[0]||[], rows=o[1]||[];
       if(lbl) lbl.textContent = views.length ? (views.length+' saved') : '';
       if(!views.length){
-        body.innerHTML='<div class="empty">Nothing pinned yet. Filter the Atlas to something you care about, '
-          + 'hit <b>Save view</b>, and it becomes a live tile here.</div>'
-          + '<a class="svw-cta" href="/atlas/">Open the Atlas &rarr;</a>';
+        // An empty grid is the worst first screen a composable dashboard can
+        // show, so offer three ready-made starting points instead. Applying one
+        // just creates saved views — there is no preset "mode" to leave.
+        var presets=(window.tmwViews.PRESETS||[]).map(function(p){
+          return '<button class="svp" type="button" data-preset="'+svwEsc(p.id)+'">'
+            + '<div class="svp-n">'+svwEsc(p.name)+'</div>'
+            + '<div class="svp-b">'+svwEsc(p.blurb)+'</div>'
+            + '<div class="svp-l">'+p.views.map(function(v){return svwEsc(v.name);}).join(' &middot; ')+'</div>'
+            + '<span class="svp-go">Use this &rarr;</span></button>';
+        }).join('');
+        body.innerHTML='<div class="empty">Start from one of these, or filter the Atlas to something you '
+          + 'care about and hit <b>Save view</b>. Either way it becomes a live tile here, and you can '
+          + 'change it after.</div>'
+          + '<div class="svp-grid">'+presets+'</div>';
         return;
       }
       body.innerHTML='<div class="svw-grid">'+views.map(function(v,i){
@@ -827,9 +851,16 @@ main.wrap{padding-bottom:70px}
     if(!window.tmwViews || !e.target.closest) return;
     var t=e.target;
     var del=t.closest('[data-svw-del]'), up=t.closest('[data-svw-up]'), dn=t.closest('[data-svw-dn]');
-    if(!del && !up && !dn) return;
+    if(!del && !up && !dn && !t.closest('[data-preset]')) return;
     // These sit inside the tile's <a>, so the navigation has to be stopped.
     e.preventDefault(); e.stopPropagation();
+    var pre=t.closest('[data-preset]');
+    if(pre){
+      e.preventDefault();
+      pre.disabled=true; pre.classList.add('busy');
+      window.tmwViews.applyPreset(pre.getAttribute('data-preset')).then(function(){ renderViews(); });
+      return;
+    }
     var op = del ? window.tmwViews.remove(del.getAttribute('data-svw-del'))
            : up  ? window.tmwViews.move(up.getAttribute('data-svw-up'), -1)
                  : window.tmwViews.move(dn.getAttribute('data-svw-dn'),  1);

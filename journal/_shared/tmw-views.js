@@ -215,6 +215,96 @@
     });
   }
 
+  // ── Presets ──────────────────────────────────────────────────────────────
+  // A new member's dashboard is otherwise an empty grid, which is the standard
+  // failure of composable dashboards: the tool is most confusing exactly when
+  // someone knows least about it. A preset is a bundle of saved views WE author,
+  // applied in one click.
+  //
+  // Three properties are deliberate:
+  //   · A preset is a STARTING POINT, not a mode. Once applied the views are
+  //     just yours — nothing to exit, no template you are locked into, and no
+  //     second system where presets and pins have to coexist.
+  //   · It SEEDS FROM YOUR FOLLOWS. Market-scoped views use the first market
+  //     you follow, so even the default is about you. Follow nothing and they
+  //     fall back to all markets rather than inventing a city for you.
+  //   · Applying is ONE commit, not one per view. Four sequential Memberstack
+  //     writes would be slow and could half-apply.
+  var PRESETS = [
+    {
+      id: 'developer',
+      name: 'Developer',
+      blurb: 'What you are competing with, and where the money is landing.',
+      views: [
+        { route: 'supply',   scope: 'market', name: 'Supply pressure' },
+        { route: 'capital',  scope: 'market', name: 'Capital landing' },
+        { route: 'projects', scope: 'market', name: 'Delivering by next year', filter: { year: 'NEXT' } },
+        { route: 'firms',    scope: 'none',   name: 'Most active firms' }
+      ]
+    },
+    {
+      id: 'broker',
+      name: 'Broker',
+      blurb: 'What is about to open, what just did, and what it is worth.',
+      views: [
+        { route: 'projects', scope: 'market', name: 'Opening soon', filter: { status: 'coming-soon' } },
+        { route: 'projects', scope: 'market', name: 'Just opened',  filter: { status: 'open' } },
+        { route: 'pricing',  scope: 'market', name: 'Projected pricing' },
+        { route: 'markets',  scope: 'none',   name: 'Every market, ranked' }
+      ]
+    },
+    {
+      id: 'investor',
+      name: 'Investor',
+      blurb: 'Where capital is going, and whether the market can absorb it.',
+      views: [
+        { route: 'capital',  scope: 'none',   name: 'Capital flows' },
+        { route: 'supply',   scope: 'market', name: 'Supply pressure' },
+        { route: 'projects', scope: 'market', name: 'Under construction', filter: { status: 'construction' } },
+        { route: 'pipeline', scope: 'none',   name: 'The pipeline' }
+      ]
+    }
+  ];
+
+  // The member's first followed market, if any, as a filter slug.
+  function seedMarket() {
+    return readJson().then(function (j) {
+      if (!j) return '';
+      var f = j.markets_followed;
+      var first = (Array.isArray(f) && f.length) ? f[0] : '';
+      if (!first) return '';
+      try { return window.tmwFilters ? window.tmwFilters.normalize.city(first) : String(first).toLowerCase(); }
+      catch (e) { return ''; }
+    });
+  }
+
+  function applyPreset(id) {
+    var preset = PRESETS.filter(function (p) { return p.id === id; })[0];
+    if (!preset) return Promise.resolve(false);
+    return Promise.all([list(), seedMarket()]).then(function (o) {
+      var cur = o[0], city = o[1];
+      var nextYear = String(new Date().getFullYear() + 1);
+      var made = [];
+      preset.views.forEach(function (spec) {
+        var filter = {};
+        Object.keys(spec.filter || {}).forEach(function (k) {
+          filter[k] = spec.filter[k] === 'NEXT' ? nextYear : spec.filter[k];
+        });
+        if (spec.scope === 'market' && city) filter.city = city;
+        // Never duplicate a view the member already has.
+        if (matching('atlas', spec.route, filter)) return;
+        if (made.some(function (m) { return m.route === spec.route && sameFilter(m.filter, filter); })) return;
+        made.push(normalize({
+          id: newId(), name: spec.name, surface: 'atlas',
+          route: spec.route, filter: filter,
+          created: new Date().toISOString().slice(0, 10)
+        }));
+      });
+      if (!made.length) return true;              // nothing new to add
+      return commit(made.concat(cur));            // ONE write
+    });
+  }
+
   // Reorder. The stored ARRAY ORDER is the layout — there is no separate
   // positions/layout object to drift out of sync with the view list. Moving a
   // tile is moving an array element, which is also why removing one can never
@@ -248,6 +338,7 @@
   window.tmwViews = {
     list: list, save: save, remove: remove, rename: rename,
     move: move, reorder: reorder,
+    PRESETS: PRESETS, applyPreset: applyPreset,
     matching: matching, href: href, suggestName: suggestName,
     onChange: onChange,
     MAX: MAX,
