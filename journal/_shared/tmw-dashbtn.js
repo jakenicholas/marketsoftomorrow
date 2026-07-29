@@ -87,6 +87,24 @@
     if (bell) bell.classList.add('tmw-db-hidden');
     if (profile) profile.classList.add('tmw-db-hidden');
     auth.appendChild(a);
+
+    // Both the member record and the Pulse bell arrive AFTER this button can be
+    // built, so keep resolving them for a few seconds rather than freezing the
+    // first (empty) state: initials would stay "ME" and the count blank.
+    var live = bell, tries = 0;
+    (function refresh() {
+      var f = a.querySelector('.db-face');
+      if (f) { var ini = initials(); if (ini && ini !== f.textContent) f.textContent = ini; }
+      if (!live) {
+        live = document.querySelector('.tmw-pulse-bell');
+        if (live) {
+          live.classList.add('tmw-db-hidden');
+          bell = live; sync();
+          if (window.MutationObserver) new MutationObserver(sync).observe(live, { childList: true, characterData: true, subtree: true });
+        }
+      } else { sync(); }
+      if (++tries < 40) setTimeout(refresh, 400);
+    })();
     return a;
   }
 
