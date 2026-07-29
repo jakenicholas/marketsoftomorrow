@@ -11,21 +11,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--green:#1FDF67;--green-soft:#42EB81;--gold:#e6c574;--gold-soft:#f0d68a;--purple:#A78BFA;--purple-glow:#B9A6FF;--ink:#070807;--mute:#9AA39C;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);--card:rgba(255,255,255,.025);--serif:'Fraunces',Georgia,serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--mono:'JetBrains Mono',monospace}
+:root{--green:#1FDF67;--green-soft:#42EB81;--gold:#e6c574;--gold-soft:#f0d68a;--purple:#A78BFA;--purple-glow:#B9A6FF;--ink:#070807;--mute:#9AA39C;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);--card:rgba(255,255,255,.025);--serif:'Fraunces',Georgia,serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--mono:'JetBrains Mono',monospace;--mute2:#C2C9C3;--white:#fff;--cream:#ECEAE5;--ink-2:var(--ink);--mute-2:var(--mute);--hair-2:var(--hair2)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--ink);color:#ECEAE5;font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;position:relative;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(820px 520px at 16% -10%,rgba(167,139,250,.16),transparent 60%),radial-gradient(720px 460px at 94% 2%,rgba(230,197,116,.08),transparent 60%)}
 .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
 .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
 .card{background:var(--card);border:1px solid var(--hair);border-radius:20px;padding:24px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.tmwlogo{height:42px;width:auto;display:block;filter:brightness(0) invert(1)}
-.hdr{position:relative;z-index:2;border-bottom:1px solid var(--hair)}
-.hdr .wrap{display:flex;align-items:center;justify-content:space-between;padding:18px 24px}
-.hdr-r{display:flex;align-items:center;gap:14px}.hdr-r .who{font-size:13px;color:var(--mute)}
-.x{width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);background:var(--card);color:#ECEAE5;display:flex;align-items:center;justify-content:center;text-decoration:none}
-.x svg{display:block}
-.x:hover{border-color:var(--hair2);background:rgba(255,255,255,.05)}
-.tabs{position:relative;z-index:2;border-bottom:1px solid var(--hair);margin-bottom:28px}
+/* the lightbox chrome is gone; these sit inside the universal header/footer */
+.tabs{position:relative;z-index:2;border-bottom:1px solid var(--hair);margin-bottom:28px;padding-top:18px}
+main.wrap{padding-bottom:70px}
+.tmw-chrome-foot{margin-top:0 !important}
 .tabs .wrap{display:flex;gap:6px;padding:0 24px}
 .tab{appearance:none;background:none;border:none;color:var(--mute);font-family:var(--sans);font-size:14px;font-weight:500;padding:15px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab:hover{color:#ECEAE5}.tab.on{color:#fff;border-bottom-color:var(--gold)}
@@ -197,7 +193,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .iconbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .emailinput{font-family:var(--sans);font-size:14px;color:#fff;background:var(--card);border:1px solid var(--hair2);border-radius:8px;padding:7px 10px;min-width:230px;max-width:60vw}
 .emailinput:focus{outline:none;border-color:var(--gold)}
-.ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}.ftr .tmwlogo{height:30px}.ftr .cp{font-size:12px;color:var(--mute)}
 
 
 
@@ -307,20 +302,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </style>
 </head>
 <body>
-<header class="hdr"><div class="wrap">
-  <a href="/" aria-label="Markets of Tomorrow"><img class="tmwlogo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of Tomorrow"></a>
-  <div class="hdr-r"><a class="x" id="backX" href="/" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2 L12 12 M12 2 L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a></div>
-</div></header>
-
 <nav class="tabs"><div class="wrap">
-  <button class="tab on" data-tab="overview">Overview</button>
-  <button class="tab" data-tab="brief">My Portfolio</button>
-  <button class="tab" data-tab="saved">Articles</button>
+  <button class="tab on" data-tab="dashboard">Dashboard</button>
   <button class="tab" data-tab="account">Account</button>
+  <button class="tab" data-tab="articles">Articles</button>
+  <button class="tab" data-tab="security">Security</button>
 </div></nav>
 
 <main class="wrap">
-  <section data-tab-panel="overview">
+  <section data-tab-panel="account" hidden>
     <div class="hero">
       <div class="card">
         <div class="idrow"><div class="av" id="av">JN</div><div><div class="nm" id="nm">Jacob Nicholas</div><div class="sub" id="subId">No. 001</div><div class="tierbadge" id="tierbadge">&#9670; Local</div></div></div>
@@ -359,17 +349,17 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     </div>
   </section>
 
-  <section data-tab-panel="brief" hidden>
+  <section data-tab-panel="dashboard">
     <div class="sechead"><h2>My Portfolio</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
     <div id="briefBody"><div class="empty">Loading&hellip;</div></div>
   </section>
 
-  <section data-tab-panel="saved" hidden>
+  <section data-tab-panel="articles" hidden>
     <div class="sechead"><h2>Articles</h2><span class="lbl" id="svCount">&nbsp;</span></div>
     <div id="savedList"><div class="empty">Loading&hellip;</div></div>
   </section>
 
-  <section data-tab-panel="account" hidden>
+  <section data-tab-panel="security" hidden>
     <div class="sechead"><h2>Account &amp; security</h2></div>
     <div id="trialBanner" class="trial-banner" hidden>
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
@@ -411,10 +401,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   </section>
 </main>
 
-<footer class="ftr"><div class="wrap">
-  <a href="/" aria-label="Markets of Tomorrow"><img class="tmwlogo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of Tomorrow"></a>
-  <span class="cp">&copy; <span id="yr">2026</span> Markets of Tomorrow</span>
-</div></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
@@ -452,12 +438,13 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   var tries=0;(function w(){if(window.qrcode){build(lastNo);return;}if(tries++<60)setTimeout(w,60);})();
 })();
 </script>
+<script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/journal-auth.js" defer></script>
 <script src="/_shared/tmw-celebrate.js" defer></script>
 <script>
 (function(){
   var WORKER='https://tmw.jake-ab7.workers.dev';
-  try{ document.getElementById('yr').textContent=new Date().getFullYear(); }catch(e){}
   var LEVELS=[
     {lvl:1,tier:'Newcomer',xp:0,unlock:'Welcome'},
     {lvl:2,tier:'Reader',xp:300,unlock:'Unlock Article Commenting'},
@@ -884,13 +871,29 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===b)});
     var id=b.getAttribute('data-tab');
     document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
-    if(id==='saved') loadSaved();
-    if(id==='brief') loadBrief();
+    if(id==='articles') loadSaved();
+    if(id==='dashboard') loadBrief();
   })});
   // Deep-link a tab via the hash (e.g. /account#saved), on load + change.
   // 'watchlist' now resolves to Overview (the unified "Your watches" surface).
-  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(h==='portfolio')h='brief'; if(['overview','brief','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
-  tabFromHash(); window.addEventListener('hashchange',tabFromHash);
+  // Hash aliases: the tabs were renamed (brief→dashboard, overview→account,
+  // saved→articles, account→security) and /account/ still redirects here with
+  // whatever hash it was given, so every historical id has to keep resolving.
+  var TAB_ALIAS = { watchlist:'account', overview:'account', portfolio:'dashboard',
+                    brief:'dashboard', saved:'articles', 'my-portfolio':'dashboard' };
+  function tabFromHash(){
+    var h=(location.hash||'').replace('#','').toLowerCase();
+    if(!h) return false;
+    h = TAB_ALIAS[h] || h;
+    if(['dashboard','account','articles','security'].indexOf(h)<0) return false;
+    var b=document.querySelector('.tab[data-tab="'+h+'"]');
+    if(!b) return false;
+    b.click(); return true;
+  }
+  // Dashboard is the default tab, and its data only loaded on a tab CLICK
+  // before. With no hash there is no click, so kick the loader here.
+  if(!tabFromHash()) loadBrief();
+  window.addEventListener('hashchange',tabFromHash);
 
   // ── project watches (Memberstack `favorites` × projects-flat.json) ──
   // Rendered as status-dot pills inside the unified "Your watches" surface.
@@ -1023,7 +1026,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     inp.addEventListener('blur',function(){ setTimeout(function(){res.hidden=true;},160); });
   })();
 
-  var _bx=$('backX'); if(_bx)_bx.addEventListener('click',function(e){ if(history.length>1){ e.preventDefault(); history.back(); } });
+
   renderFollows(); firmCatalog().then(function(){ renderFollows(); });
 
   function ms(){return window.$memberstackDom}
