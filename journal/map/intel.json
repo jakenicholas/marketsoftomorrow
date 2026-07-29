@@ -6663,39 +6663,21 @@
       "delivery_speculative": false
     },
     "aman-niseko": {
-      "estimate_years": 8.1,
-      "estimate_label": "~8.1 years",
-      "range_low": 8.1,
-      "range_high": 8.1,
-      "confidence": "low",
-      "comparable_count": 1,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.34,
-      "avg_distance_km": 11225.3,
-      "avg_distance_mi": 6975.1,
-      "scale_used": true,
-      "firm_signal": null,
-      "source": "comparables",
+      "estimate_years": 1.5,
+      "estimate_label": "~1.5 years",
+      "days_out": 520,
+      "delivery_date": "2027-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "medium",
       "project_type": "Hotel",
       "metro": "Other",
-      "comparables": [
-        {
-          "name": "The Belgrove Resort & Spa",
-          "slug": "the-belgrove-resort-spa",
-          "location": "West Palm Beach",
-          "years": 8.1,
-          "score": 0.34,
-          "distance_km": 11225.3,
-          "distance_mi": 6975.1
-        }
-      ],
-      "pattern_summary": "Among 1 hotel project in TMW's data, the median build time is 8.1 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "rosewood-seoul": {
       "estimate_years": 1.5,
@@ -10448,7 +10430,7 @@
     "costa-palmas": {
       "source": "district",
       "is_district": true,
-      "component_count": 6,
+      "component_count": 5,
       "project_type": "Mixed-Use",
       "metro": "Other",
       "comparables": [],
@@ -10460,24 +10442,7 @@
       "days_out": 520,
       "delivery_date": "2027-12-31",
       "inflight_undated": 0,
-      "pattern_summary": "Phased master plan — 6 components delivering through 2027; latest dated phase (Casa Blake) ~1.5 years out."
-    },
-    "aman-residences-amanvari": {
-      "estimate_years": 0.01,
-      "estimate_label": "3 days",
-      "days_out": 3,
-      "delivery_date": "2026-08-01",
-      "source": "known_date",
-      "precision": "day",
-      "confidence": "high",
-      "project_type": "Mixed-Use",
-      "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Developer-announced opening in 3 days.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "Phased master plan — 5 components delivering through 2027; latest dated phase (Casa Blake) ~1.5 years out."
     },
     "casa-blake": {
       "estimate_years": 1.5,
@@ -15500,23 +15465,6 @@
       "delivery_speculative": false,
       "is_mixed_use": false
     },
-    "public-west-hollywood": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 155,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Hotel",
-      "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
-    },
     "one-circular-quay": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
@@ -15526,6 +15474,23 @@
       "precision": "year",
       "confidence": "high",
       "project_type": "Residences",
+      "metro": "Other",
+      "comparables": [],
+      "comparable_count": 0,
+      "pattern_summary": "Targeted for opening in ~5 months.",
+      "dates_speculative": false,
+      "start_speculative": false,
+      "delivery_speculative": false
+    },
+    "the-cliffs-kangaroo-island": {
+      "estimate_years": 0.4,
+      "estimate_label": "~5 months",
+      "days_out": 155,
+      "delivery_date": "2026-12-31",
+      "source": "known_date",
+      "precision": "year",
+      "confidence": "high",
+      "project_type": "Golf",
       "metro": "Other",
       "comparables": [],
       "comparable_count": 0,
@@ -16060,13 +16025,13 @@
   "stats": {
     "high": 7,
     "medium": 23,
-    "low": 79,
+    "low": 78,
     "known_date": 545,
     "completed": 67,
     "skipped": 110,
     "no_type": 0,
     "firm_boosted": 44,
-    "speculative_softened": 216,
+    "speculative_softened": 217,
     "district": 13,
     "mixed_use_adjusted": 29
   }
