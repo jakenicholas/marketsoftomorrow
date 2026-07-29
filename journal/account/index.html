@@ -199,6 +199,35 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .ftr{position:relative;z-index:2;border-top:1px solid var(--hair);margin-top:60px}.ftr .wrap{display:flex;align-items:center;justify-content:space-between;padding:26px 24px;flex-wrap:wrap;gap:12px}.ftr .tmwlogo{height:30px}.ftr .cp{font-size:12px;color:var(--mute)}
 
 
+
+/* ── My Portfolio: book, movement, capital ── */
+.pf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 22px}
+.pf-kpi{padding:15px 17px;border:1px solid var(--hair,rgba(255,255,255,.08));border-radius:14px;background:rgba(255,255,255,.025)}
+.pf-kpi .v{font-family:var(--serif,Georgia,serif);font-size:27px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
+.pf-kpi .v.g{color:#42EB81}.pf-kpi .v.p{color:#B9A6FF}.pf-kpi .v.r{color:#FF5C5C}.pf-kpi .v.a{color:#F5A623}
+.pf-kpi .k{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-top:8px}
+.pf-kpi .x{font-size:11px;color:#C2C9C3;margin-top:4px}
+.pf-sec-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin:26px 0 12px}
+.pf-book{display:flex;flex-direction:column;gap:1px}
+.pf-row{display:grid;grid-template-columns:1.6fr 1fr auto;gap:14px;align-items:center;padding:13px 12px;
+  border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit;border-radius:8px}
+.pf-row:hover{background:rgba(167,139,250,.05)}
+.pf-nm{font-weight:600;color:#fff;font-size:14px}
+.pf-lo{font-size:10.5px;color:#9AA39C;margin-top:3px}
+.pf-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.pf-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#18c75a,#42EB81)}
+.pf-st{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#C2C9C3;margin-top:6px;display:block}
+.pf-mv{font-size:10.5px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pf-mv.up{color:#42EB81;background:rgba(31,223,103,.1);border:1px solid rgba(31,223,103,.3)}
+.pf-mv.new{color:#B9A6FF;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3)}
+.pf-mv.flat{color:#9AA39C;border:1px solid rgba(255,255,255,.1)}
+.pf-cap{display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.pf-cap:last-child{border-bottom:none}
+.pf-cap .amt{font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:600;color:#f0d68a}
+.pf-cap .who{color:#9AA39C;font-size:10.5px;margin-top:2px}
+.pf-empty{color:#9AA39C;font-size:13.5px;padding:16px 2px}
+@media(max-width:640px){.pf-row{grid-template-columns:1fr auto;gap:10px}.pf-row .pf-prog{display:none}}
+
 /* ── Onyx Brief report hero ── */
 .brief-hero{border:1px solid rgba(167,139,250,.42);border-radius:18px;padding:24px 26px;margin:6px 0 22px;position:relative;overflow:hidden;
   background:linear-gradient(135deg,rgba(167,139,250,.09),rgba(167,139,250,.02) 55%),radial-gradient(600px 220px at 85% -20%,rgba(167,139,250,.16),transparent 60%);
@@ -247,7 +276,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-tab="overview">Overview</button>
-  <button class="tab" data-tab="brief">Brief</button>
+  <button class="tab" data-tab="brief">My Portfolio</button>
   <button class="tab" data-tab="saved">Articles</button>
   <button class="tab" data-tab="account">Account</button>
 </div></nav>
@@ -293,7 +322,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   </section>
 
   <section data-tab-panel="brief" hidden>
-    <div class="sechead"><h2>Your weekly brief</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
+    <div class="sechead"><h2>My Portfolio</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
     <div id="briefBody"><div class="empty">Loading&hellip;</div></div>
   </section>
 
@@ -528,6 +557,76 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     if(/^\d{4}$/.test(s)) return s;
     return s;
   }
+
+  // ── My Portfolio ─────────────────────────────────────────────────────────
+  // Everything here is derived from data the page already loads: the member's
+  // follow sets, projects-flat, this week's moves, and atlas-intel for supply
+  // pressure. No new backend.
+  var PF_PCT={'announced':12,'breaking ground':33,'under construction':64,'opening soon':88,'now open':100};
+  function pfPct(st){ return PF_PCT[String(st||'').toLowerCase()] || 8; }
+  function pfMoney(m){
+    var n=parseFloat(m); if(!isFinite(n)||n<=0) return '';
+    return n>=1000 ? ('$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B') : ('$'+Math.round(n)+'M');
+  }
+  function pfDeliveryKey(p){
+    var d=String(p.DeliveryDate||'').slice(0,10);
+    return /^\d{4}/.test(d) ? d : '';
+  }
+  // The member's watched projects, resolved against the live project feed.
+  function pfWatched(flat, mj){
+    var favs={}; (mj.favorites||[]).forEach(function(x){ if(x) favs[projectSlugify(x)]=1; });
+    var out=[];
+    flat.forEach(function(p){
+      var k=projectSlugify(p.Title);
+      if(k && favs[k]) out.push(p);
+    });
+    return out;
+  }
+  function pfRender(host, flat, mj, movesBySlug, intel){
+    var book=pfWatched(flat, mj);
+    if(!book.length){
+      host.innerHTML='<div class="pf-empty">Nothing in your book yet. Tap the eye icon on any project to start tracking it.</div>';
+      return;
+    }
+    // KPIs
+    var caps=book.map(function(p){ return parseFloat(p.FinancingAmountM)||0; });
+    var capTotal=caps.reduce(function(a,b){return a+b;},0);
+    var upcoming=book.map(pfDeliveryKey).filter(Boolean).filter(function(d){ return d>=new Date().toISOString().slice(0,10); }).sort();
+    var moved=book.filter(function(p){ return movesBySlug[projectSlugify(p.Title)]; }).length;
+    // supply pressure for the market the book leans into
+    var cityCount={}; book.forEach(function(p){ var c=(p.City||'').trim(); if(c) cityCount[c]=(cityCount[c]||0)+1; });
+    var topCity=Object.keys(cityCount).sort(function(a,b){return cityCount[b]-cityCount[a];})[0]||'';
+    var mk=null;
+    try{ mk=intel&&intel.markets&&intel.markets[projectSlugify(topCity)]; }catch(e){}
+    var lvlClass=mk?(mk.level==='Saturated'?'r':mk.level==='Elevated'?'a':'g'):'';
+    var kpis='<div class="pf-kpis">'
+      + '<div class="pf-kpi"><div class="v">'+book.length+'</div><div class="k">In your book</div><div class="x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
+      + (mk?'<div class="pf-kpi"><div class="v '+lvlClass+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
+      + (capTotal?'<div class="pf-kpi"><div class="v g">'+pfMoney(capTotal)+'</div><div class="k">Capital tracked</div><div class="x">across '+caps.filter(Boolean).length+' financed</div></div>':'')
+      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+upcoming[0].slice(0,7)+'</div><div class="k">Next delivery</div><div class="x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
+      + '</div>';
+    // the book
+    var rows=book.slice().sort(function(a,b){ return pfPct(b.Delivery)-pfPct(a.Delivery); }).map(function(p){
+      var k=projectSlugify(p.Title), mv=movesBySlug[k];
+      var pct=pfPct(p.Delivery);
+      var chip = mv ? '<span class="pf-mv up">▲ '+esc(mv)+'</span>'
+                : (p.FinancingAmountM ? '<span class="pf-mv new">'+pfMoney(p.FinancingAmountM)+'</span>'
+                : '<span class="pf-mv flat">No change</span>');
+      return '<a class="pf-row" href="https://www.oftmw.com/projects/'+encodeURIComponent(p.Slug||k)+'/">'
+        + '<div><div class="pf-nm">'+esc(p.Title||'')+'</div><div class="pf-lo">'+esc(p.City||'')+(p.PreferredType?' · '+esc(p.PreferredType):'')+'</div></div>'
+        + '<div class="pf-prog"><div class="pf-bar"><i style="width:'+pct+'%"></i></div><span class="pf-st">'+esc(p.Delivery||'')+'</span></div>'
+        + chip + '</a>';
+    }).join('');
+    // capital in the book
+    var fin=book.filter(function(p){ return parseFloat(p.FinancingAmountM)>0; })
+      .sort(function(a,b){ return parseFloat(b.FinancingAmountM)-parseFloat(a.FinancingAmountM); }).slice(0,5);
+    var cap = fin.length ? '<div class="pf-sec-h">Capital in your book</div>'
+      + fin.map(function(p){
+          return '<div class="pf-cap"><span><b style="color:#fff">'+esc(p.Title||'')+'</b><div class="who">'+esc(p.FinancingLender||'Construction loan')+'</div></span><span class="amt">'+pfMoney(p.FinancingAmountM)+'</span></div>';
+        }).join('') : '';
+    host.innerHTML = kpis + '<div class="pf-sec-h">Your book</div><div class="pf-book">'+rows+'</div>' + cap;
+  }
+
   function loadBrief(){
     if(_briefDone) return; _briefDone=true;
     var wk=briefWeekOf();
@@ -540,9 +639,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     Promise.all([
       getMember(), getMJ(),
       fetch('https://www.oftmw.com/map/pulse.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
-      fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];})
+      fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}),
+      fetch('https://www.oftmw.com/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
     ]).then(function(o){
-      var mem=o[0], mj=o[1]||{}, pulseD=o[2], flat=o[3]||[];
+      var mem=o[0], mj=o[1]||{}, pulseD=o[2], flat=o[3]||[], intel=o[4]||null;
       if(!mem){ body.innerHTML='<div class="empty">Sign in to see your brief.</div>'; return; }
       try{ var payload=JSON.stringify({member_id:mem.id,event_name:'brief_viewed',props:{week:wk}}); navigator.sendBeacon(WORKER+'/event',new Blob([payload],{type:'text/plain'})); }catch(e){}
       var pulse=Array.isArray(pulseD)?pulseD:((pulseD&&(pulseD.events||pulseD.recent_activity))||[]);
@@ -618,10 +718,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           + '<div class="bh-foot">Generated by Onyx 4.1 \u00b7 grounded in your watchlist \u00b7 updates live as it moves</div>'
           + '</div>';
         if(!n){
-          body.innerHTML='<div class="empty">No moves on your watchlist this week \u2014 Onyx keeps watch.</div>';
+          // No moves is not an empty page — the book itself is the product.
+          body.innerHTML=hero+'<div id="pfBook"></div>';
+          try{ pfRender(document.getElementById('pfBook'), flat, mj, {}, intel); }catch(e){}
           return;
         }
+        // Map this week's moves by project so the book can flag what changed.
+        var movesBySlug={};
+        order.forEach(function(id){
+          var ev=moves[id].ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
+          if(k && !movesBySlug[k]) movesBySlug[k]=ev.tag||ev.type||'Moved';
+        });
         body.innerHTML=hero
+          + '<div id="pfBook"></div>'
           + '<div class="brief-sec-h">The moves</div>'
           + '<div class="brief-list">'+order.map(function(id){
           var x=moves[id], ev=x.ev;
@@ -635,6 +744,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
             +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+esc(fmtEventDate(x.rdate))+'</div>'
             + '</div></a>';
         }).join('')+'</div>';
+        try{ pfRender(document.getElementById('pfBook'), flat, mj, movesBySlug, intel); }catch(e){}
         // Onyx narrative — server-generated once per member+week (D1-cached).
         // Fails soft: the shimmer collapses away if the endpoint is unreachable.
         var narr=document.getElementById('briefNarr');
@@ -657,7 +767,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
   })});
   // Deep-link a tab via the hash (e.g. /account#saved), on load + change.
   // 'watchlist' now resolves to Overview (the unified "Your watches" surface).
-  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(['overview','brief','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
+  function tabFromHash(){ var h=(location.hash||'').replace('#','').toLowerCase(); if(h==='watchlist')h='overview'; if(h==='portfolio')h='brief'; if(['overview','brief','saved','account'].indexOf(h)<0)return; var b=document.querySelector('.tab[data-tab="'+h+'"]'); if(b)b.click(); }
   tabFromHash(); window.addEventListener('hashchange',tabFromHash);
 
   // ── project watches (Memberstack `favorites` × projects-flat.json) ──
