@@ -1123,6 +1123,17 @@ async function loadArticles() {
 const FIRMS_INDEX_URL = 'https://www.oftmw.com/map/firms-flat.json';
 const MARKETS_INDEX_URL = 'https://www.oftmw.com/markets-index.json';
 let _linkEntsCache = null;
+// Who is driving this MCP request — 'claude-code-routine' (static token) or
+// 'studio-connector' (OAuth). Set per-request in handleMcp; read by the
+// voice-gate scorecard events.
+let _mcpActor = 'studio-connector';
+// Legible 0-100 generation score from the voice gate's FIRST-attempt verdict:
+// fooling the judge is worth 60, a clean fingerprint the other 40.
+function genVoiceScore(turing, violCount) {
+  const t = String(turing || 'skipped');
+  const base = t === 'passed' ? 60 : t === 'skipped' ? 40 : t.includes('low') ? 30 : t.includes('medium') ? 20 : 10;
+  return Math.min(100, base + Math.max(0, 40 - 10 * (violCount || 0)));
+}
 async function loadLinkEntities() {
   if (_linkEntsCache) return _linkEntsCache;
   const j = (u) => fetch(u, { cf: { cacheTtl: 3600 } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
@@ -2355,7 +2366,7 @@ const IMPL = {
   // AI among real TMW articles" discriminator. Failures feed ONE targeted
   // revision (the caller's `rewrite`), then re-test. The report ships in the
   // tool result so the caller sees exactly what was caught and fixed.
-  async _runVoiceGate(env, { text, topic = '', place = '', excludeSlugs = [], rewrite }) {
+  async _runVoiceGate(env, { text, topic = '', place = '', excludeSlugs = [], slug = '', rewrite }) {
     const gate = { scored: false };
     // Judge on PLAIN prose — markdown syntax (links, #headers) would be a
     // giveaway against the plain-text real articles and teach nothing.
@@ -2384,12 +2395,19 @@ const IMPL = {
       }
       const f = gate.final || gate.initial;
       gate.passed = !f.spec_violations.length && f.turing !== 'caught (high)' && !String(f.turing).startsWith('caught');
-      // Persist the verdict — this is the series the Voice report card trends.
+      gate.score = genVoiceScore(gate.initial.turing, gate.initial.spec_violations.length);
+      // Persist the verdict against the slug — powers the Turing pass-rate
+      // series (brain page) and the per-article scorecard (post editor).
       try {
         await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-          .bind(Math.floor(Date.now() / 1000), 'voice-gate', 'voice_gate', JSON.stringify({
-            kind: 'revise', topic: String(topic || '').slice(0, 140),
+          .bind(Math.floor(Date.now() / 1000), String(slug || 'voice-gate'), 'voice_gate', JSON.stringify({
+            kind: 'revise', actor: _mcpActor, slug: String(slug || ''), topic: String(topic || '').slice(0, 140),
+            score: gate.score,
             first_turing: gate.initial.turing, first_violations: gate.initial.spec_violations.length,
+            notes: {
+              tells: (gate.initial.tells || []).slice(0, 5).map((t) => String(t).slice(0, 220)),
+              spec: (gate.initial.spec_violations || []).slice(0, 6).map((v) => String(v).slice(0, 160)),
+            },
             final_turing: f.turing, final_violations: f.spec_violations.length,
             revised: !!gate.revised, passed: gate.passed,
           })).run();
@@ -2472,16 +2490,8 @@ const IMPL = {
       }
       const fRep = voiceGate.final || voiceGate.initial;
       voiceGate.passed = !fRep.spec_violations.length && !String(fRep.turing).startsWith('caught');
-      // Persist the verdict — this is the series the Voice report card trends.
-      try {
-        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
-          .bind(Math.floor(Date.now() / 1000), 'voice-gate', 'voice_gate', JSON.stringify({
-            kind: 'generate', topic: topic.slice(0, 140),
-            first_turing: voiceGate.initial.turing, first_violations: voiceGate.initial.spec_violations.length,
-            final_turing: fRep.turing, final_violations: fRep.spec_violations.length,
-            revised: !!voiceGate.revised, passed: voiceGate.passed,
-          })).run();
-      } catch (_) {}
+      voiceGate.score = genVoiceScore(voiceGate.initial.turing, voiceGate.initial.spec_violations.length);
+      voiceGate.critique_notes = crit1.map((v) => (v.rule ? v.rule + ': ' : '') + v.violation).slice(0, 5);
     } catch (_) {}
     // Internal auto-linking: tracked projects/firms/markets link to their
     // oftmw.com pages (external URLs on those anchors get rewritten too) —
@@ -2511,6 +2521,27 @@ const IMPL = {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
         .bind(Math.floor(Date.now() / 1000), article.slug, 'brain_injected', JSON.stringify({ ids: brain.injected_ids || [] })).run();
     } catch (_) {}
+    // Persist the voice-gate verdict AGAINST THE SLUG (member_id) — powers both
+    // the Turing pass-rate series (brain page) and the per-article scorecard in
+    // the post editor, with the actual tells/violations as reviewable notes.
+    if (voiceGate && voiceGate.initial) {
+      try {
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(Math.floor(Date.now() / 1000), article.slug, 'voice_gate', JSON.stringify({
+            kind: 'generate', actor: _mcpActor, slug: article.slug, topic: topic.slice(0, 140),
+            score: voiceGate.score,
+            first_turing: voiceGate.initial.turing, first_violations: voiceGate.initial.spec_violations.length,
+            notes: {
+              tells: (voiceGate.initial.tells || []).slice(0, 5).map((t) => String(t).slice(0, 220)),
+              spec: (voiceGate.initial.spec_violations || []).slice(0, 6).map((v) => String(v).slice(0, 160)),
+              critique: (voiceGate.critique_notes || []).map((c) => String(c).slice(0, 200)),
+            },
+            final_turing: (voiceGate.final || voiceGate.initial).turing,
+            final_violations: (voiceGate.final || voiceGate.initial).spec_violations.length,
+            revised: !!voiceGate.revised, passed: voiceGate.passed,
+          })).run();
+      } catch (_) {}
+    }
     return {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
       grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
@@ -2550,7 +2581,7 @@ const IMPL = {
     try {
       const usedSlugs = (brain.articleExemplars || []).map((a) => a.slug);
       const gateRes = await IMPL._runVoiceGate(env, {
-        text: revBody, topic: String(row.title || ''), place: String(args.place || ''), excludeSlugs: usedSlugs,
+        text: revBody, topic: String(row.title || ''), place: String(args.place || ''), excludeSlugs: usedSlugs, slug,
         rewrite: async (problems, spec) => {
           const rSys = 'You are the senior staff editor for Markets of Tomorrow. Our voice QA flagged the revised article below. Rewrite it so a reader could not tell it from our published work — fix EVERY listed problem. Preserve every fact, number, name, date, and price exactly. Keep the earlier instruction applied: "' + instruction.slice(0, 200) + '". Avoid em dashes. Return ONLY the complete article as Markdown, no commentary.' + (spec ? '\n\nMEASURED HOUSE SPEC:\n' + spec : '');
           const raw2 = await fableGenerate(env, { system: rSys, user: 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE:\n' + revBody, maxTokens: 3600 });
@@ -4491,6 +4522,10 @@ export async function handleMcp(request, env) {
   // its custom-connector flow can discover the OAuth endpoints.
   const auth = request.headers.get('Authorization') || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+  // Who is writing? The daily-articles routine authenticates with the static
+  // token; interactive claude.ai sessions come through OAuth. Best-effort label
+  // for the per-article scorecard (module-level: fine for attribution).
+  _mcpActor = (env.STUDIO_MCP_TOKEN && token === env.STUDIO_MCP_TOKEN) ? 'claude-code-routine' : 'studio-connector';
   if (!(await isAuthorized(token, env))) {
     const rm = new URL(request.url).origin + '/.well-known/oauth-protected-resource';
     return new Response(JSON.stringify({ error: 'unauthorized' }), {

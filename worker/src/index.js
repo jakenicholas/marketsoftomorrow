@@ -8255,6 +8255,33 @@ async function handleFormatBands(req, env, origin) {
 // GET /admin/brain/eval-scores — the draft-quality trend (Loop 2). Per surface:
 // how much of the AI draft survives to the finish, all-time and recent-vs-prior
 // (is the brain mastering the format?). Body params: days.
+// GET /admin/article-score?slug= — the per-article AI scorecard for the post
+// editor sidebar: the generation-time voice-gate verdict (score + who wrote it
+// + the judge's actual notes) and the after-your-edits retention score graded
+// at publish. Everything is best-effort nullable; the editor hides the card
+// when neither exists (hand-written posts).
+async function handleArticleScore(req, env, origin, url) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const slug = String(url.searchParams.get('slug') || '').trim().toLowerCase();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  let gen = null, retention = null, edit_pair = null;
+  try {
+    const g = await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='voice_gate' AND member_id=?1 ORDER BY ts DESC LIMIT 1`).bind(slug).first();
+    if (g && g.props_json) { gen = JSON.parse(g.props_json); gen.ts = g.ts; }
+  } catch (_) {}
+  try {
+    await ensureEvalScores(env);
+    const r = await env.DB.prepare(`SELECT retention, ai_words, final_words, brain_sig, ts FROM eval_scores WHERE slug=?1 AND kind='article' ORDER BY ts DESC LIMIT 1`).bind(slug).first();
+    if (r) retention = r;
+  } catch (_) {}
+  try {
+    const p = await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='edit_pair' AND member_id=?1 ORDER BY ts DESC LIMIT 1`).bind(slug).first();
+    if (p && p.props_json) { edit_pair = JSON.parse(p.props_json); edit_pair.ts = p.ts; }
+  } catch (_) {}
+  return json({ slug, gen, retention, edit_pair }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
+}
+
 async function handleEvalScores(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
@@ -14984,6 +15011,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/reindex-bodies')     return await handleReindexBodies(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/format-bands') return await handleFormatBands(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/brain/eval-scores') return await handleEvalScores(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/article-score')     return await handleArticleScore(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/brain/eval-run')     return await handleEvalRun(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);
