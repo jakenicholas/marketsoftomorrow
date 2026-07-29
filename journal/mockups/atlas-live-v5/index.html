@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mockup v5 &middot; Atlas, yours</title>
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   V5 — everything in v3 stands (v4 is reserved for the real-map embed, which
+   is a build on the live Atlas, not a mockup). The new axis is
+   PERSONALIZATION — the instrument bends around its owner:
+
+     · MY BOOK / MY MARKETS — star any project, follow any market, and the
+       whole dashboard re-scopes to yours with one toggle. Watched projects
+       wear a mint ring on the world map even when unhovered.
+     · COMPARE — pin the current slice as A, keep exploring; a strip shows
+       A vs B on every headline number, with deltas.
+     · CUSTOMIZE — hide and reorder the modules; the layout persists. Same
+       array-order-is-the-layout rule as the dashboard tiles.
+     · SWEEP — play the delivery years like a film strip.
+     · RECENTLY VIEWED — the drawer leaves a trail you can reopen.
+     · Legend swatches are filters too — click "Now Open" anywhere it is named.
+
+   Persistence is localStorage HERE, standing in for the same Memberstack JSON
+   the live saved-views/watchlist already use — the mockup's shapes (a Set of
+   slugs, a Set of markets, {order,hidden}) map 1:1 onto tmwViews/favorites.
+
+   V3's additions, still here:
+
+     · A GEOGRAPHY you can GRAB — all 930 located projects as a pure-SVG world
+       scatter (no Mapbox, no tiles: we have lat/lng on 930 of 933 rows, and at
+       this grain a projection is just arithmetic). DRAG A BOX to filter by
+       place; the box is a filter chip like any other.
+     · A HEATMAP of market × delivery year — the density grid every database
+       product ends up needing. One click sets BOTH dimensions.
+     · DEVELOPERS as a live dimension — 949 firms in the data; the leaderboard
+       cross-filters like everything else.
+     · RECORDS — tallest, biggest, most keys, largest financing IN THE CURRENT
+       SLICE. Hover one and that single project lights up in every chart; the
+       brush-and-link grain drops from "an entity" to "one building".
+     · A DETAILS DRAWER — click any dot and the row becomes a project card
+       (photo, stats, link). Aggregates become a browsable database.
+     · EXPORT — the current slice as CSV. An instrument lets you take the
+       result with you.
+
+   Colour: everything from v2, plus ONE new ramp. The heatmap needs SEQUENTIAL
+   (magnitude), and the validator rejected three candidates before this one —
+   the dark end kept landing under the 2:1 floor against the surface. Final:
+   #4b3f7e → #d6c9ff, 6 steps, monotone L, adjacent ΔL ≥ .06, dark end 2.12:1.
+   Cells always carry the count as text, so colour is never the only encoding.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --surface:#0e0e0e; --page:#070807;
+  --s1:#8f6ff0;
+  --lc1:#4b3a8f; --lc2:#6d4fd6; --lc3:#8f6ff0; --lc4:#B9A6FF; --lc5:#DCD2FF;
+  --heat1:#0A8046; --heat2:#B98400; --heat3:#E04255;
+  --grid:#1e1e1d; --dim:#3a3a38; --hl:#7DF0C8; --today:#e6c574;
+  --ink:#ECEAE5; --ink2:#C2C9C3; --mute:#9AA39C;
+  --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:1300px;margin:0 auto;padding:0 28px}
+.mk{background:rgba(230,197,116,.1);border-bottom:1px solid rgba(230,197,116,.3);padding:11px 0}
+.mk .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mk b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f0d68a}
+.mk span{font-size:13px;color:var(--ink2)}
+.mk kbd{font-family:var(--mono);font-size:10.5px;background:rgba(255,255,255,.08);border:1px solid var(--hair);border-radius:5px;padding:2px 6px;color:var(--ink)}
+
+.tabs{border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;margin-top:16px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:14px;font-weight:500;color:var(--mute);text-decoration:none;padding:15px 14px;white-space:nowrap;flex:0 0 auto}
+.tab.on{color:#fff;box-shadow:inset 0 -2px 0 #e6c574}
+
+.fr{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:18px 0 2px}
+.fr-l{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--s1);
+  background:rgba(143,111,240,.14);border:1px solid rgba(143,111,240,.45);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip .x{font-size:10px;opacity:.8}
+.chip.clr{color:var(--ink2);background:rgba(255,255,255,.05);border-color:var(--hair)}
+.fr-none{font-size:13px;color:var(--mute)}
+.fr-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--ink2);background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;padding:7px 13px;cursor:pointer}
+.btn:hover{color:#fff;border-color:rgba(143,111,240,.6)}
+
+.hero{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap;padding:12px 0 4px}
+.hero-v{font-family:var(--serif);font-size:56px;font-weight:600;color:#fff;line-height:.95;letter-spacing:-.03em}
+.hero-k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:8px}
+.tiles{display:flex;gap:24px;flex-wrap:wrap;padding-bottom:5px}
+.tile .tv{font-family:var(--serif);font-size:24px;font-weight:600;color:#fff;line-height:1}
+.tile .tk{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+
+/* records strip */
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:14px 0 0}
+.rec{border:1px solid var(--hair);border-radius:14px;background:var(--surface);padding:13px 15px;cursor:pointer;transition:.15s}
+.rec:hover{border-color:rgba(125,240,200,.55);transform:translateY(-2px)}
+.rec .rk{font-family:var(--mono);font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--hl);font-weight:700}
+.rec .rv{font-family:var(--serif);font-size:21px;font-weight:600;color:#fff;margin-top:6px;line-height:1.1}
+.rec .rn{font-size:12px;color:var(--ink2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec .rw{font-family:var(--mono);font-size:9.5px;color:var(--mute);margin-top:2px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 0 0}
+.grid .full{grid-column:1 / -1}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:17px 18px 14px;position:relative}
+.ch{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ct{font-size:14.5px;font-weight:600;color:#fff}
+.cs{font-size:11.5px;color:var(--mute);margin-top:2px}
+.chint{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.sorts{display:flex;gap:4px}
+.sortb{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  color:var(--mute);background:none;border:1px solid transparent;border-radius:999px;padding:4px 8px;cursor:pointer}
+.sortb:hover{color:var(--ink)}
+.sortb.on{color:var(--s1);background:rgba(143,111,240,.13);border-color:rgba(143,111,240,.35)}
+svg{display:block;width:100%;overflow:visible}
+.gl{stroke:var(--grid);stroke-width:1}
+.axt{font-family:var(--mono);font-size:9px;fill:var(--mute);font-variant-numeric:tabular-nums}
+.lbt{font-family:var(--sans);font-size:11.5px;fill:var(--ink2)}
+.vlt{font-family:var(--sans);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.hit{fill:transparent;cursor:pointer}
+.lg{display:flex;gap:13px;flex-wrap:wrap;margin-top:11px}
+.lg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lg span{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.scale{display:flex;align-items:center;gap:6px;margin-top:11px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.scale i{width:22px;height:8px;border-radius:2px;display:inline-block}
+
+.tip{position:fixed;z-index:90;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:#141416;border:1px solid var(--hair2);border-radius:10px;padding:9px 11px;
+  box-shadow:0 18px 44px -12px rgba(0,0,0,.9);max-width:280px}
+.tip.on{opacity:1}
+.tip .tv{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.tip .tl{font-size:11.5px;color:var(--ink2);margin-top:2px}
+.tip .tr{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink2);margin-top:4px}
+.tip .tk{width:14px;height:2px;border-radius:2px;flex:none}
+
+/* details drawer */
+.dw{position:fixed;top:0;right:0;bottom:0;width:min(400px,94vw);z-index:95;background:#101012;
+  border-left:1px solid var(--hair2);box-shadow:-30px 0 80px -20px rgba(0,0,0,.9);
+  transform:translateX(102%);transition:transform .22s ease;display:flex;flex-direction:column}
+.dw.on{transform:none}
+.dw-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#191a1c}
+.dw-b{padding:18px 20px;overflow-y:auto;flex:1}
+.dw-t{font-family:var(--serif);font-size:23px;font-weight:600;color:#fff;line-height:1.15}
+.dw-s{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:7px}
+.dw-g{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
+.dw-g .g .v{font-family:var(--serif);font-size:18px;font-weight:600;color:#fff}
+.dw-g .g .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:3px}
+.dw-d{font-size:13px;color:var(--ink2);line-height:1.6;margin-top:16px}
+.dw-a{display:inline-block;margin-top:16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;color:var(--s1);text-decoration:none}
+.dw-x{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--hair2);
+  background:rgba(10,10,10,.7);color:#fff;cursor:pointer;font-size:13px}
+
+.cmd{position:fixed;inset:0;z-index:100;background:rgba(3,3,3,.72);display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
+.cmd.on{display:flex}
+.cmdbox{width:min(560px,92vw);background:#101012;border:1px solid var(--hair2);border-radius:14px;box-shadow:0 40px 90px -20px rgba(0,0,0,.95);overflow:hidden}
+.cmdbox input{width:100%;background:none;border:0;border-bottom:1px solid var(--hair);outline:none;color:#fff;font-family:var(--sans);font-size:16px;padding:16px 18px}
+.cmdlist{max-height:52vh;overflow-y:auto;padding:6px}
+.cmdi{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--ink)}
+.cmdi:hover,.cmdi.sel{background:rgba(143,111,240,.14)}
+.cmdi .k{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-left:auto}
+.cmdempty{padding:18px;color:var(--mute);font-size:13px}
+
+table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600}
+td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+/* scope segments (All / My book / My markets) */
+.seg{display:inline-flex;border:1px solid var(--hair);border-radius:999px;overflow:hidden}
+.segb{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  color:var(--mute);background:none;border:0;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.segb:hover{color:var(--ink)}
+.segb.on{color:#12091f;background:var(--hl)}
+.segb .n{opacity:.75;margin-left:4px}
+/* compare strip */
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;
+  border:1px solid rgba(125,240,200,.35);border-radius:14px;background:rgba(125,240,200,.05);
+  padding:13px 15px;margin-top:12px}
+.cmp .c .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.cmp .c .ab{display:flex;gap:10px;align-items:baseline;margin-top:5px}
+.cmp .c .a{font-family:var(--serif);font-size:17px;color:var(--mute2)}
+.cmp .c .b{font-family:var(--serif);font-size:20px;font-weight:600;color:#fff}
+.cmp .c .d{font-family:var(--mono);font-size:9.5px;margin-top:3px}
+.cmp .c .d.up{color:#42EB81}.cmp .c .d.dn{color:#FF8A8A}.cmp .c .d.flat{color:var(--mute)}
+.cmp-x{grid-column:1/-1;text-align:right}
+/* customize mode */
+.cz .card{border-style:dashed;border-color:rgba(143,111,240,.5)}
+.cz-ctl{position:absolute;top:10px;right:12px;display:flex;gap:4px;z-index:5}
+.czb{font-family:var(--mono);font-size:10px;color:var(--ink2);background:rgba(255,255,255,.07);
+  border:1px solid var(--hair);border-radius:6px;padding:3px 8px;cursor:pointer}
+.czb:hover{color:#fff;border-color:rgba(143,111,240,.6)}
+.hiddenrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 0 0}
+.hiddenrow .hl-l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+/* watch star */
+.star{background:none;border:1px solid var(--hair2);border-radius:999px;color:var(--ink2);cursor:pointer;
+  font-size:12px;padding:7px 13px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.star.on{color:#12091f;background:var(--hl);border-color:var(--hl)}
+.star+.star{margin-left:8px}
+/* recently viewed */
+.recent{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0 0}
+.recent .r-l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.rchip{font-size:12px;color:var(--ink2);background:rgba(255,255,255,.045);border:1px solid var(--hair);
+  border-radius:999px;padding:5px 11px;cursor:pointer}
+.rchip:hover{color:#fff;border-color:rgba(125,240,200,.5)}
+.lg span{cursor:pointer}
+.note{margin:24px 0 60px;padding:17px 19px;border:1px dashed var(--hair2);border-radius:13px;font-size:13px;color:var(--ink2);line-height:1.65}
+.note b{color:#f0d68a}
+.loading{padding:60px 0;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px}
+.tvw{margin:20px 0 0}
+@media(max-width:980px){ .grid{grid-template-columns:1fr} .hero-v{font-size:44px} }
+@media(max-width:620px){ .wrap{padding:0 18px} }
+</style>
+</head>
+<body>
+<div class="mk"><div class="wrap">
+  <b>Mockup v5</b>
+  <span><b style="color:var(--ink)">Star projects and follow markets</b> to build your own scope ·
+  <b style="color:var(--ink)">pin a slice as A</b> and compare against it ·
+  <b style="color:var(--ink)">customize</b> hides and reorders the modules ·
+  press <b style="color:var(--ink)">▶</b> on the timeline to sweep the years · <kbd>⌘K</kbd> · <kbd>Esc</kbd></span>
+</div></div>
+
+<div class="wrap">
+  <nav class="tabs">
+    <a class="tab on" href="#">Overview</a>
+    <a class="tab" href="/atlas/markets/">Markets</a>
+    <a class="tab" href="/atlas/projects/">Projects</a>
+    <a class="tab" href="/atlas/firms/">Firms</a>
+    <a class="tab" href="/atlas/supply/">Supply</a>
+    <a class="tab" href="/atlas/pricing/">Pricing</a>
+    <a class="tab" href="/atlas/capital/">Capital</a>
+    <a class="tab" href="/atlas/pipeline/">Pipeline</a>
+  </nav>
+  <div id="app"><div class="loading">Loading the database&hellip;</div></div>
+</div>
+
+<div class="tip" id="tip"></div>
+<div class="dw" id="dw"></div>
+<div class="cmd" id="cmd"><div class="cmdbox">
+  <input id="cmdi" type="text" placeholder="Jump to a market, developer, type or stage…" autocomplete="off" spellcheck="false">
+  <div class="cmdlist" id="cmdl"></div>
+</div></div>
+
+<script>
+(function () {
+  'use strict';
+  var MAP='https://www.oftmw.com/map';
+  var $=function(id){return document.getElementById(id);};
+  var app=$('app'), tip=$('tip'), dw=$('dw');
+
+  var C={ s1:'#8f6ff0', lc:['#4b3a8f','#6d4fd6','#8f6ff0','#B9A6FF','#DCD2FF'],
+          heat:['#0A8046','#B98400','#E04255'],
+          seq:['#4b3f7e','#6350ae','#7f63dd','#9b7cf4','#b7a0fa','#d6c9ff'],
+          surface:'#0e0e0e', dim:'#3a3a38', hl:'#7DF0C8', today:'#e6c574' };
+  var STAGES=[{slug:'announced',label:'Announced'},{slug:'breaking-ground',label:'Breaking Ground'},
+    {slug:'construction',label:'Under Construction'},{slug:'coming-soon',label:'Opening Soon'},
+    {slug:'open',label:'Now Open'}];
+  var NOW=new Date(), THIS_YEAR=NOW.getFullYear();
+
+  var ROWS=[], INTEL=null;
+  var IX={stage:{},type:{},city:{},year:{},dev:{}};
+  var TYPE_LABEL={}, CITY_LABEL={}, DEV_LABEL={};
+
+  function slug(t){return String(t==null?'':t).toLowerCase().trim().replace(/&/g,' and ')
+    .replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,'');}
+  function unslug(s){return String(s||'').split('-').filter(Boolean)
+    .map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' ');}
+  var SA={complete:'open',completed:'open'};
+  function stageOf(r){var s=slug(r.Delivery);if(SA[s])s=SA[s];
+    for(var i=0;i<STAGES.length;i++){if(STAGES[i].slug===s||slug(STAGES[i].label)===s)return STAGES[i].slug;}return '';}
+  function stageIdx(r){var s=stageOf(r);for(var i=0;i<STAGES.length;i++)if(STAGES[i].slug===s)return i;return 2;}
+  function typesOf(r){return String(r.ProjectType||r.PreferredType||'').split(',').map(function(t){return t.trim();}).filter(Boolean);}
+  function devsOf(r){return String(r.Developer||'').split(',').map(function(t){return t.trim();}).filter(Boolean);}
+  function yearOf(r){var m=String(r.DeliveryDate||'').match(/(19|20)\d{2}/);return m?+m[0]:0;}
+  function monthOf(r){var m=String(r.DeliveryDate||'').match(/^(\d{4})-(\d{2})/);return m?(+m[1]+(+m[2]-1)/12):yearOf(r);}
+  function moneyOf(r){var n=parseFloat(r.FinancingAmountM);return isFinite(n)&&n>0?n:0;}
+  function gfaOf(r){var n=parseFloat(String(r.GfaSqFt||'').replace(/[^0-9.]/g,''));return isFinite(n)&&n>0?n:0;}
+  function unitsOf(r){var n=parseInt(r.Units,10);return isFinite(n)&&n>0?n:0;}
+  function floorsOf(r){var n=parseInt(r.Floors,10);return isFinite(n)&&n>0?n:0;}
+  function keysOf(r){var n=parseInt(r.Keys,10);return isFinite(n)&&n>0?n:0;}
+  function latOf(r){var n=parseFloat(r.Latitude);return isFinite(n)?n:null;}
+  function lngOf(r){var n=parseFloat(r.Longitude);return isFinite(n)?n:null;}
+  function fmtM(n){return n>=1000?'$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B':'$'+Math.round(n)+'M';}
+  function fmtSq(n){ if(n>=1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'')+'B';
+    if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M'; return Math.round(n/1000)+'K'; }
+  function add(m,k,i){if(!k)return;(m[k]=m[k]||new Set()).add(i);}
+  function buildIndexes(){
+    ROWS.forEach(function(r,i){
+      add(IX.stage,stageOf(r),i);
+      var c=slug(r.City); if(c){add(IX.city,c,i);CITY_LABEL[c]=String(r.City).trim();}
+      var y=yearOf(r); if(y) add(IX.year,String(y),i);
+      typesOf(r).forEach(function(t){var k=slug(t);if(k){add(IX.type,k,i);TYPE_LABEL[k]=t;}});
+      devsOf(r).forEach(function(d){var k=slug(d);if(k){add(IX.dev,k,i);DEV_LABEL[k]=d;}});
+    });
+  }
+
+  // ── filter state. geo is a MOCKUP-ONLY dimension (lat/lng box) — the shared
+  //    contract has no geography axis yet; if this ships, it goes to ontology
+  //    first like every other axis did.
+  var F={}, SORT='count', HL=null;
+
+  // ── PERSONAL STATE ────────────────────────────────────────────────────────
+  // localStorage stands in for Memberstack JSON here; the shapes map 1:1 onto
+  // what the live site already stores (favorites, markets_followed, and the
+  // saved-views array-order-is-the-layout rule).
+  function lsGet(k,fb){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?fb:v;}catch(e){return fb;}}
+  function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  var WATCH=new Set(lsGet('tmw_v5_watch',[]));       // project slugs
+  var FOLLOW=new Set(lsGet('tmw_v5_follow',[]));     // market slugs
+  var RECENT=lsGet('tmw_v5_recent',[]);              // project slugs, newest first
+  var LAYOUT=lsGet('tmw_v5_layout',null);            // {order:[ids], hidden:[ids]}
+  var SEEDED=lsGet('tmw_v5_seeded',false);
+  var SCOPE='all';                                   // all | book | markets
+  var cmpA=null;                                     // pinned slice {label, stats}
+  var customize=false;
+  function saveWatch(){lsSet('tmw_v5_watch',Array.from(WATCH));}
+  function saveFollow(){lsSet('tmw_v5_follow',Array.from(FOLLOW));}
+  function saveRecent(){lsSet('tmw_v5_recent',RECENT.slice(0,8));}
+  function saveLayout(){lsSet('tmw_v5_layout',LAYOUT);}
+  // First visit: seed a small SAMPLE book so the feature is visible before
+  // you have starred anything. Clearly labelled; one click clears it.
+  function maybeSeed(){
+    if(SEEDED||WATCH.size||FOLLOW.size)return;
+    ['jeddah-tower','new-murabba','one-bangkok','olara','south-flagler-house','the-berkeley']
+      .forEach(function(sl){if(ROWS.some(function(r){return r.Slug===sl;}))WATCH.add(sl);});
+    FOLLOW.add('miami');FOLLOW.add('west-palm-beach');
+    lsSet('tmw_v5_seeded',true);saveWatch();saveFollow();
+  }
+  function bookIdx(){var o=[];ROWS.forEach(function(r,i){if(r.Slug&&WATCH.has(r.Slug))o.push(i);});return o;}
+  function inFilter(i){
+    var r=ROWS[i];
+    if(F.city && !(IX.city[F.city]&&IX.city[F.city].has(i))) return false;
+    if(F.stage&& !(IX.stage[F.stage]&&IX.stage[F.stage].has(i))) return false;
+    if(F.type && !(IX.type[F.type]&&IX.type[F.type].has(i))) return false;
+    if(F.dev  && !(IX.dev[F.dev]&&IX.dev[F.dev].has(i))) return false;
+    if(F.year && yearOf(r)!==+F.year) return false;
+    if(F.from||F.to){var y=yearOf(r);if(!y)return false;
+      if(F.from&&y<+F.from)return false; if(F.to&&y>+F.to)return false;}
+    if(SCOPE==='book'&&!(r.Slug&&WATCH.has(r.Slug)))return false;
+    if(SCOPE==='markets'&&!FOLLOW.has(slug(r.City)))return false;
+    if(F.geo){var la=latOf(r),lo=lngOf(r);
+      if(la==null||lo==null) return false;
+      if(la<F.geo.s||la>F.geo.n||lo<F.geo.w||lo>F.geo.e) return false;}
+    return true;
+  }
+  function baseSet(ex){
+    var exs=Array.isArray(ex)?ex:[ex];
+    var keep={};Object.keys(F).forEach(function(k){if(exs.indexOf(k)<0)keep[k]=F[k];});
+    var save=F;F=keep;var out=[];for(var i=0;i<ROWS.length;i++)if(inFilter(i))out.push(i);
+    F=save;return out;
+  }
+  function currentSet(){var o=[];for(var i=0;i<ROWS.length;i++)if(inFilter(i))o.push(i);return o;}
+  function setF(k,v){if(!v||F[k]===v)delete F[k];else F[k]=v;
+    if(k==='year'){delete F.from;delete F.to;} syncUrl();render();}
+  function setMany(o){Object.keys(o).forEach(function(k){
+    if(o[k]==null)delete F[k];else F[k]=o[k];});syncUrl();render();}
+
+  function syncUrl(){
+    var q=new URLSearchParams();
+    ['city','stage','type','dev','year','from','to'].forEach(function(k){if(F[k])q.set(k,F[k]);});
+    if(F.geo)q.set('geo',[F.geo.w,F.geo.s,F.geo.e,F.geo.n].map(function(n){return n.toFixed(1);}).join(','));
+    if(SCOPE!=='all')q.set('scope',SCOPE);
+    if(SORT!=='count')q.set('sort',SORT);
+    var s=q.toString();
+    try{history.replaceState(null,'',location.pathname+(s?'?'+s:''));}catch(e){}
+  }
+  function readUrl(){
+    var q=new URLSearchParams(location.search);
+    ['city','stage','type','dev','year','from','to'].forEach(function(k){var v=q.get(k);if(v)F[k]=v;});
+    var g=q.get('geo');if(g){var p=g.split(',').map(Number);
+      if(p.length===4&&p.every(isFinite))F.geo={w:p[0],s:p[1],e:p[2],n:p[3]};}
+    var s=q.get('sort');if(s==='gfa'||s==='capital')SORT=s;
+    var sc=q.get('scope');if(sc==='book'||sc==='markets')SCOPE=sc;
+  }
+
+  function el(tag,a,kids){var n=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    Object.keys(a||{}).forEach(function(k){n.setAttribute(k,a[k]);});
+    (kids||[]).forEach(function(c){n.appendChild(c);});return n;}
+  function txt(s,a){var t=el('text',a||{});t.textContent=s;return t;}
+  function hbar(x,y,w,h,fill,r){r=Math.min(r==null?4:r,w,h/2);
+    if(w<=0.5)return el('rect',{x:x,y:y,width:0,height:h,fill:fill});
+    return el('path',{d:'M'+x+','+y+'H'+(x+w-r)+'a'+r+','+r+' 0 0 1 '+r+','+r+'V'+(y+h-r)+'a'+r+','+r+' 0 0 1 '+(-r)+','+r+'H'+x+'Z',fill:fill});}
+  function vbar(x,yT,w,h,fill,r){r=Math.min(r==null?4:r,w/2,h);
+    if(h<=0.5)return el('rect',{x:x,y:yT,width:w,height:0,fill:fill});
+    return el('path',{d:'M'+x+','+(yT+h)+'V'+(yT+r)+'a'+r+','+r+' 0 0 1 '+r+','+(-r)+'H'+(x+w-r)+'a'+r+','+r+' 0 0 1 '+r+','+r+'V'+(yT+h)+'Z',fill:fill});}
+  function inter(set,arr){if(!set)return 0;var n=0;for(var i=0;i<arr.length;i++)if(set.has(arr[i]))n++;return n;}
+
+  var raf=null;
+  function setHL(s){HL=s;if(raf)return;raf=requestAnimationFrame(function(){raf=null;paint();});}
+
+  function place(e){var r=tip.getBoundingClientRect();
+    tip.style.left=Math.min((e.clientX||0)+14,window.innerWidth-r.width-10)+'px';
+    tip.style.top=Math.max(8,(e.clientY||0)-r.height-10)+'px';}
+  function showTip(e,f){tip.textContent='';tip.appendChild(f);tip.classList.add('on');place(e);}
+  function hideTip(){tip.classList.remove('on');}
+  function frag(value,label,kc,kl){
+    var f=document.createDocumentFragment();
+    var v=document.createElement('div');v.className='tv';v.textContent=value;f.appendChild(v);
+    var l=document.createElement('div');l.className='tl';l.textContent=label;f.appendChild(l);
+    if(kc){var r=document.createElement('div');r.className='tr';
+      var k=document.createElement('span');k.className='tk';k.style.background=kc;r.appendChild(k);
+      var s=document.createElement('span');s.textContent=kl||'';r.appendChild(s);f.appendChild(r);}
+    return f;
+  }
+
+  // ── details drawer ────────────────────────────────────────────────────────
+  function openDrawer(i){
+    var r=ROWS[i];
+    dw.textContent='';
+    var x=document.createElement('button');x.className='dw-x';x.textContent='✕';
+    x.addEventListener('click',closeDrawer);dw.appendChild(x);
+    if(r.ImageURL){var im=document.createElement('img');im.className='dw-img';im.loading='lazy';
+      im.alt='';im.src=r.ImageURL;dw.appendChild(im);}
+    var b=document.createElement('div');b.className='dw-b';
+    var t=document.createElement('div');t.className='dw-t';t.textContent=r.Title||'';b.appendChild(t);
+    var st=STAGES.filter(function(s){return s.slug===stageOf(r);})[0];
+    var s=document.createElement('div');s.className='dw-s';
+    s.textContent=[r.City,st?st.label:'',yearOf(r)?'Delivers '+String(r.DeliveryDate).slice(0,7):''].filter(Boolean).join(' · ');
+    b.appendChild(s);
+    var g=document.createElement('div');g.className='dw-g';
+    [[floorsOf(r)?floorsOf(r):null,'Floors'],[unitsOf(r)?unitsOf(r).toLocaleString('en-US'):null,'Units'],
+     [keysOf(r)?keysOf(r):null,'Keys'],[gfaOf(r)?fmtSq(gfaOf(r))+' sq ft':null,'Floor area'],
+     [moneyOf(r)?fmtM(moneyOf(r)):null,'Financing'],
+     [devsOf(r)[0]||null,'Developer']].forEach(function(p){
+      if(p[0]==null)return;
+      var d=document.createElement('div');d.className='g';
+      var v=document.createElement('div');v.className='v';v.textContent=String(p[0]);d.appendChild(v);
+      var k=document.createElement('div');k.className='k';k.textContent=p[1];d.appendChild(k);
+      g.appendChild(d);});
+    b.appendChild(g);
+    if(r.Description){var de=document.createElement('div');de.className='dw-d';
+      de.textContent=String(r.Description).slice(0,420);b.appendChild(de);}
+    // personal controls — the star writes to your book, follow to your markets
+    var pc=document.createElement('div');pc.style.marginTop='16px';
+    var st=document.createElement('button');st.className='star'+(r.Slug&&WATCH.has(r.Slug)?' on':'');
+    st.textContent=(r.Slug&&WATCH.has(r.Slug))?'★ In your book':'☆ Watch project';
+    st.addEventListener('click',function(){
+      if(!r.Slug)return;
+      if(WATCH.has(r.Slug))WATCH.delete(r.Slug);else WATCH.add(r.Slug);
+      saveWatch();openDrawer(i);render();});
+    pc.appendChild(st);
+    var ck=slug(r.City);
+    if(ck){var fo=document.createElement('button');fo.className='star'+(FOLLOW.has(ck)?' on':'');
+      fo.textContent=(FOLLOW.has(ck)?'✓ Following ':'+ Follow ')+String(r.City).trim();
+      fo.addEventListener('click',function(){
+        if(FOLLOW.has(ck))FOLLOW.delete(ck);else FOLLOW.add(ck);
+        saveFollow();openDrawer(i);render();});
+      pc.appendChild(fo);}
+    b.appendChild(pc);
+    if(r.Slug){var a=document.createElement('a');a.className='dw-a';
+      a.href='/projects/'+r.Slug+'/';a.textContent='Open the project page →';b.appendChild(a);}
+    dw.appendChild(b);
+    dw.classList.add('on');
+    if(r.Slug){RECENT=[r.Slug].concat(RECENT.filter(function(x){return x!==r.Slug;})).slice(0,8);saveRecent();}
+  }
+  function closeDrawer(){dw.classList.remove('on');}
+
+  /* ═══ THE WORLD — every located project, pure SVG, drag a box to filter ═══ */
+  var geoBrush=null;
+  function cWorld(host){
+    var W=1180,H=430,PAD=10;
+    // equirectangular with a slight vertical crop — the data has nothing below
+    // -40 or above 72, so the poles would be dead space.
+    var LA0=72,LA1=-42,LO0=-165,LO1=170;
+    function X(lo){return PAD+(W-2*PAD)*(lo-LO0)/(LO1-LO0);}
+    function Y(la){return PAD+(H-2*PAD)*(LA0-la)/(LA0-LA1);}
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+    // graticule — recessive furniture
+    for(var lo=-150;lo<=150;lo+=30) svg.appendChild(el('line',{x1:X(lo),y1:PAD,x2:X(lo),y2:H-PAD,class:'gl'}));
+    for(var la=-30;la<=60;la+=30) svg.appendChild(el('line',{x1:PAD,y1:Y(la),x2:W-PAD,y2:Y(la),class:'gl'}));
+    svg.appendChild(txt('0°',{x:X(0)+4,y:Y(0)-4,class:'axt'}));
+    var sel=new Set(currentSet());
+    // active geo box
+    if(F.geo){svg.appendChild(el('rect',{x:X(F.geo.w),y:Y(F.geo.n),width:X(F.geo.e)-X(F.geo.w),
+      height:Y(F.geo.s)-Y(F.geo.n),fill:C.s1,opacity:'.10',stroke:C.s1,'stroke-width':1}));}
+    if(geoBrush){var gb=geoBrush;
+      svg.appendChild(el('rect',{x:Math.min(gb.x0,gb.x1),y:Math.min(gb.y0,gb.y1),
+        width:Math.abs(gb.x1-gb.x0),height:Math.abs(gb.y1-gb.y0),
+        fill:C.s1,opacity:'.12',stroke:C.s1,'stroke-width':1,'stroke-dasharray':'none'}));}
+    var pts=[];
+    ROWS.forEach(function(r,i){
+      var la=latOf(r),lo=lngOf(r); if(la==null||lo==null)return;
+      var x=X(lo),y=Y(la); if(x<0||x>W||y<0||y>H)return;
+      pts.push({i:i,x:x,y:y});
+      var on=sel.has(i), hot=HL&&HL.has(i);
+      var watched=r.Slug&&WATCH.has(r.Slug);
+      var dot=el('circle',{cx:x,cy:y,r:hot?4:(watched?3.2:2.6),
+        fill:hot?C.hl:(on?C.lc[stageIdx(r)]:C.dim),opacity:on||hot?'1':'.45'});
+      if(watched&&!hot)dot.setAttribute('stroke',C.hl),dot.setAttribute('stroke-width','1.4');
+      svg.appendChild(dot);
+    });
+    // nearest-point hover (dense scatter — the pointer only has to be closest)
+    var over=el('rect',{x:0,y:0,width:W,height:H,class:'hit'});
+    var brushing=false;
+    function pos(e){var b=svg.getBoundingClientRect();
+      return {x:(e.clientX-b.left)/b.width*W, y:(e.clientY-b.top)/b.height*H};}
+    function nearest(p){var best=null,bd=324;   // 18px radius
+      for(var k=0;k<pts.length;k++){var d=(pts[k].x-p.x)*(pts[k].x-p.x)+(pts[k].y-p.y)*(pts[k].y-p.y);
+        if(d<bd){bd=d;best=pts[k];}} return best;}
+    over.addEventListener('pointerdown',function(e){var p=pos(e);brushing=true;
+      geoBrush={x0:p.x,y0:p.y,x1:p.x,y1:p.y};
+      over.setPointerCapture&&over.setPointerCapture(e.pointerId);paint();});
+    over.addEventListener('pointermove',function(e){var p=pos(e);
+      if(brushing){geoBrush.x1=p.x;geoBrush.y1=p.y;paint();return;}
+      var n=nearest(p);
+      if(n){var r=ROWS[n.i];setHL(new Set([n.i]));
+        showTip(e,frag(r.Title||'',(r.City||'')+(yearOf(r)?' · '+yearOf(r):''),C.lc[stageIdx(r)],
+          (STAGES[stageIdx(r)]||{}).label));}
+      else{setHL(null);hideTip();}});
+    over.addEventListener('pointerup',function(e){
+      brushing=false;var gb=geoBrush;geoBrush=null;
+      if(!gb)return;
+      var w=Math.abs(gb.x1-gb.x0),h=Math.abs(gb.y1-gb.y0);
+      if(w<8&&h<8){ // click: open the nearest project
+        var n=nearest(pos(e)); if(n)openDrawer(n.i); paint(); return; }
+      function lo(x){return LO0+(x-PAD)/(W-2*PAD)*(LO1-LO0);}
+      function la(y){return LA0-(y-PAD)/(H-2*PAD)*(LA0-LA1);}
+      F.geo={w:lo(Math.min(gb.x0,gb.x1)),e:lo(Math.max(gb.x0,gb.x1)),
+             n:la(Math.min(gb.y0,gb.y1)),s:la(Math.max(gb.y0,gb.y1))};
+      syncUrl();render();});
+    over.addEventListener('pointerleave',function(){if(!brushing){setHL(null);hideTip();}});
+    svg.appendChild(over);
+    host.appendChild(svg);
+    var lg=document.createElement('div');lg.className='lg';
+    STAGES.forEach(function(s,i){var w=document.createElement('span');
+      var sw=document.createElement('i');sw.style.background=C.lc[i];w.appendChild(sw);
+      var t=document.createElement('span');t.textContent=s.label;w.appendChild(t);lg.appendChild(w);});
+    var o=document.createElement('span');
+    var os=document.createElement('i');os.style.background=C.dim;o.appendChild(os);
+    var ot=document.createElement('span');ot.textContent='Outside the filter';o.appendChild(ot);lg.appendChild(o);
+    host.appendChild(lg);
+  }
+
+  /* ═══ HEATMAP — market × delivery year. SEQUENTIAL ramp (validated), and the
+     count is IN the cell, so colour is never the only encoding. One click sets
+     both dimensions. ═══ */
+  function cHeat(host){
+    // Exclude BOTH of this chart's dimensions, like every other chart excludes
+    // its one. With only city excluded, clicking a cell (which sets year)
+    // zeroed every other column of the very grid being clicked.
+    var base=baseSet(['city','year']);
+    var years=[];for(var y=THIS_YEAR;y<=THIS_YEAR+6;y++)years.push(y);
+    var cityTotals={};
+    base.forEach(function(i){var c=slug(ROWS[i].City);if(c)cityTotals[c]=(cityTotals[c]||0)+1;});
+    var cities=Object.keys(cityTotals).sort(function(a,b){return cityTotals[b]-cityTotals[a];}).slice(0,12);
+    var grid=cities.map(function(c){
+      return years.map(function(yr){
+        return base.filter(function(i){return slug(ROWS[i].City)===c&&yearOf(ROWS[i])===yr;}).length;});});
+    var max=Math.max.apply(null,grid.map(function(row){return Math.max.apply(null,row);}).concat([1]));
+    var LBL=150,CW=58,CH=26,GAP=2;
+    var W=LBL+years.length*(CW+GAP), H=cities.length*(CH+GAP)+22;
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+    years.forEach(function(yr,x){
+      svg.appendChild(txt(String(yr),{x:LBL+x*(CW+GAP)+CW/2,y:12,class:'axt','text-anchor':'middle'}));});
+    cities.forEach(function(c,ry){
+      var y=22+ry*(CH+GAP);
+      svg.appendChild(txt(CITY_LABEL[c]||unslug(c),{x:0,y:y+CH/2+4,class:'lbt'}));
+      years.forEach(function(yr,cx){
+        var n=grid[ry][cx], x=LBL+cx*(CW+GAP);
+        var stepIdx=n===0?-1:Math.min(C.seq.length-1,Math.floor(n/max*C.seq.length));
+        var active=(F.city===c&&F.year===String(yr));
+        var cell=el('rect',{x:x,y:y,width:CW,height:CH,rx:4,
+          fill:n===0?'rgba(255,255,255,.02)':C.seq[stepIdx],
+          stroke:active?C.hl:'none','stroke-width':active?2:0});
+        svg.appendChild(cell);
+        if(n>0){
+          // in-cell label: white or ink by the fill's luminance
+          var light=stepIdx>=3;
+          svg.appendChild(txt(String(n),{x:x+CW/2,y:y+CH/2+4,'text-anchor':'middle',
+            style:'font:600 11px Inter,sans-serif',fill:light?'#12091f':'#fff'}));
+        }
+        var hit=el('rect',{x:x,y:y,width:CW,height:CH,class:'hit',tabindex:'0',role:'button',
+          'aria-label':(CITY_LABEL[c]||c)+' '+yr+', '+n+' projects'});
+        hit.addEventListener('pointerenter',function(e){
+          setHL(new Set(base.filter(function(i){return slug(ROWS[i].City)===c&&yearOf(ROWS[i])===yr;})));
+          showTip(e,frag(n+' projects',(CITY_LABEL[c]||c)+' · '+yr,null,null));});
+        hit.addEventListener('pointermove',place);
+        hit.addEventListener('pointerleave',function(){setHL(null);hideTip();});
+        hit.addEventListener('click',function(){
+          if(active)setMany({city:null,year:null});
+          else setMany({city:c,year:String(yr),from:null,to:null});});
+        hit.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();
+          if(active)setMany({city:null,year:null});else setMany({city:c,year:String(yr),from:null,to:null});}});
+        svg.appendChild(hit);
+      });
+    });
+    host.appendChild(svg);
+    var sc=document.createElement('div');sc.className='scale';
+    var lab=document.createElement('span');lab.textContent='0';sc.appendChild(lab);
+    C.seq.forEach(function(col){var i=document.createElement('i');i.style.background=col;sc.appendChild(i);});
+    var lab2=document.createElement('span');lab2.textContent=max+' projects';sc.appendChild(lab2);
+    host.appendChild(sc);
+  }
+
+  /* ═══ funnel + timeline + nominal bars: v2 verbatim ═══ */
+  function cFunnel(host){
+    var base=baseSet('stage');
+    var data=STAGES.map(function(s,i){var set=IX.stage[s.slug]||new Set();
+      return {s:s,i:i,n:inter(set,base),set:set,
+        hl:HL?inter(set,base.filter(function(x){return HL.has(x);})):0};});
+    var max=Math.max.apply(null,data.map(function(d){return d.n;}).concat([1]));
+    var W=560,LBL=134,BH=22,GAP=12,H=data.length*(BH+GAP);
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+    data.forEach(function(d){
+      var y=d.i*(BH+GAP),full=(W-LBL-58)*d.n/max;
+      var off=F.stage&&F.stage!==d.s.slug;
+      svg.appendChild(txt(d.s.label,{x:0,y:y+BH/2+4,class:'lbt',opacity:off?'.45':'1'}));
+      svg.appendChild(hbar(LBL,y,full,BH,off?C.dim:C.lc[d.i]));
+      if(HL&&d.hl)svg.appendChild(hbar(LBL,y,(W-LBL-58)*d.hl/max,BH,C.hl));
+      svg.appendChild(txt(String(d.n),{x:LBL+full+8,y:y+BH/2+4,class:'vlt',opacity:off?'.45':'1'}));
+      var hit=el('rect',{x:0,y:y-GAP/2,width:W,height:BH+GAP,class:'hit',tabindex:'0',role:'button',
+        'aria-label':d.s.label+', '+d.n+' projects'});
+      hit.addEventListener('pointerenter',function(e){setHL(d.set);
+        showTip(e,frag(d.n+' projects',d.s.label,C.lc[d.i],'Lifecycle stage'));});
+      hit.addEventListener('pointermove',place);
+      hit.addEventListener('pointerleave',function(){setHL(null);hideTip();});
+      hit.addEventListener('click',function(){setF('stage',d.s.slug);});
+      hit.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setF('stage',d.s.slug);}});
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+    var lg=document.createElement('div');lg.className='lg';
+    STAGES.forEach(function(s,i){var w=document.createElement('span');
+      var sw=document.createElement('i');sw.style.background=C.lc[i];w.appendChild(sw);
+      var t=document.createElement('span');t.textContent=s.label;w.appendChild(t);
+      w.addEventListener('click',function(){setF('stage',s.slug);});   // legend = filter
+      lg.appendChild(w);});
+    if(HL){var h=document.createElement('span');
+      var hs=document.createElement('i');hs.style.background=C.hl;h.appendChild(hs);
+      var ht=document.createElement('span');ht.textContent='Hovered share';h.appendChild(ht);lg.appendChild(h);}
+    host.appendChild(lg);
+  }
+  var brush=null;
+  function cTimeline(host){
+    var base=baseSet('year').filter(function(i){var y=yearOf(ROWS[i]);return y>=THIS_YEAR&&y<=THIS_YEAR+7;});
+    var years=[];for(var y=THIS_YEAR;y<=THIS_YEAR+7;y++)years.push(y);
+    var data=years.map(function(yr){
+      var inYr=base.filter(function(i){return yearOf(ROWS[i])===yr;});
+      return {yr:yr,total:inYr.length,rows:inYr,
+        seg:STAGES.map(function(s){return inYr.filter(function(i){return (IX.stage[s.slug]||new Set()).has(i);}).length;}),
+        hl:HL?inYr.filter(function(i){return HL.has(i);}).length:0};});
+    var max=Math.max.apply(null,data.map(function(d){return d.total;}).concat([1]));
+    var W=560,H=208,PB=28,PT=14,BW=28,step=W/data.length;
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+    [0,.5,1].forEach(function(t){var yy=PT+(H-PT-PB)*(1-t);
+      svg.appendChild(el('line',{x1:0,y1:yy,x2:W,y2:yy,class:'gl'}));
+      svg.appendChild(txt(String(Math.round(max*t)),{x:0,y:yy-5,class:'axt'}));});
+    var selFrom=F.from?+F.from:null,selTo=F.to?+F.to:null;
+    var live=brush?{a:Math.min(brush.a,brush.b),b:Math.max(brush.a,brush.b)}
+      :(selFrom!=null?{a:selFrom,b:selTo!=null?selTo:selFrom}:null);
+    if(live){var i0=years.indexOf(live.a),i1=years.indexOf(live.b);
+      if(i0<0)i0=0;if(i1<0)i1=years.length-1;
+      svg.appendChild(el('rect',{x:i0*step,y:PT,width:(i1-i0+1)*step,height:H-PT-PB,fill:C.s1,opacity:'.10'}));}
+    data.forEach(function(d,i){
+      var cx=i*step+step/2,x=cx-BW/2,yCur=H-PB,plot=H-PT-PB;
+      var off=(F.year&&+F.year!==d.yr)||(live&&(d.yr<live.a||d.yr>live.b));
+      d.seg.forEach(function(n,si){if(!n)return;var h=plot*n/max;
+        svg.appendChild(vbar(x,yCur-h,BW,h,off?C.dim:C.lc[si],si===d.seg.length-1?4:0));yCur-=h+2;});
+      if(HL&&d.hl){var hh=plot*d.hl/max;svg.appendChild(vbar(x,(H-PB)-hh,BW,hh,C.hl,4));}
+      svg.appendChild(txt(String(d.yr),{x:cx,y:H-9,class:'axt','text-anchor':'middle',opacity:off?'.45':'1'}));
+      if(d.total)svg.appendChild(txt(String(d.total),{x:cx,y:yCur-6,class:'vlt','text-anchor':'middle',opacity:off?'.45':'1'}));});
+    svg.appendChild(el('line',{x1:step/2,y1:PT-6,x2:step/2,y2:H-PB,stroke:C.today,'stroke-width':1,opacity:'.55'}));
+    svg.appendChild(txt('now',{x:step/2+5,y:PT-1,class:'axt',fill:C.today}));
+    var over=el('rect',{x:0,y:PT,width:W,height:H-PT-PB+12,class:'hit'});
+    function yearAt(e){var b=svg.getBoundingClientRect();
+      var rel=(e.clientX-b.left)/b.width*W;
+      return years[Math.max(0,Math.min(years.length-1,Math.floor(rel/step)))];}
+    var down=false,moved=false;
+    over.addEventListener('pointerdown',function(e){down=true;moved=false;var y0=yearAt(e);brush={a:y0,b:y0};
+      over.setPointerCapture&&over.setPointerCapture(e.pointerId);paint();});
+    over.addEventListener('pointermove',function(e){var yr=yearAt(e);
+      if(down){if(yr!==brush.b){moved=true;brush.b=yr;paint();}return;}
+      var d=data[years.indexOf(yr)];if(!d)return;
+      setHL(new Set(d.rows));
+      var f=document.createDocumentFragment();
+      var v=document.createElement('div');v.className='tv';v.textContent=d.total+' delivering';f.appendChild(v);
+      var l=document.createElement('div');l.className='tl';l.textContent=String(d.yr);f.appendChild(l);
+      d.seg.forEach(function(n,si){if(!n)return;var r=document.createElement('div');r.className='tr';
+        var k=document.createElement('span');k.className='tk';k.style.background=C.lc[si];r.appendChild(k);
+        var s=document.createElement('span');s.textContent=n+' '+STAGES[si].label;r.appendChild(s);f.appendChild(r);});
+      showTip(e,f);});
+    over.addEventListener('pointerup',function(e){down=false;
+      var a=Math.min(brush.a,brush.b),b=Math.max(brush.a,brush.b);brush=null;
+      if(moved&&a!==b){delete F.year;F.from=String(a);F.to=String(b);syncUrl();render();}
+      else{var yr=yearAt(e);delete F.from;delete F.to;setF('year',String(yr));}});
+    over.addEventListener('pointerleave',function(){if(!down){setHL(null);hideTip();}});
+    svg.appendChild(over);
+    host.appendChild(svg);
+  }
+  function nominal(host,items,dim,unit){
+    var W=560,LBL=134,BH=20,GAP=10,H=items.length*(BH+GAP);
+    var max=Math.max.apply(null,items.map(function(d){return d.v;}).concat([1]));
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
+    items.forEach(function(d,i){
+      var y=i*(BH+GAP),full=(W-LBL-62)*d.v/max;
+      var off=F[dim]&&F[dim]!==d.key;
+      svg.appendChild(txt(d.label,{x:0,y:y+BH/2+4,class:'lbt',opacity:off?'.45':'1'}));
+      svg.appendChild(hbar(LBL,y,full,BH,off?C.dim:C.s1));
+      if(HL&&d.hl)svg.appendChild(hbar(LBL,y,(W-LBL-62)*d.hl/max,BH,C.hl));
+      svg.appendChild(txt(d.disp,{x:LBL+full+8,y:y+BH/2+4,class:'vlt',opacity:off?'.45':'1'}));
+      var hit=el('rect',{x:0,y:y-GAP/2,width:W,height:BH+GAP,class:'hit',tabindex:'0',role:'button',
+        'aria-label':d.label+', '+d.disp+' '+unit});
+      hit.addEventListener('pointerenter',function(e){if(d.set)setHL(d.set);
+        showTip(e,frag(d.disp+' '+unit,d.label,C.s1,null));});
+      hit.addEventListener('pointermove',place);
+      hit.addEventListener('pointerleave',function(){setHL(null);hideTip();});
+      hit.addEventListener('click',function(){if(d.key)setF(dim,d.key);});
+      hit.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&d.key){e.preventDefault();setF(dim,d.key);}});
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+    if(HL&&items.some(function(d){return d.hl;})){
+      var lg=document.createElement('div');lg.className='lg';
+      var h=document.createElement('span');
+      var hs=document.createElement('i');hs.style.background=C.hl;h.appendChild(hs);
+      var ht=document.createElement('span');ht.textContent='Hovered share';h.appendChild(ht);
+      lg.appendChild(h);host.appendChild(lg);}
+  }
+  function measure(idxs){
+    if(SORT==='gfa')return {v:idxs.reduce(function(s,i){return s+gfaOf(ROWS[i]);},0),fmt:fmtSq,unit:'sq ft'};
+    if(SORT==='capital')return {v:idxs.reduce(function(s,i){return s+moneyOf(ROWS[i]);},0),fmt:function(n){return fmtM(n);},unit:'tracked'};
+    return {v:idxs.length,fmt:function(n){return String(n);},unit:'projects'};
+  }
+  function dimList(host,ixMap,labels,dim,cap){
+    var base=baseSet(dim);
+    var all=Object.keys(ixMap).map(function(k){
+      var idxs=base.filter(function(i){return ixMap[k].has(i);});
+      var m=measure(idxs);
+      return {key:k,label:labels[k]||unslug(k),v:m.v,disp:m.fmt(m.v),unit:m.unit,
+        set:ixMap[k],hl:HL?idxs.filter(function(i){return HL.has(i);}).length:0};
+    }).filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,cap);
+    if(SORT!=='count')all.forEach(function(d){d.hl=0;});
+    nominal(host,all,dim,all[0]?all[0].unit:'projects');
+  }
+  function cTypes(host){
+    var base=baseSet('type');
+    var all=Object.keys(IX.type).map(function(k){
+      var idxs=base.filter(function(i){return IX.type[k].has(i);});
+      var m=measure(idxs);
+      return {key:k,label:TYPE_LABEL[k]||unslug(k),v:m.v,disp:m.fmt(m.v),unit:m.unit,
+        set:IX.type[k],hl:HL?idxs.filter(function(i){return HL.has(i);}).length:0};
+    }).filter(function(d){return d.v>0;}).sort(function(a,b){return b.v-a.v;});
+    var top=all.slice(0,7),tail=all.slice(7);
+    if(tail.length){var tv=tail.reduce(function(s,d){return s+d.v;},0);
+      top.push({key:'',label:'Other ('+tail.length+' types)',v:tv,disp:measure([]).fmt(tv),
+        unit:top[0]?top[0].unit:'',set:null,hl:0});}
+    if(SORT!=='count')top.forEach(function(d){d.hl=0;});
+    nominal(host,top,'type',top[0]?top[0].unit:'projects');
+  }
+
+  /* ═══ RECORDS — superlatives of the current slice; hover = single-project
+     brush-and-link; click = the drawer ═══ */
+  function recs(host){
+    var sel=currentSet();
+    function best(fn){var bi=-1,bv=0;
+      sel.forEach(function(i){var v=fn(ROWS[i]);if(v>bv){bv=v;bi=i;}});
+      return bi<0?null:{i:bi,v:bv};}
+    var defs=[
+      {k:'Tallest',get:best(floorsOf),fmt:function(v){return v+' floors';}},
+      {k:'Biggest',get:best(gfaOf),fmt:function(v){return fmtSq(v)+' sq ft';}},
+      {k:'Most keys',get:best(keysOf),fmt:function(v){return v+' keys';}},
+      {k:'Largest financing',get:best(moneyOf),fmt:function(v){return fmtM(v);}}
+    ];
+    var g=document.createElement('div');g.className='recs';
+    defs.forEach(function(d){
+      if(!d.get)return;
+      var r=ROWS[d.get.i];
+      var c=document.createElement('div');c.className='rec';c.tabIndex=0;
+      var a=document.createElement('div');a.className='rk';a.textContent=d.k+' in this slice';c.appendChild(a);
+      var b=document.createElement('div');b.className='rv';b.textContent=d.fmt(d.get.v);c.appendChild(b);
+      var n=document.createElement('div');n.className='rn';n.textContent=r.Title||'';c.appendChild(n);
+      var w=document.createElement('div');w.className='rw';w.textContent=r.City||'';c.appendChild(w);
+      c.addEventListener('pointerenter',function(){setHL(new Set([d.get.i]));});
+      c.addEventListener('pointerleave',function(){setHL(null);});
+      c.addEventListener('click',function(){openDrawer(d.get.i);});
+      c.addEventListener('keydown',function(e){if(e.key==='Enter'){openDrawer(d.get.i);}});
+      g.appendChild(c);
+    });
+    host.appendChild(g);
+  }
+
+  /* ═══ CSV export — the slice leaves with you ═══ */
+  function exportCsv(){
+    var sel=currentSet();
+    var head=['Title','City','Country','Type','Stage','DeliveryDate','Floors','Units','Keys','GfaSqFt','FinancingAmountM','Developer','Architect','Slug'];
+    var q=function(s){s=String(s==null?'':s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+    var lines=[head.join(',')];
+    sel.forEach(function(i){var r=ROWS[i];var st=STAGES.filter(function(x){return x.slug===stageOf(r);})[0];
+      lines.push([r.Title,r.City,r.Country,typesOf(r).join('; '),st?st.label:r.Delivery,
+        r.DeliveryDate,r.Floors,r.Units,r.Keys,r.GfaSqFt,r.FinancingAmountM,
+        devsOf(r).join('; '),r.Architect,r.Slug].map(q).join(','));});
+    var a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(lines.join('\n'));
+    a.download='atlas-slice-'+sel.length+'.csv';
+    document.body.appendChild(a);a.click();a.remove();
+  }
+
+  // ── COMPARE: pin the current slice as A, read B against it ────────────────
+  function sliceStats(sel){
+    var cities={},cap=0,gfa=0,units=0,keys=0;
+    sel.forEach(function(i){var r=ROWS[i];var c=slug(r.City);if(c)cities[c]=1;
+      cap+=moneyOf(r);gfa+=gfaOf(r);units+=unitsOf(r);keys+=keysOf(r);});
+    return {n:sel.length,markets:Object.keys(cities).length,cap:cap,gfa:gfa,units:units,keys:keys};
+  }
+  function sliceLabel(){
+    var bits=[];
+    if(SCOPE==='book')bits.push('My book');if(SCOPE==='markets')bits.push('My markets');
+    Object.keys(F).forEach(function(k){
+      if(k==='geo')bits.push('drawn region');
+      else if(k==='from'||k==='to'){}
+      else bits.push(String(F[k]));});
+    if(F.from||F.to)bits.push((F.from||'…')+'–'+(F.to||'…'));
+    return bits.length?bits.join(' · '):'everything';
+  }
+  function cmpStrip(host,B){
+    if(!cmpA)return;
+    var A=cmpA.stats;
+    var g=document.createElement('div');g.className='cmp';
+    [['Projects','n',function(v){return v.toLocaleString('en-US');}],
+     ['Markets','markets',function(v){return String(v);}],
+     ['Capital','cap',fmtM],['Floor area','gfa',function(v){return fmtSq(v)+' sq ft';}],
+     ['Units','units',function(v){return v.toLocaleString('en-US');}],
+     ['Hotel keys','keys',function(v){return v.toLocaleString('en-US');}]]
+    .forEach(function(def){
+      var a=A[def[1]],b=B[def[1]];
+      var c=document.createElement('div');c.className='c';
+      var k=document.createElement('div');k.className='k';k.textContent=def[0];c.appendChild(k);
+      var ab=document.createElement('div');ab.className='ab';
+      var av=document.createElement('span');av.className='a';av.textContent=a?def[2](a):'—';ab.appendChild(av);
+      var bv=document.createElement('span');bv.className='b';bv.textContent=b?def[2](b):'—';ab.appendChild(bv);
+      c.appendChild(ab);
+      var d=document.createElement('div');
+      if(a>0){var pct=Math.round((b-a)/a*100);
+        d.className='d '+(pct>0?'up':pct<0?'dn':'flat');
+        d.textContent=(pct>0?'▲ +':pct<0?'▼ ':'· ')+pct+'% vs A';}
+      else{d.className='d flat';d.textContent='· A empty';}
+      c.appendChild(d);
+      g.appendChild(c);});
+    var x=document.createElement('div');x.className='cmp-x';
+    var lbl=document.createElement('span');lbl.style.cssText='font:9px "JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)';
+    lbl.textContent='A = '+cmpA.label+' · B = current slice';
+    x.appendChild(lbl);g.appendChild(x);
+    host.appendChild(g);
+  }
+
+  // ── SWEEP: play the delivery years like a film strip ─────────────────────
+  var sweepTimer=null;
+  function startSweep(){
+    stopSweep();
+    var y=THIS_YEAR;
+    delete F.from;delete F.to;
+    sweepTimer=setInterval(function(){
+      if(y>THIS_YEAR+7){stopSweep();delete F.year;syncUrl();render();return;}
+      F.year=String(y);y++;syncUrl();render();
+    },800);
+    F.year=String(y);y++;syncUrl();render();
+  }
+  function stopSweep(){if(sweepTimer){clearInterval(sweepTimer);sweepTimer=null;}}
+
+  var showTable=false;
+  function card(title,sub,hint,cls,sorts){
+    var c=document.createElement('div');c.className='card'+(cls?' '+cls:'');
+    var h=document.createElement('div');h.className='ch';
+    var l=document.createElement('div');
+    var t=document.createElement('div');t.className='ct';t.textContent=title;l.appendChild(t);
+    if(sub){var s=document.createElement('div');s.className='cs';s.textContent=sub;l.appendChild(s);}
+    h.appendChild(l);
+    if(sorts){var sw=document.createElement('div');sw.className='sorts';
+      [['count','Count'],['gfa','Floor area'],['capital','Capital']].forEach(function(p){
+        var b=document.createElement('button');b.className='sortb'+(SORT===p[0]?' on':'');b.textContent=p[1];
+        b.addEventListener('click',function(){SORT=p[0];syncUrl();render();});sw.appendChild(b);});
+      h.appendChild(sw);}
+    else if(hint){var hi=document.createElement('div');hi.className='chint';hi.textContent=hint;h.appendChild(hi);}
+    c.appendChild(h);
+    var body=document.createElement('div');body.style.marginTop='13px';c.appendChild(body);
+    c._body=body;return c;
+  }
+
+  var BODIES={};
+  function paint(){
+    Object.keys(BODIES).forEach(function(k){var b=BODIES[k];if(!b)return;b.textContent='';
+      ({world:cWorld,heat:cHeat,funnel:cFunnel,timeline:cTimeline,
+        types:cTypes,devs:function(h){dimList(h,IX.dev,DEV_LABEL,'dev',8);},
+        markets:function(h){dimList(h,IX.city,CITY_LABEL,'city',8);}})[k](b);});
+  }
+
+  function render(){
+    var sel=currentSet();
+    app.textContent='';
+
+    var fr=document.createElement('div');fr.className='fr';
+    var fl=document.createElement('span');fl.className='fr-l';fl.textContent='Filter';fr.appendChild(fl);
+    var LAB={city:function(v){return CITY_LABEL[v]||unslug(v);},
+      stage:function(v){var s=STAGES.filter(function(x){return x.slug===v;})[0];return s?s.label:v;},
+      type:function(v){return TYPE_LABEL[v]||unslug(v);},
+      dev:function(v){return DEV_LABEL[v]||unslug(v);},
+      year:function(v){return 'Delivers '+v;}};
+    var keys=Object.keys(F).filter(function(k){return ['from','to','geo'].indexOf(k)<0;});
+    var extras=(F.from||F.to?1:0)+(F.geo?1:0);
+    if(!keys.length&&!extras){
+      var none=document.createElement('span');none.className='fr-none';
+      none.textContent='Everything — '+ROWS.length+' tracked projects. Drag the map, click any mark, or ⌘K.';
+      fr.appendChild(none);
+    }else{
+      keys.forEach(function(k){var b=document.createElement('button');b.className='chip';
+        b.appendChild(document.createTextNode(LAB[k]?LAB[k](F[k]):F[k]));
+        var x=document.createElement('span');x.className='x';x.textContent='✕';b.appendChild(x);
+        b.addEventListener('click',function(){delete F[k];syncUrl();render();});fr.appendChild(b);});
+      if(F.from||F.to){var b2=document.createElement('button');b2.className='chip';
+        b2.appendChild(document.createTextNode('Delivers '+(F.from||'…')+'–'+(F.to||'…')));
+        var x2=document.createElement('span');x2.className='x';x2.textContent='✕';b2.appendChild(x2);
+        b2.addEventListener('click',function(){delete F.from;delete F.to;syncUrl();render();});fr.appendChild(b2);}
+      if(F.geo){var b3=document.createElement('button');b3.className='chip';
+        b3.appendChild(document.createTextNode('Drawn region'));
+        var x3=document.createElement('span');x3.className='x';x3.textContent='✕';b3.appendChild(x3);
+        b3.addEventListener('click',function(){delete F.geo;syncUrl();render();});fr.appendChild(b3);}
+      var clr=document.createElement('button');clr.className='chip clr';clr.textContent='Clear all';
+      clr.addEventListener('click',function(){F={};syncUrl();render();});fr.appendChild(clr);
+    }
+    // scope: All / My book / My markets — the personalization pivot
+    var seg=document.createElement('div');seg.className='seg';
+    [['all','All',ROWS.length],['book','My book',bookIdx().length],
+     ['markets','My markets',Array.from(FOLLOW).reduce(function(n,c){return n+((IX.city[c]||new Set()).size);},0)]]
+    .forEach(function(pdef){
+      var b=document.createElement('button');b.className='segb'+(SCOPE===pdef[0]?' on':'');
+      b.appendChild(document.createTextNode(pdef[1]));
+      var nn=document.createElement('span');nn.className='n';nn.textContent=String(pdef[2]);b.appendChild(nn);
+      b.addEventListener('click',function(){SCOPE=pdef[0];syncUrl();render();});
+      seg.appendChild(b);});
+    fr.appendChild(seg);
+    var right=document.createElement('div');right.className='fr-r';
+    var pinA=document.createElement('button');pinA.className='btn';
+    pinA.textContent=cmpA?'Unpin A':'Pin as A';
+    pinA.addEventListener('click',function(){
+      cmpA=cmpA?null:{label:sliceLabel(),stats:sliceStats(currentSet())};render();});
+    right.appendChild(pinA);
+    var cz=document.createElement('button');cz.className='btn'+(customize?' on':'');
+    cz.textContent=customize?'✓ Done':'Customize';
+    cz.addEventListener('click',function(){customize=!customize;render();});
+    right.appendChild(cz);
+    var kb=document.createElement('button');kb.className='btn';kb.textContent='⌘K Jump';
+    kb.addEventListener('click',openCmd);right.appendChild(kb);
+    var ex=document.createElement('button');ex.className='btn';ex.textContent='↓ CSV ('+sel.length+')';
+    ex.addEventListener('click',exportCsv);right.appendChild(ex);
+    var cp=document.createElement('button');cp.className='btn';cp.textContent='Copy link';
+    cp.addEventListener('click',function(){try{navigator.clipboard.writeText(location.href);}catch(e){}
+      cp.textContent='✓ Copied';setTimeout(function(){cp.textContent='Copy link';},1600);});
+    right.appendChild(cp);
+    var sv=document.createElement('button');sv.className='btn';sv.textContent='+ Save view';
+    sv.addEventListener('click',function(){sv.textContent='✓ Saved';setTimeout(function(){sv.textContent='+ Save view';},1800);});
+    right.appendChild(sv);
+    fr.appendChild(right);
+    app.appendChild(fr);
+
+    var hero=document.createElement('div');hero.className='hero';
+    var hv=document.createElement('div');
+    var v=document.createElement('div');v.className='hero-v';v.textContent=sel.length.toLocaleString('en-US');hv.appendChild(v);
+    var kk=document.createElement('div');kk.className='hero-k';
+    kk.textContent=(keys.length||extras)?'Projects in this slice':'Projects tracked';hv.appendChild(kk);
+    hero.appendChild(hv);
+    var cities={},cap=0,units=0,gfa=0,keysN=0;
+    sel.forEach(function(i){var r=ROWS[i];var c=slug(r.City);if(c)cities[c]=1;
+      cap+=moneyOf(r);units+=unitsOf(r);gfa+=gfaOf(r);keysN+=keysOf(r);});
+    var tiles=document.createElement('div');tiles.className='tiles';
+    [[Object.keys(cities).length.toLocaleString('en-US'),'Markets'],
+     [cap?fmtM(cap):'—','Capital tracked'],
+     [gfa?fmtSq(gfa)+' sq ft':'—','Floor area'],
+     [units?units.toLocaleString('en-US'):'—','Residential units'],
+     [keysN?keysN.toLocaleString('en-US'):'—','Hotel keys']].forEach(function(p){
+      var d=document.createElement('div');d.className='tile';
+      var a=document.createElement('div');a.className='tv';a.textContent=p[0];d.appendChild(a);
+      var b=document.createElement('div');b.className='tk';b.textContent=p[1];d.appendChild(b);
+      tiles.appendChild(d);});
+    hero.appendChild(tiles);
+    app.appendChild(hero);
+    cmpStrip(app, sliceStats(sel));
+    if(SCOPE==='book'&&SEEDED){
+      var sn=document.createElement('div');sn.className='cs';
+      sn.textContent='This is a seeded sample book — open any project and star it to make it yours.';
+      app.appendChild(sn);}
+
+    recs(app);
+    if(RECENT.length){
+      var rr=document.createElement('div');rr.className='recent';
+      var rl=document.createElement('span');rl.className='r-l';rl.textContent='Recently viewed';rr.appendChild(rl);
+      RECENT.slice(0,6).forEach(function(sl){
+        var idx=-1;ROWS.some(function(r,i){if(r.Slug===sl){idx=i;return true;}return false;});
+        if(idx<0)return;
+        var ch=document.createElement('button');ch.className='rchip';ch.textContent=ROWS[idx].Title||sl;
+        ch.addEventListener('click',function(){openDrawer(idx);});
+        rr.appendChild(ch);});
+      app.appendChild(rr);}
+
+    // The modules, layout-aware. Array order IS the layout — the same rule the
+    // dashboard tiles use, so this maps straight onto tmwViews when it ships.
+    var DEFS=[
+      {id:'world',title:'The world',sub:'All located projects — drag a box to filter by geography, click a dot for its card',hint:'Drag or click',cls:'full'},
+      {id:'heat',title:'Market × year',sub:'Where and when the pipeline lands — one click sets both',hint:'Click a cell',cls:'full'},
+      {id:'funnel',title:'Where everything stands',sub:'Lifecycle stage across the slice',hint:'Click a stage'},
+      {id:'timeline',title:'What delivers when',sub:'Drag across years for a range',hint:'Drag or click',sweep:true},
+      {id:'types',title:'What is being built',sorts:true},
+      {id:'devs',title:'Who is building it',sub:'Developers ranked in the slice',sorts:true}
+    ];
+    if(!LAYOUT)LAYOUT={order:DEFS.map(function(d){return d.id;}),hidden:[]};
+    // ids added in later versions join at the end rather than vanishing
+    DEFS.forEach(function(d){if(LAYOUT.order.indexOf(d.id)<0)LAYOUT.order.push(d.id);});
+    var g=document.createElement('div');g.className='grid'+(customize?' cz':'');
+    Object.keys(BODIES).forEach(function(k){delete BODIES[k];});
+    LAYOUT.order.forEach(function(id,pos){
+      if(LAYOUT.hidden.indexOf(id)>=0)return;
+      var d=DEFS.filter(function(x){return x.id===id;})[0];if(!d)return;
+      var c=card(d.title,d.sub,d.hint,d.cls,d.sorts);
+      if(d.sweep){var hd=c.querySelector('.ch');
+        var pb=document.createElement('button');pb.className='czb';pb.style.marginLeft='8px';
+        pb.textContent=sweepTimer?'■ Stop':'▶ Sweep';
+        pb.addEventListener('click',function(){sweepTimer?stopSweep():startSweep();});
+        hd.appendChild(pb);}
+      if(customize){
+        var ctl=document.createElement('div');ctl.className='cz-ctl';
+        [['←',-1],['→',1]].forEach(function(mv){
+          var b=document.createElement('button');b.className='czb';b.textContent=mv[0];
+          b.addEventListener('click',function(){
+            var i=LAYOUT.order.indexOf(id),j=i+mv[1];
+            if(j<0||j>=LAYOUT.order.length)return;
+            var t=LAYOUT.order[i];LAYOUT.order[i]=LAYOUT.order[j];LAYOUT.order[j]=t;
+            saveLayout();render();});
+          ctl.appendChild(b);});
+        var hb=document.createElement('button');hb.className='czb';hb.textContent='✕ Hide';
+        hb.addEventListener('click',function(){LAYOUT.hidden.push(id);saveLayout();render();});
+        ctl.appendChild(hb);
+        c.appendChild(ctl);}
+      g.appendChild(c);BODIES[id]=c._body;
+    });
+    app.appendChild(g);
+    if(customize&&LAYOUT.hidden.length){
+      var hr=document.createElement('div');hr.className='hiddenrow';
+      var hl=document.createElement('span');hl.className='hl-l';hl.textContent='Hidden';hr.appendChild(hl);
+      LAYOUT.hidden.slice().forEach(function(id){
+        var d=DEFS.filter(function(x){return x.id===id;})[0];if(!d)return;
+        var ch=document.createElement('button');ch.className='rchip';ch.textContent='+ '+d.title;
+        ch.addEventListener('click',function(){
+          LAYOUT.hidden=LAYOUT.hidden.filter(function(x){return x!==id;});saveLayout();render();});
+        hr.appendChild(ch);});
+      app.appendChild(hr);}
+    paint();
+
+    var tw=document.createElement('div');tw.className='tvw';
+    var tb=document.createElement('button');tb.className='btn';
+    tb.textContent=(showTable?'− Hide':'+ Show')+' the data as a table ('+sel.length+' rows)';
+    tb.addEventListener('click',function(){showTable=!showTable;render();});
+    tw.appendChild(tb);
+    if(showTable){
+      var tbl=document.createElement('table');var hr=document.createElement('tr');
+      ['Project','Market','Type','Stage','Delivers','Floors','Financing'].forEach(function(h,i){
+        var th=document.createElement('th');th.textContent=h;if(i>4)th.style.textAlign='right';hr.appendChild(th);});
+      tbl.appendChild(hr);
+      sel.slice(0,60).forEach(function(i){var r=ROWS[i];var st=STAGES.filter(function(x){return x.slug===stageOf(r);})[0];
+        var tr=document.createElement('tr');
+        [[r.Title||'',0],[r.City||'',0],[typesOf(r).join(', '),0],[st?st.label:(r.Delivery||''),0],
+         [String(r.DeliveryDate||'').slice(0,7),0],[floorsOf(r)||'',1],[moneyOf(r)?fmtM(moneyOf(r)):'',1]]
+        .forEach(function(p){var td=document.createElement('td');if(p[1])td.className='n';td.textContent=p[0];tr.appendChild(td);});
+        tr.style.cursor='pointer';
+        tr.addEventListener('click',function(){openDrawer(i);});
+        tbl.appendChild(tr);});
+      tw.appendChild(tbl);
+      if(sel.length>60){var m=document.createElement('div');m.className='cs';m.style.marginTop='10px';
+        m.textContent='Showing the first 60 of '+sel.length+' rows.';tw.appendChild(m);}
+    }
+    app.appendChild(tw);
+
+    var note=document.createElement('div');note.className='note';
+    note.innerHTML='<b>What v5 adds.</b> Star a project and it joins <b style="color:var(--hl)">your book</b>; follow a market and '
+      +'the whole instrument re-scopes to yours with one toggle — watched projects wear a mint ring on the world map. Pin any slice '
+      +'as <b>A</b> and read every headline number against it as you keep exploring. Customize hides and reorders the modules, and '
+      +'the layout persists — array order IS the layout, the same rule the dashboard tiles use. The timeline plays. The drawer '
+      +'leaves a trail. From v3, still true: a geography you can grab as pure SVG with no map '
+      +'library, drag a box and the box is a filter chip. A market × year heatmap where one click sets both '
+      +'dimensions. Developers as a live dimension. Records that treat a single building as the brush-and-link '
+      +'grain. A details drawer that turns every dot into a project card. And the slice exports as CSV, because an '
+      +'instrument lets you take the result with you. The geographic box is mockup-only for now — if it ships, it '
+      +'enters the ontology first like every other filter axis did.';
+    app.appendChild(note);
+  }
+
+  // ── ⌘K ────────────────────────────────────────────────────────────────────
+  var cmd=$('cmd'),cmdi=$('cmdi'),cmdl=$('cmdl'),cmdSel=0,cmdItems=[];
+  function cmdPool(){
+    var out=[];
+    STAGES.forEach(function(s){out.push({label:s.label,kind:'Stage',apply:function(){setF('stage',s.slug);}});});
+    Object.keys(IX.city).forEach(function(k){out.push({label:CITY_LABEL[k]||unslug(k),kind:'Market',n:IX.city[k].size,apply:function(){setF('city',k);}});});
+    Object.keys(IX.type).forEach(function(k){out.push({label:TYPE_LABEL[k]||unslug(k),kind:'Type',n:IX.type[k].size,apply:function(){setF('type',k);}});});
+    Object.keys(IX.dev).forEach(function(k){if(IX.dev[k].size>=2)out.push({label:DEV_LABEL[k]||unslug(k),kind:'Developer',n:IX.dev[k].size,apply:function(){setF('dev',k);}});});
+    return out;
+  }
+  function cmdRender(){
+    var q=cmdi.value.trim().toLowerCase();
+    cmdItems=cmdPool().filter(function(o){return !q||o.label.toLowerCase().indexOf(q)>=0;})
+      .sort(function(a,b){return (b.n||0)-(a.n||0);}).slice(0,40);
+    cmdl.textContent='';
+    if(!cmdItems.length){var e=document.createElement('div');e.className='cmdempty';e.textContent='Nothing matches that.';cmdl.appendChild(e);return;}
+    cmdItems.forEach(function(o,i){
+      var d=document.createElement('div');d.className='cmdi'+(i===cmdSel?' sel':'');
+      var t=document.createElement('span');t.textContent=o.label;d.appendChild(t);
+      var k=document.createElement('span');k.className='k';k.textContent=o.kind+(o.n?' · '+o.n:'');d.appendChild(k);
+      d.addEventListener('click',function(){closeCmd();o.apply();});
+      cmdl.appendChild(d);});
+  }
+  function openCmd(){cmd.classList.add('on');cmdi.value='';cmdSel=0;cmdRender();cmdi.focus();}
+  function closeCmd(){cmd.classList.remove('on');}
+  cmdi.addEventListener('input',function(){cmdSel=0;cmdRender();});
+  cmdi.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'){e.preventDefault();cmdSel=Math.min(cmdSel+1,cmdItems.length-1);cmdRender();}
+    else if(e.key==='ArrowUp'){e.preventDefault();cmdSel=Math.max(cmdSel-1,0);cmdRender();}
+    else if(e.key==='Enter'){e.preventDefault();var o=cmdItems[cmdSel];if(o){closeCmd();o.apply();}}
+    else if(e.key==='Escape'){closeCmd();}});
+  cmd.addEventListener('click',function(e){if(e.target===cmd)closeCmd();});
+  document.addEventListener('keydown',function(e){
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openCmd();}
+    else if(e.key==='Escape'){closeCmd();closeDrawer();}});
+
+  Promise.all([
+    fetch(MAP+'/projects-flat.json',{cache:'force-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];}),
+    fetch(MAP+'/atlas-intel.json',{cache:'force-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+  ]).then(function(o){
+    ROWS=Array.isArray(o[0])?o[0]:[];INTEL=o[1];
+    if(!ROWS.length){app.textContent='Could not load the project data.';return;}
+    buildIndexes();maybeSeed();readUrl();render();
+  });
+})();
+</script>
+</body>
+</html>
