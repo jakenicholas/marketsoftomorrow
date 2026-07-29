@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mockup &middot; Atlas as a live dashboard</title>
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   PALETTE — every value below was produced by the validator, not by eye.
+   Surface is the Atlas card colour: rgba(255,255,255,.028) over #070807 ≈ #0e0e0e.
+
+   · ACCENT (--s1) is the single hue for every NOMINAL one-series chart (type
+     mix, top markets, capital). Bar length already encodes the value, so
+     colouring those bars by value would spend the identity channel on
+     information the chart already shows.
+   · LIFECYCLE is ORDINAL, not categorical — announced→open is a progression,
+     so it takes ONE hue in monotone lightness steps. Passes the ordinal checks:
+     monotone L, adjacent ΔL ≥ 0.06, light end 2.12:1 on surface, hue spread 7°.
+   · PRESSURE is SEMANTIC HEAT (green→amber→red), the sanctioned multi-hue
+     sequential exception. It therefore ships a scale legend AND a text label on
+     every use — never colour alone. Steps re-stepped into the dark lightness
+     band (0.48–0.67); TMW's usual #1FDF67/#F5A623/#FF5C5C all sit outside it
+     and green↔amber failed CVD separation at ΔE 5.7.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --surface:#0e0e0e; --page:#070807;
+  --s1:#8f6ff0;                 /* accent — nominal single series (5.24:1) */
+  --lc1:#4b3a8f; --lc2:#6d4fd6; --lc3:#8f6ff0; --lc4:#B9A6FF; --lc5:#DCD2FF;
+  --heat1:#0A8046; --heat2:#B98400; --heat3:#E04255;
+  --grid:#1e1e1d;               /* hairline, one step off surface (1.16:1) */
+  --ink:#ECEAE5; --ink2:#C2C9C3; --mute:#9AA39C;
+  --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+.mk{background:rgba(230,197,116,.1);border-bottom:1px solid rgba(230,197,116,.3);padding:11px 0}
+.mk .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mk b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f0d68a}
+.mk span{font-size:13px;color:var(--ink2)}
+
+/* tab strip — same rule set as the live Atlas */
+.tabs{border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;margin-top:16px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:14px;font-weight:500;color:var(--mute);text-decoration:none;padding:15px 14px;white-space:nowrap;flex:0 0 auto}
+.tab.on{color:#fff;box-shadow:inset 0 -2px 0 #e6c574}
+
+/* ── FILTER ROW — one row, above everything it scopes ─────────────────────── */
+.fr{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:20px 0 4px}
+.fr-l{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--s1);
+  background:rgba(143,111,240,.14);border:1px solid rgba(143,111,240,.45);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip .x{font-size:10px;opacity:.8}
+.chip.clr{color:var(--ink2);background:rgba(255,255,255,.05);border-color:var(--hair)}
+.fr-none{font-size:13px;color:var(--mute)}
+.fr-save{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--ink2);background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;padding:7px 13px;cursor:pointer}
+.fr-save:hover{color:#fff;border-color:rgba(143,111,240,.6)}
+
+/* ── hero + kpis ─────────────────────────────────────────────────────────── */
+.hero{display:flex;align-items:flex-end;gap:30px;flex-wrap:wrap;padding:14px 0 6px}
+/* Brand deviation, deliberate: the skill says a hero figure uses the page sans
+   because a serif "reads as off-brand decoration". Here Fraunces IS the brand's
+   numeral face on every KPI across the site, so sans would be the off-brand
+   choice. Rationale inverted, rule's intent kept. */
+.hero-v{font-family:var(--serif);font-size:56px;font-weight:600;color:#fff;line-height:.95;letter-spacing:-.03em}
+.hero-k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:8px}
+.kpis{display:flex;gap:26px;flex-wrap:wrap;padding-bottom:6px}
+.kpi .v{font-family:var(--serif);font-size:24px;font-weight:600;color:#fff;line-height:1}
+.kpi .k{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+
+/* ── chart cards ─────────────────────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px 0 0}
+.grid .full{grid-column:1 / -1}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:17px 18px 14px}
+.ch{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:3px}
+.ct{font-size:14.5px;font-weight:600;color:#fff}
+.cs{font-size:11.5px;color:var(--mute);margin-top:2px}
+.chint{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+svg{display:block;width:100%;overflow:visible}
+.gl{stroke:var(--grid);stroke-width:1}               /* solid hairline, never dashed */
+.axt{font-family:var(--mono);font-size:9px;fill:var(--mute);font-variant-numeric:tabular-nums}
+.lbt{font-family:var(--sans);font-size:11.5px;fill:var(--ink2)}
+.vlt{font-family:var(--sans);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.hit{fill:transparent;cursor:pointer}
+.mk-bar{transition:opacity .12s}
+.card:hover .mk-bar.dim{opacity:.45}
+
+/* legend — always present for ≥2 series */
+.lg{display:flex;gap:14px;flex-wrap:wrap;margin-top:11px}
+.lg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lg span{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.scale{display:flex;align-items:center;gap:9px;margin-top:11px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.scale i{width:26px;height:8px;border-radius:2px;display:inline-block}
+
+/* tooltip */
+.tip{position:fixed;z-index:80;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:#141416;border:1px solid var(--hair2);border-radius:10px;padding:9px 11px;
+  box-shadow:0 18px 44px -12px rgba(0,0,0,.9);max-width:250px}
+.tip.on{opacity:1}
+.tip .tv{font-size:15px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.tip .tl{font-size:11.5px;color:var(--ink2);margin-top:2px}
+.tip .tr{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink2);margin-top:4px}
+.tip .tk{width:14px;height:2px;border-radius:2px;flex:none}
+
+/* table view — the WCAG-clean twin, so nothing is gated behind hover */
+.tvw{margin:20px 0 0}
+.tvb{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink2);
+  background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;padding:8px 14px;cursor:pointer}
+.tvb:hover{color:#fff}
+table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600}
+td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.note{margin:26px 0 60px;padding:17px 19px;border:1px dashed var(--hair2);border-radius:13px;font-size:13px;color:var(--ink2);line-height:1.65}
+.note b{color:#f0d68a}
+.loading{padding:60px 0;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px}
+
+@media(max-width:900px){ .grid{grid-template-columns:1fr} .hero-v{font-size:44px} }
+@media(max-width:620px){ .wrap{padding:0 18px} }
+</style>
+</head>
+<body>
+<div class="mk"><div class="wrap">
+  <b>Mockup</b>
+  <span>The Atlas as a <b style="color:var(--ink)">live cross-filtering dashboard</b>. Real data, all 911 projects.
+  <b style="color:var(--s1)">Click any bar, column or dot</b> to filter everything at once.</span>
+</div></div>
+
+<div class="wrap">
+  <nav class="tabs">
+    <a class="tab on" href="#">Overview</a>
+    <a class="tab" href="/atlas/markets/">Markets</a>
+    <a class="tab" href="/atlas/projects/">Projects</a>
+    <a class="tab" href="/atlas/firms/">Firms</a>
+    <a class="tab" href="/atlas/supply/">Supply</a>
+    <a class="tab" href="/atlas/pricing/">Pricing</a>
+    <a class="tab" href="/atlas/capital/">Capital</a>
+    <a class="tab" href="/atlas/pipeline/">Pipeline</a>
+  </nav>
+
+  <div id="app"><div class="loading">Loading 911 projects&hellip;</div></div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  'use strict';
+  var MAP = 'https://www.oftmw.com/map';
+  var $ = function (id) { return document.getElementById(id); };
+  var app = $('app'), tip = $('tip');
+
+  // ── palette, mirrored from the CSS so JS-drawn marks use the same values ──
+  var C = {
+    s1: '#8f6ff0',
+    lc: ['#4b3a8f', '#6d4fd6', '#8f6ff0', '#B9A6FF', '#DCD2FF'],
+    heat: ['#0A8046', '#B98400', '#E04255'],
+    surface: '#0e0e0e', grid: '#1e1e1d'
+  };
+  var STAGES = [
+    { slug: 'announced',       label: 'Announced' },
+    { slug: 'breaking-ground', label: 'Breaking Ground' },
+    { slug: 'construction',    label: 'Under Construction' },
+    { slug: 'coming-soon',     label: 'Opening Soon' },
+    { slug: 'open',            label: 'Now Open' }
+  ];
+
+  // ── data ──────────────────────────────────────────────────────────────────
+  var ROWS = [], INTEL = null;
+  function slug(t) {
+    return String(t == null ? '' : t).toLowerCase().trim().replace(/&/g, ' and ')
+      .replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '');
+  }
+  function unslug(s) {
+    return String(s || '').split('-').filter(Boolean)
+      .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+  }
+  var STATUS_ALIAS = { complete: 'open', completed: 'open' };
+  function stageOf(r) {
+    var s = slug(r.Delivery);
+    if (STATUS_ALIAS[s]) s = STATUS_ALIAS[s];
+    for (var i = 0; i < STAGES.length; i++) {
+      if (STAGES[i].slug === s || slug(STAGES[i].label) === s) return STAGES[i].slug;
+    }
+    return '';
+  }
+  function typesOf(r) {
+    return String(r.ProjectType || r.PreferredType || '').split(',')
+      .map(function (t) { return t.trim(); }).filter(Boolean);
+  }
+  function yearOf(r) {
+    var m = String(r.DeliveryDate || '').match(/(19|20)\d{2}/);
+    return m ? +m[0] : 0;
+  }
+  function moneyOf(r) { var n = parseFloat(r.FinancingAmountM); return isFinite(n) && n > 0 ? n : 0; }
+  function fmtM(n) { return n >= 1000 ? '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'B' : '$' + Math.round(n) + 'M'; }
+
+  // ── filter state ──────────────────────────────────────────────────────────
+  var F = {};
+  function matches(r, f) {
+    f = f || F;
+    if (f.city && slug(r.City) !== f.city) return false;
+    if (f.stage && stageOf(r) !== f.stage) return false;
+    if (f.type) {
+      var ts = typesOf(r).map(slug);
+      if (ts.indexOf(f.type) < 0) return false;
+    }
+    if (f.year && yearOf(r) !== +f.year) return false;
+    return true;
+  }
+  function filtered() { return ROWS.filter(function (r) { return matches(r); }); }
+  // Count as if ONE dimension were free — so a chart never zeroes out the very
+  // axis you are clicking on (the standard cross-filter behaviour).
+  function freeOf(dim) {
+    var f = {}; Object.keys(F).forEach(function (k) { if (k !== dim) f[k] = F[k]; });
+    return ROWS.filter(function (r) { return matches(r, f); });
+  }
+  function setF(k, v) {
+    if (!v || F[k] === v) delete F[k]; else F[k] = v;   // click again to clear
+    render();
+  }
+
+  // ── tiny SVG helpers ──────────────────────────────────────────────────────
+  function el(tag, attrs, kids) {
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+  // Labels are untrusted data — always textContent, never innerHTML.
+  function txt(s, attrs) { var t = el('text', attrs || {}); t.textContent = s; return t; }
+  // 4px rounded data-end, square at the baseline. Horizontal bar growing right.
+  function hbar(x, y, w, h, fill, r) {
+    r = Math.min(r == null ? 4 : r, w, h / 2);
+    if (w <= 0.5) return el('rect', { x: x, y: y, width: 0, height: h, fill: fill });
+    var d = 'M' + x + ',' + y + 'H' + (x + w - r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + r
+          + 'V' + (y + h - r) + 'a' + r + ',' + r + ' 0 0 1 ' + (-r) + ',' + r + 'H' + x + 'Z';
+    return el('path', { d: d, fill: fill });
+  }
+  // Column growing up, rounded cap.
+  function vbar(x, yTop, w, h, fill, r) {
+    r = Math.min(r == null ? 4 : r, w / 2, h);
+    if (h <= 0.5) return el('rect', { x: x, y: yTop, width: w, height: 0, fill: fill });
+    var d = 'M' + x + ',' + (yTop + h) + 'V' + (yTop + r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + (-r)
+          + 'H' + (x + w - r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + r + 'V' + (yTop + h) + 'Z';
+    return el('path', { d: d, fill: fill });
+  }
+
+  // ── tooltip (hit target ≥24px; keyboard focus shows the same) ─────────────
+  function bindTip(node, build) {
+    function show(e) {
+      var frag = build();
+      if (!frag) return;
+      tip.textContent = '';
+      tip.appendChild(frag);
+      tip.classList.add('on');
+      var r = tip.getBoundingClientRect();
+      var px = (e.clientX != null ? e.clientX : node.getBoundingClientRect().left) + 14;
+      var py = (e.clientY != null ? e.clientY : node.getBoundingClientRect().top) - r.height - 10;
+      tip.style.left = Math.min(px, window.innerWidth - r.width - 10) + 'px';
+      tip.style.top = Math.max(8, py) + 'px';
+    }
+    node.addEventListener('pointermove', show);
+    node.addEventListener('pointerenter', show);
+    node.addEventListener('focus', show);
+    node.addEventListener('pointerleave', function () { tip.classList.remove('on'); });
+    node.addEventListener('blur', function () { tip.classList.remove('on'); });
+  }
+  function tipFrag(value, label, keyColor, keyLabel) {
+    var f = document.createDocumentFragment();
+    var v = document.createElement('div'); v.className = 'tv'; v.textContent = value; f.appendChild(v);
+    var l = document.createElement('div'); l.className = 'tl'; l.textContent = label; f.appendChild(l);
+    if (keyColor) {
+      var r = document.createElement('div'); r.className = 'tr';
+      var k = document.createElement('span'); k.className = 'tk'; k.style.background = keyColor;
+      r.appendChild(k);
+      var s = document.createElement('span'); s.textContent = keyLabel || ''; r.appendChild(s);
+      f.appendChild(r);
+    }
+    return f;
+  }
+
+  /* ═══ CHART 1 — lifecycle funnel. ORDINAL ramp: the stage order carries
+        meaning, so one hue in lightness steps, not eight identities. ═══ */
+  function chartFunnel(host) {
+    var rows = freeOf('stage');
+    var counts = STAGES.map(function (s) {
+      return { s: s, n: rows.filter(function (r) { return stageOf(r) === s.slug; }).length };
+    });
+    var max = Math.max.apply(null, counts.map(function (c) { return c.n; }).concat([1]));
+    var W = 520, LBL = 132, BH = 22, GAP = 12, H = counts.length * (BH + GAP);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    counts.forEach(function (c, i) {
+      var y = i * (BH + GAP), w = (W - LBL - 54) * c.n / max;
+      var active = F.stage && F.stage !== c.s.slug;
+      svg.appendChild(txt(c.s.label, { x: 0, y: y + BH / 2 + 4, class: 'lbt' }));
+      var bar = hbar(LBL, y, w, BH, C.lc[i]);
+      bar.setAttribute('class', 'mk-bar' + (active ? ' dim' : ''));
+      svg.appendChild(bar);
+      svg.appendChild(txt(String(c.n), { x: LBL + w + 8, y: y + BH / 2 + 4, class: 'vlt' }));
+      var hit = el('rect', { x: 0, y: y - GAP / 2, width: W, height: BH + GAP, class: 'hit', tabindex: '0',
+                             role: 'button', 'aria-label': c.s.label + ', ' + c.n + ' projects' });
+      bindTip(hit, function () { return tipFrag(c.n + ' projects', c.s.label, C.lc[i], 'Lifecycle stage'); });
+      hit.addEventListener('click', function () { setF('stage', c.s.slug); });
+      hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setF('stage', c.s.slug); } });
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+    // legend — 5 series, so always present
+    var lg = document.createElement('div'); lg.className = 'lg';
+    STAGES.forEach(function (s, i) {
+      var w = document.createElement('span');
+      var sw = document.createElement('i'); sw.style.background = C.lc[i];
+      w.appendChild(sw);
+      var t = document.createElement('span'); t.textContent = s.label; w.appendChild(t);
+      lg.appendChild(w);
+    });
+    host.appendChild(lg);
+  }
+
+  /* ═══ CHART 2 — delivery timeline, stacked by lifecycle stage.
+        Same ordinal ramp. 2px SURFACE GAP between segments (never a stroke). ═══ */
+  function chartTimeline(host) {
+    var rows = freeOf('year');
+    var thisYear = new Date().getFullYear();
+    var years = [];
+    for (var y = thisYear; y <= thisYear + 5; y++) years.push(y);
+    var data = years.map(function (yr) {
+      var inYr = rows.filter(function (r) { return yearOf(r) === yr; });
+      return { yr: yr, total: inYr.length, seg: STAGES.map(function (s) {
+        return inYr.filter(function (r) { return stageOf(r) === s.slug; }).length; }) };
+    });
+    var max = Math.max.apply(null, data.map(function (d) { return d.total; }).concat([1]));
+    var W = 520, H = 200, PB = 26, PT = 14, BW = 26;
+    var step = W / data.length;
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    [0, 0.5, 1].forEach(function (t) {
+      var yy = PT + (H - PT - PB) * (1 - t);
+      svg.appendChild(el('line', { x1: 0, y1: yy, x2: W, y2: yy, class: 'gl' }));
+      svg.appendChild(txt(String(Math.round(max * t)), { x: 0, y: yy - 5, class: 'axt' }));
+    });
+    data.forEach(function (d, i) {
+      var cx = i * step + step / 2, x = cx - BW / 2;
+      var yCur = H - PB, plot = H - PT - PB;
+      var dim = F.year && +F.year !== d.yr;
+      d.seg.forEach(function (n, si) {
+        if (!n) return;
+        var h = plot * n / max;
+        var seg = vbar(x, yCur - h, BW, h, C.lc[si], si === d.seg.length - 1 ? 4 : 0);
+        seg.setAttribute('class', 'mk-bar' + (dim ? ' dim' : ''));
+        svg.appendChild(seg);
+        yCur -= h + 2;                       // the 2px surface gap
+      });
+      svg.appendChild(txt(String(d.yr), { x: cx, y: H - 8, class: 'axt', 'text-anchor': 'middle' }));
+      if (d.total) svg.appendChild(txt(String(d.total), { x: cx, y: yCur - 6, class: 'vlt', 'text-anchor': 'middle' }));
+      var hit = el('rect', { x: i * step, y: PT, width: step, height: H - PT - PB + 10, class: 'hit',
+                             tabindex: '0', role: 'button', 'aria-label': d.yr + ', ' + d.total + ' delivering' });
+      bindTip(hit, function () {
+        var f = document.createDocumentFragment();
+        var v = document.createElement('div'); v.className = 'tv'; v.textContent = d.total + ' delivering'; f.appendChild(v);
+        var l = document.createElement('div'); l.className = 'tl'; l.textContent = String(d.yr); f.appendChild(l);
+        d.seg.forEach(function (n, si) {
+          if (!n) return;
+          var r = document.createElement('div'); r.className = 'tr';
+          var k = document.createElement('span'); k.className = 'tk'; k.style.background = C.lc[si]; r.appendChild(k);
+          var s = document.createElement('span'); s.textContent = n + ' ' + STAGES[si].label; r.appendChild(s);
+          f.appendChild(r);
+        });
+        return f;
+      });
+      hit.addEventListener('click', function () { setF('year', String(d.yr)); });
+      hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setF('year', String(d.yr)); } });
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+  }
+
+  /* ═══ CHART 3+4 — nominal bars (type, market). ONE hue for every bar: bar
+        length already encodes the value, so a value-ramp here would spend the
+        identity channel re-encoding what length shows. No legend (one series). ═══ */
+  function nominalBars(host, items, dim, unitLabel) {
+    var W = 520, LBL = 132, BH = 20, GAP = 10, H = items.length * (BH + GAP);
+    var max = Math.max.apply(null, items.map(function (d) { return d.n; }).concat([1]));
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    items.forEach(function (d, i) {
+      var y = i * (BH + GAP), w = (W - LBL - 52) * d.n / max;
+      var dim2 = F[dim] && F[dim] !== d.key;
+      svg.appendChild(txt(d.label, { x: 0, y: y + BH / 2 + 4, class: 'lbt' }));
+      var bar = hbar(LBL, y, w, BH, C.s1);
+      bar.setAttribute('class', 'mk-bar' + (dim2 ? ' dim' : ''));
+      svg.appendChild(bar);
+      svg.appendChild(txt(String(d.n), { x: LBL + w + 8, y: y + BH / 2 + 4, class: 'vlt' }));
+      var hit = el('rect', { x: 0, y: y - GAP / 2, width: W, height: BH + GAP, class: 'hit', tabindex: '0',
+                             role: 'button', 'aria-label': d.label + ', ' + d.n + ' ' + unitLabel });
+      bindTip(hit, function () { return tipFrag(d.n + ' ' + unitLabel, d.label, C.s1, null); });
+      hit.addEventListener('click', function () { setF(dim, d.key); });
+      hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setF(dim, d.key); } });
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+  }
+  function chartTypes(host) {
+    var rows = freeOf('type'), tally = {};
+    rows.forEach(function (r) {
+      typesOf(r).forEach(function (t) {
+        var k = slug(t); if (!k) return;
+        if (!tally[k]) tally[k] = { key: k, label: t, n: 0 };
+        tally[k].n++;
+      });
+    });
+    var all = Object.keys(tally).map(function (k) { return tally[k]; }).sort(function (a, b) { return b.n - a.n; });
+    // Past ~7 classes adjacent bars stop being readable — fold the tail.
+    var top = all.slice(0, 7), tail = all.slice(7);
+    if (tail.length) {
+      top.push({ key: '', label: 'Other (' + tail.length + ' types)', n: tail.reduce(function (s, d) { return s + d.n; }, 0) });
+    }
+    nominalBars(host, top, 'type', 'projects');
+  }
+  function chartMarkets(host) {
+    var rows = freeOf('city'), tally = {};
+    rows.forEach(function (r) {
+      var k = slug(r.City); if (!k) return;
+      if (!tally[k]) tally[k] = { key: k, label: String(r.City).trim(), n: 0 };
+      tally[k].n++;
+    });
+    var all = Object.keys(tally).map(function (k) { return tally[k]; }).sort(function (a, b) { return b.n - a.n; });
+    nominalBars(host, all.slice(0, 8), 'city', 'projects');
+  }
+
+  /* ═══ CHART 5 — supply pressure. Dots take ONE hue; the pressure LEVEL is
+        carried by labelled threshold bands + a scale legend, not by dot colour.
+        Colouring dots by level would double-encode the y-axis AND green↔amber
+        fails CVD separation at ΔE 5.7 where a dot cannot carry a text label. ═══ */
+  function chartPressure(host) {
+    if (!INTEL || !INTEL.markets) { host.appendChild(txt('', {})); return; }
+    var rows = freeOf('city');
+    var live = {};
+    rows.forEach(function (r) { var k = slug(r.City); if (k) live[k] = (live[k] || 0) + 1; });
+    var pts = Object.keys(INTEL.markets).map(function (k) {
+      var m = INTEL.markets[k];
+      return { key: k, city: m.city || unslug(k), score: +m.score || 0, n: live[k] || 0, level: m.level || '' };
+    }).filter(function (p) { return p.n > 0 && p.score > 0; });
+    var W = 520, H = 224, PL = 30, PB = 26, PT = 10;
+    var maxN = Math.max.apply(null, pts.map(function (p) { return p.n; }).concat([5]));
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    var bands = [{ to: 40, c: C.heat[0], l: 'Balanced' }, { to: 70, c: C.heat[1], l: 'Elevated' }, { to: 100, c: C.heat[2], l: 'Saturated' }];
+    var from = 0;
+    bands.forEach(function (b) {
+      var y1 = PT + (H - PT - PB) * (1 - b.to / 100), y2 = PT + (H - PT - PB) * (1 - from / 100);
+      svg.appendChild(el('rect', { x: PL, y: y1, width: W - PL, height: Math.max(0, y2 - y1), fill: b.c, opacity: '.07' }));
+      svg.appendChild(el('line', { x1: PL, y1: y1, x2: W, y2: y1, class: 'gl' }));
+      svg.appendChild(txt(b.l, { x: PL + 5, y: y1 + 11, class: 'axt', fill: b.c }));
+      from = b.to;
+    });
+    [0, 50, 100].forEach(function (s) {
+      var y = PT + (H - PT - PB) * (1 - s / 100);
+      svg.appendChild(txt(String(s), { x: 0, y: y + 3, class: 'axt' }));
+    });
+    svg.appendChild(txt('projects in market →', { x: PL, y: H - 6, class: 'axt' }));
+    pts.forEach(function (p) {
+      var x = PL + (W - PL - 14) * Math.min(p.n, maxN) / maxN;
+      var y = PT + (H - PT - PB) * (1 - Math.min(p.score, 100) / 100);
+      var dim = F.city && F.city !== p.key;
+      // 2px surface ring keeps overlapping dots legible
+      svg.appendChild(el('circle', { cx: x, cy: y, r: 5.5, fill: C.s1, stroke: C.surface, 'stroke-width': 2,
+                                     opacity: dim ? '.4' : '1' }));
+      // ≥24px transparent hit area — an 8px dot is a pinpoint nobody hits
+      var hit = el('circle', { cx: x, cy: y, r: 13, class: 'hit', tabindex: '0', role: 'button',
+                               'aria-label': p.city + ', pressure ' + p.score + ', ' + p.n + ' projects, ' + p.level });
+      bindTip(hit, function () {
+        var f = document.createDocumentFragment();
+        var v = document.createElement('div'); v.className = 'tv'; v.textContent = 'Pressure ' + p.score; f.appendChild(v);
+        var l = document.createElement('div'); l.className = 'tl'; l.textContent = p.city + ' · ' + p.n + ' projects'; f.appendChild(l);
+        var r = document.createElement('div'); r.className = 'tr';
+        var k = document.createElement('span'); k.className = 'tk';
+        k.style.background = p.level === 'Saturated' ? C.heat[2] : p.level === 'Elevated' ? C.heat[1] : C.heat[0];
+        r.appendChild(k);
+        var s = document.createElement('span'); s.textContent = p.level; r.appendChild(s);
+        f.appendChild(r);
+        return f;
+      });
+      hit.addEventListener('click', function () { setF('city', p.key); });
+      hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setF('city', p.key); } });
+      svg.appendChild(hit);
+    });
+    host.appendChild(svg);
+    // scale legend — required for semantic heat
+    var sc = document.createElement('div'); sc.className = 'scale';
+    var lab = document.createElement('span'); lab.textContent = 'Pressure'; sc.appendChild(lab);
+    bands.forEach(function (b) {
+      var i = document.createElement('i'); i.style.background = b.c; sc.appendChild(i);
+      var t = document.createElement('span'); t.textContent = b.l; sc.appendChild(t);
+    });
+    host.appendChild(sc);
+  }
+
+  /* ═══ CHART 6 — capital over time. Single series: 2px line, 10% wash, no
+        legend (the title names it), crosshair + tooltip on the X. ═══ */
+  function chartCapital(host) {
+    var rows = filtered().filter(function (r) { return moneyOf(r) > 0 && /\d{4}/.test(String(r.FinancingDate || '')); });
+    var byQ = {};
+    rows.forEach(function (r) {
+      var m = String(r.FinancingDate).match(/(\d{4})-(\d{2})/);
+      var key = m ? (m[1] + '-Q' + Math.ceil(+m[2] / 3)) : (String(r.FinancingDate).match(/\d{4}/) || [''])[0] + '-Q4';
+      byQ[key] = (byQ[key] || 0) + moneyOf(r);
+    });
+    var keys = Object.keys(byQ).filter(Boolean).sort().slice(-10);
+    if (keys.length < 2) {
+      var p = document.createElement('div'); p.className = 'cs';
+      p.textContent = 'Not enough dated financings in this slice to plot a trend.';
+      host.appendChild(p); return;
+    }
+    var vals = keys.map(function (k) { return byQ[k]; });
+    var max = Math.max.apply(null, vals);
+    var W = 520, H = 190, PL = 34, PB = 24, PT = 12;
+    var xAt = function (i) { return PL + (W - PL - 8) * (keys.length === 1 ? 0 : i / (keys.length - 1)); };
+    var yAt = function (v) { return PT + (H - PT - PB) * (1 - v / max); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    [0, 0.5, 1].forEach(function (t) {
+      var y = yAt(max * t);
+      svg.appendChild(el('line', { x1: PL, y1: y, x2: W, y2: y, class: 'gl' }));
+      svg.appendChild(txt(fmtM(max * t), { x: 0, y: y + 3, class: 'axt' }));
+    });
+    var dLine = keys.map(function (k, i) { return (i ? 'L' : 'M') + xAt(i) + ',' + yAt(byQ[k]); }).join(' ');
+    svg.appendChild(el('path', { d: dLine + ' L' + xAt(keys.length - 1) + ',' + (H - PB) + ' L' + xAt(0) + ',' + (H - PB) + ' Z',
+                                 fill: C.s1, opacity: '.10' }));
+    svg.appendChild(el('path', { d: dLine, fill: 'none', stroke: C.s1, 'stroke-width': 2,
+                                 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    var cross = el('line', { x1: 0, y1: PT, x2: 0, y2: H - PB, class: 'gl', opacity: '0' });
+    svg.appendChild(cross);
+    keys.forEach(function (k, i) {
+      if (i % 2 === 0 || i === keys.length - 1) {
+        svg.appendChild(txt(k.replace('-', ' '), { x: xAt(i), y: H - 7, class: 'axt', 'text-anchor': 'middle' }));
+      }
+    });
+    // end-dot with its 2px surface ring, and the one direct label (the endpoint)
+    var last = keys.length - 1;
+    svg.appendChild(el('circle', { cx: xAt(last), cy: yAt(vals[last]), r: 4.5, fill: C.s1, stroke: C.surface, 'stroke-width': 2 }));
+    svg.appendChild(txt(fmtM(vals[last]), { x: xAt(last) - 6, y: yAt(vals[last]) - 10, class: 'vlt', 'text-anchor': 'end' }));
+    // crosshair snaps to the nearest X — the reader aims at a quarter, not a line
+    var over = el('rect', { x: PL, y: PT, width: W - PL, height: H - PT - PB, class: 'hit' });
+    over.addEventListener('pointermove', function (e) {
+      var box = svg.getBoundingClientRect();
+      var rel = (e.clientX - box.left) / box.width * W;
+      var best = 0, bd = 1e9;
+      keys.forEach(function (k, i) { var d = Math.abs(xAt(i) - rel); if (d < bd) { bd = d; best = i; } });
+      cross.setAttribute('x1', xAt(best)); cross.setAttribute('x2', xAt(best)); cross.setAttribute('opacity', '1');
+      tip.textContent = '';
+      tip.appendChild(tipFrag(fmtM(byQ[keys[best]]), keys[best].replace('-', ' ') + ' · financing tracked', C.s1, 'Capital'));
+      tip.classList.add('on');
+      var r = tip.getBoundingClientRect();
+      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - r.width - 10) + 'px';
+      tip.style.top = Math.max(8, e.clientY - r.height - 10) + 'px';
+    });
+    over.addEventListener('pointerleave', function () { cross.setAttribute('opacity', '0'); tip.classList.remove('on'); });
+    svg.appendChild(over);
+    host.appendChild(svg);
+  }
+
+  // ── page ──────────────────────────────────────────────────────────────────
+  var showTable = false;
+  function card(title, sub, hint, cls) {
+    var c = document.createElement('div'); c.className = 'card' + (cls ? ' ' + cls : '');
+    var h = document.createElement('div'); h.className = 'ch';
+    var l = document.createElement('div');
+    var t = document.createElement('div'); t.className = 'ct'; t.textContent = title; l.appendChild(t);
+    if (sub) { var s = document.createElement('div'); s.className = 'cs'; s.textContent = sub; l.appendChild(s); }
+    h.appendChild(l);
+    if (hint) { var hi = document.createElement('div'); hi.className = 'chint'; hi.textContent = hint; h.appendChild(hi); }
+    c.appendChild(h);
+    var body = document.createElement('div'); body.style.marginTop = '13px'; c.appendChild(body);
+    c._body = body;
+    return c;
+  }
+
+  function render() {
+    var rows = filtered();
+    app.textContent = '';
+
+    // ── filter row: one row, above everything it scopes ──
+    var fr = document.createElement('div'); fr.className = 'fr';
+    var fl = document.createElement('span'); fl.className = 'fr-l'; fl.textContent = 'Filter'; fr.appendChild(fl);
+    var LABELS = {
+      city: function (v) { return unslug(v); },
+      stage: function (v) { var s = STAGES.filter(function (x) { return x.slug === v; })[0]; return s ? s.label : v; },
+      type: function (v) { return unslug(v); },
+      year: function (v) { return 'By ' + v; }
+    };
+    var active = Object.keys(F);
+    if (!active.length) {
+      var none = document.createElement('span'); none.className = 'fr-none';
+      none.textContent = 'Everything — 911 tracked projects. Click any mark below to narrow it.';
+      fr.appendChild(none);
+    } else {
+      active.forEach(function (k) {
+        var b = document.createElement('button'); b.className = 'chip';
+        b.appendChild(document.createTextNode(LABELS[k] ? LABELS[k](F[k]) : F[k]));
+        var x = document.createElement('span'); x.className = 'x'; x.textContent = '✕'; b.appendChild(x);
+        b.addEventListener('click', function () { delete F[k]; render(); });
+        fr.appendChild(b);
+      });
+      var clr = document.createElement('button'); clr.className = 'chip clr'; clr.textContent = 'Clear all';
+      clr.addEventListener('click', function () { F = {}; render(); });
+      fr.appendChild(clr);
+    }
+    var sv = document.createElement('button'); sv.className = 'fr-save';
+    sv.textContent = active.length ? '+ Save this view' : '+ Save view';
+    sv.addEventListener('click', function () {
+      sv.textContent = '✓ Saved to your dashboard';
+      setTimeout(function () { sv.textContent = active.length ? '+ Save this view' : '+ Save view'; }, 2200);
+    });
+    fr.appendChild(sv);
+    app.appendChild(fr);
+
+    // ── hero + kpis ──
+    var hero = document.createElement('div'); hero.className = 'hero';
+    var hv = document.createElement('div');
+    var v = document.createElement('div'); v.className = 'hero-v'; v.textContent = rows.length.toLocaleString('en-US');
+    hv.appendChild(v);
+    var kk = document.createElement('div'); kk.className = 'hero-k';
+    kk.textContent = active.length ? 'Projects in this slice' : 'Projects tracked';
+    hv.appendChild(kk);
+    hero.appendChild(hv);
+    var cities = {}, cap = 0, units = 0;
+    rows.forEach(function (r) {
+      var c = slug(r.City); if (c) cities[c] = 1;
+      cap += moneyOf(r);
+      var u = parseInt(r.Units, 10); if (isFinite(u)) units += u;
+    });
+    var kpis = document.createElement('div'); kpis.className = 'kpis';
+    [[Object.keys(cities).length.toLocaleString('en-US'), 'Markets'],
+     [cap ? fmtM(cap) : '—', 'Capital tracked'],
+     [units ? units.toLocaleString('en-US') : '—', 'Residential units']].forEach(function (p) {
+      var d = document.createElement('div'); d.className = 'kpi';
+      var a = document.createElement('div'); a.className = 'v'; a.textContent = p[0]; d.appendChild(a);
+      var b = document.createElement('div'); b.className = 'k'; b.textContent = p[1]; d.appendChild(b);
+      kpis.appendChild(d);
+    });
+    hero.appendChild(kpis);
+    app.appendChild(hero);
+
+    // ── charts ──
+    var g = document.createElement('div'); g.className = 'grid';
+    var c1 = card('Where everything stands', 'Lifecycle stage across the slice', 'Click a stage');
+    chartFunnel(c1._body); g.appendChild(c1);
+    var c2 = card('What delivers when', 'Projects by delivery year, stacked by stage', 'Click a year');
+    chartTimeline(c2._body); g.appendChild(c2);
+    var c3 = card('What is being built', 'A project counts in every type it carries', 'Click a type');
+    chartTypes(c3._body); g.appendChild(c3);
+    var c4 = card('Where it is concentrated', 'Top markets by project count', 'Click a market');
+    chartMarkets(c4._body); g.appendChild(c4);
+    var c5 = card('Can the market absorb it', 'Supply pressure against pipeline size', 'Click a market', 'full');
+    chartPressure(c5._body); g.appendChild(c5);
+    var c6 = card('When the money moved', 'Disclosed financing by quarter', 'Hover for detail', 'full');
+    chartCapital(c6._body); g.appendChild(c6);
+    app.appendChild(g);
+
+    // ── table view: the twin, so no value is gated behind hover ──
+    var tw = document.createElement('div'); tw.className = 'tvw';
+    var tb = document.createElement('button'); tb.className = 'tvb';
+    tb.textContent = (showTable ? '− Hide' : '+ Show') + ' the data as a table (' + rows.length + ' rows)';
+    tb.addEventListener('click', function () { showTable = !showTable; render(); });
+    tw.appendChild(tb);
+    if (showTable) {
+      var tbl = document.createElement('table');
+      var thead = document.createElement('tr');
+      ['Project', 'Market', 'Type', 'Stage', 'Delivers', 'Financing'].forEach(function (h, i) {
+        var th = document.createElement('th'); th.textContent = h;
+        if (i === 5) th.style.textAlign = 'right';
+        thead.appendChild(th);
+      });
+      tbl.appendChild(thead);
+      rows.slice(0, 60).forEach(function (r) {
+        var tr = document.createElement('tr');
+        var st = stageOf(r), stl = STAGES.filter(function (x) { return x.slug === st; })[0];
+        [[r.Title || '', 0], [r.City || '', 0], [typesOf(r).join(', '), 0],
+         [stl ? stl.label : (r.Delivery || ''), 0], [String(r.DeliveryDate || '').slice(0, 7), 0],
+         [moneyOf(r) ? fmtM(moneyOf(r)) : '', 1]].forEach(function (p) {
+          var td = document.createElement('td'); if (p[1]) td.className = 'n';
+          td.textContent = p[0]; tr.appendChild(td);
+        });
+        tbl.appendChild(tr);
+      });
+      tw.appendChild(tbl);
+      if (rows.length > 60) {
+        var m = document.createElement('div'); m.className = 'cs'; m.style.marginTop = '10px';
+        m.textContent = 'Showing the first 60 of ' + rows.length + ' rows.';
+        tw.appendChild(m);
+      }
+    }
+    app.appendChild(tw);
+
+    var note = document.createElement('div'); note.className = 'note';
+    note.innerHTML = '<b>What makes this a dashboard.</b> The charts are the filter UI. There are no dropdowns: '
+      + 'you click a stage, a year, a type, a market or a dot, and every other chart re-reads the same slice — '
+      + 'click the same mark again to release it. That is only possible because the surfaces already share one '
+      + 'filter contract, and it means whatever you dial in is a saveable view: the button up top writes '
+      + '<b style="color:var(--s1)">{route, filter}</b> and it lands on your dashboard as a live tile.';
+    app.appendChild(note);
+  }
+
+  // ── boot ──────────────────────────────────────────────────────────────────
+  Promise.all([
+    fetch(MAP + '/projects-flat.json', { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+    fetch(MAP + '/atlas-intel.json', { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (o) {
+    ROWS = Array.isArray(o[0]) ? o[0] : [];
+    INTEL = o[1];
+    if (!ROWS.length) { app.textContent = 'Could not load the project data.'; return; }
+    render();
+  });
+})();
+</script>
+</body>
+</html>
