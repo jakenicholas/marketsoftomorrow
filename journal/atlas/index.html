@@ -115,6 +115,10 @@
     .mc-go { grid-column: 1 / -1; }
     .atlas-calc .mc-row .mc-field select { font-size: 13.5px !important;
       padding: 11px 20px 11px 9px; background-position: right 5px center; }
+    /* The search sat 14px above the dropdowns while the dropdowns sat 8px
+       above the button — two different gaps in one control. Both are the
+       grid's row gap now, so the four rows breathe evenly. */
+    .mc-search { margin-bottom: 8px; }
     .mc-search input { padding: 12px 14px 12px 36px; }
     .mc-search input::placeholder { font-size: 13.5px; }
   }
