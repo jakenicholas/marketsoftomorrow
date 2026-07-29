@@ -44,11 +44,30 @@
   // Hide the controls this button replaces BEFORE they can paint. Only for a
   // member we have seen signed in — a signed-out visitor must keep the profile
   // button, it is their only way in.
+  //
+  // The pre-hide is SELF-EXPIRING, and that is the important part. Tying its
+  // removal to the end of the polling loop was a real bug: on a stale cache a
+  // signed-out visitor sat with the Join button hidden for 24s+ (worse in a
+  // throttled background tab, where setTimeout drops to ~1/s) and had no way
+  // to sign in. A guess about the header is never worth blocking the only
+  // route to an account, so the guess gets a short deadline instead: if the
+  // real button has not been built by then, the chrome comes straight back.
+  // Being wrong now costs one frame of flash; it used to cost the sign-in.
+  var PRE_HIDE_MS = 2500;
+  function dropPreHide() {
+    var pre = document.getElementById('tmw-dashbtn-pre');
+    if (pre) pre.remove();
+  }
   if (CACHED && CACHED.signedIn) {
-    var pre = document.createElement('style');
-    pre.id = 'tmw-dashbtn-pre';
-    pre.textContent = '.tmw-auth .tmw-pulse-bell,.tmw-auth .v2-profile-btn{display:none !important}';
-    (document.head || document.documentElement).appendChild(pre);
+    var pre0 = document.createElement('style');
+    pre0.id = 'tmw-dashbtn-pre';
+    pre0.textContent = '.tmw-auth .tmw-pulse-bell,.tmw-auth .v2-profile-btn{display:none !important}';
+    (document.head || document.documentElement).appendChild(pre0);
+    setTimeout(function () {
+      // Built in time → build() has hidden them properly via .tmw-db-hidden
+      // and the pre-hide has done its job. Not built → give the chrome back.
+      if (!document.querySelector('.tmw-dashbtn')) { dropPreHide(); clearCache(); }
+    }, PRE_HIDE_MS);
   }
 
   var CSS = [
@@ -166,8 +185,7 @@
     // with no profile button has no way to sign in.
     if (CACHED && CACHED.signedIn) {
       clearCache();
-      var pre = document.getElementById('tmw-dashbtn-pre');
-      if (pre) pre.remove();
+      dropPreHide();
       var btn = document.querySelector('.tmw-dashbtn');
       if (btn) btn.remove();
     }

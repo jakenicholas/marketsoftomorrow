@@ -673,7 +673,7 @@
 (function () {
   if (document.querySelector('script[data-tmw-dashbtn]')) return;
   var s = document.createElement('script');
-  s.src = '/_shared/tmw-dashbtn.js?v=20260729b';
+  s.src = '/_shared/tmw-dashbtn.js?v=20260729c';
   // NOT deferred: it pre-hides the controls it replaces on the first frame,
   // which only works if it runs before the auth chrome paints them.
   s.setAttribute('data-tmw-dashbtn', '1');
