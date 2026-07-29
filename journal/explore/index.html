@@ -51,7 +51,7 @@
 
   .q{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
   section{padding:0 0 52px}
-  .pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
   .pill{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);
     background:rgba(255,255,255,.035);text-decoration:none;color:inherit;transition:.18s}
   .pill:hover{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.07);transform:translateY(-2px);
@@ -81,7 +81,7 @@
   <div class="wrap hero">
     <div class="eyebrow">The Database</div>
     <h1>Every project, firm and<br>market we track. <em>Ask anything.</em></h1>
-    <p class="lede">903 developments across 278 cities, the firms building them, and the capital behind them. Start with a
+    <p class="lede"><span id="ledeCount">Every development we track</span>, the firms building them, and the capital behind them. Start with a
       question, or pick where you want to begin.</p>
 
     <div class="ask" id="askBox">
@@ -170,6 +170,7 @@
         var m=parseFloat(x.FinancingAmountM); if(isFinite(m)) cap+=m;
       });
       set('cProjects', n(p.length)+' tracked developments');
+      set('ledeCount', n(p.length)+' developments across '+n(Object.keys(cities).length)+' cities');
       set('cMarkets',  n(Object.keys(cities).length)+' cities we cover');
       set('cOpenings', n(soon)+' opening soon');
       set('cCapital',  '$'+(cap/1000).toFixed(1)+'B tracked');
