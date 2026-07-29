@@ -261,9 +261,24 @@
 .tmw-intel .pf-m.up{color:var(--green-soft); background:rgba(31,223,103,.1); border:1px solid rgba(31,223,103,.3)}
 .tmw-intel .pf-m.slip{color:#FF5C5C; background:rgba(255,92,92,.1); border:1px solid rgba(255,92,92,.3)}
 .tmw-intel .pf-m.cap{color:#B9A6FF; background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.3)}
-.tmw-intel .pf-brief{margin-top:18px; padding:16px 18px; border:1px solid rgba(167,139,250,.3); border-radius:13px;
+.tmw-intel .pf-two{display:grid; grid-template-columns:1.25fr 1fr; gap:14px; margin-top:20px; text-align:left}
+@media(max-width:820px){ .tmw-intel .pf-two{grid-template-columns:1fr} }
+.tmw-intel .pf-card{border:1px solid var(--hair); border-radius:13px; background:rgba(255,255,255,.025); padding:16px 18px 18px}
+.tmw-intel .pf-card h4{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:#B9A6FF; margin:0 0 13px; font-weight:600}
+.tmw-intel .pf-feed{display:flex; flex-direction:column; gap:12px}
+.tmw-intel .pf-frow{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; color:var(--mute2); line-height:1.45}
+.tmw-intel .pf-fdot{width:6px;height:6px;border-radius:50%;flex:none;margin-top:6px;background:var(--green);box-shadow:0 0 8px rgba(31,223,103,.7)}
+.tmw-intel .pf-fdot.p{background:#A78BFA;box-shadow:0 0 8px rgba(167,139,250,.7)}
+.tmw-intel .pf-fdot.a{background:#F5A623;box-shadow:0 0 8px rgba(245,166,35,.6)}
+.tmw-intel .pf-frow b{color:#fff;font-weight:600}
+.tmw-intel .pf-fwhen{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--mute);white-space:nowrap}
+.tmw-intel .pf-cap{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12.5px}
+.tmw-intel .pf-cap:last-child{border-bottom:none}
+.tmw-intel .pf-cap .amt{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--gold-soft)}
+.tmw-intel .pf-cap .who{color:var(--mute);font-family:var(--mono);font-size:9.5px;margin-top:2px}
+.tmw-intel .pf-brief{margin-top:18px; text-align:left; padding:16px 18px; border:1px solid rgba(167,139,250,.3); border-radius:13px;
   background:linear-gradient(180deg,rgba(167,139,250,.09),transparent)}
-.tmw-intel .pf-brief .bk{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#B9A6FF; font-weight:700; margin-bottom:9px}
+.tmw-intel .pf-brief .bk{text-align:left; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#B9A6FF; font-weight:700; margin-bottom:9px}
 .tmw-intel .pf-brief p{font-size:13px; color:var(--mute2); line-height:1.6; margin:0}
 .tmw-intel .pf-brief p b{color:#fff; font-weight:600}
 @media(max-width:640px){ .tmw-intel .pf-r{grid-template-columns:1fr auto} .tmw-intel .pf-prog{display:none} }
@@ -422,6 +437,25 @@
               <div><div class="pf-n">Pine Crest School WPB</div><div class="pf-c">West Palm Beach &middot; Education</div></div>
               <div class="pf-prog"><div class="pf-bar"><i style="width:12%"></i></div><span class="pf-s">Announced</span></div>
               <span class="pf-m slip">&#9660; Slipped 1 yr</span>
+            </div>
+          </div>
+
+          <div class="pf-two">
+            <div class="pf-card">
+              <h4>What moved in your book</h4>
+              <div class="pf-feed">
+                <div class="pf-frow"><span class="pf-fdot"></span><div><b>South Flagler House</b> topped out. Onyx moved delivery confidence to High.</div><span class="pf-fwhen">2d</span></div>
+                <div class="pf-frow"><span class="pf-fdot p"></span><div><b>15 CityPlace</b> closed a <b>$772M</b> construction loan, the largest in your book.</div><span class="pf-fwhen">5d</span></div>
+                <div class="pf-frow"><span class="pf-fdot a"></span><div><b>Pine Crest School</b> pushed its opening from 2028 to 2029.</div><span class="pf-fwhen">6d</span></div>
+                <div class="pf-frow"><span class="pf-fdot"></span><div>A new hotel, <b>The Belgrove Resort &amp; Spa</b>, entered your market at 0.8 mi.</div><span class="pf-fwhen">1w</span></div>
+              </div>
+            </div>
+            <div class="pf-card">
+              <h4>Capital near your book</h4>
+              <div class="pf-cap"><span><b style="color:#fff">15 CityPlace</b><div class="who">Construction loan</div></span><span class="amt">$772M</span></div>
+              <div class="pf-cap"><span><b style="color:#fff">Dutchman's Pipe</b><div class="who">Apollo Global Management</div></span><span class="amt">$100M</span></div>
+              <div class="pf-cap"><span><b style="color:#fff">The Belgrove</b><div class="who">Apollo Global Management</div></span><span class="amt">$100M</span></div>
+              <div class="pf-cap"><span><b style="color:#fff">Inscription</b><div class="who">Wells Fargo</div></span><span class="amt">$51M</span></div>
             </div>
           </div>
 

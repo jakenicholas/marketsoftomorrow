@@ -200,8 +200,38 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 
 
+/* ── My Portfolio: contained dashboard (mirrors the concept mockup) ── */
+.pf-app{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022));
+  border:1px solid rgba(255,255,255,.12); border-radius:20px; overflow:hidden;
+  box-shadow:0 26px 70px rgba(0,0,0,.5); margin:6px 0 26px}
+.pf-appbar{display:flex; align-items:center; gap:9px; padding:13px 20px;
+  border-bottom:1px solid rgba(255,255,255,.09); background:rgba(255,255,255,.03)}
+.pf-appbar i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);display:block}
+.pf-appbar .u{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;margin-left:8px}
+.pf-appbar .pro{margin-left:auto;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:#f0d68a;background:rgba(230,197,116,.12);border:1px solid rgba(230,197,116,.4);padding:4px 10px;border-radius:999px}
+.pf-inner{padding:24px 22px 26px}
+.pf-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+.pf-h1{font-family:var(--serif,Georgia,serif);font-size:25px;font-weight:600;color:#fff;letter-spacing:-.01em}
+.pf-h2{font-size:13px;color:#9AA39C;margin-top:4px}
+.pf-mchips{display:flex;gap:7px;flex-wrap:wrap}
+.pf-mchip{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#C2C9C3;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:6px 12px;border-radius:999px}
+.pf-mchip.on{background:#1FDF67;border-color:#1FDF67;color:#070807;font-weight:700}
+.pf-thead{display:grid;grid-template-columns:1.6fr 1fr .7fr auto;gap:14px;padding:0 10px 11px;
+  border-bottom:1px solid rgba(255,255,255,.1);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;font-weight:600}
+.pf-two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:24px}
+@media(max-width:820px){.pf-two{grid-template-columns:1fr}}
+.pf-card{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.028);padding:17px 19px 19px}
+.pf-card h4{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#B9A6FF;margin-bottom:14px;font-weight:600}
+.pf-feed{display:flex;flex-direction:column;gap:13px}
+.pf-frow{display:flex;gap:11px;align-items:flex-start;font-size:12.5px;color:#C2C9C3;line-height:1.45}
+.pf-fdot{width:6px;height:6px;border-radius:50%;flex:none;margin-top:6px;background:#1FDF67;box-shadow:0 0 8px rgba(31,223,103,.7)}
+.pf-fdot.p{background:#A78BFA;box-shadow:0 0 8px rgba(167,139,250,.7)}
+.pf-frow b{color:#fff;font-weight:600}
+.pf-fwhen{margin-left:auto;font-size:9.5px;color:#9AA39C;white-space:nowrap}
 /* ── My Portfolio: book, movement, capital ── */
-.pf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 22px}
+.pf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:0 0 22px}
 .pf-kpi{padding:15px 17px;border:1px solid var(--hair,rgba(255,255,255,.08));border-radius:14px;background:rgba(255,255,255,.025)}
 .pf-kpi .v{font-family:var(--serif,Georgia,serif);font-size:27px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
 .pf-kpi .v.g{color:#42EB81}.pf-kpi .v.p{color:#B9A6FF}.pf-kpi .v.r{color:#FF5C5C}.pf-kpi .v.a{color:#F5A623}
@@ -209,7 +239,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .pf-kpi .pf-x{font-size:11px;color:#C2C9C3;margin-top:4px;line-height:1.35}
 .pf-sec-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin:26px 0 12px}
 .pf-book{display:flex;flex-direction:column;gap:1px}
-.pf-row{display:grid;grid-template-columns:1.6fr 1fr auto;gap:14px;align-items:center;padding:13px 12px;
+.pf-row{display:grid;grid-template-columns:1.6fr 1fr .7fr auto;gap:14px;align-items:center;padding:13px 12px;
   border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit;border-radius:8px}
 .pf-row:hover{background:rgba(167,139,250,.05)}
 .pf-nm{font-weight:600;color:#fff;font-size:14px}
@@ -582,51 +612,77 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     });
     return out;
   }
-  function pfRender(host, flat, mj, movesBySlug, intel){
+  function pfRender(host, flat, mj, movesBySlug, intel, recent){
     var book=pfWatched(flat, mj);
     if(!book.length){
       host.innerHTML='<div class="pf-empty">Nothing in your book yet. Tap the eye icon on any project to start tracking it.</div>';
       return;
     }
-    // KPIs
     var caps=book.map(function(p){ return parseFloat(p.FinancingAmountM)||0; });
     var capTotal=caps.reduce(function(a,b){return a+b;},0);
-    var upcoming=book.map(pfDeliveryKey).filter(Boolean).filter(function(d){ return d>=new Date().toISOString().slice(0,10); }).sort();
+    var today=new Date().toISOString().slice(0,10);
+    var upcoming=book.map(pfDeliveryKey).filter(Boolean).filter(function(d){ return d>=today; }).sort();
     var moved=book.filter(function(p){ return movesBySlug[projectSlugify(p.Title)]; }).length;
-    // supply pressure for the market the book leans into
     var cityCount={}; book.forEach(function(p){ var c=(p.City||'').trim(); if(c) cityCount[c]=(cityCount[c]||0)+1; });
-    var topCity=Object.keys(cityCount).sort(function(a,b){return cityCount[b]-cityCount[a];})[0]||'';
-    var mk=null;
-    try{ mk=intel&&intel.markets&&intel.markets[projectSlugify(topCity)]; }catch(e){}
-    var lvlClass=mk?(mk.level==='Saturated'?'r':mk.level==='Elevated'?'a':'g'):'';
+    var cities=Object.keys(cityCount).sort(function(a,b){return cityCount[b]-cityCount[a];});
+    var topCity=cities[0]||'';
+    var mk=null; try{ mk=intel&&intel.markets&&intel.markets[projectSlugify(topCity)]; }catch(e){}
+    var lvl=mk?(mk.level==='Saturated'?'r':mk.level==='Elevated'?'a':'g'):'';
+
     var kpis='<div class="pf-kpis">'
       + '<div class="pf-kpi"><div class="v">'+book.length+'</div><div class="k">In your book</div><div class="pf-x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
-      + (mk?'<div class="pf-kpi"><div class="v '+lvlClass+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="pf-x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
+      + (mk?'<div class="pf-kpi"><div class="v '+lvl+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="pf-x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
       + (capTotal?'<div class="pf-kpi"><div class="v g">'+pfMoney(capTotal)+'</div><div class="k">Capital tracked</div><div class="pf-x">across '+caps.filter(Boolean).length+' financed</div></div>':'')
-      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+upcoming[0].slice(0,7)+'</div><div class="k">Next delivery</div><div class="pf-x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
+      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+pfWhen(upcoming[0])+'</div><div class="k">Next delivery</div><div class="pf-x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
       + '</div>';
-    // the book
+
     var rows=book.slice().sort(function(a,b){ return pfPct(b.Delivery)-pfPct(a.Delivery); }).map(function(p){
-      var k=projectSlugify(p.Title), mv=movesBySlug[k];
-      var pct=pfPct(p.Delivery);
+      var k=projectSlugify(p.Title), mv=movesBySlug[k], pct=pfPct(p.Delivery);
       var chip = mv ? '<span class="pf-mv up">▲ '+esc(mv)+'</span>'
                 : (p.FinancingAmountM ? '<span class="pf-mv new">'+pfMoney(p.FinancingAmountM)+'</span>'
                 : '<span class="pf-mv flat">No change</span>');
+      var when = String(p.Delivery||'')==='Now Open' ? 'Opened' : (pfWhen(pfDeliveryKey(p)) || '—');
       return '<a class="pf-row" href="https://www.oftmw.com/projects/'+encodeURIComponent(p.Slug||k)+'/">'
         + '<div><div class="pf-nm">'+esc(p.Title||'')+'</div><div class="pf-lo">'+esc(p.City||'')+(p.PreferredType?' · '+esc(p.PreferredType):'')+'</div></div>'
         + '<div class="pf-prog"><div class="pf-bar"><i style="width:'+pct+'%"></i></div><span class="pf-st">'+esc(p.Delivery||'')+'</span></div>'
+        + '<div class="pf-when">'+esc(when)+'</div>'
         + chip + '</a>';
     }).join('');
-    // capital in the book
-    var fin=book.filter(function(p){ return parseFloat(p.FinancingAmountM)>0; })
-      .sort(function(a,b){ return parseFloat(b.FinancingAmountM)-parseFloat(a.FinancingAmountM); }).slice(0,5);
-    var cap = fin.length ? '<div class="pf-sec-h">Capital in your book</div>'
-      + fin.map(function(p){
-          return '<div class="pf-cap"><span><b style="color:#fff">'+esc(p.Title||'')+'</b><div class="who">'+esc(p.FinancingLender||'Construction loan')+'</div></span><span class="amt">'+pfMoney(p.FinancingAmountM)+'</span></div>';
-        }).join('') : '';
-    host.innerHTML = kpis + '<div class="pf-sec-h">Your book</div><div class="pf-book">'+rows+'</div>' + cap;
-  }
 
+    var feed=(recent||[]).slice(0,4).map(function(m){
+      return '<div class="pf-frow"><span class="pf-fdot'+(m.cap?' p':'')+'"></span><div><b>'+esc(m.title)+'</b> '+esc(m.text)+'</div><span class="pf-fwhen">'+esc(m.when||'')+'</span></div>';
+    }).join('');
+    var fin=book.filter(function(p){ return parseFloat(p.FinancingAmountM)>0; })
+      .sort(function(a,b){ return parseFloat(b.FinancingAmountM)-parseFloat(a.FinancingAmountM); }).slice(0,4);
+    var capHtml=fin.map(function(p){
+      return '<div class="pf-cap"><span><b style="color:#fff">'+esc(p.Title||'')+'</b><div class="who">'+esc(p.FinancingLender||'Construction loan')+'</div></span><span class="amt">'+pfMoney(p.FinancingAmountM)+'</span></div>';
+    }).join('');
+    var two = (feed||capHtml) ? '<div class="pf-two">'
+      + (feed?'<div class="pf-card"><h4>What moved in your book</h4><div class="pf-feed">'+feed+'</div></div>':'')
+      + (capHtml?'<div class="pf-card"><h4>Capital in your book</h4>'+capHtml+'</div>':'')
+      + '</div>' : '';
+
+    var chips=cities.slice(0,3).map(function(c,i){ return '<span class="pf-mchip'+(i===0?' on':'')+'">'+esc(c)+'</span>'; }).join('');
+
+    host.innerHTML='<div class="pf-app">'
+      + '<div class="pf-appbar"><i></i><i></i><i></i><span class="u">oftmw.com / portfolio</span><span class="pro">Pro</span></div>'
+      + '<div class="pf-inner">'
+      +   '<div class="pf-head"><div><div class="pf-h1">'+esc(topCity?topCity+' book':'Your book')+'</div>'
+      +     '<div class="pf-h2">'+book.length+' project'+(book.length===1?'':'s')+' watched · '+cities.length+' market'+(cities.length===1?'':'s')+'</div></div>'
+      +     '<div class="pf-mchips">'+chips+'</div></div>'
+      +   kpis
+      +   '<div class="pf-thead"><span>Project</span><span>Progress</span><span>Delivery</span><span>Movement</span></div>'
+      +   '<div class="pf-book">'+rows+'</div>'
+      +   two
+      + '</div></div>';
+  }
+  // "2027-06-01" -> "Q2 2027"; year-only stays the year.
+  function pfWhen(d){
+    if(!d) return '';
+    var y=d.slice(0,4), mo=parseInt(d.slice(5,7),10);
+    if(!mo) return y;
+    return 'Q'+Math.min(4,Math.ceil(mo/3))+' '+y;
+  }
   function loadBrief(){
     if(_briefDone) return; _briefDone=true;
     var wk=briefWeekOf();
@@ -719,8 +775,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           + '</div>';
         if(!n){
           // No moves is not an empty page — the book itself is the product.
-          body.innerHTML=hero+'<div id="pfBook"></div>';
-          try{ pfRender(document.getElementById('pfBook'), flat, mj, {}, intel); }catch(e){}
+          body.innerHTML='<div id="pfBook"></div>'+hero;
+          try{ pfRender(document.getElementById('pfBook'), flat, mj, {}, intel, []); }catch(e){}
           return;
         }
         // Map this week's moves by project so the book can flag what changed.
@@ -729,8 +785,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
           var ev=moves[id].ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
           if(k && !movesBySlug[k]) movesBySlug[k]=ev.tag||ev.type||'Moved';
         });
-        body.innerHTML=hero
-          + '<div id="pfBook"></div>'
+        body.innerHTML='<div id="pfBook"></div>'
+          + hero
           + '<div class="brief-sec-h">The moves</div>'
           + '<div class="brief-list">'+order.map(function(id){
           var x=moves[id], ev=x.ev;
@@ -744,7 +800,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
             +   '<div class="bi-m">'+esc(ev.city||'')+' \u00b7 '+esc(fmtEventDate(x.rdate))+'</div>'
             + '</div></a>';
         }).join('')+'</div>';
-        try{ pfRender(document.getElementById('pfBook'), flat, mj, movesBySlug, intel); }catch(e){}
+        var pfRecent = order.slice(0,4).map(function(id){
+          var x=moves[id], ev=x.ev;
+          var tag=String(ev.tag||ev.type||'moved');
+          return { title: ev.project_title||ev.title||'',
+                   text: tag.toLowerCase()+(ev.city?' in '+ev.city:'')+'.',
+                   when: fmtEventDate(x.rdate),
+                   cap: /financ|loan/i.test(tag) };
+        });
+        try{ pfRender(document.getElementById('pfBook'), flat, mj, movesBySlug, intel, pfRecent); }catch(e){}
         // Onyx narrative — server-generated once per member+week (D1-cached).
         // Fails soft: the shimmer collapses away if the endpoint is unreachable.
         var narr=document.getElementById('briefNarr');
