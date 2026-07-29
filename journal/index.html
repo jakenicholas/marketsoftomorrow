@@ -597,31 +597,79 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 /* CARD GRID                                                            */
 /* =================================================================== */
 
-/* ── Focus Markets (our outlets) — moved out of the header dropdown ── */
-.fmk-section{padding:78px 0 24px; background:var(--ink); position:relative}
-.fmk-wrap{max-width:1240px; margin:0 auto; padding:0 28px}
-.fmk-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:30px}
-.fmk-head .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-glow,#B9A6FF); font-weight:700}
-.fmk-head h2{font-size:clamp(26px,3.2vw,40px); margin-top:10px}
-.fmk-head .sub{color:var(--mute); font-size:15px; margin-top:8px; max-width:62ch; font-weight:300}
-.fmk-all{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); text-decoration:none}
-.fmk-all:hover{color:#fff}
-.fmk-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px}
-.fmk-card{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--hair); text-decoration:none;
-  color:inherit; background:#0d0f0d; transition:transform .22s, border-color .22s, box-shadow .22s; display:block}
-.fmk-card:hover{transform:translateY(-3px); border-color:rgba(167,139,250,.5); box-shadow:0 18px 44px rgba(0,0,0,.5)}
-.fmk-img{position:relative; aspect-ratio:16/10; overflow:hidden}
-.fmk-img img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.9) brightness(.82); transition:transform .5s, filter .4s}
-.fmk-card:hover .fmk-img img{transform:scale(1.05); filter:saturate(1) brightness(.95)}
-.fmk-flag{position:absolute; top:11px; left:11px; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em;
-  text-transform:uppercase; font-weight:700; color:#070807; background:var(--green,#1FDF67); padding:4px 9px; border-radius:5px}
-.fmk-body{padding:15px 16px 17px}
-.fmk-name{font-size:15px; font-weight:600; color:#fff; letter-spacing:-.01em}
-.fmk-h{font-family:var(--mono); font-size:10px; color:var(--mute); margin-top:3px}
-.fmk-stats{display:flex; gap:16px; margin-top:12px; padding-top:12px; border-top:1px solid var(--hair)}
-.fmk-stat .v{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--white,#fff); line-height:1; letter-spacing:-.01em}
-.fmk-stat .k{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute); margin-top:5px; display:block}
-@media(max-width:640px){ .fmk-section{padding:56px 0 16px} .fmk-wrap{padding:0 18px} .fmk-grid{grid-template-columns:1fr 1fr; gap:11px} }
+/* ── Focus Markets (our outlets) ───────────────────────────────────────
+   Ported VERBATIM from the /media kit's #outlets section so the two never
+   drift. Every rule is scoped under #focus-markets: the media page's generic
+   class names (.glass, .lede, .shead, .eyebrow) would otherwise collide with
+   the homepage's own. The .reveal fade classes are deliberately NOT ported --
+   this page has no IntersectionObserver to un-hide them. */
+#focus-markets{padding:78px 0 24px; background:var(--ink); position:relative}
+#focus-markets .fmk-wrap{max-width:1240px; margin:0 auto; padding:0 28px}
+#focus-markets .shead{margin-bottom:34px}
+#focus-markets .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--purple-glow,#B9A6FF); font-weight:700}
+#focus-markets .shead h2{font-size:clamp(26px,3.2vw,40px); margin:10px 0 14px}
+#focus-markets .lede{font-size:clamp(15px,1.4vw,18px); color:var(--mute2); max-width:64ch; line-height:1.55; font-weight:300}
+#focus-markets .hl-gold{color:var(--gold,#e6c574); text-shadow:0 0 18px rgba(230,197,116,.35), 0 0 2px rgba(230,197,116,.25)}
+#focus-markets .glass{background:rgba(255,255,255,.045); border:1px solid var(--hair); border-radius:20px;
+  box-shadow:0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06)}
+/* umbrella summary strip - gold glow treatment */
+#focus-markets .umbrella{padding:24px 30px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap; border-color:rgba(230,197,116,.38); position:relative; z-index:200;
+  background:linear-gradient(180deg,rgba(230,197,116,.06),rgba(230,197,116,.02));
+  box-shadow:0 0 0 1px rgba(230,197,116,.10) inset, 0 18px 60px -28px rgba(230,197,116,.35)}
+#focus-markets .umb-lab{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--gold-soft,#f0d68a); text-shadow:0 0 18px rgba(230,197,116,.35)}
+#focus-markets .umb-stats{display:flex; gap:38px; flex-wrap:wrap}
+#focus-markets .umb-stats .us{display:flex; flex-direction:column; gap:3px}
+#focus-markets .umb-stats .uv{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--gold-soft,#f0d68a);
+  letter-spacing:-.02em; line-height:1; text-shadow:0 0 22px rgba(230,197,116,.45)}
+#focus-markets .umb-stats .uk{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+/* gold "i" info tooltip */
+#focus-markets .info-tip{display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border-radius:50%;
+  border:1px solid rgba(230,197,116,.6); color:#f0d68a; font-family:var(--serif); font-style:italic; font-size:10px; line-height:1;
+  text-transform:none; cursor:pointer; position:relative; vertical-align:middle; margin-left:6px; user-select:none}
+#focus-markets .info-tip:hover, #focus-markets .info-tip:focus{background:rgba(230,197,116,.16); outline:none}
+#focus-markets .info-pop{position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%); width:min(320px,80vw);
+  padding:13px 15px; background:#11140f; border:1px solid rgba(230,197,116,.35); border-radius:11px;
+  box-shadow:0 20px 56px -22px rgba(0,0,0,.85); font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; font-style:normal;
+  font-size:11.5px; font-weight:400; line-height:1.62; letter-spacing:.005em; color:rgba(236,234,229,.84); text-transform:none;
+  text-align:left; opacity:0; visibility:hidden; transition:opacity .18s; z-index:200; pointer-events:none}
+#focus-markets .info-pop b{color:#f0d68a; font-weight:600}
+#focus-markets .info-tip:hover .info-pop, #focus-markets .info-tip:focus .info-pop{opacity:1; visibility:visible}
+/* per-outlet cards */
+#focus-markets .ocards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+#focus-markets .ocard{padding:0; overflow:hidden; display:flex; flex-direction:column}
+#focus-markets .obanner{position:relative; width:100%; aspect-ratio:2/1; overflow:hidden; border-bottom:1px solid var(--hair)}
+#focus-markets .obanner img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease}
+#focus-markets .ocard:hover .obanner img{transform:scale(1.04)}
+#focus-markets .oflag{position:absolute; top:12px; left:12px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink); background:var(--green,#1FDF67); padding:4px 9px; border-radius:5px; font-weight:700;
+  box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#focus-markets .obody{padding:22px 24px 24px; display:flex; flex-direction:column; flex:1}
+#focus-markets .ocard-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px}
+#focus-markets .oname{font-size:16px; font-weight:600; color:var(--white,#fff)}
+#focus-markets .oig{color:var(--mute); text-decoration:none; transition:color .2s; display:flex; align-items:center}
+#focus-markets .oig:hover{color:var(--green,#1FDF67)}
+#focus-markets .ostats{display:grid; grid-template-columns:1fr 1fr; gap:16px 12px; padding-bottom:18px; border-bottom:1px solid var(--hair)}
+#focus-markets .ostats .ost{display:flex; flex-direction:column; gap:3px}
+#focus-markets .ostats .ov{font-family:var(--serif); font-weight:600; font-size:21px; color:var(--white,#fff); letter-spacing:-.01em; line-height:1}
+#focus-markets .ostats .ok{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+#focus-markets .ocities-lab{font-family:var(--mono); font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-top:16px}
+#focus-markets .ocities{display:flex; gap:7px; flex-wrap:wrap; margin-top:8px}
+#focus-markets .ochip{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; color:var(--mute2); background:rgba(255,255,255,.05);
+  border:1px solid var(--hair); padding:4px 9px; border-radius:5px}
+@media(max-width:900px){
+  #focus-markets .ocards{grid-template-columns:1fr}
+  #focus-markets .umbrella{flex-direction:column; align-items:stretch; gap:18px}
+  #focus-markets .umb-stats{display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; width:100%; justify-items:start}
+}
+#focus-markets .growth-bar{display:flex; align-items:center; justify-content:center; gap:11px; margin:22px auto 0; max-width:780px; padding:13px 22px; border-radius:14px; font-family:var(--mono); font-size:12.5px; letter-spacing:.03em; color:#f0d68a; border:1px solid rgba(230,197,116,.42); background:linear-gradient(180deg,rgba(230,197,116,.10),rgba(230,197,116,.03)); box-shadow:0 0 0 1px rgba(230,197,116,.10) inset, 0 14px 50px -22px rgba(230,197,116,.55); text-align:center}
+#focus-markets .growth-bar .gb-ico{font-size:12px}
+#focus-markets .growth-bar b{color:#fbe9b0; font-weight:700}
+#focus-markets .growth-bar .gb-sub{color:rgba(236,234,229,.6)}
+#focus-markets .growth-bar.down{color:#ff9a9a; border-color:rgba(255,140,140,.4); box-shadow:0 0 0 1px rgba(255,140,140,.1) inset, 0 14px 50px -22px rgba(255,140,140,.5)}
+@media(max-width:640px){ #focus-markets{padding:56px 0 16px} #focus-markets .fmk-wrap{padding:0 18px} }
 
 section.grid-section{padding:60px 0 90px; position:relative}
 .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:34px}
@@ -1005,86 +1053,7 @@ footer .ft-logo .tmw-wordmark{width:118px}
      grid on mobile. Each tile links straight to /markets/<city>/. -->
 <!-- Focus Markets: our own outlets. Lifted out of the header dropdown so the
      nav can be Read / Explore / The Lists and the markets get real estate. -->
-<section class="fmk-section" id="focus-markets">
-  <div class="fmk-wrap">
-    <header class="fmk-head">
-      <div>
-        <div class="eyebrow">Focus Markets</div>
-        <h2>Seven outlets, one network</h2>
-        <p class="sub">Florida of Tomorrow leads as our flagship, with co-posting across the network. Together they roll up under the Markets of Tomorrow umbrella.</p>
-      </div>
-      <div><a class="fmk-all" href="/media/">Our reach →</a></div>
-    </header>
-    <div class="fmk-grid">
-      <a class="fmk-card" href="/?market=florida">
-        <div class="fmk-img"><img src="/media/img/9998de3ca8af.jpg" alt="Florida of Tomorrow" loading="lazy"><span class="fmk-flag">Flagship</span></div>
-        <div class="fmk-body">
-          <div class="fmk-name">Florida of Tomorrow</div>
-          <div class="fmk-h">@floridaoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">160K</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">3.5M</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-      <a class="fmk-card" href="/?market=hotels">
-        <div class="fmk-img"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg" alt="Hotels of Tomorrow" loading="lazy"></div>
-        <div class="fmk-body">
-          <div class="fmk-name">Hotels of Tomorrow</div>
-          <div class="fmk-h">@hotelsoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">20K</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">1.1M</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-      <a class="fmk-card" href="/?market=new-york">
-        <div class="fmk-img"><img src="/media/img/e3c8a4e4ff38.jpg" alt="New York of Tomorrow" loading="lazy"></div>
-        <div class="fmk-body">
-          <div class="fmk-name">New York of Tomorrow</div>
-          <div class="fmk-h">@newyorkoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">10K</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">297K</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-      <a class="fmk-card" href="/?market=tennessee">
-        <div class="fmk-img"><img src="/media/img/d3ce63b84f46.jpg" alt="Tennessee of Tomorrow" loading="lazy"></div>
-        <div class="fmk-body">
-          <div class="fmk-name">Tennessee of Tomorrow</div>
-          <div class="fmk-h">@tennesseeoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">12K</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">305K</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-      <a class="fmk-card" href="/?market=caribbean">
-        <div class="fmk-img"><img src="/media/img/5d9804404207.jpg" alt="Caribbean of Tomorrow" loading="lazy"></div>
-        <div class="fmk-body">
-          <div class="fmk-name">Caribbean of Tomorrow</div>
-          <div class="fmk-h">@caribbeanoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">2.5K</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">88K</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-      <a class="fmk-card" href="/?market=rockies">
-        <div class="fmk-img"><img src="/media/img/35b59ff84cf5.jpg" alt="Rockies of Tomorrow" loading="lazy"></div>
-        <div class="fmk-body">
-          <div class="fmk-name">Rockies of Tomorrow</div>
-          <div class="fmk-h">@rockiesoftomorrow</div>
-          <div class="fmk-stats">
-            <div class="fmk-stat"><span class="v">400</span><span class="k">Followers</span></div>
-            <div class="fmk-stat"><span class="v">12K</span><span class="k">Mo. Views</span></div>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
+
 
 <section class="mkt-section" id="browse-by-market">
   <div class="mkt-wrap">
@@ -1430,6 +1399,113 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
       <a href="/media/">Media kit &amp; audience reach</a>
       <span>·</span>
       <a href="#newsletter">The Tuesday newsletter</a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOCUS MARKETS (verbatim from /media #outlets) ==================== -->
+<section id="focus-markets">
+  <div class="fmk-wrap">
+    <div class="shead">
+      <div class="eyebrow">Focus Markets</div>
+      <h2>Seven outlets, one network</h2>
+      <p class="lede"><span class="hl-gold">Florida of Tomorrow</span> leads as our <span class="hl-gold">flagship</span>, with co-posting across the network where relevant. Together they roll up under the Markets of Tomorrow umbrella.</p>
+    </div>
+    <div class="umbrella glass">
+      <div class="umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>
+      <div class="umb-stats">
+        <div class="us"><span class="uv" data-fc="umbrella">205K</span><span class="uk">Followers</span></div>
+        <div class="us"><span class="uv">8.1M</span><span class="uk">Mo. Social<span class="info-tip" tabindex="0" role="button" aria-label="What Mo. Social and Mo. Web mean">i<span class="info-pop"><b>Mo. Social</b>: the total monthly social-media views across all of our accounts. <b>Mo. Web</b>: the website&rsquo;s monthly impressions. Both are views/impressions, not unique users.</span></span></span></div>
+        <div class="us"><span class="uv">593K</span><span class="uk">Mo. Web</span></div>
+        <div class="us"><span class="uv">260K</span><span class="uk">Interactions</span></div>
+      </div>
+    </div>
+    <div class="ocards">
+      <div class="ocard glass flag">
+      <div class="obanner"><img src="/media/img/9998de3ca8af.jpg" alt="Florida of Tomorrow" loading="lazy"><span class="oflag">Flagship</span></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">Florida of Tomorrow</div><a class="oig" href="https://www.instagram.com/floridaoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">160K</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">3.5M</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">1.2M</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">150K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">WPB</span><span class="ochip">MIA</span><span class="ochip">FLL</span><span class="ochip">NYC</span></div>
+      </div>
+    </div>
+<div class="ocard glass">
+      <div class="obanner"><img src="/media/img/381d37b9c210.jpg" alt="Hotels of Tomorrow" loading="lazy"></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">Hotels of Tomorrow</div><a class="oig" href="https://www.instagram.com/hotelsoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">20K</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">1.1M</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">82K</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">52K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">NYC</span><span class="ochip">LAX</span><span class="ochip">AUS</span><span class="ochip">TYO</span></div>
+      </div>
+    </div>
+<div class="ocard glass">
+      <div class="obanner"><img src="/media/img/d3ce63b84f46.jpg" alt="Tennessee of Tomorrow" loading="lazy"></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">Tennessee of Tomorrow</div><a class="oig" href="https://www.instagram.com/tennesseeoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">12K</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">305K</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">41K</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">32K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">BNA</span><span class="ochip">FKN</span><span class="ochip">CHI</span><span class="ochip">NYC</span></div>
+      </div>
+    </div>
+<div class="ocard glass">
+      <div class="obanner"><img src="/media/img/e3c8a4e4ff38.jpg" alt="New York of Tomorrow" loading="lazy"></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">New York of Tomorrow</div><a class="oig" href="https://www.instagram.com/newyorkoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">10K</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">297K</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">22K</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">19K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">NYC</span><span class="ochip">LON</span><span class="ochip">LAX</span><span class="ochip">CHI</span></div>
+      </div>
+    </div>
+<div class="ocard glass">
+      <div class="obanner"><img src="/media/img/5d9804404207.jpg" alt="Caribbean of Tomorrow" loading="lazy"></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">Caribbean of Tomorrow</div><a class="oig" href="https://www.instagram.com/caribbeanoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">2.5K</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">88K</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">12K</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">5.7K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">BHS</span><span class="ochip">MEX</span><span class="ochip">LCA</span><span class="ochip">DOM</span></div>
+      </div>
+    </div>
+<div class="ocard glass">
+      <div class="obanner"><img src="/media/img/35b59ff84cf5.jpg" alt="Rockies of Tomorrow" loading="lazy"></div>
+      <div class="obody">
+        <div class="ocard-top"><div class="oname">Rockies of Tomorrow</div><a class="oig" href="https://www.instagram.com/rockiesoftomorrow" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></a></div>
+        <div class="ostats">
+          <div class="ost"><span class="ov">400</span><span class="ok">Followers</span></div>
+          <div class="ost"><span class="ov">12K</span><span class="ok">Mo. Social</span></div>
+          <div class="ost"><span class="ov">4.1K</span><span class="ok">Mo. Web</span></div>
+          <div class="ost"><span class="ov">1.1K</span><span class="ok">Interactions</span></div>
+        </div>
+        <div class="ocities-lab">Largest sub-market audiences</div>
+        <div class="ocities"><span class="ochip">DEN</span><span class="ochip">SLC</span><span class="ochip">EGE</span><span class="ochip">LAX</span></div>
+      </div>
+    </div>
+
     </div>
   </div>
 </section>
@@ -2746,5 +2822,48 @@ async function updateMapCounter() {
 <script src="/_shared/intel-modules.js" defer></script>
 <!-- Shared Memberstack login (one account across map + journal) -->
 <script src="/_shared/journal-auth.js" defer></script>
+
+<!-- Focus Markets: live follower counts + the info tooltip, lifted from /media so
+     both surfaces show the same numbers from the same worker feed. -->
+<script>
+// ── Live follower counts + monthly growth (admin Followers tab → worker /followers) ──
+(function(){
+  var KEY={'florida of tomorrow':'florida','hotels of tomorrow':'hotels','tennessee of tomorrow':'tennessee','new york of tomorrow':'newyork','caribbean of tomorrow':'caribbean','rockies of tomorrow':'rockies','markets of tomorrow':'markets'};
+  function fmt(n){ n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1e4) return Math.round(n/1e3)+'K'; if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
+  fetch('https://tmw.jake-ab7.workers.dev/followers',{cache:'no-store'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(!d) return;
+      var m=d.markets||{}, umb=d.umbrella||0;
+      if(umb) document.querySelectorAll('[data-fc="umbrella"]').forEach(function(el){ el.textContent=fmt(umb); });
+      document.querySelectorAll('.ocard').forEach(function(card){
+        var nm=card.querySelector('.oname'); if(!nm) return;
+        var k=KEY[nm.textContent.trim().toLowerCase()]; if(!k||m[k]==null) return;
+        var fv=card.querySelector('.ost .ov'); if(fv) fv.textContent=fmt(m[k]);   // first stat per card = Followers
+      });
+      var g=d.growth;
+      if(g && g.delta!=null && g.delta!==0){
+        var oc=document.querySelector('.ocards'); if(!oc) return;
+        var up=g.delta>=0, dt=new Date(g.since+'T00:00:00');
+        var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var since=MON[dt.getMonth()]+' '+dt.getDate();
+        var bar=document.createElement('div');
+        bar.className='growth-bar'+(up?'':' down');
+        bar.innerHTML='<span class="gb-ico">'+(up?'▲':'▼')+'</span><span><b>'+(up?'+':'')+g.delta.toLocaleString()
+          +'</b> followers across the network<span class="gb-sub">  ('+(up?'+':'')+g.pct+'%) since '+since+'</span></span>';
+        oc.parentNode.insertBefore(bar, oc.nextSibling);
+      }
+    })
+    .catch(function(){});
+})();
+// info "i" tooltip — hover/focus is CSS; this adds click-to-pin (mobile) + outside-close
+(function(){
+  document.addEventListener('click', function(e){
+    var tip = e.target.closest && e.target.closest('.info-tip');
+    document.querySelectorAll('.info-tip.open').forEach(function(t){ if(t!==tip) t.classList.remove('open'); });
+    if(tip){ e.preventDefault(); tip.classList.toggle('open'); }
+  });
+})();
+</script>
 </body>
 </html>

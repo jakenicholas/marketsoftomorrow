@@ -20,16 +20,17 @@
   window.__tmwDashBtn = true;
 
   var CSS = [
+    /* The pill itself is neutral dark gray; only the avatar and the count
+       carry the purple, so the button reads as chrome, not as an alert. */
     '.tmw-dashbtn{display:inline-flex;align-items:center;gap:9px;padding:5px 13px 5px 6px;border-radius:999px;',
-      'border:1px solid rgba(167,139,250,.5);background:rgba(167,139,250,.12);text-decoration:none;cursor:pointer;',
-      'transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;',
-      'box-shadow:0 0 18px rgba(167,139,250,.18);flex:0 0 auto}',
-    '.tmw-dashbtn:hover{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.8);',
-      'box-shadow:0 0 26px rgba(167,139,250,.42);transform:translateY(-1px)}',
+      'border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);text-decoration:none;cursor:pointer;',
+      'transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;flex:0 0 auto}',
+    '.tmw-dashbtn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.26);',
+      'transform:translateY(-1px)}',
     '.tmw-dashbtn .db-face{width:24px;height:24px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;',
       'background:linear-gradient(135deg,#B9A6FF,#6d4fd6);color:#12091f;font:800 10px/1 "Inter",-apple-system,sans-serif;letter-spacing:.02em}',
     '.tmw-dashbtn .db-lbl{font:700 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.13em;text-transform:uppercase;',
-      'color:#EDE7FF;text-shadow:0 0 12px rgba(167,139,250,.55);white-space:nowrap}',
+      'color:#D8DCD9;white-space:nowrap}',
     '.tmw-dashbtn .db-n{font:800 10px/1.5 "Inter",-apple-system,sans-serif;color:#12091f;background:#B9A6FF;',
       'padding:2px 7px;border-radius:999px;min-width:19px;text-align:center;box-shadow:0 0 12px rgba(185,166,255,.6)}',
     '.tmw-dashbtn .db-n[hidden]{display:none}',

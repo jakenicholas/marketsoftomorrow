@@ -57,7 +57,9 @@
   .hint{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:44px}
 
   .q{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
-  section{padding:0 0 52px}
+  /* padding-bottom only: a `padding` shorthand here would clobber .wrap's side gutters */
+  section{padding-bottom:58px}
+  section + section{padding-top:40px}
   .pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px}
   .pill{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);
     background:rgba(255,255,255,.035);text-decoration:none;color:inherit;transition:.18s}
