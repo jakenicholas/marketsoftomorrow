@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mockup &middot; Atlas Overview as a dashboard</title>
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1FDF67; --green-soft:#42EB81; --purple:#A78BFA; --purple-glow:#B9A6FF;
+    --gold:#e6c574; --gold-soft:#f0d68a; --red:#FF5C5C; --amber:#F5A623;
+    --ink:#070807; --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+    --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+    --ink-2:var(--ink); --mute-2:var(--mute); --hair-2:var(--hair2);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(900px 620px at 78% -10%,rgba(167,139,250,.10),transparent 60%),
+              radial-gradient(760px 620px at 4% 34%,rgba(31,223,103,.05),transparent 60%)}
+  main{position:relative;z-index:1}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 30px}
+
+  /* mockup banner */
+  .mk{background:rgba(230,197,116,.1);border-bottom:1px solid rgba(230,197,116,.3);padding:11px 0}
+  .mk .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .mk b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft)}
+  .mk span{font-size:13px;color:var(--mute2)}
+
+  /* the real tab strip, copied from the live Atlas */
+  .tabs{border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;
+    scrollbar-width:none;margin-top:16px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{font-size:14px;font-weight:500;color:var(--mute);text-decoration:none;padding:15px 14px;white-space:nowrap;flex:0 0 auto}
+  .tab.on{color:#fff;box-shadow:inset 0 -2px 0 var(--gold)}
+
+  /* section heads */
+  .sec{padding:30px 0 0}
+  .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:15px;flex-wrap:wrap}
+  .sh h2{font-family:var(--serif);font-size:24px;font-weight:600;color:#fff;letter-spacing:-.02em}
+  .sh h2 em{font-style:italic;color:var(--purple)}
+  .sh .q{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+  .more{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+    color:var(--purple-glow);text-decoration:none;white-space:nowrap}
+  .more:hover{text-decoration:underline}
+
+  /* the pin control — every module carries one */
+  .card{position:relative;border:1px solid var(--hair);border-radius:16px;background:rgba(255,255,255,.028);padding:18px 19px}
+  .pin{position:absolute;top:11px;right:11px;display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+    color:var(--mute);background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;
+    padding:5px 9px;cursor:pointer;opacity:0;transition:.15s}
+  .card:hover .pin{opacity:1}
+  .pin:hover{color:#fff;border-color:rgba(167,139,250,.6)}
+  .pin.on{opacity:1;color:var(--purple);background:rgba(167,139,250,.14);border-color:rgba(167,139,250,.45)}
+
+  /* 1 — what changed */
+  .chg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .chg .v{font-family:var(--serif);font-size:34px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
+  .chg .v.g{color:var(--green-soft)} .chg .v.p{color:var(--purple-glow)} .chg .v.a{color:var(--amber)}
+  .chg .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-top:9px}
+  .chg .x{font-size:12px;color:var(--mute2);margin-top:5px;line-height:1.4}
+
+  /* 2 — at risk (supply) */
+  .risk{display:flex;flex-direction:column;gap:1px;margin-top:2px}
+  .rrow{display:grid;grid-template-columns:minmax(0,1fr) 74px 108px 40px;gap:12px;align-items:center;
+    padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit;border-radius:8px}
+  .rrow:hover{background:rgba(167,139,250,.06)}
+  .rrow:last-child{border-bottom:none}
+  .rc{font-size:14.5px;font-weight:600;color:#fff}
+  .rn{font-family:var(--mono);font-size:10.5px;color:var(--mute)}
+  .rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;display:flex;align-items:center;gap:7px;color:var(--mute2)}
+  .rl i{width:7px;height:7px;border-radius:50%;flex:none}
+  .rs{font-family:var(--serif);font-size:19px;font-weight:600;text-align:right}
+
+  /* 3 — what's next (delivery) */
+  .next{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .qt{padding:15px 15px 14px;border:1px solid var(--hair);border-radius:13px;background:rgba(255,255,255,.03)}
+  .qt .ql{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--purple-glow);font-weight:700}
+  .qt .qv{font-family:var(--serif);font-size:27px;font-weight:600;color:#fff;line-height:1;margin-top:9px}
+  .qt .qx{font-size:11.5px;color:var(--mute);margin-top:6px;line-height:1.4}
+  .bar{height:5px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:11px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4fd6,#B9A6FF)}
+
+  /* 4 — capital + biggest, side by side */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .frow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 2px;
+    border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit}
+  .frow:last-child{border-bottom:none}
+  .fn{font-size:13.5px;font-weight:600;color:#fff}
+  .fw{font-family:var(--mono);font-size:10.5px;color:var(--mute);margin-top:3px}
+  .fa{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--gold-soft);white-space:nowrap}
+  .fr{font-family:var(--serif);font-size:17px;font-weight:600;color:#fff;white-space:nowrap}
+
+  .note{margin:34px 0 60px;padding:17px 19px;border:1px dashed var(--hair2);border-radius:13px;
+    font-size:13px;color:var(--mute2);line-height:1.65}
+  .note b{color:var(--gold-soft)}
+  .note code{font-family:var(--mono);font-size:11.5px;color:var(--purple-glow)}
+
+  @media(max-width:860px){ .two{grid-template-columns:1fr} .next{grid-template-columns:1fr 1fr} }
+  @media(max-width:620px){ .wrap{padding:0 18px} .rrow{grid-template-columns:minmax(0,1fr) auto} .rl,.rn{display:none} }
+</style>
+</head>
+<body>
+<div class="mk"><div class="wrap">
+  <b>Mockup</b>
+  <span>Atlas <b style="color:var(--cream)">Overview</b> rebuilt as a dashboard. Numbers are real (911 tracked projects); layout is the proposal. Hover any module to see its <b style="color:var(--purple-glow)">pin</b>.</span>
+</div></div>
+
+<main>
+<div class="wrap">
+  <nav class="tabs">
+    <a class="tab on" href="#">Overview</a>
+    <a class="tab" href="/atlas/markets/">Markets</a>
+    <a class="tab" href="/atlas/projects/">Projects</a>
+    <a class="tab" href="/atlas/firms/">Firms</a>
+    <a class="tab" href="/atlas/supply/">Supply</a>
+    <a class="tab" href="/atlas/pricing/">Pricing</a>
+    <a class="tab" href="/atlas/capital/">Capital</a>
+    <a class="tab" href="/atlas/pipeline/">Pipeline</a>
+  </nav>
+
+  <!-- 1 ─────────────────────────────────────────────── WHAT CHANGED -->
+  <section class="sec">
+    <div class="sh">
+      <div><div class="q">01 &middot; What changed</div><h2>This <em>week</em></h2></div>
+      <a class="more" href="/atlas/pipeline/">The pipeline &rarr;</a>
+    </div>
+    <div class="chg">
+      <div class="card"><button class="pin">&plus; Pin</button>
+        <div class="v g">14</div><div class="k">Status moves</div><div class="x">4 topped out, 3 broke ground</div></div>
+      <div class="card"><button class="pin">&plus; Pin</button>
+        <div class="v p">$412M</div><div class="k">New financing</div><div class="x">across 3 projects</div></div>
+      <div class="card"><button class="pin">&plus; Pin</button>
+        <div class="v">6</div><div class="k">Added to the database</div><div class="x">2 Florida, 1 Nashville, 3 intl.</div></div>
+      <div class="card"><button class="pin on">&check; Pinned</button>
+        <div class="v a">3</div><div class="k">On your watchlist</div><div class="x">Olara, The Berkeley, Firefly</div></div>
+    </div>
+  </section>
+
+  <!-- 2 ─────────────────────────────────────────────── WHAT'S AT RISK -->
+  <section class="sec">
+    <div class="sh">
+      <div><div class="q">02 &middot; What&rsquo;s at risk</div><h2>Supply <em>pressure</em></h2></div>
+      <a class="more" href="/atlas/supply/">All 281 markets &rarr;</a>
+    </div>
+    <div class="card" style="padding:8px 10px"><button class="pin">&plus; Pin</button>
+      <div class="risk">
+        <a class="rrow" href="/markets/miami/"><span class="rc">Miami</span><span class="rn">88 proj</span>
+          <span class="rl"><i style="background:var(--red)"></i>Saturated</span><span class="rs" style="color:var(--red)">95</span></a>
+        <a class="rrow" href="/markets/west-palm-beach/"><span class="rc">West Palm Beach</span><span class="rn">63 proj</span>
+          <span class="rl"><i style="background:var(--red)"></i>Saturated</span><span class="rs" style="color:var(--red)">91</span></a>
+        <a class="rrow" href="/markets/dubai/"><span class="rc">Dubai</span><span class="rn">42 proj</span>
+          <span class="rl"><i style="background:var(--red)"></i>Saturated</span><span class="rs" style="color:var(--red)">88</span></a>
+        <a class="rrow" href="/markets/nashville/"><span class="rc">Nashville</span><span class="rn">31 proj</span>
+          <span class="rl"><i style="background:var(--amber)"></i>Elevated</span><span class="rs" style="color:var(--amber)">64</span></a>
+        <a class="rrow" href="/markets/charleston/"><span class="rc">Charleston</span><span class="rn">9 proj</span>
+          <span class="rl"><i style="background:var(--green)"></i>Balanced</span><span class="rs" style="color:var(--green-soft)">28</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ─────────────────────────────────────────────── WHAT'S NEXT -->
+  <section class="sec">
+    <div class="sh">
+      <div><div class="q">03 &middot; What&rsquo;s next</div><h2>Delivering <em>soon</em></h2></div>
+      <a class="more" href="/atlas/projects/?status=coming-soon">Opening soon &rarr;</a>
+    </div>
+    <div class="card"><button class="pin">&plus; Pin</button>
+      <div class="next" style="margin-top:6px">
+        <div class="qt"><div class="ql">This quarter</div><div class="qv">18</div><div class="qx">11 hotels, 7 residential</div><div class="bar"><i style="width:26%"></i></div></div>
+        <div class="qt"><div class="ql">Q4 2026</div><div class="qv">31</div><div class="qx">Miami leads with 9</div><div class="bar"><i style="width:45%"></i></div></div>
+        <div class="qt"><div class="ql">2027</div><div class="qv">168</div><div class="qx">the biggest wave</div><div class="bar"><i style="width:100%"></i></div></div>
+        <div class="qt"><div class="ql">2028+</div><div class="qv">272</div><div class="qx">announced, dates soft</div><div class="bar"><i style="width:74%"></i></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 ─────────────────────────────────────────────── MONEY + SCALE -->
+  <section class="sec">
+    <div class="sh">
+      <div><div class="q">04 &middot; Who and how much</div><h2>Capital and <em>scale</em></h2></div>
+      <a class="more" href="/atlas/capital/">Follow the money &rarr;</a>
+    </div>
+    <div class="two">
+      <div class="card"><button class="pin">&plus; Pin</button>
+        <div class="q" style="margin-bottom:12px;color:var(--gold-soft)">Largest financings tracked</div>
+        <a class="frow" href="/projects/south-flagler-house/"><span><span class="fn">South Flagler House</span><div class="fw">West Palm Beach</div></span><span class="fa">$1.4B</span></a>
+        <a class="frow" href="/projects/olara/"><span><span class="fn">Olara</span><div class="fw">West Palm Beach</div></span><span class="fa">$550M</span></a>
+        <a class="frow" href="/projects/one-west-twelve/"><span><span class="fn">One West Twelve</span><div class="fw">Miami</div></span><span class="fa">$413M</span></a>
+        <a class="frow" href="/projects/shorecrest-flagler-drive/"><span><span class="fn">Shorecrest Flagler Drive</span><div class="fw">West Palm Beach</div></span><span class="fa">$157M</span></a>
+      </div>
+      <div class="card"><button class="pin">&plus; Pin</button>
+        <div class="q" style="margin-bottom:12px;color:var(--purple-glow)">Most active developers</div>
+        <a class="frow" href="/firm/related-group/"><span><span class="fn">Related Group</span><div class="fw">Miami</div></span><span class="fr">11</span></a>
+        <a class="frow" href="/firm/related-ross/"><span><span class="fn">Related Ross</span><div class="fw">West Palm Beach</div></span><span class="fr">8</span></a>
+        <a class="frow" href="/firm/arquitectonica/"><span><span class="fn">Arquitectonica</span><div class="fw">Architect &middot; Miami</div></span><span class="fr">56</span></a>
+        <a class="frow" href="/firm/foster-partners/"><span><span class="fn">Foster + Partners</span><div class="fw">Architect &middot; London</div></span><span class="fr">18</span></a>
+      </div>
+    </div>
+  </section>
+
+  <div class="note">
+    <b>What this changes.</b> Overview stops being a summary and answers four questions in order:
+    <b>what changed</b>, <b>what&rsquo;s at risk</b>, <b>what&rsquo;s next</b>, <b>who and how much</b>. Every module
+    carries a pin, so the same block can live on your dashboard as
+    <code>{route, filter}</code> &mdash; no new storage, no widget library. The one personal module here
+    (&ldquo;On your watchlist&rdquo;) is the seam between the public read and your own: it is the only tile whose
+    number differs per member, and on the dashboard it would lead.
+  </div>
+</div>
+</main>
+
+<script>
+  // Pin toggles are cosmetic in the mockup — real ones call tmwViews.save().
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.pin');
+    if (!b) return;
+    e.preventDefault();
+    var on = b.classList.toggle('on');
+    b.innerHTML = on ? '&check; Pinned' : '&plus; Pin';
+  });
+</script>
+</body>
+</html>
