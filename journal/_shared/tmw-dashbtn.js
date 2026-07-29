@@ -19,6 +19,38 @@
   if (window.__tmwDashBtn) return;
   window.__tmwDashBtn = true;
 
+  // ── The flash ───────────────────────────────────────────────────────────
+  // Everything here arrives async: Memberstack resolves the member, the dock
+  // paints the Pulse bell, and only then can this button replace them. On
+  // every refresh that produced a visible sequence — old bell + avatar, then
+  // a swap to the pill, initials popping from "ME" to the real ones, then the
+  // count appearing. All correct, all ugly.
+  //
+  // So: remember the last known signed-in state and paint THAT on the first
+  // frame, then reconcile. A returning member sees their own button
+  // immediately; the async data only ever confirms it. The cache is a render
+  // hint, never a source of truth — if the member turns out to be signed out,
+  // the button is removed and the real chrome comes back.
+  var LS = 'tmw_dashbtn_v1';
+  function readCache() {
+    try { return JSON.parse(localStorage.getItem(LS) || 'null') || null; } catch (e) { return null; }
+  }
+  function writeCache(o) {
+    try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) {}
+  }
+  function clearCache() { try { localStorage.removeItem(LS); } catch (e) {} }
+  var CACHED = readCache();
+
+  // Hide the controls this button replaces BEFORE they can paint. Only for a
+  // member we have seen signed in — a signed-out visitor must keep the profile
+  // button, it is their only way in.
+  if (CACHED && CACHED.signedIn) {
+    var pre = document.createElement('style');
+    pre.id = 'tmw-dashbtn-pre';
+    pre.textContent = '.tmw-auth .tmw-pulse-bell,.tmw-auth .v2-profile-btn{display:none !important}';
+    (document.head || document.documentElement).appendChild(pre);
+  }
+
   var CSS = [
     /* The pill itself is neutral dark gray; only the avatar and the count
        carry the purple, so the button reads as chrome, not as an alert. */
@@ -53,11 +85,12 @@
       if (!n) {
         var e = String(m.email || (m.auth && m.auth.email) || '').trim();
         if (e) return e.slice(0, 2).toUpperCase();
-        return 'ME';
+        // Not resolved yet → last known initials beat a generic placeholder.
+        return (CACHED && CACHED.initials) || 'ME';
       }
       var parts = n.split(/\s+/);
       return ((parts[0][0] || '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
-    } catch (e) { return 'ME'; }
+    } catch (e) { return (CACHED && CACHED.initials) || 'ME'; }
   }
 
   // The count is the Pulse number — the same signal that used to sit in the bell.
@@ -75,11 +108,18 @@
       + '<span class="db-lbl">Dashboard</span>'
       + '<span class="db-n"></span>';
     var n = a.querySelector('.db-n');
-    function sync() {
-      var c = pulseCount(bell);
+    function paint(c) {
       if (c > 0) { n.textContent = c > 99 ? '99+' : String(c); n.hidden = false; }
       else { n.hidden = true; }
     }
+    function sync() {
+      // The bell is the live source. Until it exists, hold the cached count so
+      // the badge does not appear-then-jump on every refresh.
+      var c = bell ? pulseCount(bell) : ((CACHED && CACHED.count) || 0);
+      paint(c);
+      writeCache({ signedIn: true, initials: a.querySelector('.db-face').textContent, count: c });
+    }
+    paint((CACHED && CACHED.count) || 0);
     sync();
     // The bell's count arrives async and updates later; mirror it.
     if (bell && window.MutationObserver) {
@@ -120,7 +160,17 @@
       build(auth, auth.querySelector('.tmw-pulse-bell'), profile);
       return;
     }
-    if ((tries || 0) < 60) setTimeout(function () { tick((tries || 0) + 1); }, 400);
+    if ((tries || 0) < 60) { setTimeout(function () { tick((tries || 0) + 1); }, 400); return; }
+    // Gave up: the member never resolved as signed in. If we optimistically
+    // hid the real chrome on a stale cache, put it back — a signed-out visitor
+    // with no profile button has no way to sign in.
+    if (CACHED && CACHED.signedIn) {
+      clearCache();
+      var pre = document.getElementById('tmw-dashbtn-pre');
+      if (pre) pre.remove();
+      var btn = document.querySelector('.tmw-dashbtn');
+      if (btn) btn.remove();
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { tick(0); });

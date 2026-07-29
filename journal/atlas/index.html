@@ -819,6 +819,23 @@
   .atlas-rail-jump:hover { color: #ECEAE5; background: none; }
   .atlas-rail-jump.on { color: #fff; background: none; box-shadow: none;
     border-bottom-color: var(--gold, #e6c574); }
+  /* Directory rows — shared by the Markets and Firms routes. */
+  .amk-list { display: flex; flex-direction: column; }
+  .amk-row { display: grid; grid-template-columns: minmax(0,1fr) 130px 190px 46px; gap: 14px;
+    align-items: center; padding: 14px 12px; text-decoration: none; color: inherit;
+    border-bottom: 1px solid rgba(255,255,255,.055); border-radius: 8px; }
+  .amk-row:hover { background: rgba(167,139,250,.06); }
+  .amk-city { font-size: 15px; font-weight: 600; color: #fff; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  .amk-n { font-family: var(--mono); font-size: 11px; color: var(--mute-2, #9AA39C); }
+  .amk-lvl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--mute-2, #9AA39C); display: flex; align-items: center; gap: 8px; }
+  .amk-lvl i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .amk-score { font-family: var(--serif); font-size: 19px; font-weight: 600; text-align: right; }
+  @media (max-width: 720px) {
+    .amk-row { grid-template-columns: minmax(0,1fr) auto; }
+    .amk-lvl, .amk-score { display: none; }
+  }
   @media (max-width: 720px) { .atlas-rail { margin: 0 -6px; } }
   .atlas-sticky-filters { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .atlas-sticky-filters::-webkit-scrollbar { display: none; }
@@ -2355,6 +2372,8 @@
       { id: 'pricing',  label: 'Pricing'  },
       { id: 'builders', label: 'Builders' },
       { id: 'capital',  label: 'Capital'  },
+      { id: 'markets',  label: 'Markets'  },
+      { id: 'firms',    label: 'Firms'    },
       { id: 'movers',   label: 'Movers'   },
       // Pipeline used to be a separate view behind its own Overview/Pipeline
       // toggle above the tabs. It is just another route.
@@ -2800,7 +2819,14 @@
       if (!supplyIntelP) {
         supplyIntelP = fetch('/map/atlas-intel.json', { cache: 'no-cache' })
           .then(r => r.ok ? r.json() : null)
-          .then(j => { supplyIntel = j; fillSupplySec(); })
+          .then(j => {
+            supplyIntel = j;
+            fillSupplySec();
+            // fillSupplySec targets #atlasSupplySec and no-ops elsewhere, so the
+            // Markets route (which reads the same intel for its pressure column)
+            // would never learn the data landed. Re-render it explicitly.
+            if (currentRoute === 'markets') renderAll();
+          })
           .catch(() => {});
       } else { supplyIntelP.then(() => fillSupplySec()); }
     }
@@ -3122,6 +3148,99 @@
       renderAll();
     });
 
+    // ── Markets directory ────────────────────────────────────────────────
+    // Every market we track, ranked by pipeline size, with the supply-pressure
+    // read alongside. Reuses the SAME atlas-intel.json the supply section
+    // loads (supplyIntel), so this route costs no extra fetch once either has
+    // been visited. Rows honour the active filter like every other route.
+    function marketRows() {
+      const counts = {};
+      (atlasData.projects || []).forEach(p => {
+        if (!p.ci) return;
+        if (currentStateFilter && currentStateFilter !== 'ALL') {
+          const cs = buildCityStateMap();
+          if ((cs[p.ci] || 'Other') !== currentStateFilter) return;
+        }
+        counts[p.ci] = (counts[p.ci] || 0) + 1;
+      });
+      const intel = (supplyIntel && supplyIntel.markets) || {};
+      return Object.keys(counts).map(city => {
+        const k = String(city).toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-');
+        const mk = intel[k] || null;
+        return { city: city, slug: k, n: counts[city], score: mk ? mk.score : null, level: mk ? mk.level : '' };
+      }).sort((a, b) => b.n - a.n);
+    }
+    function renderMarketsSection() {
+      const rows = marketRows();
+      if (!rows.length) {
+        return `<section class="atlas-section" id="atlasMarkets"><div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Every <em>market</em></h2>
+          <p class="atlas-section-sub">Loading the pipeline&hellip;</p></div></div></section>`;
+      }
+      const LVL = { 'Saturated': '#FF5C5C', 'Elevated': '#F5A623', 'Balanced': '#1FDF67' };
+      const body = rows.map(r => {
+        const col = LVL[r.level] || 'rgba(255,255,255,.35)';
+        return `<a class="amk-row" href="/markets/${escapeHtml(r.slug)}/">
+            <span class="amk-city">${escapeHtml(r.city)}</span>
+            <span class="amk-n">${r.n} project${r.n === 1 ? '' : 's'}</span>
+            <span class="amk-lvl">${r.level ? `<i style="background:${col}"></i>${escapeHtml(r.level)}` : ''}</span>
+            <span class="amk-score" style="color:${col}">${r.score != null ? r.score : ''}</span>
+          </a>`;
+      }).join('');
+      return `<section class="atlas-section" id="atlasMarkets">
+        <div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Every <em>market</em></h2>
+          <p class="atlas-section-sub">${rows.length} markets tracked, ranked by pipeline size, with supply pressure.</p>
+        </div></div>
+        <div class="amk-list">${body}</div>
+      </section>`;
+    }
+
+    // ── Firms directory ──────────────────────────────────────────────────
+    // The full developer + architect list, not the top-10 the Builders
+    // leaderboard shows. Reads firms-flat.json through the shared JSON memo,
+    // so it is free when the dock or the master search already pulled it.
+    let _firmsData = null, _firmsP = null;
+    function loadFirms() {
+      if (_firmsData || _firmsP) { if (_firmsData) return; _firmsP.then(() => renderAll()); return; }
+      const j = (u) => (window.__tmwSharedJson ? window.__tmwSharedJson(u)
+        : fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null));
+      _firmsP = j(MAP_ORIGIN + '/firms-flat.json').then(d => {
+        _firmsData = d || {};
+        if (currentRoute === 'firms') renderAll();
+      });
+    }
+    function renderFirmsSection() {
+      if (!_firmsData) {
+        loadFirms();
+        return `<section class="atlas-section" id="atlasFirms"><div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Every <em>firm</em></h2>
+          <p class="atlas-section-sub">Loading developers and architects&hellip;</p></div></div></section>`;
+      }
+      const seen = {}, list = [];
+      const add = (f, role) => {
+        if (!f || !f.slug || !(f.project_count > 0)) return;
+        if (seen[f.slug]) { if (seen[f.slug].role !== role) seen[f.slug].role = 'Developer · Architect'; return; }
+        seen[f.slug] = { name: f.name, slug: f.slug, n: f.project_count, role: role };
+        list.push(seen[f.slug]);
+      };
+      (_firmsData.developers || []).forEach(f => add(f, 'Developer'));
+      (_firmsData.architects || []).forEach(f => add(f, 'Architect'));
+      list.sort((a, b) => b.n - a.n);
+      const body = list.map(f => `<a class="amk-row" href="/firm/${escapeHtml(f.slug)}/">
+          <span class="amk-city">${escapeHtml(f.name)}</span>
+          <span class="amk-n">${f.n} project${f.n === 1 ? '' : 's'}</span>
+          <span class="amk-lvl">${escapeHtml(f.role)}</span><span class="amk-score"></span>
+        </a>`).join('');
+      return `<section class="atlas-section" id="atlasFirms">
+        <div class="atlas-section-head"><div>
+          <h2 class="atlas-section-title">Every <em>firm</em></h2>
+          <p class="atlas-section-sub">${list.length} developers and architects with a tracked project.</p>
+        </div></div>
+        <div class="amk-list">${body}</div>
+      </section>`;
+    }
+
     function renderAll() {
       if (!atlasData) return;
       const root = document.getElementById('atlasRoot');
@@ -3134,6 +3253,7 @@
         + '<div class="ash-row1">' + renderStickyFilters() + '</div>'
         + '</div>';
       const sections = [];
+      if (currentRoute === 'markets') loadSupplyIntel();
       if (currentRoute === 'pipeline') {
         sections.push(stickyhead, renderStateFilter(), renderTimelineSection());
       } else {
@@ -3147,7 +3267,9 @@
           pricing:  () => [renderProjectionsSection()],
           builders: () => [renderLeaderboardSection()],
           capital:  () => [renderMoneySection()],
-          movers:   () => [renderMoversSection()]
+          movers:   () => [renderMoversSection()],
+          markets:  () => [renderMarketsSection()],
+          firms:    () => [renderFirmsSection()]
         };
         sections.push(stickyhead, renderStateFilter());
         sections.push.apply(sections, (BODY[currentRoute] || BODY.overview)());

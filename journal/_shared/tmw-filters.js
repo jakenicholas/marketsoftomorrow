@@ -182,7 +182,9 @@
   window.addEventListener('popstate', function () { apply(readFrom(), { silentUrl: true }); });
 
   // ── cross-surface links ───────────────────────────────────────────────────
-  var SURFACE_PATH = { journal: '/', map: '/map/', atlas: '/atlas/', explore: '/explore/' };
+  // 'explore' is an alias for the Atlas: the standalone /explore/ page was
+  // retired, and the Atlas overview is the explore surface now.
+  var SURFACE_PATH = { journal: '/', map: '/map/', atlas: '/atlas/', explore: '/atlas/' };
   function hrefFor(surface, extra) {
     var path = SURFACE_PATH[surface] || surface;
     // Start from a CLEAN query: the destination gets our filters, not our

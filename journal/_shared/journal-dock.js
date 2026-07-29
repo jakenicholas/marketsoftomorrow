@@ -1534,7 +1534,7 @@
       //    use, so it is a plain link, not a dropdown.
       var fmExplore = document.createElement('a');
       fmExplore.className = 'tmw-fm-link';
-      fmExplore.href = '/explore/';
+      fmExplore.href = '/atlas/';   // the Atlas IS Explore now; /explore/ is retired
       fmExplore.textContent = 'Explore';
       if (/^\/explore\//.test(location.pathname)) fmExplore.classList.add('active');
       var fmLists = makeFm('The Lists', theListsPanel());

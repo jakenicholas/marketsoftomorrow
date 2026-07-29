@@ -54,3 +54,9 @@
 /map/developers/*    /firm/:splat    301
 /architects/*        /firm/:splat    301
 /developers/*        /firm/:splat    301
+
+# The standalone /explore/ landing page is retired — it was a weaker Atlas.
+# The Atlas overview IS the explore surface now.
+/explore         /atlas/    301
+/explore/        /atlas/    301
+/explore/*       /atlas/    301
