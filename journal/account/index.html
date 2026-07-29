@@ -206,7 +206,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .pf-kpi .v{font-family:var(--serif,Georgia,serif);font-size:27px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
 .pf-kpi .v.g{color:#42EB81}.pf-kpi .v.p{color:#B9A6FF}.pf-kpi .v.r{color:#FF5C5C}.pf-kpi .v.a{color:#F5A623}
 .pf-kpi .k{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C;margin-top:8px}
-.pf-kpi .x{font-size:11px;color:#C2C9C3;margin-top:4px}
+.pf-kpi .pf-x{font-size:11px;color:#C2C9C3;margin-top:4px;line-height:1.35}
 .pf-sec-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin:26px 0 12px}
 .pf-book{display:flex;flex-direction:column;gap:1px}
 .pf-row{display:grid;grid-template-columns:1.6fr 1fr auto;gap:14px;align-items:center;padding:13px 12px;
@@ -600,10 +600,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
     try{ mk=intel&&intel.markets&&intel.markets[projectSlugify(topCity)]; }catch(e){}
     var lvlClass=mk?(mk.level==='Saturated'?'r':mk.level==='Elevated'?'a':'g'):'';
     var kpis='<div class="pf-kpis">'
-      + '<div class="pf-kpi"><div class="v">'+book.length+'</div><div class="k">In your book</div><div class="x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
-      + (mk?'<div class="pf-kpi"><div class="v '+lvlClass+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
-      + (capTotal?'<div class="pf-kpi"><div class="v g">'+pfMoney(capTotal)+'</div><div class="k">Capital tracked</div><div class="x">across '+caps.filter(Boolean).length+' financed</div></div>':'')
-      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+upcoming[0].slice(0,7)+'</div><div class="k">Next delivery</div><div class="x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
+      + '<div class="pf-kpi"><div class="v">'+book.length+'</div><div class="k">In your book</div><div class="pf-x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
+      + (mk?'<div class="pf-kpi"><div class="v '+lvlClass+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="pf-x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
+      + (capTotal?'<div class="pf-kpi"><div class="v g">'+pfMoney(capTotal)+'</div><div class="k">Capital tracked</div><div class="pf-x">across '+caps.filter(Boolean).length+' financed</div></div>':'')
+      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+upcoming[0].slice(0,7)+'</div><div class="k">Next delivery</div><div class="pf-x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
       + '</div>';
     // the book
     var rows=book.slice().sort(function(a,b){ return pfPct(b.Delivery)-pfPct(a.Delivery); }).map(function(p){
