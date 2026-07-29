@@ -28011,9 +28011,125 @@
   <script data-tmw-paywall-loader></script>
   <script src="/_shared/journal-auth.js" defer data-tmw-auth-loader></script>
   <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/tmw-filters.js"></script>
   <script src="/_shared/journal-dock.js" defer></script>
   <!-- Shared Pro paywall — the ONE pricing pop-up (same as journal + /pro). The
        map's showSubscriptionPaywall() delegates to window.tmwShowPaywall(). -->
   <script src="/_shared/journal-paywall.js" defer></script>
+
+  <!-- ───────────────────────────────────────────────────────────────────────
+       SHARED FILTER STATE  (/_shared/tmw-filters.js)
+       The map and the Atlas render the same projects two ways. This block is
+       the map's half of the contract: it applies the shared city/type/status/
+       year on arrival, and writes the map's own filter changes back out so the
+       header toggle can hand them to the Atlas.
+
+       Deliberately additive. The map's filter code is tangled with its
+       rendering, so rather than refactor it this listens on the same controls
+       and calls the map's own update functions. Two names to know: the
+       `locationFilter*` selects are the STATUS selects (they are populated
+       from f.properties.delivery despite the name), and the year axis is the
+       Time Scrubber via window._scrubYear.
+       ─────────────────────────────────────────────────────────────────────── -->
+  <script>
+  (function () {
+    var IDS = {
+      type:   ['projectTypeFilterDesktop', 'projectTypeFilterMobile'],
+      status: ['locationFilterDesktop', 'locationFilterMobile']   // yes: status
+    };
+    var _applying = false;   // guard: our own writes must not echo back in
+
+    function el(id) { return document.getElementById(id); }
+    function ready() {
+      if (!window.tmwFilters || !window.activeFilters) return false;
+      var t = el('projectTypeFilterDesktop');
+      // wait until the selects have been populated from the data
+      return !!(t && t.options && t.options.length > 1);
+    }
+
+    // ── shared → map ────────────────────────────────────────────────────────
+    function applyInbound() {
+      var f = window.tmwFilters.get();
+      _applying = true;
+      try {
+        var typeVal   = f.type   ? (window.tmwFilters.TYPE_DISPLAY[f.type] || '') : '';
+        var statusVal = f.status ? (window.tmwFilters.STATUS_DISPLAY[f.status] || '') : '';
+
+        [['type', typeVal], ['status', statusVal]].forEach(function (pair) {
+          var key = pair[0], want = pair[1];
+          // Only set a value the select actually offers, otherwise the map
+          // would filter to a value that matches nothing.
+          var usable = '';
+          IDS[key].forEach(function (id) {
+            var sel = el(id); if (!sel || !want) return;
+            for (var i = 0; i < sel.options.length; i++) {
+              if (sel.options[i].value === want) { usable = want; break; }
+            }
+          });
+          var v = usable || 'all';
+          IDS[key].forEach(function (id) { var sel = el(id); if (sel) sel.value = v; });
+          window.activeFilters.desktop[key] = v;
+          window.activeFilters.mobile[key]  = v;
+        });
+
+        if (f.year) {
+          window._scrubYear = parseInt(f.year, 10);
+          var scrub = document.querySelector('.tmw-il-scrub, [data-scrub]');
+          if (scrub) {
+            var yrEl = scrub.querySelector('.tmw-il-yr');
+            if (yrEl) yrEl.textContent = f.year;
+          }
+        }
+
+        if (typeof updateMapPinFilters === 'function') updateMapPinFilters();
+        ['gridDesktop', 'gridMobile'].forEach(function (g) {
+          try { if (typeof renderGrid === 'function') renderGrid(g); } catch (e) {}
+          try { if (typeof updateResultCount === 'function') updateResultCount(g); } catch (e) {}
+        });
+        ['desktop', 'mobile'].forEach(function (pf) {
+          try { if (typeof renderPills === 'function') renderPills(pf); } catch (e) {}
+          try { if (typeof updateFilterBadge === 'function') updateFilterBadge(pf); } catch (e) {}
+        });
+      } finally { _applying = false; }
+    }
+
+    // ── map → shared ────────────────────────────────────────────────────────
+    function pushOutbound() {
+      if (_applying) return;
+      var a = window.activeFilters;
+      var typeDisp   = a.desktop.type   !== 'all' ? a.desktop.type   : (a.mobile.type   !== 'all' ? a.mobile.type   : '');
+      var statusDisp = a.desktop.status !== 'all' ? a.desktop.status : (a.mobile.status !== 'all' ? a.mobile.status : '');
+      window.tmwFilters.set({
+        type:   typeDisp   || null,     // normalize() folds display → slug
+        status: statusDisp || null,
+        year:   window._scrubYear ? String(window._scrubYear) : null
+      }, { silent: true });
+    }
+
+    function wire() {
+      Object.keys(IDS).forEach(function (key) {
+        IDS[key].forEach(function (id) {
+          var sel = el(id); if (!sel || sel.__tmwF) return;
+          sel.__tmwF = 1;
+          // Registered after the map's own handler, so activeFilters is
+          // already updated by the time this reads it.
+          sel.addEventListener('change', function () { setTimeout(pushOutbound, 0); });
+        });
+      });
+      var slider = document.querySelector('.tmw-il-scrub input');
+      if (slider && !slider.__tmwF) {
+        slider.__tmwF = 1;
+        slider.addEventListener('input', function () { setTimeout(pushOutbound, 0); });
+      }
+      // Changes we did not make (back/forward, or a link that carried state).
+      window.tmwFilters.onChange(function () { if (!_applying) applyInbound(); });
+    }
+
+    (function boot(tries) {
+      if (ready()) { wire(); applyInbound(); return; }
+      if ((tries || 0) < 120) setTimeout(function () { boot((tries || 0) + 1); }, 250);
+    })(0);
+  })();
+  </script>
 </body>
 </html>
