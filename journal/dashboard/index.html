@@ -222,6 +222,23 @@ main.wrap{padding-bottom:70px}
 .pf-addbtn{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#070807;background:#1FDF67;
   padding:7px 14px;border-radius:999px;text-decoration:none;white-space:nowrap}
 .pf-addbtn:hover{filter:brightness(1.08)}
+/* Saved-view tiles. A saved view IS the pin: the same {route, filter} object
+   the Atlas writes, rendered here as a live module with its own count. */
+.svw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
+.svw{position:relative;display:block;padding:16px 17px 15px;border:1px solid var(--hair);border-radius:15px;
+  background:rgba(255,255,255,.028);text-decoration:none;color:inherit;transition:.16s}
+.svw:hover{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.06);transform:translateY(-2px)}
+.svw .v{font-family:var(--serif);font-size:30px;font-weight:600;color:#fff;line-height:1;letter-spacing:-.02em}
+.svw .v.dim{color:var(--mute);font-size:20px}
+.svw .n{font-size:13.5px;font-weight:600;color:#fff;margin-top:10px;line-height:1.35}
+.svw .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+.svw-x{position:absolute;top:9px;right:9px;background:none;border:0;color:var(--mute);cursor:pointer;
+  font-size:11px;padding:4px 6px;border-radius:6px;opacity:0;transition:.15s}
+.svw:hover .svw-x{opacity:1}
+.svw-x:hover{color:#FF8A8A;background:rgba(255,92,92,.12)}
+.svw-cta{display:inline-block;margin-top:14px;background:#1FDF67;color:#070807;text-decoration:none;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  padding:10px 18px;border-radius:999px}
 .pf-two{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:24px}
 @media(max-width:820px){.pf-two{grid-template-columns:1fr}}
 .pf-card{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.028);padding:17px 19px 19px}
@@ -350,7 +367,9 @@ main.wrap{padding-bottom:70px}
   </section>
 
   <section data-tab-panel="dashboard">
-    <div class="sechead"><h2>Dashboard</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
+    <div class="sechead"><h2>Your views</h2><span class="lbl" id="svwLbl">&nbsp;</span></div>
+    <div id="svwBody"><div class="empty">Loading&hellip;</div></div>
+    <div class="sechead" style="margin-top:34px"><h2>This week</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
     <div id="briefBody"><div class="empty">Loading&hellip;</div></div>
   </section>
 
@@ -438,6 +457,8 @@ main.wrap{padding-bottom:70px}
   var tries=0;(function w(){if(window.qrcode){build(lastNo);return;}if(tries++<60)setTimeout(w,60);})();
 })();
 </script>
+<script src="/_shared/tmw-filters.js"></script>
+<script src="/_shared/tmw-views.js"></script>
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/journal-auth.js" defer></script>
@@ -724,6 +745,75 @@ main.wrap{padding-bottom:70px}
     if(!mo) return y;
     return 'Q'+Math.min(4,Math.ceil(mo/3))+' '+y;
   }
+  // ── Your views ─────────────────────────────────────────────────────────
+  // Each saved view renders as a LIVE module, not a bookmark: the count is
+  // recomputed here from projects-flat through the same tmwFilters.matches
+  // predicate the Atlas and the map use, so a tile can never disagree with
+  // the surface it links to. That shared predicate is the whole reason a
+  // "pin" is cheap — the tile does not need its own idea of what matches.
+  // Local escape rather than the file's `esc`: there are two of them at
+  // different nesting levels here, and quietly picking up the wrong one (the
+  // ASCII-card version, which does not escape quotes) would break attributes.
+  function svwEsc(x){
+    return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  var _svwFlat = null, _svwFlatP = null;
+  function svwProjects(){
+    if(_svwFlat) return Promise.resolve(_svwFlat);
+    if(_svwFlatP) return _svwFlatP;
+    _svwFlatP = fetch('https://www.oftmw.com/map/projects-flat.json',{cache:'no-cache'})
+      .then(function(r){ return r.ok?r.json():[]; })
+      .then(function(d){ _svwFlat = Array.isArray(d)?d:[]; return _svwFlat; })
+      .catch(function(){ _svwFlat = []; return _svwFlat; });
+    return _svwFlatP;
+  }
+  var SVW_ROUTE={overview:'Overview',markets:'Markets',projects:'Projects',firms:'Firms',
+                 supply:'Supply',pricing:'Pricing',capital:'Capital',pipeline:'Pipeline'};
+  function svwCount(view, rows){
+    // Only project-shaped routes have a meaningful count. Firms and Markets
+    // count something else entirely, so show the filter instead of a wrong
+    // number — a confidently wrong figure is worse than none.
+    if(['firms','markets'].indexOf(view.route)>=0) return null;
+    if(!window.tmwFilters) return null;
+    var n=0;
+    for(var i=0;i<rows.length;i++){ if(window.tmwFilters.matches(rows[i], view.filter||{})) n++; }
+    return n;
+  }
+  function renderViews(){
+    var body=document.getElementById('svwBody'), lbl=document.getElementById('svwLbl');
+    if(!body) return;
+    if(!window.tmwViews){ setTimeout(renderViews,300); return; }
+    Promise.all([window.tmwViews.list(), svwProjects()]).then(function(o){
+      var views=o[0]||[], rows=o[1]||[];
+      if(lbl) lbl.textContent = views.length ? (views.length+' saved') : '';
+      if(!views.length){
+        body.innerHTML='<div class="empty">Nothing pinned yet. Filter the Atlas to something you care about, '
+          + 'hit <b>Save view</b>, and it becomes a live tile here.</div>'
+          + '<a class="svw-cta" href="/atlas/">Open the Atlas &rarr;</a>';
+        return;
+      }
+      body.innerHTML='<div class="svw-grid">'+views.map(function(v){
+        var c=svwCount(v,rows);
+        var big = c===null
+          ? '<div class="v dim">'+svwEsc(window.tmwFilters?window.tmwFilters.label(v.filter||{})||'All':'All')+'</div>'
+          : '<div class="v">'+c+'</div>';
+        return '<a class="svw" href="'+svwEsc(window.tmwViews.href(v))+'">'
+          + '<button class="svw-x" type="button" data-svw-del="'+svwEsc(v.id)+'" aria-label="Remove">&#10005;</button>'
+          + big
+          + '<div class="n">'+svwEsc(v.name)+'</div>'
+          + '<div class="k">'+svwEsc(SVW_ROUTE[v.route]||v.route)+(c===null?'':' &middot; projects')+'</div>'
+          + '</a>';
+      }).join('')+'</div>';
+    });
+  }
+  document.addEventListener('click',function(e){
+    var d=e.target.closest && e.target.closest('[data-svw-del]');
+    if(!d||!window.tmwViews) return;
+    e.preventDefault(); e.stopPropagation();
+    window.tmwViews.remove(d.getAttribute('data-svw-del')).then(renderViews);
+  });
+
   function loadBrief(){
     if(_briefDone) return; _briefDone=true;
     var wk=briefWeekOf();
@@ -872,7 +962,7 @@ main.wrap{padding-bottom:70px}
     var id=b.getAttribute('data-tab');
     document.querySelectorAll('[data-tab-panel]').forEach(function(p){p.hidden=p.getAttribute('data-tab-panel')!==id});
     if(id==='articles') loadSaved();
-    if(id==='dashboard') loadBrief();
+    if(id==='dashboard'){ loadBrief(); renderViews(); }
   })});
   // Deep-link a tab via the hash (e.g. /account#saved), on load + change.
   // 'watchlist' now resolves to Overview (the unified "Your watches" surface).
@@ -892,7 +982,7 @@ main.wrap{padding-bottom:70px}
   }
   // Dashboard is the default tab, and its data only loaded on a tab CLICK
   // before. With no hash there is no click, so kick the loader here.
-  if(!tabFromHash()) loadBrief();
+  if(!tabFromHash()){ loadBrief(); renderViews(); }
   window.addEventListener('hashchange',tabFromHash);
 
   // ── project watches (Memberstack `favorites` × projects-flat.json) ──
