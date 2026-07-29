@@ -3587,6 +3587,23 @@ function htmlToText(html) {
     .trim();
 }
 
+// Paragraph-PRESERVING html→text (htmlToText flattens all whitespace, which
+// destroys the structural signal the voice system depends on: paragraph rhythm,
+// ledes, kickers). Block-level boundaries become blank lines. Skips figcaption
+// and blockquote attribution noise staying inline; good enough for stylometry.
+function htmlToProse(html) {
+  if (!html) return '';
+  return String(html)
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<\/(p|div|h[1-6]|li|blockquote|figure|section|article)>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .split(/\n{2,}/).map((p) => p.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n\n')
+    .trim();
+}
+
 function decodeXml(s) {
   if (!s) return '';
   return s
@@ -4622,6 +4639,7 @@ function rowToPostFull(r) {
     body_source: r.body_source,
     created_at: r.created_at,
     updated_at: r.updated_at,
+    voice_exemplar: r.voice_exemplar ? 1 : 0,
   });
 }
 function safeJsonArray(s) {
@@ -5482,6 +5500,7 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('categories' in body) patch.categories = JSON.stringify(asStringArray(body.categories));
   if ('tags'       in body) patch.tags       = JSON.stringify(asStringArray(body.tags));
   if ('featured'   in body) patch.featured   = body.featured ? 1 : 0;
+  if ('voice_exemplar' in body) patch.voice_exemplar = body.voice_exemplar ? 1 : 0;   // gold-standard voice pin (article writer few-shots these)
   if ('main_category' in body) patch.main_category = body.main_category ? String(body.main_category) : null;
   if ('published_at'  in body) patch.published_at  = body.published_at ? Number(body.published_at) : null;
   if ('post_type'    in body) patch.post_type    = normalizePostType(body.post_type);
@@ -5583,20 +5602,31 @@ export async function rejectedTopics(env, days = 120) {
 }
 // Does a proposed topic collide with a rejected title? Distinctive-token match
 // (e.g. "shorecrest", "edition") + embedding similarity as backstop.
-const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update']);
+// Includes generic street/money/headline words: "avenue" alone matched a Miami
+// Beach hotel reno against a Fifth Avenue supertall and blocked real coverage.
+const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded']);
 export async function topicRejected(env, topic, days = 120) {
   const rejected = await rejectedTopics(env, days);
   if (!rejected.length) return null;
   const toksOf = (x) => String(x).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length >= 6 && !TOPIC_STOP.has(w));
   const tt = new Set(toksOf(topic));
   for (const r of rejected) {
-    if (toksOf(r.title).some((w) => tt.has(w))) return r;
+    // ≥2 shared distinctive tokens, not 1: a lone shared token is usually a
+    // BRAND ("senses" blocked Six Senses Telluride over a rejected Six Senses
+    // Saudi story) or a street word. Same-story rephrasings that slip past
+    // this are caught by the 0.90 embedding backstop below.
+    if (toksOf(r.title).filter((w) => tt.has(w)).length >= 2) return r;
   }
   if (retrievalReady(env)) {
     try {
       const vecs = await embedTexts(env, [String(topic).slice(0, 300)].concat(rejected.map((r) => r.title.slice(0, 300))));
       for (let i = 1; i < vecs.length; i++) {
-        if (cosineSim(vecs[0], vecs[i]) >= 0.78) return rejected[i - 1];
+        // 0.90, raised from 0.78: at 0.78 ANY two SoFla development stories
+        // false-matched (a Miami Beach hotel reno "collided" with a Manhattan
+        // supertall), blocking legitimate coverage whenever a few drafts had
+        // been rejected. 0.90 = same-story rephrasings only; distinct-token
+        // overlap above already catches shared names.
+        if (cosineSim(vecs[0], vecs[i]) >= 0.90) return rejected[i - 1];
       }
     } catch (_) {}
   }
@@ -5699,6 +5729,25 @@ async function captureEditLesson(env, post) {
   if (!orig || !final || orig === final) return;
   // Skip trivial edits — only learn from a real revision.
   if (orig.slice(0, 4000) === final.slice(0, 4000) && Math.abs(final.length - orig.length) < 40) return;
+  // THE EDITOR'S HAND — store the most-instructive before→after paragraph pair
+  // verbatim (events 'edit_pair'). Rules distill what changed; the raw pair
+  // SHOWS it, and article prompts inject the last few as few-shot corrections.
+  // Heuristic: the first paragraph of the AI draft that vanished from the
+  // published text, paired with the first published paragraph that wasn't in
+  // the draft — in practice the editor's rewrite of that same passage.
+  try {
+    const paras = (t) => t.split(/\n{2,}/).map(s => s.replace(/\s+/g, ' ').trim()).filter(p => p.length > 60);
+    // htmlToText flattens paragraphs; re-extract with structure preserved.
+    const po = paras(htmlToProse(post.ai_original_html || '')), pf = paras(htmlToProse(post.body_html || ''));
+    const fSet = new Set(pf), oSet = new Set(po);
+    const before = po.find(p => !fSet.has(p));
+    const after = pf.find(p => !oSet.has(p));
+    if (before && after && before !== after) {
+      await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+        .bind(Math.floor(Date.now() / 1000), String(post.slug || post.id || ''), 'edit_pair',
+          JSON.stringify({ slug: String(post.slug || ''), before: before.slice(0, 420), after: after.slice(0, 420) })).run();
+    }
+  } catch (_) {}
   const sys = 'You improve an AI writing system for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written article before publishing. Compare the ORIGINAL (AI) and PUBLISHED (human-edited) versions and extract AT MOST 2 lessons — usually 0 or 1 — that are WIDE-SCOPED house-voice patterns applying to MANY future articles across any subject. '
     + 'This is a compounding brain, so be conservative: a lesson must be a durable stylistic RULE (tone, structure, length, phrasing habits to keep or avoid), NOT a fix specific to this article. '
     + 'HARD FILTERS — return an empty array unless a change clearly generalizes. Ignore: any article-specific fact (a price, a name, a date, a project detail); a one-off rewording; anything that only makes sense for this subject; cosmetic/whitespace edits. If several edits all express ONE underlying pattern, output that ONE pattern, not several. Prefer 0 lessons over a narrow one. '
@@ -8627,6 +8676,7 @@ async function matchDesignsToIgPosts(env, { minSim = 55, maxDesigns = 400 } = {}
 const BRAIN_AUTOPILOT_PHASES = [
   { name: 'sync', run: (env) => syncSocialPosts(env, { days: 120, maxPer: 80 }) },
   { name: 'match-perf', run: (env) => matchDesignsToIgPosts(env) },
+  { name: 'fingerprint', run: (env) => handleBuildFingerprint(internalReq('/admin/brain/fingerprint', env, { sample: 150 }), env, 'internal') },
   { name: 'learn-corpus', run: (env) => handleLearnCorpus(internalReq('/admin/brain/learn-corpus', env, { top: 48 }), env, 'internal') },
   { name: 'learn-social', run: (env) => handleLearnSocial(internalReq('/admin/brain/learn-social', env, { top: 48 }), env, 'internal') },
   { name: 'learn-carousels', run: (env) => handleLearnCarousels(internalReq('/admin/brain/learn-carousels', env, { top: 60 }), env, 'internal') },
@@ -11679,6 +11729,228 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
   return '';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// THE VOICE FINGERPRINT — quantitative stylometry of TMW prose, measured from
+// the published corpus instead of described in adjectives. Built by
+// POST /admin/brain/fingerprint (stats computed deterministically in JS + one
+// Fable pass distilling headline/lede/kicker patterns and the anti-vocabulary),
+// stored versioned in events('voice_fingerprint'). Injected into every article
+// prompt as a hard spec, and used by voiceScore() to grade drafts objectively.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Deterministic stylometry for one text: sentence/paragraph rhythm numbers.
+export function computeStyleStats(text) {
+  const t = String(text || '').trim();
+  if (!t) return null;
+  const paras = t.split(/\n{2,}/).map(s => s.trim()).filter(p => p.length > 1);
+  // Sentences split per-paragraph so headings/captions never glue into run-ons.
+  const splitSents = (p) => p.replace(/\s+/g, ' ').split(/(?<=[.!?…])\s+(?=["“(]?[A-Z$0-9])/).map(s => s.trim()).filter(s => s.length > 1);
+  const sents = paras.flatMap(splitSents);
+  if (!sents.length) return null;
+  const wc = s => s.split(/\s+/).filter(Boolean).length;
+  const sw = sents.map(wc).sort((a, b) => a - b);
+  const med = sw[Math.floor(sw.length / 2)];
+  const mean = sw.reduce((a, b) => a + b, 0) / sw.length;
+  const sd = Math.sqrt(sw.reduce((a, b) => a + (b - mean) * (b - mean), 0) / sw.length);
+  const pw = paras.map(p => splitSents(p).length).filter(n => n > 0);
+  return {
+    sentences: sents.length,
+    sent_median_words: med,
+    sent_mean_words: Math.round(mean * 10) / 10,
+    sent_sd_words: Math.round(sd * 10) / 10,                                     // burstiness — human prose varies; AI flatlines
+    pct_short: Math.round(100 * sw.filter(w => w <= 8).length / sw.length),      // punchy fragments
+    pct_long: Math.round(100 * sw.filter(w => w >= 30).length / sw.length),      // run-ons
+    paras: paras.length,
+    para_mean_sents: pw.length ? Math.round(10 * pw.reduce((a, b) => a + b, 0) / pw.length) / 10 : 0,
+    para_max_sents: pw.length ? Math.max(...pw) : 0,
+  };
+}
+
+// Default anti-vocabulary — canonical AI-prose tells. The fingerprint build
+// extends this with corpus-specific banned phrases (what the editor deletes).
+const AI_TELLS = ['isn\'t just', 'is not just', 'more than just', 'it\'s worth noting', 'nestled', 'boasts', 'vibrant', 'stunning', 'seamlessly', 'underscores', 'testament to', 'a new chapter', 'redefine', 'reimagine', 'elevate the', 'in the heart of', 'stands as a', 'poised to', 'the result is a', 'at the end of the day', 'game-changer', 'landscape of', 'tapestry', 'meticulously', 'sleek', 'world-class amenities'];
+
+// Salvage a truncated LLM JSON response: cut back to the last complete string
+// literal, then append whatever closers the open brackets need. Long list-heavy
+// outputs routinely hit max_tokens mid-array; this recovers everything up to
+// the cut instead of discarding the whole response.
+export function repairTruncatedJson(raw) {
+  let s = String(raw || '').replace(/```json|```/g, '');
+  const a = s.indexOf('{'); if (a === -1) return null;
+  s = s.slice(a);
+  try { return JSON.parse(s); } catch (_) {}
+  for (let cut = s.length; cut > 0;) {
+    const q = s.lastIndexOf('"', cut - 1);
+    if (q <= 0) return null;
+    if (s[q - 1] === '\\') { cut = q; continue; }        // escaped quote — not a string end
+    const head = s.slice(0, q + 1);
+    // Bracket-balance the prefix outside string literals.
+    const stack = []; let inStr = false, esc = false, valid = true;
+    for (const c of head) {
+      if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+      if (c === '"') inStr = true;
+      else if (c === '{' || c === '[') stack.push(c);
+      else if (c === '}') { if (stack.pop() !== '{') { valid = false; break; } }
+      else if (c === ']') { if (stack.pop() !== '[') { valid = false; break; } }
+    }
+    if (valid && !inStr && stack.length) {
+      const closers = stack.reverse().map(c => (c === '{' ? '}' : ']')).join('');
+      try { return JSON.parse(head + closers); } catch (_) {}
+    }
+    cut = q;
+  }
+  return null;
+}
+
+let _fpCache = null, _fpAt = 0;
+export async function getFingerprint(env) {
+  if (_fpCache && Date.now() - _fpAt < 300000) return _fpCache;
+  try {
+    const r = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='voice_fingerprint' ORDER BY ts DESC LIMIT 1`).first();
+    if (r && r.props_json) { _fpCache = JSON.parse(r.props_json); _fpAt = Date.now(); return _fpCache; }
+  } catch (_) {}
+  return null;
+}
+
+// Render the fingerprint as the injectable prompt spec. Compact by design —
+// numbers and patterns, not essays.
+export function fingerprintSpecText(fp, storyType = '') {
+  if (!fp) return '';
+  const L = [];
+  const s = fp.stats || {};
+  if (s.sent_median_words) L.push(`Sentence rhythm (measured from our ${fp.articles || ''} published articles): median ${s.sent_median_words} words, VARY hard (σ≈${s.sent_sd_words}); ~${s.pct_short}% of sentences are ≤8-word punches; ≥30-word sentences are rare (~${s.pct_long}%). Never write three same-length sentences in a row.`);
+  if (s.para_mean_sents) L.push(`Paragraphs average ${s.para_mean_sents} sentences; never exceed ${Math.max(4, s.para_max_sents || 4)}.`);
+  if (Array.isArray(fp.headline_patterns) && fp.headline_patterns.length) L.push('HEADLINES follow these house patterns:\n' + fp.headline_patterns.slice(0, 6).map(p => '  • ' + p).join('\n'));
+  if (Array.isArray(fp.lede_moves) && fp.lede_moves.length) L.push('LEDES (first 1-2 sentences) use these moves:\n' + fp.lede_moves.slice(0, 5).map(p => '  • ' + p).join('\n'));
+  if (Array.isArray(fp.kicker_moves) && fp.kicker_moves.length) L.push('CLOSINGS land like this (never editorialize significance):\n' + fp.kicker_moves.slice(0, 4).map(p => '  • ' + p).join('\n'));
+  if (Array.isArray(fp.signature_phrases) && fp.signature_phrases.length) L.push('Signature TMW constructions (use naturally, do not force): ' + fp.signature_phrases.slice(0, 10).join(' · '));
+  const banned = [...new Set([...(fp.banned_phrases || []), ...AI_TELLS])];
+  L.push('BANNED (these phrases mark a draft as AI and get it rejected): ' + banned.slice(0, 40).join(', '));
+  if (Array.isArray(fp.story_types) && fp.story_types.length) {
+    const st = storyType ? fp.story_types.find(x => x && x.type === storyType) : null;
+    if (st && st.skeleton) L.push(`STORY SHAPE "${st.type}" — structure this piece as: ${st.skeleton}`);
+    else L.push('STORY SHAPES — first identify which of these this assignment is, then follow its skeleton:\n'
+      + fp.story_types.map(t => `  • ${t.type} (${t.cue}): ${t.skeleton}`).join('\n'));
+  }
+  return L.join('\n');
+}
+
+// Deterministic draft grade against the fingerprint. Returns violations — each
+// concrete and fixable — that feed the revision loop alongside the Turing tells.
+export function voiceScore(text, fp) {
+  const out = [];
+  const t = String(text || '');
+  if (!t.trim()) return out;
+  const low = t.toLowerCase();
+  const banned = [...new Set([...((fp && fp.banned_phrases) || []), ...AI_TELLS])];
+  for (const b of banned) { if (b && low.includes(b.toLowerCase())) out.push(`banned phrase present: "${b}"`); }
+  if (t.includes('—')) out.push('em dash present (house style: commas or periods)');
+  const st = computeStyleStats(t);
+  const ref = fp && fp.stats;
+  if (st && ref) {
+    if (ref.sent_median_words && Math.abs(st.sent_median_words - ref.sent_median_words) > 6) out.push(`sentence median ${st.sent_median_words}w vs house ${ref.sent_median_words}w — re-balance sentence lengths`);
+    if (ref.sent_sd_words && st.sent_sd_words < ref.sent_sd_words * 0.55) out.push(`sentence rhythm too uniform (σ ${st.sent_sd_words} vs house ${ref.sent_sd_words}) — vary lengths, add short punches`);
+    if (ref.pct_short >= 8 && st.pct_short < Math.max(2, ref.pct_short - 12)) out.push(`only ${st.pct_short}% short punchy sentences vs house ~${ref.pct_short}% — add short declaratives`);
+    if (st.pct_long > (ref.pct_long || 5) + 12) out.push(`${st.pct_long}% of sentences run ≥30 words — break them up`);
+    if (ref.para_max_sents && st.para_max_sents > ref.para_max_sents + 2) out.push(`a paragraph runs ${st.para_max_sents} sentences — house max is ~${ref.para_max_sents}`);
+  }
+  return out.slice(0, 12);
+}
+
+// THE TURING GATE — adversarial voice discriminator. The draft is planted at a
+// random position among real published TMW articles and a judge is asked to
+// spot the AI-written one and name the tells. If the judge catches the draft,
+// the tells feed a targeted revision (in the authoring tools) and it re-judges.
+// A draft "passes" when the judge picks a REAL article instead. Best-effort:
+// any failure returns judged:false and never blocks authoring.
+export async function turingJudge(env, { draft = '', real = [] } = {}) {
+  try {
+    const panel = (real || []).filter(r => r && r.body).slice(0, 2);
+    if (!draft.trim() || panel.length < 2) return { judged: false };
+    const clip = (s) => String(s).slice(0, 2600);
+    const texts = panel.map(p => clip(p.body));
+    const pos = Math.floor(Math.random() * 3);                 // plant the draft at a random slot
+    texts.splice(pos, 0, clip(draft));
+    const sys = 'You are a forensic prose analyst. Exactly ONE of the three articles below was written by an AI; the other two are real published pieces from the same publication. Identify the AI one by its prose (rhythm, word choice, structural tells, how it opens and closes), not by topic. Output ONLY JSON: {"ai_index":<0|1|2>,"confidence":"low"|"medium"|"high","tells":["<concrete, fixable tell — quote the offending phrase or name the exact pattern>"]}. 2-5 tells.';
+    const usr = texts.map((t, i) => `ARTICLE ${i}:\n${t}`).join('\n\n════════\n\n');
+    const v = parseLLMJson(await fableGenerate(env, { system: sys, user: usr, maxTokens: 700 }));
+    if (!v || typeof v.ai_index !== 'number') return { judged: false };
+    const caught = v.ai_index === pos;
+    return {
+      judged: true, caught, confidence: String(v.confidence || 'medium'),
+      // Tells only matter when the judge actually found the draft — tells about a
+      // real article it wrongly accused would teach the writer to break the voice.
+      tells: caught ? (Array.isArray(v.tells) ? v.tells.filter(t => typeof t === 'string').slice(0, 5) : []) : [],
+    };
+  } catch (_) { return { judged: false }; }
+}
+
+// POST /admin/brain/fingerprint — (re)build the voice fingerprint from the
+// published corpus. Deterministic stats over up to `sample` top-viewed articles
+// (+ every pinned exemplar), then ONE Fable distillation over sampled
+// headlines/ledes/kickers for the pattern taxonomy. Stores events('voice_fingerprint').
+async function handleBuildFingerprint(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin); if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await req.json(); } catch (_) {}
+  const sample = Math.min(Math.max(parseInt(body.sample, 10) || 150, 30), 400);
+  let rows = [];
+  try {
+    rows = ((await env.DB.prepare(
+      `SELECT p.slug, p.title, p.body_html, p.voice_exemplar, COALESCE(pv.views,0)+COALESCE(pv.wix_views,0) AS views
+       FROM posts p LEFT JOIN post_views pv ON pv.slug=p.slug
+       WHERE p.status='published' AND LENGTH(COALESCE(p.body_html,'')) > 800
+       ORDER BY p.voice_exemplar DESC, views DESC, p.published_at DESC LIMIT ?1`
+    ).bind(sample).all()).results || []);
+  } catch (e) { return json({ error: 'posts read failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  if (rows.length < 10) return json({ error: 'need at least 10 published articles' }, { status: 400 }, env, origin);
+  // Aggregate deterministic stylometry (weighted per article, equal weight).
+  const agg = { sent_median_words: [], sent_sd_words: [], pct_short: [], pct_long: [], para_mean_sents: [], para_max_sents: [] };
+  const heads = [], ledes = [], kickers = [];
+  for (const r of rows) {
+    const text = htmlToProse(r.body_html || '');
+    const st = computeStyleStats(text);
+    if (!st) continue;
+    for (const k of Object.keys(agg)) agg[k].push(st[k]);
+    if (r.title) heads.push(String(r.title));
+    const paras = text.split(/\n{2,}/).map(s => s.trim()).filter(p => p.length > 40);
+    if (paras.length) { ledes.push(paras[0].slice(0, 320)); kickers.push(paras[paras.length - 1].slice(0, 280)); }
+  }
+  const med = a => { const s = a.filter(x => typeof x === 'number' && isFinite(x)).sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+  const stats = Object.fromEntries(Object.keys(agg).map(k => [k, med(agg[k])]));
+  // One distillation pass: patterns + taxonomy + anti-vocabulary, from real samples.
+  const sys = 'You are a forensic prose analyst building a style fingerprint for Markets of Tomorrow (TMW), a real-estate development publication. From the REAL samples given (headlines, opening paragraphs, closing paragraphs of their published work), extract the recurring, IMITABLE patterns. Be concrete and structural (name the move, give a compressed template), never generic writing advice. KEEP EVERY ITEM UNDER 140 CHARACTERS. Output ONLY JSON, no fences, no commentary: {"headline_patterns":["<pattern + compressed template>"],"lede_moves":["<how ledes open>"],"kicker_moves":["<how pieces end>"],"signature_phrases":["<recurring constructions>"],"banned_phrases":["<clichés/corporate-speak conspicuously ABSENT from these samples that a generic AI writer would use>"],"story_types":[{"type":"<kebab-slug>","cue":"<when an assignment is this type>","skeleton":"<3-6 beat structure, compressed>"}]}. 4-8 items per list; 5-8 story_types.';
+  const usr = 'HEADLINES:\n' + heads.slice(0, 70).map(h => '- ' + h).join('\n')
+    + '\n\nOPENING PARAGRAPHS:\n' + ledes.slice(0, 36).map(l => '- ' + l).join('\n')
+    + '\n\nCLOSING PARAGRAPHS:\n' + kickers.slice(0, 24).map(k => '- ' + k).join('\n');
+  let distilled = {}, distillDebug = '';
+  try {
+    const raw = await fableGenerate(env, { system: sys, user: usr.slice(0, 60000), maxTokens: 5000 });
+    if (!raw) distillDebug = 'model returned empty';
+    else {
+      distilled = parseLLMJson(raw) || repairTruncatedJson(raw) || {};
+      if (!Object.keys(distilled).length) distillDebug = 'unparseable/unsalvageable: ' + raw.slice(0, 180);
+      else if (!parseLLMJson(raw)) distillDebug = 'salvaged from truncated response (' + raw.length + ' chars)';
+    }
+  } catch (e) { distillDebug = String(e && e.message || e); }
+  const asList = (x, n) => Array.isArray(x) ? x.filter(v => typeof v === 'string' && v.trim()).slice(0, n) : [];
+  const fp = {
+    v: 1, built_at: Math.floor(Date.now() / 1000), articles: rows.length, stats,
+    headline_patterns: asList(distilled.headline_patterns, 8),
+    lede_moves: asList(distilled.lede_moves, 8),
+    kicker_moves: asList(distilled.kicker_moves, 6),
+    signature_phrases: asList(distilled.signature_phrases, 12),
+    banned_phrases: asList(distilled.banned_phrases, 30).filter(b => b.length >= 4 && b.length <= 60),
+    story_types: Array.isArray(distilled.story_types) ? distilled.story_types.filter(t => t && t.type && t.skeleton).slice(0, 8).map(t => ({ type: String(t.type).slice(0, 50), cue: String(t.cue || '').slice(0, 200), skeleton: String(t.skeleton).slice(0, 400) })) : [],
+  };
+  try {
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+      .bind(fp.built_at, 'brain-fingerprint', 'voice_fingerprint', JSON.stringify(fp)).run();
+  } catch (e) { return json({ error: 'store failed: ' + String(e && e.message || e) }, { status: 500 }, env, origin); }
+  _fpCache = fp; _fpAt = Date.now();
+  return json({ ok: true, articles: rows.length, stats, patterns: { headlines: fp.headline_patterns.length, ledes: fp.lede_moves.length, kickers: fp.kicker_moves.length, banned: fp.banned_phrases.length, story_types: fp.story_types.map(t => t.type) }, distill_debug: distillDebug || undefined }, {}, env, origin);
+}
+
 // Gold-standard article exemplars — REAL full articles the writer few-shots to
 // MATCH the TMW voice (not abstract rules distilled out of them, which is what
 // made drafts sound generic despite 1,500 articles of history). Pinned pieces
@@ -11737,7 +12009,7 @@ export async function articleExemplars(env, { topic = '', place = '', limit = 3,
     try {
       const r = await env.DB.prepare(`SELECT slug, title, excerpt, body_html FROM posts WHERE slug=?1 AND status='published'`).bind(slug).first();
       if (!r || !r.body_html) continue;
-      let body = htmlToText(r.body_html).trim();
+      let body = htmlToProse(r.body_html);
       if (body.length < 200) continue;
       if (body.length > perChars) body = body.slice(0, perChars).replace(/\s+\S*$/, '') + ' …';
       out.push({ slug: r.slug, title: String(r.title || '').slice(0, 200), excerpt: String(r.excerpt || '').slice(0, 300), body });
@@ -11753,7 +12025,7 @@ export async function articleExemplars(env, { topic = '', place = '', limit = 3,
 // Every piece is best-effort; a failure just omits that piece. Returns { text }
 // ready to drop into a system prompt, plus the structured parts.
 export async function assembleBrain(env, { topic = '', place = '', voice = true, surface = '', maxKnowledge = 4, maxFacts = 6, excludeSlug = '' } = {}) {
-  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [], articleExemplars: [] };
+  const out = { voice: '', rules: [], exemplars: [], knowledge: [], facts: [], passages: [], format: '', text: '', injected_ids: [], articleExemplars: [], fingerprint: '', editPairs: [] };
   if (!env || !env.DB) return out;
   if (voice) {
     // Surface FORMAT band — the always-on how-we-write-a-<surface> checklist for the
@@ -11799,10 +12071,26 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
     const rr = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_rules' ORDER BY ts DESC LIMIT 1`).first();
     if (rr && rr.props_json) { const pj = JSON.parse(rr.props_json); if (Array.isArray(pj.rules)) out.rules = pj.rules.filter(x => typeof x === 'string').slice(0, 15); }
   } catch (_) {}
-  try {
-    const er = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_exemplars' ORDER BY ts DESC LIMIT 1`).first();
-    if (er && er.props_json) { const pj = JSON.parse(er.props_json); if (Array.isArray(pj.exemplars)) out.exemplars = pj.exemplars.filter(e => e && e.query && e.answer).slice(0, 3); }
-  } catch (_) {}
+  // Intel Q&A exemplars are SEARCH-ANSWER voice — the wrong genre for long-form.
+  // They actively taught the article writer a factual-answer cadence, so the
+  // article surface skips them; articles get REAL full articles instead (below).
+  if (surface !== 'article') {
+    try {
+      const er = await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='intel_exemplars' ORDER BY ts DESC LIMIT 1`).first();
+      if (er && er.props_json) { const pj = JSON.parse(er.props_json); if (Array.isArray(pj.exemplars)) out.exemplars = pj.exemplars.filter(e => e && e.query && e.answer).slice(0, 3); }
+    } catch (_) {}
+  }
+  // ARTICLE surface: the voice fingerprint (measured spec) + gold-standard full
+  // articles (pinned-first, topic-matched). This is the load-bearing voice signal.
+  if (surface === 'article') {
+    try { const fp = await getFingerprint(env); if (fp) out.fingerprint = fingerprintSpecText(fp); } catch (_) {}
+    try { out.articleExemplars = await articleExemplars(env, { topic, place, limit: 3, excludeSlug }); } catch (_) {}
+    // The editor's hand: recent before→after pairs from human edits of AI drafts.
+    try {
+      const rows = (await env.DB.prepare(`SELECT props_json FROM events WHERE event_name='edit_pair' ORDER BY ts DESC LIMIT 4`).all()).results || [];
+      out.editPairs = rows.map(r => { try { return JSON.parse(r.props_json); } catch { return null; } }).filter(p => p && p.before && p.after);
+    } catch (_) {}
+  }
   const q = [topic, place].filter(Boolean).join(' ').trim();
   if (q && retrievalReady(env)) {
     try {
@@ -11821,12 +12109,19 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
   }
   const parts = [];
   if (out.format) { const sName = surface === 'social' ? 'CAPTION' : surface === 'carousel' ? 'CAROUSEL' : 'ARTICLE'; parts.push(sName + ' FORMAT RULES (how we write every ' + (surface === 'social' ? 'caption' : surface) + ' — learned from our best-performing work, always apply):\n' + out.format); }
+  if (out.fingerprint) parts.push('VOICE FINGERPRINT (measured from our published corpus — this is a SPEC, not advice; drafts are scored against it):\n' + out.fingerprint);
   if (out.voice) parts.push('HOUSE VOICE & RULES (Markets of Tomorrow brand brain — follow this):\n' + out.voice);
   if (out.rules.length) parts.push('LEARNED EDITORIAL RULES (what the intelligence engine has learned works):\n' + out.rules.map(r => '- ' + r).join('\n'));
   if (out.knowledge.length) parts.push('BACKGROUND KNOWLEDGE (evergreen context for accuracy — do not quote verbatim):\n' + out.knowledge.map(k => '- ' + k).join('\n'));
   if (out.facts.length) parts.push('RELATED IN OUR DATABASE (real projects/articles we track — reference where relevant, never invent details):\n' + out.facts.map(f => `- ${f.title}${f.where ? ' — ' + f.where : ''}${f.status ? ' (' + f.status + ')' : ''} [${f.kind}]`).join('\n'));
   if (out.exemplars.length) parts.push('EXEMPLARS (voice/structure to echo, not facts):\n' + out.exemplars.map(e => `Q: ${e.query}\nA: ${e.answer}`).join('\n\n'));
-  if (out.passages && out.passages.length) parts.push('PAST COVERAGE PASSAGES (real excerpts from our own archive — echo the tone and framing, never copy verbatim or restate as a new fact):\n' + out.passages.map(p => '- ' + p).join('\n'));
+  // Articles get FULL gold-standard pieces (supersedes the old 300-char passages,
+  // which are skipped for this surface); other surfaces keep the short passages.
+  if (out.passages && out.passages.length && surface !== 'article') parts.push('PAST COVERAGE PASSAGES (real excerpts from our own archive — echo the tone and framing, never copy verbatim or restate as a new fact):\n' + out.passages.map(p => '- ' + p).join('\n'));
+  if (out.editPairs && out.editPairs.length) parts.push('THE EDITOR\'S HAND (real before→after edits our human editor made to recent AI drafts — never repeat the "before" mistakes):\n'
+    + out.editPairs.map(p => `BEFORE: ${p.before}\nAFTER: ${p.after}`).join('\n---\n'));
+  if (out.articleExemplars && out.articleExemplars.length) parts.push('GOLD-STANDARD ARTICLES (real published TMW pieces — MATCH their voice, rhythm, structure, and how they open and land. Echo the voice, NEVER their facts):\n'
+    + out.articleExemplars.map((a, i) => `=== EXAMPLE ${i + 1}: ${a.title} ===\n${a.excerpt ? a.excerpt + '\n' : ''}${a.body}`).join('\n\n'));
   out.text = parts.join('\n\n');
   return out;
 }
@@ -14669,6 +14964,12 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/report-email') return await handleReportEmail(request, env, origin);
+      // Voice fingerprint: POST rebuilds from the corpus; GET returns the live one.
+      if (request.method === 'POST' && url.pathname === '/admin/brain/fingerprint') return await handleBuildFingerprint(request, env, origin);
+      if (request.method === 'GET'  && url.pathname === '/admin/brain/fingerprint') {
+        const denied = await requireAdminToken(request, env, origin); if (denied) return denied;
+        return json({ fingerprint: await getFingerprint(env) }, {}, env, origin);
+      }
       if (request.method === 'GET'  && url.pathname === '/semantic-search')     return await handleSemanticSearch(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/classify')            return await handleClassify(request, env, origin);
       // Design docs (Studio "Design" editor — admin only)

@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -1169,7 +1169,11 @@ function autoLinkInternalMd(md, ents) {
   for (const ent of cands) {
     if (report.added >= CAP) break;
     if (text.toLowerCase().includes('](' + ent.url.toLowerCase())) continue;   // already links there
-    const re = new RegExp('(^|[^\\w\\[\\]])(' + esc(ent.name) + ')(?![\\w\\]])', 'i');
+    // Single-word names must match case EXACTLY: the firm "Elevated" once
+    // linked the adjective "elevated" mid-sentence. Multi-word names are
+    // unambiguous enough to stay case-insensitive.
+    const oneWord = !/\s/.test(ent.name.trim());
+    const re = new RegExp('(^|[^\\w\\[\\]])(' + esc(ent.name) + ')(?![\\w\\]])', oneWord ? '' : 'i');
     const lines = text.split('\n');
     let done = false;
     for (let i = 0; i < lines.length && !done; i++) {
@@ -2345,6 +2349,45 @@ const IMPL = {
     };
   },
 
+  // THE VOICE GATE — every AI article must pass two objective tests before it
+  // reaches the human editor: (1) voiceScore, the deterministic grade against
+  // the measured voice fingerprint; (2) turingJudge, an adversarial "spot the
+  // AI among real TMW articles" discriminator. Failures feed ONE targeted
+  // revision (the caller's `rewrite`), then re-test. The report ships in the
+  // tool result so the caller sees exactly what was caught and fixed.
+  async _runVoiceGate(env, { text, topic = '', place = '', excludeSlugs = [], rewrite }) {
+    const gate = { scored: false };
+    // Judge on PLAIN prose — markdown syntax (links, #headers) would be a
+    // giveaway against the plain-text real articles and teach nothing.
+    const plain = (s) => String(s || '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^#+\s*/gm, '').replace(/[*_`>]/g, '');
+    try {
+      const fp = await getFingerprint(env);
+      let vio = fp ? voiceScore(plain(text), fp) : [];
+      let jury = [];
+      try {
+        const pool = await articleExemplars(env, { topic, place, limit: 6, perChars: 2600 });
+        jury = pool.filter(a => !excludeSlugs.includes(a.slug)).slice(0, 2);
+      } catch (_) {}
+      const jud = await turingJudge(env, { draft: plain(text), real: jury });
+      gate.scored = true;
+      gate.initial = { spec_violations: vio, turing: jud.judged ? (jud.caught ? 'caught (' + jud.confidence + ')' : 'passed') : 'skipped', tells: jud.tells || [] };
+      let out = text;
+      if ((vio.length || (jud.judged && jud.caught)) && typeof rewrite === 'function') {
+        const problems = vio.map(v => 'SPEC: ' + v).concat((jud.tells || []).map(t => 'TELL (a forensic judge spotted this as AI-written): ' + t));
+        const revised = await rewrite(problems, fp ? fingerprintSpecText(fp) : '');
+        if (revised && revised.trim()) {
+          out = revised; gate.revised = true;
+          const vio2 = fp ? voiceScore(plain(out), fp) : [];
+          const jud2 = await turingJudge(env, { draft: plain(out), real: jury });
+          gate.final = { spec_violations: vio2, turing: jud2.judged ? (jud2.caught ? 'caught (' + jud2.confidence + ')' : 'passed') : 'skipped', tells: jud2.tells || [] };
+        }
+      }
+      const f = gate.final || gate.initial;
+      gate.passed = !f.spec_violations.length && f.turing !== 'caught (high)' && !String(f.turing).startsWith('caught');
+      return { text: out, gate };
+    } catch (_) { return { text, gate }; }
+  },
+
   // Write a full article draft with Fable 5, grounded in the SHARED TMW brain.
   async generate_article_draft(args, env) {
     if (!env.DB) throw new Error('D1 not configured');
@@ -2359,32 +2402,66 @@ const IMPL = {
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>"}.',
-      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
+      'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
     ].filter(Boolean).join('\n\n');
     const usr = [
       'TOPIC: ' + topic,
       args.angle ? 'ANGLE: ' + String(args.angle) : '',
       args.facts ? 'VERIFIED FACTS / SOURCE NOTES (ground the piece in these; do not contradict or exceed them):\n' + String(args.facts) : '',
     ].filter(Boolean).join('\n\n');
-    const raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3200 });
+    const raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 4200 });
     let gen = null;
-    if (raw) { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { gen = JSON.parse(m[0]); } catch (_) {} } }
+    if (raw) {
+      const m = raw.match(/\{[\s\S]*\}/); if (m) { try { gen = JSON.parse(m[0]); } catch (_) {} }
+      if (!gen) gen = repairTruncatedJson(raw);   // salvage a max_tokens-truncated article
+    }
     if (!gen || !gen.body_markdown) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
-    // ── Draft-time enforcement: deterministic canon lint + one Haiku critique →
-    // one Fable fix cycle. Mechanical violations never reach the human editor.
+    // ── UNIFIED QA PASS: canon lint (deterministic) + fingerprint score
+    // (deterministic) + brain critique ∥ adversarial Turing judge (parallel) →
+    // ONE combined fix → one re-test. Parallelizing the two model calls and
+    // merging what used to be two separate rewrite cycles keeps the whole
+    // pipeline inside connector timeouts. Runs BEFORE auto-linking (judges
+    // plain prose; links would be a giveaway).
     let styleReport = { lint_fixed: 0, critique_fixed: 0, remaining: [] };
+    let voiceGate = null;
     try {
+      const plain = (s) => String(s || '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^#+\s*/gm, '').replace(/[*_`>]/g, '');
+      const fp = await getFingerprint(env);
+      const usedSlugs = (brain.articleExemplars || []).map((a) => a.slug);
+      let jury = [];
+      try { jury = (await articleExemplars(env, { topic, place: String(args.place || ''), limit: 6, perChars: 2600 })).filter((a) => !usedSlugs.includes(a.slug)).slice(0, 2); } catch (_) {}
       const lint1 = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' });
-      const crit1 = await critiqueDraft(env, { title: gen.title || '', excerpt: gen.excerpt || '', body: gen.body_markdown, brainText: brain.text || '' });
-      const problems = lint1.map((w) => w.issue).concat(crit1.map((v) => (v.rule ? v.rule + ': ' : '') + v.violation));
+      const vio1 = fp ? voiceScore(plain(gen.body_markdown), fp) : [];
+      const [crit1, jud1] = await Promise.all([
+        critiqueDraft(env, { title: gen.title || '', excerpt: gen.excerpt || '', body: gen.body_markdown, brainText: brain.text || '' }).catch(() => []),
+        turingJudge(env, { draft: plain(gen.body_markdown), real: jury }).catch(() => ({ judged: false })),
+      ]);
+      voiceGate = { initial: { spec_violations: vio1, turing: jud1.judged ? (jud1.caught ? 'caught (' + jud1.confidence + ')' : 'passed') : 'skipped', tells: jud1.tells || [] } };
+      const problems = lint1.map((w) => w.issue)
+        .concat(crit1.map((v) => (v.rule ? v.rule + ': ' : '') + v.violation))
+        .concat(vio1.map((v) => 'SPEC: ' + v))
+        .concat((jud1.tells || []).map((t) => 'TELL (a forensic judge spotted this as AI-written): ' + t));
       if (problems.length) {
-        const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Fix ONLY the listed style violations in the article — change nothing else, preserve every fact. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.';
-        const fixUsr = 'VIOLATIONS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
-        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: 3500 });
+        const fixSys = 'You are the senior staff editor for Markets of Tomorrow. Our QA flagged the draft below (style violations, measured-spec misses, and/or a forensic judge identified it as AI-written). Rewrite so a reader could not tell it from our published work — fix EVERY listed problem, change nothing else. Preserve every fact, number, name, date, and price exactly. Avoid em dashes. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.'
+          + (fp ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp) : '');
+        const fixUsr = 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
+        const fixedRaw = await fableGenerate(env, { system: fixSys, user: fixUsr, maxTokens: 4200 });
+        let fixed = null;
         const fm = fixedRaw && fixedRaw.match(/\{[\s\S]*\}/);
-        if (fm) { try { const fixed = JSON.parse(fm[0]); if (fixed && fixed.body_markdown) { gen = fixed; styleReport.lint_fixed = lint1.length; styleReport.critique_fixed = crit1.length; } } catch (_) {} }
+        if (fm) { try { fixed = JSON.parse(fm[0]); } catch (_) {} }
+        if (!fixed && fixedRaw) fixed = repairTruncatedJson(fixedRaw);
+        if (fixed && fixed.body_markdown) {
+          gen = fixed; voiceGate.revised = true;
+          styleReport.lint_fixed = lint1.length; styleReport.critique_fixed = crit1.length;
+          // Re-test the revision: deterministic re-score + one re-judge.
+          const vio2 = fp ? voiceScore(plain(gen.body_markdown), fp) : [];
+          const jud2 = await turingJudge(env, { draft: plain(gen.body_markdown), real: jury }).catch(() => ({ judged: false }));
+          voiceGate.final = { spec_violations: vio2, turing: jud2.judged ? (jud2.caught ? 'caught (' + jud2.confidence + ')' : 'passed') : 'skipped', tells: jud2.tells || [] };
+        }
         styleReport.remaining = lintCanon({ title: gen.title || '', body: gen.body_markdown, excerpt: gen.excerpt || '', kind: 'article' }).map((w) => w.issue);
       }
+      const fRep = voiceGate.final || voiceGate.initial;
+      voiceGate.passed = !fRep.spec_violations.length && !String(fRep.turing).startsWith('caught');
     } catch (_) {}
     // Internal auto-linking: tracked projects/firms/markets link to their
     // oftmw.com pages (external URLs on those anchors get rewritten too) —
@@ -2416,11 +2493,12 @@ const IMPL = {
     } catch (_) {}
     return {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
-      grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
+      grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
       style_check: styleReport,
+      voice_gate: voiceGate,
       internal_links: linkReport,
       photos_used: images.length,
-      note: 'Article draft written with Fable 5, grounded in the shared TMW brain. Review/finish in the Studio AI tab: ' + article.edit_url,
+      note: 'Article draft written with Fable 5, grounded in the shared TMW brain and passed through the voice gate (fingerprint spec + adversarial Turing judge). Review/finish in the Studio AI tab: ' + article.edit_url,
     };
   },
 
@@ -2441,18 +2519,32 @@ const IMPL = {
       'You are the senior staff editor for Markets of Tomorrow (TMW). Revise the article below per the instruction, keeping it on-brand.',
       brain.text || '',
       'OUTPUT: return ONLY the revised, COMPLETE article as Markdown — no JSON, no fences, no commentary.',
-      'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). TMW voice per the brand brain. Avoid em dashes. Return the whole article, not a diff.',
+      'RULES: Preserve every fact from the original (do NOT invent or drop verified facts, numbers, dates, prices, or firm names). NEVER fabricate a quotation or attribute words to anyone. TMW voice per the brand brain. Avoid em dashes. Return the whole article, not a diff.',
     ].filter(Boolean).join('\n\n');
     const usr = 'INSTRUCTION: ' + instruction + '\n\nCURRENT ARTICLE:\n' + current;
     const revised = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3500 });
     if (!revised || !revised.trim()) throw new Error('revision failed — the editor model returned nothing. Try again or edit manually.');
+    let revBody = revised.trim();
+    // ── THE VOICE GATE (same as generate): fingerprint + Turing judge → one fix.
+    let voiceGate = null;
+    try {
+      const usedSlugs = (brain.articleExemplars || []).map((a) => a.slug);
+      const gateRes = await IMPL._runVoiceGate(env, {
+        text: revBody, topic: String(row.title || ''), place: String(args.place || ''), excludeSlugs: usedSlugs,
+        rewrite: async (problems, spec) => {
+          const rSys = 'You are the senior staff editor for Markets of Tomorrow. Our voice QA flagged the revised article below. Rewrite it so a reader could not tell it from our published work — fix EVERY listed problem. Preserve every fact, number, name, date, and price exactly. Keep the earlier instruction applied: "' + instruction.slice(0, 200) + '". Avoid em dashes. Return ONLY the complete article as Markdown, no commentary.' + (spec ? '\n\nMEASURED HOUSE SPEC:\n' + spec : '');
+          const raw2 = await fableGenerate(env, { system: rSys, user: 'PROBLEMS TO FIX:\n- ' + problems.join('\n- ') + '\n\nARTICLE:\n' + revBody, maxTokens: 3600 });
+          return raw2 && raw2.trim() ? raw2.trim() : null;
+        },
+      });
+      revBody = gateRes.text; voiceGate = gateRes.gate;
+    } catch (_) {}
     // Re-apply internal auto-linking: the revise input is stripHtml'd (links
     // are lost), so tracked projects/firms/markets get re-linked on-site here.
-    let revBody = revised.trim();
     try { revBody = autoLinkInternalMd(revBody, await loadLinkEntities()).md; } catch (_) {}
     const res = await IMPL.update_post_draft({ slug, body_markdown: revBody }, env);
-    const lintR = lintCanon({ title: String(row.title || ''), body: revised, excerpt: 'x', kind: 'article' });
-    return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, learned_rules: brain.rules.length }, style_warnings: lintR.length ? lintR : undefined, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '". Review in the Studio.' };
+    const lintR = lintCanon({ title: String(row.title || ''), body: revBody, excerpt: 'x', kind: 'article' });
+    return { ok: true, slug, edit_url: res.edit_url, grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length }, voice_gate: voiceGate, style_warnings: lintR.length ? lintR : undefined, note: 'Draft revised with Fable 5 per: "' + instruction.slice(0, 120) + '", then passed through the voice gate. Review in the Studio.' };
   },
 
   async get_post_views(args, env) {
