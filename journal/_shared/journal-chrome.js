@@ -43,7 +43,7 @@
   var LOGO = '<a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
 
   var NAV = [
-    ['Global', '/', 'global'],
+    ['Read', '/', 'global'],
     ['Florida', '/#florida', 'florida'],
     ['New York', '/#new-york', 'new-york'],
     ['Tennessee', '/#tennessee', 'tennessee'],
@@ -652,4 +652,15 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountClose);
   else mountClose();
+
+  // The merged Dashboard button (purple) replaces the Pulse pill + avatar for
+  // signed-in members. Self-loaded here so every chrome page picks it up.
+  if (!document.querySelector('script[data-tmw-dashbtn]')) {
+    var dbs = document.createElement('script');
+    dbs.src = '/_shared/tmw-dashbtn.js';
+    dbs.defer = true;
+    dbs.setAttribute('data-tmw-dashbtn', '1');
+    document.head.appendChild(dbs);
+  }
+
 })();

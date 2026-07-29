@@ -897,6 +897,11 @@
     //    single mega-menu of 5 rounded market tiles. 3-col desktop / 2-col mobile.
     '.tmw-fm{position:relative; display:inline-flex; align-items:center}',
     '.tmw-fm-trigger{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); background:none; border:0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:0; line-height:1; transition:color .2s}',
+    // Explore is a plain LINK, not a dropdown — it must still sit on the same
+    // baseline and share the trigger's type treatment.
+    '.tmw-fm-link{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); text-decoration:none; display:inline-flex; align-items:center; line-height:1; transition:color .2s; position:relative}',
+    '.tmw-fm-link:hover,.tmw-fm-link.active{color:var(--white,#fff)}',
+    '.tmw-fm-link.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:#A78BFA; box-shadow:0 0 12px rgba(167,139,250,.7)}',
     '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
     '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
@@ -1482,23 +1487,29 @@
       for (var i = 0; i < anchors.length; i++) {
         var a = anchors[i];
         var t = (a.textContent || '').trim().toLowerCase();
-        if (t === 'global') globalAnchor = a;
+        if (t === 'global' || t === 'read') globalAnchor = a;
         else if (MARKET_LABELS[t]) toRemove.push(a);
       }
       for (var r = 0; r < toRemove.length; r++) {
         if (toRemove[r].parentNode) toRemove[r].parentNode.removeChild(toRemove[r]);
       }
 
-      // Build the three dropdowns and insert them after "Global".
-      var fmMarkets = makeFm('Focus Markets', focusMarketsPanel());
-      var fmMap     = makeFm('Database', theMapPanel());
-      var fmLists   = makeFm('The Lists', theListsPanel());
+      // Header is now Read / Explore / The Lists.
+      //  · Focus Markets moved to a section on the journal home — the header
+      //    should not be a directory of places.
+      //  · Database was a LIST of tools; Explore is the surface you actually
+      //    use, so it is a plain link, not a dropdown.
+      var fmExplore = document.createElement('a');
+      fmExplore.className = 'tmw-fm-link';
+      fmExplore.href = '/explore/';
+      fmExplore.textContent = 'Explore';
+      if (/^\/explore\//.test(location.pathname)) fmExplore.classList.add('active');
+      var fmLists = makeFm('The Lists', theListsPanel());
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
       if (ref && ref.nextSibling) {
-        nav.insertBefore(fmMarkets, ref.nextSibling);
-        nav.insertBefore(fmMap, fmMarkets.nextSibling);
-        nav.insertBefore(fmLists, fmMap.nextSibling);
-      } else { nav.appendChild(fmMarkets); nav.appendChild(fmMap); nav.appendChild(fmLists); }
+        nav.insertBefore(fmExplore, ref.nextSibling);
+        nav.insertBefore(fmLists, fmExplore.nextSibling);
+      } else { nav.appendChild(fmExplore); nav.appendChild(fmLists); }
     }
   }
 
