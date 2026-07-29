@@ -2403,16 +2403,36 @@
     ];
     const ATLAS_ROUTE_IDS = ATLAS_ROUTES.map(r => r.id);
 
+    // A route can arrive two ways and BOTH are first-class:
+    //   /atlas/projects/        the pretty path (served by functions/atlas/[route].js)
+    //   /atlas/?view=projects   the query form
+    // The path form depends on a Pages Function; the query form depends on
+    // nothing. Accepting both means a routing-layer failure degrades to a
+    // working app instead of a 404, and it costs one extra branch.
     function routeFromPath() {
       const m = String(location.pathname || '').match(/\/atlas\/([a-z-]+)\/?$/);
-      const id = m ? m[1] : '';
+      let id = m ? m[1] : '';
+      if (ATLAS_ROUTE_IDS.indexOf(id) < 0) {
+        try { id = new URLSearchParams(location.search).get('view') || ''; } catch (e) { id = ''; }
+      }
       return ATLAS_ROUTE_IDS.indexOf(id) >= 0 ? id : 'overview';
     }
     let currentRoute = routeFromPath();
+    // Did the pretty path actually serve us, or did we land on /atlas/ itself?
+    // If the former, keep using paths; if not, write the query form so links
+    // we generate are ones this deployment can actually resolve.
+    const _pathRoutingWorks = /\/atlas\/[a-z-]+\/?$/.test(location.pathname || '');
 
     function routeHref(id) {
-      const q = location.search || '';
-      return (id === 'overview' ? '/atlas/' : '/atlas/' + id + '/') + q;
+      const q = new URLSearchParams(location.search || '');
+      q.delete('view');
+      if (_pathRoutingWorks) {
+        const qs = q.toString();
+        return (id === 'overview' ? '/atlas/' : '/atlas/' + id + '/') + (qs ? '?' + qs : '');
+      }
+      if (id !== 'overview') q.set('view', id);
+      const qs = q.toString();
+      return '/atlas/' + (qs ? '?' + qs : '');
     }
 
     function renderSectionRail() {

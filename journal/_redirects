@@ -54,23 +54,3 @@
 /map/developers/*    /firm/:splat    301
 /architects/*        /firm/:splat    301
 /developers/*        /firm/:splat    301
-
-# The Atlas is a routed app: /atlas/projects/, /atlas/supply/ … are views, not
-# files. A 200 REWRITE (never 301) serves the shell while keeping the route in
-# the URL bar, so every view is linkable and the back button works. Listed
-# explicitly rather than /atlas/* so a real file added under /atlas/ later is
-# still served as itself.
-/atlas/overview   /atlas/index.html   200
-/atlas/overview/  /atlas/index.html   200
-/atlas/projects   /atlas/index.html   200
-/atlas/projects/  /atlas/index.html   200
-/atlas/supply     /atlas/index.html   200
-/atlas/supply/    /atlas/index.html   200
-/atlas/pricing    /atlas/index.html   200
-/atlas/pricing/   /atlas/index.html   200
-/atlas/builders   /atlas/index.html   200
-/atlas/builders/  /atlas/index.html   200
-/atlas/capital    /atlas/index.html   200
-/atlas/capital/   /atlas/index.html   200
-/atlas/movers     /atlas/index.html   200
-/atlas/movers/    /atlas/index.html   200
