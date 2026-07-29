@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard &middot; Markets of Tomorrow</title>
+<meta name="description" content="Your Markets of Tomorrow dashboard: the projects, firms and markets you track, what moved this week, and what delivers next.">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://www.oftmw.com/dashboard/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#1FDF67; --green-soft:#42EB81; --purple:#A78BFA; --purple-glow:#B9A6FF;
+    --gold:#e6c574; --gold-soft:#f0d68a;
+    --ink:#070807; --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute2:#C2C9C3;
+    --hair:rgba(255,255,255,.08); --hair2:rgba(255,255,255,.14);
+    /* the universal chrome expects the hyphenated tokens */
+    --ink-2:var(--ink); --mute-2:var(--mute); --hair-2:var(--hair2);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink); color:var(--cream); font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+       -webkit-font-smoothing:antialiased; line-height:1.5; min-height:100vh}
+  body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(900px 620px at 80% -10%, rgba(31,223,103,.07), transparent 60%),
+              radial-gradient(760px 620px at 4% 34%, rgba(167,139,250,.07), transparent 60%)}
+  main{position:relative; z-index:1; padding-bottom:80px}
+  .tmw-chrome-foot{margin-top:0 !important}
+</style>
+</head>
+<body>
+
+<main>
+  <div data-tmw-dashboard></div>
+</main>
+
+<script src="/_shared/journal-chrome.js" defer></script>
+<script src="/_shared/journal-dock.js" defer></script>
+<script src="/_shared/tmw-dashboard.js" defer></script>
+</body>
+</html>
