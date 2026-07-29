@@ -2365,20 +2365,24 @@
     // view is linkable and the back button works. The shared filter query
     // string (city/state/type/status/year) rides along untouched, which is
     // what makes moving between routes feel like one product.
+    // Order follows how the data is actually browsed: where (markets), what
+    // (projects), who (firms), then the analytical cuts.
     const ATLAS_ROUTES = [
       { id: 'overview', label: 'Overview' },
+      { id: 'markets',  label: 'Markets'  },
       { id: 'projects', label: 'Projects' },
+      { id: 'firms',    label: 'Firms'    },
       { id: 'supply',   label: 'Supply'   },
       { id: 'pricing',  label: 'Pricing'  },
-      { id: 'builders', label: 'Builders' },
       { id: 'capital',  label: 'Capital'  },
-      { id: 'markets',  label: 'Markets'  },
-      { id: 'firms',    label: 'Firms'    },
-      { id: 'movers',   label: 'Movers'   },
       // Pipeline used to be a separate view behind its own Overview/Pipeline
       // toggle above the tabs. It is just another route.
       { id: 'pipeline', label: 'Pipeline' }
     ];
+    // Retired tabs that must still resolve: 'builders' folded into Firms (the
+    // leaderboard now heads that route) and 'movers' lost its tab but keeps
+    // its module on Overview. Old links and bookmarks land somewhere sane.
+    const ATLAS_ROUTE_ALIAS = { builders: 'firms', movers: 'overview' };
     const ATLAS_ROUTE_IDS = ATLAS_ROUTES.map(r => r.id);
 
     // A route can arrive two ways and BOTH are first-class:
@@ -2390,9 +2394,10 @@
     function routeFromPath() {
       const m = String(location.pathname || '').match(/\/atlas\/([a-z-]+)\/?$/);
       let id = m ? m[1] : '';
-      if (ATLAS_ROUTE_IDS.indexOf(id) < 0) {
+      if (ATLAS_ROUTE_IDS.indexOf(id) < 0 && !ATLAS_ROUTE_ALIAS[id]) {
         try { id = new URLSearchParams(location.search).get('view') || ''; } catch (e) { id = ''; }
       }
+      if (ATLAS_ROUTE_ALIAS[id]) id = ATLAS_ROUTE_ALIAS[id];
       return ATLAS_ROUTE_IDS.indexOf(id) >= 0 ? id : 'overview';
     }
     let currentRoute = routeFromPath();
@@ -3265,11 +3270,11 @@
           projects: () => [renderProjectCards()],
           supply:   () => [renderSupplySection()],
           pricing:  () => [renderProjectionsSection()],
-          builders: () => [renderLeaderboardSection()],
           capital:  () => [renderMoneySection()],
-          movers:   () => [renderMoversSection()],
           markets:  () => [renderMarketsSection()],
-          firms:    () => [renderFirmsSection()]
+          // The Builders leaderboard is the headline of Firms now — the top of
+          // the list, then the full directory beneath it. One place for "who".
+          firms:    () => [renderLeaderboardSection(), renderFirmsSection()]
         };
         sections.push(stickyhead, renderStateFilter());
         sections.push.apply(sections, (BODY[currentRoute] || BODY.overview)());

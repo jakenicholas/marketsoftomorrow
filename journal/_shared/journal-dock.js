@@ -933,8 +933,10 @@
     // Explore is a plain LINK, not a dropdown — it must still sit on the same
     // baseline and share the trigger's type treatment.
     '.tmw-fm-link{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute-2,#C2C9C3); text-decoration:none; display:inline-flex; align-items:center; line-height:1; transition:color .2s; position:relative}',
-    '.tmw-fm-link:hover,.tmw-fm-link.active{color:var(--white,#fff)}',
-    '.tmw-fm-link.active::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:#A78BFA; box-shadow:0 0 12px rgba(167,139,250,.7)}',
+    '.tmw-fm-link:hover{color:var(--white,#fff)}',
+    // Selected reads the SAME as the other nav items (READ) — gold glow, not a
+    // second visual language for the same idea.
+    '.tmw-fm-link.active{color:var(--gold-soft,#f0d68a) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
     '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
     '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
@@ -1536,7 +1538,8 @@
       fmExplore.className = 'tmw-fm-link';
       fmExplore.href = '/atlas/';   // the Atlas IS Explore now; /explore/ is retired
       fmExplore.textContent = 'Explore';
-      if (/^\/explore\//.test(location.pathname)) fmExplore.classList.add('active');
+      // The Atlas IS Explore, so every one of its routes lights the nav item.
+      if (/^\/atlas(\/|$)/.test(location.pathname)) fmExplore.classList.add('active');
       var fmLists = makeFm('The Lists', theListsPanel());
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
       if (ref && ref.nextSibling) {

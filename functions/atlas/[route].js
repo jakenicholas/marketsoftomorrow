@@ -19,6 +19,9 @@
 const ROUTES = new Set([
   'overview', 'projects', 'supply', 'pricing', 'builders', 'capital', 'movers',
   'pipeline', 'markets', 'firms',
+  // Retired tabs. Still served so old links land in the app: the client
+  // aliases 'builders' → Firms and 'movers' → Overview.
+  'builders', 'movers',
 ]);
 
 export async function onRequest(context) {
