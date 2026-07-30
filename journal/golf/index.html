@@ -2560,7 +2560,7 @@ function formatDate(s) {
 
     // Brand chips: top brands present in the pipeline
     var bc = {}; hotels.forEach(function (h) { if (h.brand) bc[h.brand] = (bc[h.brand] || 0) + 1; });
-    var topBrands = Object.keys(bc).sort(function (a, b) { return bc[b] - bc[a]; }).slice(0, 8);
+    var topBrands = Object.keys(bc).sort(function (a, b) { return bc[b] - bc[a]; }).slice(0, 10);
 
     // Build the filter rows
     function rowHtml(items){ return items.map(function (it) { return '<button class="op-chip" data-v="' + esc(it.id) + '">' + esc(it.label) + '</button>'; }).join(''); }
