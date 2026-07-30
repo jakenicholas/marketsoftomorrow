@@ -490,7 +490,9 @@ footer .tmw-wordmark{width:118px}
   .op-fbtn.on{background:rgba(167,139,250,.18); box-shadow:inset 0 0 0 1px rgba(167,139,250,.55)}
   .op-fbtn svg{width:13px; height:13px}
   .op-fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; border-radius:99px; background:#A78BFA; color:#141207; font-size:9px; font-weight:800; padding:0 4px}
-  .op-qpills{display:flex; gap:8px; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; padding:4px 20px 4px 2px;
+  /* padding gives the gold glow room to render inside the scroll clip box
+     (the homepage .pills fix); the negative margin keeps alignment */
+  .op-qpills{display:flex; gap:8px; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; padding:15px 20px 15px 14px; margin:-11px 0 -11px -14px;
     -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 44px), transparent)}
   .op-qpills::-webkit-scrollbar{display:none}
   .op-qpills .op-chip{flex:none; white-space:nowrap}
@@ -536,7 +538,7 @@ footer .tmw-wordmark{width:118px}
   .news-title{font-family:var(--serif); font-size:clamp(26px,3.4vw,38px); font-weight:600; letter-spacing:-.015em; color:var(--white); margin:30px 0 20px}
   .news-title em{font-style:italic; color:var(--gold-soft); font-weight:400}
   /* active-filter tokens in the compact bar (homepage .ftok pattern) */
-  .op-tokens{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0; flex:1; overflow-x:auto; scrollbar-width:none; padding:4px 20px 4px 2px;
+  .op-tokens{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0; flex:1; overflow-x:auto; scrollbar-width:none; padding:15px 20px 15px 14px; margin:-11px 0 -11px -14px;
     -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
   .op-tokens::-webkit-scrollbar{display:none}
   .op-tokens[hidden]{display:none}

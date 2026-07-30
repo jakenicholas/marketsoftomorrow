@@ -119,7 +119,8 @@
       // celebratory toast (pro upgrade)
       '.tmwc-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);z-index:100060;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:14px 18px;border-radius:14px;background:linear-gradient(180deg,rgba(30,30,30,.98),rgba(16,16,16,.98));border:1px solid rgba(167,139,250,.45);box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 24px rgba(167,139,250,.28);color:#fff;font-family:"Inter",-apple-system,sans-serif;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}',
       '.tmwc-toast.show{transform:translateX(-50%) translateY(0)}',
-      '.tmwc-toast .em{font-size:22px;line-height:1}',
+      '.tmwc-toast .em{font-size:22px;line-height:1;flex:none;display:flex;align-items:center}',
+      '@media(max-width:560px){.tmwc-toast{width:calc(100vw - 28px);max-width:none;padding:16px 18px;gap:14px}}',
       '.tmwc-toast .tt{font-size:13.5px;font-weight:800;letter-spacing:.01em}',
       '.tmwc-toast .ts{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px}',
       '.tmwc-toast.link{cursor:pointer}',
@@ -236,8 +237,9 @@
   // project to the watchlist (map, hotels Opening Radar, Onyx overlay, article
   // project cards). Callers pass the project's display name.
   function watchToast(name) {
-    toast({ emoji: '🔔', title: (name || 'Project') + ' added to your watchlist',
-      sub: 'You&rsquo;ll get the alert when it moves.', hold: 4200 });
+    var bell = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+    toast({ emoji: bell, title: (name || 'Project') + ' added to your watchlist',
+      sub: 'You&rsquo;ll get the alert when it moves.', hold: 6000 });
   }
 
   window.tmwConfetti = confetti;
