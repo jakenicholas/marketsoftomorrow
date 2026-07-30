@@ -12044,10 +12044,8 @@ export function voiceScore(text, fp) {
 // source, note}] — contradicted ones carry the correction. Best-effort: [] on
 // any failure, never blocks authoring.
 let _fvDebug = '';   // last factVerify failure, surfaced by /admin/brain/fact-verify-test
-export async function factVerify(env, { claims = [], facts = '', extra = '' } = {}) {
-  if (!env || !env.ANTHROPIC_API_KEY || (!claims.length && !extra)) return [];
-  _fvDebug = '';
-  const sys = 'You are the fact-checker for a real-estate development publication. For each numbered claim: verify against the SOURCE NOTES first; when the notes do not settle it (especially opening/completion STATUS and DATES), use web search. Be strict about tense: a property that has not opened yet must NEVER be described as open, opened, or debuted. Output ONLY a JSON array, one entry per claim (and one for ALSO CHECK if present, using i=-1): [{"i":<claim number>,"verdict":"verified"|"unsupported"|"contradicted","source":"<url, or \'provided facts\'>","note":"<if contradicted or unsupported: the correct/current fact in one short sentence>"}]. "unsupported" = could not confirm either way.';
+async function _factVerifyCall(env, claims, facts, extra) {
+  const sys = 'You are the fact-checker for a real-estate development publication. For each numbered claim: verify against the SOURCE NOTES first; when the notes do not settle it, SEARCH THE WEB — do NOT mark a claim "unsupported" without actually searching for it (well-known facts about places, brands, and designers are usually one search away). Be strict about tense: a property that has not opened yet must NEVER be described as open, opened, or debuted. Output ONLY a JSON array, one entry per claim (and one for ALSO CHECK if present, using i=-1): [{"i":<claim number>,"verdict":"verified"|"unsupported"|"contradicted","source":"<url, or \'provided facts\'>","note":"<if contradicted or unsupported: the correct/current fact in one short sentence>"}]. "unsupported" = searched and still could not confirm.';
   const usr = (facts ? 'SOURCE NOTES:\n' + String(facts).slice(0, 3000) + '\n\n' : '')
     + 'CLAIMS:\n' + claims.map((c, i) => i + '. [' + (c.type || 'fact') + '] ' + String(c.claim).slice(0, 220)).join('\n')
     + (extra ? '\n\nALSO CHECK (i=-1): ' + String(extra).slice(0, 300) : '');
@@ -12061,7 +12059,7 @@ export async function factVerify(env, { claims = [], facts = '', extra = '' } = 
         body: JSON.stringify({
           model, max_tokens: 2000, system: sys,
           messages: [{ role: 'user', content: usr }],
-          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
+          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }],
         }),
       });
       if (!r.ok) {
@@ -12084,6 +12082,26 @@ export async function factVerify(env, { claims = [], facts = '', extra = '' } = 
     } catch (_) { /* try fallback */ }
   }
   return [];
+}
+export async function factVerify(env, { claims = [], facts = '', extra = '' } = {}) {
+  if (!env || !env.ANTHROPIC_API_KEY || (!claims.length && !extra)) return [];
+  _fvDebug = '';
+  // Chunk into small groups so EVERY claim gets real search budget (one big call
+  // starves the tail: N claims sharing a few searches → lazy "unsupported"s).
+  // Sequential, so the chunks can't rate-limit each other.
+  const out = [];
+  for (let i = 0; i < Math.max(claims.length, extra ? 1 : 0); i += 5) {
+    const chunk = claims.slice(i, i + 5);
+    if (!chunk.length && !extra) break;
+    out.push(...await _factVerifyCall(env, chunk, facts, i === 0 ? extra : ''));
+  }
+  // Second chance for any claim that came back with no verdict at all.
+  const covered = new Set(out.map((v) => v.claim));
+  const missing = claims.filter((c) => !covered.has(String(c.claim).slice(0, 220)));
+  if (missing.length && missing.length < claims.length) {
+    out.push(...await _factVerifyCall(env, missing, facts, ''));
+  }
+  return out;
 }
 
 // Legible 0-100 generation score from the voice gate's FIRST-attempt verdict:

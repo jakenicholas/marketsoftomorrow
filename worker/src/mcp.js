@@ -2552,23 +2552,38 @@ const IMPL = {
         verdicts = await factVerify(env, { claims: risky, facts: String(args.facts || ''), extra: statusViolation || '' });
       }
       const bad = verdicts.filter((v) => v.verdict === 'contradicted');
-      if (bad.length) {
-        const fixSys2 = 'You are the senior staff editor for Markets of Tomorrow. The fact-checker found ERRORS in the draft below. Correct EXACTLY the listed errors using the verified facts given (fix tense too: not-yet-open properties are "will open"/"is slated to open", never "debuts"/"is open"). Change nothing else. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.';
-        const fixUsr2 = 'ERRORS (with the verified correction):\n- ' + bad.map((v) => `"${v.claim}" is WRONG → ${v.note}${v.source ? ' (source: ' + v.source + ')' : ''}`).join('\n- ')
-          + '\n\nDRAFT JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
+      const unsup = verdicts.filter((v) => v.verdict === 'unsupported');
+      // ONE combined pass: correct what's provably wrong, and CUT what could not
+      // be verified even after searching — an unprovable assertion doesn't ship.
+      // (This is the 99%-green policy: yellow survives only when the verifier
+      // itself failed, never as a routine "check by hand" state.)
+      let removedSet = new Set();
+      if (bad.length || unsup.length) {
+        const fixSys2 = 'You are the senior staff editor for Markets of Tomorrow. The fact-checker reviewed the draft below. (1) Correct EXACTLY the listed ERRORS using the verified facts given (fix tense too: not-yet-open properties are "will open"/"is slated to open", never "debuts"/"is open"). (2) REMOVE each listed UNVERIFIABLE assertion — delete or rewrite the sentence so the unprovable part is gone; keep the prose flowing naturally around the cut. Change nothing else. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.';
+        const fixUsr2 = (bad.length ? 'ERRORS (with the verified correction):\n- ' + bad.map((v) => `"${v.claim}" is WRONG → ${v.note}${v.source ? ' (source: ' + v.source + ')' : ''}`).join('\n- ') + '\n\n' : '')
+          + (unsup.length ? 'UNVERIFIABLE (searched, could not confirm — remove from the draft):\n- ' + unsup.map((v) => `"${v.claim}"${v.note ? ' (' + v.note + ')' : ''}`).join('\n- ') + '\n\n' : '')
+          + 'DRAFT JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
         const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: 4200 });
         const g3 = parseGen(fRaw);
-        if (g3) { g3.claims = gen.claims; gen = g3; }
+        if (g3) { g3.claims = gen.claims; gen = g3; removedSet = new Set(unsup.map((v) => v.claim)); }
       }
+      const grounded = allClaims.filter((c) => c.source === 'facts' || c.source === 'database').length;
+      const nVerified = verdicts.filter((v) => v.verdict === 'verified').length;
       factReport = {
         claims: allClaims.length, checked: verdicts.length,
-        verified: verdicts.filter((v) => v.verdict === 'verified').length,
-        unsupported: verdicts.filter((v) => v.verdict === 'unsupported').length,
+        verified: nVerified,
+        unsupported: unsup.length - removedSet.size,
+        removed: removedSet.size,
         corrected: bad.length,
+        // Coverage = share of claims that are grounded, web-verified, corrected,
+        // or excised. 100% = nothing in the draft rests on an unchecked guess.
+        coverage_pct: allClaims.length ? Math.round(100 * Math.min(allClaims.length, grounded + nVerified + bad.length + removedSet.size) / allClaims.length) : null,
         status_guard: statusViolation ? 'tripped' : (preOpen ? 'clean' : 'n/a'),
         ledger: allClaims.map((c) => {
           const v = verdicts.find((x) => x.claim === c.claim);
-          return { ...c, verdict: v ? v.verdict : (c.source === 'facts' ? 'grounded' : c.source === 'database' ? 'grounded-db' : 'unchecked'), src: v ? v.source : '', note: v ? v.note : '' };
+          let verdict = v ? v.verdict : (c.source === 'facts' ? 'grounded' : c.source === 'database' ? 'grounded-db' : 'unchecked');
+          if (v && removedSet.has(v.claim) && v.verdict === 'unsupported') verdict = 'removed';
+          return { ...c, verdict, src: v ? v.source : '', note: v ? v.note : '' };
         }),
       };
     } catch (_) {}
@@ -2608,7 +2623,8 @@ const IMPL = {
           .bind(Math.floor(Date.now() / 1000), article.slug, 'fact_ledger', JSON.stringify({
             slug: article.slug, actor: _mcpActor,
             claims: factReport.claims, checked: factReport.checked, verified: factReport.verified,
-            unsupported: factReport.unsupported, corrected: factReport.corrected, status_guard: factReport.status_guard,
+            unsupported: factReport.unsupported, removed: factReport.removed, corrected: factReport.corrected,
+            coverage_pct: factReport.coverage_pct, status_guard: factReport.status_guard,
             ledger: factReport.ledger,
           })).run();
       } catch (_) {}
@@ -2640,7 +2656,7 @@ const IMPL = {
       best_of: bestOf,
       style_check: styleReport,
       voice_gate: voiceGate,
-      fact_check: factReport ? { claims: factReport.claims, web_checked: factReport.checked, verified: factReport.verified, unsupported: factReport.unsupported, corrected: factReport.corrected, status_guard: factReport.status_guard } : null,
+      fact_check: factReport ? { claims: factReport.claims, web_checked: factReport.checked, verified: factReport.verified, unsupported: factReport.unsupported, removed_unverifiable: factReport.removed, corrected: factReport.corrected, coverage_pct: factReport.coverage_pct, status_guard: factReport.status_guard } : null,
       internal_links: linkReport,
       photos_used: images.length,
       note: 'Article draft written with Fable 5, grounded in the shared TMW brain and passed through the voice gate (fingerprint spec + adversarial Turing judge). Review/finish in the Studio AI tab: ' + article.edit_url,
