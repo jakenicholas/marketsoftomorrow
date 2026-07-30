@@ -454,7 +454,9 @@ footer .tmw-wordmark{width:118px}
   <div class="rh-inner">
     <div class="rh-kicker">Hotels of Tomorrow · 2026 Edition</div>
     <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
+    <h2 class="rh-alt-title" style="display:none"></h2>
     <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
+    <p class="rh-sub rh-alt-sub" style="display:none"></p>
     <span id="item-count-vis" hidden></span>
     <div class="rh-tabs" role="tablist">
       <button class="tab-btn on" data-tab="openings" role="tab">Openings<span class="tb-count" id="openCount"></span></button>
@@ -472,11 +474,11 @@ footer .tmw-wordmark{width:118px}
 <style>
   /* Scoped to the Openings tab. Site dark theme: gold = opening soon / Pro,
      green = building now, purple = announced (Pro-locked). */
-  .op-intro{padding:34px 0 6px}
+  .op-intro{padding:26px 0 6px}
   .op-intro h2{font-family:var(--serif); font-size:clamp(26px,3.6vw,40px); font-weight:600; letter-spacing:-.015em; color:var(--white)}
   .op-intro h2 em{font-style:italic; color:var(--gold)}
   .op-intro .sub{max-width:640px; color:var(--mute-2); font-size:15px; margin-top:10px; line-height:1.6}
-  .op-meta{display:flex; gap:26px; margin-top:18px; flex-wrap:wrap}
+  .op-meta{display:flex; gap:40px; justify-content:center; text-align:center; flex-wrap:wrap}
   .op-meta .m b{display:block; font-family:var(--serif); font-size:26px; font-weight:600; color:var(--white); line-height:1.1}
   .op-meta .m span{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
   /* compact bar — purple Filters toggle + quick pills + search (echoes the
@@ -503,10 +505,16 @@ footer .tmw-wordmark{width:118px}
   .rh-img{position:relative; height:min(48vh,440px); overflow:hidden}
   .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02)}
   .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(to bottom, rgba(7,8,7,0) 46%, rgba(7,8,7,.6) 76%, var(--ink) 100%)}
+    background:linear-gradient(to bottom,
+      rgba(7,8,7,0) 22%,
+      rgba(7,8,7,.14) 42%,
+      rgba(7,8,7,.34) 58%,
+      rgba(7,8,7,.58) 72%,
+      rgba(7,8,7,.82) 86%,
+      var(--ink) 100%)}
   .rh-inner{position:relative; z-index:2; margin-top:-34px; padding:0 22px}
   .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--gold-soft); font-family:var(--sans)}
-  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:18px auto 0; text-wrap:balance}
+  .rank-hero h2, .rank-hero .rh-alt-title{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:18px auto 0; text-wrap:balance}
   .rank-hero h2 em{font-style:italic; color:var(--gold-soft); font-weight:400}
   .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub{text-shadow:0 1px 18px rgba(0,0,0,.6), 0 0 4px rgba(0,0,0,.4)}
   .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#E7DCC6; max-width:62ch; margin:16px auto 0; line-height:1.55}
@@ -581,8 +589,6 @@ footer .tmw-wordmark{width:118px}
 <section class="tab-panel on" data-panel="openings">
   <div class="wrap">
     <header class="op-intro">
-      <h2>The Opening <em>Radar</em></h2>
-      <p class="sub">Every notable hotel in the global pipeline, from announcement to opening day. Pulled live from the Markets of Tomorrow database and updated as projects move.</p>
       <div class="op-meta" id="opMeta"></div>
     </header>
     <div class="op-bar">
@@ -659,7 +665,6 @@ footer .tmw-wordmark{width:118px}
 <!-- ============== NEWS PANEL ============== -->
 <section class="tab-panel" data-panel="news">
   <div class="wrap">
-    <h2 class="news-title">Latest Hotel <em>News</em></h2>
     <div class="cards" id="newsCards"></div>
   </div>
 </section>
@@ -2439,11 +2444,35 @@ function formatDate(s) {
 (function () {
   var MAPH = { opening: 'openings', openings: 'openings', list: 'ranking', ranking: 'ranking', news: 'news' };
   var REV = { openings: 'opening', ranking: 'list', news: 'news' };
+  // Per-tab masthead copy. The ranking title/sub are the EDITABLE elements the
+  // list loader writes into, so they stay in the DOM untouched (just hidden on
+  // other tabs) while alt siblings carry the radar/news copy.
+  var TAB_COPY = {
+    openings: { t: 'The Hotel <em>Radar</em>', s: 'Every notable hotel in the global pipeline, from announcement to opening day. Pulled live from the Markets of Tomorrow database and updated as projects move.' },
+    news: { t: 'Latest Hotel <em>News</em>', s: 'Openings, brand debuts, and the projects reshaping travel, reported as they break.' },
+  };
+  function setMastCopy(tab){
+    var rt = document.querySelector('.rank-hero [data-edit="title"]');
+    var rs = document.querySelector('.rank-hero [data-edit="subtitle"]');
+    var at = document.querySelector('.rh-alt-title');
+    var asub = document.querySelector('.rh-alt-sub');
+    if (!rt || !at) return;
+    var c = TAB_COPY[tab];
+    if (c) {
+      at.innerHTML = c.t; asub.textContent = c.s;
+      rt.style.display = 'none'; rs.style.display = 'none';
+      at.style.display = ''; asub.style.display = '';
+    } else {
+      rt.style.display = ''; rs.style.display = '';
+      at.style.display = 'none'; asub.style.display = 'none';
+    }
+  }
   // Toggle classes directly (the main script's click handlers bind after its
   // first fetch resolves, so an on-load hash can't rely on .click()).
   function activate(tab){
     document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
     document.querySelectorAll('.tab-panel').forEach(function (pn) { pn.classList.toggle('on', pn.getAttribute('data-panel') === tab); });
+    setMastCopy(tab);
   }
   function applyHash(){
     var h = (location.hash || '').replace('#', '').toLowerCase();
@@ -2458,12 +2487,17 @@ function formatDate(s) {
   }
   document.querySelectorAll('.tab-btn').forEach(function (b) {
     b.addEventListener('click', function () {
-      var r = REV[b.getAttribute('data-tab')];
+      var tab = b.getAttribute('data-tab');
+      setMastCopy(tab);
+      var r = REV[tab];
       if (r) { try { history.replaceState(null, '', '#' + r); } catch (e) {} }
     });
   });
   window.addEventListener('hashchange', applyHash);
   applyHash();
+  // Openings is the default tab, so the radar copy leads unless a hash says otherwise.
+  var h0 = MAPH[(location.hash || '').replace('#', '').toLowerCase()];
+  setMastCopy(h0 || 'openings');
 })();
 </script>
 
