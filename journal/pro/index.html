@@ -149,7 +149,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .rl-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(26px,3.4vw,40px); letter-spacing:-.02em; color:#fff; line-height:1.08}
 .rl-head p{font-size:15px; line-height:1.6; color:var(--mute-2); margin-top:14px}
 .rl-head p b{color:var(--gold-soft); font-weight:600}
-.rl-track{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px}
+.rl-track{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:8px auto 0; max-width:640px}
 .rl-rung{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.02); padding:22px 20px}
 .rl-rung .rl-when{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
 .rl-rung .rl-amt{font-family:var(--serif); font-weight:600; font-size:34px; line-height:1; color:var(--cream)}
@@ -257,9 +257,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
     <!-- Rate-lock ladder -->
     <div class="ratelock reveal">
       <div class="rl-head">
-        <div class="eyebrow">Lock in your 2026 rate</div>
-        <h2>The price keeps going up. Get in before it does.</h2>
-        <p>TMW Pro gets more valuable every month, and the price rises with it. Join now and your rate is <b>locked in through 2026</b>: a full year at today&rsquo;s price while new members pay more. At renewal, pricing may rise with the product.</p>
+        <div class="eyebrow">Join now</div>
+        <h2>Lock in a full year at today&rsquo;s rate.</h2>
+        <p>Go annual and $150 covers a full year of everything below. Early members joined at $90, so you&rsquo;re in good company. Prefer to stay flexible? Go monthly and cancel anytime.</p>
       </div>
       <div class="rl-track">
         <div class="rl-rung past">
@@ -269,14 +269,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         </div>
         <div class="rl-rung now">
           <span class="rl-tag">You&rsquo;re here</span>
-          <div class="rl-when">Jul &ndash; Aug 2026</div>
+          <div class="rl-when">Annual</div>
           <div class="rl-amt">$150<span class="yr">/yr</span></div>
-          <div class="rl-lab">Join now and lock this rate through 2026.</div>
-        </div>
-        <div class="rl-rung next">
-          <div class="rl-when">Coming soon</div>
-          <div class="rl-amt">Higher</div>
-          <div class="rl-lock"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Rate rises again</div>
+          <div class="rl-lab">Locked in for a full year, however pricing changes.</div>
         </div>
       </div>
     </div>
@@ -300,7 +295,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <a class="pc-btn ghost" href="/">Keep reading</a>
       </div>
       <div class="price-card feat reveal d2">
-        <div class="pc-flag">2 weeks free &middot; lock your 2026 rate</div>
+        <div class="pc-flag">2 weeks free</div>
         <div class="pc-name">TMW Pro</div>
         <div class="pc-price"><span class="amt">$15</span><span class="per">/mo</span><span class="alt">or $150/yr</span></div>
         <div class="pc-sub">The full intelligence layer: every feature below.</div>
@@ -311,7 +306,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
           <li>Projected pricing &amp; supply pressure</li>
           <li>Watchlist + your weekly Onyx Brief</li>
           <li>Compare sheets, Openings Tracker &amp; more</li>
-          <li>Your 2026 rate, locked in</li>
+          <li>Annual rate locked for a full year</li>
         </ul>
         <button class="pc-btn gold" type="button" id="priceGoPro">Go Pro, lock in $150/yr</button>
       </div>
@@ -356,7 +351,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <div class="cmp-row"><div class="cmp-feat">The Weekly newsletter</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
         <div class="cmp-row"><div class="cmp-feat">Article commenting</div><div class="cmp-val">Limited</div><div class="cmp-val on">Unlimited</div></div>
         <div class="cmp-row"><div class="cmp-feat">Member number, status &amp; rewards</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
-        <div class="cmp-row"><div class="cmp-feat">Your 2026 rate, locked in</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Annual rate locked for a full year</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
       </div>
       <div style="text-align:center; margin-top:34px">
         <button class="pc-btn gold" type="button" id="priceGoPro2" style="display:inline-flex; padding:16px 40px">Go Pro, lock in $150/yr</button>
