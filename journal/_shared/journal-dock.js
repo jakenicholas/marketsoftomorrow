@@ -2153,6 +2153,11 @@
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
       '.tmw-pulse-note{padding:10px 16px 6px;color:rgba(255,255,255,.45);font-size:11.5px;letter-spacing:.02em}',
+      // footer — the way into /dashboard/ now that the pill's label may open
+      // the drop instead of navigating (mobile)
+      '.tmw-pulse-foot{flex:0 0 auto;border-top:1px solid rgba(255,255,255,.07)}',
+      '.tmw-pulse-foot a{display:block;text-align:center;padding:12px;font:700 10.5px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:#C4B5FD;text-decoration:none;transition:background .12s}',
+      '.tmw-pulse-foot a:hover{background:rgba(167,139,250,.09)}',
       '@media(max-width:980px){.tmw-pulse-pop{position:fixed!important;top:62px!important;bottom:auto!important;left:12px!important;right:12px!important;width:auto!important;max-width:none!important;max-height:74vh!important}}'
     ].join('');
     document.head.appendChild(st);
@@ -2178,7 +2183,8 @@
         '<button class="tmw-pulse-refresh" type="button" aria-label="Refresh" title="Refresh" style="margin-left:8px">' +
           '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
         '</button></div>' +
-      '<div class="tmw-pulse-feed"></div>';
+      '<div class="tmw-pulse-feed"></div>' +
+      '<div class="tmw-pulse-foot"><a href="/dashboard/">Open dashboard &rarr;</a></div>';
     box.insertBefore(circleEl, prof);
     box.appendChild(popEl);
     feedEl = popEl.querySelector('.tmw-pulse-feed');
@@ -2243,6 +2249,42 @@
     });
     return true;
   }
+
+  // ── "Your moves" module for /dashboard/ ────────────────────────────────────
+  // Renders the Me-scope feed (brief card + watched moves) into a container —
+  // the same data, styles and dismissals as the header dropdown, so clearing a
+  // tile in either place clears it in both.
+  window.tmwRenderMyMoves = function(el){
+    if (!el || el.__tmwMM) return; el.__tmwMM = true;
+    injectCss();
+    function paint(){
+      var old = scope; scope = 'me';
+      try {
+        var list = active();
+        el.innerHTML = briefCardHtml() + (list.length ? list.map(itemHtml).join('')
+          : '<div class="tmw-pulse-empty" style="text-align:left;padding:16px 4px">No moves on your watches yet. Watch a project, market or firm and its moves land here.</div>');
+      } finally { scope = old; }
+    }
+    el.addEventListener('click', function(ev){
+      var x = ev.target.closest ? ev.target.closest('.pi-x') : null;
+      if (!x) return;
+      ev.preventDefault(); ev.stopPropagation();
+      var item = x.closest('.tmw-pulse-item'); if (!item) return;
+      var d = getDismissed(); d.add(item.getAttribute('data-eid')); saveDismissed(d);
+      paint(); repaint();   // keep the header badge in sync
+    });
+    var tries = 0;
+    (function wait(){
+      if (events.length){
+        paint();
+        try { loadMine().then(paint).catch(function(){}); } catch(e){}
+      }
+      else if (++tries < 60) setTimeout(wait, 250);
+      else paint();
+    })();
+    // the member (for the brief card) and watches resolve late — settle twice
+    setTimeout(paint, 2500); setTimeout(paint, 6000);
+  };
 
   function go(){
     fetch(PULSE_URL, { cache: 'no-store' })

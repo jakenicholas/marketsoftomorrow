@@ -83,7 +83,12 @@
     '.tmw-dashbtn .db-lbl{font:700 10.5px/1 "Inter",-apple-system,sans-serif;letter-spacing:.13em;text-transform:uppercase;',
       'color:#D8DCD9;white-space:nowrap}',
     '.tmw-dashbtn .db-n{font:800 10px/1.5 "Inter",-apple-system,sans-serif;color:#12091f;background:#B9A6FF;',
-      'padding:2px 7px;border-radius:999px;min-width:19px;text-align:center;box-shadow:0 0 12px rgba(185,166,255,.6)}',
+      'padding:2px 7px;border-radius:999px;min-width:19px;text-align:center;box-shadow:0 0 12px rgba(185,166,255,.6);',
+      'cursor:pointer;transition:transform .12s,box-shadow .15s}',
+    '.tmw-dashbtn .db-n:hover{transform:scale(1.12);box-shadow:0 0 18px rgba(185,166,255,.95)}',
+    /* zero state: the chip becomes a small dim bell so the dropdown stays reachable */
+    '.tmw-dashbtn .db-n.db-zero{background:rgba(185,166,255,.16);box-shadow:none;padding:2px 6px;display:inline-flex;align-items:center;justify-content:center}',
+    '.tmw-dashbtn .db-n.db-zero svg{width:11px;height:11px;display:block;stroke:#B9A6FF;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '.tmw-dashbtn .db-n[hidden]{display:none}',
     /* the bell's number now lives in the button */
     '.tmw-auth .tmw-pulse-bell.tmw-db-hidden,.tmw-auth .v2-profile-btn.tmw-db-hidden{display:none !important}',
@@ -127,10 +132,28 @@
       + '<span class="db-lbl">Dashboard</span>'
       + '<span class="db-n"></span>';
     var n = a.querySelector('.db-n');
+    var BELL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
     function paint(c) {
-      if (c > 0) { n.textContent = c > 99 ? '99+' : String(c); n.hidden = false; }
-      else { n.hidden = true; }
+      if (c > 0) { n.textContent = c > 99 ? '99+' : String(c); n.classList.remove('db-zero'); }
+      else { n.innerHTML = BELL_SVG; n.classList.add('db-zero'); }
+      n.hidden = false;
     }
+    // ── The split pill (2026-07-30) ──
+    // The label/avatar navigate to /dashboard/ as before; the COUNT is its own
+    // button that opens the Pulse dropdown (journal-dock.js still builds it —
+    // it just became unreachable when this button hid the bell). On mobile the
+    // label is hidden, so the whole pill opens the drop and the drop's footer
+    // carries the way into /dashboard/.
+    a.addEventListener('click', function (ev) {
+      var pop = document.getElementById('tmw-pulse-pop');
+      if (!pop) return;   // dropdown not built (yet) → navigate as before
+      var onBadge = ev.target.closest && ev.target.closest('.db-n');
+      var mobile = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
+      if (onBadge || mobile) {
+        ev.preventDefault(); ev.stopPropagation();
+        pop.hidden = !pop.hidden;
+      }
+    });
     function sync() {
       // The bell is the live source. Until it exists, hold the cached count so
       // the badge does not appear-then-jump on every refresh.

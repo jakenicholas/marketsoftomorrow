@@ -384,6 +384,8 @@ main.wrap{padding-bottom:70px}
   </section>
 
   <section data-tab-panel="dashboard">
+    <div class="sechead"><h2>Your moves</h2><span class="lbl">The brief plus every move on your watchlist</span></div>
+    <div id="myMoves" style="max-width:660px;margin-bottom:30px"><div class="empty">Loading&hellip;</div></div>
     <div class="sechead"><h2>Your views</h2><span class="lbl" id="svwLbl">&nbsp;</span></div>
     <div id="svwBody"><div class="empty">Loading&hellip;</div></div>
     <div class="sechead" style="margin-top:34px"><h2>This week</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
@@ -1037,6 +1039,17 @@ main.wrap{padding-bottom:70px}
   // before. With no hash there is no click, so kick the loader here.
   if(!tabFromHash()){ loadBrief(); renderViews(); }
   window.addEventListener('hashchange',tabFromHash);
+
+  // ── "Your moves" — the Me-scope pulse feed, rendered by journal-dock.js
+  // (same data + dismissals as the header dropdown). The dock loads deferred,
+  // so poll for its export.
+  (function myMoves(tries){
+    var el=document.getElementById('myMoves');
+    if(!el) return;
+    if(window.tmwRenderMyMoves){ window.tmwRenderMyMoves(el); return; }
+    if((tries||0)<80) setTimeout(function(){ myMoves((tries||0)+1); },250);
+    else el.innerHTML='<div class="empty">Moves unavailable right now.</div>';
+  })();
 
   // ── project watches (Memberstack `favorites` × projects-flat.json) ──
   // Rendered as status-dot pills inside the unified "Your watches" surface.
