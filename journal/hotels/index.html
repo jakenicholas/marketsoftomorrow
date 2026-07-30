@@ -2603,14 +2603,20 @@ function formatDate(s) {
   function loadFavs(force){
     if (_favsPromise && !force) return _favsPromise;
     _favsPromise = new Promise(function (res) {
-      try {
+      // Memberstack loads late — WAIT for it instead of caching an empty set
+      // forever (the bells never lit for already-watched projects because the
+      // radar renders before Memberstack exists).
+      (function wait(tries){
         var ms = window.$memberstackDom;
-        if (!ms || !ms.getMemberJSON) return res(new Set());
+        if (!ms || !ms.getMemberJSON) {
+          if (tries < 20) return setTimeout(function(){ wait(tries + 1); }, 600);
+          return res(new Set());
+        }
         ms.getMemberJSON().then(function (got) {
           var j = (got && got.data && typeof got.data === 'object') ? got.data : {};
           res(new Set(Array.isArray(j.favorites) ? j.favorites : []));
         }).catch(function () { res(new Set()); });
-      } catch (e) { res(new Set()); }
+      })(0);
     });
     return _favsPromise;
   }
