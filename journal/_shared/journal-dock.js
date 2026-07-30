@@ -2153,6 +2153,9 @@
       '.tmw-pulse-item .pi-x svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
       '.tmw-pulse-empty{padding:28px 16px;text-align:center;color:rgba(255,255,255,.4);font-size:13px}',
       '.tmw-pulse-note{padding:10px 16px 6px;color:rgba(255,255,255,.45);font-size:11.5px;letter-spacing:.02em}',
+      // "Show all N moves" toggle under the dashboard Your-moves feed
+      '.tmw-mm-more{display:block;width:100%;margin-top:8px;padding:11px;border-radius:11px;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.07);color:#C4B5FD;font:700 10.5px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:background .15s}',
+      '.tmw-mm-more:hover{background:rgba(167,139,250,.15)}',
       // footer — the way into /dashboard/ now that the pill's label may open
       // the drop instead of navigating (mobile)
       '.tmw-pulse-foot{flex:0 0 auto;border-top:1px solid rgba(255,255,255,.07)}',
@@ -2257,15 +2260,27 @@
   window.tmwRenderMyMoves = function(el){
     if (!el || el.__tmwMM) return; el.__tmwMM = true;
     injectCss();
+    // 3 moves visible by default; "Show all" extends the panel vertically.
+    var expanded = false, CAP = 3;
     function paint(){
       var old = scope; scope = 'me';
       try {
         var list = active();
-        el.innerHTML = briefCardHtml() + (list.length ? list.map(itemHtml).join('')
-          : '<div class="tmw-pulse-empty" style="text-align:left;padding:16px 4px">No moves on your watches yet. Watch a project, market or firm and its moves land here.</div>');
+        var shown = expanded ? list : list.slice(0, CAP);
+        el.innerHTML = briefCardHtml()
+          + (list.length ? shown.map(itemHtml).join('')
+            : '<div class="tmw-pulse-empty" style="text-align:left;padding:16px 4px">No moves on your watches yet. Watch a project, market or firm and its moves land here.</div>')
+          + (list.length > CAP
+            ? '<button type="button" class="tmw-mm-more">' + (expanded ? 'Show less' : 'Show all ' + list.length + ' moves') + '</button>'
+            : '');
+        // count chip in the panel header (if the host page has one)
+        var cnt = document.getElementById('myMovesCount');
+        if (cnt){ if (list.length){ cnt.textContent = String(list.length); cnt.hidden = false; } else { cnt.hidden = true; } }
       } finally { scope = old; }
     }
     el.addEventListener('click', function(ev){
+      var mb = ev.target.closest ? ev.target.closest('.tmw-mm-more') : null;
+      if (mb){ ev.preventDefault(); expanded = !expanded; paint(); return; }
       var x = ev.target.closest ? ev.target.closest('.pi-x') : null;
       if (!x) return;
       ev.preventDefault(); ev.stopPropagation();

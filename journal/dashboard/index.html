@@ -224,6 +224,13 @@ main.wrap{padding-bottom:70px}
 .pf-addbtn:hover{filter:brightness(1.08)}
 /* Saved-view tiles. A saved view IS the pin: the same {route, filter} object
    the Atlas writes, rendered here as a live module with its own count. */
+/* "Your moves" — full-width purple panel (matches the option-B mock) */
+.moves-panel{border:1px solid rgba(185,166,255,.32);border-radius:15px;background:linear-gradient(180deg,rgba(185,166,255,.06),rgba(185,166,255,.012) 60%,transparent);padding:18px 20px 16px;margin-bottom:34px}
+.mv-h{display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap}
+.mv-h span:first-child{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#B9A6FF}
+.mv-n{background:#B9A6FF;color:#12091f;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;line-height:1.5}
+.mv-sub{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+@media(max-width:700px){.mv-sub{display:none}}
 .svw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
 .svw{position:relative;display:block;padding:16px 17px 15px;border:1px solid var(--hair);border-radius:15px;
   background:rgba(255,255,255,.028);text-decoration:none;color:inherit;transition:.16s}
@@ -384,8 +391,10 @@ main.wrap{padding-bottom:70px}
   </section>
 
   <section data-tab-panel="dashboard">
-    <div class="sechead"><h2>Your moves</h2><span class="lbl">The brief plus every move on your watchlist</span></div>
-    <div id="myMoves" style="max-width:660px;margin-bottom:30px"><div class="empty">Loading&hellip;</div></div>
+    <div class="moves-panel">
+      <div class="mv-h"><span>Your moves</span><span class="mv-n" id="myMovesCount" hidden></span><span class="mv-sub">The brief plus every move on your watchlist</span></div>
+      <div id="myMoves" style="max-width:720px"><div class="empty">Loading&hellip;</div></div>
+    </div>
     <div class="sechead"><h2>Your views</h2><span class="lbl" id="svwLbl">&nbsp;</span></div>
     <div id="svwBody"><div class="empty">Loading&hellip;</div></div>
     <div class="sechead" style="margin-top:34px"><h2>This week</h2><span class="lbl" id="briefSub">&nbsp;</span></div>
