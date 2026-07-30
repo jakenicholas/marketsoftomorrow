@@ -2430,13 +2430,47 @@ const IMPL = {
       args.angle ? 'ANGLE: ' + String(args.angle) : '',
       args.facts ? 'VERIFIED FACTS / SOURCE NOTES (ground the piece in these; do not contradict or exceed them):\n' + String(args.facts) : '',
     ].filter(Boolean).join('\n\n');
-    const raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 4200 });
-    let gen = null;
-    if (raw) {
-      const m = raw.match(/\{[\s\S]*\}/); if (m) { try { gen = JSON.parse(m[0]); } catch (_) {} }
-      if (!gen) gen = repairTruncatedJson(raw);   // salvage a max_tokens-truncated article
+    // ── BEST-OF-3 (rejection sampling, the pre-RLHF move): three drafts in
+    // PARALLEL (same wall clock as one), then an editor-judge picks whichever
+    // reads most like our published work. Selection substitutes for training:
+    // sampling variance becomes the search space instead of a coin flip. Light
+    // per-take hints decorrelate the drafts without touching fact discipline.
+    const TAKE_HINTS = [
+      '',
+      '\n\nFOR THIS TAKE: open on the single most concrete fact (a number, an address, a date).',
+      '\n\nFOR THIS TAKE: open on the actor making the move (the developer, the brand, the firm).',
+    ];
+    const parseGen = (raw) => {
+      if (!raw) return null;
+      let g = null;
+      const m = raw.match(/\{[\s\S]*\}/); if (m) { try { g = JSON.parse(m[0]); } catch (_) {} }
+      if (!g) g = repairTruncatedJson(raw);   // salvage a max_tokens-truncated article
+      return (g && g.body_markdown) ? g : null;
+    };
+    let draws = (await Promise.all(TAKE_HINTS.map((h) =>
+      fableGenerate(env, { system: sys, user: usr + h, maxTokens: 4200 }).catch(() => '')
+    ))).map(parseGen).filter(Boolean);
+    // The simultaneous burst can rate-limit siblings (observed: 1 of 3 landing).
+    // One sequential top-up after the burst clears keeps the pick meaningful.
+    if (draws.length === 1) {
+      const extra = parseGen(await fableGenerate(env, { system: sys, user: usr + TAKE_HINTS[1], maxTokens: 4200 }).catch(() => ''));
+      if (extra) draws.push(extra);
     }
-    if (!gen || !gen.body_markdown) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
+    if (!draws.length) throw new Error('generation failed — the author model returned no usable article. Try again, or write the body manually with create_post_draft.');
+    let gen = draws[0];
+    let bestOf = { candidates: draws.length, picked: 0 };
+    if (draws.length > 1) {
+      try {
+        const fp0 = await getFingerprint(env);
+        const gold = (brain.articleExemplars && brain.articleExemplars[0]) || null;
+        const pickSys = 'You are the executive editor of Markets of Tomorrow. Pick which candidate article reads MOST like our published work: judge prose (rhythm, ledes, how it lands, concreteness), not topic. Facts are identical across candidates; ignore factual differences. Output ONLY JSON: {"pick":<0-based index>,"why":"<one short sentence>"}.'
+          + (fp0 ? '\n\nMEASURED HOUSE SPEC:\n' + fingerprintSpecText(fp0) : '')
+          + (gold ? '\n\nREAL PUBLISHED REFERENCE:\n' + gold.body.slice(0, 1800) : '');
+        const pickUsr = draws.map((g, i) => `CANDIDATE ${i}: ${g.title}\n${String(g.body_markdown).slice(0, 2400)}`).join('\n\n════════\n\n');
+        const v = parseLLMJson(await fableGenerate(env, { system: pickSys, user: pickUsr, maxTokens: 250 }));
+        if (v && typeof v.pick === 'number' && draws[v.pick]) { gen = draws[v.pick]; bestOf = { candidates: draws.length, picked: v.pick, why: String(v.why || '').slice(0, 200) }; }
+      } catch (_) { /* keep draws[0] */ }
+    }
     // ── UNIFIED QA PASS: canon lint (deterministic) + fingerprint score
     // (deterministic) + brain critique ∥ adversarial Turing judge (parallel) →
     // ONE combined fix → one re-test. Parallelizing the two model calls and
@@ -2538,6 +2572,7 @@ const IMPL = {
     return {
       ok: true, slug: article.slug, edit_url: article.edit_url, title,
       grounded_in: { voice: !!brain.voice, fingerprint: !!brain.fingerprint, gold_exemplars: (brain.articleExemplars || []).map((a) => a.slug), learned_rules: brain.rules.length, knowledge: brain.knowledge.length, related: brain.facts.length },
+      best_of: bestOf,
       style_check: styleReport,
       voice_gate: voiceGate,
       internal_links: linkReport,

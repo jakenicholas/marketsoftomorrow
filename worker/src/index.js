@@ -5604,7 +5604,7 @@ export async function rejectedTopics(env, days = 120) {
 // (e.g. "shorecrest", "edition") + embedding similarity as backstop.
 // Includes generic street/money/headline words: "avenue" alone matched a Miami
 // Beach hotel reno against a Fifth Avenue supertall and blocked real coverage.
-const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded']);
+const TOPIC_STOP = new Set(['luxury','hotel','hotels','tower','towers','project','projects','residences','residence','coming','opening','openings','development','condo','condos','miami','nashville','orlando','tampa','austin','york','palm','beach','beaches','florida','downtown','waterfront','district','resort','planned','proposed','breaks','ground','update','avenue','street','boulevard','million','billion','construction','renovation','oceanfront','announced','unveils','unveiled','launch','launches','renderings','backed','inside','transformation','storied','reopens','remade','wellness','retreat','debut','debuts','flagship','branded','private','marina','estates','collection']);
 export async function topicRejected(env, topic, days = 120) {
   const rejected = await rejectedTopics(env, days);
   if (!rejected.length) return null;
@@ -5746,6 +5746,21 @@ async function captureEditLesson(env, post) {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
         .bind(Math.floor(Date.now() / 1000), String(post.slug || post.id || ''), 'edit_pair',
           JSON.stringify({ slug: String(post.slug || ''), before: before.slice(0, 420), after: after.slice(0, 420) })).run();
+      // Also embed into Vectorize so future generations retrieve pairs by TOPIC
+      // RELEVANCE, not recency — the DPO philosophy at prompt level: the raw
+      // preference pair, matched to context, no lossy rule distillation between.
+      if (retrievalReady(env)) {
+        try {
+          const [vec] = await embedTexts(env, [(String(post.title || '') + '\n' + before).slice(0, 1500)]);
+          if (Array.isArray(vec)) {
+            await env.VECTORIZE.upsert([{
+              id: vecId('epair', String(post.slug || post.id || '')),
+              values: vec,
+              metadata: { kind: 'edit_pair', slug: String(post.slug || '').slice(0, 200), before: before.slice(0, 420), after: after.slice(0, 420) },
+            }]);
+          }
+        } catch (_) {}
+      }
     }
   } catch (_) {}
   const sys = 'You improve an AI writing system for Markets of Tomorrow, a real-estate development media brand. A human editor revised an AI-written article before publishing. Compare the ORIGINAL (AI) and PUBLISHED (human-edited) versions and extract AT MOST 2 lessons — usually 0 or 1 — that are WIDE-SCOPED house-voice patterns applying to MANY future articles across any subject. '
@@ -8270,6 +8285,35 @@ async function handleBackfillScores(req, env, origin) {
   let body = {}; try { body = await req.json(); } catch (_) {}
   const limit = Math.min(Math.max(parseInt(body.limit, 10) || 10, 1), 25);
   const judge = ['published', 'all', 'none'].includes(body.judge) ? body.judge : 'published';
+  // pairs:true → seed the editor's-hand preference bank instead: extract the
+  // before→after pair from every published AI article that has none yet, store
+  // + embed it (same heuristic as captureEditLesson).
+  if (body.pairs) {
+    const rows = ((await env.DB.prepare(
+      `SELECT slug, title, body_html, ai_original_html, published_at FROM posts
+       WHERE status='published' AND ai_original_html IS NOT NULL AND LENGTH(ai_original_html) > 200 AND slug IS NOT NULL
+         AND slug NOT IN (SELECT DISTINCT member_id FROM events WHERE event_name='edit_pair') LIMIT 40`
+    ).all()).results || []);
+    let stored = 0;
+    for (const r of rows) {
+      try {
+        const paras = (t) => t.split(/\n{2,}/).map(s => s.replace(/\s+/g, ' ').trim()).filter(p => p.length > 60);
+        const po = paras(htmlToProse(r.ai_original_html)), pf = paras(htmlToProse(r.body_html || ''));
+        const fSet = new Set(pf), oSet = new Set(po);
+        const before = po.find(p => !fSet.has(p)), after = pf.find(p => !oSet.has(p));
+        if (!before || !after || before === after) continue;
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(r.published_at || Math.floor(Date.now() / 1000), String(r.slug), 'edit_pair',
+            JSON.stringify({ slug: String(r.slug), before: before.slice(0, 420), after: after.slice(0, 420) })).run();
+        if (retrievalReady(env)) {
+          const [vec] = await embedTexts(env, [(String(r.title || '') + '\n' + before).slice(0, 1500)]);
+          if (Array.isArray(vec)) await env.VECTORIZE.upsert([{ id: vecId('epair', String(r.slug)), values: vec, metadata: { kind: 'edit_pair', slug: String(r.slug).slice(0, 200), before: before.slice(0, 420), after: after.slice(0, 420) } }]);
+        }
+        stored++;
+      } catch (_) {}
+    }
+    return json({ ok: true, mode: 'pairs', candidates: rows.length, stored }, {}, env, origin);
+  }
   const fp = await getFingerprint(env);
   await ensureEvalScores(env);
   const rows = ((await env.DB.prepare(
@@ -12234,14 +12278,21 @@ export async function assembleBrain(env, { topic = '', place = '', voice = true,
     try {
       const [vec] = await embedTexts(env, [q]);
       if (Array.isArray(vec)) {
-        const ms = (await env.VECTORIZE.query(vec, { topK: 24, returnMetadata: 'all' })).matches || [];
+        const ms = (await env.VECTORIZE.query(vec, { topK: 30, returnMetadata: 'all' })).matches || [];
         out.knowledge = ms.filter(m => m.metadata && m.metadata.kind === 'knowledge' && (m.score || 0) >= 0.50 && m.metadata.text)
           .slice(0, maxKnowledge).map(m => String(m.metadata.text).slice(0, 400));
-        out.facts = ms.filter(m => m.metadata && m.metadata.kind !== 'knowledge' && m.metadata.kind !== 'article_body' && (m.score || 0) >= 0.55 && m.metadata.title)
+        out.facts = ms.filter(m => m.metadata && m.metadata.kind !== 'knowledge' && m.metadata.kind !== 'article_body' && m.metadata.kind !== 'edit_pair' && (m.score || 0) >= 0.55 && m.metadata.title)
           .slice(0, maxFacts).map(m => ({ title: String(m.metadata.title).slice(0, 80), where: String(m.metadata.city || '').slice(0, 60), status: String(m.metadata.status || '').slice(0, 40), kind: m.metadata.kind || 'project' }));
         // Full-body article passages (kind:'article_body', title-less) — real prose for tone/context.
         out.passages = ms.filter(m => m.metadata && m.metadata.kind === 'article_body' && (m.score || 0) >= 0.55 && m.metadata.text)
           .slice(0, 2).map(m => String(m.metadata.text).slice(0, 300));
+        // Editor's-hand pairs by TOPIC RELEVANCE — the most instructive human
+        // corrections for THIS kind of story beat the merely-newest ones.
+        if (surface === 'article') {
+          const pairs = ms.filter(m => m.metadata && m.metadata.kind === 'edit_pair' && (m.score || 0) >= 0.45 && m.metadata.before && m.metadata.after)
+            .slice(0, 4).map(m => ({ before: String(m.metadata.before), after: String(m.metadata.after) }));
+          if (pairs.length) out.editPairs = pairs;   // supersedes the recency fallback
+        }
       }
     } catch (_) {}
   }
