@@ -181,10 +181,17 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     return best?best+' ('+n+')':'—';}
 
   // trend: units next 12 months vs the following 12
+  // Trend off the windows series. A ZERO base is a kind, not a ratio — the
+  // first cut printed "deliveries 99×" (a divide-by-zero sentinel escaping
+  // into prose), which is exactly the confidently-wrong sentence this page
+  // must never produce. Zero-now often also just means near-term deliveries
+  // are undated, so 'fromZero' language stays hedged.
   function accel(m){var w=m.windows||[];
     var a=w.slice(0,2).reduce(function(s,x){return s+(x.units||0);},0);
     var b=w.slice(2,4).reduce(function(s,x){return s+(x.units||0);},0);
-    return {now:a,next:b,r:a>0?b/a:(b>0?99:1)};}
+    var kind = a===0 ? (b>0?'fromZero':'quiet')
+             : (b/a>=2 ? 'accelerating' : b/a<=0.5 ? 'cresting' : 'steady');
+    return {now:a,next:b,r:a>0?b/a:0,kind:kind};}
 
   // the score arc — heat colour ALWAYS beside its level text, never alone
   function gauge(score,level,size){
@@ -243,8 +250,11 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     var vg=document.createElement('div');vg.className='vgrid';
     var top=ms.slice().sort(function(a,b){return b.score-a.score;}).slice(0,3);
     // + the most interesting non-saturated stories: biggest acceleration into pressure
-    var movers=ms.filter(function(m){return top.indexOf(m)<0&&accel(m).r>=2&&(m.pipeline_units||0)>=1200;})
-      .sort(function(a,b){return accel(b).r-accel(a).r;}).slice(0,3);
+    var movers=ms.filter(function(m){
+        if(top.indexOf(m)>=0)return false;
+        var a=accel(m);
+        return (a.kind==='accelerating'||a.kind==='fromZero')&&a.next>=800&&(m.pipeline_units||0)>=1500;})
+      .sort(function(a,b){return accel(b).next-accel(a).next;}).slice(0,3);
     top.concat(movers).forEach(function(m){
       var a=accel(m), n=cityRows(m._k).length;
       var card=document.createElement('div');card.className='vc';
@@ -257,17 +267,21 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
       lv.appendChild(document.createTextNode(m.level));nm.appendChild(lv);
       topRow.appendChild(nm);
       var tr=document.createElement('span');
-      tr.className='trend '+(a.r>=1.5?'up':a.r<=0.6?'dn':'flat');
-      tr.textContent=a.r>=1.5?'▲ accelerating':a.r<=0.6?'▼ cresting':'· steady';
+      var TREND={accelerating:['up','▲ accelerating'],fromZero:['up','▲ wave forming'],
+                 cresting:['dn','▼ cresting'],steady:['flat','· steady'],quiet:['flat','· quiet']};
+      tr.className='trend '+TREND[a.kind][0];
+      tr.textContent=TREND[a.kind][1];
       topRow.appendChild(tr);
       card.appendChild(topRow);
       var why=document.createElement('div');why.className='vc-why';
       var strong=document.createElement('b');
       var line;
-      if(a.r>=2)      line=[nfmt(m.pipeline_units)+' units in the pipeline, and deliveries ',
+      if(a.kind==='accelerating') line=[nfmt(m.pipeline_units)+' units in the pipeline, and deliveries ',
                             (a.r>=4?Math.round(a.r)+'×':(a.r).toFixed(1)+'×'),
                             ' from '+nfmt(a.now)+' to '+nfmt(a.next)+' units over the next two years.'];
-      else if(a.r<=0.6) line=[nfmt(m.pipeline_units)+' units tracked, but the wave is landing ','now',
+      else if(a.kind==='fromZero') line=[nfmt(m.pipeline_units)+' units tracked and ','nothing dated inside 12 months',
+                            ' — then '+nfmt(a.next)+' units arrive in the following year.'];
+      else if(a.kind==='cresting') line=[nfmt(m.pipeline_units)+' units tracked, but the wave is landing ','now',
                             ' — '+nfmt(a.now)+' units inside 12 months vs '+nfmt(a.next)+' after.'];
       else            line=[nfmt(m.pipeline_units)+' units in the pipeline on a ','steady',
                             ' delivery cadence ('+nfmt(a.now)+' then '+nfmt(a.next)+').'];
@@ -354,16 +368,20 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     var calls=[];
     ms.forEach(function(m){
       var a=accel(m);
-      if(m.level!=='Balanced'&&a.r>=2.5&&a.next>=800)
+      if(m.level!=='Balanced'&&a.kind==='accelerating'&&a.next>=800)
         calls.push({w:a.r*(m.score/50),ic:'⚠',
           tx:[m.city+' is already ',m.level.toLowerCase(),' at '+m.score+', and deliveries still '
             +(a.r>=4?Math.round(a.r):a.r.toFixed(1))+'× — '+nfmt(a.now)+' units inside 12 months becomes '+nfmt(a.next)+' in the following 12.'],k:m._k});
-      else if(m.level==='Balanced'&&a.r>=3&&a.next>=1200)
-        calls.push({w:a.r,ic:'◎',
+      else if(m.level!=='Balanced'&&a.kind==='fromZero'&&a.next>=800)
+        calls.push({w:(a.next/800)*(m.score/50),ic:'⚠',
+          tx:[m.city+' is already ',m.level.toLowerCase(),' at '+m.score+' with nothing dated inside 12 months — then '
+            +nfmt(a.next)+' units arrive at once.'],k:m._k});
+      else if(m.level==='Balanced'&&(a.kind==='accelerating'||a.kind==='fromZero')&&a.next>=1200)
+        calls.push({w:a.next/1000,ic:'◎',
           tx:[m.city+' reads balanced today, but the pipeline says ','quietly heating',
             ' — deliveries go from '+nfmt(a.now)+' to '+nfmt(a.next)+' units, '+nfmt(m.pipeline_units)+' tracked in total.'],k:m._k});
-      else if(m.level==='Saturated'&&a.r<=0.5&&a.now>=800)
-        calls.push({w:2/(a.r||0.1),ic:'◑',
+      else if(m.level==='Saturated'&&a.kind==='cresting'&&a.now>=800)
+        calls.push({w:3,ic:'◑',
           tx:[m.city+'’s wave is ','landing now',' — '+nfmt(a.now)+' units inside 12 months, then it thins to '+nfmt(a.next)+'. The pressure number starts falling from here.'],k:m._k});
     });
     calls.sort(function(x,y){return y.w-x.w;}).slice(0,4).forEach(function(cle){
