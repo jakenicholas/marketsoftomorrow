@@ -19,7 +19,7 @@
     },
     {
       "type": "Office",
-      "count": 37
+      "count": 38
     },
     {
       "type": "Entertainment",
@@ -30,12 +30,12 @@
       "count": 23
     },
     {
-      "type": "Travel",
+      "type": "Stadium",
       "count": 17
     },
     {
-      "type": "Stadium",
-      "count": 17
+      "type": "Travel",
+      "count": 16
     },
     {
       "type": "Cultural",
@@ -2398,7 +2398,7 @@
       "yr": 2034,
       "sm": "2027-12",
       "ci": "Tampa",
-      "u": 4750,
+      "u": 2586,
       "k": 375,
       "fl": 0,
       "dv": [
@@ -5198,7 +5198,7 @@
       "ci": "Miami Beach",
       "u": 10,
       "k": 0,
-      "fl": 4,
+      "fl": 5,
       "dv": [
         [
           "Regency Development Group",
@@ -8137,7 +8137,7 @@
     },
     {
       "st": "JP",
-      "ty": "Travel",
+      "ty": "Office",
       "sl": "Construction",
       "yr": 2028,
       "sm": "2023-09",
@@ -8286,7 +8286,7 @@
       "ty": "Residences",
       "sl": "Announced",
       "yr": 2032,
-      "sm": "2021-10",
+      "sm": "2026-12",
       "ci": "Chicago",
       "u": 3300,
       "k": 0,
@@ -17624,7 +17624,7 @@
       "yr": 2029,
       "sm": "2026-12",
       "ci": "New York",
-      "u": 101,
+      "u": 0,
       "k": 0,
       "fl": 52,
       "dv": [
@@ -17717,7 +17717,7 @@
       "ty": "Residences",
       "sl": "Construction",
       "yr": 2027,
-      "sm": "2025-12",
+      "sm": "2025-07",
       "ci": "Naples",
       "u": 15,
       "k": 0,
@@ -23190,9 +23190,9 @@
     "opening_this_year": 132
   },
   "scale": {
-    "units": 329600,
+    "units": 327335,
     "keys": 61467,
-    "floors": 16790
+    "floors": 16791
   },
   "leaderboards": {
     "developers": [
@@ -24112,13 +24112,13 @@
       {
         "name": "Office",
         "sub": "4% of pipeline",
-        "count": 37,
+        "count": 38,
         "states": [
           "FL",
           "Other",
           "NY",
-          "FR",
           "JP",
+          "FR",
           "AE",
           "UK"
         ]
@@ -24150,20 +24150,6 @@
         ]
       },
       {
-        "name": "Travel",
-        "sub": "2% of pipeline",
-        "count": 17,
-        "states": [
-          "Other",
-          "FL",
-          "NY",
-          "TN",
-          "FR",
-          "UK",
-          "JP"
-        ]
-      },
-      {
         "name": "Stadium",
         "sub": "2% of pipeline",
         "count": 17,
@@ -24171,6 +24157,19 @@
           "Other",
           "FL",
           "TN"
+        ]
+      },
+      {
+        "name": "Travel",
+        "sub": "2% of pipeline",
+        "count": 16,
+        "states": [
+          "Other",
+          "FL",
+          "NY",
+          "TN",
+          "FR",
+          "UK"
         ]
       },
       {
@@ -25135,8 +25134,8 @@
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -25201,8 +25200,7 @@
             "NY",
             "TN",
             "FR",
-            "UK",
-            "JP"
+            "UK"
           ]
         },
         {
@@ -25925,8 +25923,8 @@
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -26594,8 +26592,8 @@
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -26628,8 +26626,7 @@
             "NY",
             "TN",
             "FR",
-            "UK",
-            "JP"
+            "UK"
           ]
         },
         {
@@ -27348,8 +27345,7 @@
             "NY",
             "TN",
             "FR",
-            "UK",
-            "JP"
+            "UK"
           ]
         },
         {
@@ -28602,8 +28598,7 @@
             "NY",
             "TN",
             "FR",
-            "UK",
-            "JP"
+            "UK"
           ]
         },
         {
@@ -28614,8 +28609,8 @@
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -28975,29 +28970,15 @@
           ]
         },
         {
-          "name": "Travel",
-          "sub": "7% of pipeline",
-          "count": 1,
-          "states": [
-            "Other",
-            "FL",
-            "NY",
-            "TN",
-            "FR",
-            "UK",
-            "JP"
-          ]
-        },
-        {
           "name": "Office",
-          "sub": "7% of pipeline",
-          "count": 1,
+          "sub": "14% of pipeline",
+          "count": 2,
           "states": [
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -29587,8 +29568,7 @@
             "NY",
             "TN",
             "FR",
-            "UK",
-            "JP"
+            "UK"
           ]
         },
         {
@@ -29599,8 +29579,8 @@
             "FL",
             "Other",
             "NY",
-            "FR",
             "JP",
+            "FR",
             "AE",
             "UK"
           ]
@@ -29722,9 +29702,9 @@
         "under_construction": 119
       },
       "scale": {
-        "units": 84392,
+        "units": 82228,
         "keys": 11491,
-        "floors": 6155
+        "floors": 6156
       },
       "status_distribution": [
         {
@@ -29772,7 +29752,7 @@
         {
           "month": "Dec",
           "year": 2025,
-          "count": 11
+          "count": 10
         },
         {
           "month": "Jan",
@@ -29908,7 +29888,7 @@
         "under_construction": 12
       },
       "scale": {
-        "units": 9759,
+        "units": 9658,
         "keys": 1043,
         "floors": 1375
       },
@@ -31055,7 +31035,7 @@
     {
       "month": "Dec",
       "year": 2025,
-      "count": 35
+      "count": 34
     },
     {
       "month": "Jan",
