@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-<title>TMW Pro &mdash; Markets of Tomorrow</title>
+<title>TMW Pro · Markets of Tomorrow</title>
 <link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
-<meta name="description" content="TMW Pro — the world's smartest news network for luxury development and hospitality. A real-time database of every major project, powered by TMW Intelligence.">
+<meta name="description" content="TMW Pro: the world's smartest news network for luxury development and hospitality. A real-time database of every major project, powered by TMW Intelligence.">
 <link rel="canonical" href="https://www.oftmw.com/pro/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="TMW Pro">
@@ -142,6 +142,55 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pc-btn.ghost:hover{border-color:#fff; color:#fff}
 @media(max-width:720px){.price-grid{grid-template-columns:1fr}}
 
+/* ── Rate-lock ladder ── */
+.ratelock{max-width:960px; margin:0 auto 54px}
+.rl-head{text-align:center; max-width:720px; margin:0 auto 30px}
+.rl-head .eyebrow{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); margin-bottom:14px}
+.rl-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(26px,3.4vw,40px); letter-spacing:-.02em; color:#fff; line-height:1.08}
+.rl-head p{font-size:15px; line-height:1.6; color:var(--mute-2); margin-top:14px}
+.rl-head p b{color:var(--gold-soft); font-weight:600}
+.rl-track{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px}
+.rl-rung{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.02); padding:22px 20px; overflow:hidden}
+.rl-rung .rl-when{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
+.rl-rung .rl-amt{font-family:var(--serif); font-weight:600; font-size:34px; line-height:1; color:var(--cream)}
+.rl-rung .rl-amt .yr{font-family:var(--mono); font-size:13px; color:var(--mute); font-weight:400; margin-left:3px}
+.rl-rung .rl-lab{margin-top:12px; font-size:13px; color:var(--mute-2)}
+.rl-rung.past{opacity:.5}
+.rl-rung.past .rl-amt{text-decoration:line-through; text-decoration-color:rgba(255,255,255,.3)}
+.rl-rung.now{border-color:rgba(230,197,116,.5); background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(167,139,250,.04)); box-shadow:0 0 34px -8px rgba(230,197,116,.35)}
+.rl-rung.now .rl-amt{color:#fff}
+.rl-rung.now .rl-tag{position:absolute; top:-10px; left:20px; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#1a1505; background:linear-gradient(135deg,var(--gold-soft),var(--gold)); border-radius:999px; padding:4px 11px}
+.rl-rung.next{border-style:dashed; border-color:var(--hair-2)}
+.rl-rung.next .rl-amt{color:var(--mute)}
+.rl-rung.next .rl-lock{display:inline-flex; align-items:center; gap:6px; margin-top:12px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute)}
+.rl-rung.next .rl-lock svg{width:12px; height:12px; stroke:var(--mute)}
+@media(max-width:720px){.rl-track{grid-template-columns:1fr}}
+
+/* ── Feature comparison table ── */
+.cmp{max-width:920px; margin:64px auto 0}
+.cmp-head{text-align:center; margin:0 auto 30px}
+.cmp-head .eyebrow{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); margin-bottom:14px}
+.cmp-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(26px,3.4vw,40px); letter-spacing:-.02em; color:#fff}
+.cmp-table{border:1px solid var(--hair); border-radius:18px; overflow:hidden; background:rgba(255,255,255,.015)}
+.cmp-row{display:grid; grid-template-columns:1fr 116px 116px; align-items:center; padding:14px 22px; border-top:1px solid var(--hair); gap:12px}
+.cmp-row:first-child{border-top:0}
+.cmp-colhead{position:sticky; top:60px; z-index:2; background:var(--ink-2); border-top:0}
+.cmp-colhead .ch-plan{text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:700}
+.cmp-colhead .ch-plan.pro{color:var(--gold-soft)}
+.cmp-group{padding:18px 22px 8px; font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--purple-glow); border-top:1px solid var(--hair); background:rgba(167,139,250,.03)}
+.cmp-feat{font-size:14px; color:var(--cream); line-height:1.4}
+.cmp-feat .cf-sub{display:block; font-size:12px; color:var(--mute); margin-top:2px}
+.cmp-val{text-align:center; font-family:var(--mono); font-size:12px; color:var(--mute-2)}
+.cmp-val.on{color:var(--green-soft)}
+.cmp-val .ck{display:inline-block; width:16px; height:16px; position:relative}
+.cmp-val .ck::after{content:""; position:absolute; left:5px; top:2px; width:5px; height:9px; border-right:2px solid var(--green-soft); border-bottom:2px solid var(--green-soft); transform:rotate(45deg)}
+.cmp-val .dash{color:rgba(255,255,255,.22)}
+@media(max-width:600px){
+  .cmp-row{grid-template-columns:1fr 62px 62px; padding:13px 14px; gap:8px}
+  .cmp-colhead{top:54px}
+  .cmp-feat{font-size:13px}
+}
+
 @media(max-width:640px){.pro-hero{padding:34px 0 14px}.videoWrap{border-radius:14px}}
 
 /* ── advanced / tech-forward layer ───────────────────────────────── */
@@ -206,7 +255,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
       <span class="pro-hex"><svg viewBox="0 0 100 100"><polygon class="tmw-hex-ring" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#B9A6FF" stroke-width="3" stroke-linejoin="round"/><g class="tmw-hex-spinner"><polygon class="tmw-hex-core" points="50,18 77.7,34 77.7,66 50,82 22.3,66 22.3,34" fill="none" stroke="#A78BFA" stroke-width="7" stroke-linejoin="round"/></g></svg></span>
       <span class="pro-title-tx">TMW Pro</span>
     </h1>
-    <p class="pro-hero-sub reveal d1">The smartest network for what&rsquo;s being built next &mdash; every project, every market, forecast by AI.</p>
+    <p class="pro-hero-sub reveal d1">The smartest network for what&rsquo;s being built next: every project, every market, forecast by AI.</p>
     <div class="pro-ticker reveal d2" aria-hidden="true"><div class="pro-ticker-track" id="proTicker"></div></div>
 
     <div class="videoWrap reveal d2">
@@ -231,9 +280,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
     <div class="pro-copy reveal">
       <p class="lead">Introducing TMW Pro.</p>
       <p>The world&rsquo;s smartest news network for luxury development and hospitality. A real-time database of every major project, powered by <em>TMW Intelligence</em>, our AI that forecasts what&rsquo;s coming to the markets you care about.</p>
-      <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network &mdash; reaching millions monthly &mdash; now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
+      <p>It&rsquo;s everything you love about the Markets of Tomorrow journal and social network, reaching millions monthly, now with more power behind it. We&rsquo;re keeping the news free, but TMW Pro is built for the ones who want to go deeper.</p>
       <p>Follow cities, track architects and developers, stay ahead of the openings that matter. Everywhere.</p>
-      <p class="join" id="joinNow" role="button" tabindex="0">Go Pro &mdash; $15/mo or $150/yr, free for 2 weeks</p>
+      <p class="join" id="joinNow" role="button" tabindex="0">Go Pro · $15/mo or $150/yr, free for 2 weeks</p>
     </div>
   </div></section>
 
@@ -244,7 +293,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <div class="pf-card reveal d1"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="1 6 8 3 16 6 23 3 23 18 16 21 8 18 1 21 1 6"></polygon><line x1="8" y1="3" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="21"></line></svg></div><h3>The Interactive Map</h3><p>Every project across 40+ markets on one live, filterable map of what&rsquo;s being built next.</p><span class="pf-tag">Pro</span></div>
         <div class="pf-card reveal d2"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2 5.5 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2z"></path><circle cx="19" cy="4.5" r="1.1"></circle></svg></div><h3>TMW Intelligence</h3><p>Ask anything. Our AI forecasts what&rsquo;s coming and answers in plain English, with sources.</p><span class="pf-tag">AI</span></div>
         <div class="pf-card reveal d3"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="20" x2="4" y2="12"></line><line x1="10" y1="20" x2="10" y2="6"></line><line x1="16" y1="20" x2="16" y2="9"></line><line x1="21" y1="20" x2="21" y2="3"></line></svg></div><h3>The Atlas</h3><p>Leaderboards, momentum scores, and coverage depth across every market we track.</p><span class="pf-tag">Pro</span></div>
-        <div class="pf-card reveal d1"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 3 14.6 8.6 20.8 9.3 16.2 13.5 17.5 19.6 12 16.4 6.5 19.6 7.8 13.5 3.2 9.3 9.4 8.6 12 3"></polygon></svg></div><h3>Watchlist</h3><p>Follow cities, developers, and projects &mdash; get pinged the moment they move forward.</p><span class="pf-tag">Pro</span></div>
+        <div class="pf-card reveal d1"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 3 14.6 8.6 20.8 9.3 16.2 13.5 17.5 19.6 12 16.4 6.5 19.6 7.8 13.5 3.2 9.3 9.4 8.6 12 3"></polygon></svg></div><h3>Watchlist</h3><p>Follow cities, developers, and projects. Get pinged the moment they move forward.</p><span class="pf-tag">Pro</span></div>
         <div class="pf-card reveal d2"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"></rect><rect x="14" y="4" width="7" height="16" rx="1"></rect></svg></div><h3>Compare</h3><p>Stack any projects side by side across cities, categories, and timelines.</p><span class="pf-tag">Pro</span></div>
         <div class="pf-card reveal d3"><div class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="3" x2="8" y2="6.5"></line><line x1="16" y1="3" x2="16" y2="6.5"></line></svg></div><h3>Openings Tracker</h3><p>Stay ahead of every opening that matters, the moment it&rsquo;s confirmed.</p><span class="pf-tag">Pro</span></div>
     </div>
@@ -274,6 +323,34 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 
   <!-- PRICING -->
   <section class="pricing"><div class="wrap">
+
+    <!-- Rate-lock ladder -->
+    <div class="ratelock reveal">
+      <div class="rl-head">
+        <div class="eyebrow">Lock your lifetime rate</div>
+        <h2>The price goes up. Yours never does.</h2>
+        <p>TMW Pro gets more valuable every month, and the price rises with it. But whatever rate you join at is <b>locked for life</b>. You keep it as long as you stay a member, even as new members pay more.</p>
+      </div>
+      <div class="rl-track">
+        <div class="rl-rung past">
+          <div class="rl-when">May &ndash; Jul 2026</div>
+          <div class="rl-amt">$90<span class="yr">/yr</span></div>
+          <div class="rl-lab">Founding members. This rate is closed.</div>
+        </div>
+        <div class="rl-rung now">
+          <span class="rl-tag">You&rsquo;re here</span>
+          <div class="rl-when">Jul &ndash; Aug 2026</div>
+          <div class="rl-amt">$150<span class="yr">/yr</span></div>
+          <div class="rl-lab">Join now and this stays your rate for life.</div>
+        </div>
+        <div class="rl-rung next">
+          <div class="rl-when">Coming soon</div>
+          <div class="rl-amt">Higher</div>
+          <div class="rl-lock"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Rate rises again</div>
+        </div>
+      </div>
+    </div>
+
     <div class="pricing-head reveal">
       <div class="eyebrow">Membership</div>
       <h2>Keep the news free.<br>Go deeper with Pro.</h2>
@@ -285,33 +362,77 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <div class="pc-sub">The journal &amp; social network.</div>
         <ul class="pc-feat">
           <li>Every story, free forever</li>
-          <li>Tracked Markets &mdash; explore by city</li>
+          <li>Tracked Markets: explore by city</li>
           <li>Developers &amp; Architects directory</li>
           <li>The Lists &amp; daily Pulse headlines</li>
+          <li>5 Onyx intelligence searches / month</li>
         </ul>
         <a class="pc-btn ghost" href="/">Keep reading</a>
       </div>
       <div class="price-card feat reveal d2">
-        <div class="pc-flag">2 weeks free</div>
+        <div class="pc-flag">2 weeks free &middot; rate locked for life</div>
         <div class="pc-name">TMW Pro</div>
         <div class="pc-price"><span class="amt">$15</span><span class="per">/mo</span><span class="alt">or $150/yr</span></div>
-        <div class="pc-sub">The full intelligence layer.</div>
+        <div class="pc-sub">The full intelligence layer: every feature below.</div>
         <ul class="pc-feat">
-          <li>Unlock the Development Map &amp; Atlas</li>
-          <li>Unlimited project exploration</li>
-          <li>Unlimited TMW Intelligence access</li>
-          <li>Live construction timelines &amp; updates</li>
-          <li>Follow your favorite markets &amp; projects</li>
-          <li>Build &amp; share project comparison sheets</li>
-          <li>Explore architect &amp; developer pages</li>
-          <li>Unlimited article commenting</li>
-          <li>Suggest project edits (coming soon)</li>
-          <li>Openings Tracker &amp; Watchlist</li>
-          <li>Pro member status, number &amp; rewards</li>
+          <li>Everything in Free, unlimited</li>
+          <li>The Interactive Map &amp; data Atlas</li>
+          <li>Unlimited Onyx intelligence + Deep mode</li>
+          <li>Projected pricing &amp; supply pressure</li>
+          <li>Watchlist + your weekly Onyx Brief</li>
+          <li>Compare sheets, Openings Tracker &amp; more</li>
+          <li>Your rate locked for life</li>
         </ul>
-        <button class="pc-btn gold" type="button" id="priceGoPro">Go Pro</button>
+        <button class="pc-btn gold" type="button" id="priceGoPro">Go Pro, lock in $150/yr</button>
       </div>
     </div>
+
+    <!-- Full feature comparison -->
+    <div class="cmp reveal">
+      <div class="cmp-head">
+        <div class="eyebrow">Every feature</div>
+        <h2>Free vs Pro, in full</h2>
+      </div>
+      <div class="cmp-table">
+        <div class="cmp-row cmp-colhead">
+          <div></div>
+          <div class="ch-plan">Free</div>
+          <div class="ch-plan pro">Pro</div>
+        </div>
+
+        <div class="cmp-group">TMW Intelligence (Onyx)</div>
+        <div class="cmp-row"><div class="cmp-feat">Ask Onyx: AI search across the database</div><div class="cmp-val on">5 / mo</div><div class="cmp-val on">Unlimited</div></div>
+        <div class="cmp-row"><div class="cmp-feat">Onyx Deep mode<span class="cf-sub">Wide-context research across 100+ projects</span></div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on">12 / mo</div></div>
+        <div class="cmp-row"><div class="cmp-feat">Answers with live web fallback &amp; sources</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">AI article summaries &amp; follow chips</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+
+        <div class="cmp-group">The Database</div>
+        <div class="cmp-row"><div class="cmp-feat">The Interactive Map<span class="cf-sub">Every project across 40+ markets</span></div><div class="cmp-val">Preview</div><div class="cmp-val on">Full access</div></div>
+        <div class="cmp-row"><div class="cmp-feat">The Atlas: leaderboards &amp; momentum</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Full project dossiers &amp; construction timelines</div><div class="cmp-val">Limited</div><div class="cmp-val on">Full</div></div>
+        <div class="cmp-row"><div class="cmp-feat">Projected pricing &amp; supply pressure<span class="cf-sub">Modeled price bands and market saturation</span></div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Follow the Money: financings &amp; lenders</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Developer &amp; architect firm pages</div><div class="cmp-val">Browse</div><div class="cmp-val on">Full portfolio</div></div>
+
+        <div class="cmp-group">Your workspace</div>
+        <div class="cmp-row"><div class="cmp-feat">Saved projects &amp; favorites</div><div class="cmp-val on">3</div><div class="cmp-val on">Unlimited</div></div>
+        <div class="cmp-row"><div class="cmp-feat">Watchlist: follow cities, firms &amp; projects</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Your weekly Onyx Brief<span class="cf-sub">What moved on your watchlist, every Friday</span></div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Compare sheets: stack projects side by side</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Openings Tracker</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+
+        <div class="cmp-group">The journal &amp; network</div>
+        <div class="cmp-row"><div class="cmp-feat">Every story, the Pulse &amp; the Iconic Lists</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">The Weekly newsletter</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Article commenting</div><div class="cmp-val">Limited</div><div class="cmp-val on">Unlimited</div></div>
+        <div class="cmp-row"><div class="cmp-feat">Blueprint Member number, status &amp; rewards</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Your price, locked for life</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+      </div>
+      <div style="text-align:center; margin-top:34px">
+        <button class="pc-btn gold" type="button" id="priceGoPro2" style="display:inline-flex; padding:16px 40px">Go Pro, lock in $150/yr</button>
+      </div>
+    </div>
+
   </div></section>
 </main>
 
@@ -361,6 +482,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
   var jn=document.getElementById('joinNow');
   if(jn){ jn.addEventListener('click', goPro); jn.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goPro(); } }); }
   var pg=document.getElementById('priceGoPro'); if(pg) pg.addEventListener('click', goPro);
+  var pg2=document.getElementById('priceGoPro2'); if(pg2) pg2.addEventListener('click', goPro);
 
   /* ---- Browse by Market / Category (from homepage; absolute JSON paths) ---- */
   function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
