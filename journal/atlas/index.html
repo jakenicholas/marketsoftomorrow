@@ -1531,9 +1531,11 @@
         var g=groups[r];
         if(!g||(!g.states.length&&!g.cities.length))return;
         // One alphabetical list per group, states and cities interleaved.
-        var entries=[];
-        g.states.forEach(function(st){entries.push({v:'st:'+st.code,label:st.label});});
-        g.cities.forEach(function(c){entries.push({v:'ci:'+c,label:c});});
+        var entries=[],seen={};
+        g.states.forEach(function(st){entries.push({v:'st:'+st.code,label:st.label});seen[st.label]=1;});
+        // a few rows carry a country as their City ('UAE', 'Saudi Arabia');
+        // the state entry already covers those, so drop the duplicate label
+        g.cities.forEach(function(c){if(seen[c])return;entries.push({v:'ci:'+c,label:c});});
         entries.sort(function(a,b){return a.label.localeCompare(b.label);});
         var rows='';
         entries.forEach(function(en){
