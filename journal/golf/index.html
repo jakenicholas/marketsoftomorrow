@@ -634,7 +634,7 @@ footer .tmw-wordmark{width:118px}
       </label>
       <div class="op-frow"><span class="op-flab">Location</span><div class="op-fchips" data-row="loc"></div></div>
       <div class="op-frow"><span class="op-flab">Opening</span><div class="op-fchips" data-row="when"></div></div>
-      <div class="op-frow"><span class="op-flab">Brand</span><div class="op-fchips" data-row="brand"></div></div>
+      <div class="op-frow"><span class="op-flab">Names</span><div class="op-fchips" data-row="brand"></div></div>
       <div class="op-frow"><span class="op-flab">Stage</span><div class="op-fchips" data-row="stage"></div></div>
       <div class="op-factions">
         <button class="op-apply" id="opApply" type="button">Show all courses</button>
@@ -2411,7 +2411,9 @@ function formatDate(s) {
     }
     return 'americas';
   }
-  var BRANDS = ['Discovery Land','Jack Nicklaus','Nicklaus','Tom Fazio','Fazio','Gil Hanse','Pete Dye','Greg Norman','Tiger Woods','Coore','TPC','Ritz-Carlton','Four Seasons','Aman'];
+  // Big course designers + developers (matched against title, developer AND
+  // architect fields), derived from what the live pipeline actually holds.
+  var BRANDS = ['Dream Golf','Cabot','Discovery Land','TGR Design','Coore & Crenshaw','David McLay Kidd','King-Collins','Tom Doak','Nicklaus','Gil Hanse','Beau Welling','Robert Trent Jones','Hart Howerton','Four Seasons','Red Sea Global','Witkoff'];
   function brandOf(title){
     for (var i = 0; i < BRANDS.length; i++) if (title.toLowerCase().indexOf(BRANDS[i].toLowerCase()) !== -1) return BRANDS[i];
     return null;
@@ -2497,7 +2499,8 @@ function formatDate(s) {
     }).map(function (p) {
       return { t: p.Title, city: p.City || '', country: p.Country || '', cs: p.CountyState || '', s: p.Delivery, d: p.DeliveryDate || '',
         img: p.ImageURL, dev: String(p.Developer || '').split(/[,;]/)[0], slug: p.Slug || '',
-        region: regionOf(p), brand: brandOf(String(p.Title || '')) };
+        region: regionOf(p),
+        brand: brandOf(String(p.Title || '') + ' ' + String(p.Developer || '') + ' ' + String(p.Architect || '')) };
     });
     hotels.sort(function (a, b) {
       var ra = (a.s in STATUS_ORDER) ? STATUS_ORDER[a.s] : 4;
