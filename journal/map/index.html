@@ -21708,6 +21708,21 @@
         // Persist async (don't block click)
         saveFavoritesToMember();
         if (window.gtag) gtag('event', isFav ? 'favorite_removed' : 'favorite_added', { 'project_slug': slug });
+        // Celebration toast on ADD — shared voice with the journal surfaces
+        // (hotels Opening Radar, Onyx overlay, article cards). The map doesn't
+        // load journal-chrome, so lazy-load the celebrate script from www.
+        if (!isFav) {
+          try {
+            const wname = String(slug).replace(/-/g, ' ').replace(/\b[a-z]/g, (c) => c.toUpperCase());
+            if (window.tmwWatchToast) window.tmwWatchToast(wname);
+            else {
+              const cs = document.createElement('script');
+              cs.src = 'https://www.oftmw.com/_shared/tmw-celebrate.js'; cs.defer = true;
+              cs.onload = () => { window.tmwWatchToast && window.tmwWatchToast(wname); };
+              document.head.appendChild(cs);
+            }
+          } catch (_) {}
+        }
         return !isFav;
       };
 

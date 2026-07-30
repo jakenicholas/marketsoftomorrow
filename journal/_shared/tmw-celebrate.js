@@ -232,9 +232,18 @@
     else document.addEventListener('DOMContentLoaded', function () { setTimeout(go, 600); });
   }
 
+  // Watchlist celebration — one shared voice for every surface that can add a
+  // project to the watchlist (map, hotels Opening Radar, Onyx overlay, article
+  // project cards). Callers pass the project's display name.
+  function watchToast(name) {
+    toast({ emoji: '🔔', title: (name || 'Project') + ' added to your watchlist',
+      sub: 'You&rsquo;ll get the alert when it moves.', hold: 4200 });
+  }
+
   window.tmwConfetti = confetti;
   window.tmwWelcomePopup = welcome;
   window.tmwCelebrateToast = toast;
+  window.tmwWatchToast = watchToast;
 
   checkProReturn();
 })();

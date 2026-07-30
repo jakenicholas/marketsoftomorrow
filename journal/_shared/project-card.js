@@ -282,6 +282,18 @@
     var lbl = btn.querySelector('.pc-watch-lbl');
     if (lbl) lbl.textContent = watching ? 'Watching' : 'Watch';
   }
+  // Celebration toast on add — the card's own title, via the shared celebrate
+  // script (lazy-loaded if the page hasn't pulled it yet).
+  function fireWatchToast(btn) {
+    var card = btn.closest('.tmw-pcard');
+    var name = '';
+    try { name = (card && card.querySelector('.pc-name') ? card.querySelector('.pc-name').textContent : '').trim(); } catch (e) {}
+    var go = function () { if (window.tmwWatchToast) window.tmwWatchToast(name); };
+    if (window.tmwWatchToast) { go(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://www.oftmw.com/_shared/tmw-celebrate.js'; s.defer = true; s.onload = go;
+    document.head.appendChild(s);
+  }
   function hydrateWatch(btn, slug) {
     try {
       var ms = window.$memberstackDom;
@@ -308,7 +320,10 @@
         var idx = favs.indexOf(slug), watching;
         if (idx === -1) { favs.push(slug); watching = true; } else { favs.splice(idx, 1); watching = false; }
         json.favorites = favs;
-        return ms.updateMemberJSON({ json: json }).then(function () { setWatchUI(btn, watching); });
+        return ms.updateMemberJSON({ json: json }).then(function () {
+          setWatchUI(btn, watching);
+          if (watching) fireWatchToast(btn);
+        });
       });
     }).catch(function () { watchFallback(slug); });
   }

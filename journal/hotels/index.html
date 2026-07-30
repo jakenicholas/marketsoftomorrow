@@ -442,23 +442,6 @@ footer .tmw-wordmark{width:118px}
 </div>
 
 <!-- ============== FEATURED STORY CARD ============== -->
-<section class="story-section" id="featured">
-  <article class="story-card">
-    <div class="sc-clip">
-      <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
-    </div>
-    <div class="sc-emblem">
-      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b20badfa0fc1-TMW_2026_Hotels.svg" alt="The Iconic Hotel List" style="filter: brightness(0) invert(1) drop-shadow(0 8px 30px rgba(0,0,0,.55));">
-    </div>
-    <nav class="sc-tabs" aria-label="Verticals">
-      <a class="sc-tab" href="/">News</a>
-      <a class="sc-tab" href="/restaurants/">Restaurants</a>
-      <a class="sc-tab on" href="/hotels/">Hotels</a>
-      <a class="sc-tab" href="/golf/">Golf</a>
-    </nav>
-  </article>
-</section>
-
 <!-- editable list meta moved out of hero — kept hidden but populated for JS -->
 <span id="item-count" hidden></span>
 <span id="updated-stamp" hidden></span>
@@ -470,7 +453,6 @@ footer .tmw-wordmark{width:118px}
       <button class="tab-btn on" data-tab="openings" role="tab">Openings<span class="tb-count" id="openCount"></span></button>
       <button class="tab-btn" data-tab="ranking" role="tab">Ranking<span class="tb-count" id="rankCount"></span></button>
       <button class="tab-btn" data-tab="news" role="tab">Latest News<span class="tb-count" id="newsCount"></span></button>
-      <button class="tab-btn" data-tab="about" role="tab">About</button>
     </div>
     <div class="actions">
       <div class="ctlbar">
@@ -506,9 +488,15 @@ footer .tmw-wordmark{width:118px}
   .op-next .trk b{color:var(--white); font-weight:700}
   .op-next .trk i{font-style:normal; color:var(--gold)}
   @keyframes opTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-  /* filter chips (echo .region pills) */
-  .op-chips{display:flex; gap:8px; flex-wrap:wrap; margin:18px 0 2px}
-  .op-chips .sep{color:var(--hair-3); align-self:center}
+  /* advanced filters — labeled rows, echoing the homepage story filters */
+  .op-filters{margin:20px 0 2px; border-top:1px solid var(--hair)}
+  .op-frow{display:flex; gap:18px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--hair)}
+  .op-flab{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); width:72px; flex:none; padding-top:10px}
+  .op-fchips{display:flex; gap:8px; flex-wrap:wrap}
+  .op-factions{display:flex; align-items:center; gap:16px; padding:12px 0 2px}
+  .op-factions #opMatchCount{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
+  .op-clear{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; background:transparent; border:0; color:var(--gold-soft); cursor:pointer; padding:0}
+  .op-clear:hover{color:var(--gold)}
   .op-chip{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; padding:8px 15px; border-radius:999px; border:1px solid var(--hair-2); background:transparent; color:var(--mute-2); cursor:pointer; transition:all .15s}
   .op-chip:hover{color:var(--white); border-color:var(--hair-3)}
   .op-chip.on{background:var(--gold); border-color:var(--gold); color:#141207; font-weight:800}
@@ -527,6 +515,8 @@ footer .tmw-wordmark{width:118px}
   .op-status.ann{background:rgba(167,139,250,.16); color:var(--purple-glow); border:1px solid rgba(167,139,250,.4)}
   .op-bell{position:absolute; top:9px; right:10px; z-index:3; width:33px; height:33px; border-radius:50%; background:rgba(10,12,10,.72); border:1px solid var(--hair-2); display:flex; align-items:center; justify-content:center; color:var(--cream); font-size:14px; transition:all .15s}
   .op-bell:hover{background:var(--gold); color:#141207; border-color:var(--gold)}
+  .op-bell.watching{background:var(--gold); color:#141207; border-color:var(--gold)}
+  .op-bell svg{width:15px; height:15px; display:block}
   .op-card .info{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:14px 16px}
   .op-card .info h3{font-family:var(--serif); font-size:19px; font-weight:600; line-height:1.22; letter-spacing:-.01em; color:var(--white); text-shadow:0 1px 12px rgba(0,0,0,.4)}
   .op-card .info .where{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-soft); margin-top:5px}
@@ -557,7 +547,13 @@ footer .tmw-wordmark{width:118px}
       <div class="op-meta" id="opMeta"></div>
     </header>
     <div class="op-next" id="opNext" hidden><span class="lab"><span class="live-dot"></span>Opening next</span><span class="trk" id="opNextTrk"></span></div>
-    <div class="op-chips" id="opChips" hidden></div>
+    <div class="op-filters" id="opFilters" hidden>
+      <div class="op-frow"><span class="op-flab">Location</span><div class="op-fchips" data-row="loc"></div></div>
+      <div class="op-frow"><span class="op-flab">Opening</span><div class="op-fchips" data-row="when"></div></div>
+      <div class="op-frow"><span class="op-flab">Brand</span><div class="op-fchips" data-row="brand"></div></div>
+      <div class="op-frow"><span class="op-flab">Stage</span><div class="op-fchips" data-row="stage"></div></div>
+      <div class="op-factions"><span id="opMatchCount"></span><button class="op-clear" id="opClear" hidden>Clear all</button></div>
+    </div>
     <div class="op-grid" id="opGrid"></div>
     <div class="op-more" id="opMore" hidden><button id="opMoreBtn">Show more openings</button></div>
     <div class="op-pro">
@@ -572,6 +568,24 @@ footer .tmw-wordmark{width:118px}
 
 <!-- ============== RANKING PANEL ============== -->
 <section class="tab-panel" data-panel="ranking">
+  <!-- The iconic-list hero lives INSIDE the Ranking tab: the Openings radar
+       leads the page, the 2026 Iconic Hotel Stays identity leads the list. -->
+  <section class="story-section" id="featured">
+    <article class="story-card">
+      <div class="sc-clip">
+        <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
+      </div>
+      <div class="sc-emblem">
+        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b20badfa0fc1-TMW_2026_Hotels.svg" alt="The Iconic Hotel List" style="filter: brightness(0) invert(1) drop-shadow(0 8px 30px rgba(0,0,0,.55));">
+      </div>
+      <nav class="sc-tabs" aria-label="Verticals">
+        <a class="sc-tab" href="/">News</a>
+        <a class="sc-tab" href="/restaurants/">Restaurants</a>
+        <a class="sc-tab on" href="/hotels/">Hotels</a>
+        <a class="sc-tab" href="/golf/">Golf</a>
+      </nav>
+    </article>
+  </section>
   <div class="wrap">
     <header class="list-intro">
       <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
@@ -595,24 +609,21 @@ footer .tmw-wordmark{width:118px}
       </button>
     </div>
   </div>
-</section>
-
-<!-- ============== NEWS PANEL ============== -->
-<section class="tab-panel" data-panel="news">
-  <div class="wrap">
-    <div class="cards" id="newsCards"></div>
-  </div>
-</section>
-
-<!-- ============== ABOUT PANEL ============== -->
-<section class="tab-panel" data-panel="about">
-  <div class="wrap about-panel">
+  <!-- About the list — folded into the Ranking tab (was its own tab) -->
+  <div class="wrap about-panel" style="border-top:1px solid var(--hair); margin-top:54px; padding-top:44px">
     <p data-edit="aboutP1">The Iconic Hotels List is Markets of Tomorrow's curated record of properties that have left a lasting impression — shaped not by rankings or reputation, but by firsthand experience gathered over years of stays across cities, coastlines, and design eras.</p>
     <p data-edit="aboutP2">Every hotel has been personally stayed in by our team, so each entry is grounded in a real, on-property perspective. From intimate independent inns to landmark grand hotels, the list spans a wide spectrum united by one standard: design integrity, service, setting, and a distinct sense of place.</p>
     <p class="pull" data-edit="aboutPull">"It's not about where to book, but about the hotels that stay with you long after checkout."</p>
     <p data-edit="aboutP3">Our evaluations go beyond amenities. We weigh design — architecture, interiors, the intent behind every space — alongside the full experience: how the property flows from arrival to room, the rhythm of a stay, the lobby and the bar, the atmosphere that lingers after.</p>
     <p data-edit="aboutP4">Rather than rigid scoring, the list is shaped by comparison, memory, and repeat stays. Hotels rise on how distinctly they stand apart and how strongly they resonate over time. Some earn their place through design, others through setting or history; the most iconic balance all three.</p>
     <a class="about-cta" href="mailto:media@oftmw.com?subject=Request%20a%20Visit%20%E2%80%94%20Iconic%20Hotel%20List">Request Visit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+  </div>
+</section>
+
+<!-- ============== NEWS PANEL ============== -->
+<section class="tab-panel" data-panel="news">
+  <div class="wrap">
+    <div class="cards" id="newsCards"></div>
   </div>
 </section>
 
@@ -2385,11 +2396,12 @@ function formatDate(s) {
 
 <script>
 /* ── THE OPENING RADAR — the hotel pipeline, live from the database ─────────
-   Reads the same memoized projects-flat fetch the dock uses (same URL string
-   → same window.__tmwJsonMemo entry, whoever runs first). Free tier sees the
-   dated pipeline; announced-stage cards are Pro (blur + paywall). Bells: Pro
-   goes to the project page (watch lives there), everyone else gets the
-   paywall. */
+   Reads the same memoized projects-flat fetch the dock uses. Advanced filters
+   (location / opening window / brand / stage) mirror the homepage story
+   filters. Bells are REAL watchlist toggles: Pro members write the same
+   Memberstack `favorites` store the map + Onyx overlay use (with the shared
+   celebration toast on add); everyone else gets the in-page paywall.
+   Announced-stage cards stay Pro-locked. */
 (function () {
   var PROJECTS_URL = 'https://www.oftmw.com/map/projects-flat.json';
   var MAP_URL = 'https://www.oftmw.com/map/';
@@ -2399,7 +2411,8 @@ function formatDate(s) {
     if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
     return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
   }
-  function isPro(){ try { return localStorage.getItem('tmw_auth_state') === 'pro'; } catch(_) { return false; } }
+  function isProLS(){ try { return localStorage.getItem('tmw_auth_state') === 'pro'; } catch(_) { return false; } }
+  function paywall(){ if (window.tmwShowPaywall) window.tmwShowPaywall('hotel-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1'; }
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function fmtEta(d){
     if (!d) return 'TBD';
@@ -2409,9 +2422,10 @@ function formatDate(s) {
   }
   function etaSort(d){
     var m = String(d || '').match(/^(\d{4})(?:-(\d{2}))?/);
-    return m ? (+m[1]) * 100 + (+(m[2] || 13)) : 999999;   // dated before undated within a year
+    return m ? (+m[1]) * 100 + (+(m[2] || 13)) : 999999;
   }
   var ME_COUNTRIES = /saudi|united arab emirates|qatar|oman|bahrain|kuwait|israel|jordan|egypt|turkey|morocco/i;
+  var CARIB = /bahamas|turks|antigua|jamaica|st\.? lucia|dominican|barbados|grenada|cayman|anguilla|barbuda|st\.? kitts|nevis|virgin islands|aruba|cura[cç]ao|puerto rico|bermuda/i;
   function regionOf(p){
     var c = String(p.Country || '');
     if (ME_COUNTRIES.test(c)) return 'mideast';
@@ -2429,7 +2443,69 @@ function formatDate(s) {
     return null;
   }
   var STATUS_ORDER = { 'Opening Soon': 0, 'Under Construction': 1, 'Breaking Ground': 2, 'Announced': 3 };
-  var state = { status: '*', region: '*', brand: '*', shown: PAGE, hotels: [] };
+  // Opening-window buckets (page shipped 2026-07): "soonest" first.
+  var NOWKEY = (function(){ var n = new Date(); return n.getFullYear() * 100 + (n.getMonth() + 1); })();
+  var WHENS = [
+    { id: '6mo',  label: 'Next 6 months', test: function (h) { var k = etaSort(h.d); return k < 999999 && k <= NOWKEY + 6; } },
+    { id: 'y26',  label: '2026',          test: function (h) { return String(h.d).slice(0,4) === '2026'; } },
+    { id: 'y27',  label: '2027',          test: function (h) { return String(h.d).slice(0,4) === '2027'; } },
+    { id: 'y28',  label: '2028 & beyond', test: function (h) { var y = +String(h.d).slice(0,4); return y >= 2028; } },
+  ];
+  var STAGES = [
+    { id: 'Opening Soon', label: 'Opening soon' },
+    { id: 'Under Construction', label: 'Under construction' },
+    { id: 'Breaking Ground', label: 'Breaking ground' },
+    { id: 'Announced', label: 'Announced' },
+  ];
+  var state = { loc: '*', when: '*', brand: '*', stage: '*', shown: PAGE, hotels: [], locs: [] };
+
+  // ── Watchlist: one shared favorites read, then per-bell toggles ──────────
+  var _favsPromise = null;
+  function loadFavs(force){
+    if (_favsPromise && !force) return _favsPromise;
+    _favsPromise = new Promise(function (res) {
+      try {
+        var ms = window.$memberstackDom;
+        if (!ms || !ms.getMemberJSON) return res(new Set());
+        ms.getMemberJSON().then(function (got) {
+          var j = (got && got.data && typeof got.data === 'object') ? got.data : {};
+          res(new Set(Array.isArray(j.favorites) ? j.favorites : []));
+        }).catch(function () { res(new Set()); });
+      } catch (e) { res(new Set()); }
+    });
+    return _favsPromise;
+  }
+  function fireToast(name){
+    if (window.tmwWatchToast) { window.tmwWatchToast(name); return; }
+    var cs = document.createElement('script');
+    cs.src = '/_shared/tmw-celebrate.js'; cs.defer = true;
+    cs.onload = function(){ window.tmwWatchToast && window.tmwWatchToast(name); };
+    document.head.appendChild(cs);
+  }
+  function bellClick(el){
+    var slug = el.getAttribute('data-slug'), name = el.getAttribute('data-name') || 'Project';
+    var ms = window.$memberstackDom;
+    if (!ms || !ms.getCurrentMember) { paywall(); return; }
+    ms.getCurrentMember().then(function (r) {
+      var member = r && r.data;
+      if (!member) { paywall(); return; }
+      var plans = member.planConnections || [];
+      var paid = plans.some(function (p) { return p.active === true || p.status === 'ACTIVE' || p.status === 'TRIALING'; });
+      if (!paid) { paywall(); return; }
+      return ms.getMemberJSON().then(function (got) {
+        var json = (got && got.data && typeof got.data === 'object') ? got.data : {};
+        var favs = Array.isArray(json.favorites) ? json.favorites : [];
+        var i = favs.indexOf(slug), watching;
+        if (i === -1) { favs.push(slug); watching = true; } else { favs.splice(i, 1); watching = false; }
+        json.favorites = favs;
+        return ms.updateMemberJSON({ json: json }).then(function () {
+          el.classList.toggle('watching', watching);
+          loadFavs(true);
+          if (watching) fireToast(name);
+        });
+      });
+    }).catch(function () { paywall(); });
+  }
 
   sharedJson(PROJECTS_URL).then(function (rows) {
     if (!rows || !rows.length) return;
@@ -2437,12 +2513,11 @@ function formatDate(s) {
       var t = String(p.Type || p.ProjectType || p.PreferredType || '').toLowerCase();
       return t.indexOf('hotel') !== -1 && p.Delivery && p.Delivery !== 'Now Open' && p.ImageURL;
     }).map(function (p) {
-      return { t: p.Title, city: p.City || '', country: p.Country || '', s: p.Delivery, d: p.DeliveryDate || '',
+      return { t: p.Title, city: p.City || '', country: p.Country || '', cs: p.CountyState || '', s: p.Delivery, d: p.DeliveryDate || '',
         img: p.ImageURL, dev: String(p.Developer || '').split(/[,;]/)[0], slug: p.Slug || '',
         region: regionOf(p), brand: brandOf(String(p.Title || '')) };
     });
     hotels.sort(function (a, b) {
-      // hasOwnProperty-safe rank: 'Opening Soon' is 0, and 0 || 4 would be 4.
       var ra = (a.s in STATUS_ORDER) ? STATUS_ORDER[a.s] : 4;
       var rb = (b.s in STATUS_ORDER) ? STATUS_ORDER[b.s] : 4;
       return ra !== rb ? ra - rb : etaSort(a.d) - etaSort(b.d);
@@ -2458,66 +2533,89 @@ function formatDate(s) {
       '<div class="m"><b>' + soon + '</b><span>Opening soon</span></div>' +
       '<div class="m"><b>' + Object.keys(countries).length + '</b><span>Countries</span></div>';
 
-    // Opening-next marquee: the 8 soonest dated arrivals, doubled for the loop
+    // Opening-next marquee
     var next = hotels.filter(function (h) { return etaSort(h.d) < 999999; }).slice().sort(function (a, b) { return etaSort(a.d) - etaSort(b.d); }).slice(0, 8);
     if (next.length >= 3) {
-      var seg = next.map(function (h) { return '<b>' + esc(h.t) + '</b> ' + esc(h.city) + ' · <i>' + fmtEta(h.d) + '</i>'; }).join('  ·  ');
-      document.getElementById('opNextTrk').innerHTML = seg + '  ·  ' + seg;
+      var seg = next.map(function (h) { return '<b>' + esc(h.t) + '</b> ' + esc(h.city) + ' · <i>' + fmtEta(h.d) + '</i>'; }).join('  ·  ');
+      document.getElementById('opNextTrk').innerHTML = seg + '  ·  ' + seg;
       document.getElementById('opNext').hidden = false;
     }
 
-    // Filter chips: status, region, top brands present in the data
-    var bc = {}; hotels.forEach(function (h) { if (h.brand) bc[h.brand] = (bc[h.brand] || 0) + 1; });
-    var topBrands = Object.keys(bc).sort(function (a, b) { return bc[b] - bc[a]; }).slice(0, 5);
-    var chips = [
-      ['status', '*', 'All'], ['status', 'Opening Soon', 'Opening soon'], ['status', 'Under Construction', 'Under construction'], ['status', 'Announced', 'Announced'],
-      null,
-      ['region', 'americas', 'Americas'], ['region', 'europe', 'Europe'], ['region', 'mideast', 'Middle East'], ['region', 'apac', 'Asia-Pacific'],
-    ];
-    if (topBrands.length) { chips.push(null); topBrands.forEach(function (b) { chips.push(['brand', b, b]); }); }
-    var cw = document.getElementById('opChips');
-    cw.innerHTML = chips.map(function (c) {
-      if (!c) return '<span class="sep">·</span>';
-      var on = (c[0] === 'status' && c[1] === '*');
-      return '<button class="op-chip' + (on ? ' on' : '') + '" data-k="' + c[0] + '" data-v="' + esc(c[1]) + '">' + esc(c[2]) + '</button>';
-    }).join('');
-    cw.hidden = false;
-    cw.addEventListener('click', function (e) {
-      var b = e.target.closest('.op-chip'); if (!b) return;
-      var k = b.getAttribute('data-k'), v = b.getAttribute('data-v');
-      // status chips are one group; region+brand toggle independently
-      if (k === 'status') { state.status = v; state.region = '*'; state.brand = '*'; }
-      else if (k === 'region') { state.region = state.region === v ? '*' : v; }
-      else { state.brand = state.brand === v ? '*' : v; }
-      cw.querySelectorAll('.op-chip').forEach(function (x) {
-        var xk = x.getAttribute('data-k'), xv = x.getAttribute('data-v');
-        x.classList.toggle('on',
-          (xk === 'status' && ((state.region === '*' && state.brand === '*' && xv === state.status) || (xv === '*' && state.status === '*' && (state.region !== '*' || state.brand !== '*') === false)))
-          || (xk === 'region' && xv === state.region) || (xk === 'brand' && xv === state.brand));
-      });
-      state.shown = PAGE;
-      render();
+    // ── Location buckets: US states via CountyState + country/region groups,
+    // derived from what the data actually holds (empty buckets never render).
+    var locDefs = [];
+    var ST_NAMES = { FL: 'Florida', CA: 'California', NY: 'New York', TX: 'Texas', CO: 'Colorado', TN: 'Tennessee', UT: 'Utah', SC: 'South Carolina', NC: 'North Carolina', HI: 'Hawaii', AZ: 'Arizona', NV: 'Nevada', MT: 'Montana', WY: 'Wyoming', ID: 'Idaho', GA: 'Georgia', MA: 'Massachusetts', IL: 'Illinois', WA: 'Washington', OR: 'Oregon', MI: 'Michigan', VA: 'Virginia', LA: 'Louisiana', NJ: 'New Jersey', PA: 'Pennsylvania', OH: 'Ohio', DC: 'Washington DC' };
+    var stateCounts = {};
+    hotels.forEach(function (h) { if (h.country === 'United States' && h.cs) stateCounts[h.cs] = (stateCounts[h.cs] || 0) + 1; });
+    Object.keys(stateCounts).sort(function (a, b) { return stateCounts[b] - stateCounts[a]; }).slice(0, 6).forEach(function (st) {
+      locDefs.push({ id: 'st:' + st, label: ST_NAMES[st] || st, test: function (h) { return h.cs === st; } });
     });
+    locDefs.push({ id: 'carib', label: 'Caribbean', test: function (h) { return CARIB.test(h.country); } });
+    locDefs.push({ id: 'mexico', label: 'Mexico', test: function (h) { return h.country === 'Mexico'; } });
+    locDefs.push({ id: 'europe', label: 'Europe', test: function (h) { return h.region === 'europe'; } });
+    locDefs.push({ id: 'mideast', label: 'Middle East', test: function (h) { return h.region === 'mideast'; } });
+    locDefs.push({ id: 'apac', label: 'Asia-Pacific', test: function (h) { return h.region === 'apac'; } });
+    state.locs = locDefs.filter(function (d) { return hotels.filter(d.test).length >= 3; });
+
+    // Brand chips: top brands present in the pipeline
+    var bc = {}; hotels.forEach(function (h) { if (h.brand) bc[h.brand] = (bc[h.brand] || 0) + 1; });
+    var topBrands = Object.keys(bc).sort(function (a, b) { return bc[b] - bc[a]; }).slice(0, 8);
+
+    // Build the filter rows
+    function rowHtml(items){ return items.map(function (it) { return '<button class="op-chip" data-v="' + esc(it.id) + '">' + esc(it.label) + '</button>'; }).join(''); }
+    var fw = document.getElementById('opFilters');
+    fw.querySelector('[data-row=loc]').innerHTML = rowHtml(state.locs);
+    fw.querySelector('[data-row=when]').innerHTML = rowHtml(WHENS.map(function (w) { return { id: w.id, label: w.label }; }));
+    fw.querySelector('[data-row=brand]').innerHTML = rowHtml(topBrands.map(function (b) { return { id: b, label: b }; }));
+    fw.querySelector('[data-row=stage]').innerHTML = rowHtml(STAGES);
+    fw.hidden = false;
+    fw.addEventListener('click', function (e) {
+      var b = e.target.closest('.op-chip');
+      if (b) {
+        var row = b.closest('.op-fchips').getAttribute('data-row'), v = b.getAttribute('data-v');
+        state[row === 'loc' ? 'loc' : row] = (state[row] === v) ? '*' : v;
+        state.shown = PAGE;
+        paintChips(); render();
+        return;
+      }
+      if (e.target.id === 'opClear') {
+        state.loc = state.when = state.brand = state.stage = '*'; state.shown = PAGE;
+        paintChips(); render();
+      }
+    });
+    function paintChips(){
+      fw.querySelectorAll('.op-fchips').forEach(function (rowEl) {
+        var row = rowEl.getAttribute('data-row');
+        rowEl.querySelectorAll('.op-chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-v') === state[row]); });
+      });
+      document.getElementById('opClear').hidden = (state.loc === '*' && state.when === '*' && state.brand === '*' && state.stage === '*');
+    }
 
     document.getElementById('opMoreBtn').addEventListener('click', function () { state.shown += PAGE; render(); });
-    document.getElementById('opProBtn').addEventListener('click', function () {
-      if (window.tmwShowPaywall) window.tmwShowPaywall('hotel-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1';
-    });
+    document.getElementById('opProBtn').addEventListener('click', paywall);
     render();
   });
 
   function filtered(){
+    var locDef = null;
+    for (var i = 0; i < state.locs.length; i++) if (state.locs[i].id === state.loc) locDef = state.locs[i];
+    var whenDef = null;
+    for (var j = 0; j < WHENS.length; j++) if (WHENS[j].id === state.when) whenDef = WHENS[j];
     return state.hotels.filter(function (h) {
-      if (state.status !== '*' && h.s !== state.status) return false;
-      if (state.region !== '*' && h.region !== state.region) return false;
+      if (locDef && !locDef.test(h)) return false;
+      if (whenDef && !whenDef.test(h)) return false;
       if (state.brand !== '*' && h.brand !== state.brand) return false;
+      if (state.stage !== '*' && h.s !== state.stage) return false;
       return true;
     });
   }
+  var BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
   function render(){
-    var pro = isPro();
+    var pro = isProLS();
     var list = filtered();
     var show = list.slice(0, state.shown);
+    var mc = document.getElementById('opMatchCount');
+    if (mc) mc.textContent = list.length + ' hotel' + (list.length === 1 ? '' : 's');
     document.getElementById('opGrid').innerHTML = show.map(function (h) {
       var locked = (h.s === 'Announced') && !pro;
       var cls = h.s === 'Opening Soon' ? 'soon' : h.s === 'Announced' ? 'ann' : 'uc';
@@ -2525,21 +2623,22 @@ function formatDate(s) {
       return '<a class="op-card' + (locked ? ' locked' : '') + '" href="' + href + '"' + (locked ? ' data-locked="1"' : ' target="_blank" rel="noopener"') + '>' +
         '<div class="ph"><img src="' + esc(h.img) + '" loading="lazy" alt="">' +
         '<span class="op-status ' + cls + '">' + esc(h.s) + '</span>' +
-        '<span class="op-bell" data-slug="' + esc(h.slug) + '" title="Watch — get the opening alert">🔔</span>' +
+        '<span class="op-bell" data-slug="' + esc(h.slug) + '" data-name="' + esc(h.t) + '" title="Watch — get the opening alert">' + BELL_SVG + '</span>' +
         '<div class="info"><h3>' + esc(h.t) + '</h3><div class="where">' + esc(h.city) + (h.country && h.country !== 'United States' ? ' · ' + esc(h.country) : '') + '</div></div>' +
         (locked ? '<div class="op-lock"><span class="pill">Announced · Pro</span></div>' : '') + '</div>' +
         '<div class="eta-line"><span>' + esc(h.dev || '') + '</span><b>' + fmtEta(h.d) + '</b></div></a>';
     }).join('') || '<div style="grid-column:1/-1; padding:50px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:12px">No hotels match this filter yet.</div>';
     document.getElementById('opMore').hidden = list.length <= state.shown;
-    // Locked cards + bells route through the paywall for non-pro
+    // Hydrate watching states, then wire clicks
+    loadFavs().then(function (set) {
+      document.getElementById('opGrid').querySelectorAll('.op-bell').forEach(function (el) {
+        if (set.has(el.getAttribute('data-slug'))) el.classList.add('watching');
+      });
+    });
     document.getElementById('opGrid').querySelectorAll('[data-locked], .op-bell').forEach(function (el) {
       el.addEventListener('click', function (e) {
-        var bell = el.classList.contains('op-bell');
-        if (bell && isPro()) { e.preventDefault(); e.stopPropagation(); location.href = MAP_URL + '?project=' + encodeURIComponent(el.getAttribute('data-slug')); return; }
-        if (bell || el.hasAttribute('data-locked')) {
-          e.preventDefault(); e.stopPropagation();
-          if (window.tmwShowPaywall) window.tmwShowPaywall('hotel-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1';
-        }
+        if (el.classList.contains('op-bell')) { e.preventDefault(); e.stopPropagation(); bellClick(el); return; }
+        e.preventDefault(); e.stopPropagation(); paywall();
       });
     });
   }

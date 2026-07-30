@@ -5817,7 +5817,13 @@
       j.favorites = fv;
       m.updateMemberJSON({ json:j }).then(function(){
         if (on){ wbtn.classList.remove('on'); if(txt) txt.textContent='Watch'; if(_favSet) _favSet.delete(key); beaconEventOv('favorite_removed', slug); }
-        else   { wbtn.classList.add('on');    if(txt) txt.textContent='Watching'; if(_favSet) _favSet.add(key); beaconEventOv('favorite_added', slug); }
+        else   {
+          wbtn.classList.add('on');    if(txt) txt.textContent='Watching'; if(_favSet) _favSet.add(key); beaconEventOv('favorite_added', slug);
+          // Celebration toast — shared across every watch surface.
+          var wname = (_projP && _projP.Title) ? String(_projP.Title) : slug.replace(/-/g,' ').replace(/\b[a-z]/g, function(c){ return c.toUpperCase(); });
+          if (window.tmwWatchToast) window.tmwWatchToast(wname);
+          else { var cs=document.createElement('script'); cs.src='https://www.oftmw.com/_shared/tmw-celebrate.js'; cs.defer=true; cs.onload=function(){ window.tmwWatchToast && window.tmwWatchToast(wname); }; document.head.appendChild(cs); }
+        }
       }).catch(function(){ if (txt) txt.textContent = on ? 'Watching' : 'Watch'; });
     });
   }
