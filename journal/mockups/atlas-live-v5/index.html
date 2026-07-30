@@ -541,45 +541,44 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
     host.appendChild(lg);
   }
 
-  /* ═══ HEATMAP — market × delivery year. SEQUENTIAL ramp (validated), and the
-     count is IN the cell, so colour is never the only encoding. One click sets
-     both dimensions. ═══ */
+  /* ═══ DELIVERY MATRIX — market × year as a DOT MATRIX. The filled-cell
+     heatmap read as a spreadsheet: a wall of rounded rects, most near-empty,
+     a number stamped in every one. Dots fix all three complaints — zeros
+     vanish (the hairline lane says the slot exists), AREA carries the count
+     (r ∝ √n, so 4× the projects reads as 2× the dot), and only each market's
+     PEAK year is labelled; the rest live in the tooltip and the table view.
+     Single accent hue, so nothing new to CVD-check; a size key replaces the
+     colour scale. One click still sets BOTH dimensions; the selected pair
+     wears the mint ring. ═══ */
   function cHeat(host){
-    // Exclude BOTH of this chart's dimensions, like every other chart excludes
-    // its one. With only city excluded, clicking a cell (which sets year)
-    // zeroed every other column of the very grid being clicked.
     var base=baseSet(['city','year']);
     var years=[];for(var y=THIS_YEAR;y<=THIS_YEAR+6;y++)years.push(y);
     var cityTotals={};
     base.forEach(function(i){var c=slug(ROWS[i].City);if(c)cityTotals[c]=(cityTotals[c]||0)+1;});
-    var cities=Object.keys(cityTotals).sort(function(a,b){return cityTotals[b]-cityTotals[a];}).slice(0,12);
-    var grid=cities.map(function(c){
-      return years.map(function(yr){
-        return base.filter(function(i){return slug(ROWS[i].City)===c&&yearOf(ROWS[i])===yr;}).length;});});
+    var cities=Object.keys(cityTotals).sort(function(a,b){return cityTotals[b]-cityTotals[a];}).slice(0,10);
+    var grid=cities.map(function(c){return years.map(function(yr){
+      return base.filter(function(i){return slug(ROWS[i].City)===c&&yearOf(ROWS[i])===yr;}).length;});});
     var max=Math.max.apply(null,grid.map(function(row){return Math.max.apply(null,row);}).concat([1]));
-    var LBL=150,CW=58,CH=26,GAP=2;
-    var W=LBL+years.length*(CW+GAP), H=cities.length*(CH+GAP)+22;
+    var LBL=150,CW=64,RH=36,RMAX=13;
+    var W=LBL+years.length*CW+56,H=cities.length*RH+28;
     var svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img'});
     years.forEach(function(yr,x){
-      svg.appendChild(txt(String(yr),{x:LBL+x*(CW+GAP)+CW/2,y:12,class:'axt','text-anchor':'middle'}));});
+      svg.appendChild(txt(String(yr),{x:LBL+x*CW+CW/2,y:12,class:'axt','text-anchor':'middle'}));});
+    function rOf(n){return 3+(RMAX-3)*Math.sqrt(n/max);}
     cities.forEach(function(c,ry){
-      var y=22+ry*(CH+GAP);
-      svg.appendChild(txt(CITY_LABEL[c]||unslug(c),{x:0,y:y+CH/2+4,class:'lbt'}));
+      var y=28+ry*RH+RH/2-3;
+      svg.appendChild(txt(CITY_LABEL[c]||unslug(c),{x:0,y:y+4,class:'lbt'}));
+      svg.appendChild(el('line',{x1:LBL,y1:y,x2:LBL+years.length*CW,y2:y,class:'gl'}));
+      var peak=Math.max.apply(null,grid[ry]), peakDone=false;
       years.forEach(function(yr,cx){
-        var n=grid[ry][cx], x=LBL+cx*(CW+GAP);
-        var stepIdx=n===0?-1:Math.min(C.seq.length-1,Math.floor(n/max*C.seq.length));
+        var n=grid[ry][cx];if(!n)return;
+        var x=LBL+cx*CW+CW/2, r=rOf(n);
         var active=(F.city===c&&F.year===String(yr));
-        var cell=el('rect',{x:x,y:y,width:CW,height:CH,rx:4,
-          fill:n===0?'rgba(255,255,255,.02)':C.seq[stepIdx],
-          stroke:active?C.hl:'none','stroke-width':active?2:0});
-        svg.appendChild(cell);
-        if(n>0){
-          // in-cell label: white or ink by the fill's luminance
-          var light=stepIdx>=3;
-          svg.appendChild(txt(String(n),{x:x+CW/2,y:y+CH/2+4,'text-anchor':'middle',
-            style:'font:600 11px Inter,sans-serif',fill:light?'#12091f':'#fff'}));
-        }
-        var hit=el('rect',{x:x,y:y,width:CW,height:CH,class:'hit',tabindex:'0',role:'button',
+        svg.appendChild(el('circle',{cx:x,cy:y,r:r.toFixed(1),fill:C.s1,
+          stroke:active?C.hl:C.surface,'stroke-width':2}));
+        if(n===peak&&!peakDone){peakDone=true;
+          svg.appendChild(txt(String(n),{x:x,y:y-r-6,class:'vlt','text-anchor':'middle'}));}
+        var hit=el('circle',{cx:x,cy:y,r:Math.max(13,r+6),class:'hit',tabindex:'0',role:'button',
           'aria-label':(CITY_LABEL[c]||c)+' '+yr+', '+n+' projects'});
         hit.addEventListener('pointerenter',function(e){
           setHL(new Set(base.filter(function(i){return slug(ROWS[i].City)===c&&yearOf(ROWS[i])===yr;})));
@@ -593,12 +592,19 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
           if(active)setMany({city:null,year:null});else setMany({city:c,year:String(yr),from:null,to:null});}});
         svg.appendChild(hit);
       });
+      svg.appendChild(txt(String(cityTotals[c]),{x:LBL+years.length*CW+16,y:y+4,class:'axt'}));
     });
     host.appendChild(svg);
+    // size key — the scale legend for an area encoding
     var sc=document.createElement('div');sc.className='scale';
-    var lab=document.createElement('span');lab.textContent='0';sc.appendChild(lab);
-    C.seq.forEach(function(col){var i=document.createElement('i');i.style.background=col;sc.appendChild(i);});
-    var lab2=document.createElement('span');lab2.textContent=max+' projects';sc.appendChild(lab2);
+    var lab=document.createElement('span');lab.textContent='Dot area = projects';sc.appendChild(lab);
+    var mid=Math.max(2,Math.round(max/2));
+    var key=el('svg',{viewBox:'0 0 150 26',width:150,height:26,'aria-hidden':'true'});
+    [[1,16],[mid,60],[max,116]].forEach(function(pr){
+      key.appendChild(el('circle',{cx:pr[1],cy:12,r:rOf(pr[0]).toFixed(1),fill:C.s1,stroke:C.surface,'stroke-width':2}));
+      key.appendChild(txt(String(pr[0]),{x:pr[1]+rOf(pr[0])+4,y:16,class:'axt'}));});
+    key.style.overflow='visible';
+    sc.appendChild(key);
     host.appendChild(sc);
   }
 
