@@ -1530,15 +1530,15 @@
       MC_REGION_ORDER.forEach(function(r){
         var g=groups[r];
         if(!g||(!g.states.length&&!g.cities.length))return;
+        // One alphabetical list per group, states and cities interleaved.
+        var entries=[];
+        g.states.forEach(function(st){entries.push({v:'st:'+st.code,label:st.label});});
+        g.cities.forEach(function(c){entries.push({v:'ci:'+c,label:c});});
+        entries.sort(function(a,b){return a.label.localeCompare(b.label);});
         var rows='';
-        g.states.forEach(function(st){
-          var v='st:'+st.code;
-          rows+='<option value="'+escapeHtml(v)+'"'+(placeVal===v?' selected':'')+'>'
-            +escapeHtml(st.label)+' (state)</option>';});
-        g.cities.sort(function(a,b){return cityC[b]-cityC[a];}).forEach(function(c){
-          var v='ci:'+c;
-          rows+='<option value="'+escapeHtml(v)+'"'+(placeVal===v?' selected':'')+'>'
-            +escapeHtml(c)+'</option>';});
+        entries.forEach(function(en){
+          rows+='<option value="'+escapeHtml(en.v)+'"'+(placeVal===en.v?' selected':'')+'>'
+            +escapeHtml(en.label)+'</option>';});
         out+='<optgroup label="'+escapeHtml(r)+'">'+rows+'</optgroup>';});
       return out;
     }
