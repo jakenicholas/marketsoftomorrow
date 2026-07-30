@@ -2310,6 +2310,19 @@
       var d = getDismissed(); d.add(item.getAttribute('data-eid')); saveDismissed(d);
       paint(); repaint();   // keep the header badge in sync
     });
+    // panel-header refresh (same semantics as the dropdown's): un-dismiss
+    // everything, refetch the pulse, repaint module + header badge together
+    var rf = document.getElementById('myMovesRefresh');
+    if (rf && !rf.__wired){
+      rf.__wired = true;
+      rf.addEventListener('click', function(){
+        rf.classList.add('spin'); setTimeout(function(){ rf.classList.remove('spin'); }, 480);
+        localStorage.removeItem(DISMISS_KEY);
+        fetch(PULSE_URL, { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){ if (d && d.events) events = d.events.filter(notTracking).sort(byEvent); paint(); repaint(); })
+          .catch(function(){ paint(); repaint(); });
+      });
+    }
     var tries = 0;
     (function wait(){
       if (events.length){

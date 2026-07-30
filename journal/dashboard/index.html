@@ -229,8 +229,6 @@ main.wrap{padding-bottom:70px}
 .mv-h{display:flex;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap}
 .mv-h span:first-child{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#B9A6FF}
 .mv-n{background:#B9A6FF;color:#12091f;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;line-height:1.5}
-.mv-sub{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
-@media(max-width:700px){.mv-sub{display:none}}
 .svw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
 .svw{position:relative;display:block;padding:16px 17px 15px;border:1px solid var(--hair);border-radius:15px;
   background:rgba(255,255,255,.028);text-decoration:none;color:inherit;transition:.16s}
@@ -303,7 +301,7 @@ main.wrap{padding-bottom:70px}
 @media(max-width:640px){.pf-row{grid-template-columns:1fr auto;gap:10px}.pf-row .pf-prog{display:none}}
 
 /* ── Onyx Brief report hero ── */
-.brief-hero{border:1px solid rgba(167,139,250,.42);border-radius:18px;padding:24px 26px;margin:6px 0 22px;position:relative;overflow:hidden;
+.brief-hero{border:1px solid rgba(167,139,250,.42);border-radius:18px;padding:24px 26px;margin:28px 0 22px;position:relative;overflow:hidden;
   background:linear-gradient(135deg,rgba(167,139,250,.09),rgba(167,139,250,.02) 55%),radial-gradient(600px 220px at 85% -20%,rgba(167,139,250,.16),transparent 60%);
   animation:bhGlow 2.6s ease-in-out infinite}
 @keyframes bhGlow{0%,100%{box-shadow:0 0 0 1px rgba(167,139,250,.08) inset,0 0 26px -8px rgba(167,139,250,.3)}50%{box-shadow:0 0 0 1px rgba(167,139,250,.15) inset,0 0 38px -6px rgba(167,139,250,.5)}}
@@ -392,7 +390,10 @@ main.wrap{padding-bottom:70px}
 
   <section data-tab-panel="dashboard">
     <div class="moves-panel">
-      <div class="mv-h"><span>Your moves</span><span class="mv-n" id="myMovesCount" hidden></span><span class="mv-sub">The brief plus every move on your watchlist</span></div>
+      <div class="mv-h"><span>Your moves</span><span class="mv-n" id="myMovesCount" hidden></span>
+        <button class="tmw-pulse-refresh" id="myMovesRefresh" type="button" aria-label="Refresh" title="Refresh" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button></div>
       <div id="myMoves"><div class="empty">Loading&hellip;</div></div>
     </div>
     <div class="sechead"><h2>Your views</h2><span class="lbl" id="svwLbl">&nbsp;</span></div>
