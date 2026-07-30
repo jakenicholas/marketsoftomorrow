@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mockup v6 &middot; Atlas, the argument layer</title>
+<link rel="icon" href="/media/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   V6 — a different animal. v1–v5 kept converging on the map's job: filter to
+   a list of projects. Put a real map on top (v4/atlas-next) and the
+   convergence was undeniable — "another map page with advanced filtering."
+
+   The split that makes each surface irreplaceable:
+       MAP        where? which ones?      browse, filter, find
+       ATLAS      so what? what's next?   judge, compare, decide
+       DASHBOARD  what about mine?        watch, track
+
+   So v6 has NO project filters at all. It leads with POSITIONS the data can
+   defend — verdicts, trajectories, divergences, market-vs-market — and every
+   claim links OUT to the map as its evidence. The moment an answer is "these
+   31 projects", that is the map's job and the link hands you there with the
+   slice (the shared filter contract is the courier).
+
+   Palette: unchanged, validator-derived (see the dataviz memory). The gauge
+   arc wears the heat ramp WITH its level text — heat never travels alone.
+   Time-series bars are single accent (magnitude, one series per panel;
+   small multiples instead of a 5-hue categorical stack we never validated).
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --surface:#0e0e0e; --page:#070807;
+  --s1:#8f6ff0; --heat1:#0A8046; --heat2:#B98400; --heat3:#E04255;
+  --grid:#1e1e1d; --dim:#3a3a38; --hl:#7DF0C8; --gold:#e6c574;
+  --ink:#ECEAE5; --ink2:#C2C9C3; --mute:#9AA39C;
+  --hair:rgba(255,255,255,.09); --hair2:rgba(255,255,255,.16);
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --serif:'Fraunces',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+.mk{background:rgba(230,197,116,.1);border-bottom:1px solid rgba(230,197,116,.3);padding:11px 0}
+.mk .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mk b{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f0d68a}
+.mk span{font-size:13px;color:var(--ink2)}
+.tabs{border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;margin-top:16px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-size:14px;font-weight:500;color:var(--mute);text-decoration:none;padding:15px 14px;white-space:nowrap;flex:0 0 auto}
+.tab.on{color:#fff;box-shadow:inset 0 -2px 0 var(--gold)}
+
+.sec{padding:34px 0 0}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:15px;flex-wrap:wrap}
+.sh .q{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+.sh h2{font-family:var(--serif);font-size:25px;font-weight:600;color:#fff;letter-spacing:-.02em}
+.sh h2 em{font-style:italic;color:var(--s1)}
+.sh .sub{font-size:12.5px;color:var(--mute);margin-top:3px;max-width:64ch}
+.more{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--s1);text-decoration:none;white-space:nowrap}
+.more:hover{text-decoration:underline}
+
+/* verdict cards */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:13px}
+.vc{border:1px solid var(--hair);border-radius:16px;background:var(--surface);padding:17px 18px 15px;display:flex;flex-direction:column;gap:0}
+.vc-top{display:flex;align-items:center;gap:14px}
+.vc-g{flex:none}
+.vc-name{font-family:var(--serif);font-size:20px;font-weight:600;color:#fff;line-height:1.1}
+.vc-lv{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:.11em;
+  text-transform:uppercase;font-weight:700;margin-top:5px}
+.vc-lv i{width:7px;height:7px;border-radius:50%}
+.vc-why{font-size:12.8px;color:var(--ink2);line-height:1.55;margin-top:12px;flex:1}
+.vc-why b{color:#fff}
+.vc-ft{display:flex;gap:14px;align-items:center;margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+.vc-ft a{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+  color:var(--s1);text-decoration:none}
+.vc-ft a:hover{text-decoration:underline}
+.trend{font-family:var(--mono);font-size:10px;font-weight:700;margin-left:auto}
+.trend.up{color:#FF8A8A}.trend.dn{color:#42EB81}.trend.flat{color:var(--mute)}
+
+/* compare */
+.cmpbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.cmpbar select{background:#141416;border:1px solid var(--hair2);color:#fff;font-family:var(--sans);font-size:13.5px;
+  border-radius:10px;padding:9px 34px 9px 12px;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='6'><path d='M0 0l4.5 6L9 0z' fill='%239AA39C'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center}
+.vs{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mute);font-weight:700}
+.swap{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink2);
+  background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;padding:7px 13px;cursor:pointer}
+.swap:hover{color:#fff}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.dcol{border:1px solid var(--hair);border-radius:16px;background:var(--surface);padding:18px 19px}
+.dcol .dn{font-family:var(--serif);font-size:22px;font-weight:600;color:#fff}
+.drow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+.drow:last-of-type{border-bottom:none}
+.drow .k{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute)}
+.drow .v{font-family:var(--serif);font-size:18px;font-weight:600;color:#fff;text-align:right}
+.drow .v small{font-family:var(--mono);font-size:9.5px;color:var(--mute);font-weight:400;margin-left:5px}
+.win{color:var(--hl)!important}
+svg{display:block;overflow:visible}
+.axt{font-family:var(--mono);font-size:9px;fill:var(--mute);font-variant-numeric:tabular-nums}
+.vlt{font-family:var(--sans);font-size:11px;font-weight:600;fill:var(--ink)}
+.gl{stroke:var(--grid);stroke-width:1}
+
+/* divergences */
+.dvg{display:flex;flex-direction:column;gap:10px}
+.dv{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--hair);border-left:3px solid var(--gold);
+  border-radius:12px;background:var(--surface);padding:14px 17px}
+.dv .ic{font-size:15px;flex:none;margin-top:1px}
+.dv .tx{font-size:13.5px;color:var(--ink2);line-height:1.55}
+.dv .tx b{color:#fff}
+.dv a{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+  color:var(--s1);text-decoration:none;white-space:nowrap;margin-left:auto;flex:none;margin-top:2px}
+.dv a:hover{text-decoration:underline}
+
+/* capital small multiples */
+.caps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:13px}
+.cap{border:1px solid var(--hair);border-radius:14px;background:var(--surface);padding:14px 16px 12px}
+.cap .cn{font-size:13.5px;font-weight:600;color:#fff}
+.cap .cv{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--gold);margin-top:2px}
+.cap .ck{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+
+.note{margin:34px 0 60px;padding:17px 19px;border:1px dashed var(--hair2);border-radius:13px;font-size:13px;color:var(--ink2);line-height:1.65}
+.note b{color:#f0d68a}
+.tvb{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink2);
+  background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px;padding:8px 14px;cursor:pointer;margin-top:18px}
+table{width:100%;border-collapse:collapse;margin-top:13px;font-size:12.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.loading{padding:60px 0;text-align:center;color:var(--mute);font-family:var(--mono);font-size:12px}
+@media(max-width:860px){.duel{grid-template-columns:1fr}}
+@media(max-width:620px){.wrap{padding:0 18px}}
+</style>
+</head>
+<body>
+<div class="mk"><div class="wrap">
+  <b>Mockup v6</b>
+  <span>The Atlas as <b style="color:var(--ink)">the argument layer</b>. No project filters anywhere on this page —
+  it takes positions, and every claim links to <b style="color:var(--ink)">the map as its evidence</b>.</span>
+</div></div>
+
+<div class="wrap">
+  <nav class="tabs">
+    <a class="tab on" href="#">Overview</a>
+    <a class="tab" href="/atlas/markets/">Markets</a>
+    <a class="tab" href="/atlas/projects/">Projects</a>
+    <a class="tab" href="/atlas/firms/">Firms</a>
+    <a class="tab" href="/atlas/supply/">Supply</a>
+    <a class="tab" href="/atlas/pricing/">Pricing</a>
+    <a class="tab" href="/atlas/capital/">Capital</a>
+    <a class="tab" href="/atlas/pipeline/">Pipeline</a>
+  </nav>
+  <div id="app"><div class="loading">Reading the market&hellip;</div></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var MAP='https://www.oftmw.com/map';
+  var app=document.getElementById('app');
+  var C={s1:'#8f6ff0',heat:['#0A8046','#B98400','#E04255'],hl:'#7DF0C8',dim:'#3a3a38',gold:'#e6c574'};
+  function lvColor(l){return l==='Saturated'?C.heat[2]:l==='Elevated'?C.heat[1]:C.heat[0];}
+  function slug(t){return String(t==null?'':t).toLowerCase().trim().replace(/&/g,' and ')
+    .replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,'');}
+  function fmtM(n){return n>=1000?'$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'B':'$'+Math.round(n)+'M';}
+  function nfmt(n){return (+n||0).toLocaleString('en-US');}
+  function el(t,a,k){var n=document.createElementNS('http://www.w3.org/2000/svg',t);
+    Object.keys(a||{}).forEach(function(x){n.setAttribute(x,a[x]);});(k||[]).forEach(function(c){n.appendChild(c);});return n;}
+  function txt(s,a){var t=el('text',a||{});t.textContent=s;return t;}
+
+  var INTEL=null, ROWS=[];
+  // per-market reads off projects-flat
+  function cityRows(k){return ROWS.filter(function(r){return slug(r.City)===k;});}
+  function cityCapital(k){return cityRows(k).reduce(function(s,r){var n=parseFloat(r.FinancingAmountM);return s+(isFinite(n)&&n>0?n:0);},0);}
+  function cityTopDev(k){var t={};cityRows(k).forEach(function(r){String(r.Developer||'').split(',').forEach(function(d){
+    d=d.trim();if(d)t[d]=(t[d]||0)+1;});});
+    var best='',n=0;Object.keys(t).forEach(function(d){if(t[d]>n){n=t[d];best=d;}});
+    return best?best+' ('+n+')':'—';}
+
+  // trend: units next 12 months vs the following 12
+  function accel(m){var w=m.windows||[];
+    var a=w.slice(0,2).reduce(function(s,x){return s+(x.units||0);},0);
+    var b=w.slice(2,4).reduce(function(s,x){return s+(x.units||0);},0);
+    return {now:a,next:b,r:a>0?b/a:(b>0?99:1)};}
+
+  // the score arc — heat colour ALWAYS beside its level text, never alone
+  function gauge(score,level,size){
+    size=size||64;
+    var col=lvColor(level), len=Math.PI*26, dash=len*Math.max(score,3)/100;
+    var svg=el('svg',{viewBox:'0 0 64 40',width:size,height:size*0.625,'aria-label':'Pressure '+score+', '+level});
+    svg.appendChild(el('path',{d:'M 6 34 A 26 26 0 0 1 58 34',fill:'none',stroke:'rgba(255,255,255,.09)','stroke-width':5,'stroke-linecap':'round'}));
+    svg.appendChild(el('path',{d:'M 6 34 A 26 26 0 0 1 58 34',fill:'none',stroke:col,'stroke-width':5,'stroke-linecap':'round','stroke-dasharray':dash.toFixed(1)+' '+len.toFixed(1)}));
+    var n=txt(String(score),{x:32,y:31,'text-anchor':'middle'});
+    n.setAttribute('style','font:600 15px Fraunces,Georgia,serif;fill:#fff');
+    svg.appendChild(n);
+    return svg;
+  }
+  // delivery windows as accent columns (single series = single hue, no legend)
+  function windowBars(m,w,hpx){
+    var wins=(m.windows||[]).slice(0,6);
+    var max=Math.max.apply(null,wins.map(function(x){return x.units||0;}).concat([1]));
+    var W=w||190,H=hpx||56,BW=Math.floor(W/wins.length)-6;
+    var svg=el('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,role:'img'});
+    wins.forEach(function(x,i){
+      var h=Math.max(x.units?3:0,(H-16)*(x.units||0)/max);
+      var bx=i*(BW+6);
+      var r=Math.min(3,BW/2,h);
+      if(h>0){
+        svg.appendChild(el('path',{d:'M'+bx+','+(H-14)+'V'+(H-14-h+r)+'a'+r+','+r+' 0 0 1 '+r+','+(-r)
+          +'H'+(bx+BW-r)+'a'+r+','+r+' 0 0 1 '+r+','+r+'V'+(H-14)+'Z',fill:C.s1}));
+      }
+      var lb=txt(x.half.replace('20','’').replace('H1','a').replace('H2','b'),
+        {x:bx+BW/2,y:H-3,class:'axt','text-anchor':'middle'});
+      svg.appendChild(lb);
+    });
+    return svg;
+  }
+
+  function mapHref(k){return MAP+'/?city='+encodeURIComponent(k);}
+  function marketHref(k){return '/markets/'+k+'/';}
+
+  // ── page ──────────────────────────────────────────────────────────────────
+  var A='miami', B='nashville', showTable=false;
+  function markets(){
+    return Object.keys(INTEL.markets).map(function(k){var m=INTEL.markets[k];m._k=k;return m;})
+      .filter(function(m){return (m.pipeline_units||0)>0;});
+  }
+
+  function render(){
+    var ms=markets();
+    app.textContent='';
+
+    /* ── 01 · THE VERDICTS ── */
+    var s1=document.createElement('section');s1.className='sec';
+    s1.innerHTML='<div class="sh"><div><div class="q">01 · Positions, not inventories</div>'
+      +'<h2>The <em>verdicts</em></h2>'
+      +'<div class="sub">Supply pressure scored against absorption, with the delivery trajectory behind it. '
+      +'Every card links to its evidence.</div></div>'
+      +'<a class="more" href="/atlas/supply/">All 94 scored markets →</a></div>';
+    var vg=document.createElement('div');vg.className='vgrid';
+    var top=ms.slice().sort(function(a,b){return b.score-a.score;}).slice(0,3);
+    // + the most interesting non-saturated stories: biggest acceleration into pressure
+    var movers=ms.filter(function(m){return top.indexOf(m)<0&&accel(m).r>=2&&(m.pipeline_units||0)>=1200;})
+      .sort(function(a,b){return accel(b).r-accel(a).r;}).slice(0,3);
+    top.concat(movers).forEach(function(m){
+      var a=accel(m), n=cityRows(m._k).length;
+      var card=document.createElement('div');card.className='vc';
+      var topRow=document.createElement('div');topRow.className='vc-top';
+      var g=document.createElement('div');g.className='vc-g';g.appendChild(gauge(m.score,m.level,66));topRow.appendChild(g);
+      var nm=document.createElement('div');
+      var t=document.createElement('div');t.className='vc-name';t.textContent=m.city;nm.appendChild(t);
+      var lv=document.createElement('div');lv.className='vc-lv';lv.style.color=lvColor(m.level);
+      var dotI=document.createElement('i');dotI.style.background=lvColor(m.level);lv.appendChild(dotI);
+      lv.appendChild(document.createTextNode(m.level));nm.appendChild(lv);
+      topRow.appendChild(nm);
+      var tr=document.createElement('span');
+      tr.className='trend '+(a.r>=1.5?'up':a.r<=0.6?'dn':'flat');
+      tr.textContent=a.r>=1.5?'▲ accelerating':a.r<=0.6?'▼ cresting':'· steady';
+      topRow.appendChild(tr);
+      card.appendChild(topRow);
+      var why=document.createElement('div');why.className='vc-why';
+      var strong=document.createElement('b');
+      var line;
+      if(a.r>=2)      line=[nfmt(m.pipeline_units)+' units in the pipeline, and deliveries ',
+                            (a.r>=4?Math.round(a.r)+'×':(a.r).toFixed(1)+'×'),
+                            ' from '+nfmt(a.now)+' to '+nfmt(a.next)+' units over the next two years.'];
+      else if(a.r<=0.6) line=[nfmt(m.pipeline_units)+' units tracked, but the wave is landing ','now',
+                            ' — '+nfmt(a.now)+' units inside 12 months vs '+nfmt(a.next)+' after.'];
+      else            line=[nfmt(m.pipeline_units)+' units in the pipeline on a ','steady',
+                            ' delivery cadence ('+nfmt(a.now)+' then '+nfmt(a.next)+').'];
+      why.appendChild(document.createTextNode(line[0]));
+      strong.textContent=line[1];why.appendChild(strong);
+      why.appendChild(document.createTextNode(line[2]));
+      card.appendChild(why);
+      card.appendChild(windowBars(m,300,58));
+      var ft=document.createElement('div');ft.className='vc-ft';
+      var a1=document.createElement('a');a1.href=mapHref(m._k);a1.textContent=(n||m.pipeline_projects)+' projects on the map →';ft.appendChild(a1);
+      var a2=document.createElement('a');a2.href=marketHref(m._k);a2.textContent='Market page →';ft.appendChild(a2);
+      card.appendChild(ft);
+      vg.appendChild(card);
+    });
+    s1.appendChild(vg);
+    app.appendChild(s1);
+
+    /* ── 02 · MARKET vs MARKET ── */
+    var s2=document.createElement('section');s2.className='sec';
+    s2.innerHTML='<div class="sh"><div><div class="q">02 · The read the map cannot give</div>'
+      +'<h2>Market vs <em>market</em></h2>'
+      +'<div class="sub">Two places, one frame. A map can only show you one somewhere at a time.</div></div></div>';
+    var bar=document.createElement('div');bar.className='cmpbar';
+    var opts=ms.slice().sort(function(a,b){return (b.pipeline_units||0)-(a.pipeline_units||0);}).slice(0,14);
+    function sel(cur,on){
+      var s=document.createElement('select');
+      opts.forEach(function(m){var o=document.createElement('option');o.value=m._k;o.textContent=m.city;
+        if(m._k===cur)o.selected=true;s.appendChild(o);});
+      s.addEventListener('change',function(){on(s.value);render();});
+      return s;
+    }
+    bar.appendChild(sel(A,function(v){A=v;}));
+    var vs=document.createElement('span');vs.className='vs';vs.textContent='VS';bar.appendChild(vs);
+    bar.appendChild(sel(B,function(v){B=v;}));
+    var sw=document.createElement('button');sw.className='swap';sw.textContent='⇄ Swap';
+    sw.addEventListener('click',function(){var t=A;A=B;B=t;render();});
+    bar.appendChild(sw);
+    s2.appendChild(bar);
+    var duel=document.createElement('div');duel.className='duel';
+    [A,B].forEach(function(k,side){
+      var m=INTEL.markets[k];if(!m)return;
+      var other=INTEL.markets[side?A:B]||{};
+      var col=document.createElement('div');col.className='dcol';
+      var hd=document.createElement('div');hd.style.cssText='display:flex;align-items:center;gap:14px;margin-bottom:8px';
+      hd.appendChild(gauge(m.score,m.level,60));
+      var nm=document.createElement('div');
+      var t=document.createElement('div');t.className='dn';t.textContent=m.city;nm.appendChild(t);
+      var lv=document.createElement('div');lv.className='vc-lv';lv.style.color=lvColor(m.level);
+      var di=document.createElement('i');di.style.background=lvColor(m.level);lv.appendChild(di);
+      lv.appendChild(document.createTextNode(m.level));nm.appendChild(lv);
+      hd.appendChild(nm);col.appendChild(hd);
+      var cap=cityCapital(k), ocap=cityCapital(side?A:B);
+      var rows=[
+        ['Pipeline units',nfmt(m.pipeline_units),(m.pipeline_units||0)>(other.pipeline_units||0)],
+        ['Delivering 24 mo',nfmt((m.delivering_24mo||{}).units||0)+' units',((m.delivering_24mo||{}).units||0)>((other.delivering_24mo||{}).units||0)],
+        ['Capital tracked',cap?fmtM(cap):'—',cap>ocap],
+        ['Most active',cityTopDev(k),false]
+      ];
+      rows.forEach(function(rr){
+        var d=document.createElement('div');d.className='drow';
+        var kk=document.createElement('span');kk.className='k';kk.textContent=rr[0];d.appendChild(kk);
+        var vv=document.createElement('span');vv.className='v'+(rr[2]?' win':'');vv.textContent=rr[1];d.appendChild(vv);
+        col.appendChild(d);
+      });
+      var wl=document.createElement('div');wl.className='drow';
+      var wk=document.createElement('span');wk.className='k';wk.textContent='Delivery windows';wl.appendChild(wk);
+      col.appendChild(wl);
+      col.appendChild(windowBars(m,320,62));
+      var ft=document.createElement('div');ft.className='vc-ft';
+      var a1=document.createElement('a');a1.href=mapHref(k);a1.textContent=cityRows(k).length+' projects on the map →';ft.appendChild(a1);
+      var a2=document.createElement('a');a2.href=marketHref(k);a2.textContent='Market page →';ft.appendChild(a2);
+      col.appendChild(ft);
+      duel.appendChild(col);
+    });
+    s2.appendChild(duel);
+    app.appendChild(s2);
+
+    /* ── 03 · DIVERGENCES ── */
+    var s3=document.createElement('section');s3.className='sec';
+    s3.innerHTML='<div class="sh"><div><div class="q">03 · Where the lines cross</div>'
+      +'<h2>The <em>divergences</em></h2>'
+      +'<div class="sub">Computed from the same feeds, not written by hand — the sentences change when the data does.</div></div></div>';
+    var dv=document.createElement('div');dv.className='dvg';
+    var calls=[];
+    ms.forEach(function(m){
+      var a=accel(m);
+      if(m.level!=='Balanced'&&a.r>=2.5&&a.next>=800)
+        calls.push({w:a.r*(m.score/50),ic:'⚠',
+          tx:[m.city+' is already ',m.level.toLowerCase(),' at '+m.score+', and deliveries still '
+            +(a.r>=4?Math.round(a.r):a.r.toFixed(1))+'× — '+nfmt(a.now)+' units inside 12 months becomes '+nfmt(a.next)+' in the following 12.'],k:m._k});
+      else if(m.level==='Balanced'&&a.r>=3&&a.next>=1200)
+        calls.push({w:a.r,ic:'◎',
+          tx:[m.city+' reads balanced today, but the pipeline says ','quietly heating',
+            ' — deliveries go from '+nfmt(a.now)+' to '+nfmt(a.next)+' units, '+nfmt(m.pipeline_units)+' tracked in total.'],k:m._k});
+      else if(m.level==='Saturated'&&a.r<=0.5&&a.now>=800)
+        calls.push({w:2/(a.r||0.1),ic:'◑',
+          tx:[m.city+'’s wave is ','landing now',' — '+nfmt(a.now)+' units inside 12 months, then it thins to '+nfmt(a.next)+'. The pressure number starts falling from here.'],k:m._k});
+    });
+    calls.sort(function(x,y){return y.w-x.w;}).slice(0,4).forEach(function(cle){
+      var d=document.createElement('div');d.className='dv';
+      var ic=document.createElement('span');ic.className='ic';ic.textContent=cle.ic;d.appendChild(ic);
+      var tx=document.createElement('span');tx.className='tx';
+      tx.appendChild(document.createTextNode(cle.tx[0]));
+      var b=document.createElement('b');b.textContent=cle.tx[1];tx.appendChild(b);
+      tx.appendChild(document.createTextNode(cle.tx[2]));
+      d.appendChild(tx);
+      var a=document.createElement('a');a.href=mapHref(cle.k);a.textContent='Evidence →';d.appendChild(a);
+      dv.appendChild(d);
+    });
+    s3.appendChild(dv);
+    app.appendChild(s3);
+
+    /* ── 04 · CAPITAL CONCENTRATION ── */
+    var s4=document.createElement('section');s4.className='sec';
+    s4.innerHTML='<div class="sh"><div><div class="q">04 · Follow the money</div>'
+      +'<h2>Where capital is <em>parked</em></h2>'
+      +'<div class="sub">Disclosed construction financing by market, with each market’s delivery runway beside it.</div></div>'
+      +'<a class="more" href="/atlas/capital/">Every financing →</a></div>';
+    var cg=document.createElement('div');cg.className='caps';
+    ms.map(function(m){return {m:m,cap:cityCapital(m._k)};})
+      .filter(function(x){return x.cap>0;})
+      .sort(function(x,y){return y.cap-x.cap;}).slice(0,5)
+      .forEach(function(x){
+        var c=document.createElement('div');c.className='cap';
+        var n=document.createElement('div');n.className='cn';n.textContent=x.m.city;c.appendChild(n);
+        var v=document.createElement('div');v.className='cv';v.textContent=fmtM(x.cap);c.appendChild(v);
+        var k=document.createElement('div');k.className='ck';k.textContent=cityRows(x.m._k).length+' projects · pressure '+x.m.score;c.appendChild(k);
+        c.appendChild(windowBars(x.m,180,46));
+        cg.appendChild(c);
+      });
+    s4.appendChild(cg);
+    app.appendChild(s4);
+
+    /* table twin + note */
+    var tb=document.createElement('button');tb.className='tvb';
+    tb.textContent=(showTable?'− Hide':'+ Show')+' every scored market as a table';
+    tb.addEventListener('click',function(){showTable=!showTable;render();});
+    app.appendChild(tb);
+    if(showTable){
+      var tbl=document.createElement('table');var hr=document.createElement('tr');
+      ['Market','Score','Level','Pipeline units','Next 12 mo','Following 12','Capital'].forEach(function(h,i){
+        var th=document.createElement('th');th.textContent=h;if(i>0)th.style.textAlign='right';hr.appendChild(th);});
+      tbl.appendChild(hr);
+      ms.slice().sort(function(a,b){return b.score-a.score;}).forEach(function(m){
+        var a=accel(m),cap=cityCapital(m._k);
+        var tr=document.createElement('tr');
+        [[m.city,0],[m.score,1],[m.level,1],[nfmt(m.pipeline_units),1],[nfmt(a.now),1],[nfmt(a.next),1],[cap?fmtM(cap):'',1]]
+        .forEach(function(p){var td=document.createElement('td');if(p[1])td.className='n';td.textContent=String(p[0]);tr.appendChild(td);});
+        tbl.appendChild(tr);});
+      app.appendChild(tbl);
+    }
+    var note=document.createElement('div');note.className='note';
+    note.innerHTML='<b>Why v6 looks nothing like v1–v5.</b> Those kept converging on the map’s job — filter to a list '
+      +'of projects — and embedding the real map made the duplication undeniable. This page never filters projects. It '
+      +'answers <b>so what</b> and <b>what’s next</b>: verdicts with the trajectory behind them, two markets in one '
+      +'frame, divergences computed fresh from the feeds, capital with its runway. Every claim ends in an '
+      +'<b style="color:var(--s1)">evidence link</b> that hands the slice to the map — where, and which ones, is the '
+      +'map’s job, and it is already excellent at it.';
+    app.appendChild(note);
+  }
+
+  Promise.all([
+    fetch(MAP+'/atlas-intel.json',{cache:'force-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+    fetch(MAP+'/projects-flat.json',{cache:'force-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];})
+  ]).then(function(o){
+    INTEL=o[0];ROWS=Array.isArray(o[1])?o[1]:[];
+    if(!INTEL||!INTEL.markets){app.textContent='Could not load the intel feed.';return;}
+    render();
+  });
+})();
+</script>
+</body>
+</html>
