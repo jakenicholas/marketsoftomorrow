@@ -2161,8 +2161,9 @@
       '.tmw-mm{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}',
       '.tmw-mm .tmw-pulse-brief,.tmw-mm .tmw-mm-more,.tmw-mm .tmw-pulse-empty,.tmw-mm .tmw-pulse-recs{grid-column:1/-1}',
       '.tmw-mm .tmw-pulse-brief{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:16px;row-gap:5px}',
-      '.tmw-mm .tmw-pulse-brief .pb-eye{grid-column:1/-1}',
-      '.tmw-mm .tmw-pulse-brief .pb-cta{margin-top:0;white-space:nowrap}',
+      '.tmw-mm .tmw-pulse-brief .pb-eye{grid-column:1}',
+      // Read it spans both rows, vertically centered in the card
+      '.tmw-mm .tmw-pulse-brief .pb-cta{grid-column:2;grid-row:1/3;align-self:center;margin-top:0;white-space:nowrap}',
       '@media(max-width:760px){.tmw-mm{grid-template-columns:1fr}}',
       // footer — the way into /dashboard/ now that the pill's label may open
       // the drop instead of navigating (mobile)
@@ -2269,8 +2270,9 @@
     if (!el || el.__tmwMM) return; el.__tmwMM = true;
     injectCss();
     el.classList.add('tmw-mm');
-    // 3 moves visible by default; "Show all" extends the panel vertically.
-    var expanded = false, CAP = 3;
+    // 4 moves visible by default (2 rows of the 2-column grid, so both
+    // columns stay full when more are hidden); "Show all" extends vertically.
+    var expanded = false, CAP = 4;
     function paint(){
       var old = scope; scope = 'me';
       try {
@@ -2290,11 +2292,14 @@
     el.addEventListener('click', function(ev){
       var mb = ev.target.closest ? ev.target.closest('.tmw-mm-more') : null;
       if (mb){ ev.preventDefault(); expanded = !expanded; paint(); return; }
-      // Read it → scroll to the Onyx brief on this page (the anchor exists on
-      // /dashboard/); elsewhere the card's normal /dashboard/#brief link runs.
+      // Read it → scroll to the Onyx brief on this page; elsewhere the card's
+      // normal /dashboard/#brief link runs. Target the brief CARD (briefBody),
+      // not the section heading — with no scroll-margin the sticky header
+      // covers the card's label line, so the landing sits right at the bottom
+      // of the My Book header where the brief content starts.
       var bf = ev.target.closest ? ev.target.closest('.tmw-pulse-brief') : null;
       if (bf){
-        var anchor = document.getElementById('onyx-brief');
+        var anchor = document.getElementById('briefBody') || document.getElementById('onyx-brief');
         if (anchor){ ev.preventDefault(); anchor.scrollIntoView({ behavior:'smooth' }); }
         return;
       }
