@@ -2156,6 +2156,14 @@
       // "Show all N moves" toggle under the dashboard Your-moves feed
       '.tmw-mm-more{display:block;width:100%;margin-top:8px;padding:11px;border-radius:11px;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.07);color:#C4B5FD;font:700 10.5px/1 "Inter",-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:background .15s}',
       '.tmw-mm-more:hover{background:rgba(167,139,250,.15)}',
+      // Dashboard Your-moves layout: full-width brief (CTA inline, far right),
+      // moves in two columns, the toggle spanning both.
+      '.tmw-mm{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}',
+      '.tmw-mm .tmw-pulse-brief,.tmw-mm .tmw-mm-more,.tmw-mm .tmw-pulse-empty,.tmw-mm .tmw-pulse-recs{grid-column:1/-1}',
+      '.tmw-mm .tmw-pulse-brief{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:16px;row-gap:5px}',
+      '.tmw-mm .tmw-pulse-brief .pb-eye{grid-column:1/-1}',
+      '.tmw-mm .tmw-pulse-brief .pb-cta{margin-top:0;white-space:nowrap}',
+      '@media(max-width:760px){.tmw-mm{grid-template-columns:1fr}}',
       // footer — the way into /dashboard/ now that the pill's label may open
       // the drop instead of navigating (mobile)
       '.tmw-pulse-foot{flex:0 0 auto;border-top:1px solid rgba(255,255,255,.07)}',
@@ -2260,6 +2268,7 @@
   window.tmwRenderMyMoves = function(el){
     if (!el || el.__tmwMM) return; el.__tmwMM = true;
     injectCss();
+    el.classList.add('tmw-mm');
     // 3 moves visible by default; "Show all" extends the panel vertically.
     var expanded = false, CAP = 3;
     function paint(){
@@ -2281,6 +2290,14 @@
     el.addEventListener('click', function(ev){
       var mb = ev.target.closest ? ev.target.closest('.tmw-mm-more') : null;
       if (mb){ ev.preventDefault(); expanded = !expanded; paint(); return; }
+      // Read it → scroll to the Onyx brief on this page (the anchor exists on
+      // /dashboard/); elsewhere the card's normal /dashboard/#brief link runs.
+      var bf = ev.target.closest ? ev.target.closest('.tmw-pulse-brief') : null;
+      if (bf){
+        var anchor = document.getElementById('onyx-brief');
+        if (anchor){ ev.preventDefault(); anchor.scrollIntoView({ behavior:'smooth' }); }
+        return;
+      }
       var x = ev.target.closest ? ev.target.closest('.pi-x') : null;
       if (!x) return;
       ev.preventDefault(); ev.stopPropagation();
