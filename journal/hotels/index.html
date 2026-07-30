@@ -490,12 +490,26 @@ footer .tmw-wordmark{width:118px}
   .op-fbtn.on{background:rgba(167,139,250,.18); box-shadow:inset 0 0 0 1px rgba(167,139,250,.55)}
   .op-fbtn svg{width:13px; height:13px}
   .op-fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; border-radius:99px; background:#A78BFA; color:#141207; font-size:9px; font-weight:800; padding:0 4px}
-  .op-qpills{display:flex; gap:8px; flex-wrap:wrap; flex:1}
+  .op-qpills{display:flex; gap:8px; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; padding:4px 20px 4px 2px;
+    -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 44px), transparent)}
+  .op-qpills::-webkit-scrollbar{display:none}
+  .op-qpills .op-chip{flex:none; white-space:nowrap}
   .op-searchbar{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; color:var(--mute); flex:none}
   .op-searchbar input{border:0; background:transparent; outline:0; color:var(--cream); font-size:13px; width:190px}
   .op-searchbar input::placeholder{color:var(--mute)}
   .op-searchbar svg{width:13px; height:13px; flex:none}
-  @media(max-width:700px){.op-searchbar{flex:1} .op-searchbar input{width:100%}}
+  /* Mobile: identical to the homepage bar — Filters compresses to icon+badge,
+     the search to an anchored icon that opens the panel (full search inside),
+     the quick pills stay one scrolling row, stat tiles hold three columns. */
+  @media(max-width:780px){
+    .op-fbtn > span:not(.op-fbadge){display:none}
+    .op-searchbar{flex:none; padding:9px 11px}
+    .op-searchbar input{display:none}
+    .op-meta{gap:8px}
+    .op-meta .m{min-width:0; flex:1; padding:16px 6px}
+    .op-meta .m b{font-size:26px}
+    .op-meta .m span{font-size:7.5px; letter-spacing:.1em}
+  }
   /* ranking-only controls row (sort + view toggle live with the list now) */
   .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .region-pills{flex:1; min-width:0}
@@ -536,6 +550,12 @@ footer .tmw-wordmark{width:118px}
   .op-apply:hover{box-shadow:0 0 34px rgba(167,139,250,.5); transform:translateY(-1px)}
   /* advanced filters — labeled rows, echoing the homepage story filters */
   .op-filters{margin:20px 0 2px; border-top:1px solid var(--hair)}
+  .op-fp-search{display:flex; align-items:center; gap:10px; border:1px solid rgba(167,139,250,.35);
+    background:rgba(255,255,255,.02); border-radius:999px; padding:11px 18px; margin:14px auto 4px;
+    color:var(--mute); width:100%}
+  .op-fp-search svg{width:14px; height:14px; flex:none}
+  .op-fp-search input{flex:1; background:none; border:0; outline:0; color:var(--cream); font-family:var(--sans); font-size:13.5px; min-width:0}
+  .op-fp-search input::placeholder{color:var(--mute)}
   .op-frow{display:flex; gap:18px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--hair)}
   .op-flab{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); width:72px; flex:none; padding-top:10px}
   .op-fchips{display:flex; gap:8px; flex-wrap:wrap}
@@ -601,6 +621,10 @@ footer .tmw-wordmark{width:118px}
       </label>
     </div>
     <div class="op-filters" id="opFilters" hidden>
+      <label class="op-fp-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input id="opSearchPanel" type="search" placeholder="Search a hotel, city, or brand…" aria-label="Search openings">
+      </label>
       <div class="op-frow"><span class="op-flab">Location</span><div class="op-fchips" data-row="loc"></div></div>
       <div class="op-frow"><span class="op-flab">Opening</span><div class="op-fchips" data-row="when"></div></div>
       <div class="op-frow"><span class="op-flab">Brand</span><div class="op-fchips" data-row="brand"></div></div>
@@ -2693,14 +2717,31 @@ function formatDate(s) {
     });
     var fbtn = document.getElementById('opFbtn');
     fbtn.addEventListener('click', function () { setPanel(fw.hidden); });
-    var searchEl = document.getElementById('opSearch'), searchT = null;
-    searchEl.addEventListener('input', function () {
-      clearTimeout(searchT);
-      searchT = setTimeout(function () {
-        state.q = searchEl.value.trim().toLowerCase();
-        state.shown = PAGE;
-        render();
-      }, 160);
+    var searchT = null;
+    function wireSearch(el, otherId){
+      el.addEventListener('input', function () {
+        clearTimeout(searchT);
+        searchT = setTimeout(function () {
+          state.q = el.value.trim().toLowerCase();
+          var other = document.getElementById(otherId);
+          if (other && other.value !== el.value) other.value = el.value;
+          state.shown = PAGE;
+          render();
+        }, 160);
+      });
+    }
+    wireSearch(document.getElementById('opSearch'), 'opSearchPanel');
+    wireSearch(document.getElementById('opSearchPanel'), 'opSearch');
+    // Mobile: the anchored search icon opens the panel (its input is hidden there).
+    document.querySelector('.op-searchbar').addEventListener('click', function (e) {
+      if (window.matchMedia('(max-width:780px)').matches) {
+        e.preventDefault();
+        if (fw.hidden) {
+          setPanel(true);
+          var pi = document.getElementById('opSearchPanel');
+          if (pi) setTimeout(function () { pi.focus(); }, 80);
+        }
+      }
     });
     fw.addEventListener('click', function (e) {
       var b = e.target.closest('.op-chip');
