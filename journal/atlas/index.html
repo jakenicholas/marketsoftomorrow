@@ -1465,6 +1465,84 @@
         </section>`;
     }
 
+    // ── REGION-GROUPED PLACE PICKER ──────────────────────────────────────
+    // The old select was a flat States column plus eighty cities. Readers
+    // navigate by REGION, so the groups are United States, Middle East,
+    // Europe, Asia and so on. Country → region mirrors ONTOLOGY.places.regions
+    // (v2026-07-30.1); the region for a city comes from the intel feed's
+    // country, then the city-state map, and an unknown place falls to
+    // 'More markets', never to a wrong region.
+    var MC_REGION_ORDER=['United States','Middle East','Europe','Asia','Caribbean','Latin America','Oceania','Africa','Canada','More markets'];
+    var MC_REGIONS={
+      'United States':'United States','Canada':'Canada',
+      'United Kingdom':'Europe','France':'Europe','Spain':'Europe','Italy':'Europe','Portugal':'Europe',
+      'Greece':'Europe','Croatia':'Europe','Montenegro':'Europe','Denmark':'Europe','Sweden':'Europe',
+      'Norway':'Europe','Hungary':'Europe','Switzerland':'Europe','Austria':'Europe','Germany':'Europe',
+      'Netherlands':'Europe','Ireland':'Europe',
+      'United Arab Emirates':'Middle East','Saudi Arabia':'Middle East','Qatar':'Middle East',
+      'Oman':'Middle East','Bahrain':'Middle East','Kuwait':'Middle East','Israel':'Middle East',
+      'China':'Asia','Japan':'Asia','Singapore':'Asia','South Korea':'Asia','Thailand':'Asia',
+      'Indonesia':'Asia','Malaysia':'Asia','Sri Lanka':'Asia','Maldives':'Asia','Vietnam':'Asia',
+      'India':'Asia','Hong Kong':'Asia','Philippines':'Asia',
+      'Bahamas':'Caribbean','The Bahamas':'Caribbean','Turks and Caicos Islands':'Caribbean',
+      'Turks and Caicos':'Caribbean','Dominican Republic':'Caribbean','Puerto Rico':'Caribbean',
+      'Cayman Islands':'Caribbean','Aruba':'Caribbean','Anguilla':'Caribbean',
+      'Antigua and Barbuda':'Caribbean','Saint Lucia':'Caribbean','St. Lucia':'Caribbean',
+      'Barbados':'Caribbean','Jamaica':'Caribbean','British Virgin Islands':'Caribbean',
+      'Sint Maarten':'Caribbean','St. Maarten':'Caribbean',
+      'Mexico':'Latin America','Costa Rica':'Latin America','Panama':'Latin America',
+      'Brazil':'Latin America','Argentina':'Latin America','Chile':'Latin America',
+      'Colombia':'Latin America','Peru':'Latin America','Belize':'Latin America',
+      'Australia':'Oceania','New Zealand':'Oceania','Fiji':'Oceania','French Polynesia':'Oceania',
+      'Egypt':'Africa','Morocco':'Africa','Kenya':'Africa','South Africa':'Africa',
+      'Rwanda':'Africa','Tanzania':'Africa'
+    };
+    // the pseudo-state entries (UAE, UK, Japan, France) carry short labels
+    var MC_STATE_ALIAS={'UAE':'United Arab Emirates','UK':'United Kingdom'};
+    function mcRegionOfState(st){
+      var country=MC_STATE_ALIAS[st.label]||st.label;
+      return MC_REGIONS[country]||'United States';
+    }
+    function mcRegionOfCity(city){
+      var k=String(city).toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-');
+      var mk=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k];
+      if(mk&&mk.country&&MC_REGIONS[mk.country])return MC_REGIONS[mk.country];
+      var cs=buildCityStateMap();
+      var code=cs[city];
+      if(code&&code!=='Other'){
+        var st=(atlasData.available_states||[]).filter(function(x){return x.code===code;})[0];
+        if(st)return mcRegionOfState(st);
+        return 'United States';
+      }
+      return 'More markets';
+    }
+    function buildPlaceOptions(placeVal){
+      var states=atlasData.available_states||[];
+      var cityC={};(atlasData.projects||[]).forEach(function(p){if(p.ci)cityC[p.ci]=(cityC[p.ci]||0)+1;});
+      var cities=Object.keys(cityC).filter(function(c){return cityC[c]>=2;});
+      var groups={};
+      MC_REGION_ORDER.forEach(function(r){groups[r]={states:[],cities:[]};});
+      states.forEach(function(st){
+        var r=mcRegionOfState(st);(groups[r]||groups['More markets']).states.push(st);});
+      cities.forEach(function(c){
+        var r=mcRegionOfCity(c);(groups[r]||groups['More markets']).cities.push(c);});
+      var out='';
+      MC_REGION_ORDER.forEach(function(r){
+        var g=groups[r];
+        if(!g||(!g.states.length&&!g.cities.length))return;
+        var rows='';
+        g.states.forEach(function(st){
+          var v='st:'+st.code;
+          rows+='<option value="'+escapeHtml(v)+'"'+(placeVal===v?' selected':'')+'>'
+            +escapeHtml(st.label)+' (state)</option>';});
+        g.cities.sort(function(a,b){return cityC[b]-cityC[a];}).forEach(function(c){
+          var v='ci:'+c;
+          rows+='<option value="'+escapeHtml(v)+'"'+(placeVal===v?' selected':'')+'>'
+            +escapeHtml(c)+'</option>';});
+        out+='<optgroup label="'+escapeHtml(r)+'">'+rows+'</optgroup>';});
+      return out;
+    }
+
     function renderStateFilter() {
       const states = atlasData.available_states || [];
       const types = atlasData.available_types || [];
@@ -1475,8 +1553,6 @@
       const cities = Object.keys(cityC).filter(c => cityC[c] >= 2).sort((a, b) => cityC[b] - cityC[a]);
       const placeVal = (currentStateFilter && currentStateFilter !== 'ALL') ? ('st:' + currentStateFilter)
                      : (currentCityFilter && currentCityFilter !== 'ALL') ? ('ci:' + currentCityFilter) : '';
-      const stateOpts = states.map(s => `<option value="st:${escapeHtml(s.code)}"${placeVal === 'st:' + s.code ? ' selected' : ''}>${escapeHtml(s.label)}</option>`).join('');
-      const cityOpts = cities.map(c => `<option value="ci:${escapeHtml(c)}"${placeVal === 'ci:' + c ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
       const catOpts = types.map(t => `<option value="${escapeHtml(t.type)}"${currentTypeFilter === t.type ? ' selected' : ''}>${escapeHtml(t.type)}</option>`).join('');
       const nowY = new Date().getFullYear();
       const yearOpts = [nowY, nowY + 1, nowY + 2, nowY + 4].map(y => `<option value="${y}"${String(currentYearFilter) === String(y) ? ' selected' : ''}>By end of ${y}</option>`).join('');
@@ -1491,8 +1567,7 @@
           <form class="mc-row" id="atlas-calc-form">
             <div class="mc-field"><select id="ac-place" class="${placeVal ? 'has-val' : ''}">
               <option value="">Markets</option>
-              <optgroup label="States">${stateOpts}</optgroup>
-              <optgroup label="Cities">${cityOpts}</optgroup>
+              ${buildPlaceOptions(placeVal)}
             </select></div>
             <div class="mc-field"><select id="ac-cat" class="${(currentTypeFilter && currentTypeFilter !== 'ALL') ? 'has-val' : ''}">
               <option value="">Categories</option>${catOpts}
@@ -2963,6 +3038,12 @@
             supplyIntel = j;
             fillSupplySec();
             try{mountMaster();}catch(e){}
+            // intel carries the country per market; regroup the place picker
+            // now that regions can resolve properly
+            try{var ps=document.getElementById('ac-place');
+              if(ps){var pv=ps.value;
+                ps.innerHTML='<option value=\"\">Markets</option>'+buildPlaceOptions(pv);
+                ps.value=pv;}}catch(e){}
             // fillSupplySec targets #atlasSupplySec and no-ops elsewhere, so the
             // Markets route (which reads the same intel for its pressure column)
             // would never learn the data landed. Re-render it explicitly.

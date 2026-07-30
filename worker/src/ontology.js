@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-29.2';
+export const ONTOLOGY_VERSION = '2026-07-30.1';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -109,6 +109,39 @@ export const ONTOLOGY = {
       'Every project carries a STRUCTURED ADDRESS: street (street line), city, postal_code (zip), country (spelled-out nation), plus US state (auto-derived from lat/lng). US rows get country="United States" automatically; international rows are backfilled by the construction sweep. Answer "what is the address of X" from these fields, and country resolves country-level searches.',
       'GEOGRAPHY IS A TREE (2026-07-21): a post is tagged with its most specific place; ancestors are implied by geo_parents below and auto-applied by tooling (the editor auto-adds them; filters may expand them). "United States" is always implied for US content and never needs tagging.',
     ],
+
+    // Country → REGION, for place pickers and roll-ups. Regions are the
+    // grouping readers actually navigate by (the Atlas place select groups by
+    // these instead of a flat 80-city list). Countries derived from the live
+    // intel feed plus likely-next markets; unknown countries fall to
+    // 'More markets', never to a wrong region.
+    regions: {
+      'United States': 'United States',
+      'Canada': 'Canada',
+      'United Kingdom': 'Europe', 'France': 'Europe', 'Spain': 'Europe', 'Italy': 'Europe',
+      'Portugal': 'Europe', 'Greece': 'Europe', 'Croatia': 'Europe', 'Montenegro': 'Europe',
+      'Denmark': 'Europe', 'Sweden': 'Europe', 'Norway': 'Europe', 'Hungary': 'Europe',
+      'Switzerland': 'Europe', 'Austria': 'Europe', 'Germany': 'Europe', 'Netherlands': 'Europe', 'Ireland': 'Europe',
+      'United Arab Emirates': 'Middle East', 'Saudi Arabia': 'Middle East', 'Qatar': 'Middle East',
+      'Oman': 'Middle East', 'Bahrain': 'Middle East', 'Kuwait': 'Middle East', 'Israel': 'Middle East',
+      'China': 'Asia', 'Japan': 'Asia', 'Singapore': 'Asia', 'South Korea': 'Asia', 'Thailand': 'Asia',
+      'Indonesia': 'Asia', 'Malaysia': 'Asia', 'Sri Lanka': 'Asia', 'Maldives': 'Asia', 'Vietnam': 'Asia',
+      'India': 'Asia', 'Hong Kong': 'Asia', 'Philippines': 'Asia',
+      'Bahamas': 'Caribbean', 'The Bahamas': 'Caribbean', 'Turks and Caicos Islands': 'Caribbean',
+      'Turks and Caicos': 'Caribbean', 'Dominican Republic': 'Caribbean', 'Puerto Rico': 'Caribbean',
+      'Cayman Islands': 'Caribbean', 'Aruba': 'Caribbean', 'Anguilla': 'Caribbean',
+      'Antigua and Barbuda': 'Caribbean', 'Saint Lucia': 'Caribbean', 'St. Lucia': 'Caribbean',
+      'Barbados': 'Caribbean', 'Jamaica': 'Caribbean', 'British Virgin Islands': 'Caribbean',
+      'Sint Maarten': 'Caribbean', 'St. Maarten': 'Caribbean',
+      'Mexico': 'Latin America', 'Costa Rica': 'Latin America', 'Panama': 'Latin America',
+      'Brazil': 'Latin America', 'Argentina': 'Latin America', 'Chile': 'Latin America',
+      'Colombia': 'Latin America', 'Peru': 'Latin America', 'Belize': 'Latin America',
+      'Australia': 'Oceania', 'New Zealand': 'Oceania', 'Fiji': 'Oceania', 'French Polynesia': 'Oceania',
+      'Egypt': 'Africa', 'Morocco': 'Africa', 'Kenya': 'Africa', 'South Africa': 'Africa',
+      'Rwanda': 'Africa', 'Tanzania': 'Africa',
+    },
+    // Display order for region groups, biggest coverage first.
+    region_order: ['United States', 'Middle East', 'Europe', 'Asia', 'Caribbean', 'Latin America', 'Oceania', 'Africa', 'Canada', 'More markets'],
 
     // Category geography: child → immediate parent, walked transitively.
     // Keys/values are canonical category names as they exist in the corpus.
