@@ -73,7 +73,7 @@ export const TRAVEL_STOPS = {
     vibe:'A day among the canals: the Grand Canal, St. Mark’s, and the quiet back calli, returning to Verona by evening.',
     logi:[], imgs:['https://betweencarpools.com/wp-content/uploads/2019/03/shutterstock_720444505-5000x3184.jpg'] },
 
-  { loc:'Lake Como, Italy or Dubrovnik, Croatia', nights:'3 Nights · Sept 11 → 14', stayPending:'Looking for a hotel partner', pending:true, noClient:true,
+  { loc:'Lake Como, Italy or Dubrovnik, Croatia', nights:'3 Nights · Sept 11 → 14', stayPending:'Looking for a hotel partner', pending:true, inworks:true, noClient:true,
     in:{ date:'Sept 11', mode:'flight', note:'Verona → Lake Como or Dubrovnik' },
     vibe:'Two options for these three nights, and we are open to both: Lake Como or Dubrovnik. The right hotel partnership decides the destination.',
     logi:[], imgs:[
@@ -118,30 +118,20 @@ export const TRAVEL_STOPS = {
       'https://www.thedolli.com/wp-content/uploads/2026/01/02-grecotel-the-dolli-hotels-resorts-wines-cocktails-768x613.jpg',
       'https://media.cntraveler.com/photos/65e9e6778c14ea1b5f3b4ae5/16:9/w_2560%2Cc_limit/The%2520Dolli_The-Dolli-Athens-Greece-panoramic-view.jpg'] },
 
-  { loc:'Lake Bled, Slovenia', nights:'2 Nights · Sept 23 → 25', stay:'Private Stay', noClient:true,
+  { loc:'Lake Bled, Slovenia', nights:'4 Nights · Sept 23 → 27', stay:'Private Stay', noClient:true,
     in:{ date:'Sept 23', mode:'flight', note:'Athens → Ljubljana, then a 45-minute drive' },
     vibe:'A private lakeside retreat on Slovenia’s storied glacial lake, with its island church and clifftop castle above the emerald water.',
     logi:[['Transit','Taxi to ATH, then the non-stop Aegean flight to Ljubljana (LJU), about <b>2 hours</b>. Pick up the rental at the airport.'],['The Drive','<b>~45-minute drive</b> northwest to Lake Bled.']],
     imgs:[
-      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg'] },
+      'https://deih43ym53wif.cloudfront.net/osojnica-lake-bled-slovenia-shutterstock_339896984_dcc9309723.jpeg',
+      'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg'] },
 
-  { loc:'Southeast Slovenia', nights:'2 Nights · Sept 25 → 27', stay:'Hotel Grad Otočec', inworks:true,
-    in:{ date:'Sept 25', mode:'car', note:'Lake Bled → Otočec' },
-    vibe:'A beautifully restored 13th-century medieval castle on its own small island in the middle of the emerald Krka River. Surrounded by a historic park, it offers a peaceful, fairytale atmosphere with an exceptional local wine cellar and fine dining.',
-    logi:[['The Drive','<b>~1.5-hour drive</b> southeast on the A2.']],
+  { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 27 → 30', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Sept 27', mode:'car', note:'Lake Bled → South Tyrol' },
+    vibe:'An ultra-minimalist mountain-wellness setting hidden ~1,800 meters above sea level in South Tyrol, with raw views of the Geisler peaks, clean alpine air, and a stillness the rest of the trip does not touch. The right hotel partnership sets the base.',
+    logi:[['The Drive','<b>~3.5-hour drive</b> west from Lake Bled into South Tyrol, up above Bressanone.']],
     imgs:[
-      'https://kayak-soca.com/wp-content/uploads/2023/07/1566500157333.jpg',
-      'https://cf.bstatic.com/xdata/images/hotel/max1024x768/134886518.jpg?k=4825d2170dfae86113ecbb4af5d77ac8517c8806f01a3a1f7f94d84a393b4546&o=',
-      'https://www.outthere.travel/wp-content/uploads/2021/01/The-Grad-Otoc%CC%8Cec-Otoc%CC%8Cec-Slovenia_Feat.jpg',
-      'https://images.trvl-media.com/lodging/4000000/3150000/3145300/3145268/b54731d5.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
-
-  { loc:'The Dolomites, Italy', nights:'3 Nights · Sept 27 → 30', stay:'Forestis Dolomites', inworks:true,
-    in:{ date:'Sept 27', mode:'car', note:'Otočec → South Tyrol' },
-    vibe:'A striking, ultra-minimalist luxury wellness retreat hidden 1,800 meters above sea level. Floor-to-ceiling glass towers frame raw views of the Geisler peaks, alongside a clean-air spa and an emphasis on pure mountain tranquility.',
-    logi:[['The Drive','<b>~3.5-hour drive</b> west from Otočec into South Tyrol, up above Bressanone.']],
-    imgs:[
-      'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto',
-      'https://www.forestis.it/media/1801/forestis-dolomites-luxury-hotel8385.jpg?mode=max&rnd=133778087480000000'] },
+      'https://ik.imgkit.net/3vlqs5axxjf/external/https://www.cfmedia.vfmleonardo.com/imageRepo/7/0/142/647/599/FORESTIS-Aussenansicht-Sommer-7_O.jpg?tr=w-1200,fo-auto'] },
 
   { loc:'St. Moritz, Switzerland', nights:'2 Nights · Sept 30 → Oct 2', stay:'Badrutt’s Palace Hotel', inworks:true,
     in:{ date:'Sept 30', mode:'car', note:'Italy → Engadin · ~3.5h over the passes' },
@@ -152,17 +142,8 @@ export const TRAVEL_STOPS = {
       'https://cdn.mos.cms.futurecdn.net/5ZzMN2nehoCLa4BdMUTnxX.jpg',
       'https://www.engadin.ch/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fy9q53f1k%2Fproduction%2F26b0df592c1566071b17cdf46da1bf609d4d56d4-2400x1600.jpg%3Ffm%3Dwebp%26q%3D90%26w%3D2760%26h%3D1572&w=3840&q=80'] },
 
-  { loc:'Gstaad, Switzerland', nights:'2 Nights · Oct 2 → 4', stay:'The Alpina Gstaad', inworks:true,
-    in:{ date:'Oct 2', mode:'car', note:'St. Moritz → Bernese Oberland · ~4.5h' },
-    vibe:'A masterfully designed, contemporary chalet-style icon. Blending weathered local woodwork with world-class modern art, it boasts Michelin-starred dining, a lavish Six Senses Spa, and sweeping valley views.',
-    logi:[['The Drive','<b>~4.5-hour drive</b> (330 km) east to west across Switzerland to the Bernese Oberland.']],
-    imgs:[
-      'https://www.countryclubuk.com/wp-content/uploads/2026/01/The-Alpina-Gstaad-hotel-2000.jpg',
-      'https://www.thealpinagstaad.ch/media/2964/thealpinagstaad_-6.jpg?mode=max&rnd=132602926050000000',
-      'https://www.thealpinagstaad.ch/media/2731/the-alpina-gstaad-15.jpg?mode=max&rnd=132489757030000000'] },
-
-  { loc:'Zurich or Geneva, Switzerland', nights:'1 Night · Oct 4 → 5', stayPending:'Looking for a hotel partner', pending:true,
-    in:{ date:'Oct 4', mode:'car', note:'Gstaad → Zurich / Geneva' },
+  { loc:'Zurich or Geneva, Switzerland', nights:'3 Nights · Oct 2 → 5', stayPending:'Looking for a hotel partner', pending:true,
+    in:{ date:'Oct 2', mode:'car', note:'St. Moritz → Zurich / Geneva' },
     vibe:'', logi:[], imgs:['https://cdn.inspiringvacations.com/254da5e5-5246-4cce-ab1a-0318212404aa.jpeg'] },
 ],
 };
