@@ -144,12 +144,17 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 
 /* ── Rate-lock ladder ── */
 .ratelock{max-width:960px; margin:0 auto 54px}
+.rl-banner{max-width:720px; margin:0 auto 26px; display:flex; align-items:center; justify-content:center; gap:11px; text-align:center; flex-wrap:wrap; border:1px solid rgba(230,197,116,.4); background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(230,197,116,.02)); border-radius:999px; padding:11px 22px; font-size:13.5px; color:var(--cream); line-height:1.4}
+.rl-banner svg{width:15px; height:15px; stroke:var(--gold-soft); flex:0 0 auto}
+.rl-banner b{color:var(--gold-soft); font-weight:700}
+.rl-fine{max-width:640px; margin:18px auto 0; text-align:center; font-size:12.5px; line-height:1.6; color:var(--mute)}
+.rl-fine b{color:var(--mute-2); font-weight:600}
 .rl-head{text-align:center; max-width:720px; margin:0 auto 30px}
 .rl-head .eyebrow{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--purple-glow); margin-bottom:14px}
 .rl-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(26px,3.4vw,40px); letter-spacing:-.02em; color:#fff; line-height:1.08}
 .rl-head p{font-size:15px; line-height:1.6; color:var(--mute-2); margin-top:14px}
 .rl-head p b{color:var(--gold-soft); font-weight:600}
-.rl-track{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:8px auto 0; max-width:640px}
+.rl-track{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:8px auto 0}
 .rl-rung{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.02); padding:22px 20px}
 .rl-rung .rl-when{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
 .rl-rung .rl-amt{font-family:var(--serif); font-weight:600; font-size:34px; line-height:1; color:var(--cream)}
@@ -256,10 +261,14 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 
     <!-- Rate-lock ladder -->
     <div class="ratelock reveal">
+      <div class="rl-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span>In a few weeks, TMW Pro moves to <b>$32/mo</b>. Join now to lock in <b>$150/yr</b>.</span>
+      </div>
       <div class="rl-head">
         <div class="eyebrow">Join now</div>
         <h2>Lock in a full year at today&rsquo;s rate.</h2>
-        <p>Go annual and $150 covers a full year of everything below. Early members joined at $90, so you&rsquo;re in good company. Prefer to stay flexible? Go monthly and cancel anytime.</p>
+        <p>Go annual and $150 covers a full year of everything below, held for the year even as pricing rises. Founding members joined at $90, so you&rsquo;re in good company. This is the last stretch at today&rsquo;s rate.</p>
       </div>
       <div class="rl-track">
         <div class="rl-rung past">
@@ -269,11 +278,17 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         </div>
         <div class="rl-rung now">
           <span class="rl-tag">You&rsquo;re here</span>
-          <div class="rl-when">Annual</div>
+          <div class="rl-when">Today &middot; Annual</div>
           <div class="rl-amt">$150<span class="yr">/yr</span></div>
-          <div class="rl-lab">Locked in for a full year, however pricing changes.</div>
+          <div class="rl-lab">Locked in for a full year when you go annual.</div>
+        </div>
+        <div class="rl-rung next">
+          <div class="rl-when">In a few weeks</div>
+          <div class="rl-amt">$32<span class="yr">/mo</span></div>
+          <div class="rl-lock"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg> The new standard rate</div>
         </div>
       </div>
+      <p class="rl-fine">Already on a monthly plan? You keep today&rsquo;s rate through the fall. <b>Starting in November, all monthly plans move to the new rate.</b> Go annual now and your $150 is held until your renewal a full year out.</p>
     </div>
 
     <div class="pricing-head reveal">
