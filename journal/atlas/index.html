@@ -1499,11 +1499,22 @@
     };
     // the pseudo-state entries (UAE, UK, Japan, France) carry short labels
     var MC_STATE_ALIAS={'UAE':'United Arab Emirates','UK':'United Kingdom'};
+    // Hand-curated city → country for rows that carry no country and no US
+    // state. Mirrors ONTOLOGY.places.city_countries (v2026-07-30.2).
+    var MC_CITY_COUNTRY={
+      'Agia Pelagia':'Greece','Aspen':'United States','Cancún':'Mexico',
+      'Chongqing':'China','Grand Cayman':'Cayman Islands','Haikou':'China',
+      'Ibiza':'Spain','Kutchan':'Japan','Nekoosa':'United States',
+      'Paradise Island':'Bahamas','Paradise Valley':'United States',
+      'Riviera Nayarit':'Mexico','Venice':'Italy'
+    };
     function mcRegionOfState(st){
       var country=MC_STATE_ALIAS[st.label]||st.label;
       return MC_REGIONS[country]||'United States';
     }
     function mcRegionOfCity(city){
+      var cur=MC_CITY_COUNTRY[city];
+      if(cur&&MC_REGIONS[cur])return MC_REGIONS[cur];
       var k=String(city).toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-');
       var mk=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k];
       if(mk&&mk.country&&MC_REGIONS[mk.country])return MC_REGIONS[mk.country];

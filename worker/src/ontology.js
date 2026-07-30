@@ -17,7 +17,7 @@
 // Bump ONTOLOGY_VERSION on any rule change so consumers can detect drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ONTOLOGY_VERSION = '2026-07-30.1';
+export const ONTOLOGY_VERSION = '2026-07-30.2';
 
 export const ONTOLOGY = {
   version: ONTOLOGY_VERSION,
@@ -142,6 +142,25 @@ export const ONTOLOGY = {
     },
     // Display order for region groups, biggest coverage first.
     region_order: ['United States', 'Middle East', 'Europe', 'Asia', 'Caribbean', 'Latin America', 'Oceania', 'Africa', 'Canada', 'More markets'],
+
+    // City → country, for rows whose city has no country in the intel feed
+    // and no US-state mapping. Curated by hand (Jake, 2026-07-30); consulted
+    // BEFORE the intel feed so these never drift into 'More markets'.
+    city_countries: {
+      'Agia Pelagia': 'Greece',
+      'Aspen': 'United States',
+      'Cancún': 'Mexico',
+      'Chongqing': 'China',
+      'Grand Cayman': 'Cayman Islands',
+      'Haikou': 'China',
+      'Ibiza': 'Spain',
+      'Kutchan': 'Japan',
+      'Nekoosa': 'United States',
+      'Paradise Island': 'Bahamas',
+      'Paradise Valley': 'United States',
+      'Riviera Nayarit': 'Mexico',
+      'Venice': 'Italy',
+    },
 
     // Category geography: child → immediate parent, walked transitively.
     // Keys/values are canonical category names as they exist in the corpus.
