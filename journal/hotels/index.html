@@ -492,32 +492,56 @@ footer .tmw-wordmark{width:118px}
   .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .region-pills{flex:1; min-width:0}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
-  /* travel-style ranking masthead: Fraunces hero text, image soft-fading
-     into the dark page above and below (the /travel/2026 treatment) */
-  .rank-hero{padding:52px 0 8px; text-align:center}
-  .rh-kicker{font-family:var(--mono); font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold-soft)}
-  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(42px,6.4vw,74px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:20px auto 0; text-wrap:balance}
-  .rank-hero h2 em{font-style:italic; color:var(--gold-soft); font-weight:400}
-  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:var(--mute-2); max-width:62ch; margin:18px auto 0; line-height:1.55}
-  .rh-meta{font-family:var(--serif); font-style:italic; font-size:18px; color:var(--mute-2); margin-top:16px}
-  .rh-meta strong{color:var(--gold-soft); font-weight:600}
-  .rh-img{margin-top:34px}
-  .rh-img img{width:100%; max-height:540px; object-fit:cover; display:block;
-    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 20%, #000 82%, transparent 100%);
-    mask-image:linear-gradient(180deg, transparent 0, #000 20%, #000 82%, transparent 100%)}
-  @media(max-width:700px){.rh-img img{max-height:320px}}
+  /* the /travel/2026 masthead, copied: cream band, dark serif text with a
+     cream halo overlaying the image's washed top, the image anchored to the
+     band's lower edge and melting into the dark page below */
+  .rank-hero{position:relative; overflow:hidden; min-height:min(78vh,680px); background:#F2E9D7; text-align:center}
+  .rh-inner{position:relative; z-index:3; padding:clamp(44px,7vh,88px) 22px 0}
+  .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:#B0603A; font-family:var(--sans)}
+  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,7vw,66px); line-height:1.02; letter-spacing:-.02em; color:#4A392B; max-width:920px; margin:20px auto 0; text-wrap:balance}
+  .rank-hero h2 em{font-style:italic; color:#B0603A; font-weight:400}
+  .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub, .rank-hero .rh-meta{text-shadow:0 1px 22px rgba(243,235,220,.92), 0 0 4px rgba(243,235,220,.6)}
+  .rank-hero .rh-sub, .rank-hero .rh-meta{text-shadow:0 1px 2px rgba(243,235,220,.92), 0 0 11px rgba(243,235,220,.95), 0 0 22px rgba(243,235,220,.7)}
+  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#6E5844; max-width:62ch; margin:18px auto 0; line-height:1.55}
+  .rh-meta{font-family:var(--serif); font-style:italic; font-size:19px; color:#6E5844; margin-top:16px}
+  .rh-meta strong{color:#B0603A; font-weight:600}
+  .rh-img{position:absolute; left:0; right:0; bottom:0; height:64%; overflow:hidden; background:#F2E9D7}
+  .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02)}
+  .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:linear-gradient(to bottom,
+      #F2E9D7 0%,
+      rgba(242,233,215,.72) 12%,
+      rgba(242,233,215,.45) 26%,
+      rgba(242,233,215,.12) 46%,
+      rgba(7,8,7,0) 62%,
+      rgba(7,8,7,.34) 84%,
+      var(--ink) 100%)}
+  @media(max-width:700px){.rank-hero{min-height:520px} .rh-img{height:56%}}
+  .news-title{font-family:var(--serif); font-size:clamp(26px,3.4vw,38px); font-weight:600; letter-spacing:-.015em; color:var(--white); margin:30px 0 20px}
+  .news-title em{font-style:italic; color:var(--gold-soft); font-weight:400}
+  /* active-filter tokens in the compact bar (homepage .ftok pattern) */
+  .op-tokens{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; min-width:0; flex:1; overflow-x:auto; scrollbar-width:none; padding:4px 20px 4px 2px;
+    -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 52px), transparent)}
+  .op-tokens::-webkit-scrollbar{display:none}
+  .op-tokens[hidden]{display:none}
+  .op-ftok{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:var(--gold-soft); border:1px solid rgba(230,197,116,.34); background:rgba(230,197,116,.10); border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
+  .op-ftok .x{color:#FF8A8A; font-size:12px; line-height:1; opacity:.85; text-shadow:0 0 10px rgba(255,138,138,.75), 0 0 3px rgba(255,138,138,.5)}
+  .op-ftok:hover .x{opacity:1; text-shadow:0 0 14px rgba(255,138,138,.95), 0 0 4px rgba(255,138,138,.7)}
+  .op-fclear{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); background:none; border:0; cursor:pointer; padding:7px 4px; flex:none}
+  /* apply row (homepage .fp-actions pattern) */
+  .op-factions{display:flex; align-items:center; gap:16px; padding:14px 0 4px}
+  .op-apply{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:#0a0a0a; background:#C4B5FD; border:0; border-radius:999px; padding:11px 22px; cursor:pointer; box-shadow:0 0 24px rgba(167,139,250,.3); transition:box-shadow .2s, transform .15s}
+  .op-apply:hover{box-shadow:0 0 34px rgba(167,139,250,.5); transform:translateY(-1px)}
   /* advanced filters — labeled rows, echoing the homepage story filters */
   .op-filters{margin:20px 0 2px; border-top:1px solid var(--hair)}
   .op-frow{display:flex; gap:18px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--hair)}
   .op-flab{font-family:var(--mono); font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); width:72px; flex:none; padding-top:10px}
   .op-fchips{display:flex; gap:8px; flex-wrap:wrap}
-  .op-factions{display:flex; align-items:center; gap:16px; padding:12px 0 2px}
-  .op-factions #opMatchCount{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute)}
-  .op-clear{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; background:transparent; border:0; color:var(--gold-soft); cursor:pointer; padding:0}
-  .op-clear:hover{color:var(--gold)}
+  .op-clear{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; background:transparent; border:0; color:var(--mute); cursor:pointer; padding:0}
+  .op-clear:hover{color:var(--gold-soft)}
   .op-chip{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; padding:8px 15px; border-radius:999px; border:1px solid var(--hair-2); background:transparent; color:var(--mute-2); cursor:pointer; transition:all .15s}
   .op-chip:hover{color:var(--white); border-color:var(--hair-3)}
-  .op-chip.on{background:var(--gold); border-color:var(--gold); color:#141207; font-weight:800}
+  .op-chip.on{background:rgba(230,197,116,.10); color:var(--gold-soft); border-color:rgba(230,197,116,.34); font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.5), 0 0 3px rgba(230,197,116,.32); box-shadow:0 0 18px rgba(230,197,116,.16)}
   /* grid */
   .op-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:22px}
   @media(max-width:900px){.op-grid{grid-template-columns:repeat(2,1fr)}}
@@ -569,6 +593,7 @@ footer .tmw-wordmark{width:118px}
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
         <span>Filters</span><span class="op-fbadge" id="opFbadge" hidden>0</span>
       </button>
+      <div class="op-tokens" id="opTokens" hidden></div>
       <div class="op-qpills" id="opQuick"></div>
       <label class="op-searchbar">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
@@ -580,7 +605,11 @@ footer .tmw-wordmark{width:118px}
       <div class="op-frow"><span class="op-flab">Opening</span><div class="op-fchips" data-row="when"></div></div>
       <div class="op-frow"><span class="op-flab">Brand</span><div class="op-fchips" data-row="brand"></div></div>
       <div class="op-frow"><span class="op-flab">Stage</span><div class="op-fchips" data-row="stage"></div></div>
-      <div class="op-factions"><span id="opMatchCount"></span><button class="op-clear" id="opClear" hidden>Clear all</button></div>
+      <div class="op-factions">
+        <button class="op-apply" id="opApply" type="button">Show all hotels</button>
+        <button class="op-clear" id="opClear" type="button">Clear all</button>
+        <button class="op-clear" id="opClose" type="button">Close</button>
+      </div>
     </div>
     <div class="op-grid" id="opGrid"></div>
     <div class="op-more" id="opMore" hidden><button id="opMoreBtn">Show more openings</button></div>
@@ -599,11 +628,13 @@ footer .tmw-wordmark{width:118px}
   <!-- Travel-style masthead: Fraunces hero text over a soft-fade image
        (the /travel/2026 look, translated to the dark theme) -->
   <section class="rank-hero" id="featured">
-    <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
-    <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
-    <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
-    <div class="rh-meta"><strong id="item-count-vis">—</strong> Hotels · Curated by Markets of Tomorrow</div>
-    <div class="rh-img"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
+    <div class="rh-img" aria-hidden="true"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
+    <div class="rh-inner">
+      <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
+      <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
+      <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
+      <div class="rh-meta"><strong id="item-count-vis">—</strong> Hotels · Curated by Markets of Tomorrow</div>
+    </div>
   </section>
   <div class="wrap">
     <div class="region-bar">
@@ -642,6 +673,7 @@ footer .tmw-wordmark{width:118px}
 <!-- ============== NEWS PANEL ============== -->
 <section class="tab-panel" data-panel="news">
   <div class="wrap">
+    <h2 class="news-title">Latest Hotel <em>News</em></h2>
     <div class="cards" id="newsCards"></div>
   </div>
 </section>
@@ -2414,6 +2446,42 @@ function formatDate(s) {
 </script>
 
 <script>
+/* ── Tab deep links: /hotels/#opening · /hotels/#list · /hotels/#news ───────
+   Not new pages, just addressable tabs. Any other hash is an iconic-list item
+   id (the search deep-links), which lives in the Ranking tab — activate it
+   first, then scroll to the card. Tab clicks keep the hash current. */
+(function () {
+  var MAPH = { opening: 'openings', openings: 'openings', list: 'ranking', ranking: 'ranking', news: 'news' };
+  var REV = { openings: 'opening', ranking: 'list', news: 'news' };
+  // Toggle classes directly (the main script's click handlers bind after its
+  // first fetch resolves, so an on-load hash can't rely on .click()).
+  function activate(tab){
+    document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
+    document.querySelectorAll('.tab-panel').forEach(function (pn) { pn.classList.toggle('on', pn.getAttribute('data-panel') === tab); });
+  }
+  function applyHash(){
+    var h = (location.hash || '').replace('#', '').toLowerCase();
+    if (!h) return;
+    var t = MAPH[h];
+    if (t) { activate(t); return; }
+    // item deep-link → it lives in the Ranking list
+    activate('ranking');
+    setTimeout(function () {
+      try { var el = document.querySelector('.rank-item[data-id="' + (window.CSS && CSS.escape ? CSS.escape(h) : h) + '"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    }, 350);
+  }
+  document.querySelectorAll('.tab-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var r = REV[b.getAttribute('data-tab')];
+      if (r) { try { history.replaceState(null, '', '#' + r); } catch (e) {} }
+    });
+  });
+  window.addEventListener('hashchange', applyHash);
+  applyHash();
+})();
+</script>
+
+<script>
 /* ── THE OPENING RADAR — the hotel pipeline, live from the database ─────────
    Reads the same memoized projects-flat fetch the dock uses. Advanced filters
    (location / opening window / brand / stage) mirror the homepage story
@@ -2430,7 +2498,27 @@ function formatDate(s) {
     if (!store[url]) store[url] = fetch(url, { cache: 'no-cache' }).then(function(r){ return r.ok ? r.text() : 'null'; }).catch(function(){ return 'null'; });
     return store[url].then(function(t){ try { return JSON.parse(t); } catch(e){ return null; } });
   }
+  var _isProMem = false;
   function isProLS(){ try { return localStorage.getItem('tmw_auth_state') === 'pro'; } catch(_) { return false; } }
+  function isPro(){ return _isProMem || isProLS(); }
+  // The localStorage flag is set by the map's auth flow — a Pro member who has
+  // only used the journal won't have it. Ask Memberstack directly (it loads
+  // late, so poll briefly), then unlock the page: hide the Go-Pro band,
+  // un-blur announced cards, arm the bells.
+  (function proProbe(tries){
+    var ms = window.$memberstackDom;
+    if (!ms || !ms.getCurrentMember) { if (tries < 20) setTimeout(function(){ proProbe(tries + 1); }, 600); return; }
+    ms.getCurrentMember().then(function (r) {
+      var m = r && r.data;
+      var paid = !!(m && (m.planConnections || []).some(function (pc) { return pc.active === true || pc.status === 'ACTIVE' || pc.status === 'TRIALING'; }));
+      if (paid) {
+        _isProMem = true;
+        try { localStorage.setItem('tmw_auth_state', 'pro'); } catch (_) {}
+        var band = document.querySelector('.op-pro'); if (band) band.style.display = 'none';
+        if (state.hotels.length) render();
+      }
+    }).catch(function () {});
+  })(0);
   function paywall(){ if (window.tmwShowPaywall) window.tmwShowPaywall('hotel-openings'); else location.href = 'https://map.oftmw.com/?upgrade=1'; }
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function fmtEta(d){
@@ -2598,12 +2686,7 @@ function formatDate(s) {
       paintChips(); render();
     });
     var fbtn = document.getElementById('opFbtn');
-    fbtn.addEventListener('click', function () {
-      var open = fw.hidden;
-      fw.hidden = !open;
-      fbtn.classList.toggle('on', open);
-      fbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
+    fbtn.addEventListener('click', function () { setPanel(fw.hidden); });
     var searchEl = document.getElementById('opSearch'), searchT = null;
     searchEl.addEventListener('input', function () {
       clearTimeout(searchT);
@@ -2622,11 +2705,50 @@ function formatDate(s) {
         paintChips(); render();
         return;
       }
-      if (e.target.id === 'opClear') {
-        state.loc = state.when = state.brand = state.stage = '*'; state.shown = PAGE;
-        paintChips(); render();
-      }
+      if (e.target.id === 'opClear') { clearAllOp(); return; }
+      if (e.target.id === 'opApply' || e.target.id === 'opClose') { setPanel(false); }
     });
+    function clearAllOp(){
+      state.loc = state.when = state.brand = state.stage = '*'; state.shown = PAGE;
+      paintChips(); render();
+    }
+    function setPanel(open){
+      fw.hidden = !open;
+      fbtn.classList.toggle('on', open);
+      fbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    // Active filters surface as gold tokens (red × to remove) in the compact
+    // bar, replacing the quick pills — the homepage news-bar behavior.
+    var tokWrap = document.getElementById('opTokens');
+    function renderOpBar(){
+      var parts = [];
+      var locDef = state.locs.filter(function (d) { return d.id === state.loc; })[0];
+      if (locDef) parts.push({ k: 'loc', label: locDef.label });
+      var whenDef = WHENS.filter(function (w) { return w.id === state.when; })[0];
+      if (whenDef) parts.push({ k: 'when', label: whenDef.label });
+      if (state.brand !== '*') parts.push({ k: 'brand', label: state.brand });
+      if (state.stage !== '*') parts.push({ k: 'stage', label: state.stage });
+      qw.style.display = parts.length ? 'none' : '';
+      tokWrap.hidden = !parts.length;
+      tokWrap.innerHTML = '';
+      parts.forEach(function (pt) {
+        var t = document.createElement('button');
+        t.type = 'button'; t.className = 'op-ftok';
+        t.innerHTML = esc(pt.label) + ' <span class="x">&times;</span>';
+        t.addEventListener('click', function () {
+          state[pt.k] = '*'; state.shown = PAGE;
+          paintChips(); render();
+        });
+        tokWrap.appendChild(t);
+      });
+      if (parts.length) {
+        var clr = document.createElement('button');
+        clr.type = 'button'; clr.className = 'op-fclear'; clr.textContent = 'Clear';
+        clr.addEventListener('click', clearAllOp);
+        tokWrap.appendChild(clr);
+        tokWrap.scrollLeft = 0;
+      }
+    }
     function paintChips(){
       fw.querySelectorAll('.op-fchips').forEach(function (rowEl) {
         var row = rowEl.getAttribute('data-row');
@@ -2644,6 +2766,9 @@ function formatDate(s) {
       var n = ['loc', 'when', 'brand', 'stage'].filter(function (k) { return state[k] !== '*'; }).length;
       var badge = document.getElementById('opFbadge');
       badge.hidden = !n; badge.textContent = n;
+      var m = filtered().length;
+      document.getElementById('opApply').textContent = n ? 'Show ' + m + ' hotel' + (m === 1 ? '' : 's') : 'Show all hotels';
+      renderOpBar();
     }
 
     document.getElementById('opMoreBtn').addEventListener('click', function () { state.shown += PAGE; render(); });
@@ -2667,7 +2792,7 @@ function formatDate(s) {
   }
   var BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
   function render(){
-    var pro = isProLS();
+    var pro = isPro();
     var list = filtered();
     var show = list.slice(0, state.shown);
     var mc = document.getElementById('opMatchCount');

@@ -1439,7 +1439,7 @@
     var IMG_R = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
     var IMG_G = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
     return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
-      '<a class="tmw-lc-feat" href="/hotels/"><img src="' + IMG_H + '" alt="Iconic Hotels" loading="lazy">' +
+      '<a class="tmw-lc-feat" href="/hotels/#list"><img src="' + IMG_H + '" alt="Iconic Hotels" loading="lazy">' +
         '<div class="tmw-lc-fm"><div class="tmw-lc-eye">The flagship guide</div><h3>Iconic Hotels</h3>' +
         '<p>The stays that define every market — ranked, property by property.</p></div></a>' +
       '<div class="tmw-lc-side">' +
