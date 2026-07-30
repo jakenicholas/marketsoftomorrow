@@ -447,21 +447,26 @@ footer .tmw-wordmark{width:118px}
 <span id="updated-stamp" hidden></span>
 
 <!-- ============== TAB BAR ============== -->
-<div class="tabs-bar">
-  <div class="wrap">
-    <div class="tabs" role="tablist">
+<!-- ============== PAGE MASTHEAD — image touches the ticker, text below,
+     the tab toggle lives under the subtitle (visible on every tab) ============== -->
+<section class="rank-hero" id="featured">
+  <div class="rh-img" aria-hidden="true"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
+  <div class="rh-inner">
+    <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
+    <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
+    <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
+    <span id="item-count-vis" hidden></span>
+    <div class="rh-tabs" role="tablist">
       <button class="tab-btn on" data-tab="openings" role="tab">Openings<span class="tb-count" id="openCount"></span></button>
       <button class="tab-btn" data-tab="ranking" role="tab">Ranking<span class="tb-count" id="rankCount"></span></button>
       <button class="tab-btn" data-tab="news" role="tab">Latest News<span class="tb-count" id="newsCount"></span></button>
-    </div>
-    <div class="actions">
       <button class="edit-toggle" id="editToggle" title="Edit this page">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z"/></svg>
         <span id="editToggleLabel">Edit</span>
       </button>
     </div>
   </div>
-</div>
+</section>
 
 <!-- ============== OPENINGS PANEL — the hotel pipeline radar ============== -->
 <style>
@@ -492,31 +497,26 @@ footer .tmw-wordmark{width:118px}
   .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .region-pills{flex:1; min-width:0}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
-  /* the /travel/2026 masthead, copied: cream band, dark serif text with a
-     cream halo overlaying the image's washed top, the image anchored to the
-     band's lower edge and melting into the dark page below */
-  .rank-hero{position:relative; overflow:hidden; min-height:min(78vh,680px); background:#F2E9D7; text-align:center}
-  .rh-inner{position:relative; z-index:3; padding:clamp(44px,7vh,88px) 22px 0}
-  .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:#B0603A; font-family:var(--sans)}
-  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,7vw,66px); line-height:1.02; letter-spacing:-.02em; color:#4A392B; max-width:920px; margin:20px auto 0; text-wrap:balance}
-  .rank-hero h2 em{font-style:italic; color:#B0603A; font-weight:400}
-  .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub, .rank-hero .rh-meta{text-shadow:0 1px 22px rgba(243,235,220,.92), 0 0 4px rgba(243,235,220,.6)}
-  .rank-hero .rh-sub, .rank-hero .rh-meta{text-shadow:0 1px 2px rgba(243,235,220,.92), 0 0 11px rgba(243,235,220,.95), 0 0 22px rgba(243,235,220,.7)}
-  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#6E5844; max-width:62ch; margin:18px auto 0; line-height:1.55}
-  .rh-meta{font-family:var(--serif); font-style:italic; font-size:19px; color:#6E5844; margin-top:16px}
-  .rh-meta strong{color:#B0603A; font-weight:600}
-  .rh-img{position:absolute; left:0; right:0; bottom:0; height:64%; overflow:hidden; background:#F2E9D7}
+  /* page masthead — the /travel treatment, image-first: the photo touches the
+     pulse ticker, washes down into cream, and the text + tab toggle sit below */
+  .rank-hero{position:relative; background:#F2E9D7; text-align:center; padding-bottom:40px}
+  .rh-img{position:relative; height:min(48vh,440px); overflow:hidden}
   .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02)}
-  .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:linear-gradient(to bottom,
-      #F2E9D7 0%,
-      rgba(242,233,215,.72) 12%,
-      rgba(242,233,215,.45) 26%,
-      rgba(242,233,215,.12) 46%,
-      rgba(7,8,7,0) 62%,
-      rgba(7,8,7,.34) 84%,
-      var(--ink) 100%)}
-  @media(max-width:700px){.rank-hero{min-height:520px} .rh-img{height:56%}}
+  .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(242,233,215,0) 48%, rgba(242,233,215,.55) 76%, #F2E9D7 100%)}
+  .rh-inner{position:relative; z-index:2; margin-top:-34px; padding:0 22px}
+  .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:#B0603A; font-family:var(--sans)}
+  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:#4A392B; max-width:920px; margin:18px auto 0; text-wrap:balance}
+  .rank-hero h2 em{font-style:italic; color:#B0603A; font-weight:400}
+  .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub{text-shadow:0 1px 2px rgba(243,235,220,.92), 0 0 11px rgba(243,235,220,.95), 0 0 22px rgba(243,235,220,.7)}
+  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#6E5844; max-width:62ch; margin:16px auto 0; line-height:1.55}
+  /* the tab toggle, light theme, centered under the subtitle */
+  .rh-tabs{display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:26px}
+  .rh-tabs .tab-btn{color:#6E5844; border:1px solid rgba(74,57,43,.28); background:rgba(251,246,236,.7); box-shadow:none}
+  .rh-tabs .tab-btn:hover{color:#4A392B; border-color:rgba(74,57,43,.5)}
+  .rh-tabs .tab-btn.on{color:#F2E9D7; background:#4A392B; border-color:#4A392B; font-weight:700; box-shadow:0 6px 20px rgba(74,57,43,.25)}
+  .rh-tabs .edit-toggle{margin-left:10px; color:#6E5844; border-color:rgba(74,57,43,.28)}
+  .rh-tabs .edit-toggle:hover{color:#4A392B}
   .news-title{font-family:var(--serif); font-size:clamp(26px,3.4vw,38px); font-weight:600; letter-spacing:-.015em; color:var(--white); margin:30px 0 20px}
   .news-title em{font-style:italic; color:var(--gold-soft); font-weight:400}
   /* active-filter tokens in the compact bar (homepage .ftok pattern) */
@@ -625,17 +625,6 @@ footer .tmw-wordmark{width:118px}
 
 <!-- ============== RANKING PANEL ============== -->
 <section class="tab-panel" data-panel="ranking">
-  <!-- Travel-style masthead: Fraunces hero text over a soft-fade image
-       (the /travel/2026 look, translated to the dark theme) -->
-  <section class="rank-hero" id="featured">
-    <div class="rh-img" aria-hidden="true"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
-    <div class="rh-inner">
-      <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
-      <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
-      <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
-      <div class="rh-meta"><strong id="item-count-vis">—</strong> Hotels · Curated by Markets of Tomorrow</div>
-    </div>
-  </section>
   <div class="wrap">
     <div class="region-bar">
       <div class="region-pills" id="regionPills">

@@ -154,7 +154,7 @@
   }
 
   function start() {
-    var actions = document.querySelector('.tabs-bar .actions');
+    var actions = document.querySelector('.tabs-bar .actions') || document.getElementById('ivMount');
     var ranking = document.getElementById('ranking');
     if (!actions || !ranking || document.getElementById('iconicSheet')) return;
 
