@@ -14353,6 +14353,100 @@ async function handleAdminFlowsImport(request, env, origin) {
   } catch (e) { return json({ error: 'flows: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// ── TMW Pro income: Stripe monthly gross rollup + chart series ────────────────
+// Memberstack bills Pro through this Stripe account, so every charge here is
+// Pro subscription revenue. Gross = succeeded charges before Stripe fees, net
+// of refunds. The cron books one bundled Income row per complete month
+// (id fl-pro-YYYY-MM, dated the last day of the month) and self-heals any
+// missing month back to PRO_ROLLUP_FLOOR — which is also the backfill.
+const PRO_ROLLUP_FLOOR = { y: 2026, m: 1 };
+const PRO_FLOW_DESC = '🔁 TMW Pro Subscriptions (gross)';
+const chargeGross = c => c.status === 'succeeded'
+  ? (((c.amount_captured != null ? c.amount_captured : c.amount) || 0) - (c.amount_refunded || 0)) / 100
+  : 0;
+async function stripeChargesBetween(env, gte, lt) {
+  let out = [], after = '';
+  for (let page = 0; page < 30; page++) {
+    const d = await stripeGet(env, '/charges?limit=100&created[gte]=' + gte + '&created[lt]=' + lt + (after ? '&starting_after=' + after : ''));
+    out = out.concat(d.data || []);
+    if (!d.has_more || !(d.data || []).length) break;
+    after = d.data[d.data.length - 1].id;
+  }
+  return out;
+}
+async function stripeGrossForMonth(env, y, m) {
+  const gte = Date.UTC(y, m - 1, 1) / 1000, lt = Date.UTC(y, m, 1) / 1000;
+  let gross = 0, n = 0;
+  for (const c of await stripeChargesBetween(env, gte, lt)) {
+    const g = chargeGross(c);
+    if (g > 0) { gross += g; n++; }
+  }
+  return { gross: Math.round(gross * 100) / 100, charges: n };
+}
+async function upsertProIncomeMonth(env, y, m) {
+  const { gross, charges } = await stripeGrossForMonth(env, y, m);
+  if (gross <= 0) return { gross, charges, skipped: true };
+  const mm = String(m).padStart(2, '0');
+  const date = y + '-' + mm + '-' + String(new Date(Date.UTC(y, m, 0)).getUTCDate()).padStart(2, '0');
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(`INSERT OR REPLACE INTO flows (id,kind,year,date,amount,description,party,paid_by,category,status,type,star,notes,expenses_json,plan_day,invoice_date,received_date,location,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    .bind('fl-pro-' + y + '-' + mm, 'income', y, date, gross, PRO_FLOW_DESC, 'TMW', 'Stripe', 'Florida of Tomorrow', 'paid', null, 0, null, null, null, null, null, null, now, now).run();
+  return { gross, charges };
+}
+async function maybeRollupProIncome(env) {
+  if (!env.DB || !env.STRIPE_SECRET_KEY) return;
+  try {
+    await ensureFlowsTable(env);
+    const nowD = new Date();
+    let ly = nowD.getUTCFullYear(), lm = nowD.getUTCMonth();   // last complete month
+    if (lm === 0) { ly -= 1; lm = 12; }
+    // fast path: once the latest complete month is booked, everything before it
+    // was booked by the same loop — nothing to do until next month
+    const haveLast = await env.DB.prepare(`SELECT id FROM flows WHERE id = ?`).bind('fl-pro-' + ly + '-' + String(lm).padStart(2, '0')).first();
+    if (haveLast) return;
+    // throttle the Stripe work to ~6h so the minute cron stays cheap
+    const ts = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare(`SELECT ts FROM events WHERE event_name='pro_income_rollup_try' ORDER BY ts DESC LIMIT 1`).first();
+    if (last && last.ts && (ts - last.ts) < 6 * 3600) return;
+    await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`).bind(ts, 'system:pro-income', 'pro_income_rollup_try', '{}').run();
+    for (let y = PRO_ROLLUP_FLOOR.y, m = PRO_ROLLUP_FLOOR.m; y < ly || (y === ly && m <= lm); m === 12 ? (m = 1, y++) : m++) {
+      const have = await env.DB.prepare(`SELECT id FROM flows WHERE id = ?`).bind('fl-pro-' + y + '-' + String(m).padStart(2, '0')).first();
+      if (!have) await upsertProIncomeMonth(env, y, m);
+    }
+  } catch (_) {}
+}
+// GET /admin/pro-income?months=12 — monthly gross series ending with the
+// current month (marked mtd). One Stripe sweep, bucketed by month.
+async function handleAdminProIncome(env, origin, url) {
+  if (!env.STRIPE_SECRET_KEY) return json({ error: 'Stripe not configured' }, { status: 500 }, env, origin);
+  try {
+    const months = Math.min(24, Math.max(1, parseInt(url.searchParams.get('months'), 10) || 12));
+    const nowD = new Date();
+    const y0 = nowD.getUTCFullYear(), m0 = nowD.getUTCMonth() + 1;
+    let sy = y0, sm = m0 - (months - 1);
+    while (sm < 1) { sm += 12; sy -= 1; }
+    const charges = await stripeChargesBetween(env, Date.UTC(sy, sm - 1, 1) / 1000, Math.floor(Date.now() / 1000) + 60);
+    const buckets = {};
+    for (const c of charges) {
+      const g = chargeGross(c);
+      if (g <= 0) continue;
+      const d = new Date(c.created * 1000);
+      const k = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+      (buckets[k] = buckets[k] || { gross: 0, charges: 0 }).gross += g;
+      buckets[k].charges++;
+    }
+    const out = [];
+    for (let i = 0; i < months; i++) {
+      let y = sy, m = sm + i;
+      while (m > 12) { m -= 12; y++; }
+      const k = y + '-' + String(m).padStart(2, '0');
+      const b = buckets[k] || { gross: 0, charges: 0 };
+      out.push({ month: k, gross: Math.round(b.gross * 100) / 100, charges: b.charges, mtd: y === y0 && m === m0 });
+    }
+    return json({ months: out }, {}, env, origin);
+  } catch (e) { return json({ error: 'pro-income: ' + e.message }, { status: 500 }, env, origin); }
+}
+
 // ── QuickBooks Online: OAuth + reconciliation sync for the Flows ledger ──
 // Secrets: QBO_CLIENT_ID + QBO_CLIENT_SECRET (Intuit developer app; Jake owns).
 // Flow: GET /qbo/connect (admin, via the Studio proxy) → Intuit consent →
@@ -15037,6 +15131,12 @@ export default {
         const fm = url.pathname.match(/^\/admin\/flows\/([^/]+)$/);
         if (fm && request.method === 'DELETE') return await handleAdminFlowDelete(env, origin, decodeURIComponent(fm[1]));
       }
+      // ── TMW Pro income series (Stripe, admin) ──
+      if (url.pathname === '/admin/pro-income') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        if (request.method === 'GET') return await handleAdminProIncome(env, origin, url);
+      }
       // ── QuickBooks OAuth + sync ──
       if (url.pathname === '/qbo/connect' && request.method === 'GET') {
         // Browser-clickable alternative to the admin bearer: a single-use
@@ -15445,6 +15545,7 @@ export default {
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
+    ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
