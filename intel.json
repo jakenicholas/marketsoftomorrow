@@ -4074,67 +4074,6 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "park-place": {
-      "estimate_years": 4.3,
-      "estimate_label": "~4.3 years",
-      "range_low": 1.9,
-      "range_high": 6.0,
-      "confidence": "low",
-      "comparable_count": 7,
-      "good_count": 0,
-      "exact_count": 0,
-      "used_relaxed": true,
-      "avg_match_score": 0.38,
-      "avg_distance_km": 1187.4,
-      "avg_distance_mi": 737.8,
-      "scale_used": true,
-      "firm_signal": {
-        "firm": "Southwest Value Partners",
-        "count": 1,
-        "median_years": 6.0,
-        "stddev_years": 0.0,
-        "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.4
-      },
-      "source": "comparables",
-      "project_type": "Residences",
-      "metro": "Nashville",
-      "comparables": [
-        {
-          "name": "The Residence at 400 Central",
-          "slug": "the-residence-at-400-central",
-          "location": "St. Petersburg",
-          "years": 3.1,
-          "score": 0.49,
-          "distance_km": 1010.4,
-          "distance_mi": 627.8
-        },
-        {
-          "name": "Nautilus 220",
-          "slug": "nautilus-220",
-          "location": "Lake Park",
-          "years": 3.2,
-          "score": 0.49,
-          "distance_km": 1219.7,
-          "distance_mi": 757.9
-        },
-        {
-          "name": "Forté on Flagler",
-          "slug": "fort-on-flagler",
-          "location": "West Palm Beach",
-          "years": 3.8,
-          "score": 0.34,
-          "distance_km": 1228.7,
-          "distance_mi": 763.5
-        }
-      ],
-      "pattern_summary": "Among 7 residences projects in TMW's data, the median build time is 3.2 years (range 1.9–6). Adjusted to ~4.3 years for Southwest Value Partners's own track record (~6-year typical pace across 1 prior project).",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false,
-      "is_mixed_use": false
-    },
     "firefly": {
       "estimate_years": 0.4,
       "estimate_label": "~5 months",
@@ -4851,21 +4790,65 @@
       "delivery_speculative": false
     },
     "nokosi-golf-club": {
-      "estimate_years": 0.4,
-      "estimate_label": "~5 months",
-      "days_out": 154,
-      "delivery_date": "2026-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 1.0,
+      "estimate_label": "~1 year",
+      "range_low": 0.8,
+      "range_high": 3.8,
+      "confidence": "medium",
+      "comparable_count": 4,
+      "good_count": 3,
+      "exact_count": 3,
+      "used_relaxed": false,
+      "avg_match_score": 0.7,
+      "avg_distance_km": 58.2,
+      "avg_distance_mi": 36.2,
+      "scale_used": false,
+      "firm_signal": {
+        "firm": "Nicklaus Design",
+        "count": 1,
+        "median_years": 0.84,
+        "stddev_years": 0.0,
+        "role": "developer",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Golf",
       "metro": "Palm Beach",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~5 months.",
+      "comparables": [
+        {
+          "name": "Dutchman's Pipe",
+          "slug": "dutchmans-pipe",
+          "location": "West Palm Beach",
+          "years": 0.8,
+          "score": 1.0,
+          "distance_km": 21.2,
+          "distance_mi": 13.2
+        },
+        {
+          "name": "Apogee Golf Club",
+          "slug": "apogee-golf-club",
+          "location": "Hobe Sound",
+          "years": 1.2,
+          "score": 0.7,
+          "distance_km": 54.7,
+          "distance_mi": 34.0
+        },
+        {
+          "name": "Panther National",
+          "slug": "panther-national",
+          "location": "Palm Beach Gardens",
+          "years": 3.8,
+          "score": 0.7,
+          "distance_km": 28.3,
+          "distance_mi": 17.6
+        }
+      ],
+      "pattern_summary": "Among 4 same-metro golf projects in TMW's data, the median build time is 1.1 years (range 0.8–3.8). Adjusted to ~1 year for Nicklaus Design's own track record (~0.8-year typical pace across 1 prior project).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "bounty-club": {
       "estimate_years": 3.3,
@@ -6129,19 +6112,19 @@
     "aman-dubai": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 885,
-      "delivery_date": "2028-12-31",
+      "days_out": 869,
+      "delivery_date": "2028-12-15",
       "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "precision": "month",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "Dubai",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "litib-bay-club": {
       "estimate_years": 0.4,
@@ -6609,7 +6592,7 @@
       "start_speculative": true,
       "delivery_speculative": true
     },
-    "skywaters-residences": {
+    "the-skywaters": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
       "days_out": 885,
@@ -8124,10 +8107,10 @@
     "miramar-cove": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 885,
-      "delivery_date": "2028-12-31",
+      "days_out": 869,
+      "delivery_date": "2028-12-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Mixed-Use",
       "metro": "South Florida",
@@ -9952,18 +9935,18 @@
       "delivery_speculative": false
     },
     "the-paramount": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 885,
-      "delivery_date": "2028-12-31",
+      "estimate_years": 2.0,
+      "estimate_label": "~2 years",
+      "days_out": 655,
+      "delivery_date": "2028-05-15",
       "source": "known_date",
-      "precision": "year",
+      "precision": "month",
       "confidence": "high",
       "project_type": "Residences",
       "metro": "Nashville",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
+      "pattern_summary": "Targeted for opening in ~2 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false
@@ -16102,14 +16085,14 @@
   },
   "stats": {
     "high": 7,
-    "medium": 23,
-    "low": 79,
-    "known_date": 546,
+    "medium": 24,
+    "low": 78,
+    "known_date": 545,
     "completed": 67,
-    "skipped": 109,
+    "skipped": 110,
     "no_type": 0,
     "firm_boosted": 45,
-    "speculative_softened": 217,
+    "speculative_softened": 218,
     "district": 13,
     "mixed_use_adjusted": 29
   }
