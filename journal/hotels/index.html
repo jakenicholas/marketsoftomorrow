@@ -474,7 +474,7 @@ footer .tmw-wordmark{width:118px}
 <style>
   /* Scoped to the Openings tab. Site dark theme: gold = opening soon / Pro,
      green = building now, purple = announced (Pro-locked). */
-  .op-intro{padding:26px 0 6px}
+  .op-intro{padding:8px 0 6px}
   .op-intro h2{font-family:var(--serif); font-size:clamp(26px,3.6vw,40px); font-weight:600; letter-spacing:-.015em; color:var(--white)}
   .op-intro h2 em{font-style:italic; color:var(--gold)}
   .op-intro .sub{max-width:640px; color:var(--mute-2); font-size:15px; margin-top:10px; line-height:1.6}
@@ -502,17 +502,13 @@ footer .tmw-wordmark{width:118px}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
   /* page masthead — the /travel treatment, image-first: the photo touches the
      pulse ticker, washes down into cream, and the text + tab toggle sit below */
-  .rank-hero{position:relative; background:transparent; text-align:center; padding-bottom:40px}
+  .rank-hero{position:relative; background:transparent; text-align:center; padding-bottom:14px}
   .rh-img{position:relative; height:min(48vh,440px); overflow:hidden}
-  .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02)}
-  .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(to bottom,
-      rgba(7,8,7,0) 22%,
-      rgba(7,8,7,.14) 42%,
-      rgba(7,8,7,.34) 58%,
-      rgba(7,8,7,.58) 72%,
-      rgba(7,8,7,.82) 86%,
-      var(--ink) 100%)}
+  /* the image ALPHA-fades into the page: no opaque overlay means no seam is
+     even possible, and the fixed ambient glow shows through the faded region */
+  .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02);
+    -webkit-mask-image:linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.42) 72%, rgba(0,0,0,.18) 84%, transparent 97%);
+    mask-image:linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.42) 72%, rgba(0,0,0,.18) 84%, transparent 97%)}
   .rh-inner{position:relative; z-index:2; margin-top:-34px; padding:0 22px}
   .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--gold-soft); font-family:var(--sans)}
   .rank-hero h2, .rank-hero .rh-alt-title{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:18px auto 0; text-wrap:balance}
