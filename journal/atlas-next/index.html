@@ -917,6 +917,7 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
       onProjectClick:function(i){openDrawer(i);}
     }).then(function(h){
       MAPH=h;MAP_OK=!!h.supported;MAP_PENDING=false;
+      window.__atlasNext={maph:h};   // staging debug hook
       render();   // swap in the GL map (or confirm the SVG fallback) once known
     });
   }

@@ -220,6 +220,8 @@
           });
         },
         resize: function () { try { map.resize(); } catch (e) {} },
+        // how many pins the CURRENT visible() admits — staging verification
+        debugCount: function () { return visibleData().features.length; },
         destroy: function () { try { map.remove(); } catch (e) {} }
       };
     });
