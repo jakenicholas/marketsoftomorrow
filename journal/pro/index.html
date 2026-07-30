@@ -133,8 +133,8 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .pc-sub{font-size:14px; color:var(--mute-2); margin-bottom:22px}
 .pc-feat{list-style:none; margin:0 0 26px; padding:0; display:flex; flex-direction:column; gap:11px}
 .pc-feat li{position:relative; padding-left:24px; font-size:14px; line-height:1.45; color:var(--cream)}
-.pc-feat li::before{content:""; position:absolute; left:0; top:5px; width:14px; height:14px; border-radius:50%; background:rgba(31,223,103,.14); border:1px solid rgba(31,223,103,.4)}
-.pc-feat li::after{content:""; position:absolute; left:4.5px; top:9px; width:5px; height:2.5px; border-left:1.5px solid var(--green-soft); border-bottom:1.5px solid var(--green-soft); transform:rotate(-45deg)}
+.pc-feat li::before{content:""; position:absolute; left:0; top:5px; width:14px; height:14px; border-radius:50%; background:rgba(167,139,250,.16); border:1px solid rgba(167,139,250,.45); box-shadow:0 0 10px rgba(167,139,250,.35)}
+.pc-feat li::after{content:""; position:absolute; left:4.5px; top:9px; width:5px; height:2.5px; border-left:1.5px solid var(--purple-bright); border-bottom:1.5px solid var(--purple-bright); transform:rotate(-45deg)}
 .pc-btn{margin-top:auto; display:inline-flex; align-items:center; justify-content:center; text-align:center; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; padding:15px 20px; border-radius:11px; cursor:pointer}
 .pc-btn.gold{background:linear-gradient(135deg,var(--gold-soft),var(--gold)); color:#3a2c08; box-shadow:0 0 24px rgba(230,197,116,.35); transition:box-shadow .2s}
 .pc-btn.gold:hover{box-shadow:0 0 36px rgba(230,197,116,.55)}
@@ -150,7 +150,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .rl-head p{font-size:15px; line-height:1.6; color:var(--mute-2); margin-top:14px}
 .rl-head p b{color:var(--gold-soft); font-weight:600}
 .rl-track{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px}
-.rl-rung{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.02); padding:22px 20px; overflow:hidden}
+.rl-rung{position:relative; border:1px solid var(--hair); border-radius:16px; background:rgba(255,255,255,.02); padding:22px 20px}
 .rl-rung .rl-when{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-bottom:12px}
 .rl-rung .rl-amt{font-family:var(--serif); font-weight:600; font-size:34px; line-height:1; color:var(--cream)}
 .rl-rung .rl-amt .yr{font-family:var(--mono); font-size:13px; color:var(--mute); font-weight:400; margin-left:3px}
@@ -181,9 +181,9 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
 .cmp-feat{font-size:14px; color:var(--cream); line-height:1.4}
 .cmp-feat .cf-sub{display:block; font-size:12px; color:var(--mute); margin-top:2px}
 .cmp-val{text-align:center; font-family:var(--mono); font-size:12px; color:var(--mute-2)}
-.cmp-val.on{color:var(--green-soft)}
+.cmp-val.on{color:var(--purple-bright); text-shadow:0 0 12px rgba(167,139,250,.55)}
 .cmp-val .ck{display:inline-block; width:16px; height:16px; position:relative}
-.cmp-val .ck::after{content:""; position:absolute; left:5px; top:2px; width:5px; height:9px; border-right:2px solid var(--green-soft); border-bottom:2px solid var(--green-soft); transform:rotate(45deg)}
+.cmp-val .ck::after{content:""; position:absolute; left:5px; top:2px; width:5px; height:9px; border-right:2px solid var(--purple-bright); border-bottom:2px solid var(--purple-bright); transform:rotate(45deg); filter:drop-shadow(0 0 5px rgba(167,139,250,.7))}
 .cmp-val .dash{color:rgba(255,255,255,.22)}
 @media(max-width:600px){
   .cmp-row{grid-template-columns:1fr 62px 62px; padding:13px 14px; gap:8px}
@@ -355,7 +355,7 @@ body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none
         <div class="cmp-row"><div class="cmp-feat">Every story, the Pulse &amp; the Iconic Lists</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
         <div class="cmp-row"><div class="cmp-feat">The Weekly newsletter</div><div class="cmp-val on"><span class="ck"></span></div><div class="cmp-val on"><span class="ck"></span></div></div>
         <div class="cmp-row"><div class="cmp-feat">Article commenting</div><div class="cmp-val">Limited</div><div class="cmp-val on">Unlimited</div></div>
-        <div class="cmp-row"><div class="cmp-feat">Blueprint Member number, status &amp; rewards</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
+        <div class="cmp-row"><div class="cmp-feat">Member number, status &amp; rewards</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
         <div class="cmp-row"><div class="cmp-feat">Your price, locked for life</div><div class="cmp-val"><span class="dash">&ndash;</span></div><div class="cmp-val on"><span class="ck"></span></div></div>
       </div>
       <div style="text-align:center; margin-top:34px">
