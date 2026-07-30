@@ -117,7 +117,13 @@
 
       var popup = null;
       var ready = new Promise(function (res) {
-        map.on('load', function () {
+        // 'style.load', NOT 'load': load waits for the first RENDERED frame,
+        // and a background tab never produces one (rAF is suspended), so a
+        // member opening the page in a background tab got an empty map until
+        // they interacted. Sources and layers only need the style parsed.
+        var wired = false;
+        var wire = function () {
+          if (wired) return; wired = true;
           map.addSource('projects', { type: 'geojson', data: visibleData(),
             cluster: true, clusterMaxZoom: 13, clusterRadius: 46 });
           map.addSource('hl', { type: 'geojson',
@@ -182,7 +188,8 @@
           map.on('mouseenter', 'clusters', function () { map.getCanvas().style.cursor = 'pointer'; });
           map.on('mouseleave', 'clusters', function () { map.getCanvas().style.cursor = ''; });
           res();
-        });
+        };
+        if (map.isStyleLoaded()) wire(); else map.once('style.load', wire);
       });
 
       // popup styling, injected once
