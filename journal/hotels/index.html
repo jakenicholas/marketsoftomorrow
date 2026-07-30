@@ -503,7 +503,7 @@ footer .tmw-wordmark{width:118px}
   /* page masthead — the /travel treatment, image-first: the photo touches the
      pulse ticker, washes down into cream, and the text + tab toggle sit below */
   .rank-hero{position:relative; background:transparent; text-align:center; padding-bottom:14px}
-  .rh-img{position:relative; height:min(48vh,440px); overflow:hidden}
+  .rh-img{position:relative; height:min(56vh,520px); overflow:hidden}
   /* the image ALPHA-fades into the page: no opaque overlay means no seam is
      even possible, and the fixed ambient glow shows through the faded region */
   .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02);
@@ -1410,22 +1410,9 @@ let SORT_MODE = 'rank';
 })();
 
 // ===================================================================
-// BANNER auto-collapse on scroll
-// ===================================================================
-function hookBannerCollapse() {
-  const banner = document.getElementById('banner-ad');
-  if (!banner) return;
-  let collapsed = false;
-  const onScroll = () => {
-    const shouldCollapse = (window.scrollY || 0) > 60;
-    if (shouldCollapse !== collapsed) {
-      collapsed = shouldCollapse;
-      banner.classList.toggle('collapsed', collapsed);
-    }
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-}
+// BANNER — scrolls away naturally with the page (the scroll-triggered
+// collapse animation made the sticky header snap; the homepage never had it)
+function hookBannerCollapse() {}
 
 // ===================================================================
 // TABS
@@ -2446,7 +2433,7 @@ function formatDate(s) {
   // other tabs) while alt siblings carry the radar/news copy.
   var TAB_COPY = {
     openings: { t: 'The Hotel Radar', s: 'Every notable hotel in the global pipeline, from announcement to opening day. Pulled live from the Markets of Tomorrow database and updated as projects move.' },
-    news: { t: 'Latest Hotel News', s: 'Openings, brand debuts, and the projects reshaping travel, reported as they break.' },
+    news: { t: 'Latest Hotel News', s: 'Openings, brand debuts, and the projects reshaping<br>travel, reported as they break.' },
   };
   function setMastCopy(tab){
     var rt = document.querySelector('.rank-hero [data-edit="title"]');
@@ -2456,7 +2443,7 @@ function formatDate(s) {
     if (!rt || !at) return;
     var c = TAB_COPY[tab];
     if (c) {
-      at.innerHTML = c.t; asub.textContent = c.s;
+      at.innerHTML = c.t; asub.innerHTML = c.s;
       rt.style.display = 'none'; rs.style.display = 'none';
       at.style.display = ''; asub.style.display = '';
     } else {
