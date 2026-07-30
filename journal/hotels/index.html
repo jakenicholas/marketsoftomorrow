@@ -2778,7 +2778,11 @@ function formatDate(s) {
       renderOpBar();
     }
 
-    document.getElementById('opMoreBtn').addEventListener('click', function () { state.shown += PAGE; render(); });
+    // The first page is the free tease — paging deeper into the pipeline is Pro.
+    document.getElementById('opMoreBtn').addEventListener('click', function () {
+      if (!isPro()) { paywall(); return; }
+      state.shown += PAGE; render();
+    });
     document.getElementById('opProBtn').addEventListener('click', paywall);
     render();
   });
