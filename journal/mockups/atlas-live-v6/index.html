@@ -189,7 +189,10 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
   function accel(m){var w=m.windows||[];
     var a=w.slice(0,2).reduce(function(s,x){return s+(x.units||0);},0);
     var b=w.slice(2,4).reduce(function(s,x){return s+(x.units||0);},0);
-    var kind = a===0 ? (b>0?'fromZero':'quiet')
+    // A NEAR-zero base is the same trap as a zero one: 26→1,330 units is
+    // "51×", technically true and rhetorically silly. Under 300 units the
+    // page speaks in arrivals, not multipliers.
+    var kind = a<300 ? (b>0?'fromZero':'quiet')
              : (b/a>=2 ? 'accelerating' : b/a<=0.5 ? 'cresting' : 'steady');
     return {now:a,next:b,r:a>0?b/a:0,kind:kind};}
 
@@ -279,7 +282,8 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
       if(a.kind==='accelerating') line=[nfmt(m.pipeline_units)+' units in the pipeline, and deliveries ',
                             (a.r>=4?Math.round(a.r)+'×':(a.r).toFixed(1)+'×'),
                             ' from '+nfmt(a.now)+' to '+nfmt(a.next)+' units over the next two years.'];
-      else if(a.kind==='fromZero') line=[nfmt(m.pipeline_units)+' units tracked and ','nothing dated inside 12 months',
+      else if(a.kind==='fromZero') line=[nfmt(m.pipeline_units)+' units tracked and ',
+                            (a.now?'almost nothing dated inside 12 months ('+nfmt(a.now)+' units)':'nothing dated inside 12 months'),
                             ' — then '+nfmt(a.next)+' units arrive in the following year.'];
       else if(a.kind==='cresting') line=[nfmt(m.pipeline_units)+' units tracked, but the wave is landing ','now',
                             ' — '+nfmt(a.now)+' units inside 12 months vs '+nfmt(a.next)+' after.'];
@@ -374,8 +378,9 @@ td{color:var(--ink2)} td.n{text-align:right;font-variant-numeric:tabular-nums;co
             +(a.r>=4?Math.round(a.r):a.r.toFixed(1))+'× — '+nfmt(a.now)+' units inside 12 months becomes '+nfmt(a.next)+' in the following 12.'],k:m._k});
       else if(m.level!=='Balanced'&&a.kind==='fromZero'&&a.next>=800)
         calls.push({w:(a.next/800)*(m.score/50),ic:'⚠',
-          tx:[m.city+' is already ',m.level.toLowerCase(),' at '+m.score+' with nothing dated inside 12 months — then '
-            +nfmt(a.next)+' units arrive at once.'],k:m._k});
+          tx:[m.city+' is already ',m.level.toLowerCase(),
+            ' at '+m.score+' with '+(a.now?'only '+nfmt(a.now)+' units dated':'nothing dated')
+            +' inside 12 months — then '+nfmt(a.next)+' units arrive at once.'],k:m._k});
       else if(m.level==='Balanced'&&(a.kind==='accelerating'||a.kind==='fromZero')&&a.next>=1200)
         calls.push({w:a.next/1000,ic:'◎',
           tx:[m.city+' reads balanced today, but the pipeline says ','quietly heating',
