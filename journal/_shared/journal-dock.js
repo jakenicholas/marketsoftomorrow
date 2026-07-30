@@ -937,6 +937,10 @@
     // Selected reads the SAME as the other nav items (READ) — gold glow, not a
     // second visual language for the same idea.
     '.tmw-fm-link.active{color:var(--gold-soft,#f0d68a) !important; text-shadow:0 0 16px rgba(230,197,116,.7), 0 0 5px rgba(230,197,116,.42)}',
+    // "Go Pro" — always gold, free/anon only (hidden for paid members).
+    '.tmw-fm-gopro{color:var(--gold-soft,#f0d68a) !important; font-weight:700; text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
+    '.tmw-fm-gopro:hover{color:#fff !important}',
+    'html.tmw-paid .tmw-fm-gopro{display:none !important}',
     '.tmw-fm-trigger:hover, .tmw-fm.open .tmw-fm-trigger{color:var(--gold-soft,#f0d68a); text-shadow:0 0 14px rgba(230,197,116,.55), 0 0 3px rgba(230,197,116,.35)}',
     '.tmw-fm-chev{width:10px; height:10px; transition:transform .22s ease}',
     '.tmw-fm.open .tmw-fm-chev{transform:rotate(180deg)}',
@@ -1546,6 +1550,16 @@
         nav.insertBefore(fmExplore, ref.nextSibling);
         nav.insertBefore(fmLists, fmExplore.nextSibling);
       } else { nav.appendChild(fmExplore); nav.appendChild(fmLists); }
+
+      // Gold "Go Pro" nav item after The Lists — free/anon only. Hidden for
+      // paid members via `html.tmw-paid .tmw-fm-gopro{display:none}` (same
+      // class the mega-menu's Go Pro CTA uses), so it never flashes for Pro.
+      var fmPro = document.createElement('a');
+      fmPro.className = 'tmw-fm-link tmw-fm-gopro';
+      fmPro.href = '/pro/';
+      fmPro.textContent = 'Go Pro';
+      if (fmLists.nextSibling) nav.insertBefore(fmPro, fmLists.nextSibling);
+      else nav.appendChild(fmPro);
     }
   }
 
