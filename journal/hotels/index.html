@@ -474,13 +474,6 @@ footer .tmw-wordmark{width:118px}
   .op-meta{display:flex; gap:26px; margin-top:18px; flex-wrap:wrap}
   .op-meta .m b{display:block; font-family:var(--serif); font-size:26px; font-weight:600; color:var(--white); line-height:1.1}
   .op-meta .m span{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
-  /* opening-next marquee */
-  .op-next{margin:22px 0 4px; border:1px solid var(--hair); background:var(--panel); border-radius:12px; overflow:hidden; white-space:nowrap; position:relative}
-  .op-next .lab{position:absolute; left:0; top:0; bottom:0; z-index:2; display:flex; align-items:center; gap:8px; padding:0 14px; background:var(--panel); border-right:1px solid var(--hair); font-family:var(--mono); font-size:9px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; color:var(--gold)}
-  .op-next .trk{display:inline-block; padding:11px 0 11px 150px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute-2); animation:opTick 45s linear infinite}
-  .op-next .trk b{color:var(--white); font-weight:700}
-  .op-next .trk i{font-style:normal; color:var(--gold)}
-  @keyframes opTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   /* compact bar — purple Filters toggle + quick pills + search (echoes the
      homepage news filter bar); the advanced rows stay collapsed until opened */
   .op-bar{display:flex; gap:10px; align-items:center; margin:20px 0 4px; flex-wrap:wrap}
@@ -499,13 +492,20 @@ footer .tmw-wordmark{width:118px}
   .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .region-pills{flex:1; min-width:0}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
-  /* blended masthead: the emblem SVG carries the name, the intro centers
-     tight beneath it as one column */
-  section[data-panel="ranking"] .story-section{padding:24px 0 26px}
-  .list-intro{margin:0 auto; text-align:center; max-width:760px; padding-top:26px}
-  .list-intro h2{font-size:clamp(24px,2.6vw,34px)}
-  .list-intro .sub{margin:12px auto 0}
-  .list-intro-meta{justify-content:center}
+  /* travel-style ranking masthead: Fraunces hero text, image soft-fading
+     into the dark page above and below (the /travel/2026 treatment) */
+  .rank-hero{padding:52px 0 8px; text-align:center}
+  .rh-kicker{font-family:var(--mono); font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold-soft)}
+  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(42px,6.4vw,74px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:20px auto 0; text-wrap:balance}
+  .rank-hero h2 em{font-style:italic; color:var(--gold-soft); font-weight:400}
+  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:var(--mute-2); max-width:62ch; margin:18px auto 0; line-height:1.55}
+  .rh-meta{font-family:var(--serif); font-style:italic; font-size:18px; color:var(--mute-2); margin-top:16px}
+  .rh-meta strong{color:var(--gold-soft); font-weight:600}
+  .rh-img{margin-top:34px}
+  .rh-img img{width:100%; max-height:540px; object-fit:cover; display:block;
+    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 20%, #000 82%, transparent 100%);
+    mask-image:linear-gradient(180deg, transparent 0, #000 20%, #000 82%, transparent 100%)}
+  @media(max-width:700px){.rh-img img{max-height:320px}}
   /* advanced filters — labeled rows, echoing the homepage story filters */
   .op-filters{margin:20px 0 2px; border-top:1px solid var(--hair)}
   .op-frow{display:flex; gap:18px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--hair)}
@@ -564,7 +564,6 @@ footer .tmw-wordmark{width:118px}
       <p class="sub">Every notable hotel in the global pipeline, from announcement to opening day. Pulled live from the Markets of Tomorrow database and updated as projects move.</p>
       <div class="op-meta" id="opMeta"></div>
     </header>
-    <div class="op-next" id="opNext" hidden><span class="lab"><span class="live-dot"></span>Opening next</span><span class="trk" id="opNextTrk"></span></div>
     <div class="op-bar">
       <button class="op-fbtn" id="opFbtn" type="button" aria-expanded="false" aria-controls="opFilters">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
@@ -597,34 +596,16 @@ footer .tmw-wordmark{width:118px}
 
 <!-- ============== RANKING PANEL ============== -->
 <section class="tab-panel" data-panel="ranking">
-  <!-- The iconic-list hero lives INSIDE the Ranking tab: the Openings radar
-       leads the page, the 2026 Iconic Hotel Stays identity leads the list. -->
-  <section class="story-section" id="featured">
-    <article class="story-card">
-      <div class="sc-clip">
-        <div class="sc-bg"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
-      </div>
-      <div class="sc-emblem">
-        <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/b20badfa0fc1-TMW_2026_Hotels.svg" alt="The Iconic Hotel List" style="filter: brightness(0) invert(1) drop-shadow(0 8px 30px rgba(0,0,0,.55));">
-      </div>
-      <nav class="sc-tabs" aria-label="Verticals">
-        <a class="sc-tab" href="/">News</a>
-        <a class="sc-tab" href="/restaurants/">Restaurants</a>
-        <a class="sc-tab on" href="/hotels/">Hotels</a>
-        <a class="sc-tab" href="/golf/">Golf</a>
-      </nav>
-    </article>
+  <!-- Travel-style masthead: Fraunces hero text over a soft-fade image
+       (the /travel/2026 look, translated to the dark theme) -->
+  <section class="rank-hero" id="featured">
+    <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
+    <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
+    <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
+    <div class="rh-meta"><strong id="item-count-vis">—</strong> Hotels · Curated by Markets of Tomorrow</div>
+    <div class="rh-img"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
   </section>
   <div class="wrap">
-    <header class="list-intro">
-      <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
-      <p class="sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
-      <div class="list-intro-meta">
-        <span><strong id="item-count-vis">—</strong> Hotels</span>
-        <span class="dot"></span>
-        <span>Curated by Markets of Tomorrow</span>
-      </div>
-    </header>
     <div class="region-bar">
       <div class="region-pills" id="regionPills">
         <button class="pill on" data-region="*">All</button>
@@ -2570,14 +2551,6 @@ function formatDate(s) {
       '<div class="m"><b>' + hotels.length + '</b><span>In the pipeline</span></div>' +
       '<div class="m"><b>' + soon + '</b><span>Opening soon</span></div>' +
       '<div class="m"><b>' + Object.keys(countries).length + '</b><span>Countries</span></div>';
-
-    // Opening-next marquee
-    var next = hotels.filter(function (h) { return etaSort(h.d) < 999999; }).slice().sort(function (a, b) { return etaSort(a.d) - etaSort(b.d); }).slice(0, 8);
-    if (next.length >= 3) {
-      var seg = next.map(function (h) { return '<b>' + esc(h.t) + '</b> ' + esc(h.city) + ' · <i>' + fmtEta(h.d) + '</i>'; }).join('  ·  ');
-      document.getElementById('opNextTrk').innerHTML = seg + '  ·  ' + seg;
-      document.getElementById('opNext').hidden = false;
-    }
 
     // ── Location buckets: US states via CountyState + country/region groups,
     // derived from what the data actually holds (empty buckets never render).
