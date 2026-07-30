@@ -452,7 +452,7 @@ footer .tmw-wordmark{width:118px}
 <section class="rank-hero" id="featured">
   <div class="rh-img" aria-hidden="true"><img id="hero-img" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/5e6308_dc7c2e13710e4cc6ace97bd436bea4a6~mv2.jpeg" alt=""></div>
   <div class="rh-inner">
-    <div class="rh-kicker">Hotels of TMW · 2026 Edition</div>
+    <div class="rh-kicker">Hotels of Tomorrow · 2026 Edition</div>
     <h2 data-edit="title">The <em>Iconic</em> Hotel List</h2>
     <p class="rh-sub" data-edit="subtitle">A curated ranking of the hotels defining the modern travel experience — landmark properties, design-forward retreats, and the new openings setting tomorrow's standard.</p>
     <span id="item-count-vis" hidden></span>
@@ -499,24 +499,21 @@ footer .tmw-wordmark{width:118px}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
   /* page masthead — the /travel treatment, image-first: the photo touches the
      pulse ticker, washes down into cream, and the text + tab toggle sit below */
-  .rank-hero{position:relative; background:#F2E9D7; text-align:center; padding-bottom:40px}
+  .rank-hero{position:relative; background:var(--ink); text-align:center; padding-bottom:40px}
   .rh-img{position:relative; height:min(48vh,440px); overflow:hidden}
   .rh-img img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.95) brightness(1.02)}
   .rh-img::after{content:""; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(to bottom, rgba(242,233,215,0) 48%, rgba(242,233,215,.55) 76%, #F2E9D7 100%)}
+    background:linear-gradient(to bottom, rgba(7,8,7,0) 46%, rgba(7,8,7,.6) 76%, var(--ink) 100%)}
   .rh-inner{position:relative; z-index:2; margin-top:-34px; padding:0 22px}
-  .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:#B0603A; font-family:var(--sans)}
-  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:#4A392B; max-width:920px; margin:18px auto 0; text-wrap:balance}
-  .rank-hero h2 em{font-style:italic; color:#B0603A; font-weight:400}
-  .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub{text-shadow:0 1px 2px rgba(243,235,220,.92), 0 0 11px rgba(243,235,220,.95), 0 0 22px rgba(243,235,220,.7)}
-  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#6E5844; max-width:62ch; margin:16px auto 0; line-height:1.55}
-  /* the tab toggle, light theme, centered under the subtitle */
+  .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--gold-soft); font-family:var(--sans)}
+  .rank-hero h2{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:18px auto 0; text-wrap:balance}
+  .rank-hero h2 em{font-style:italic; color:var(--gold-soft); font-weight:400}
+  .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub{text-shadow:0 1px 18px rgba(0,0,0,.6), 0 0 4px rgba(0,0,0,.4)}
+  .rh-sub{font-family:var(--serif); font-style:italic; font-weight:300; font-size:clamp(15px,1.6vw,19px); color:#E7DCC6; max-width:62ch; margin:16px auto 0; line-height:1.55}
+  /* the tab toggle, centered under the subtitle */
   .rh-tabs{display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:26px}
-  .rh-tabs .tab-btn{color:#6E5844; border:1px solid rgba(74,57,43,.28); background:rgba(251,246,236,.7); box-shadow:none}
-  .rh-tabs .tab-btn:hover{color:#4A392B; border-color:rgba(74,57,43,.5)}
-  .rh-tabs .tab-btn.on{color:#F2E9D7; background:#4A392B; border-color:#4A392B; font-weight:700; box-shadow:0 6px 20px rgba(74,57,43,.25)}
-  .rh-tabs .edit-toggle{margin-left:10px; color:#6E5844; border-color:rgba(74,57,43,.28)}
-  .rh-tabs .edit-toggle:hover{color:#4A392B}
+  .rh-tabs .tab-btn{border:1px solid var(--hair-2)}
+  .rh-tabs .edit-toggle{margin-left:10px}
   .news-title{font-family:var(--serif); font-size:clamp(26px,3.4vw,38px); font-weight:600; letter-spacing:-.015em; color:var(--white); margin:30px 0 20px}
   .news-title em{font-style:italic; color:var(--gold-soft); font-weight:400}
   /* active-filter tokens in the compact bar (homepage .ftok pattern) */
@@ -552,9 +549,9 @@ footer .tmw-wordmark{width:118px}
   .op-card .ph img{width:100%; height:100%; object-fit:cover; display:block}
   .op-card .ph::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 42%,rgba(4,6,4,.82))}
   .op-status{position:absolute; top:12px; left:12px; z-index:2; font-family:var(--mono); font-size:8.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; padding:5px 11px; border-radius:999px}
-  .op-status.soon{background:var(--gold); color:#141207}
-  .op-status.uc{background:rgba(31,223,103,.16); color:var(--green-soft); border:1px solid rgba(31,223,103,.4)}
-  .op-status.ann{background:rgba(167,139,250,.16); color:var(--purple-glow); border:1px solid rgba(167,139,250,.4)}
+  .op-status.soon{background:#1FDF67; color:#07230f}
+  .op-status.uc{background:#64A8F0; color:#0a1626}
+  .op-status.ann{background:var(--gold); color:#241d07}
   .op-bell{position:absolute; top:9px; right:10px; z-index:3; width:33px; height:33px; border-radius:50%; background:rgba(10,12,10,.72); border:1px solid var(--hair-2); display:flex; align-items:center; justify-content:center; color:var(--cream); font-size:14px; transition:all .15s}
   .op-bell:hover{background:var(--gold); color:#141207; border-color:var(--gold)}
   .op-bell.watching{background:var(--gold); color:#141207; border-color:var(--gold)}
@@ -2553,7 +2550,8 @@ function formatDate(s) {
     { id: 'Breaking Ground', label: 'Breaking ground' },
     { id: 'Announced', label: 'Announced' },
   ];
-  var state = { loc: '*', when: '*', brand: '*', stage: '*', q: '', shown: PAGE, hotels: [], locs: [] };
+  // Multi-select: each row is a Set — OR within a row, AND across rows.
+  var state = { loc: new Set(), when: new Set(), brand: new Set(), stage: new Set(), q: '', shown: PAGE, hotels: [], locs: [] };
 
   // ── Watchlist: one shared favorites read, then per-bell toggles ──────────
   var _favsPromise = null;
@@ -2670,7 +2668,8 @@ function formatDate(s) {
     qw.addEventListener('click', function (e) {
       var b = e.target.closest('.op-chip'); if (!b) return;
       var pk = QUICK.filter(function (p) { return p.id === b.getAttribute('data-q'); })[0] || QUICK[0];
-      state.stage = pk.stage || '*'; state.when = pk.when || '*';
+      state.stage = new Set(pk.stage ? [pk.stage] : []);
+      state.when = new Set(pk.when ? [pk.when] : []);
       state.shown = PAGE;
       paintChips(); render();
     });
@@ -2689,7 +2688,7 @@ function formatDate(s) {
       var b = e.target.closest('.op-chip');
       if (b) {
         var row = b.closest('.op-fchips').getAttribute('data-row'), v = b.getAttribute('data-v');
-        state[row === 'loc' ? 'loc' : row] = (state[row] === v) ? '*' : v;
+        if (state[row].has(v)) state[row].delete(v); else state[row].add(v);
         state.shown = PAGE;
         paintChips(); render();
         return;
@@ -2698,7 +2697,8 @@ function formatDate(s) {
       if (e.target.id === 'opApply' || e.target.id === 'opClose') { setPanel(false); }
     });
     function clearAllOp(){
-      state.loc = state.when = state.brand = state.stage = '*'; state.shown = PAGE;
+      state.loc = new Set(); state.when = new Set(); state.brand = new Set(); state.stage = new Set();
+      state.shown = PAGE;
       paintChips(); render();
     }
     function setPanel(open){
@@ -2711,12 +2711,10 @@ function formatDate(s) {
     var tokWrap = document.getElementById('opTokens');
     function renderOpBar(){
       var parts = [];
-      var locDef = state.locs.filter(function (d) { return d.id === state.loc; })[0];
-      if (locDef) parts.push({ k: 'loc', label: locDef.label });
-      var whenDef = WHENS.filter(function (w) { return w.id === state.when; })[0];
-      if (whenDef) parts.push({ k: 'when', label: whenDef.label });
-      if (state.brand !== '*') parts.push({ k: 'brand', label: state.brand });
-      if (state.stage !== '*') parts.push({ k: 'stage', label: state.stage });
+      state.loc.forEach(function (id) { var d = state.locs.filter(function (x) { return x.id === id; })[0]; if (d) parts.push({ k: 'loc', v: id, label: d.label }); });
+      state.when.forEach(function (id) { var w = WHENS.filter(function (x) { return x.id === id; })[0]; if (w) parts.push({ k: 'when', v: id, label: w.label }); });
+      state.brand.forEach(function (b) { parts.push({ k: 'brand', v: b, label: b }); });
+      state.stage.forEach(function (st) { parts.push({ k: 'stage', v: st, label: st }); });
       qw.style.display = parts.length ? 'none' : '';
       tokWrap.hidden = !parts.length;
       tokWrap.innerHTML = '';
@@ -2725,7 +2723,7 @@ function formatDate(s) {
         t.type = 'button'; t.className = 'op-ftok';
         t.innerHTML = esc(pt.label) + ' <span class="x">&times;</span>';
         t.addEventListener('click', function () {
-          state[pt.k] = '*'; state.shown = PAGE;
+          state[pt.k].delete(pt.v); state.shown = PAGE;
           paintChips(); render();
         });
         tokWrap.appendChild(t);
@@ -2741,18 +2739,20 @@ function formatDate(s) {
     function paintChips(){
       fw.querySelectorAll('.op-fchips').forEach(function (rowEl) {
         var row = rowEl.getAttribute('data-row');
-        rowEl.querySelectorAll('.op-chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-v') === state[row]); });
+        rowEl.querySelectorAll('.op-chip').forEach(function (c) { c.classList.toggle('on', state[row].has(c.getAttribute('data-v'))); });
       });
-      var clean = (state.loc === '*' && state.when === '*' && state.brand === '*' && state.stage === '*');
+      var n = state.loc.size + state.when.size + state.brand.size + state.stage.size;
+      var clean = n === 0;
       document.getElementById('opClear').hidden = clean;
       // Quick pills mirror the same state; badge counts active advanced filters
       qw.querySelectorAll('.op-chip').forEach(function (c) {
         var pk = QUICK.filter(function (p) { return p.id === c.getAttribute('data-q'); })[0];
         var on = pk.id === 'all' ? clean
-          : (state.stage === (pk.stage || '*') && state.when === (pk.when || '*') && (pk.stage || pk.when));
+          : ((pk.stage ? state.stage.size === 1 && state.stage.has(pk.stage) : state.stage.size === 0)
+            && (pk.when ? state.when.size === 1 && state.when.has(pk.when) : state.when.size === 0)
+            && (pk.stage || pk.when));
         c.classList.toggle('on', !!on);
       });
-      var n = ['loc', 'when', 'brand', 'stage'].filter(function (k) { return state[k] !== '*'; }).length;
       var badge = document.getElementById('opFbadge');
       badge.hidden = !n; badge.textContent = n;
       var m = filtered().length;
@@ -2766,15 +2766,13 @@ function formatDate(s) {
   });
 
   function filtered(){
-    var locDef = null;
-    for (var i = 0; i < state.locs.length; i++) if (state.locs[i].id === state.loc) locDef = state.locs[i];
-    var whenDef = null;
-    for (var j = 0; j < WHENS.length; j++) if (WHENS[j].id === state.when) whenDef = WHENS[j];
+    var locDefs = state.locs.filter(function (d) { return state.loc.has(d.id); });
+    var whenDefs = WHENS.filter(function (w) { return state.when.has(w.id); });
     return state.hotels.filter(function (h) {
-      if (locDef && !locDef.test(h)) return false;
-      if (whenDef && !whenDef.test(h)) return false;
-      if (state.brand !== '*' && h.brand !== state.brand) return false;
-      if (state.stage !== '*' && h.s !== state.stage) return false;
+      if (locDefs.length && !locDefs.some(function (d) { return d.test(h); })) return false;
+      if (whenDefs.length && !whenDefs.some(function (w) { return w.test(h); })) return false;
+      if (state.brand.size && !state.brand.has(h.brand)) return false;
+      if (state.stage.size && !state.stage.has(h.s)) return false;
       if (state.q && (h.t + ' ' + h.city + ' ' + h.country + ' ' + (h.brand || '') + ' ' + (h.dev || '')).toLowerCase().indexOf(state.q) === -1) return false;
       return true;
     });
@@ -2789,7 +2787,7 @@ function formatDate(s) {
     document.getElementById('opGrid').innerHTML = show.map(function (h) {
       var locked = (h.s === 'Announced') && !pro;
       var cls = h.s === 'Opening Soon' ? 'soon' : h.s === 'Announced' ? 'ann' : 'uc';
-      var href = locked ? '#' : MAP_URL + '?project=' + encodeURIComponent(h.slug);
+      var href = locked ? '#' : '/projects/' + encodeURIComponent(h.slug) + '/';
       return '<a class="op-card' + (locked ? ' locked' : '') + '" href="' + href + '"' + (locked ? ' data-locked="1"' : ' target="_blank" rel="noopener"') + '>' +
         '<div class="ph"><img src="' + esc(h.img) + '" loading="lazy" alt="">' +
         '<span class="op-status ' + cls + '">' + esc(h.s) + '</span>' +
