@@ -16241,7 +16241,7 @@
             firms = String(fallbackNames).split(',').map(s => s.trim()).filter(Boolean).map(n => ({ name: n, slug: '' }));
           }
           if (!firms.length) return '';
-          const lbl = label + (firms.length > 1 ? 's' : '');
+          const lbl = label === 'Design' ? 'Design' : label + (firms.length > 1 ? 's' : '');
           const pills = firms.map(f => {
             const nm = `<span class="nm">${escAttr(f.name)}</span>`;
             if (f.slug) {
@@ -16252,7 +16252,7 @@
           return `<div class="pp-firm-group"><div class="k">${escAttr(lbl)}</div><div class="pp-firm-chips">${pills}</div></div>`;
         }
         const devCard  = firmCard('Developer', 'developers', p.developers, p.developer || '');
-        const archCard = firmCard('Architect', 'architects', p.architects, p.architect || '');
+        const archCard = firmCard('Design', 'architects', p.architects, p.architect || '');
 
         const firmsEl = document.getElementById('pmFirms');
         const firmsSection = document.getElementById('pmFirmsSection');

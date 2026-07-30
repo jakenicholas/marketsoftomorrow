@@ -509,7 +509,7 @@
         if (html) html += '<div class="tmw-dock-ac-div"></div>';
         html += '<div class="tmw-dock-ac-sec">Firms</div>';
         m.firms.forEach(function (f){
-          var sub = (f.role === 'architect' ? 'Architect' : 'Developer') + (f.count ? (' · ' + f.count + ' project' + (f.count !== 1 ? 's' : '')) : '');
+          var sub = (f.role === 'architect' ? 'Design' : 'Developer') + (f.count ? (' · ' + f.count + ' project' + (f.count !== 1 ? 's' : '')) : '');
           html += '<a class="tmw-dock-ac-item" tabindex="-1" data-kind="firm" data-label="' + acEsc(f.name) + '" href="' + acEsc(hrefFor('firm', f)) +
             '"><span class="tmw-dock-ac-ico firm">' + AC_FIRM + '</span><span class="tmw-dock-ac-txt"><strong>' +
             acHi(f.name, ql) + '</strong><span>' + acEsc(sub) + '</span></span></a>';
@@ -1079,7 +1079,7 @@
   // journal-search-overlay.js or journal-search-core.js changes. (This file is
   // itself must-revalidate, so a compliant browser picks up the new token; once
   // it does, the versioned URL guarantees the new search code loads.)
-  var SEARCH_V = '20260730-watchtoast';
+  var SEARCH_V = '20260730-designlabel';
   function loadSearchOverlay() {
     if (!document.querySelector('script[data-tmw-search-core]')) {
       var c = document.createElement('script');

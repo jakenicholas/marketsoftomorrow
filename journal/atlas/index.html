@@ -1870,7 +1870,7 @@
           </div>
           <div class="tlb-board">
             ${cardTlb('dev', ICO_DEV, 'Most Active Developers', '<a class="tlb-more" href="https://www.oftmw.com/firm/">All &rarr;</a>', _firmRowsTlb(leaderboardSource('developers')))}
-            ${cardTlb('arch', ICO_ARCH, 'Most Active Architects', '<a class="tlb-more" href="https://www.oftmw.com/firm/">All &rarr;</a>', _firmRowsTlb(leaderboardSource('architects')))}
+            ${cardTlb('arch', ICO_ARCH, 'Most Active Design Firms', '<a class="tlb-more" href="https://www.oftmw.com/firm/">All &rarr;</a>', _firmRowsTlb(leaderboardSource('architects')))}
             ${cardTlb('big', ICO_BIG, 'Biggest in the Pipeline', '<a class="tlb-more" href="' + MAP_ORIGIN + '/">Map &rarr;</a>', _bigRowsTlb(window.__atlasBiggest || []))}
           </div>
         </section>`;
@@ -2288,7 +2288,7 @@
         _pcMini('Floors', String(p.floors || '').trim()),
       ].join('');
       const minisHtml = `<div class="pp-minis">${minis}</div>`;
-      const firms = `<div class="pp-firms">${_pcFirm('Developer', (p.developers || [])[0])}${_pcFirm('Architect', (p.architects || [])[0])}</div>`;
+      const firms = `<div class="pp-firms">${_pcFirm('Developer', (p.developers || [])[0])}${_pcFirm('Design', (p.architects || [])[0])}</div>`;
       // Part-of-district chip — same logic as generate_market_pages.card_html.
       // Sits as a span right under .card-loc inside .card-body so title/city
       // stay close and the chip becomes the 3rd line of the title block.
@@ -3460,7 +3460,7 @@
         list.push(seen[f.slug]);
       };
       (_firmsData.developers || []).forEach(f => add(f, 'Developer'));
-      (_firmsData.architects || []).forEach(f => add(f, 'Architect'));
+      (_firmsData.architects || []).forEach(f => add(f, 'Design'));
       list.sort((a, b) => b.n - a.n);
       const body = list.map(f => `<a class="amk-row" href="/firm/${escapeHtml(f.slug)}/">
           <span class="amk-city">${escapeHtml(f.name)}</span>
@@ -3901,7 +3901,7 @@
       _msIdxP = Promise.all([j(MAP_ORIGIN + '/firms-flat.json'), j(MAP_ORIGIN + '/projects-flat.json')]).then(([ff, pf]) => {
         const seen = {};
         if (ff) {
-          (ff.architects || []).forEach(f => { if (f.project_count > 0 && !seen['/firm/' + f.slug + '/']) { seen['/firm/' + f.slug + '/'] = 1; items.push({ name: f.name, kind: 'Architect', n: f.project_count, url: '/firm/' + f.slug + '/' }); } });
+          (ff.architects || []).forEach(f => { if (f.project_count > 0 && !seen['/firm/' + f.slug + '/']) { seen['/firm/' + f.slug + '/'] = 1; items.push({ name: f.name, kind: 'Design', n: f.project_count, url: '/firm/' + f.slug + '/' }); } });
           (ff.developers || []).forEach(f => { if (f.project_count > 0 && !seen['/firm/' + f.slug + '/']) { seen['/firm/' + f.slug + '/'] = 1; items.push({ name: f.name, kind: 'Developer', n: f.project_count, url: '/firm/' + f.slug + '/' }); } });
         }
         if (Array.isArray(pf)) pf.forEach(p => { if (p.Slug && p.Title) items.push({ name: p.Title, kind: 'Project', n: 0, url: '/projects/' + p.Slug + '/' }); });

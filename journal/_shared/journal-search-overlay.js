@@ -2205,7 +2205,7 @@
       + '</a>';
   }
   function renderFirmRow(f, rank, lead, scorePct){
-    var sub = (f.role==='architect' ? 'Architect' : (f.role==='developer' ? 'Developer' : 'Firm'))
+    var sub = (f.role==='architect' ? 'Design' : (f.role==='developer' ? 'Developer' : 'Firm'))
             + (f.project_count ? (' · ' + f.project_count + ' project' + (f.project_count===1?'':'s')) : '');
     var href = f.slug ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/') : (SEARCH_URL + '?q=' + encodeURIComponent(f.name));
     return '<a class="tmw-ov-row '+(lead?'lead':'')+'" href="'+esc(href)+'">'
@@ -2419,9 +2419,9 @@
       var pairs = pairFirms(raw, rawSlugs);
       if (!pairs.length) return '';
       var chips = pairs.map(function(p){ return firmChip(p.name, p.slug); }).join('');
-      return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + label + (pairs.length>1?'s':'') + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
+      return '<div class="tmw-pv-fgroup"><div class="tmw-pv-fk">' + (label === 'Design' ? label : label + (pairs.length>1?'s':'')) + '</div><div class="tmw-pv-fchips">' + chips + '</div></div>';
     }
-    var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Architect', p.Architect, p.ArchitectSlugs);
+    var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Design', p.Architect, p.ArchitectSlugs);
     var desc = clipBio(firstField(p, ['DescriptionLong','description_long','Description','description']) || '', 300);
     var type = firstField(p, ['ProjectType','PreferredType']);
     var slug = p.Slug || p.slug || '';
@@ -2571,7 +2571,7 @@
   }
 
   function renderFirmEntity(f){
-    var roleLbl = f.role === 'architect' ? 'Architect' : (f.role === 'developer' ? 'Developer' : 'Firm');
+    var roleLbl = f.role === 'architect' ? 'Design' : (f.role === 'developer' ? 'Developer' : 'Firm');
     var pc = +f.project_count || 0;
     var href = f.slug
       ? ('https://www.oftmw.com/firm/' + encodeURIComponent(f.slug) + '/')
@@ -2624,11 +2624,11 @@
     // proper nouns (firm / city) untouched.
     var tc = function (x) { return String(x).replace(/\b([a-z])/g, function (m, c) { return c.toUpperCase(); }); };
     if (s.firm) {
-      var roleLbl = s.firm.role === 'developer' ? 'Developer' : (s.firm.role === 'architect' ? 'Architect' : 'Firm');
+      var roleLbl = s.firm.role === 'developer' ? 'Developer' : (s.firm.role === 'architect' ? 'Design' : 'Firm');
       chips.push('<span class="tmw-ov-uchip"><span class="ck">'+roleLbl+'</span> <b>'+esc(s.firm.name)+'</b></span>');
     }
     if (s.firmRank) {
-      var frLbl = s.firmRank === 'developer' ? 'Most active developer' : (s.firmRank === 'architect' ? 'Most active architect' : 'Most active firms');
+      var frLbl = s.firmRank === 'developer' ? 'Most active developer' : (s.firmRank === 'architect' ? 'Most active design firm' : 'Most active firms');
       chips.push('<span class="tmw-ov-uchip"><span class="ck">Ranking</span> <b>'+esc(frLbl)+'</b></span>');
     }
     if (s.phaseLabels && s.phaseLabels.length) chips.push('<span class="tmw-ov-uchip"><span class="ck">Milestone</span> <b>'+esc(tc(s.phaseLabels.join(' / ')))+'</b></span>');

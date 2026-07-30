@@ -1973,7 +1973,7 @@
       if (bits.length) {
         var frStats = [{ v: '' + n, k: 'Results' }];
         if (wantDev && fr.developers.length) frStats.push({ v: '' + fr.developers.length, k: 'Developers' });
-        if (wantArch && fr.architects.length) frStats.push({ v: '' + fr.architects.length, k: 'Architects' });
+        if (wantArch && fr.architects.length) frStats.push({ v: '' + fr.architects.length, k: 'Design' });
         return {
           html: 'Across <b>' + n + ' tracked ' + noun + (n !== 1 ? 's' : '') + '</b>' + placePhrase + ', ' + bits.join('; ') + '.',
           stats: frStats.slice(0, 4)

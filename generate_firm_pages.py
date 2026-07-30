@@ -658,9 +658,9 @@ def role_label_for(roles):
     is_arch = 'architects' in roles
     is_dev = 'developers' in roles
     if is_arch and is_dev:
-        return 'Architecture & development firm'
+        return 'Design & development firm'
     if is_arch:
-        return 'Architecture firm'
+        return 'Design firm'
     return 'Development firm'
 
 
@@ -696,7 +696,7 @@ def _firm_role_eyebrow(roles):
     is_arch = 'architects' in roles
     is_dev  = 'developers' in roles
     if is_arch and is_dev: return 'Architecture + Development'
-    if is_arch:            return 'Architecture firm'
+    if is_arch:            return 'Design firm'
     if is_dev:             return 'Development firm'
     return 'Studio'
 
@@ -1312,14 +1312,14 @@ def render_firm_hub(summaries, out_path):
 
     arch_html = ''.join(
         f'<a class="rel-card" href="{MARKET_ROOT_URL}/firm/{e(s["slug"])}/">'
-        f'<div class="city">{"Architect" if s["role"] != "both" else "Architect + Developer"}</div>'
+        f'<div class="city">{"Design" if s["role"] != "both" else "Design + Developer"}</div>'
         f'<div class="name">{e(s["name"])}</div>'
         f'<div class="count">{s["count"]} project{"s" if s["count"] != 1 else ""} →</div></a>'
         for s in arch_show
     ) or '<div style="opacity:.55;font-family:var(--mono);font-size:11px">No tracked architects yet.</div>'
     dev_html = ''.join(
         f'<a class="rel-card" href="{MARKET_ROOT_URL}/firm/{e(s["slug"])}/">'
-        f'<div class="city">{"Developer" if s["role"] != "both" else "Architect + Developer"}</div>'
+        f'<div class="city">{"Developer" if s["role"] != "both" else "Design + Developer"}</div>'
         f'<div class="name">{e(s["name"])}</div>'
         f'<div class="count">{s["count"]} project{"s" if s["count"] != 1 else ""} →</div></a>'
         for s in dev_show
@@ -1376,7 +1376,7 @@ def render_firm_hub(summaries, out_path):
     page = f"""<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>All Firms ({CURRENT_YEAR}) — {total_firms} Architects + Developers | {SITE_NAME}</title>
+  <title>All Firms ({CURRENT_YEAR}) — {total_firms} Design + Development Firms | {SITE_NAME}</title>
   <meta name="description" content="Every architect and developer we track on Markets of Tomorrow — {total_arch} architects, {total_dev} developers, {total_firms} total. Filter by role, city, or project category. Updated hourly from our live database.">
   <link rel="canonical" href="{MARKET_ROOT_URL}/firm/">
   <meta name="robots" content="index, follow">
@@ -1468,7 +1468,7 @@ def render_firm_hub(summaries, out_path):
           <div class="mc-field">
             <select id="fc-role">
               <option value="">Any role</option>
-              <option value="architect">Architect</option>
+              <option value="architect">Design</option>
               <option value="developer">Developer</option>
             </select>
           </div>
@@ -1570,7 +1570,7 @@ def render_featured_firms_json(summaries, path):
     # Top firms by tracked project count — sibling to featured-markets/types.json.
     # Powers the "Browse by firm" teaser row on the home page (top 5 desktop / 6
     # mobile, CSS-gated). Each links to the firm's /firm/<slug>/ page.
-    role_label = {'architect': 'Architect', 'developer': 'Developer', 'both': 'Architect + Developer'}
+    role_label = {'architect': 'Design', 'developer': 'Developer', 'both': 'Design + Developer'}
     ranked = sorted([s for s in summaries if s.get('count')], key=lambda s: -s['count'])[:12]
     items = [{
         'label':   s['name'],

@@ -1603,7 +1603,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     # Stats
     stats = ''
     stats += stat_card('Developer', developer)
-    stats += stat_card('Architect', architect)
+    stats += stat_card('Design', architect)
     stats += stat_card('Delivery', format_delivery_display(eff_delivery_date or delivery))
     stats += stat_card('Market', city)
     stats_section = f'<div class="stats-grid">{stats}</div>' if stats.strip() else ''
@@ -1644,7 +1644,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     _ld_props = [(k, v) for k, v in [
         ("Status", delivery),
         ("Developer", developer),
-        ("Architect", architect),
+        ("Design", architect),
         ("Floors", (row.get('Floors', '') or '').strip()),
         ("Residences", (row.get('Units', '') or '').strip()),
         ("Hotel keys", (row.get('Keys', '') or '').strip()),
@@ -1790,7 +1790,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
         pairs = _pair_firms(names, slugs)
         if not pairs:
             return ''
-        lbl = label + ('s' if len(pairs) > 1 else '')
+        lbl = label if label == 'Design' else label + ('s' if len(pairs) > 1 else '')
         pills = ''.join(_firm_pill(n, s) for n, s in pairs)
         return (f'<div class="pp-firm-group"><div class="k">{lbl}</div>'
                 f'<div class="pp-firm-chips">{pills}</div></div>')
@@ -1800,7 +1800,7 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     _arch_names = [n.strip() for n in (row.get('Architect', '') or '').split(',') if n.strip()]
     _arch_slugs = [s.strip() for s in (row.get('ArchitectSlugs', '') or '').split(',') if s.strip()]
     dev_group  = _firm_group('Developer', _dev_names, _dev_slugs)
-    arch_group = _firm_group('Architect', _arch_names, _arch_slugs)
+    arch_group = _firm_group('Design', _arch_names, _arch_slugs)
     firms_section = ''
     if dev_group or arch_group:
         firms_section = (f'<div class="pp-sec"><div class="pp-sec-h">Developer &amp; design</div>'

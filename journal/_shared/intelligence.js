@@ -369,7 +369,7 @@
           <div class="bk">
             <button class="on" data-bk="cities">Cities</button>
             <button data-bk="developers">Developers</button>
-            <button data-bk="architects">Architects</button>
+            <button data-bk="architects">Design</button>
           </div>
           <ul class="lblist" id="tiLblist"></ul>
           <div class="rfoot">

@@ -531,7 +531,7 @@ def _firm_bubble(label: str, names_str: str, slugs_str: str, more_url: str = '')
     non-clickable pill so every card's firm row stays the same height."""
     names = [n.strip() for n in (names_str or '').split(',') if n.strip()]
     slugs = [s.strip() for s in (slugs_str or '').split(',') if s.strip()]
-    lbl = label + ('s' if len(names) > 1 else '')
+    lbl = label if label == 'Design' else label + ('s' if len(names) > 1 else '')
     if not names:
         chips = '<span class="pp-firm-chip is-empty"><span class="nm">—</span></span>'
     else:
@@ -615,7 +615,7 @@ def card_html(p: dict) -> str:
     firms_html = (
         '<div class="pp-firms">'
         + _firm_bubble('Developer', p.get('Developer', ''), p.get('DeveloperSlugs', ''), f'{ROOT_URL}/projects/{slug}/')
-        + _firm_bubble('Architect', p.get('Architect', ''), p.get('ArchitectSlugs', ''), f'{ROOT_URL}/projects/{slug}/')
+        + _firm_bubble('Design', p.get('Architect', ''), p.get('ArchitectSlugs', ''), f'{ROOT_URL}/projects/{slug}/')
         + '</div>'
     )
 
@@ -1472,7 +1472,7 @@ def top_firms_html(projects: list[dict]) -> str:
     return (
         '<div class="leads">\n'
         f'  <div class="lead"><h3>Most active developers</h3>{dev_rows}</div>\n'
-        f'  <div class="lead"><h3>Most active architects</h3>{arch_rows}</div>\n'
+        f'  <div class="lead"><h3>Most active design firms</h3>{arch_rows}</div>\n'
         '</div>'
     )
 
