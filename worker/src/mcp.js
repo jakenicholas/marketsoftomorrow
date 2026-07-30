@@ -2419,9 +2419,42 @@ const IMPL = {
     const rej = await topicRejected(env, topic + ' ' + String(args.angle || ''));
     if (rej) throw new Error('TOPIC REJECTED BY EDITOR: a draft on this story ("' + rej.title + '") was deleted on ' + new Date(rej.rejected_at * 1000).toISOString().slice(0, 10) + ' — it is suppressed until ' + new Date(rej.until * 1000).toISOString().slice(0, 10) + '. Do NOT redraft it or a close variant; choose a different story.');
     const brain = await assembleBrain(env, { topic, place: String(args.place || ''), surface: 'article' });
+    // ── THE DATABASE DOSSIER: our own tracked data is AUTHORITATIVE and free —
+    // the subject project's full record, the local pipeline, and the developer's
+    // track record. Feeds the writer (dense proprietary specifics, sprinkled
+    // naturally — exactly what real TMW articles have and generic AI copy lacks)
+    // AND the fact-checker (claims matching the dossier verify without a web
+    // search). Built from projects-flat, cached per request.
+    let dbDossier = '';
+    try {
+      const all = await loadProjects();
+      const lp = args.linked_project ? all.find((x) => String(x.Slug || '') === String(args.linked_project)) : null;
+      const card = (p) => [
+        p.Title, p.City, p.ProjectType || p.PreferredType || '',
+        p.Floors ? p.Floors + ' floors' : '', p.Units ? p.Units + ' units' : '',
+        (p.GFA || p.gfa_sqft) ? Number(p.GFA || p.gfa_sqft).toLocaleString('en-US') + ' sq ft GFA' : '',
+        p.Developer ? 'Developer: ' + p.Developer : '', p.Architect ? 'Architect: ' + p.Architect : '',
+        'Status: ' + (p.Delivery || p.DeliveryDate || 'unknown'),
+        String(p.Description || '').replace(/\s+/g, ' ').slice(0, 200),
+      ].filter(Boolean).join(' · ');
+      const parts = [];
+      if (lp) parts.push('THE SUBJECT PROJECT (our authoritative record — these specifics override anything else):\n' + card(lp));
+      const city = String((lp && lp.City) || args.place || '').toLowerCase();
+      if (city) {
+        const near = all.filter((x) => x !== lp && String(x.City || '').toLowerCase() === city).slice(0, 8);
+        if (near.length) parts.push('THE LOCAL PIPELINE (tracked projects in the same market — sprinkle these specifics naturally where they add context, never force them):\n' + near.map(card).join('\n'));
+      }
+      const dev = lp && String(lp.Developer || '').split(/[,;]/)[0].trim();
+      if (dev && dev.length > 3) {
+        const track = all.filter((x) => x !== lp && String(x.Developer || '').toLowerCase().includes(dev.toLowerCase())).slice(0, 5);
+        if (track.length) parts.push('THE DEVELOPER\'S TRACK RECORD (other ' + dev + ' projects we track):\n' + track.map(card).join('\n'));
+      }
+      dbDossier = parts.join('\n\n');
+    } catch (_) {}
     const sys = [
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
+      dbDossier ? 'TMW DATABASE DOSSIER (proprietary, authoritative for every project listed):\n' + dbDossier : '',
       'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
       'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
       'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
@@ -2536,20 +2569,27 @@ const IMPL = {
       // Deterministic opening-status guard: our own database knows whether the
       // linked project is open. A pre-opening project asserted as open is a
       // mechanical violation — no AI judgment involved.
-      let projStatus = '';
+      let projStatus = '', projTitle = '';
       if (args.linked_project) {
-        try { const p = (await loadProjects()).find((x) => String(x.Slug || '') === String(args.linked_project)); projStatus = p ? String(p.Delivery || p.DeliveryDate || '') : ''; } catch (_) {}
+        try { const p = (await loadProjects()).find((x) => String(x.Slug || '') === String(args.linked_project)); if (p) { projStatus = String(p.Delivery || p.DeliveryDate || ''); projTitle = String(p.Title || ''); } } catch (_) {}
       }
       // Positive list of pre-opening lifecycle statuses — a bare /open/ test
       // would false-clear "Opening Soon" and "Coming Soon".
       const preOpen = /announced|under construction|coming soon|opening soon|planned|proposed|development|pre-?construction/i.test(projStatus);
       const OPEN_ASSERT = /\b(now open|has opened|have opened|opened its doors|is open|officially opened|welcom(es|ing) (its first )?guests)\b/i;
+      // Named-subject phrasing: the body may LEGITIMATELY call another project
+      // open (e.g. the brand's earlier building) — the verifier must judge
+      // whether the open-assertion is about THE SUBJECT, not just anywhere.
       const statusViolation = (preOpen && OPEN_ASSERT.test(gen.body_markdown))
-        ? 'Our database has this project as "' + projStatus + '" (NOT open) but the draft asserts it is open — verify the actual current status and correct the tense.' : null;
-      const risky = allClaims.filter((c) => c.source === 'model' || c.type === 'status' || c.type === 'date');
+        ? 'Our database has "' + (projTitle || 'the subject project') + '" as "' + projStatus + '" (NOT open). The draft asserts something is open — if that assertion is about ' + (projTitle || 'the subject project') + ' itself, this is contradicted (correct the tense to future); if it is about a DIFFERENT project that really is open, this is verified.' : null;
+      // Database-tagged claims are risky too now that the dossier makes them
+      // FREE to check (the verifier resolves them against the notes, no web
+      // spend) — a claim mistagged "database" no longer sails through green.
+      const risky = allClaims.filter((c) => c.source === 'model' || c.source === 'database' || c.type === 'status' || c.type === 'date');
       let verdicts = [];
       if (risky.length || statusViolation) {
-        verdicts = await factVerify(env, { claims: risky, facts: String(args.facts || ''), extra: statusViolation || '' });
+        const notes = String(args.facts || '') + (dbDossier ? '\n\nTMW DATABASE (authoritative for every tracked project below — claims matching it are verified, source "TMW database", no web search needed):\n' + dbDossier : '');
+        verdicts = await factVerify(env, { claims: risky, facts: notes, extra: statusViolation || '' });
       }
       const bad = verdicts.filter((v) => v.verdict === 'contradicted');
       const unsup = verdicts.filter((v) => v.verdict === 'unsupported');
