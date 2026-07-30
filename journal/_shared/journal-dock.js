@@ -1526,7 +1526,7 @@
       for (var i = 0; i < anchors.length; i++) {
         var a = anchors[i];
         var t = (a.textContent || '').trim().toLowerCase();
-        if (t === 'global' || t === 'read') globalAnchor = a;
+        if (t === 'global' || t === 'read' || t === 'news') globalAnchor = a;
         else if (MARKET_LABELS[t]) toRemove.push(a);
       }
       for (var r = 0; r < toRemove.length; r++) {
@@ -1540,16 +1540,25 @@
       //    use, so it is a plain link, not a dropdown.
       var fmExplore = document.createElement('a');
       fmExplore.className = 'tmw-fm-link';
-      fmExplore.href = '/atlas/';   // the Atlas IS Explore now; /explore/ is retired
-      fmExplore.textContent = 'Explore';
-      // The Atlas IS Explore, so every one of its routes lights the nav item.
+      fmExplore.href = '/atlas/';   // the Atlas IS the Data surface; /explore/ retired
+      fmExplore.textContent = 'Data';
+      // The Atlas IS the Data surface, so every one of its routes lights the item.
       if (/^\/atlas(\/|$)/.test(location.pathname)) fmExplore.classList.add('active');
+      // Hotels — a top-level link (also present inside The Lists dropdown).
+      var fmHotels = document.createElement('a');
+      fmHotels.className = 'tmw-fm-link';
+      fmHotels.href = '/hotels/';
+      fmHotels.textContent = 'Hotels';
+      if (/\/hotels(\/|$)/.test(location.pathname)) fmHotels.classList.add('active');
       var fmLists = makeFm('The Lists', theListsPanel());
+      // Rename the first nav item ("Read"/"Global") to "News".
+      if (globalAnchor) globalAnchor.textContent = 'News';
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
       if (ref && ref.nextSibling) {
         nav.insertBefore(fmExplore, ref.nextSibling);
-        nav.insertBefore(fmLists, fmExplore.nextSibling);
-      } else { nav.appendChild(fmExplore); nav.appendChild(fmLists); }
+        nav.insertBefore(fmHotels, fmExplore.nextSibling);
+        nav.insertBefore(fmLists, fmHotels.nextSibling);
+      } else { nav.appendChild(fmExplore); nav.appendChild(fmHotels); nav.appendChild(fmLists); }
 
       // Gold "Go Pro" nav item after The Lists — free/anon only. Hidden for
       // paid members via `html.tmw-paid .tmw-fm-gopro{display:none}` (same
