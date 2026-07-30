@@ -22,7 +22,7 @@
 
 import { isAuthorized } from './oauth.js';
 import { ONTOLOGY } from './ontology.js';
-import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore } from './index.js';
+import { getGoogleAccessToken, signPayload, previewSecret, ensureCarouselTable, ensureContactsTable, ensureCampaignsTable, ensureDesignsTable, ensureUniqueDesignSlug, fableGenerate, assembleBrain, brainWrite, brainRelevantNotes, brainNoteVectors, retireBrandNotes, lintCanon, critiqueDraft, rejectedTopics, topicRejected, getFingerprint, voiceScore, fingerprintSpecText, articleExemplars, turingJudge, repairTruncatedJson, genVoiceScore, factVerify } from './index.js';
 
 // serverInfo per the MCP `Implementation` shape. `title`/`websiteUrl`/`icons`
 // were added in spec 2025-11-25 (SEP-973). Clients that support icons (e.g.
@@ -2422,7 +2422,8 @@ const IMPL = {
     const sys = [
       'You are the senior staff writer for Markets of Tomorrow (TMW), a real-estate development media brand. Write ONE on-brand journal article.',
       brain.text || '',
-      'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>"}.',
+      'OUTPUT: return ONLY a JSON object (no prose, no markdown fences): {"title":"<headline>","excerpt":"<1-2 sentence dek>","body_markdown":"<the full article in Markdown>","claims":[<see below>]}.',
+      'CLAIMS LEDGER (required): list EVERY factual assertion the article makes — statuses, dates, numbers, prices, names, attributions — as {"claim":"<the assertion, one line>","type":"status"|"date"|"number"|"name"|"other","source":"facts"|"database"|"model"}. "facts" = stated in the provided facts; "database" = from the related-projects context above; "model" = from your own knowledge. BE HONEST about "model" — those get fact-checked against the live web, and a false "facts" tag is worse than an honest "model" tag.',
       'RULES: Write in TMW\'s voice per the brand brain above — hooky, confident, concrete, forward-looking. Do NOT invent facts, numbers, dates, prices, unit counts, or firm names beyond the facts provided and what is genuinely, verifiably known. NEVER fabricate a quotation or attribute words to any person, team, or company: include quoted speech ONLY if it appears verbatim in the provided facts. Avoid em dashes (use commas or periods). Strong hook, scannable structure, no corporate/press-release tone. Do not embed images (they are inserted separately). LINKS: only add external links for source attribution (publications, official announcements); NEVER link a project, firm, or city name to an external site — mentions of tracked projects, firms, and markets are auto-linked to their oftmw.com pages after generation.',
     ].filter(Boolean).join('\n\n');
     const usr = [
@@ -2506,6 +2507,7 @@ const IMPL = {
         if (fm) { try { fixed = JSON.parse(fm[0]); } catch (_) {} }
         if (!fixed && fixedRaw) fixed = repairTruncatedJson(fixedRaw);
         if (fixed && fixed.body_markdown) {
+          fixed.claims = fixed.claims || gen.claims;   // fix passes must not drop the claims ledger
           gen = fixed; voiceGate.revised = true;
           styleReport.lint_fixed = lint1.length; styleReport.critique_fixed = crit1.length;
           // Re-test the revision: deterministic re-score + one re-judge.
@@ -2519,6 +2521,56 @@ const IMPL = {
       voiceGate.passed = !fRep.spec_violations.length && !String(fRep.turing).startsWith('caught');
       voiceGate.score = genVoiceScore(voiceGate.initial.turing, voiceGate.initial.spec_violations.length);
       voiceGate.critique_notes = crit1.map((v) => (v.rule ? v.rule + ': ' : '') + v.violation).slice(0, 5);
+    } catch (_) {}
+    // ── THE FACT GATE: every claim the writer tagged as its own knowledge,
+    // plus all status/date claims, gets verified — source notes first, live
+    // web search for the rest. Contradicted claims trigger ONE correction pass
+    // (e.g. "debuts in Portugal" → "opens in October", with the source). The
+    // full ledger persists per-slug and renders on the post editor's scorecard,
+    // so the human fact-check collapses to scanning the unverified rows.
+    let factReport = null;
+    try {
+      const allClaims = (Array.isArray(gen.claims) ? gen.claims : [])
+        .filter((c) => c && c.claim).slice(0, 18)
+        .map((c) => ({ claim: String(c.claim).slice(0, 220), type: ['status', 'date', 'number', 'name', 'other'].includes(c.type) ? c.type : 'other', source: ['facts', 'database', 'model'].includes(c.source) ? c.source : 'model' }));
+      // Deterministic opening-status guard: our own database knows whether the
+      // linked project is open. A pre-opening project asserted as open is a
+      // mechanical violation — no AI judgment involved.
+      let projStatus = '';
+      if (args.linked_project) {
+        try { const p = (await loadProjects()).find((x) => String(x.Slug || '') === String(args.linked_project)); projStatus = p ? String(p.Delivery || p.DeliveryDate || '') : ''; } catch (_) {}
+      }
+      // Positive list of pre-opening lifecycle statuses — a bare /open/ test
+      // would false-clear "Opening Soon" and "Coming Soon".
+      const preOpen = /announced|under construction|coming soon|opening soon|planned|proposed|development|pre-?construction/i.test(projStatus);
+      const OPEN_ASSERT = /\b(now open|has opened|have opened|opened its doors|is open|officially opened|welcom(es|ing) (its first )?guests)\b/i;
+      const statusViolation = (preOpen && OPEN_ASSERT.test(gen.body_markdown))
+        ? 'Our database has this project as "' + projStatus + '" (NOT open) but the draft asserts it is open — verify the actual current status and correct the tense.' : null;
+      const risky = allClaims.filter((c) => c.source === 'model' || c.type === 'status' || c.type === 'date');
+      let verdicts = [];
+      if (risky.length || statusViolation) {
+        verdicts = await factVerify(env, { claims: risky, facts: String(args.facts || ''), extra: statusViolation || '' });
+      }
+      const bad = verdicts.filter((v) => v.verdict === 'contradicted');
+      if (bad.length) {
+        const fixSys2 = 'You are the senior staff editor for Markets of Tomorrow. The fact-checker found ERRORS in the draft below. Correct EXACTLY the listed errors using the verified facts given (fix tense too: not-yet-open properties are "will open"/"is slated to open", never "debuts"/"is open"). Change nothing else. Return ONLY JSON: {"title":"...","excerpt":"...","body_markdown":"..."}.';
+        const fixUsr2 = 'ERRORS (with the verified correction):\n- ' + bad.map((v) => `"${v.claim}" is WRONG → ${v.note}${v.source ? ' (source: ' + v.source + ')' : ''}`).join('\n- ')
+          + '\n\nDRAFT JSON:\n' + JSON.stringify({ title: gen.title, excerpt: gen.excerpt, body_markdown: gen.body_markdown });
+        const fRaw = await fableGenerate(env, { system: fixSys2, user: fixUsr2, maxTokens: 4200 });
+        const g3 = parseGen(fRaw);
+        if (g3) { g3.claims = gen.claims; gen = g3; }
+      }
+      factReport = {
+        claims: allClaims.length, checked: verdicts.length,
+        verified: verdicts.filter((v) => v.verdict === 'verified').length,
+        unsupported: verdicts.filter((v) => v.verdict === 'unsupported').length,
+        corrected: bad.length,
+        status_guard: statusViolation ? 'tripped' : (preOpen ? 'clean' : 'n/a'),
+        ledger: allClaims.map((c) => {
+          const v = verdicts.find((x) => x.claim === c.claim);
+          return { ...c, verdict: v ? v.verdict : (c.source === 'facts' ? 'grounded' : c.source === 'database' ? 'grounded-db' : 'unchecked'), src: v ? v.source : '', note: v ? v.note : '' };
+        }),
+      };
     } catch (_) {}
     // Internal auto-linking: tracked projects/firms/markets link to their
     // oftmw.com pages (external URLs on those anchors get rewritten too) —
@@ -2548,6 +2600,19 @@ const IMPL = {
       await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
         .bind(Math.floor(Date.now() / 1000), article.slug, 'brain_injected', JSON.stringify({ ids: brain.injected_ids || [] })).run();
     } catch (_) {}
+    // Persist the fact ledger against the slug — the "source notes with proof"
+    // the post editor renders so a human fact-check is a scan, not a re-report.
+    if (factReport && factReport.ledger && factReport.ledger.length) {
+      try {
+        await env.DB.prepare(`INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)`)
+          .bind(Math.floor(Date.now() / 1000), article.slug, 'fact_ledger', JSON.stringify({
+            slug: article.slug, actor: _mcpActor,
+            claims: factReport.claims, checked: factReport.checked, verified: factReport.verified,
+            unsupported: factReport.unsupported, corrected: factReport.corrected, status_guard: factReport.status_guard,
+            ledger: factReport.ledger,
+          })).run();
+      } catch (_) {}
+    }
     // Persist the voice-gate verdict AGAINST THE SLUG (member_id) — powers both
     // the Turing pass-rate series (brain page) and the per-article scorecard in
     // the post editor, with the actual tells/violations as reviewable notes.
@@ -2575,6 +2640,7 @@ const IMPL = {
       best_of: bestOf,
       style_check: styleReport,
       voice_gate: voiceGate,
+      fact_check: factReport ? { claims: factReport.claims, web_checked: factReport.checked, verified: factReport.verified, unsupported: factReport.unsupported, corrected: factReport.corrected, status_guard: factReport.status_guard } : null,
       internal_links: linkReport,
       photos_used: images.length,
       note: 'Article draft written with Fable 5, grounded in the shared TMW brain and passed through the voice gate (fingerprint spec + adversarial Turing judge). Review/finish in the Studio AI tab: ' + article.edit_url,

@@ -8402,7 +8402,12 @@ async function handleArticleScore(req, env, origin, url) {
     const p = await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='edit_pair' AND member_id=?1 ORDER BY ts DESC LIMIT 1`).bind(slug).first();
     if (p && p.props_json) { edit_pair = JSON.parse(p.props_json); edit_pair.ts = p.ts; }
   } catch (_) {}
-  return json({ slug, gen, retention, edit_pair }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
+  let fact = null;
+  try {
+    const f = await env.DB.prepare(`SELECT ts, props_json FROM events WHERE event_name='fact_ledger' AND member_id=?1 ORDER BY ts DESC LIMIT 1`).bind(slug).first();
+    if (f && f.props_json) { fact = JSON.parse(f.props_json); fact.ts = f.ts; }
+  } catch (_) {}
+  return json({ slug, gen, retention, edit_pair, fact }, { headers: { 'Cache-Control': 'private, no-store' } }, env, origin);
 }
 
 async function handleEvalScores(req, env, origin) {
@@ -12031,6 +12036,56 @@ export function voiceScore(text, fp) {
   return out.slice(0, 12);
 }
 
+// THE FACT GATE — verify a draft's risky claims before a human sees it. Claims
+// the writer tagged as coming from its own memory, plus ALL opening-status and
+// date claims, get checked: against the provided source notes first, then LIVE
+// WEB SEARCH (the Anthropic server tool) for whatever the notes don't settle.
+// Returns verdicts [{i, claim, verdict: verified|unsupported|contradicted,
+// source, note}] — contradicted ones carry the correction. Best-effort: [] on
+// any failure, never blocks authoring.
+let _fvDebug = '';   // last factVerify failure, surfaced by /admin/brain/fact-verify-test
+export async function factVerify(env, { claims = [], facts = '', extra = '' } = {}) {
+  if (!env || !env.ANTHROPIC_API_KEY || (!claims.length && !extra)) return [];
+  _fvDebug = '';
+  const sys = 'You are the fact-checker for a real-estate development publication. For each numbered claim: verify against the SOURCE NOTES first; when the notes do not settle it (especially opening/completion STATUS and DATES), use web search. Be strict about tense: a property that has not opened yet must NEVER be described as open, opened, or debuted. Output ONLY a JSON array, one entry per claim (and one for ALSO CHECK if present, using i=-1): [{"i":<claim number>,"verdict":"verified"|"unsupported"|"contradicted","source":"<url, or \'provided facts\'>","note":"<if contradicted or unsupported: the correct/current fact in one short sentence>"}]. "unsupported" = could not confirm either way.';
+  const usr = (facts ? 'SOURCE NOTES:\n' + String(facts).slice(0, 3000) + '\n\n' : '')
+    + 'CLAIMS:\n' + claims.map((c, i) => i + '. [' + (c.type || 'fact') + '] ' + String(c.claim).slice(0, 220)).join('\n')
+    + (extra ? '\n\nALSO CHECK (i=-1): ' + String(extra).slice(0, 300) : '');
+  // Two attempts per model with a short backoff: the verifier usually runs right
+  // after the best-of-3 burst, so a transient 429/529 here is common.
+  for (const model of [WRITE_MODEL, WRITE_MODEL, WRITE_FALLBACK_MODEL]) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model, max_tokens: 2000, system: sys,
+          messages: [{ role: 'user', content: usr }],
+          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
+        }),
+      });
+      if (!r.ok) {
+        _fvDebug += model + ': HTTP ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 220) + ' | ';
+        if (r.status === 429 || r.status >= 500) await new Promise((res) => setTimeout(res, 2500));
+        continue;
+      }
+      const d = await r.json();
+      if (d.stop_reason === 'refusal') { _fvDebug += model + ': refusal | '; continue; }
+      const txt = (d.content || []).filter((b) => b && b.type === 'text').map((b) => b.text).join('');
+      const arr = parseLLMJson(txt);
+      if (!Array.isArray(arr)) { _fvDebug += model + ': unparseable: ' + txt.slice(0, 160) + ' | '; continue; }
+      return arr.map((v) => ({
+        i: typeof v.i === 'number' ? v.i : -1,
+        claim: (typeof v.i === 'number' && claims[v.i]) ? String(claims[v.i].claim).slice(0, 220) : String(extra).slice(0, 220),
+        verdict: ['verified', 'unsupported', 'contradicted'].includes(v.verdict) ? v.verdict : 'unsupported',
+        source: String(v.source || '').slice(0, 300),
+        note: String(v.note || '').slice(0, 300),
+      })).filter((v) => v.claim);
+    } catch (_) { /* try fallback */ }
+  }
+  return [];
+}
+
 // Legible 0-100 generation score from the voice gate's FIRST-attempt verdict:
 // fooling the judge is worth 60, a clean fingerprint the other 40.
 export function genVoiceScore(turing, violCount) {
@@ -15155,6 +15210,13 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/brain/learn-contrastive') return await handleLearnContrastive(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/optimize-bands') return await handleOptimizeBands(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/brain/report-email') return await handleReportEmail(request, env, origin);
+      // Fact-verify smoke test: run one known-false claim through the web-search
+      // verifier and return the verdicts + any captured API failure.
+      if (request.method === 'POST' && url.pathname === '/admin/brain/fact-verify-test') {
+        const denied = await requireAdminToken(request, env, origin); if (denied) return denied;
+        const verdicts = await factVerify(env, { claims: [{ claim: 'The Standard hotel in Lisbon, Portugal is already open to guests', type: 'status' }], facts: '' });
+        return json({ verdicts, debug: _fvDebug || undefined }, {}, env, origin);
+      }
       // Voice fingerprint: POST rebuilds from the corpus; GET returns the live one.
       if (request.method === 'POST' && url.pathname === '/admin/brain/fingerprint') return await handleBuildFingerprint(request, env, origin);
       if (request.method === 'GET'  && url.pathname === '/admin/brain/fingerprint') {
