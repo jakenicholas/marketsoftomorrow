@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Radar masthead — 4 options · TMW mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#070807;--white:#fff;--cream:#ECEAE5;--mute:#9AA39C;--mute2:#C2C9C3;--green:#1FDF67;--gold:#e6c574;--gold-soft:#f0d68a;--purple:#A78BFA;--hair:rgba(255,255,255,.14);
+    --serif:'Fraunces',Georgia,serif;--mono:'Inter',-apple-system,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink);color:var(--cream);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .top{position:sticky;top:0;z-index:50;background:rgba(7,8,7,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .top h1{font-size:14px;font-weight:800}
+  .top span{color:#6b736c;font-weight:500;font-size:13px}
+  .sw{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+  .sw button{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:9px 15px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer}
+  .sw button.on{color:#12091f;background:#B9A6FF;border-color:#B9A6FF}
+  .vt{display:flex;gap:6px;margin-left:14px}
+  .vt button{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:9px 15px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer}
+  .vt button.on{color:#062a13;background:var(--green);border-color:var(--green)}
+
+  /* replicated masthead */
+  .rank-hero{position:relative;text-align:center;padding-bottom:40px}
+  .rh-img{position:relative;height:min(48vh,440px);overflow:hidden}
+  .rh-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(1.02);
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 42%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 42%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%)}
+  .rh-inner{position:relative;z-index:2;margin-top:-34px;padding:0 22px}
+  .rh-kicker{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--gold-soft)}
+  .rh-title{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,62px);line-height:1.02;letter-spacing:-.02em;color:var(--white);max-width:920px;margin:18px auto 0;text-wrap:balance;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+  .rh-title em{font-style:italic;color:var(--gold-soft);font-weight:400}
+  .rh-sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(15px,1.6vw,19px);color:#E7DCC6;max-width:64ch;margin:16px auto 0;line-height:1.55;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+  .rh-sub b{font-style:normal;color:#fff;font-weight:600}
+  .rh-tabs{display:flex;justify-content:center;gap:8px;margin-top:26px}
+  .rh-tabs .tb{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:10px 18px;border-radius:999px;border:1px solid var(--hair);color:var(--mute2)}
+  .rh-tabs .tb.on{color:#fff;font-weight:700;background:rgba(167,139,250,.10);box-shadow:inset 0 0 0 1px rgba(167,139,250,.55),0 0 15px rgba(167,139,250,.20)}
+  /* the live strip (option B) */
+  .live-strip{display:inline-flex;align-items:center;gap:9px;margin-top:20px;font:700 10.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--green);background:rgba(31,223,103,.07);border:1px solid rgba(31,223,103,.3);border-radius:999px;padding:9px 16px}
+  .live-strip .d{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:p 1.6s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.35}}
+  .live-strip .sep{color:rgba(31,223,103,.4)}
+  /* stage path (option D) */
+  .stage-path{display:flex;justify-content:center;align-items:center;gap:0;margin-top:22px;flex-wrap:wrap}
+  .stage-path .st{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:7px 13px;border-radius:999px;border:1px solid var(--hair);color:var(--mute2)}
+  .stage-path .st.g{color:#07230f;background:var(--green);border-color:var(--green)}
+  .stage-path .ar{color:#6b736c;font-size:12px;padding:0 7px}
+  .note{max-width:860px;margin:0 auto;padding:26px 22px 60px;color:var(--mute);font-size:13.5px;line-height:1.65;border-top:1px solid rgba(255,255,255,.07)}
+  .note b{color:var(--cream)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Radar masthead, four ways</h1><span>making "openings pipeline" unmissable</span>
+  <div class="vt"><button data-v="hotel" class="on">Hotels</button><button data-v="golf">Golf</button></div>
+  <div class="sw">
+    <button data-o="a" class="on">A · Say it in the title</button>
+    <button data-o="b">B · Live strip</button>
+    <button data-o="c">C · Plain spoken</button>
+    <button data-o="d">D · Stage path</button>
+  </div>
+</div>
+
+<section class="rank-hero">
+  <div class="rh-img"><img id="heroImg" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt=""></div>
+  <div class="rh-inner">
+    <div class="rh-kicker" id="kick">Hotels of Tomorrow · 2026 Edition</div>
+    <h2 class="rh-title" id="ttl"></h2>
+    <p class="rh-sub" id="sub"></p>
+    <div id="extra"></div>
+    <div class="rh-tabs"><span class="tb on">Openings</span><span class="tb">Ranking</span><span class="tb">Latest News</span></div>
+  </div>
+</section>
+
+<div class="note" id="noteBox"></div>
+
+<script>
+var VERT={
+  hotel:{cat:'Hotel',cats:'hotels',kick:'Hotels of Tomorrow · 2026 Edition',n:'304',img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg'},
+  golf:{cat:'Golf',cats:'courses',kick:'Golf of Tomorrow · 2026 Edition',n:'43',img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_63a8db158c3b46bca6872404ca719c6b~mv2.jpeg'}
+};
+var OPTS={
+  a:{
+    t:function(v){return 'The '+v.cat+' <em>Opening</em> Radar';},
+    s:function(v){return 'Every notable '+(v.cat==='Golf'?'course':'hotel')+' in the global pipeline, from announcement to opening day. Pulled live from the Markets of Tomorrow database and updated as projects move.';},
+    x:function(){return '';},
+    note:'<b>A: one word does it.</b> "Opening" lands inside the existing title in the italic gold slot, so the name itself says pipeline. Zero new elements, zero layout change. The safest ship: it reads as a proper product name (the Hotel Opening Radar, the Golf Opening Radar) and the sub keeps carrying the detail.'
+  },
+  b:{
+    t:function(v){return 'The '+v.cat+' Radar';},
+    s:function(v){return 'Every notable '+(v.cat==='Golf'?'course':'hotel')+' in the global pipeline, pulled live from the Markets of Tomorrow database and updated as projects move.';},
+    x:function(v){return '<div class="live-strip"><span class="d"></span>'+v.n+' openings tracked<span class="sep">·</span>announced → opening day</div>';},
+    note:'<b>B: the title stays sleek, a live strip explains.</b> Keeps "The Hotel Radar" as the brand and adds a pulsing green status chip under the sub: "304 OPENINGS TRACKED · ANNOUNCED → OPENING DAY". The number is real (computed from the pipeline), so the strip doubles as proof of coverage and makes the page feel alive before you even scroll.'
+  },
+  c:{
+    t:function(v){return v.cat+' Openings, <em>Tracked Live</em>';},
+    s:function(v){return 'Every '+(v.cat==='Golf'?'course':'hotel')+' on the way, from the first announcement to opening day. New projects land here the moment our database moves.';},
+    x:function(){return '';},
+    note:'<b>C: plain spoken.</b> Drops the "Radar" metaphor entirely: the title is literally what the page is. Least brandable but the clearest possible read for a first-time visitor, and "Tracked Live" in the gold italic keeps some drama. Works well if SEO matters here ("hotel openings" is the search phrase people actually type).'
+  },
+  d:{
+    t:function(v){return 'The '+v.cat+' Radar';},
+    s:function(v){return '<b>'+v.n+' '+v.cats+' on the way.</b> Watch any of them and Onyx alerts you the moment they move.';},
+    x:function(){return '<div class="stage-path"><span class="st">Announced</span><span class="ar">→</span><span class="st">Breaking ground</span><span class="ar">→</span><span class="st">Under construction</span><span class="ar">→</span><span class="st g">Opening soon</span></div>';},
+    note:'<b>D: show the pipeline itself.</b> The sub leads with the real number, and a stage path (Announced → Breaking ground → Under construction → Opening soon) sits where a byline would. Nobody can misread what the page tracks because the lifecycle IS the masthead. Also quietly teaches the status vocabulary used on every card below.'
+  }
+};
+var cur={o:'a',v:'hotel'};
+function paint(){
+  var v=VERT[cur.v],o=OPTS[cur.o];
+  document.getElementById('heroImg').src=v.img;
+  document.getElementById('kick').textContent=v.kick;
+  document.getElementById('ttl').innerHTML=o.t(v);
+  document.getElementById('sub').innerHTML=o.s(v);
+  document.getElementById('extra').innerHTML=o.x(v);
+  document.getElementById('noteBox').innerHTML=o.note;
+}
+document.querySelectorAll('.sw button').forEach(function(b){b.addEventListener('click',function(){
+  cur.o=b.dataset.o;document.querySelectorAll('.sw button').forEach(function(x){x.classList.toggle('on',x===b)});paint();});});
+document.querySelectorAll('.vt button').forEach(function(b){b.addEventListener('click',function(){
+  cur.v=b.dataset.v;document.querySelectorAll('.vt button').forEach(function(x){x.classList.toggle('on',x===b)});paint();});});
+paint();
+</script>
+</body>
+</html>
