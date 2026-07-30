@@ -2579,7 +2579,7 @@ function formatDate(s) {
     for (var i = 0; i < BRANDS.length; i++) if (title.toLowerCase().indexOf(BRANDS[i].toLowerCase()) !== -1) return BRANDS[i];
     return null;
   }
-  var STATUS_ORDER = { 'Opening Soon': 0, 'Under Construction': 1, 'Breaking Ground': 2, 'Announced': 3 };
+  var STATUS_ORDER = { 'Opening Soon': 0, 'Under Construction': 1, 'Breaking Ground': 2, 'Announced': 3, 'Now Open': 9 };
   // Opening-window buckets (page shipped 2026-07): "soonest" first.
   var NOWKEY = (function(){ var n = new Date(); return n.getFullYear() * 100 + (n.getMonth() + 1); })();
   var WHENS = [
@@ -2593,6 +2593,7 @@ function formatDate(s) {
     { id: 'Under Construction', label: 'Under construction' },
     { id: 'Breaking Ground', label: 'Breaking ground' },
     { id: 'Announced', label: 'Announced' },
+    { id: 'Now Open', label: 'Now Open' },
   ];
   // Multi-select: each row is a Set — OR within a row, AND across rows.
   var state = { loc: new Set(), when: new Set(), brand: new Set(), stage: new Set(), q: '', shown: PAGE, hotels: [], locs: [] };
@@ -2649,7 +2650,7 @@ function formatDate(s) {
     if (!rows || !rows.length) return;
     var hotels = rows.filter(function (p) {
       var t = String(p.Type || p.ProjectType || p.PreferredType || '').toLowerCase();
-      return t.indexOf('hotel') !== -1 && p.Delivery && p.Delivery !== 'Now Open' && p.ImageURL;
+      return t.indexOf('hotel') !== -1 && p.Delivery && p.ImageURL;
     }).map(function (p) {
       return { t: p.Title, city: p.City || '', country: p.Country || '', cs: p.CountyState || '', s: p.Delivery, d: p.DeliveryDate || '',
         img: p.ImageURL, dev: String(p.Developer || '').split(/[,;]/)[0], slug: p.Slug || '',
@@ -2658,16 +2659,26 @@ function formatDate(s) {
     hotels.sort(function (a, b) {
       var ra = (a.s in STATUS_ORDER) ? STATUS_ORDER[a.s] : 4;
       var rb = (b.s in STATUS_ORDER) ? STATUS_ORDER[b.s] : 4;
-      return ra !== rb ? ra - rb : etaSort(a.d) - etaSort(b.d);
+      if (ra !== rb) return ra - rb;
+      // Now Open reads newest-opening FIRST (undated sink to the end; future
+      // dates are phase-completion artifacts and clamp to "now")
+      if (a.s === 'Now Open') {
+        var ka = etaSort(a.d), kb = etaSort(b.d);
+        if ((ka === 999999) !== (kb === 999999)) return ka === 999999 ? 1 : -1;
+        if (ka !== 999999) { ka = Math.min(ka, NOWKEY); kb = Math.min(kb, NOWKEY); }
+        return kb - ka;
+      }
+      return etaSort(a.d) - etaSort(b.d);
     });
     state.hotels = hotels;
 
-    // Header meta + tab count
-    var soon = hotels.filter(function (h) { return h.s === 'Opening Soon'; }).length;
-    var countries = {}; hotels.forEach(function (h) { if (h.country) countries[h.country] = 1; });
-    document.getElementById('openCount').textContent = hotels.length;
+    // Header meta + tab count — pipeline only (Now Open lives behind its chip)
+    var pipeline = hotels.filter(function (h) { return h.s !== 'Now Open'; });
+    var soon = pipeline.filter(function (h) { return h.s === 'Opening Soon'; }).length;
+    var countries = {}; pipeline.forEach(function (h) { if (h.country) countries[h.country] = 1; });
+    document.getElementById('openCount').textContent = pipeline.length;
     document.getElementById('opMeta').innerHTML =
-      '<div class="m"><b>' + hotels.length + '</b><span>In the pipeline</span></div>' +
+      '<div class="m"><b>' + pipeline.length + '</b><span>In the pipeline</span></div>' +
       '<div class="m"><b>' + soon + '</b><span>Opening soon</span></div>' +
       '<div class="m"><b>' + Object.keys(countries).length + '</b><span>Countries</span></div>';
 
@@ -2834,6 +2845,7 @@ function formatDate(s) {
     var locDefs = state.locs.filter(function (d) { return state.loc.has(d.id); });
     var whenDefs = WHENS.filter(function (w) { return state.when.has(w.id); });
     return state.hotels.filter(function (h) {
+      if (h.s === 'Now Open' && !state.stage.has('Now Open')) return false;
       if (locDefs.length && !locDefs.some(function (d) { return d.test(h); })) return false;
       if (whenDefs.length && !whenDefs.some(function (w) { return w.test(h); })) return false;
       if (state.brand.size && !state.brand.has(h.brand)) return false;
@@ -2851,7 +2863,7 @@ function formatDate(s) {
     if (mc) mc.textContent = list.length + ' hotel' + (list.length === 1 ? '' : 's');
     document.getElementById('opGrid').innerHTML = show.map(function (h) {
       var locked = (h.s === 'Announced') && !pro;
-      var cls = h.s === 'Opening Soon' ? 'soon' : h.s === 'Announced' ? 'ann' : 'uc';
+      var cls = (h.s === 'Opening Soon' || h.s === 'Now Open') ? 'soon' : h.s === 'Announced' ? 'ann' : 'uc';
       var href = locked ? '#' : '/projects/' + encodeURIComponent(h.slug) + '/';
       return '<a class="op-card' + (locked ? ' locked' : '') + '" href="' + href + '"' + (locked ? ' data-locked="1"' : '') + '>' +
         '<div class="ph"><img src="' + esc(h.img) + '" loading="lazy" alt="">' +
@@ -2859,7 +2871,7 @@ function formatDate(s) {
         '<span class="op-bell" data-slug="' + esc(h.slug) + '" data-name="' + esc(h.t) + '" title="Watch — get the opening alert">' + BELL_SVG + '</span>' +
         '<div class="info"><h3>' + esc(h.t) + '</h3><div class="where">' + esc(h.city) + (h.country && h.country !== 'United States' ? ' · ' + esc(h.country) : '') + '</div></div>' +
         (locked ? '<div class="op-lock"><span class="pill">Announced · Pro</span></div>' : '') + '</div>' +
-        '<div class="eta-line"><span>' + esc(h.dev || '') + '</span><b>' + fmtEta(h.d) + '</b></div></a>';
+        '<div class="eta-line"><span>' + esc(h.dev || '') + '</span><b>' + (h.s === 'Now Open' ? (etaSort(h.d) <= NOWKEY ? fmtEta(h.d) : 'Open') : fmtEta(h.d)) + '</b></div></a>';
     }).join('') || '<div style="grid-column:1/-1; padding:50px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:12px">No hotels match this filter yet.</div>';
     document.getElementById('opMore').hidden = list.length <= state.shown;
     // Hydrate watching states, then wire clicks
