@@ -527,6 +527,11 @@ footer .tmw-wordmark{width:118px}
     mask-image:linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,.72) 58%, rgba(0,0,0,.42) 72%, rgba(0,0,0,.18) 84%, transparent 97%)}
   .rh-inner{position:relative; z-index:2; margin-top:-34px; padding:0 22px}
   .rh-kicker{font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--gold-soft); font-family:var(--sans)}
+  .rh-kicker .kx{display:inline-flex;align-items:center;vertical-align:middle}
+  .rh-kicker .k-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(31,223,103,.9);margin:0 12px;vertical-align:middle;animation:tmwRec 1.6s ease-in-out infinite}
+  @keyframes tmwRec{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+  .rh-kicker .k-live{color:var(--green);text-shadow:0 0 16px rgba(31,223,103,.5),0 0 4px rgba(31,223,103,.3)}
+  @media(prefers-reduced-motion:reduce){.rh-kicker .k-dot{animation:none}}
   .rank-hero h2, .rank-hero .rh-alt-title{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6.4vw,64px); line-height:1.02; letter-spacing:-.02em; color:var(--white); max-width:920px; margin:18px auto 0; text-wrap:balance}
   .rank-hero h2 em{font-style:italic; color:var(--gold-soft); font-weight:400}
   .rank-hero .rh-kicker, .rank-hero h2, .rank-hero .rh-sub{text-shadow:0 1px 18px rgba(0,0,0,.6), 0 0 4px rgba(0,0,0,.4)}
@@ -2609,9 +2614,12 @@ function formatDate(s) {
   // list loader writes into, so they stay in the DOM untouched (just hidden on
   // other tabs) while alt siblings carry the radar/news copy.
   var TAB_COPY = {
-    openings: { t: 'The Restaurant Radar', s: 'Every notable restaurant opening in the pipeline, from announcement to first service. Pulled live from the Markets of Tomorrow database and updated as projects move.' },
-    news: { t: 'Latest Restaurant News', s: 'Openings, chef moves, and the rooms reshaping<br>dining, reported as they break.' },
+    openings: { t: 'New Restaurant Openings', s: 'Every notable restaurant opening in the pipeline, from announcement to first service. Pulled live from the Markets of Tomorrow database and updated as projects move.', live: true },
+    news: { t: 'Latest Restaurant News', s: 'Openings, chef moves, and the rooms reshaping<br>dining, reported as they break.', live: true },
   };
+  var KICK_EL = document.querySelector('.rh-kicker');
+  var KICK_DEFAULT = '<span class="kx">Restaurants of Tomorrow · 2026 Edition</span>';
+  var KICK_LIVE = '<span class="kx">Restaurants of Tomorrow</span><span class="k-dot" aria-hidden="true"></span><span class="kx k-live">Tracking live</span>';
   function setMastCopy(tab){
     var rt = document.querySelector('.rank-hero [data-edit="title"]');
     var rs = document.querySelector('.rank-hero [data-edit="subtitle"]');
@@ -2619,6 +2627,7 @@ function formatDate(s) {
     var asub = document.querySelector('.rh-alt-sub');
     if (!rt || !at) return;
     var c = TAB_COPY[tab];
+    if (KICK_EL) KICK_EL.innerHTML = (c && c.live) ? KICK_LIVE : KICK_DEFAULT;
     if (c) {
       at.innerHTML = c.t; asub.innerHTML = c.s;
       rt.style.display = 'none'; rs.style.display = 'none';
