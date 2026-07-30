@@ -193,10 +193,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
 .tabs-bar .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
 /* No box — the controls sit on the page; the sort is a purple pulse-glow pill (TMW Intelligence aesthetic). */
 .ctlbar{display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:0}
-.tabs-bar .sort{appearance:none; background:none; border:0; box-shadow:none; color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 24px 9px 2px; border-radius:0; cursor:pointer;
+.tabs-bar .sort, .rb-ctl .sort{appearance:none; background:none; border:0; box-shadow:none; color:var(--cream); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:9px 24px 9px 2px; border-radius:0; cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4' stroke='%23B9A6FF' stroke-width='1.3' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; transition:color .18s, text-shadow .18s}
-.tabs-bar .sort:hover{color:var(--purple-glow); text-shadow:0 0 10px rgba(167,139,250,.55)}
-.tabs-bar .sort:focus{outline:none; color:var(--white)}
+.tabs-bar .sort:hover, .rb-ctl .sort:hover{color:var(--purple-glow); text-shadow:0 0 10px rgba(167,139,250,.55)}
+.tabs-bar .sort:focus, .rb-ctl .sort:focus{outline:none; color:var(--white)}
 @media(max-width:760px){
   .tabs-bar .wrap{flex-direction:column; align-items:stretch; gap:12px}
   .tabs{justify-content:space-between}
@@ -455,13 +455,6 @@ footer .tmw-wordmark{width:118px}
       <button class="tab-btn" data-tab="news" role="tab">Latest News<span class="tb-count" id="newsCount"></span></button>
     </div>
     <div class="actions">
-      <div class="ctlbar">
-      <select class="sort" id="sortSel" aria-label="Sort">
-        <option value="rank">Sort · Editor's rank</option>
-        <option value="alpha">Sort · A–Z</option>
-        <option value="region">Sort · By region</option>
-      </select>
-      </div>
       <button class="edit-toggle" id="editToggle" title="Edit this page">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z"/></svg>
         <span id="editToggleLabel">Edit</span>
@@ -488,6 +481,31 @@ footer .tmw-wordmark{width:118px}
   .op-next .trk b{color:var(--white); font-weight:700}
   .op-next .trk i{font-style:normal; color:var(--gold)}
   @keyframes opTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* compact bar — purple Filters toggle + quick pills + search (echoes the
+     homepage news filter bar); the advanced rows stay collapsed until opened */
+  .op-bar{display:flex; gap:10px; align-items:center; margin:20px 0 4px; flex-wrap:wrap}
+  .op-fbtn{display:inline-flex; align-items:center; gap:8px; flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:600; color:#C4B5FD; border:1px solid rgba(167,139,250,.45); border-radius:999px; padding:8px 15px; background:rgba(167,139,250,.07); cursor:pointer; transition:background .2s, box-shadow .2s}
+  .op-fbtn:hover{background:rgba(167,139,250,.14); box-shadow:0 0 18px rgba(167,139,250,.25)}
+  .op-fbtn.on{background:rgba(167,139,250,.18); box-shadow:inset 0 0 0 1px rgba(167,139,250,.55)}
+  .op-fbtn svg{width:13px; height:13px}
+  .op-fbadge{display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; border-radius:99px; background:#A78BFA; color:#141207; font-size:9px; font-weight:800; padding:0 4px}
+  .op-qpills{display:flex; gap:8px; flex-wrap:wrap; flex:1}
+  .op-searchbar{display:flex; align-items:center; gap:8px; border:1px solid var(--hair-2); border-radius:999px; padding:8px 14px; color:var(--mute); flex:none}
+  .op-searchbar input{border:0; background:transparent; outline:0; color:var(--cream); font-size:13px; width:190px}
+  .op-searchbar input::placeholder{color:var(--mute)}
+  .op-searchbar svg{width:13px; height:13px; flex:none}
+  @media(max-width:700px){.op-searchbar{flex:1} .op-searchbar input{width:100%}}
+  /* ranking-only controls row (sort + view toggle live with the list now) */
+  .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .region-pills{flex:1; min-width:0}
+  .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
+  /* blended masthead: the emblem SVG carries the name, the intro centers
+     tight beneath it as one column */
+  section[data-panel="ranking"] .story-section{padding:24px 0 26px}
+  .list-intro{margin:0 auto; text-align:center; max-width:760px; padding-top:26px}
+  .list-intro h2{font-size:clamp(24px,2.6vw,34px)}
+  .list-intro .sub{margin:12px auto 0}
+  .list-intro-meta{justify-content:center}
   /* advanced filters — labeled rows, echoing the homepage story filters */
   .op-filters{margin:20px 0 2px; border-top:1px solid var(--hair)}
   .op-frow{display:flex; gap:18px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--hair)}
@@ -547,6 +565,17 @@ footer .tmw-wordmark{width:118px}
       <div class="op-meta" id="opMeta"></div>
     </header>
     <div class="op-next" id="opNext" hidden><span class="lab"><span class="live-dot"></span>Opening next</span><span class="trk" id="opNextTrk"></span></div>
+    <div class="op-bar">
+      <button class="op-fbtn" id="opFbtn" type="button" aria-expanded="false" aria-controls="opFilters">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M4.5 8h7M7 12h2"/></svg>
+        <span>Filters</span><span class="op-fbadge" id="opFbadge" hidden>0</span>
+      </button>
+      <div class="op-qpills" id="opQuick"></div>
+      <label class="op-searchbar">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input id="opSearch" type="search" placeholder="Search a hotel, city, or brand…" aria-label="Search openings">
+      </label>
+    </div>
     <div class="op-filters" id="opFilters" hidden>
       <div class="op-frow"><span class="op-flab">Location</span><div class="op-fchips" data-row="loc"></div></div>
       <div class="op-frow"><span class="op-flab">Opening</span><div class="op-fchips" data-row="when"></div></div>
@@ -599,6 +628,15 @@ footer .tmw-wordmark{width:118px}
     <div class="region-bar">
       <div class="region-pills" id="regionPills">
         <button class="pill on" data-region="*">All</button>
+      </div>
+      <!-- Ranking-only controls: sort + the card/text/map view toggle
+           (iconic-view.js mounts into #ivMount when present) -->
+      <div class="rb-ctl" id="ivMount">
+        <select class="sort" id="sortSel" aria-label="Sort">
+          <option value="rank">Sort · Editor's rank</option>
+          <option value="alpha">Sort · A–Z</option>
+          <option value="region">Sort · By region</option>
+        </select>
       </div>
     </div>
     <div class="ranking" id="ranking"></div>
@@ -2369,7 +2407,7 @@ function formatDate(s) {
 <!-- Universal site header — one shared definition injected on every page. -->
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
-<script src="/_shared/iconic-view.js" defer></script>
+<script src="/_shared/iconic-view.js?v=20260730" defer></script>
 
 <script>
 /* Deep-link: /<list>/#<item-id> (e.g. from TMW Intelligence search) scrolls to
@@ -2457,7 +2495,7 @@ function formatDate(s) {
     { id: 'Breaking Ground', label: 'Breaking ground' },
     { id: 'Announced', label: 'Announced' },
   ];
-  var state = { loc: '*', when: '*', brand: '*', stage: '*', shown: PAGE, hotels: [], locs: [] };
+  var state = { loc: '*', when: '*', brand: '*', stage: '*', q: '', shown: PAGE, hotels: [], locs: [] };
 
   // ── Watchlist: one shared favorites read, then per-bell toggles ──────────
   var _favsPromise = null;
@@ -2568,7 +2606,40 @@ function formatDate(s) {
     fw.querySelector('[data-row=when]').innerHTML = rowHtml(WHENS.map(function (w) { return { id: w.id, label: w.label }; }));
     fw.querySelector('[data-row=brand]').innerHTML = rowHtml(topBrands.map(function (b) { return { id: b, label: b }; }));
     fw.querySelector('[data-row=stage]').innerHTML = rowHtml(STAGES);
-    fw.hidden = false;
+    // Compact bar: quick pills are shortcuts into the same state; the advanced
+    // rows stay collapsed until the purple Filters button opens them.
+    var QUICK = [
+      { id: 'all', label: 'All' },
+      { id: 'soon', label: 'Opening soon', stage: 'Opening Soon' },
+      { id: 'q6', label: 'Next 6 months', when: '6mo' },
+      { id: 'qy26', label: '2026', when: 'y26' },
+      { id: 'qann', label: 'Announced', stage: 'Announced' },
+    ];
+    var qw = document.getElementById('opQuick');
+    qw.innerHTML = QUICK.map(function (p) { return '<button class="op-chip' + (p.id === 'all' ? ' on' : '') + '" data-q="' + p.id + '">' + esc(p.label) + '</button>'; }).join('');
+    qw.addEventListener('click', function (e) {
+      var b = e.target.closest('.op-chip'); if (!b) return;
+      var pk = QUICK.filter(function (p) { return p.id === b.getAttribute('data-q'); })[0] || QUICK[0];
+      state.stage = pk.stage || '*'; state.when = pk.when || '*';
+      state.shown = PAGE;
+      paintChips(); render();
+    });
+    var fbtn = document.getElementById('opFbtn');
+    fbtn.addEventListener('click', function () {
+      var open = fw.hidden;
+      fw.hidden = !open;
+      fbtn.classList.toggle('on', open);
+      fbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    var searchEl = document.getElementById('opSearch'), searchT = null;
+    searchEl.addEventListener('input', function () {
+      clearTimeout(searchT);
+      searchT = setTimeout(function () {
+        state.q = searchEl.value.trim().toLowerCase();
+        state.shown = PAGE;
+        render();
+      }, 160);
+    });
     fw.addEventListener('click', function (e) {
       var b = e.target.closest('.op-chip');
       if (b) {
@@ -2588,7 +2659,18 @@ function formatDate(s) {
         var row = rowEl.getAttribute('data-row');
         rowEl.querySelectorAll('.op-chip').forEach(function (c) { c.classList.toggle('on', c.getAttribute('data-v') === state[row]); });
       });
-      document.getElementById('opClear').hidden = (state.loc === '*' && state.when === '*' && state.brand === '*' && state.stage === '*');
+      var clean = (state.loc === '*' && state.when === '*' && state.brand === '*' && state.stage === '*');
+      document.getElementById('opClear').hidden = clean;
+      // Quick pills mirror the same state; badge counts active advanced filters
+      qw.querySelectorAll('.op-chip').forEach(function (c) {
+        var pk = QUICK.filter(function (p) { return p.id === c.getAttribute('data-q'); })[0];
+        var on = pk.id === 'all' ? clean
+          : (state.stage === (pk.stage || '*') && state.when === (pk.when || '*') && (pk.stage || pk.when));
+        c.classList.toggle('on', !!on);
+      });
+      var n = ['loc', 'when', 'brand', 'stage'].filter(function (k) { return state[k] !== '*'; }).length;
+      var badge = document.getElementById('opFbadge');
+      badge.hidden = !n; badge.textContent = n;
     }
 
     document.getElementById('opMoreBtn').addEventListener('click', function () { state.shown += PAGE; render(); });
@@ -2606,6 +2688,7 @@ function formatDate(s) {
       if (whenDef && !whenDef.test(h)) return false;
       if (state.brand !== '*' && h.brand !== state.brand) return false;
       if (state.stage !== '*' && h.s !== state.stage) return false;
+      if (state.q && (h.t + ' ' + h.city + ' ' + h.country + ' ' + (h.brand || '') + ' ' + (h.dev || '')).toLowerCase().indexOf(state.q) === -1) return false;
       return true;
     });
   }

@@ -166,7 +166,9 @@
       '<button class="iv-btn on" data-v="card" title="Card view" aria-label="Card view">' + IMG_CARD + '</button>' +
       '<button class="iv-btn" data-v="text" title="List view" aria-label="List view"><span class="iv-t">T</span></button>' +
       '<button class="iv-btn" data-v="map"  title="Map view" aria-label="Map view">' + IMG_MAP + '</button>';
-    (document.querySelector('.tabs-bar .ctlbar') || actions).appendChild(tg);
+    // Prefer a page-provided mount (#ivMount) so list pages can put the view
+    // toggle INSIDE the ranking panel; fall back to the shared tabs bar.
+    (document.getElementById('ivMount') || document.querySelector('.tabs-bar .ctlbar') || actions).appendChild(tg);
 
     // Text sheet
     var sheet = document.createElement('div');
