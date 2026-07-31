@@ -34,7 +34,7 @@ generate_pages.py so it always runs against the freshest projects-flat.json.
 Run locally:  python3 generate_market_pages.py
 """
 from __future__ import annotations
-import json, os, re, html, collections, datetime, sys
+import json, os, re, html, collections, datetime, sys, urllib.parse
 from tmw_search_bar import MC_SEARCH_CSS, mc_search_html_for, mc_search_js_for
 
 # Reuse the project page's timeline + delivery formatters so every card on a
@@ -1156,6 +1156,9 @@ def openings_timeline_html(city: str, projects: list[dict]) -> str:
                         "The pipeline by expected opening year, with each year's marquee arrival.")
             + f'<div class="ot-row ot-{len(cells)}">{"".join(cells)}</div></section>')
 
+def _uq(s: str) -> str:
+    return urllib.parse.quote(str(s or ''))
+
 def neighborhoods_html(city: str, projects: list[dict]) -> str:
     counts = collections.Counter()
     for p in projects:
@@ -1167,7 +1170,7 @@ def neighborhoods_html(city: str, projects: list[dict]) -> str:
     out = ''.join(
         f'<span class="nb-chip" data-mk-nb-chip="{esc(nb)}" role="button" tabindex="0">'
         f'{esc(nb)} <span class="nb-n">{n}</span>'
-        f'<a class="nb-go" href="/map/?q={esc(slugify(nb).replace("-", "+"))}+{esc(slugify(city).replace("-", "+"))}" title="See {esc(nb)} on the map" aria-label="See {esc(nb)} on the map">↗</a></span>' for nb, n in chips)
+        f'<a class="nb-go" href="/map/?city={_uq(city)}&nb={_uq(nb)}" title="See {esc(nb)} on the map" aria-label="See {esc(nb)} on the map">↗</a></span>' for nb, n in chips)
     return (f'<section class="section cm-mod" id="m-areas">'
             + _mod_head("Where it's happening", f'{esc(city)}, <em>block by block</em>',
                         'Tap a neighborhood to filter this page — or jump to it on the map.')
