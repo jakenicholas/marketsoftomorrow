@@ -26,7 +26,7 @@ export const TRAVEL_STOPS = {
     logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
 
   { loc:'Big Sur, California', nights:'1 Night · Aug 4 → 5', stay:'Highway 1 & the Coast', confirmed:true, noClient:true,
-    in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur' },
+    in:{ date:'Aug 4', mode:'car', note:'Palo Alto → Big Sur → Santa Cruz' },
     vibe:'The most dramatic stretch of the Pacific Coast Highway, Bixby Bridge, redwoods meeting the sea, and the pull-offs above the cliffs before turning back north.',
     logi:[['The Drive','South down Highway 1 along the coast, threading the cliffs and coves of the Big Sur shoreline.']],
     todo:[
@@ -40,10 +40,11 @@ export const TRAVEL_STOPS = {
     imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
 
   { loc:'Sonoma, California', nights:'2 Nights · Aug 5 → 7', stay:'MacArthur Place Sonoma', rate:'$890/night', client:'J/PR', confirmed:true,
-    in:{ date:'Aug 5', mode:'car', note:'Big Sur → Sonoma' },
+    in:{ date:'Aug 5', mode:'car', note:'Santa Cruz → Sonoma' },
     vibe:'A historic six-acre estate at the edge of Sonoma’s plaza, where garden cottages, a spa, and the wine country’s ease set the tone for the valley.',
     logi:[],
     todo:[
+      { a:'Explore', t:'Santa Cruz', img:'https://www.visittheusa.com/wp-content/uploads/2025/11/Davenport_by-Ben-Ingram_20221920px.jpg' },
       { a:'Explore', t:'Napa Valley', img:'https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg' },
       { a:'Dinner', t:'Layla', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/LaylaPatio_3B2B90EA-DDAA-4A4D-BA8AB6EEA23F2FF7_8d47d839-c905-4f0d-900f6c1aa4afc377.jpg' },
       { a:'Winery Tour', t:'Chateau St. Jean Winery', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' },
