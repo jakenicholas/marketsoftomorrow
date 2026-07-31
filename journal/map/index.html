@@ -14663,6 +14663,76 @@
       flyToDeclustered(co, { offset: off, duration: 1400, baseZoom: targetZoom });
     }
 
+    // ── Neighborhood hull ring (?city=<City>&nb=<Neighborhood>) ─────────────
+    // We have no municipal boundary polygons, so the "border" is derived from
+    // our own pins: the Minkowski-rounded hull (support function of the pin
+    // set + a constant pad) of every pin tagged with that neighborhood. Works
+    // for any pin count ≥ 2 and is always a smooth closed blob. Drawn as a
+    // dashed purple ring + glass label, faded out after a beat.
+    function showNeighborhoodRing(cityNm, nbNm) {
+      var want = String(nbNm || '').split(',')[0].trim().toLowerCase();
+      if (!want) return;
+      var feats = (window.allProjectFeatures || []).filter(function (f) {
+        var pr = f.properties || {};
+        if (cityNm && pr.city !== cityNm) return false;
+        return String(pr.neighborhood || '').split(',')[0].trim().toLowerCase() === want;
+      });
+      if (feats.length < 2) return;
+      var pts = feats.map(function (f) { return f.geometry.coordinates; });
+      var cx = 0, cy = 0;
+      pts.forEach(function (p) { cx += p[0]; cy += p[1]; });
+      cx /= pts.length; cy /= pts.length;
+      // Local ~equal-area frame so the pad reads round on screen.
+      var cos0 = Math.cos(cy * Math.PI / 180) || 1;
+      var loc = pts.map(function (p) { return [(p[0] - cx) * cos0, p[1] - cy]; });
+      var PAD = 0.0035;   // ≈ 390 m breathing room past the outermost pin
+      var N = 48, ring = [];
+      for (var a = 0; a <= N; a++) {
+        var th = (a / N) * Math.PI * 2, ux = Math.cos(th), uy = Math.sin(th), r = 0;
+        loc.forEach(function (q) { var d = q[0] * ux + q[1] * uy; if (d > r) r = d; });
+        r += PAD;
+        ring.push([cx + (ux * r) / cos0, cy + uy * r]);
+      }
+      var gj = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
+      var topLngLat = ring[Math.round(N / 4)];   // θ = 90° → northern edge (label anchor)
+      function addRing() {
+        try {
+          if (map.getSource('tmw-nb-ring')) { map.getSource('tmw-nb-ring').setData(gj); }
+          else {
+            map.addSource('tmw-nb-ring', { type: 'geojson', data: gj });
+            map.addLayer({ id: 'tmw-nb-ring-fill', type: 'fill', source: 'tmw-nb-ring',
+              paint: { 'fill-color': '#A78BFA', 'fill-opacity': 0.07,
+                       'fill-opacity-transition': { duration: 900 } } });
+            map.addLayer({ id: 'tmw-nb-ring-line', type: 'line', source: 'tmw-nb-ring',
+              layout: { 'line-cap': 'round', 'line-join': 'round' },
+              paint: { 'line-color': '#A78BFA', 'line-width': 2, 'line-dasharray': [2.2, 1.8],
+                       'line-opacity': 0.9, 'line-opacity-transition': { duration: 900 } } });
+          }
+          var tag = document.createElement('div');
+          tag.style.cssText = 'font-family:Inter,-apple-system,sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;color:#EDE9FE;background:rgba(20,16,34,.82);border:1px solid rgba(167,139,250,.55);border-radius:999px;padding:5px 12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 18px rgba(167,139,250,.25);white-space:nowrap;transition:opacity .9s;pointer-events:none';
+          tag.textContent = String(nbNm).split(',')[0].trim() + ' · ' + feats.length + ' projects';
+          var mk = new mapboxgl.Marker({ element: tag, anchor: 'bottom', offset: [0, -6] })
+            .setLngLat(topLngLat).addTo(map);
+          setTimeout(function () {
+            try {
+              map.setPaintProperty('tmw-nb-ring-line', 'line-opacity', 0);
+              map.setPaintProperty('tmw-nb-ring-fill', 'fill-opacity', 0);
+              tag.style.opacity = '0';
+              setTimeout(function () {
+                try {
+                  mk.remove();
+                  if (map.getLayer('tmw-nb-ring-line')) map.removeLayer('tmw-nb-ring-line');
+                  if (map.getLayer('tmw-nb-ring-fill')) map.removeLayer('tmw-nb-ring-fill');
+                  if (map.getSource('tmw-nb-ring')) map.removeSource('tmw-nb-ring');
+                } catch (_e) {}
+              }, 1000);
+            } catch (_e) {}
+          }, 12000);
+        } catch (_e) {}
+      }
+      if (map.isStyleLoaded()) addRing(); else map.once('idle', addRing);
+    }
+
     // ‚îÄ‚îÄ Deep-link: open project from ?project= URL param ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
     // - ?project=slug                  ‚Üí fly to pin + show small popup preview
     // - ?project=slug  → fly to pin + open the full project modal
@@ -14700,6 +14770,10 @@
           } else if (typeof window.openCityInSidebar === 'function') {
             try { window.openCityInSidebar(nm, null); } catch (e) {}
           }
+          // &nb=<Neighborhood> → dashed hull ring around that neighborhood's
+          // pins once the fly-in lands (market pages' "block by block" chips).
+          var nbParam = params.get('nb');
+          if (nbParam) { try { showNeighborhoodRing(nm, decodeURIComponent(nbParam)); } catch (e) {} }
         }
         _revealCover(500);   // let the city move start, then lift the veil
         return;
@@ -19809,6 +19883,7 @@
               geometry: { type: 'Point', coordinates: [+p.Longitude, +p.Latitude] },
               properties: {
                 title: p.Title, city: p.City, borough: p.Borough || '', description: p.Description,
+                neighborhood: p.Neighborhood || '',
                 delivery: p.Delivery, image: p.ImageURL, website: p.OfficialWebsite,
                 projectType: p.ProjectType,
                 // Optional override — if PreferredType is set in the sheet for this row,
