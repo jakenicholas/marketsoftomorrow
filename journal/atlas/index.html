@@ -1646,6 +1646,8 @@
             && nextType === currentTypeFilter && nextStatus === currentStatusFilter
             && nextYear === currentYearFilter) return;
         currentStateFilter = nextState; currentCityFilter = nextCity;
+        if (nextCity === 'ALL') atlasMarkets = [];
+        else if (atlasMarkets[0] !== nextCity) atlasMarkets = [nextCity];
         currentTypeFilter = nextType; currentStatusFilter = nextStatus;
         currentYearFilter = nextYear;
         _pcardShown = PCARD_STEP;
@@ -1681,12 +1683,18 @@
     let currentStatusFilter = _sfStatusDisplay(_sf().status) || 'ALL';
     let currentCityFilter = (window.tmwFilters && window.tmwFilters.cityName()) || 'ALL';
     let currentYearFilter = _sf().year || '';   // '', '2026', '2027'… → projects delivering by end of year
+    // ── Multi-market: the page can filter to SEVERAL markets at once. The
+    // primary ([0]) drives the shared single-city contract (tmwFilters, URL,
+    // the other routes); the full set drives the Overview context, the supply
+    // cards and the master chart's comparison. City values are p.ci names.
+    let atlasMarkets = (currentCityFilter && currentCityFilter !== 'ALL') ? [currentCityFilter] : [];
     // Global filter context: when any filter is active, every panel reads from
     // a single client recompute over atlasData.projects (the compact per-project
     // array). No filter → the precomputed global fields.
     let _ctxCache = null, _ctxKey = '';
     function _filterActive() {
-      return (currentStateFilter && currentStateFilter !== 'ALL') ||
+      return atlasMarkets.length > 0 ||
+             (currentStateFilter && currentStateFilter !== 'ALL') ||
              (currentCityFilter && currentCityFilter !== 'ALL') ||
              (currentTypeFilter && currentTypeFilter !== 'ALL') ||
              !!currentYearFilter;
@@ -1695,9 +1703,10 @@
       const ps = atlasData.projects || [];
       const st = (currentStateFilter && currentStateFilter !== 'ALL') ? currentStateFilter : null;
       const ci = (currentCityFilter && currentCityFilter !== 'ALL') ? currentCityFilter : null;
+      const cis = atlasMarkets.length ? atlasMarkets : (ci ? [ci] : null);
       const ty = (currentTypeFilter && currentTypeFilter !== 'ALL') ? currentTypeFilter : null;
       const yr = currentYearFilter ? parseInt(currentYearFilter, 10) : null;
-      const fp = ps.filter(p => (!st || p.st === st) && (!ci || p.ci === ci) && (!ty || p.ty === ty) && (!yr || (p.yr && p.yr <= yr)));
+      const fp = ps.filter(p => (!st || p.st === st) && (!cis || cis.indexOf(p.ci) >= 0) && (!ty || p.ty === ty) && (!yr || (p.yr && p.yr <= yr)));
       const nowY = new Date().getFullYear();
       const devM = new Map(), archM = new Map(), cityM = new Map(), typeM = new Map();
       const statusM = new Map(), openM = new Map(), momM = new Map();
@@ -1734,7 +1743,7 @@
     }
     function ctx() {
       if (!_filterActive()) return atlasData;
-      const key = currentStateFilter + '|' + currentCityFilter + '|' + currentTypeFilter + '|' + currentYearFilter;
+      const key = atlasMarkets.join(',') + '|' + currentStateFilter + '|' + currentCityFilter + '|' + currentTypeFilter + '|' + currentYearFilter;
       if (_ctxKey !== key) { _ctxCache = computeCtx(); _ctxKey = key; }
       return _ctxCache;
     }
@@ -3090,7 +3099,9 @@
         .filter(([, m]) => m.pipeline_projects >= ((stFilter || ciFilter) ? 2 : 4))
         .sort((a, b) => b[1].score - a[1].score);
       let tops;
-      if (ciFilter) {
+      if (atlasMarkets.length > 1) {
+        tops = pool.filter(([, m]) => atlasMarkets.indexOf(m.city) >= 0).slice(0, 8);
+      } else if (ciFilter) {
         const mine = pool.find(([, m]) => m.city === ciFilter);
         const st = mine ? mine[1].state : null;
         tops = pool.filter(([, m]) => m.city === ciFilter || (st && m.state === st)).slice(0, 8);
@@ -3352,6 +3363,30 @@
 
     // Sticky-bar filter chips: active filters (with ✕) when set, quick
     // dial-in state shortcuts when not — mirrors the search-bar selects.
+    function atlasSetMarkets(list) {
+      atlasMarkets = (list || []).filter(Boolean).slice(0, 5);
+      currentCityFilter = atlasMarkets[0] || 'ALL';
+      if (atlasMarkets.length) currentStateFilter = 'ALL';
+      // the master chart compares the page's markets (scored ones)
+      try {
+        if (supplyIntel && supplyIntel.markets) {
+          const scored = atlasMarkets.map(c => mcSlug(c)).filter(k => supplyIntel.markets[k]);
+          if (scored.length) MC.set = scored.map((k, i) => ({ k: k, slot: i }));
+          else if (!atlasMarkets.length) MC.set = [];
+        }
+      } catch (e) {}
+      syncSharedFilters();
+      try { mcSync(); } catch (e) {}
+      _pcardShown = PCARD_STEP;
+      renderAll();
+    }
+    function atlasAddMarket(city) {
+      if (!city || atlasMarkets.indexOf(city) >= 0) { renderAll(); return; }
+      atlasSetMarkets(atlasMarkets.concat([city]));
+    }
+    function atlasDropMarket(city) {
+      atlasSetMarkets(atlasMarkets.filter(c => c !== city));
+    }
     function renderStickyFilters() {
       const states = (atlasData.available_states || []).slice(0, 6);
       const active = [];
@@ -3359,13 +3394,14 @@
         const s = (atlasData.available_states || []).find(x => x.code === currentStateFilter);
         active.push({ k: 'state', label: s ? s.label : currentStateFilter });
       }
-      if (currentCityFilter && currentCityFilter !== 'ALL') active.push({ k: 'city', label: currentCityFilter });
+      atlasMarkets.forEach(c => active.push({ k: 'mkt', label: c, city: c }));
+      if (!atlasMarkets.length && currentCityFilter && currentCityFilter !== 'ALL') active.push({ k: 'city', label: currentCityFilter });
       if (currentTypeFilter && currentTypeFilter !== 'ALL') active.push({ k: 'type', label: currentTypeFilter });
       if (currentStatusFilter && currentStatusFilter !== 'ALL') active.push({ k: 'status', label: currentStatusFilter });
       if (currentYearFilter) active.push({ k: 'year', label: 'By end of ' + currentYearFilter });
       let inner;
       if (active.length) {
-        inner = active.map(a => `<button class="ash-chip on" data-clear="${a.k}">${escapeHtml(a.label)}<span class="x">✕</span></button>`).join('')
+        inner = active.map(a => `<button class="ash-chip on" data-clear="${a.k}"${a.city ? ` data-city="${escapeHtml(a.city)}"` : ''}>${escapeHtml(a.label)}<span class="x">✕</span></button>`).join('')
           + `<button class="ash-chip ash-clear" data-clear="all">Clear all</button>`;
       } else return '';   // nothing filtered → no chip bar at all
       return `<div class="atlas-sticky-filters" id="atlasStickyFilters">${inner}</div>`;
@@ -3377,13 +3413,14 @@
     document.addEventListener('click', function (e) {
       const chip = e.target.closest('#atlasStickyFilters .ash-chip');
       if (!chip) return;
-      if (chip.dataset.state) { currentStateFilter = chip.dataset.state; currentCityFilter = 'ALL'; }
+      if (chip.dataset.clear === 'mkt') { atlasDropMarket(chip.dataset.city); return; }
+      if (chip.dataset.state) { currentStateFilter = chip.dataset.state; currentCityFilter = 'ALL'; atlasMarkets = []; }
       else if (chip.dataset.clear === 'state') currentStateFilter = 'ALL';
-      else if (chip.dataset.clear === 'city') currentCityFilter = 'ALL';
+      else if (chip.dataset.clear === 'city') { currentCityFilter = 'ALL'; atlasMarkets = []; }
       else if (chip.dataset.clear === 'type') currentTypeFilter = 'ALL';
       else if (chip.dataset.clear === 'status') currentStatusFilter = 'ALL';
       else if (chip.dataset.clear === 'year') currentYearFilter = '';
-      else if (chip.dataset.clear === 'all') { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentStatusFilter = 'ALL'; currentYearFilter = ''; }
+      else if (chip.dataset.clear === 'all') { atlasMarkets = []; currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentStatusFilter = 'ALL'; currentYearFilter = ''; }
       syncStateUrl();
       renderAll();
     });
@@ -3620,9 +3657,14 @@
     ];
     function mcUsed(){return MC.set.map(function(m){return m.slot;});}
     function mcAdd(k){if(MC.set.length>=MC_MAX||MC.set.some(function(m){return m.k===k;}))return;
+      var city=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k]&&supplyIntel.markets[k].city;
+      if(city&&atlasMarkets.length){atlasAddMarket(city);return;}   // page pills lead when active
       var free=0;while(mcUsed().indexOf(free)>=0)free++;
       MC.set.push({k:k,slot:free});mcSync();mountMaster();}
-    function mcDrop(k){MC.set=MC.set.filter(function(m){return m.k!==k;});mcSync();mountMaster();}
+    function mcDrop(k){
+      var city=supplyIntel&&supplyIntel.markets&&supplyIntel.markets[k]&&supplyIntel.markets[k].city;
+      if(city&&atlasMarkets.indexOf(city)>=0){atlasDropMarket(city);return;}
+      MC.set=MC.set.filter(function(m){return m.k!==k;});mcSync();mountMaster();}
     // the master owns ?m= and ?metric=; everything else on the URL is preserved
     function mcSync(){try{var q=new URLSearchParams(location.search);
       if(MC.set.length)q.set('m',MC.set.map(function(x){return x.k;}).join(','));else q.delete('m');
@@ -3965,7 +4007,8 @@
           const place = document.getElementById('ac-place');
           if (place) place.value = it.act;
           input.value = ''; cur = []; render();
-          applyCalc();
+          if (it.act.indexOf('ci:') === 0) { atlasAddMarket(it.act.slice(3)); return; }
+          if (window.atlasApplyCalc) window.atlasApplyCalc();
           return;
         }
         if (it.url) location.href = it.url;
@@ -4027,9 +4070,14 @@
         const cat = document.getElementById('ac-cat');
         const yr = document.getElementById('ac-year');
         const pv = place ? place.value : '';
-        if (pv.indexOf('st:') === 0) { currentStateFilter = pv.slice(3); currentCityFilter = 'ALL'; }
-        else if (pv.indexOf('ci:') === 0) { currentCityFilter = pv.slice(3); currentStateFilter = 'ALL'; }
-        else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; }
+        if (pv.indexOf('st:') === 0) { currentStateFilter = pv.slice(3); currentCityFilter = 'ALL'; atlasMarkets = []; }
+        else if (pv.indexOf('ci:') === 0) {
+          const city = pv.slice(3);
+          // the select is the PRIMARY market; keep any extra pills already added
+          if (atlasMarkets.indexOf(city) < 0) atlasMarkets = [city].concat(atlasMarkets).slice(0, 5);
+          currentCityFilter = atlasMarkets[0]; currentStateFilter = 'ALL';
+        }
+        else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; atlasMarkets = []; }
         currentTypeFilter = (cat && cat.value) ? cat.value : 'ALL';
         currentYearFilter = (yr && yr.value) ? yr.value : '';
         syncSharedFilters();
@@ -4039,6 +4087,7 @@
         renderAll();
         window.scrollTo({ top: y, behavior: 'auto' });
       }
+      window.atlasApplyCalc = applyCalc;
       const calcForm = document.getElementById('atlas-calc-form');
       if (calcForm) {
         calcForm.addEventListener('submit', function(e) { e.preventDefault(); applyCalc(); });
