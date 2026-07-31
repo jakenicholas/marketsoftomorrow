@@ -803,8 +803,8 @@
           '<svg viewBox="0 0 24 24"><polygon points="13 2 4 14 11 14 9 22 20 10 13 10 15 2"/></svg>' +
           'Go Pro' +
         '</button>' +
-        '<button class="v2-menu-item" data-act="account" role="menuitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>Account<em class="v2-account-pro">PRO</em></button>' +
         '<button class="v2-menu-item" data-act="articles" role="menuitem"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></svg>Articles</button>' +
+        '<button class="v2-menu-item" data-act="account" role="menuitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>Account<em class="v2-account-pro">PRO</em></button>' +
         '<button class="v2-menu-item v2-menu-watch" data-act="watchlist" role="menuitem"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Watchlist<em class="v2-menu-protag">PRO</em></button>' +
         '<div class="v2-menu-divider"></div>' +
         '<button class="v2-menu-item v2-menu-signout" data-act="signout" role="menuitem"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign out</button>' +

@@ -212,9 +212,10 @@ main.wrap{padding-bottom:70px}
 .pf-h2{font-size:13px;color:#9AA39C;margin-top:4px}
 .pf-mchips{display:flex;gap:7px;flex-wrap:wrap}
 .pf-mchip{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#C2C9C3;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:6px 12px;border-radius:999px}
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:6px 12px;border-radius:999px;cursor:pointer;transition:border-color .15s,background .15s}
+.pf-mchip:hover{border-color:rgba(31,223,103,.5)}
 .pf-mchip.on{background:#1FDF67;border-color:#1FDF67;color:#070807;font-weight:700}
-.pf-thead{display:grid;grid-template-columns:minmax(0,1fr) 220px 118px 132px;gap:14px;padding:0 10px 11px;
+.pf-thead{display:grid;grid-template-columns:minmax(0,1fr) 200px 108px 178px;gap:14px;padding:0 10px 11px;
   border-bottom:1px solid rgba(255,255,255,.1);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#9AA39C;font-weight:600}
 .pf-watches{margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08)}
 .pf-wh{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
@@ -280,7 +281,7 @@ main.wrap{padding-bottom:70px}
 .pf-kpi .pf-x{font-size:11px;color:#C2C9C3;margin-top:4px;line-height:1.35}
 .pf-sec-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#B9A6FF;font-weight:700;margin:26px 0 12px}
 .pf-book{display:flex;flex-direction:column;gap:1px}
-.pf-row{display:grid;grid-template-columns:minmax(0,1fr) 220px 118px 132px;gap:14px;align-items:center;padding:13px 12px;
+.pf-row{display:grid;grid-template-columns:minmax(0,1fr) 200px 108px 178px;gap:14px;align-items:center;padding:13px 12px;
   border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;color:inherit;border-radius:8px}
 .pf-row:hover{background:rgba(167,139,250,.05)}
 .pf-nm{font-weight:600;color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -293,6 +294,10 @@ main.wrap{padding-bottom:70px}
 .pf-mv.up{color:#42EB81;background:rgba(31,223,103,.1);border:1px solid rgba(31,223,103,.3)}
 .pf-mv.new{color:#B9A6FF;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3)}
 .pf-mv.flat{color:#9AA39C;border:1px solid rgba(255,255,255,.1)}
+.pf-mv.dim{color:#C2C9C3;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.13)}
+.pf-mvw{justify-self:end;text-align:right;min-width:0}
+.pf-mvw .pf-mv{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pf-mvd{font-size:9.5px;color:#9AA39C;margin-top:4px}
 .pf-cap{display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
 .pf-cap:last-child{border-bottom:none}
 .pf-cap .amt{font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:600;color:#f0d68a}
@@ -343,8 +348,8 @@ main.wrap{padding-bottom:70px}
 <body>
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-tab="dashboard">Dashboard</button>
-  <button class="tab" data-tab="account">Account</button>
   <button class="tab" data-tab="articles">Articles</button>
+  <button class="tab" data-tab="account">Account</button>
   <button class="tab" data-tab="security">Security</button>
 </div></nav>
 
@@ -701,47 +706,114 @@ main.wrap{padding-bottom:70px}
     });
     return out;
   }
-  function pfRender(host, flat, mj, movesBySlug, intel, recent){
+  // Latest real move from the project's sourced status log — milestones,
+  // status advances, financing, delivery-date changes. Spec corrections and
+  // historical backfills are not moves.
+  var PF_PHASE={financing:'Financing secured','topping-out':'Topped out','going-vertical':'Going vertical',
+    bookings:'Sales launched',groundbreaking:'Broke ground','breaking-ground':'Broke ground',
+    'site-work':'Site work started',permits:'Permits filed',opening:'Now open'};
+  var PF_TO={announced:'Announced','breaking-ground':'Broke ground',construction:'Construction started',
+    'coming-soon':'Opening soon',open:'Now open'};
+  var PF_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function pfFmtD(d){
+    if(!d) return '';
+    var y=d.slice(0,4), mo=parseInt(d.slice(5,7),10);
+    return mo?PF_MON[mo-1]+' '+y:y;
+  }
+  function pfLastMove(p){
+    var best=null;
+    (Array.isArray(p.StatusHistory)?p.StatusHistory:[]).forEach(function(e){
+      if(!e || e.type==='backfill' || e.type==='field' || e.correction) return;
+      var lbl=null, money=parseFloat(e.loan_amount)||0;
+      if(e.type==='milestone'){
+        if(e.phase==='financing') lbl=(money?pfMoney(money)+' in financing secured':'Financing secured');
+        else lbl=PF_PHASE[e.phase]||String(e.phase||'').replace(/-/g,' ').replace(/^\w/,function(c){return c.toUpperCase();});
+      } else if(e.type==='date' && e.field==='delivery_date' && e.to){
+        lbl='Delivery now '+(pfWhen(String(e.to))||String(e.to));
+      } else if(!e.type && e.to && PF_TO[e.to]){
+        lbl=PF_TO[e.to];
+      } else if(e.to && PF_TO[e.to] && !e.field){
+        lbl=PF_TO[e.to];
+      }
+      if(!lbl) return;
+      // effective_date can be prose ("Mid 2026") — keep it for display but
+      // sort/measure freshness on a normalized ISO key.
+      var raw=String(e.effective_date||e.source_published||'').trim();
+      var iso=/^\d{4}/.test(raw)?raw.slice(0,10):'';
+      var disp='';
+      if(!iso){
+        var y=(raw.match(/\b20\d{2}\b/)||[])[0];
+        if(y){ iso=y+'-06-15'; disp=raw; }
+        else iso=String(e.at||'').slice(0,10);
+      }
+      if(!best || iso>best.d) best={d:iso, lbl:lbl, fin:/financ/i.test(lbl), disp:disp};
+    });
+    return best;
+  }
+  function pfRender(host, flat, mj, movesBySlug, intel, recent, cityFilt){
+    var _pfKeepBrief='', _pfKeepWatch='';
+    try{ var _b=document.getElementById('pfBrief'); if(_b) _pfKeepBrief=_b.innerHTML; }catch(e){}
+    try{ var _w=document.getElementById('pfWatches'); if(_w) _pfKeepWatch=_w.innerHTML; }catch(e){}
     var book=pfWatched(flat, mj);
     if(!book.length){
       host.innerHTML='<div class="pf-empty">Nothing in your book yet. Tap the eye icon on any project to start tracking it.</div>';
       return;
     }
-    var caps=book.map(function(p){ return parseFloat(p.FinancingAmountM)||0; });
-    var capTotal=caps.reduce(function(a,b){return a+b;},0);
-    var today=new Date().toISOString().slice(0,10);
-    var upcoming=book.map(pfDeliveryKey).filter(Boolean).filter(function(d){ return d>=today; }).sort();
-    var moved=book.filter(function(p){ return movesBySlug[projectSlugify(p.Title)]; }).length;
     var cityCount={}; book.forEach(function(p){ var c=(p.City||'').trim(); if(c) cityCount[c]=(cityCount[c]||0)+1; });
     var cities=Object.keys(cityCount).sort(function(a,b){return cityCount[b]-cityCount[a];});
-    var topCity=cities[0]||'';
+    // Optional market toggle (the chips): everything below reads the view.
+    var view=cityFilt?book.filter(function(p){ return (p.City||'').trim()===cityFilt; }):book;
+    if(!view.length){ view=book; cityFilt=null; }
+    var caps=view.map(function(p){ return parseFloat(p.FinancingAmountM)||0; });
+    var capTotal=caps.reduce(function(a,b){return a+b;},0);
+    var today=new Date().toISOString().slice(0,10);
+    var upcoming=view.map(pfDeliveryKey).filter(Boolean).filter(function(d){ return d>=today; }).sort();
+    var moved=view.filter(function(p){ return movesBySlug[projectSlugify(p.Title)]; }).length;
+    var topCity=cityFilt||cities[0]||'';
     var mk=null; try{ mk=intel&&intel.markets&&intel.markets[projectSlugify(topCity)]; }catch(e){}
     var lvl=mk?(mk.level==='Saturated'?'r':mk.level==='Elevated'?'a':'g'):'';
 
     var kpis='<div class="pf-kpis">'
-      + '<div class="pf-kpi"><div class="v">'+book.length+'</div><div class="k">In your book</div><div class="pf-x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
+      + '<div class="pf-kpi"><div class="v">'+view.length+'</div><div class="k">In your book</div><div class="pf-x">'+(moved?moved+' moved this week':'no moves this week')+'</div></div>'
       + (mk?'<div class="pf-kpi"><div class="v '+lvl+'">'+mk.score+'</div><div class="k">Supply pressure</div><div class="pf-x">'+esc(topCity)+' · '+esc(mk.level)+'</div></div>':'')
       + (capTotal?'<div class="pf-kpi"><div class="v g">'+pfMoney(capTotal)+'</div><div class="k">Capital tracked</div><div class="pf-x">across '+caps.filter(Boolean).length+' financed</div></div>':'')
-      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+pfWhen(upcoming[0])+'</div><div class="k">Next delivery</div><div class="pf-x">'+esc((book.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
+      + (upcoming.length?'<div class="pf-kpi"><div class="v p">'+pfWhen(upcoming[0])+'</div><div class="k">Next delivery</div><div class="pf-x">'+esc((view.filter(function(p){return pfDeliveryKey(p)===upcoming[0];})[0]||{}).Title||'')+'</div></div>':'')
       + '</div>';
 
-    var rows=book.slice().sort(function(a,b){ return pfPct(b.Delivery)-pfPct(a.Delivery); }).map(function(p){
+    var rows=view.slice().sort(function(a,b){ return pfPct(b.Delivery)-pfPct(a.Delivery); }).map(function(p){
       var k=projectSlugify(p.Title), mv=movesBySlug[k], pct=pfPct(p.Delivery);
-      var chip = mv ? '<span class="pf-mv up">▲ '+esc(mv)+'</span>'
-                : (p.FinancingAmountM ? '<span class="pf-mv new">'+pfMoney(p.FinancingAmountM)+'</span>'
-                : '<span class="pf-mv flat">No change</span>');
+      var chip;
+      if(mv){
+        chip='<span class="pf-mv up">▲ '+esc(mv.tag)+'</span>'+(mv.when?'<div class="pf-mvd">'+esc(mv.when)+'</div>':'');
+      } else {
+        var last=pfLastMove(p);
+        if(!last && p.FinancingAmountM){
+          var fd=String(p.FinancingDate||'');
+          last={ d:/^\d{4}/.test(fd)?fd.slice(0,10):'', lbl:pfMoney(p.FinancingAmountM)+' in financing secured', fin:true };
+          if(!last.d && fd) last.raw=fd;
+        }
+        if(last){
+          var ms=new Date(last.d.length===4?last.d+'-06-15':(last.d.length===7?last.d+'-15':last.d)).getTime();
+          var fresh=isFinite(ms)&&(Date.now()-ms)<=75*864e5;
+          var cls=last.fin?'new':(fresh?'up':'dim');
+          chip='<span class="pf-mv '+cls+'">'+(cls==='up'?'▲ ':'')+esc(last.lbl)+'</span>'
+            +'<div class="pf-mvd">'+esc(last.disp||last.raw||pfFmtD(last.d))+'</div>';
+        } else {
+          chip='<span class="pf-mv flat">No change</span>';
+        }
+      }
       var when = pfLabel(p) || '—';
       return '<a class="pf-row" href="https://www.oftmw.com/projects/'+encodeURIComponent(p.Slug||k)+'/">'
         + '<div><div class="pf-nm">'+esc(p.Title||'')+'</div><div class="pf-lo">'+esc(p.City||'')+(p.PreferredType?' · '+esc(p.PreferredType):'')+'</div></div>'
         + '<div class="pf-prog"><div class="pf-bar"><i style="width:'+pct+'%"></i></div><span class="pf-st">'+esc(p.Delivery||'')+'</span></div>'
         + '<div class="pf-when">'+esc(when)+'</div>'
-        + chip + '</a>';
+        + '<div class="pf-mvw">'+chip+'</div></a>';
     }).join('');
 
     var feed=(recent||[]).slice(0,4).map(function(m){
       return '<div class="pf-frow"><span class="pf-fdot'+(m.cap?' p':'')+'"></span><div><b>'+esc(m.title)+'</b> '+esc(m.text)+'</div><span class="pf-fwhen">'+esc(m.when||'')+'</span></div>';
     }).join('');
-    var fin=book.filter(function(p){ return parseFloat(p.FinancingAmountM)>0; })
+    var fin=view.filter(function(p){ return parseFloat(p.FinancingAmountM)>0; })
       .sort(function(a,b){ return parseFloat(b.FinancingAmountM)-parseFloat(a.FinancingAmountM); }).slice(0,4);
     var capHtml=fin.map(function(p){
       return '<div class="pf-cap"><span><b style="color:#fff">'+esc(p.Title||'')+'</b><div class="who">'+esc(p.FinancingLender||'Construction loan')+'</div></span><span class="amt">'+pfMoney(p.FinancingAmountM)+'</span></div>';
@@ -751,13 +823,15 @@ main.wrap{padding-bottom:70px}
       + (capHtml?'<div class="pf-card"><h4>Capital in your book</h4>'+capHtml+'</div>':'')
       + '</div>' : '';
 
-    var chips=cities.slice(0,3).map(function(c,i){ return '<span class="pf-mchip'+(i===0?' on':'')+'">'+esc(c)+'</span>'; }).join('');
+    var chips=cities.slice(0,6).map(function(c){
+      return '<span class="pf-mchip'+(c===cityFilt?' on':'')+'" role="button" tabindex="0" data-city="'+esc(c)+'">'+esc(c)+'</span>';
+    }).join('');
 
     host.innerHTML='<div class="pf-app">'
       + '<div class="pf-appbar"><span class="u">'+esc(pfOwner())+'</span><span class="pro">Pro</span></div>'
       + '<div class="pf-inner">'
       +   '<div class="pf-head"><div><div class="pf-h1">My Book</div>'
-      +     '<div class="pf-h2">'+book.length+' project'+(book.length===1?'':'s')+' watched · '+cities.length+' market'+(cities.length===1?'':'s')+'</div></div>'
+      +     '<div class="pf-h2">'+(cityFilt?view.length+' of '+book.length+' watched · '+esc(cityFilt):book.length+' project'+(book.length===1?'':'s')+' watched · '+cities.length+' market'+(cities.length===1?'':'s'))+'</div></div>'
       +     '<div class="pf-mchips">'+chips+'</div></div>'
       +   kpis
       +   '<div class="pf-thead"><span>Project</span><span>Progress</span><span>Delivery</span><span>Movement</span></div>'
@@ -766,6 +840,15 @@ main.wrap{padding-bottom:70px}
       +   '<div id="pfBrief"></div>'
       +   two
       + '</div></div>';
+    if(_pfKeepBrief){ try{ document.getElementById('pfBrief').innerHTML=_pfKeepBrief; }catch(e){} }
+    if(_pfKeepWatch){ try{ document.getElementById('pfWatches').innerHTML=_pfKeepWatch; try{ pfAttachWatches(); }catch(e){} }catch(e){} }
+    host.querySelectorAll('.pf-mchip').forEach(function(ch){
+      ch.addEventListener('click', function(ev){
+        ev.preventDefault();
+        var c=ch.getAttribute('data-city');
+        pfRender(host, flat, mj, movesBySlug, intel, recent, cityFilt===c?null:c);
+      });
+    });
   }
   // "2027-06-01" -> "Q2 2027"; year-only stays the year.
   function pfWhen(d){
@@ -981,7 +1064,7 @@ main.wrap{padding-bottom:70px}
         var movesBySlug={};
         order.forEach(function(id){
           var ev=moves[id].ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
-          if(k && !movesBySlug[k]) movesBySlug[k]=ev.tag||ev.type||'Moved';
+          if(k && !movesBySlug[k]) movesBySlug[k]={tag:ev.tag||ev.type||'Moved', when:fmtEventDate(x.rdate)};
         });
         // The container owns everything now: book -> Onyx brief -> cards.
         // "The moves" list is gone; its content lives in What moved + the brief.
