@@ -1597,7 +1597,7 @@ function initSuggestMode(post) {
     var w = who();
     banner.innerHTML = '<b>' + PEN + 'Suggest edits</b><span>Select any text, or tap a photo, to propose a change.</span>' +
       '<span class="sug-note-btn" id="sugGeneralBtn">+ general note</span>' +
-      '<span class="sug-who">' + (w && w.email ? 'Reviewing as <b>' + escapeHtml(w.name || w.email) + '</b> · <a id="sugWhoBtn">change</a>' : '<a id="sugWhoBtn">Set your name &amp; email</a>') + '</span>';
+      '<span class="sug-who">Reviewing as <b>' + escapeHtml((w && (w.name || w.email)) || 'Anonymous') + '</b> · <a id="sugWhoBtn">' + (w && w.email ? 'change' : 'add your email') + '</a></span>';
     var wb = banner.querySelector('#sugWhoBtn');
     if (wb) wb.onclick = function () { askWho(function () { paintBanner(); }); };
     var gb = banner.querySelector('#sugGeneralBtn');
@@ -1616,7 +1616,7 @@ function initSuggestMode(post) {
   function askWho(then) {
     var w = who() || {};
     modal('<h3>Who is suggesting?</h3>' +
-      '<label>Name</label><input id="sgName" value="' + escapeHtml(w.name || '') + '" placeholder="Jane Smith">' +
+      '<label>Name (optional)</label><input id="sgName" value="' + escapeHtml(w.name || '') + '" placeholder="Anonymous">' +
       '<label>Email</label><input id="sgEmail" type="email" value="' + escapeHtml(w.email || '') + '" placeholder="jane@company.com">' +
       '<div class="sug-row"><button class="sug-x" data-x>Cancel</button><button class="sug-go" data-go>Save</button></div>',
       function (box, close) {
@@ -1670,15 +1670,18 @@ function initSuggestMode(post) {
           if (!prop && !note) { close(); return; }
           if (isPhoto && prop && !/^https?:\/\//i.test(prop)) { propEl.style.borderColor = '#FF5C5C'; return; }
           var btn = box.querySelector('[data-go]'); btn.disabled = true; btn.textContent = 'Sending…';
-          var payload = { slug: slug, pt: PREVIEW_TOKEN, name: w.name, email: w.email, block: opts.block != null ? opts.block : -1, original: original, proposed: prop, note: note };
+          var payload = { slug: slug, pt: PREVIEW_TOKEN, name: w.name || 'Anonymous', email: w.email, block: opts.block != null ? opts.block : -1, original: original, proposed: prop, note: note };
           if (opts.updateId) payload.update_id = opts.updateId;
           fetch(WORKER_URL + '/draft-suggest', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           }).then(function (r) { return r.json(); }).then(function (j) {
             if (j && j.ok) {
-              if (opts.markEl) { decorateMark(opts.markEl, j.id, original, prop, note, w.name || w.email); }
-              else if (opts.range && !isPhoto) { try { var mk = wrapRange(opts.range, 'pending'); decorateMark(mk, j.id, original, prop, note, w.name || w.email); } catch (e) {} }
+              var dispName = w.name || 'Anonymous';
+              if (opts.fieldEl && opts.block === -4) { paintFieldHero(opts.fieldEl, { id: j.id, original: original, proposed: prop, note: note, name: dispName, status: 'pending' }); }
+              else if (opts.fieldEl) { paintFieldText(opts.fieldEl, { id: j.id, original: original, proposed: prop, note: note, name: dispName, status: 'pending', block: opts.fieldCode }); }
+              else if (opts.markEl) { decorateMark(opts.markEl, j.id, original, prop, note, dispName); }
+              else if (opts.range && !isPhoto) { try { var mk = wrapRange(opts.range, 'pending'); decorateMark(mk, j.id, original, prop, note, dispName); } catch (e) {} }
               toast('Suggestion sent — the editors will review it.');
               close();
             } else { btn.disabled = false; btn.textContent = 'Send suggestion'; toast((j && j.error) || 'Could not send — try again'); }
@@ -1785,13 +1788,89 @@ function initSuggestMode(post) {
     openPhotoDialog(img);
   }, true);
 
+  // ── title / subtitle / hero image: pencil on hover, whole-field edits ──
+  // Field suggestions anchor by BLOCK CODE (-2 title, -3 subtitle, -4 hero)
+  // instead of a text search; the Studio applies them to the matching field.
+  var FIELD_TITLE = -2, FIELD_DECK = -3, FIELD_HERO = -4;
+  function paintFieldText(el, sg) {
+    if (!el || !sg.proposed) return;
+    el.innerHTML = '';
+    var mk = document.createElement('mark');
+    mk.className = 'tmw-sg' + (sg.status === 'accepted' ? ' acc' : '');
+    mk.textContent = sg.proposed;
+    decorateMark(mk, sg.id, sg.original, sg.proposed, sg.note, sg.name);
+    mk.dataset.sgField = String(sg.block);
+    el.appendChild(mk);
+  }
+  function paintFieldHero(img, sg) {
+    if (!img || !sg.proposed) return;
+    img.src = sg.proposed;
+    img.style.outline = '3px solid rgba(167,139,250,.8)';
+    img.dataset.sgId = sg.id; img.dataset.sgOrig = sg.original || '';
+    img.dataset.sgProp = sg.proposed; img.dataset.sgNote = sg.note || '';
+    img.title = (sg.name || 'A reviewer') + ' suggests this photo — click to revise';
+  }
+  function fieldEl(code) {
+    if (code === FIELD_TITLE) return document.getElementById('article-title');
+    if (code === FIELD_DECK) return document.getElementById('article-deck');
+    if (code === FIELD_HERO) return document.getElementById('article-cover-img');
+    return null;
+  }
+  function hookField(el, code) {
+    if (!el) return;
+    el.addEventListener('mouseover', function () {
+      killImgPen();
+      var rect = el.getBoundingClientRect();
+      imgPen = document.createElement('div');
+      imgPen.className = 'sug-imgpen';
+      imgPen.innerHTML = PEN;
+      imgPen.title = code === FIELD_HERO ? 'Suggest a different photo' : 'Suggest an edit';
+      imgPen.style.position = 'absolute';
+      imgPen.style.left = (rect.right - 50 + window.scrollX) + 'px';
+      imgPen.style.top = (rect.top + 8 + window.scrollY) + 'px';
+      imgPen.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); killImgPen(); openFieldDialog(el, code); };
+      document.body.appendChild(imgPen);
+      el.addEventListener('mouseleave', function h() {
+        el.removeEventListener('mouseleave', h);
+        setTimeout(function () { if (imgPen && !imgPen.matches(':hover')) killImgPen(); }, 250);
+      });
+    });
+    el.addEventListener('click', function (e) {
+      // a field with a pending suggestion revises it; otherwise open fresh
+      e.preventDefault(); e.stopPropagation();
+      killImgPen();
+      openFieldDialog(el, code);
+    }, true);
+    if (code !== FIELD_HERO) el.style.cursor = PEN_CURSOR;
+    else el.style.cursor = 'pointer';
+  }
+  function openFieldDialog(el, code) {
+    var mk = el.querySelector && el.querySelector('mark.tmw-sg');
+    var pendingId = Number((mk && mk.dataset.sgId) || el.dataset && el.dataset.sgId || 0);
+    if (code === FIELD_HERO) {
+      openDialog({ kind: 'photo', original: (pendingId && el.dataset.sgOrig) || el.currentSrc || el.src || '', block: code,
+        updateId: pendingId || undefined, proposed: pendingId ? el.dataset.sgProp : '', note: pendingId ? el.dataset.sgNote : '', fieldEl: el });
+    } else {
+      var orig = pendingId && mk ? mk.dataset.sgOrig : el.textContent.trim();
+      openDialog({ kind: 'text', original: orig, block: code,
+        updateId: pendingId || undefined, proposed: pendingId && mk ? mk.dataset.sgProp : '', note: pendingId && mk ? mk.dataset.sgNote : '', fieldEl: el, fieldCode: code });
+    }
+  }
+  hookField(fieldEl(FIELD_TITLE), FIELD_TITLE);
+  hookField(fieldEl(FIELD_DECK), FIELD_DECK);
+  hookField(fieldEl(FIELD_HERO), FIELD_HERO);
+
   // ── paint existing suggestions: proposed text inline, purple mark ──
   fetch(WORKER_URL + '/draft-suggest?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(PREVIEW_TOKEN), { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       ((j && j.suggestions) || []).forEach(function (sg) {
-        if (!sg.original || /^https?:\/\//i.test(sg.original)) return;   // photo suggestions have no text anchor
-        try { highlightText(sg); } catch (e) {}
+        try {
+          if (sg.block === FIELD_HERO) { paintFieldHero(fieldEl(FIELD_HERO), sg); return; }
+          if (sg.block === FIELD_TITLE || sg.block === FIELD_DECK) { paintFieldText(fieldEl(sg.block), sg); return; }
+          if (!sg.original || /^https?:\/\//i.test(sg.original)) return;   // body photo suggestions have no text anchor
+          highlightText(sg);
+        } catch (e) {}
       });
     }).catch(function () {});
   function highlightText(sg) {
