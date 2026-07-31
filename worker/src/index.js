@@ -4090,6 +4090,15 @@ async function handleDraftSuggestPost(req, env, origin) {
   if (!email || !/@/.test(email)) return json({ error: 'email required' }, { status: 400 }, env, origin);
   if (!proposed && !note) return json({ error: 'empty suggestion' }, { status: 400 }, env, origin);
   await ensureSuggestTable(env);
+  // Revising your own pending suggestion (clicking its highlight re-opens the
+  // dialog) UPDATES in place — same email only; anyone else's edit inserts new.
+  const updateId = Number(b.update_id) || 0;
+  if (updateId) {
+    const r0 = await env.DB.prepare(
+      "UPDATE draft_suggestions SET original = ?1, proposed = ?2, note = ?3, created_at = ?4 WHERE id = ?5 AND slug = ?6 AND email = ?7 AND status = 'pending'"
+    ).bind(original || null, proposed || null, note || null, Math.floor(Date.now() / 1000), updateId, slug, email).run();
+    if (r0.meta && r0.meta.changes) return json({ ok: true, id: updateId, updated: true }, {}, env, origin);
+  }
   // Runaway guard: one draft can hold at most 300 open suggestions.
   const n = await env.DB.prepare("SELECT COUNT(*) c FROM draft_suggestions WHERE slug = ?1 AND status = 'pending'").bind(slug).first();
   if ((Number(n && n.c) || 0) >= 300) return json({ error: 'too many pending suggestions' }, { status: 429 }, env, origin);

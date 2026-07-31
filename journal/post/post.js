@@ -1536,11 +1536,12 @@ function initComments(slug, post) {
 
 // ===================================================================
 // CLIENT SUGGEST-EDITS — Google-Docs-style suggestions on the client
-// preview link. Anyone with the ?pt= link can select article text and
-// propose a replacement (plus a note), identified by a self-asserted
-// name + email kept on their device. Suggestions queue in the worker;
-// the Studio post editor accepts or rejects them. The draft itself is
-// never written from here.
+// preview link. Anyone with the ?pt= link can select article text (or
+// tap a photo) and propose a replacement, identified by a self-asserted
+// name + email kept on their device. Highlights render the PROPOSED
+// state inline (purple, pencil on hover, click to revise); suggestions
+// queue in the worker and the Studio post editor accepts or rejects
+// them. The draft itself is never written from here.
 // ===================================================================
 function initSuggestMode(post) {
   if (!PREVIEW_TOKEN) return;
@@ -1550,23 +1551,32 @@ function initSuggestMode(post) {
   if (!bodyEl || bodyEl.__sugInit) return;
   bodyEl.__sugInit = 1;
 
+  var PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+  var PEN_CURSOR = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' stroke='black' stroke-width='4.4'/><path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/></svg>\") 2 20, pointer";
+
   var css = document.createElement('style');
   css.textContent =
     '#sug-banner{margin:14px 0 6px;padding:11px 16px;border:1px solid rgba(167,139,250,.4);border-radius:12px;background:rgba(167,139,250,.08);font-size:13px;color:#d9d2f5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:Inter,-apple-system,sans-serif}' +
-    '#sug-banner b{color:#fff}' +
+    '#sug-banner b{color:#fff;display:inline-flex;align-items:center;gap:7px}' +
+    '#sug-banner b svg{width:13px;height:13px;flex:0 0 auto}' +
     '#sug-banner .sug-who{margin-left:auto;font-size:11.5px;color:#a99fd6}' +
     '#sug-banner .sug-who a{color:#B9A6FF;cursor:pointer;text-decoration:underline}' +
     '#sug-banner .sug-note-btn{font-size:11.5px;color:#B9A6FF;cursor:pointer;text-decoration:underline}' +
-    '.sug-chip{position:absolute;z-index:9999;background:#1c1530;border:1px solid rgba(167,139,250,.6);color:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);font-family:Inter,-apple-system,sans-serif;white-space:nowrap}' +
+    '.sug-chip{position:absolute;z-index:9999;display:inline-flex;align-items:center;gap:7px;background:#1c1530;border:1px solid rgba(167,139,250,.6);color:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);font-family:Inter,-apple-system,sans-serif;white-space:nowrap}' +
+    '.sug-chip svg{width:12px;height:12px;flex:0 0 auto}' +
     '.sug-chip:hover{background:#2a2046}' +
-    'mark.tmw-sg{background:rgba(230,197,116,.25);color:inherit;border-bottom:2px solid rgba(230,197,116,.8);cursor:help}' +
+    'mark.tmw-sg{background:rgba(167,139,250,.22);color:inherit;border-bottom:2px solid rgba(167,139,250,.85);cursor:' + PEN_CURSOR + '}' +
     'mark.tmw-sg.acc{background:rgba(31,223,103,.18);border-bottom-color:rgba(31,223,103,.8)}' +
+    '.sug-imgpen{position:absolute;z-index:9998;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(20,16,32,.85);border:1px solid rgba(167,139,250,.6);cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.5);transition:background .15s}' +
+    '.sug-imgpen:hover{background:rgba(46,35,78,.95)}' +
+    '.sug-imgpen svg{width:16px;height:16px}' +
     '#sug-modal{position:fixed;inset:0;z-index:10000;background:rgba(5,5,8,.72);display:flex;align-items:center;justify-content:center;padding:18px}' +
     '#sug-modal .sug-box{width:min(560px,100%);background:#141018;border:1px solid rgba(167,139,250,.35);border-radius:16px;padding:22px;font-family:Inter,-apple-system,sans-serif;max-height:88vh;overflow:auto}' +
     '#sug-modal h3{margin:0 0 14px;font-size:16px;color:#fff}' +
     '#sug-modal label{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#9AA39C;margin:12px 0 5px}' +
-    '#sug-modal .sug-orig{font-size:13px;color:#c9c2e0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 11px;max-height:110px;overflow:auto}' +
+    '#sug-modal .sug-orig{font-size:13px;color:#c9c2e0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 11px;max-height:110px;overflow:auto;word-break:break-word}' +
     '#sug-modal textarea,#sug-modal input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#fff;font-size:13.5px;padding:9px 11px;font-family:inherit}' +
+    '#sug-modal textarea::placeholder,#sug-modal input::placeholder{color:#8b8798;opacity:1}' +
     '#sug-modal textarea{min-height:86px;resize:vertical}' +
     '#sug-modal .sug-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}' +
     '#sug-modal button{border:0;border-radius:999px;padding:10px 20px;font-size:12.5px;font-weight:700;cursor:pointer}' +
@@ -1585,13 +1595,13 @@ function initSuggestMode(post) {
   banner.id = 'sug-banner';
   function paintBanner() {
     var w = who();
-    banner.innerHTML = '<b>✏️ Suggest edits</b><span>Select any text in the article to propose a change.</span>' +
+    banner.innerHTML = '<b>' + PEN + 'Suggest edits</b><span>Select any text, or tap a photo, to propose a change.</span>' +
       '<span class="sug-note-btn" id="sugGeneralBtn">+ general note</span>' +
       '<span class="sug-who">' + (w && w.email ? 'Reviewing as <b>' + escapeHtml(w.name || w.email) + '</b> · <a id="sugWhoBtn">change</a>' : '<a id="sugWhoBtn">Set your name &amp; email</a>') + '</span>';
     var wb = banner.querySelector('#sugWhoBtn');
     if (wb) wb.onclick = function () { askWho(function () { paintBanner(); }); };
     var gb = banner.querySelector('#sugGeneralBtn');
-    if (gb) gb.onclick = function () { openDialog('', -1); };
+    if (gb) gb.onclick = function () { openDialog({ kind: 'note' }); };
   }
   if (pill && pill.parentNode) pill.parentNode.insertBefore(banner, pill.nextSibling);
   else bodyEl.parentNode.insertBefore(banner, bodyEl);
@@ -1626,32 +1636,49 @@ function initSuggestMode(post) {
     var x = m.querySelector('[data-x]'); if (x) x.onclick = close;
     document.body.appendChild(m);
     wire(m.querySelector('.sug-box'), close);
-    var f = m.querySelector('input,textarea'); if (f) f.focus();
+    var f = m.querySelector('textarea,input'); if (f) f.focus();
   }
 
   // ── the suggestion dialog ──
-  function openDialog(original, block, range) {
+  // opts: { kind: 'text'|'photo'|'note', original, block, range, markEl,
+  //         updateId, proposed, note }  (updateId → revising an existing one)
+  function openDialog(opts) {
     var w = who();
-    if (!w || !w.email) { askWho(function () { openDialog(original, block, range); }); return; }
-    var isNote = !original;
-    modal('<h3>' + (isNote ? 'General note for the editors' : 'Suggest an edit') + '</h3>' +
-      (isNote ? '' : '<label>Original</label><div class="sug-orig">' + escapeHtml(original) + '</div>' +
-        '<label>Your suggested replacement</label><textarea id="sgProp">' + escapeHtml(original) + '</textarea>') +
-      '<label>' + (isNote ? 'Your note' : 'Note (optional)') + '</label><textarea id="sgNote" style="min-height:56px" placeholder="' + (isNote ? 'Anything the editors should know…' : 'Why this change?') + '"></textarea>' +
+    if (!w || !w.email) { askWho(function () { openDialog(opts); }); return; }
+    var kind = opts.kind || 'text';
+    var original = opts.original || '';
+    var isNote = kind === 'note';
+    var isPhoto = kind === 'photo';
+    var title = isNote ? 'General note for the editors' : (isPhoto ? 'Suggest a different photo' : (opts.updateId ? 'Revise this suggestion' : 'Suggest an edit'));
+    // The replacement field starts EMPTY with the original as gray placeholder
+    // text — type straight over it, nothing to delete. Revising an existing
+    // suggestion prefills its current proposal for editing.
+    var propVal = opts.updateId ? (opts.proposed || '') : '';
+    var propPh = isPhoto ? 'Paste an image URL (https://…)' : escapeHtml(original);
+    modal('<h3>' + title + '</h3>' +
+      (isNote ? '' :
+        '<label>' + (isPhoto ? 'Current photo' : 'Original') + '</label><div class="sug-orig">' + escapeHtml(original) + '</div>' +
+        '<label>' + (isPhoto ? 'Replacement image URL' : 'Your suggested replacement') + '</label>' +
+        '<textarea id="sgProp" placeholder="' + propPh + '"' + (isPhoto ? ' style="min-height:56px"' : '') + '>' + escapeHtml(propVal) + '</textarea>') +
+      '<label>' + (isNote ? 'Your note' : 'Note (optional)') + '</label><textarea id="sgNote" style="min-height:56px" placeholder="' + (isNote ? 'Anything the editors should know…' : 'Why this change?') + '">' + escapeHtml(opts.note || '') + '</textarea>' +
       '<div class="sug-row"><button class="sug-x" data-x>Cancel</button><button class="sug-go" data-go>Send suggestion</button></div>',
       function (box, close) {
         box.querySelector('[data-go]').onclick = function () {
-          var prop = isNote ? '' : box.querySelector('#sgProp').value;
+          var propEl = box.querySelector('#sgProp');
+          var prop = isNote ? '' : (propEl ? propEl.value.trim() : '');
           var note = box.querySelector('#sgNote').value.trim();
-          if (!isNote && prop === original && !note) { close(); return; }
-          if (isNote && !note) { close(); return; }
+          if (!prop && !note) { close(); return; }
+          if (isPhoto && prop && !/^https?:\/\//i.test(prop)) { propEl.style.borderColor = '#FF5C5C'; return; }
           var btn = box.querySelector('[data-go]'); btn.disabled = true; btn.textContent = 'Sending…';
+          var payload = { slug: slug, pt: PREVIEW_TOKEN, name: w.name, email: w.email, block: opts.block != null ? opts.block : -1, original: original, proposed: prop, note: note };
+          if (opts.updateId) payload.update_id = opts.updateId;
           fetch(WORKER_URL + '/draft-suggest', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug: slug, pt: PREVIEW_TOKEN, name: w.name, email: w.email, block: block, original: original, proposed: prop, note: note }),
+            body: JSON.stringify(payload),
           }).then(function (r) { return r.json(); }).then(function (j) {
             if (j && j.ok) {
-              if (range) { try { wrapRange(range, 'pending', w.name || w.email, prop); } catch (e) {} }
+              if (opts.markEl) { decorateMark(opts.markEl, j.id, original, prop, note, w.name || w.email); }
+              else if (opts.range && !isPhoto) { try { var mk = wrapRange(opts.range, 'pending'); decorateMark(mk, j.id, original, prop, note, w.name || w.email); } catch (e) {} }
               toast('Suggestion sent — the editors will review it.');
               close();
             } else { btn.disabled = false; btn.textContent = 'Send suggestion'; toast((j && j.error) || 'Could not send — try again'); }
@@ -1660,12 +1687,30 @@ function initSuggestMode(post) {
       });
   }
 
-  function wrapRange(range, status, name2, prop) {
+  function wrapRange(range, status) {
     var mk = document.createElement('mark');
     mk.className = 'tmw-sg' + (status === 'accepted' ? ' acc' : '');
-    mk.title = (name2 ? name2 + ' suggests: ' : 'Suggested: ') + (prop || '');
     range.surroundContents(mk);
+    return mk;
   }
+  // The highlight shows the PROPOSED text inline (the suggested state of the
+  // sentence); the original lives in the tooltip + dataset for revising.
+  function decorateMark(mk, id, original, prop, note, name2) {
+    if (!mk) return;
+    if (prop) mk.textContent = prop;
+    mk.dataset.sgId = id || '';
+    mk.dataset.sgOrig = original || '';
+    mk.dataset.sgProp = prop || '';
+    mk.dataset.sgNote = note || '';
+    mk.title = (name2 ? name2 + ' suggests this' : 'Suggested') + (original ? ' (was: “' + original + '”)' : '') + ' — click to revise';
+  }
+  // Click a highlight → reopen the dialog on that suggestion.
+  bodyEl.addEventListener('click', function (e) {
+    var mk = e.target && e.target.closest && e.target.closest('mark.tmw-sg');
+    if (!mk || !mk.dataset.sgId) return;
+    e.preventDefault(); e.stopPropagation();
+    openDialog({ kind: 'text', original: mk.dataset.sgOrig, proposed: mk.dataset.sgProp, note: mk.dataset.sgNote, updateId: Number(mk.dataset.sgId), markEl: mk });
+  }, true);
 
   // ── selection → floating chip ──
   var chip = null;
@@ -1679,10 +1724,11 @@ function initSuggestMode(post) {
       if (text.length < 3 || text.length > 1500) return;
       var r = sel.getRangeAt(0);
       if (!bodyEl.contains(r.commonAncestorContainer)) return;
+      if (r.commonAncestorContainer.parentElement && r.commonAncestorContainer.parentElement.closest('mark.tmw-sg')) return;
       var rect = r.getBoundingClientRect();
       chip = document.createElement('div');
       chip.className = 'sug-chip';
-      chip.textContent = '✏️ Suggest edit';
+      chip.innerHTML = PEN + 'Suggest edit';
       chip.style.left = Math.max(8, rect.left + rect.width / 2 - 60 + window.scrollX) + 'px';
       chip.style.top = (rect.bottom + 8 + window.scrollY) + 'px';
       chip.addEventListener('mousedown', function (e) { e.preventDefault(); });
@@ -1692,31 +1738,73 @@ function initSuggestMode(post) {
         var block = blockEl ? Array.prototype.indexOf.call(bodyEl.children, blockEl) : -1;
         var keep = r.cloneRange();
         killChip();
-        openDialog(text, block, keep);
+        openDialog({ kind: 'text', original: text, block: block, range: keep });
       };
       document.body.appendChild(chip);
     }, 60);
   });
 
-  // ── paint existing suggestions as highlights ──
+  // ── photos: pencil on hover, click → suggest a replacement URL ──
+  var imgPen = null;
+  function killImgPen() { if (imgPen) { imgPen.remove(); imgPen = null; } }
+  function imgBlockIndex(img) {
+    var el = img;
+    while (el && el.parentElement !== bodyEl) el = el.parentElement;
+    return el ? Array.prototype.indexOf.call(bodyEl.children, el) : -1;
+  }
+  function openPhotoDialog(img) {
+    openDialog({ kind: 'photo', original: img.currentSrc || img.src || '', block: imgBlockIndex(img) });
+  }
+  bodyEl.addEventListener('mouseover', function (e) {
+    var img = e.target && e.target.tagName === 'IMG' ? e.target : null;
+    if (!img) return;
+    killImgPen();
+    var rect = img.getBoundingClientRect();
+    if (rect.width < 80) return;
+    imgPen = document.createElement('div');
+    imgPen.className = 'sug-imgpen';
+    imgPen.innerHTML = PEN;
+    imgPen.title = 'Suggest a different photo';
+    imgPen.style.position = 'absolute';
+    imgPen.style.left = (rect.right - 50 + window.scrollX) + 'px';
+    imgPen.style.top = (rect.top + 12 + window.scrollY) + 'px';
+    imgPen.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); killImgPen(); openPhotoDialog(img); };
+    document.body.appendChild(imgPen);
+    img.addEventListener('mouseleave', function h(ev) {
+      img.removeEventListener('mouseleave', h);
+      setTimeout(function () { if (imgPen && !imgPen.matches(':hover')) killImgPen(); }, 250);
+    });
+  });
+  // Clicking the image itself in suggest mode opens the photo dialog (the
+  // lightbox zoom is a reading-mode affordance, not a review one).
+  bodyEl.addEventListener('click', function (e) {
+    var img = e.target && e.target.tagName === 'IMG' ? e.target : null;
+    if (!img) return;
+    e.preventDefault(); e.stopPropagation();
+    killImgPen();
+    openPhotoDialog(img);
+  }, true);
+
+  // ── paint existing suggestions: proposed text inline, purple mark ──
   fetch(WORKER_URL + '/draft-suggest?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(PREVIEW_TOKEN), { cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       ((j && j.suggestions) || []).forEach(function (sg) {
-        if (!sg.original) return;
-        try { highlightText(sg.original, sg.status, sg.name, sg.proposed); } catch (e) {}
+        if (!sg.original || /^https?:\/\//i.test(sg.original)) return;   // photo suggestions have no text anchor
+        try { highlightText(sg); } catch (e) {}
       });
     }).catch(function () {});
-  function highlightText(orig, status, name2, prop) {
+  function highlightText(sg) {
     var walk = document.createTreeWalker(bodyEl, NodeFilter.SHOW_TEXT);
     var node;
     while ((node = walk.nextNode())) {
-      var i = node.nodeValue.indexOf(orig);
+      var i = node.nodeValue.indexOf(sg.original);
       if (i < 0) continue;
       if (node.parentElement && node.parentElement.closest('mark.tmw-sg')) continue;
       var r = document.createRange();
-      r.setStart(node, i); r.setEnd(node, i + orig.length);
-      wrapRange(r, status, name2, prop);
+      r.setStart(node, i); r.setEnd(node, i + sg.original.length);
+      var mk = wrapRange(r, sg.status);
+      decorateMark(mk, sg.id, sg.original, sg.proposed, sg.note, sg.name);
       return;
     }
   }
