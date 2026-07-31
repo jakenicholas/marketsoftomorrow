@@ -630,8 +630,7 @@ function render(){
   });
   html += '</div>';
   html += routeMapHtml();
-  html += '<div class="more-trips-wrap"><a class="more-trips" href="/travel">More upcoming trips<span class="mt-arw">→</span></a></div>';
-  html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
+  html += '<footer class="f"><div class="fm">Bon voyage.</div><div class="more-trips-wrap"><a class="more-trips" href="/travel">More upcoming trips<span class="mt-arw">→</span></a></div></footer>';
   document.getElementById('tl').innerHTML = html;
 
   // Reveal images: inline onload misses images already complete (cache/fast),
