@@ -38,6 +38,14 @@
     --purple:#B0603A; --purple-glow:#C47A50;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif; --mono:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; --glass:blur(16px) saturate(1.4);
   }
+  /* THIS page only: recolor the header Dashboard button's avatar + count circles
+     from purple to the page terracotta, with the light-beige page bg as the text.
+     tmw-dashbtn.js injects its CSS after us, so !important is needed to win. */
+  .tmw-dashbtn .db-face{background:linear-gradient(135deg,#C47A50,#9E4A28) !important;color:#F2E9D7 !important}
+  .tmw-dashbtn .db-n{background:#B0603A !important;color:#F2E9D7 !important;box-shadow:0 0 12px rgba(176,96,58,.55) !important}
+  .tmw-dashbtn .db-n:hover{box-shadow:0 0 18px rgba(176,96,58,.9) !important}
+  .tmw-dashbtn .db-n.db-zero{background:rgba(176,96,58,.16) !important;box-shadow:none !important}
+  .tmw-dashbtn .db-n.db-zero svg{stroke:#B0603A !important}
   /* Override the chrome's few hardcoded dark surfaces + drop the Intelligence
      search overlay and pinned dock — all scoped to this page's DOM only. */
   .tmw-chrome-head nav.main{background:#F2E9D7 !important; border-bottom:1px solid rgba(176,96,58,.2) !important}
