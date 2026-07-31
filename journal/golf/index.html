@@ -2739,7 +2739,7 @@ function formatDate(s) {
         '<div class="ph"><img src="' + esc(h.img) + '" loading="lazy" alt="">' +
         '<span class="op-status ' + cls + '">' + esc(h.s) + '</span>' +
         '<span class="op-bell" data-slug="' + esc(h.slug) + '" data-name="' + esc(h.t) + '" title="Watch — get the opening alert">' + BELL_SVG + '</span>' +
-        '<div class="info"><h3>' + esc(h.t) + '</h3><div class="where">' + esc(h.city) + (h.country && h.country !== 'United States' ? ' · ' + esc(h.country) : '') + '</div></div>' +
+        '<div class="info"><h3>' + esc(h.t) + '</h3><div class="where">' + esc(h.city) + (h.country ? ' · ' + esc(h.country === 'United States' ? 'USA' : h.country) : '') + '</div></div>' +
         (locked ? '<div class="op-lock"><span class="pill">Announced · Pro</span></div>' : '') + '</div>' +
         '<div class="eta-line"><span>' + esc(h.dev || '') + '</span><b>' + (h.s === 'Now Open' ? (etaSort(h.d) <= NOWKEY ? fmtEta(h.d) : 'Open') : fmtEta(h.d)) + '</b></div></a>';
     }).join('') || '<div style="grid-column:1/-1; padding:50px 0; text-align:center; color:var(--mute); font-family:var(--mono); font-size:12px">No courses match this filter yet.</div>';
