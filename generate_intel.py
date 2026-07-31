@@ -1063,8 +1063,15 @@ def build_pattern_summary(target, pool_count, comp_median, estimate, low, high,
     else:
         prox_adj = ''
 
+    # Lead descriptor: when the comp pool is geographically tight, the
+    # proximity word ("nearby ", "same-metro ", "regional ") already signals
+    # it's a filtered subset. When it isn't, fall back to "comparable " so the
+    # sentence never reads as a raw total (TMW tracks far more than `pool_count`
+    # of any one type — "Among 20 residences projects in TMW's data" wrongly
+    # implied only 20 exist; "20 comparable residences projects" is accurate).
+    descriptor = prox_adj if prox_adj else 'comparable '
     base = (
-        f"Among {pool_count} {prox_adj}{type_label} project{'s' if pool_count != 1 else ''}"
+        f"Among {pool_count} {descriptor}{type_label} project{'s' if pool_count != 1 else ''}"
         f" in TMW's data, the median build time is {unit_label(comp_str, 'year')}"
     )
     if low_str != high_str:

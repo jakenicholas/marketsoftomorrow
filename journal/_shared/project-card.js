@@ -149,12 +149,10 @@
     var confLabel = ({ high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' })[conf] || '';
     var range = (entry.range_low != null && entry.range_high != null && entry.range_low !== entry.range_high)
       ? ' <span class="range">(' + entry.range_low + '–' + entry.range_high + ' yrs)</span>' : '';
-    var similars = (entry.comparables || []).slice(0, 3).map(function (c) {
-      return '<a class="pm-intel-similar" href="' + projectUrl(c.slug || '') + '" target="_blank" rel="noopener">' +
-        '<div class="pm-intel-similar-name">' + esc(c.name || '') + '</div>' +
-        '<div class="pm-intel-similar-loc">' + esc(c.location || '') + '</div>' +
-        '<div class="pm-intel-similar-row"><span><b>' + esc(c.years) + '</b> yrs</span></div></a>';
-    }).join('');
+    // The linked-project card intentionally omits the "Similar Projects in
+    // TMW's Data" comparable tiles the map modal shows — they made long-title
+    // cards very tall. The pattern sentence below still summarizes the
+    // comparable set, so the reasoning is preserved without the extra rows.
     var pattern = esc(entry.pattern_summary || '');
     if (entry.comparable_count != null) {
       pattern = pattern.replace(new RegExp('\\b' + entry.comparable_count + '\\b'), '<span class="pm-intel-highlight">' + entry.comparable_count + '</span>');
@@ -165,7 +163,6 @@
         (confLabel ? '<span class="pm-intel-confidence" data-conf="' + conf + '">' + confLabel + '</span>' : '') +
       '</div>' +
       '<div class="pm-intel-estimate">' + esc(estimateLabel) + ' <span class="unit">to completion</span>' + range + '</div>' +
-      (similars ? '<div class="pm-intel-similar-label">Similar Projects in TMW\'s Data</div><div class="pm-intel-similars">' + similars + '</div>' : '') +
       '<div class="pm-intel-pattern">' + pattern + '</div>' +
       '<div class="pm-intel-disclaimer">Pattern-based estimate, not a developer commitment. Actual timelines can vary by 6–18 months.</div>' +
       districtAnchorHtml +
@@ -352,9 +349,9 @@
       '.tmw-pcard .pc-flyover .lbl{position:absolute; right:calc(100% + 8px); top:50%; transform:translateY(-50%); font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--cream); background:rgba(7,8,7,.75); padding:5px 9px; border-radius:6px; white-space:nowrap; opacity:0; transition:opacity .18s; pointer-events:none}',
       '.tmw-pcard .pc-flyover:hover .lbl{opacity:1}',
       '.tmw-pcard .pc-body{padding:30px 34px}',
-      '.tmw-pcard .pc-name{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(28px,3.4vw,46px); line-height:1; letter-spacing:-.02em; color:#fff; margin:0}',
+      '.tmw-pcard .pc-name{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(23px,2.5vw,32px); line-height:1.08; letter-spacing:-.02em; color:#fff; margin:0}',
       '.tmw-pcard .pc-loc{font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mute2); margin-top:13px}',
-      '.tmw-pcard .pc-desc{font-size:14.5px; line-height:1.6; color:var(--mute2); font-weight:300; margin:16px 0 0; max-width:48ch}',
+      '.tmw-pcard .pc-desc{font-size:14.5px; line-height:1.6; color:var(--mute2); font-weight:300; margin:16px 0 0; max-width:none}',
       // The article CSS drop-caps the first <p>; .pc-desc is a first-of-type <p>
       // inside .pc-body, so it inherits the giant first letter. Reset it.
       '.tmw-pcard .pc-desc::first-letter{font-size:inherit !important; float:none !important; font-family:inherit !important; font-weight:inherit !important; padding:0 !important; line-height:inherit !important; color:inherit !important}',
