@@ -1217,9 +1217,10 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
     (function(){
       Promise.all([
         fetch('/map/atlas-projections-public.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}),
-        fetch('/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+        fetch('/map/atlas-intel.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+        fetch('/markets-index.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
       ]).then(function(pair){
-        var d=pair[0], intel=pair[1];
+        var d=pair[0], intel=pair[1], mktIndex=pair[2];
         if(!d||!d.projects) return;
         var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
         var LVLCOL={Balanced:'#1FDF67',Elevated:'#F5A623',Saturated:'#FF5C5C'};
@@ -1237,57 +1238,70 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
             return (i?'L':'M')+x.toFixed(1)+','+y.toFixed(1);
           }).join(' ');
           var c=LVLCOL[m.level]||'#1FDF67';
-          return '<div class="hai-gcap">'+esc(m.city)+' market avg · units delivering by half-year</div>'
+          return '<div class="hai-gcap">Market avg · units delivering by half-year</div>'
             +'<svg class="hai-band" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
             +'<path d="'+line+' L'+W+','+(H-2)+' L0,'+(H-2)+' Z" fill="'+c+'" fill-opacity="0.12" stroke="none"/>'
             +'<path d="'+line+'" fill="none" stroke="'+c+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         }
-        var PINS=['waldorf-astoria-residences-miami','one-beverly-hills','520-fifth-avenue'];
+        // MARKET cards, not project spotlights — each card is a market with a
+        // market-average modeled PSF (Pro-painted from up to 4 modeled projects).
         var all=Object.keys(d.projects).map(function(k){var v=d.projects[k];v._slug=k;return v;})
-          .filter(function(v){return v.modeled&&v.title;})
+          .filter(function(v){return v.modeled&&v.title&&v.market;})
           .sort(function(a,b){return (b.confidence==='high')-(a.confidence==='high')||(b.comp_count||0)-(a.comp_count||0);});
-        var rows=[];
-        PINS.forEach(function(s){ var hit=all.filter(function(v){return v._slug===s;})[0]; if(hit) rows.push(hit); });
-        all.forEach(function(v){ if(rows.length<3 && rows.indexOf(v)<0) rows.push(v); });
-        if(rows.length<3) return;
-        document.getElementById('haiSub').textContent='Modeled pricing at delivery now live for '+rows.length+' pre-construction projects';
-        document.getElementById('haiGrid').innerHTML=rows.slice(0,3).map(function(v){
-          var mkt=(intel&&intel.markets&&v.market)?intel.markets[v.market]:null;
-          var spark=marketSpark(mkt)
-            ||('<svg class="hai-band" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">'
-            +'<path d="M0,24 L40,22 L80,19 L120,15 L160,11 L200,6 L200,14 L160,18 L120,22 L80,25 L40,27 L0,29 Z" fill="rgba(31,223,103,0.14)"/>'
-            +'<path d="M0,27 L40,25 L80,22 L120,18 L160,14 L200,9" fill="none" stroke="#1FDF67" stroke-width="1.6" stroke-linecap="round"/>'
-            +'<circle cx="200" cy="9" r="2.5" fill="#1FDF67"/></svg>');
-          return '<a class="hai-card" href="/projects/'+encodeURIComponent(v._slug)+'/">'
-            +'<div class="hai-name">'+esc(v.title)+'</div>'
-            +'<div class="hai-meta">'+esc(v.city||'')+(v.delivery_label?' · '+esc(v.delivery_label):'')+'</div>'
-            +'<div class="hai-row"><span class="hai-psf">$•,•••</span><span class="hai-unit">/ sq ft at delivery</span>'
-            +'<span class="hai-conf">'+esc((v.confidence||'').toUpperCase())+' · '+(v.comp_count||0)+' comps</span></div>'
-            +'<div class="hai-scn"><span>Sell-out <b class="hai-sell hai-blur">··</b> months</span><span>Pace <b class="hai-pace hai-blur">·.·</b> units/mo</span></div>'
-            +spark+'</a>';
+        var byMkt={};
+        all.forEach(function(v){ (byMkt[v.market]=byMkt[v.market]||[]).push(v); });
+        var pageSlugs=mktIndex?Object.values(mktIndex):[];
+        var mkts=Object.keys(byMkt).map(function(k){
+          return { slug:k, list:byMkt[k], m:(intel&&intel.markets)?intel.markets[k]:null };
+        }).filter(function(x){return x.m;})
+          .sort(function(a,b){return b.list.length-a.list.length||((b.m.score||0)-(a.m.score||0));})
+          .slice(0,3);
+        if(mkts.length<3) return;
+        document.getElementById('haiSub').textContent='Market-average modeled pricing · '+all.length+' pre-construction projects across '+Object.keys(byMkt).length+' markets';
+        document.getElementById('haiGrid').innerHTML=mkts.map(function(x){
+          var m=x.m;
+          var href=pageSlugs.indexOf(x.slug)>=0?('/markets/'+encodeURIComponent(x.slug)+'/'):'/atlas/';
+          var c=LVLCOL[m.level]||'#1FDF67';
+          var units=m.pipeline_units?(' · '+m.pipeline_units.toLocaleString('en-US')+' units in pipeline'):'';
+          return '<a class="hai-card" href="'+href+'">'
+            +'<div class="hai-name">'+esc(m.city)+'</div>'
+            +'<div class="hai-meta">'+esc(m.state||m.country||'')+' · '+x.list.length+' projects modeled'+units+'</div>'
+            +'<div class="hai-row"><span class="hai-psf">$•,•••</span><span class="hai-unit">avg / sq ft at delivery</span>'
+            +'<span class="hai-conf" style="color:'+c+';border-color:'+c+'55">'+esc((m.level||'').toUpperCase())+' · '+(m.score||0)+'</span></div>'
+            +'<div class="hai-scn"><span>Avg sell-out <b class="hai-sell hai-blur">··</b> months</span><span>Avg pace <b class="hai-pace hai-blur">·.·</b> units/mo</span></div>'
+            +marketSpark(m)+'</a>';
         }).join('');
         document.getElementById('homeAtlasIntel').hidden=false;
         try{if(window.tmwFunnelTrack)window.tmwFunnelTrack('atlas_home_preview_view',{});}catch(_e){}
-        // Pro members see the real modeled PSF (server-verified per card;
-        // values are never in this page's payload).
-        var shown=rows.slice(0,3);
+        // Pro members see the real market-average PSF (server-verified per
+        // project; values are never in this page's payload). Each card averages
+        // up to 4 of its market's modeled projects.
         function withMember(cb,t){t=t||0;var ms=window.$memberstackDom;
           if(ms&&ms.getCurrentMember){ms.getCurrentMember().then(function(r){cb(r&&r.data);}).catch(function(){cb(null);});return;}
           if(t>40){cb(null);return;} setTimeout(function(){withMember(cb,t+1);},500);}
         withMember(function(mem){ if(!mem||!mem.id) return;
-          shown.forEach(function(v,i){
-            fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:v._slug,member_id:mem.id})})
-              .then(function(r2){return r2.json();})
-              .then(function(j){ if(!j||!j.found||j.gated||!j.model) return;
-                var card=document.querySelectorAll('#haiGrid .hai-card')[i];
-                var el=card&&card.querySelector('.hai-psf');
-                if(el){el.textContent='$'+Math.round(j.model.proj_psf_delivery).toLocaleString('en-US');el.classList.add('on');}
-                var base=(j.model.scenarios||{}).base||{};
-                var se=card&&card.querySelector('.hai-sell');
-                if(se&&base.sellout_months!=null){se.textContent=base.sellout_months;se.classList.add('on');se.classList.remove('hai-blur');}
-                var pa=card&&card.querySelector('.hai-pace');
-                if(pa&&base.pace!=null){pa.textContent=base.pace;pa.classList.add('on');pa.classList.remove('hai-blur');}
-              }).catch(function(){});
+          mkts.forEach(function(x,i){
+            Promise.all(x.list.slice(0,4).map(function(v){
+              return fetch('https://tmw.jake-ab7.workers.dev/atlas/projection-full',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:v._slug,member_id:mem.id})})
+                .then(function(r2){return r2.json();})
+                .then(function(j){return (j&&j.found&&!j.gated&&j.model)?j.model:null;})
+                .catch(function(){return null;});
+            })).then(function(models){
+              models=models.filter(Boolean);
+              if(!models.length) return;
+              var avg=function(vals){vals=vals.filter(function(n){return n!=null&&isFinite(n);});return vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:null;};
+              var card=document.querySelectorAll('#haiGrid .hai-card')[i];
+              if(!card) return;
+              var psf=avg(models.map(function(md){return md.proj_psf_delivery;}));
+              var el=card.querySelector('.hai-psf');
+              if(el&&psf!=null){el.textContent='$'+Math.round(psf).toLocaleString('en-US');el.classList.add('on');}
+              var sell=avg(models.map(function(md){return ((md.scenarios||{}).base||{}).sellout_months;}));
+              var se=card.querySelector('.hai-sell');
+              if(se&&sell!=null){se.textContent=Math.round(sell);se.classList.add('on');se.classList.remove('hai-blur');}
+              var pace=avg(models.map(function(md){return ((md.scenarios||{}).base||{}).pace;}));
+              var pa=card.querySelector('.hai-pace');
+              if(pa&&pace!=null){pa.textContent=(Math.round(pace*10)/10);pa.classList.add('on');pa.classList.remove('hai-blur');}
+            });
           });
         });
       }).catch(function(){});
