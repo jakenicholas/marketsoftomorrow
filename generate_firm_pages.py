@@ -926,7 +926,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
     if sb['os']:
         faq_items.append((
             f'What {title} projects are opening soon?',
-            f'<b>{sb["os"]} project{"s" if sb["os"] != 1 else ""}</b> by {e(title)} are flagged Opening Soon — expected to open within ~7 months. Pro members get our weekly Slippage Report flagging which forecasts have shifted.',
+            f'<b>{sb["os"]} project{"s" if sb["os"] != 1 else ""}</b> by {e(title)} are flagged Opening Soon — expected to open within ~7 months. Pro members get the TMW Forecast on every project as forecasts shift.',
         ))
     if sb['an']:
         faq_items.append((
@@ -1103,7 +1103,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
 
     <div class="pro-cta">
       <div class="l">
-        Get the full {e(title)} dataset, weekly Slippage Report, and the TMW Forecast on every project.
+        Get the full {e(title)} dataset and the TMW Forecast on every project.
         <em>The part of Pro that pays for itself.</em>
         <i>Markets of Tomorrow Pro · $15/mo</i>
       </div>

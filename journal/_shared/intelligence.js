@@ -150,11 +150,13 @@
 .tmw-intel .pulse .pitem .dot{width:4px; height:4px; border-radius:50%; background:var(--green); flex-shrink:0}
 @keyframes tiTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .tmw-intel .feats{margin-top:30px; display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
-.tmw-intel .feat{padding:18px 16px 16px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid var(--hair); position:relative; overflow:hidden; transition:transform .25s, border-color .25s, background .25s}
+.tmw-intel .feat{display:block; text-decoration:none; color:inherit; cursor:pointer; padding:18px 16px 16px; border-radius:14px; background:rgba(255,255,255,.03); border:1px solid var(--hair); position:relative; overflow:hidden; transition:transform .25s, border-color .25s, background .25s}
+.tmw-intel .feat .fgo{position:absolute; top:12px; right:12px; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.05); border:1px solid var(--hair2); transition:background .2s, border-color .2s}
+.tmw-intel .feat .fgo svg{width:11px; height:11px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.tmw-intel .feat:hover .fgo{background:rgba(167,139,250,.18); border-color:rgba(167,139,250,.5)}
 .tmw-intel .feat:hover{transform:translateY(-3px); border-color:var(--hair2); background:rgba(255,255,255,.05)}
-.tmw-intel .feat .ficon{width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(31,223,103,.1); border:1px solid rgba(31,223,103,.25); margin-bottom:13px}
-.tmw-intel .feat .ficon svg{width:15px; height:15px; stroke:var(--green-soft); fill:none; stroke-width:1.9}
-.tmw-intel .feat.pro .ficon{background:rgba(167,139,250,.12); border-color:rgba(167,139,250,.3)}
+.tmw-intel .feat .ficon{width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); margin-bottom:13px}
+.tmw-intel .feat .ficon svg{width:15px; height:15px; stroke:#B9A6FF; fill:none; stroke-width:1.9}
 .tmw-intel .feat.pro .ficon svg{stroke:var(--purple-glow)}
 .tmw-intel .feat .fname{font-size:13px; font-weight:600; color:#fff; display:flex; align-items:center; gap:7px}
 .tmw-intel .feat .fname .lock{width:11px; height:11px; stroke:var(--gold-soft); fill:none; stroke-width:2}
@@ -470,35 +472,36 @@
     </div>
 
     <div class="feats">
-      <div class="feat">
+      <a class="feat" href="https://www.oftmw.com/map">
+        <span class="fgo"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
         <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
         <div class="fname">View on map</div>
         <div class="fdesc">Every project as a pin. Fly to any city, filter by type, status, or year.</div>
-      </div>
-      <div class="feat pro">
-        <span class="ptag2">PRO</span>
+      </a>
+      <a class="feat" href="https://www.oftmw.com/" data-go="search">
+        <span class="fgo"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
         <div class="ficon"><svg viewBox="0 0 24 24"><polygon points="12,4.3 18.65,8.16 18.65,15.84 12,19.68 5.35,15.84 5.35,8.16"/></svg></div>
-        <div class="fname">Intelligence <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fname">Intelligence</div>
         <div class="fdesc">Timeline forecasts &amp; comparable-project engine on every development.</div>
-      </div>
-      <div class="feat pro">
-        <span class="ptag2">PRO</span>
+      </a>
+      <a class="feat" href="https://www.oftmw.com/atlas/">
+        <span class="fgo"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
         <div class="ficon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/></svg></div>
-        <div class="fname">Compare <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fname">Compare</div>
         <div class="fdesc">Two developers, two markets, side by side. Units, timelines, pipeline.</div>
-      </div>
-      <div class="feat pro">
-        <span class="ptag2">PRO</span>
+      </a>
+      <a class="feat" href="https://www.oftmw.com/dashboard/">
+        <span class="fgo"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
         <div class="ficon"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
-        <div class="fname">Watchlist <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fname">Watchlist</div>
         <div class="fdesc">Star the firms and projects you follow. Get pinged when they move.</div>
-      </div>
-      <div class="feat pro">
-        <span class="ptag2">PRO</span>
+      </a>
+      <a class="feat" href="https://www.oftmw.com/dashboard/">
+        <span class="fgo"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
         <div class="ficon"><svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></div>
-        <div class="fname">Pulse <svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <div class="fname">Pulse</div>
         <div class="fdesc">A live feed of every new project, milestone, and market shift.</div>
-      </div>
+      </a>
     </div>
 
     <div class="cta">
@@ -507,7 +510,7 @@
         <p>Explore all 396 projects free. Unlock forecasts, compare mode, and your watchlist with TMW Pro.</p>
       </div>
       <div class="cbtns">
-        <a class="btn ghost" href="https://www.oftmw.com/map" target="_blank" rel="noopener">See TMW Pro <span class="btn-pro">PRO</span></a>
+        <a class="btn ghost" href="https://www.oftmw.com/pro/">Go Pro</a>
       </div>
     </div>
 
@@ -524,6 +527,13 @@
   function init(root){
     function $(s){ return root.querySelector(s); }
     function $all(s){ return root.querySelectorAll(s); }
+    // Intelligence tile → open the Onyx search (the dock input) in place;
+    // fall back to the homepage if no dock is mounted on this page.
+    var goSearch=root.querySelector('.feat[data-go="search"]');
+    if(goSearch) goSearch.addEventListener('click', function(ev){
+      var inp=document.querySelector('.tmw-dock input');
+      if(inp){ ev.preventDefault(); try{ inp.focus(); }catch(e){} }
+    });
 
     function $(s){ return root.querySelector(s); }
     function $all(s){ return root.querySelectorAll(s); }

@@ -2674,7 +2674,7 @@ def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[st
     if sb['os']:
         qa.append((
             f'What {plur} are opening soon in {city}?',
-            f'<b>{sb["os"]} {plur}</b> are flagged Opening Soon — meaning their expected opening is within ~7 months. Pro members get our weekly Slippage Report which flags every project whose forecast moved this week.',
+            f'<b>{sb["os"]} {plur}</b> are flagged Opening Soon — meaning their expected opening is within ~7 months.',
         ))
 
     # Q4 — Just announced (early-stage research search)
@@ -2737,7 +2737,7 @@ def faqs_city_type(city: str, ptype: str, projects: list[dict]) -> list[tuple[st
             window = f'delivery dates run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>'
         qa.append((
             f'When will the next wave of {city} {plur} deliver?',
-            f'Across the active pipeline, {window}. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+            f'Across the active pipeline, {window}. Individual delivery dates shift constantly — Pro members get the TMW Forecast on every project as dates move.',
         ))
 
     # Q11 — Biggest by units
@@ -2833,7 +2833,7 @@ def faqs_city(city: str, projects: list[dict]) -> list[tuple[str, str]]:
         if btn['earliest_delivery'] != btn['latest_delivery']:
             qa.append((
                 f'When will the next wave of {city} projects open?',
-                f'Delivery dates across the active {city} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+                f'Delivery dates across the active {city} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get the TMW Forecast on every project as dates move.',
             ))
 
     featured = [p for p in projects if is_featured(p)]
@@ -2922,7 +2922,7 @@ def faqs_type(ptype: str, projects: list[dict]) -> list[tuple[str, str]]:
     if btn['earliest_delivery'] and btn['latest_delivery'] and btn['earliest_delivery'] != btn['latest_delivery']:
         qa.append((
             f'When will the next wave of new {plur} deliver?',
-            f'Delivery dates across the active global pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get our weekly Slippage Report flagging which projects have slipped this week.',
+            f'Delivery dates across the active global pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Pro members get the TMW Forecast on every project as dates move.',
         ))
 
     qa.append((
@@ -3207,7 +3207,7 @@ def render_state_page(state_label: str, state_code: str, bucket: list[dict],
     if btn['earliest_delivery'] and btn['latest_delivery'] and btn['earliest_delivery'] != btn['latest_delivery']:
         state_faqs.append((
             f'When will the next wave of {state_label} projects deliver?',
-            f'Delivery dates across the active {state_label} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Individual delivery dates shift constantly — Pro members get our weekly Slippage Report.',
+            f'Delivery dates across the active {state_label} pipeline run from <b>{btn["earliest_delivery"]}</b> through <b>{btn["latest_delivery"]}</b>. Individual delivery dates shift constantly — Pro members get the TMW Forecast on every project.',
         ))
     state_faqs.append((
         f'How often is the {state_label} development data updated?',
@@ -3221,7 +3221,7 @@ def render_state_page(state_label: str, state_code: str, bucket: list[dict],
         f'<h2>The {esc(state_label)} pipeline</h2>'
         f'<p>We track <b>{n_total} new development{"s" if n_total != 1 else ""}</b> across {state_label} — {sb["uc"]} under construction, {sb["bg"]} breaking ground, {sb["os"]} opening soon, and {sb["an"]} announced. Most active markets: {cities_phrase_full}. Specializing in: {types_phrase}.</p>'
         f'<h2>How we built this list</h2>'
-        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. Project status, milestones, and spec changes are sourced from public filings, official announcements, or independent reporting and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project, and the full {state_label} dataset by phase, neighborhood, and developer.</p>'
+        f'<p>Every project on this page is on the <a href="{ROOT_URL}/map/">Map of Tomorrow</a> — our live database of new and under-construction developments worldwide. Project status, milestones, and spec changes are sourced from public filings, official announcements, or independent reporting and timestamped. <a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get the TMW Forecast on every project and the full {state_label} dataset by phase, neighborhood, and developer.</p>'
     )
 
     intro_html = (
@@ -3366,7 +3366,7 @@ def render_hub(city_type_pairs, city_pages, type_pages, state_pages=None, countr
         ('Can I filter by city, category, and delivery year?',
          f'Yes — use the calculator above. Pick a city + category + delivery window and we\'ll show you the matching project count and link straight to the dedicated landing page when one exists.'),
         ('What does "Pro" unlock?',
-         f'<a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get our weekly Slippage Report, the TMW Forecast on every project (statistical delivery prediction with confidence interval), and the full filterable database by phase, neighborhood, architect, and developer.'),
+         f'<a href="{ROOT_URL}/map/?upgrade=1">Pro members</a> get the TMW Forecast on every project (statistical delivery prediction with confidence interval) and the full filterable database by phase, neighborhood, architect, and developer.'),
         ('Is the data sourced or speculative?',
          f'Every project on every page is sourced — added only after we can confirm it from a public filing, an official announcement, or independent reporting. Status changes (breaking ground, topping out, opening) are timestamped to the real-world event date and citation-linked.'),
     ]
