@@ -935,6 +935,11 @@
     box-shadow:0 0 14px rgba(167,139,250,.18)}
   .mc-svg text{font-variant-numeric:tabular-nums}
   .mc-axt{font-family:var(--mono);font-size:9.5px;fill:var(--mute)}
+  .mc-axty{font-family:var(--mono);font-size:8.5px;fill:var(--mute);opacity:.55}
+  .mc-range{display:flex;gap:4px;justify-content:flex-end;margin-bottom:8px}
+  .mc-rb{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--mute);background:rgba(255,255,255,.04);border:1px solid var(--hair);border-radius:999px;padding:5px 10px;cursor:pointer}
+  .mc-rb:hover{color:#fff;border-color:rgba(167,139,250,.55)}
+  .mc-rb.on{color:var(--purple);background:rgba(167,139,250,.16);border-color:rgba(167,139,250,.45)}
   .mc-lbt{font-family:var(--sans);font-size:12px;fill:var(--mute-2)}
   .mc-vlt{font-family:var(--sans);font-size:11.5px;font-weight:600;fill:var(--cream)}
   .mc-gl{stroke:rgba(255,255,255,.06);stroke-width:1}
@@ -3549,7 +3554,7 @@
     // lead market wears the brand purple.
     var MC_SLOTS=['#9085e9','#d95926','#199e70','#c98500','#d55181'];
     var MC_MAX=5;
-    var MC={set:[],metric:'traj'};
+    var MC={set:[],metric:'traj',range:0};
     var MC_ROWS=null;
     function mcSlug(t){return String(t==null?'':t).toLowerCase().trim().replace(/&/g,' and ')
       .replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-|-$/g,'');}
@@ -3574,13 +3579,17 @@
            var dated=rows.filter(function(r){return mcYear(r)>0;}).length;
            lines.push(mcUnslug(m.k)+': '+dated+' of '+rows.length+' projects carry a dated delivery.');});
          return lines;},
+       clip:'head',
        xs:function(){var m=supplyIntel.markets[Object.keys(supplyIntel.markets)[0]];
-         return (m.windows||[]).map(function(w){return w.half.replace('20','\u2019').replace('H1',' a').replace('H2',' b');});},
+         return (m.windows||[]).map(function(w){var y=String(w.half).slice(0,4),h1=String(w.half).indexOf('H1')>=0;
+           return {m:h1?'Jan':'Jul',y:y,tip:(h1?'First half ':'Second half ')+y};});},
        series:function(k){var m=supplyIntel.markets[k];if(!m)return null;
          return (m.windows||[]).map(function(w){return w.units||0;});}},
       {id:'capt',name:'Capital raised',unit:'cumulative disclosed financing',kind:'series',fmt:function(v){return mcM(v);},
        info:function(){return ['<b>Sourced, partial by nature.</b> Running total of disclosed construction financing by quarter. Undisclosed deals are not counted, so treat this as a floor, not a total.'];},
-       xs:function(){return mcQuarters().map(function(q){return q.replace('-',' ');});},
+       clip:'tail',
+       xs:function(){return mcQuarters().map(function(q){var p=q.split('-');
+           return {m:p[1],y:p[0],tip:p[1]+' '+p[0]};});},
        series:function(k){var qs=mcQuarters(),rows=mcRowsOf(k),cum=0;
          return qs.map(function(q){rows.forEach(function(r){var m=String(r.FinancingDate||'').match(/(\d{4})-(\d{2})/);
            if(m&&(m[1]+'-Q'+Math.ceil(+m[2]/3))===q)cum+=mcMoney(r);});return Math.round(cum);});}},
@@ -3729,12 +3738,23 @@
       un.appendChild(info);
       lt.appendChild(un);
       hd.appendChild(lt);
+      var rt=document.createElement('div');
+      if(M.kind==='series'){
+        var rg=document.createElement('div');rg.className='mc-range';
+        [{v:.5,l:'6M'},{v:1,l:'1Y'},{v:2,l:'2Y'},{v:0,l:'All'}].forEach(function(o){
+          var b=document.createElement('button');b.type='button';
+          b.className='mc-rb'+(MC.range===o.v?' on':'');b.textContent=o.l;
+          b.addEventListener('click',function(){MC.range=o.v;mountMaster();});
+          rg.appendChild(b);});
+        rt.appendChild(rg);
+      }
       var lg=document.createElement('div');lg.className='mc-lg';
       MC.set.forEach(function(m){var sp=document.createElement('span');
         var sw=document.createElement('i');if(M.kind==='scalar')sw.className='sw';
         sw.style.background=MC_SLOTS[m.slot];sp.appendChild(sw);
         sp.appendChild(document.createTextNode(mcUnslug(m.k)));lg.appendChild(sp);});
-      hd.appendChild(lg);
+      rt.appendChild(lg);
+      hd.appendChild(rt);
       host.appendChild(hd);
       // chart
       var body=document.createElement('div');body.style.marginTop='16px';host.appendChild(body);
@@ -3753,7 +3773,21 @@
     function mcLines(host,M){
       var xs=M.xs(),data=MC.set.map(function(m){return {k:m.k,c:MC_SLOTS[m.slot],ys:M.series(m.k)};})
         .filter(function(d){return d.ys&&d.ys.some(function(v){return v>0;});});
-      var W=1120,H=300,PL=46,PR=115,PT=14,PB=28,max=1;
+      // Trim trailing periods where every compared market is zero — lines all
+      // marching down to 0 read as collapse, not as data running out.
+      var lastNz=0;
+      data.forEach(function(d){d.ys.forEach(function(v,i){if(v>0&&i>lastNz)lastNz=i;});});
+      if(lastNz<xs.length-1){xs=xs.slice(0,lastNz+1);data.forEach(function(d){d.ys=d.ys.slice(0,lastNz+1);});}
+      // Range window: the trajectory clips forward from now, history clips back.
+      if(MC.range>0){
+        var per=M.id==='capt'?4:2;                     // buckets per year
+        var keep=Math.max(2,Math.round(MC.range*per));
+        if(xs.length>keep){
+          if(M.clip==='tail'){xs=xs.slice(-keep);data.forEach(function(d){d.ys=d.ys.slice(-keep);});}
+          else{xs=xs.slice(0,keep);data.forEach(function(d){d.ys=d.ys.slice(0,keep);});}
+        }
+      }
+      var W=1120,H=300,PL=46,PR=115,PT=14,PB=40,max=1;
       data.forEach(function(d){d.ys.forEach(function(v){if(v>max)max=v;});});
       var svg=mcEl('svg',{viewBox:'0 0 '+W+' '+H,class:'mc-svg',role:'img'});
       svg.style.width='100%';svg.style.overflow='visible';svg.style.display='block';
@@ -3762,7 +3796,9 @@
       [0,.5,1].forEach(function(t){var y=yAt(max*t);
         svg.appendChild(mcEl('line',{x1:PL,y1:y,x2:W-PR+20,y2:y,class:'mc-gl'}));
         svg.appendChild(mcTxt(M.fmt(Math.round(max*t)),{x:0,y:y+3,class:'mc-axt'}));});
-      xs.forEach(function(x,i){svg.appendChild(mcTxt(x,{x:xAt(i),y:H-8,class:'mc-axt','text-anchor':'middle'}));});
+      xs.forEach(function(x,i){
+        svg.appendChild(mcTxt(x.m,{x:xAt(i),y:H-20,class:'mc-axt','text-anchor':'middle'}));
+        svg.appendChild(mcTxt(x.y,{x:xAt(i),y:H-6,class:'mc-axty','text-anchor':'middle'}));});
       data.forEach(function(d){
         var pd=d.ys.map(function(v,i){return (i?'L':'M')+xAt(i)+','+yAt(v);}).join(' ');
         svg.appendChild(mcEl('path',{d:pd,fill:'none',stroke:d.c,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
@@ -3781,7 +3817,7 @@
         xs.forEach(function(_,i){var dd=Math.abs(xAt(i)-rel);if(dd<bd){bd=dd;best=i;}});
         cross.setAttribute('x1',xAt(best));cross.setAttribute('x2',xAt(best));cross.setAttribute('opacity',1);
         var f=document.createDocumentFragment();
-        var l=document.createElement('div');l.className='tl';l.textContent=xs[best];f.appendChild(l);
+        var l=document.createElement('div');l.className='tl';l.textContent=xs[best].tip;f.appendChild(l);
         data.forEach(function(d){var r=document.createElement('div');r.className='tr';
           var kk=document.createElement('span');kk.className='tk';kk.style.background=d.c;r.appendChild(kk);
           var sp=document.createElement('span');sp.textContent=mcUnslug(d.k);r.appendChild(sp);
