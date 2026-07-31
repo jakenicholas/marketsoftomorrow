@@ -98,10 +98,11 @@
   /* Mobile: the topline pills clash when they wrap against margin-left:auto.
      Stack instead: nights on the first line, tag + client pill left on the second. */
   @media(max-width:560px){
-    .stop-topline{align-items:flex-start}
-    .stop-topline .stop-loc{flex:1 0 100%}
-    .stop-topline .tag{margin-left:0}
-    .stop-topline .stop-tools{margin-left:0}
+    /* nights + the confirmed/in-works tag stay inline on one row (tag right of the date) */
+    .stop-topline{align-items:center}
+    /* the partner/private pill overlays the stop image's top-left corner */
+    .stop-tools{position:absolute;top:12px;left:12px;z-index:3;margin:0}
+    .stop-tools .jpr{background:rgba(243,235,220,.94);border-color:rgba(176,96,58,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(74,57,43,.28)}
   }
 
   .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,38px);line-height:1.1;letter-spacing:-.01em;color:var(--white);margin-top:10px}
@@ -137,15 +138,17 @@
 
   /* ── Transit divider (wavy dotted line + date + mode icon) ── */
   .leg{position:relative;padding:30px 0 26px}
+  /* the first leg sits over the pulled-up hero; drop it to where the image melts into the gradient */
+  .leg.start{padding-top:11vh}
   .leg-line{display:flex;align-items:center;gap:14px}
   .leg-wave{flex:1;height:16px;opacity:.7;background-repeat:repeat-x;background-position:center;
             background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23B0603A' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
-  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid var(--terra);
-            background:var(--terra);box-shadow:0 6px 18px rgba(176,96,58,.30)}
-  .leg-ic{display:flex;color:#FBF6EC}
+  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(176,96,58,.30);
+            background:var(--panel);box-shadow:0 6px 16px rgba(74,57,43,.14)}
+  .leg-ic{display:flex;color:var(--purple-soft)}
   .leg-ic svg{width:17px;height:17px}
-  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:#FBF6EC}
-  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(251,246,236,.85)}
+  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
+  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft)}
   .leg-note{display:block;text-align:center;font-family:var(--sans);font-size:11px;color:var(--mute);margin-top:9px;letter-spacing:.03em}
   @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
 
@@ -299,7 +302,7 @@
     input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select { font-size:16px !important; }
   }
 
-  .lockbox{max-width:660px;margin:6px auto 60px;padding:44px 40px;border:1px solid var(--hair2);
+  .lockbox{max-width:660px;margin:6px auto 60px;padding:44px 40px 22px;border:1px solid var(--hair2);
     border-radius:18px;background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);
     box-shadow:0 10px 34px rgba(74,57,43,.09);text-align:center}
   .lock-k{font-family:var(--mono,inherit);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
@@ -318,7 +321,7 @@
   .lock-in{flex:1 1 240px;min-width:0;padding:13px 16px;border:1px solid var(--hair2);border-radius:999px;
     background:#fff;font-family:inherit;font-size:14.5px;color:inherit}
   .lock-in:focus{outline:none;border-color:var(--terra,#B0603A)}
-  .lock-msg{margin-top:14px;font-size:13.5px;color:var(--mute2,#6b6b6b);min-height:18px}
+  .lock-msg{margin-top:10px;font-size:13.5px;color:var(--mute2,#6b6b6b);min-height:14px}
   .lock-msg.err{color:#B0603A}
 </style>
 </head>
