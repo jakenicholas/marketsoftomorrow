@@ -81,7 +81,7 @@ async function loadArticle(slug) {
       return;
     }
     renderArticle(post);
-    if (post && post.status && post.status !== 'published') markDraftPreview();
+    if (post && post.status && post.status !== 'published') { markDraftPreview(); try { initSuggestMode(post); } catch (e) {} }
     loadReadNext(post, slug);
     try { initComments(slug, post); } catch (e) {}
   } catch (err) {
@@ -1533,3 +1533,191 @@ function initComments(slug, post) {
     })
     .catch(function () { drop(); });
 })();
+
+// ===================================================================
+// CLIENT SUGGEST-EDITS — Google-Docs-style suggestions on the client
+// preview link. Anyone with the ?pt= link can select article text and
+// propose a replacement (plus a note), identified by a self-asserted
+// name + email kept on their device. Suggestions queue in the worker;
+// the Studio post editor accepts or rejects them. The draft itself is
+// never written from here.
+// ===================================================================
+function initSuggestMode(post) {
+  if (!PREVIEW_TOKEN) return;
+  var slug = (post && post.slug) || new URLSearchParams(location.search).get('slug') || '';
+  if (!slug) return;
+  var bodyEl = document.getElementById('article-body-content');
+  if (!bodyEl || bodyEl.__sugInit) return;
+  bodyEl.__sugInit = 1;
+
+  var css = document.createElement('style');
+  css.textContent =
+    '#sug-banner{margin:14px 0 6px;padding:11px 16px;border:1px solid rgba(167,139,250,.4);border-radius:12px;background:rgba(167,139,250,.08);font-size:13px;color:#d9d2f5;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:Inter,-apple-system,sans-serif}' +
+    '#sug-banner b{color:#fff}' +
+    '#sug-banner .sug-who{margin-left:auto;font-size:11.5px;color:#a99fd6}' +
+    '#sug-banner .sug-who a{color:#B9A6FF;cursor:pointer;text-decoration:underline}' +
+    '#sug-banner .sug-note-btn{font-size:11.5px;color:#B9A6FF;cursor:pointer;text-decoration:underline}' +
+    '.sug-chip{position:absolute;z-index:9999;background:#1c1530;border:1px solid rgba(167,139,250,.6);color:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);font-family:Inter,-apple-system,sans-serif;white-space:nowrap}' +
+    '.sug-chip:hover{background:#2a2046}' +
+    'mark.tmw-sg{background:rgba(230,197,116,.25);color:inherit;border-bottom:2px solid rgba(230,197,116,.8);cursor:help}' +
+    'mark.tmw-sg.acc{background:rgba(31,223,103,.18);border-bottom-color:rgba(31,223,103,.8)}' +
+    '#sug-modal{position:fixed;inset:0;z-index:10000;background:rgba(5,5,8,.72);display:flex;align-items:center;justify-content:center;padding:18px}' +
+    '#sug-modal .sug-box{width:min(560px,100%);background:#141018;border:1px solid rgba(167,139,250,.35);border-radius:16px;padding:22px;font-family:Inter,-apple-system,sans-serif;max-height:88vh;overflow:auto}' +
+    '#sug-modal h3{margin:0 0 14px;font-size:16px;color:#fff}' +
+    '#sug-modal label{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#9AA39C;margin:12px 0 5px}' +
+    '#sug-modal .sug-orig{font-size:13px;color:#c9c2e0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 11px;max-height:110px;overflow:auto}' +
+    '#sug-modal textarea,#sug-modal input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#fff;font-size:13.5px;padding:9px 11px;font-family:inherit}' +
+    '#sug-modal textarea{min-height:86px;resize:vertical}' +
+    '#sug-modal .sug-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}' +
+    '#sug-modal button{border:0;border-radius:999px;padding:10px 20px;font-size:12.5px;font-weight:700;cursor:pointer}' +
+    '#sug-modal .sug-go{background:#B9A6FF;color:#12091f}' +
+    '#sug-modal .sug-x{background:rgba(255,255,255,.08);color:#cfc8e8}' +
+    '#sug-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:10001;background:#153a24;border:1px solid rgba(31,223,103,.5);color:#c9f5d8;border-radius:999px;padding:10px 20px;font-size:13px;font-family:Inter,-apple-system,sans-serif}';
+  document.head.appendChild(css);
+
+  var IDK = 'tmw_reviewer_id';
+  function who() { try { return JSON.parse(localStorage.getItem(IDK) || 'null'); } catch (e) { return null; } }
+  function setWho(v) { try { localStorage.setItem(IDK, JSON.stringify(v)); } catch (e) {} }
+
+  // Banner under the draft pill
+  var pill = document.getElementById('draft-pill');
+  var banner = document.createElement('div');
+  banner.id = 'sug-banner';
+  function paintBanner() {
+    var w = who();
+    banner.innerHTML = '<b>✏️ Suggest edits</b><span>Select any text in the article to propose a change.</span>' +
+      '<span class="sug-note-btn" id="sugGeneralBtn">+ general note</span>' +
+      '<span class="sug-who">' + (w && w.email ? 'Reviewing as <b>' + escapeHtml(w.name || w.email) + '</b> · <a id="sugWhoBtn">change</a>' : '<a id="sugWhoBtn">Set your name &amp; email</a>') + '</span>';
+    var wb = banner.querySelector('#sugWhoBtn');
+    if (wb) wb.onclick = function () { askWho(function () { paintBanner(); }); };
+    var gb = banner.querySelector('#sugGeneralBtn');
+    if (gb) gb.onclick = function () { openDialog('', -1); };
+  }
+  if (pill && pill.parentNode) pill.parentNode.insertBefore(banner, pill.nextSibling);
+  else bodyEl.parentNode.insertBefore(banner, bodyEl);
+  paintBanner();
+
+  function toast(msg) {
+    var t = document.createElement('div'); t.id = 'sug-toast'; t.textContent = msg;
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 3200);
+  }
+
+  // ── identity dialog ──
+  function askWho(then) {
+    var w = who() || {};
+    modal('<h3>Who is suggesting?</h3>' +
+      '<label>Name</label><input id="sgName" value="' + escapeHtml(w.name || '') + '" placeholder="Jane Smith">' +
+      '<label>Email</label><input id="sgEmail" type="email" value="' + escapeHtml(w.email || '') + '" placeholder="jane@company.com">' +
+      '<div class="sug-row"><button class="sug-x" data-x>Cancel</button><button class="sug-go" data-go>Save</button></div>',
+      function (box, close) {
+        box.querySelector('[data-go]').onclick = function () {
+          var em = box.querySelector('#sgEmail').value.trim();
+          if (!/@/.test(em)) { box.querySelector('#sgEmail').style.borderColor = '#FF5C5C'; return; }
+          setWho({ name: box.querySelector('#sgName').value.trim(), email: em });
+          close(); if (then) then();
+        };
+      });
+  }
+  function modal(inner, wire) {
+    var m = document.createElement('div'); m.id = 'sug-modal';
+    m.innerHTML = '<div class="sug-box">' + inner + '</div>';
+    function close() { m.remove(); }
+    m.addEventListener('click', function (e) { if (e.target === m) close(); });
+    var x = m.querySelector('[data-x]'); if (x) x.onclick = close;
+    document.body.appendChild(m);
+    wire(m.querySelector('.sug-box'), close);
+    var f = m.querySelector('input,textarea'); if (f) f.focus();
+  }
+
+  // ── the suggestion dialog ──
+  function openDialog(original, block, range) {
+    var w = who();
+    if (!w || !w.email) { askWho(function () { openDialog(original, block, range); }); return; }
+    var isNote = !original;
+    modal('<h3>' + (isNote ? 'General note for the editors' : 'Suggest an edit') + '</h3>' +
+      (isNote ? '' : '<label>Original</label><div class="sug-orig">' + escapeHtml(original) + '</div>' +
+        '<label>Your suggested replacement</label><textarea id="sgProp">' + escapeHtml(original) + '</textarea>') +
+      '<label>' + (isNote ? 'Your note' : 'Note (optional)') + '</label><textarea id="sgNote" style="min-height:56px" placeholder="' + (isNote ? 'Anything the editors should know…' : 'Why this change?') + '"></textarea>' +
+      '<div class="sug-row"><button class="sug-x" data-x>Cancel</button><button class="sug-go" data-go>Send suggestion</button></div>',
+      function (box, close) {
+        box.querySelector('[data-go]').onclick = function () {
+          var prop = isNote ? '' : box.querySelector('#sgProp').value;
+          var note = box.querySelector('#sgNote').value.trim();
+          if (!isNote && prop === original && !note) { close(); return; }
+          if (isNote && !note) { close(); return; }
+          var btn = box.querySelector('[data-go]'); btn.disabled = true; btn.textContent = 'Sending…';
+          fetch(WORKER_URL + '/draft-suggest', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: slug, pt: PREVIEW_TOKEN, name: w.name, email: w.email, block: block, original: original, proposed: prop, note: note }),
+          }).then(function (r) { return r.json(); }).then(function (j) {
+            if (j && j.ok) {
+              if (range) { try { wrapRange(range, 'pending', w.name || w.email, prop); } catch (e) {} }
+              toast('Suggestion sent — the editors will review it.');
+              close();
+            } else { btn.disabled = false; btn.textContent = 'Send suggestion'; toast((j && j.error) || 'Could not send — try again'); }
+          }).catch(function () { btn.disabled = false; btn.textContent = 'Send suggestion'; });
+        };
+      });
+  }
+
+  function wrapRange(range, status, name2, prop) {
+    var mk = document.createElement('mark');
+    mk.className = 'tmw-sg' + (status === 'accepted' ? ' acc' : '');
+    mk.title = (name2 ? name2 + ' suggests: ' : 'Suggested: ') + (prop || '');
+    range.surroundContents(mk);
+  }
+
+  // ── selection → floating chip ──
+  var chip = null;
+  function killChip() { if (chip) { chip.remove(); chip = null; } }
+  document.addEventListener('selectionchange', function () {
+    setTimeout(function () {
+      killChip();
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+      var text = sel.toString().replace(/\s+/g, ' ').trim();
+      if (text.length < 3 || text.length > 1500) return;
+      var r = sel.getRangeAt(0);
+      if (!bodyEl.contains(r.commonAncestorContainer)) return;
+      var rect = r.getBoundingClientRect();
+      chip = document.createElement('div');
+      chip.className = 'sug-chip';
+      chip.textContent = '✏️ Suggest edit';
+      chip.style.left = Math.max(8, rect.left + rect.width / 2 - 60 + window.scrollX) + 'px';
+      chip.style.top = (rect.bottom + 8 + window.scrollY) + 'px';
+      chip.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      chip.onclick = function () {
+        var blockEl = r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement;
+        while (blockEl && blockEl.parentElement !== bodyEl) blockEl = blockEl.parentElement;
+        var block = blockEl ? Array.prototype.indexOf.call(bodyEl.children, blockEl) : -1;
+        var keep = r.cloneRange();
+        killChip();
+        openDialog(text, block, keep);
+      };
+      document.body.appendChild(chip);
+    }, 60);
+  });
+
+  // ── paint existing suggestions as highlights ──
+  fetch(WORKER_URL + '/draft-suggest?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(PREVIEW_TOKEN), { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      ((j && j.suggestions) || []).forEach(function (sg) {
+        if (!sg.original) return;
+        try { highlightText(sg.original, sg.status, sg.name, sg.proposed); } catch (e) {}
+      });
+    }).catch(function () {});
+  function highlightText(orig, status, name2, prop) {
+    var walk = document.createTreeWalker(bodyEl, NodeFilter.SHOW_TEXT);
+    var node;
+    while ((node = walk.nextNode())) {
+      var i = node.nodeValue.indexOf(orig);
+      if (i < 0) continue;
+      if (node.parentElement && node.parentElement.closest('mark.tmw-sg')) continue;
+      var r = document.createRange();
+      r.setStart(node, i); r.setEnd(node, i + orig.length);
+      wrapRange(r, status, name2, prop);
+      return;
+    }
+  }
+}

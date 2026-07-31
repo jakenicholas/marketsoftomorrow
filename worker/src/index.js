@@ -4057,6 +4057,80 @@ async function handlePreviewToken(req, env, origin, url) {
   return json({ token, url: workerHost + '/post-preview?slug=' + encodeURIComponent(slug) + '&pt=' + encodeURIComponent(token) }, {}, env, origin);
 }
 
+// ─── Client draft suggestions ────────────────────────────────────────────────
+// Google-Docs-style "suggest edits" on the client preview link. Anyone holding
+// a valid slug-scoped preview token can propose changes (select text → propose
+// replacement + note) with a self-asserted name/email. Suggestions NEVER touch
+// the draft — they queue in D1 and the Studio post editor accepts/rejects them.
+async function ensureSuggestTable(env) {
+  await env.DB.prepare(
+    'CREATE TABLE IF NOT EXISTS draft_suggestions (' +
+    'id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT NOT NULL, name TEXT, email TEXT, ' +
+    'block INTEGER, original TEXT, proposed TEXT, note TEXT, ' +
+    "status TEXT NOT NULL DEFAULT 'pending', created_at INTEGER, resolved_at INTEGER)"
+  ).run();
+}
+async function verifyPreviewPt(env, pt, slug) {
+  try {
+    const obj = await verifyPayload(String(pt || ''), previewSecret(env));
+    return !!(obj && obj.t === 'preview' && obj.slug === slug);
+  } catch (_) { return false; }
+}
+// POST /draft-suggest {slug, pt, name, email, block, original, proposed, note}
+async function handleDraftSuggestPost(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = fullyDecodeSlug(String(b.slug || ''));
+  if (!slug || !(await verifyPreviewPt(env, b.pt, slug))) return json({ error: 'invalid link' }, { status: 403 }, env, origin);
+  const name = String(b.name || '').trim().slice(0, 80);
+  const email = String(b.email || '').trim().slice(0, 120);
+  const original = String(b.original || '').slice(0, 2000);
+  const proposed = String(b.proposed || '').slice(0, 4000);
+  const note = String(b.note || '').slice(0, 1000);
+  const block = Number.isFinite(Number(b.block)) ? Number(b.block) : -1;
+  if (!email || !/@/.test(email)) return json({ error: 'email required' }, { status: 400 }, env, origin);
+  if (!proposed && !note) return json({ error: 'empty suggestion' }, { status: 400 }, env, origin);
+  await ensureSuggestTable(env);
+  // Runaway guard: one draft can hold at most 300 open suggestions.
+  const n = await env.DB.prepare("SELECT COUNT(*) c FROM draft_suggestions WHERE slug = ?1 AND status = 'pending'").bind(slug).first();
+  if ((Number(n && n.c) || 0) >= 300) return json({ error: 'too many pending suggestions' }, { status: 429 }, env, origin);
+  const now = Math.floor(Date.now() / 1000);
+  const r = await env.DB.prepare(
+    'INSERT INTO draft_suggestions (slug, name, email, block, original, proposed, note, created_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)'
+  ).bind(slug, name || null, email, block, original || null, proposed || null, note || null, now).run();
+  return json({ ok: true, id: r.meta && r.meta.last_row_id }, {}, env, origin);
+}
+// GET /draft-suggest?slug&pt → the reviewer-visible list (no emails; rejected hidden)
+async function handleDraftSuggestList(req, env, origin, url) {
+  const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
+  if (!slug || !(await verifyPreviewPt(env, url.searchParams.get('pt'), slug))) return json({ error: 'invalid link' }, { status: 403 }, env, origin);
+  await ensureSuggestTable(env);
+  const rows = await env.DB.prepare(
+    "SELECT id, name, block, original, proposed, note, status, created_at FROM draft_suggestions WHERE slug = ?1 AND status IN ('pending','accepted') ORDER BY id"
+  ).bind(slug).all();
+  return json({ suggestions: rows.results || [] }, {}, env, origin);
+}
+// GET /admin/draft-suggestions?slug= — everything, with emails (Studio panel).
+async function handleAdminSuggestList(req, env, origin, url) {
+  const slug = fullyDecodeSlug(url.searchParams.get('slug') || '');
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  await ensureSuggestTable(env);
+  const rows = await env.DB.prepare(
+    'SELECT * FROM draft_suggestions WHERE slug = ?1 ORDER BY (status = ?2) DESC, id'
+  ).bind(slug, 'pending').all();
+  return json({ suggestions: rows.results || [] }, {}, env, origin);
+}
+// POST /admin/draft-suggestions/resolve {id, status: accepted|rejected|pending}
+async function handleAdminSuggestResolve(req, env, origin) {
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const id = Number(b.id);
+  const status = ['accepted', 'rejected', 'pending'].includes(b.status) ? b.status : null;
+  if (!id || !status) return json({ error: 'id + status required' }, { status: 400 }, env, origin);
+  await ensureSuggestTable(env);
+  await env.DB.prepare('UPDATE draft_suggestions SET status = ?1, resolved_at = ?2 WHERE id = ?3')
+    .bind(status, status === 'pending' ? null : Math.floor(Date.now() / 1000), id).run();
+  return json({ ok: true }, {}, env, origin);
+}
+
 // ─── Private travel itineraries ──────────────────────────────────────────────
 // The /travel detail pages are a SAFETY surface: exact hotels, dates and
 // transit times reveal where the team physically is. So the detail never ships
@@ -15237,6 +15311,23 @@ export default {
       // the handler: published, or a valid preview token, or admin).
       if (request.method === 'GET' && url.pathname === '/post-preview') {
         return await handleArticlePreview(request, env, origin, url);
+      }
+      // /draft-suggest — client-preview "suggest edits" (token-gated inside).
+      if (request.method === 'POST' && url.pathname === '/draft-suggest') {
+        return await handleDraftSuggestPost(request, env, origin);
+      }
+      if (request.method === 'GET' && url.pathname === '/draft-suggest') {
+        return await handleDraftSuggestList(request, env, origin, url);
+      }
+      if (request.method === 'GET' && url.pathname === '/admin/draft-suggestions') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleAdminSuggestList(request, env, origin, url);
+      }
+      if (request.method === 'POST' && url.pathname === '/admin/draft-suggestions/resolve') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handleAdminSuggestResolve(request, env, origin);
       }
       // ── Private travel itineraries ───────────────────────────────────
       // Minting is admin-only; reading is gated INSIDE the handler by the
