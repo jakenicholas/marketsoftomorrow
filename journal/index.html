@@ -1203,10 +1203,11 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         #homeAtlasIntel .hai-psf{font-size:17px;font-weight:700;color:#fff;filter:blur(6px);user-select:none;opacity:.85}
         #homeAtlasIntel .hai-unit{font-size:10.5px;color:rgba(255,255,255,.45)}
         #homeAtlasIntel .hai-conf{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.06em;color:rgba(167,139,250,.8);border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:2px 8px}
-        #homeAtlasIntel .hai-cta{display:inline-block;margin-top:12px;text-decoration:none;font-size:12px;font-weight:700;color:#A78BFA}
+        #homeAtlasIntel .hai-cta{display:inline-block;margin-top:12px;text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.04em;color:#A78BFA}
+        #homeAtlasIntel .hai-cta:hover{color:#fff}
       </style>
       <div class="hai-head">
-        <span class="hai-eyebrow"><i></i>Atlas Intelligence · Onyx projections</span>
+        <span class="hai-eyebrow"><i></i>Onyx projections</span>
         <span class="hai-sub" id="haiSub"></span>
       </div>
       <div class="hai-supply" id="haiSupply" hidden></div>
@@ -1330,42 +1331,32 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
       }).catch(function(){});
     })();
     </script>
-    <div class="tlb-trend" id="tlbTrend" hidden></div>
   </div>
 </section>
-<script>
-(function(){
-  var WK='https://tmw.jake-ab7.workers.dev';
-  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  // Trending Onyx searches — live top queries (last 7 days) from the worker.
-  fetch(WK+'/trending-searches',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(t){
-    var list=(t&&t.searches)||[]; if(!list.length) return;
-    document.getElementById('tlbTrend').innerHTML='<div class="tlb-th"><span class="tlb-hex"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 86,29 86,71 50,92 14,71 14,29"/></svg></span><span class="tlb-thh">Trending <b>Onyx</b> searches<span class="k">Most-asked this week</span></span></div><div class="tlb-trow">'+
-      list.map(function(s,i){return '<a class="tlb-chip" href="/?q='+encodeURIComponent(s.q)+'"><span class="tn">'+(i+1)+'</span><span class="tb"><span class="tt">'+esc(s.q)+'</span><span class="ts">'+s.count+' searches</span></span></a>';}).join('')+'</div>';
-    document.getElementById('tlbTrend').hidden=false;
-  }).catch(function(){});
-})();
-</script>
 
 <!-- ==================== TMW INTELLIGENCE ==================== -->
 <!-- ==================== TMW INTELLIGENCE (shared, synced — /_shared/intelligence.js) ==================== -->
 <div data-tmw-intel data-anchor="intelligence"></div>
 <script src="/_shared/intelligence.js" defer></script>
 <style>
-/* Relocated homepage modules blend with the Intelligence embed: tight embed
-   rhythm, no standalone hairline dividers (those belonged to the old stack). */
-.tmw-intel .wrap>[data-tmw-money]{margin-top:14px}
-.tmw-intel .wrap>[data-tmw-money] .tmw-money--teaser{margin-top:0}
-.tmw-intel #homeAtlasIntel{margin-top:14px}
+/* Relocated homepage modules blend with the Intelligence embed. Follow the
+   Money + Onyx Projections share one 50/50 row between the embed window and
+   the Pro feature tiles; their wide internals stack to fit a half column. */
+.tmw-intel .ti-mergerow{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;align-items:stretch}
+.tmw-intel .ti-mergerow>[data-tmw-money]{margin-top:0;height:100%}
+.tmw-intel .ti-mergerow .tmw-money--teaser{margin-top:0;height:100%}
+.tmw-intel .ti-mergerow .tmw-m-card{height:100%;box-sizing:border-box}
+.tmw-intel .ti-mergerow .tmw-m-recent{grid-template-columns:1fr}
+.tmw-intel .ti-mergerow #homeAtlasIntel{margin-top:0}
 .tmw-intel #homeAtlasIntel::before{display:none}
-.tmw-intel .tlb-trend{margin-top:14px}
-.tmw-intel .tlb-trend::before{display:none}
+.tmw-intel .ti-mergerow #haiGrid{grid-template-columns:1fr}
+.tmw-intel .ti-mergerow .hai-sub{display:none}
 </style>
 <script>
-// Move Follow the Money + Atlas Intelligence between the embed window and the
-// Pro feature tiles, and Trending Onyx searches below the tiles. The modules
-// render in their old section first (their scripts bind by id), then relocate
-// wholesale — DOM moves keep listeners and pending fetch paints intact.
+// Move Follow the Money + Onyx Projections into one 50/50 row between the
+// embed window and the Pro feature tiles. The modules render in their old
+// section first (their scripts bind by id), then relocate wholesale — DOM
+// moves keep listeners and pending fetch paints intact.
 document.addEventListener('DOMContentLoaded', function(){
   try{
     var wrap=document.querySelector('[data-tmw-intel] .tmw-intel .wrap');
@@ -1373,10 +1364,11 @@ document.addEventListener('DOMContentLoaded', function(){
     if(!wrap||!feats) return;
     var money=document.querySelector('.tlb-wrap [data-tmw-money]');
     var atlas=document.getElementById('homeAtlasIntel');
-    var trend=document.getElementById('tlbTrend');
-    if(money) wrap.insertBefore(money, feats);
-    if(atlas) wrap.insertBefore(atlas, feats);
-    if(trend) wrap.insertBefore(trend, feats.nextElementSibling);
+    var row=document.createElement('div');
+    row.className='ti-mergerow';
+    wrap.insertBefore(row, feats);
+    if(money) row.appendChild(money);
+    if(atlas) row.appendChild(atlas);
     var sec=document.getElementById('live-board');
     if(sec) sec.remove();
   }catch(e){}

@@ -278,7 +278,7 @@
 .tmw-intel .pf-cap .who{color:var(--mute);font-family:var(--mono);font-size:9.5px;margin-top:2px}
 .tmw-intel .pf-brief{margin-top:18px; text-align:left; padding:16px 18px; border:1px solid rgba(167,139,250,.3); border-radius:13px;
   background:linear-gradient(180deg,rgba(167,139,250,.09),transparent)}
-.tmw-intel .pf-brief .bk{text-align:left; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#B9A6FF; font-weight:700; margin-bottom:9px}
+.tmw-intel .pf-brief .bk{display:block; padding:0; text-align:left; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#B9A6FF; font-weight:700; margin-bottom:9px}
 .tmw-intel .pf-brief p{font-size:13px; color:var(--mute2); line-height:1.6; margin:0}
 .tmw-intel .pf-brief p b{color:#fff; font-weight:600}
 @media(max-width:640px){ .tmw-intel .pf-r{grid-template-columns:1fr auto} .tmw-intel .pf-prog{display:none} }

@@ -236,8 +236,10 @@
     // Lead the teaser with recent deals that actually name a figure, so it reads
     // substantive; top up with the rest if fewer than 3 have amounts.
     var byRecent = deals.slice().sort(function (x, y) { return y.when - x.when; });
-    var recent = byRecent.filter(function (d) { return d.amt; }).slice(0, 3);
-    if (recent.length < 3) recent = recent.concat(byRecent.filter(function (d) { return !d.amt; }).slice(0, 3 - recent.length));
+    // 6 deals: the homepage teaser now lives in a half-width column beside the
+    // Onyx Projections card, so a deeper stack balances the row's height.
+    var recent = byRecent.filter(function (d) { return d.amt; }).slice(0, 6);
+    if (recent.length < 6) recent = recent.concat(byRecent.filter(function (d) { return !d.amt; }).slice(0, 6 - recent.length));
     el.className = 'tmw-money tmw-money--teaser';
     el.innerHTML = '<div class="tmw-m-card">'
       + '<div class="tmw-m-top"><span class="tmw-m-eyebrow">' + SPARK + 'Follow the Money</span>'
