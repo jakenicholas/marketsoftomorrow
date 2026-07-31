@@ -46,7 +46,6 @@
 .tmw-intel .lede b{color:var(--cream); font-weight:500}
 .tmw-intel .headstats{display:flex; gap:30px; flex-shrink:0; padding-bottom:6px}
 .tmw-intel .headstat .n{font-family:var(--serif); font-size:34px; font-weight:600; color:var(--white); line-height:1; letter-spacing:-.02em}
-.tmw-intel .headstat .n .pct{color:var(--green)}
 .tmw-intel .headstat .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-top:8px}
 
 /* product window */
@@ -296,7 +295,7 @@
       </div>
       <div class="headstats">
         <div class="headstat"><div class="n">396</div><div class="l">Projects tracked</div></div>
-        <div class="headstat"><div class="n">40<span class="pct">+</span></div><div class="l">Live markets</div></div>
+        <div class="headstat"><div class="n">40+</div><div class="l">Live markets</div></div>
         <div class="headstat"><div class="n">Daily</div><div class="l">Synced</div></div>
       </div>
     </div>
