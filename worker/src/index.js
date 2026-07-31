@@ -1133,7 +1133,15 @@ async function handleAnswerWeb(req, env, origin) {
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const q = String(b.q || '').trim().slice(0, 300);
   if (!q) return json({ answer: null }, {}, env, origin);
-  const sig = await sha256Hex('answerweb-v1|' + q.toLowerCase());
+  // Thread context — a zero-match query is often a FOLLOW-UP whose subject
+  // lives in the prior turns ("whats the total unit count" after a West Palm
+  // Beach question). Carry the place + recent turns so the web answer resolves
+  // the reference instead of asking the user to clarify.
+  const hist = Array.isArray(b.history)
+    ? b.history.slice(-3).map(t => ({ q: String((t && t.q) || '').slice(0, 200), answer: String((t && t.answer) || '').slice(0, 1200) })).filter(t => t.q && t.answer)
+    : [];
+  const place = String(b.place || '').trim().slice(0, 80);
+  const sig = await sha256Hex('answerweb-v2|' + q.toLowerCase() + '|' + place.toLowerCase() + '|' + (hist.length ? hist[hist.length - 1].q.toLowerCase() : ''));
   const cacheKey = new Request('https://answerweb.tmw.internal/' + sig, { method: 'GET' });
   const cache = caches.default;
   const reply = (bodyStr) => new Response(bodyStr, {
@@ -1146,7 +1154,12 @@ async function handleAnswerWeb(req, env, origin) {
     + 'American English, imperial units. Never use em dashes. '
     + 'If the query is about a real project, developer, market or trend, give the most useful current facts. '
     + 'If the query is unanswerable or nonsensical, say so briefly and suggest asking about a project, firm or city instead. '
-    + 'Do not fabricate specifics you did not find.';
+    + 'Do not fabricate specifics you did not find.'
+    + (place || hist.length
+      ? ' This is a CONTINUING conversation. Resolve vague references (the pipeline, total units, there, that market) against the prior turns'
+        + (place ? ' - the conversation is about ' + place + '.' : '.')
+        + ' Never ask the user to clarify which market they mean when the prior turns already name it.'
+      : '');
   let out = { answer: null, sources: [] };
   try {
     const ctrl = new AbortController();
@@ -1157,7 +1170,9 @@ async function handleAnswerWeb(req, env, origin) {
       body: JSON.stringify({
         model: SMART_ANSWER_MODEL, max_tokens: 700, system: SYS,
         tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
-        messages: [{ role: 'user', content: q }],
+        messages: hist.length
+          ? hist.flatMap(t => [{ role: 'user', content: t.q }, { role: 'assistant', content: t.answer }]).concat([{ role: 'user', content: q }])
+          : [{ role: 'user', content: q }],
       }),
     });
     clearTimeout(to);

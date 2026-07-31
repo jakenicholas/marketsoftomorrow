@@ -2930,7 +2930,10 @@
     slotHero.innerHTML = ''; slotRows.innerHTML = ''; slotProjGrid.innerHTML = '';
     slotEntities.innerHTML = ''; slotArticles.innerHTML = ''; slotFilterPills.innerHTML = '';
     setState('results');
-    fetch(WORKER_URL + '/answer-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q }) })
+    // Carry the thread's subject: prior turns + the place under discussion, so
+    // a subjectless follow-up that missed the DB still answers in context.
+    var _wfPlace = (_thread.length && _thread[_thread.length - 1].place) || _priorPlaceName() || '';
+    fetch(WORKER_URL + '/answer-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q, history: threadHistory(), place: _wfPlace }) })
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (token !== _renderToken) return;
