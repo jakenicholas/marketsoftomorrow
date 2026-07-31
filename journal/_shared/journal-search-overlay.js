@@ -3728,6 +3728,13 @@
       if (smart && _prior && Core.resolveFollowup && !smart.browseAll) { smart = Core.resolveFollowup(smart, _prior); }
       // Stash the parse on the current turn for the NEXT follow-up + the LLM.
       if (_thread.length) _thread[_thread.length - 1].parsed = smart || null;
+      // Record the place THIS query names on its turn — here, not in the fact
+      // builders, so cache-replayed answers (which skip fact-building entirely)
+      // still leave a place for the next follow-up to inherit.
+      try {
+        var _tps = placeScopeFor(q);
+        if (_tps && _thread.length) _thread[_thread.length - 1].place = _tps.name;
+      } catch(_){}
       // Dining isn't a project type — it's journal coverage. Route ANY food
       // query to the text path, which answers from the Food & Drink articles.
       // A coincidental firm match ("Nashville" → "The Nashville Predators") must
