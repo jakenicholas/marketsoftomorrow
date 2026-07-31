@@ -1162,14 +1162,10 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
 </style>
 <section class="tlb-section" id="live-board">
   <div class="tlb-wrap">
-    <div class="tlb-head">
-      <div>
-        <div class="tlb-eyebrow"><span class="tlb-dot"></span> The Board · Live rankings</div>
-        <h2>Who&rsquo;s <em>moving</em> the pipeline right now</h2>
-      </div>
-    </div>
-    <div class="tlb-tabs" id="tlbTabs"></div>
-    <div class="tlb-board" id="tlbBoard"></div>
+    <!-- The three leaderboard tiles are gone — the TMW Intelligence embed's
+         "Who's moving the pipeline right now" rail is the one leaderboard.
+         This section is now a STAGING AREA: the money/atlas/trending modules
+         render here, then the relocator below moves them into the embed. -->
     <!-- Follow the Money — reusable intel module (/_shared/intel-modules.js) -->
     <div data-tmw-money data-mode="teaser"></div>
     <!-- Atlas Intelligence — projected-pricing preview (public teaser; values
@@ -1335,39 +1331,12 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
     })();
     </script>
     <div class="tlb-trend" id="tlbTrend" hidden></div>
-    <div class="tlb-foot">
-      <a class="cta" href="https://www.oftmw.com/atlas">Explore the database &rarr;</a>
-    </div>
   </div>
 </section>
 <script>
 (function(){
-  var MAP='https://map.oftmw.com', WK='https://tmw.jake-ab7.workers.dev';
-  var ICONS={
-    dev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V7l6-4 6 4v14M10 9h.01M14 9h.01M10 13h.01M14 13h.01"/></svg>',
-    arch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v13h6v-6h6v6h6V7z"/></svg>',
-    big:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V8l6-4v18M14 22V11l6-3v14M4 22h16"/></svg>',
-    mkt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>',
-    spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.3 3.3 1.9 5 5.2 5.3-3.3.3-4.9 2-5.2 5.3-.3-3.3-1.9-5-5.2-5.3C10.1 7 11.7 5.3 12 2Z"/></svg>'
-  };
+  var WK='https://tmw.jake-ab7.workers.dev';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  function slugCity(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
-  function initials(n){var p=String(n||'').replace(/[^A-Za-z0-9 ]/g,'').trim().split(/\s+/);return (((p[0]||'')[0]||'')+((p[1]||'')[0]||(p[0]||'')[1]||'')).toUpperCase();}
-  function mvChip(mv){mv=mv||'flat';if(mv==='flat')return '<span class="tlb-mv flat">&mdash;</span>';if(mv==='new')return '<span class="tlb-mv new">NEW</span>';var m=mv.split(' '),up=m[0]==='up';return '<span class="tlb-mv '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+m[1]+'</span>';}
-  function firmRows(list){return (list||[]).map(function(r,i){var href=r.slug?('/firm/'+r.slug+'/'):'#';return '<a class="tlb-row'+(i===0?' top':'')+'" href="'+esc(href)+'"><span class="tlb-rank">'+(i+1)+'</span><span class="tlb-main"><span class="tlb-name">'+esc(r.name)+'</span><span class="tlb-sub">'+esc(r.sub||'')+'</span></span><span class="tlb-met"><span class="tlb-val">'+r.count+' <span class="u">proj</span></span>'+mvChip(r.mv)+'</span></a>';}).join('');}
-  function bigRows(list){return (list||[]).map(function(r,i){var ms=r.mapslug||(r.slug?String(r.slug).replace(/[^a-z0-9]/gi,''):'');var href=ms?(MAP+'/?project='+encodeURIComponent(ms)):'#';var mets=(r.metric_lines||[]).map(function(m,j){var mm=String(m).replace(/^(.+?)\s+(sqft|fl|units|keys)$/i,function(_,n,u){return esc(n)+' <span class="u">'+u+'</span>';});if(mm===String(m))mm=esc(m);return '<span class="'+(j===0?'tlb-val':'tlb-val2')+'">'+mm+'</span>';}).join('');return '<a class="tlb-row'+(i===0?' top':'')+'" href="'+esc(href)+'"><span class="tlb-rank">'+(i+1)+'</span><span class="tlb-main"><span class="tlb-name">'+esc(r.name)+'</span><span class="tlb-sub">'+esc(r.sub||'')+'</span></span><span class="tlb-met">'+mets+'</span></a>';}).join('');}
-  function mktRows(list){return (list||[]).map(function(r){var href='/markets/'+(r.slug||slugCity(r.name))+'/';return '<a class="tlb-row" href="'+esc(href)+'"><span class="tlb-main"><span class="tlb-pbtop"><span class="tlb-pmkt">'+esc(r.name)+'</span><span class="tlb-pnum">'+r.count+'</span></span><span class="tlb-pbar"><i style="width:'+(r.pct||0)+'%"></i></span></span></a>';}).join('');}
-  function card(cls,ico,title,more,rows){return '<div class="tlb-card '+cls+'"><div class="tlb-ct"><div class="tlb-cl"><span class="tlb-ico">'+ico+'</span><span class="tlb-ch">'+title+'</span></div>'+more+'</div>'+rows+'</div>';}
-  fetch('./leaderboards.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
-    if(!d) return;
-    var tabs='<a class="tlb-tab on" href="/markets/">All markets <span class="n">'+d.total+'</span></a>'+
-      (d.markets_tabs||[]).slice(0,5).map(function(m){return '<a class="tlb-tab" href="/markets/'+slugCity(m.name)+'/">'+esc(m.name)+' <span class="n">'+m.count+'</span></a>';}).join('');
-    document.getElementById('tlbTabs').innerHTML=tabs;
-    document.getElementById('tlbBoard').innerHTML=
-      card('dev',ICONS.dev,'Most Active Developers','<a class="tlb-more" href="/firm/">All &rarr;</a>',firmRows(d.developers))+
-      card('arch',ICONS.arch,'Most Active Design Firms','<a class="tlb-more" href="/firm/">All &rarr;</a>',firmRows(d.architects))+
-      card('big',ICONS.big,'Biggest in the Pipeline','<a class="tlb-more" href="'+MAP+'">Map &rarr;</a>',bigRows(d.biggest));
-  }).catch(function(){});
   // Trending Onyx searches — live top queries (last 7 days) from the worker.
   fetch(WK+'/trending-searches',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(t){
     var list=(t&&t.searches)||[]; if(!list.length) return;
@@ -1382,6 +1351,37 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
 <!-- ==================== TMW INTELLIGENCE (shared, synced — /_shared/intelligence.js) ==================== -->
 <div data-tmw-intel data-anchor="intelligence"></div>
 <script src="/_shared/intelligence.js" defer></script>
+<style>
+/* Relocated homepage modules blend with the Intelligence embed: tight embed
+   rhythm, no standalone hairline dividers (those belonged to the old stack). */
+.tmw-intel .wrap>[data-tmw-money]{margin-top:14px}
+.tmw-intel .wrap>[data-tmw-money] .tmw-money--teaser{margin-top:0}
+.tmw-intel #homeAtlasIntel{margin-top:14px}
+.tmw-intel #homeAtlasIntel::before{display:none}
+.tmw-intel .tlb-trend{margin-top:14px}
+.tmw-intel .tlb-trend::before{display:none}
+</style>
+<script>
+// Move Follow the Money + Atlas Intelligence between the embed window and the
+// Pro feature tiles, and Trending Onyx searches below the tiles. The modules
+// render in their old section first (their scripts bind by id), then relocate
+// wholesale — DOM moves keep listeners and pending fetch paints intact.
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var wrap=document.querySelector('[data-tmw-intel] .tmw-intel .wrap');
+    var feats=wrap&&wrap.querySelector('.feats');
+    if(!wrap||!feats) return;
+    var money=document.querySelector('.tlb-wrap [data-tmw-money]');
+    var atlas=document.getElementById('homeAtlasIntel');
+    var trend=document.getElementById('tlbTrend');
+    if(money) wrap.insertBefore(money, feats);
+    if(atlas) wrap.insertBefore(atlas, feats);
+    if(trend) wrap.insertBefore(trend, feats.nextElementSibling);
+    var sec=document.getElementById('live-board');
+    if(sec) sec.remove();
+  }catch(e){}
+});
+</script>
 
 <!-- ==================== PARTNERS OF TOMORROW (shared, auto-mounted) ==================== -->
 <div data-tmw-partners></div>

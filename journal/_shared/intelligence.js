@@ -362,7 +362,7 @@
           <div class="rhead">
             <div class="rtitle">
               <svg class="ic" viewBox="0 0 24 24"><path d="M4 19h16M7 16V9M12 16V5M17 16v-6"/></svg>
-              Movers, right now
+              Who&rsquo;s moving the pipeline right now
             </div>
             <div class="rsub">Break it down by</div>
           </div>
