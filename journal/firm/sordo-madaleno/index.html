@@ -615,6 +615,18 @@
         var grid = locked.querySelector('.tmw-locked-grid'); if (!grid) return;
         var gate = locked.querySelector('.tmw-gate'); if (gate) gate.style.display = 'none';
         var cards = Array.prototype.slice.call(grid.children); if (!cards.length) return;
+        // Merge the locked cards into the visible grid: two stacked grids can
+        // never fill rows across the boundary, so revealed/filtered cards were
+        // landing in a lonely second grid instead of completing the row above.
+        var mainGrid = null;
+        try {
+          var sibs = locked.parentNode.querySelectorAll('.grid.tmw-project-grid');
+          for (var gi = 0; gi < sibs.length; gi++) if (!sibs[gi].classList.contains('tmw-locked-grid')) { mainGrid = sibs[gi]; break; }
+        } catch (e) {}
+        if (mainGrid) {
+          cards.forEach(function (c) { mainGrid.appendChild(c); });
+          locked.style.display = 'none';
+        }
         var STEP = 6, shown = 0;
         cards.forEach(function (c) { c.style.display = 'none'; });
         var btn = document.createElement('button');
@@ -627,8 +639,16 @@
           else { btn.textContent = 'Load more projects (' + (cards.length - shown) + ' left)'; }
         }
         btn.addEventListener('click', tick);
-        locked.parentNode.insertBefore(btn, locked.nextSibling);
+        locked.parentNode.insertBefore(btn, mainGrid ? mainGrid.nextSibling : locked.nextSibling);
         tick();
+        // Filters need every matching card visible at once — batching would
+        // strand matches behind repeated "Load more" clicks.
+        window._tmwRevealAllCards = function () {
+          cards.forEach(function (c) { c.style.display = ''; });
+          shown = cards.length;
+          try { btn.remove(); } catch (e) {}
+        };
+        if (window._mkFilterActive) window._tmwRevealAllCards();
       }
       if (document.readyState !== 'loading') setupLoadMore();
       else document.addEventListener('DOMContentLoaded', setupLoadMore);
