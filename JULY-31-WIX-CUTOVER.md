@@ -59,6 +59,17 @@ DROP (Wix legacy — verify the ⚠ two before dropping):
 
 Two Cloudflare gotchas: (1) www/admin/gallery must be registered as **Custom Domains inside their Pages projects**, not just raw CNAMEs to *.pages.dev (else a proxied record 404s + no cert). (2) `map` + the apex A records stay **grey-cloud** — GitHub Pages serves its own SSL; proxying breaks it.
 
+### Cloudflare zone BUILT — 2026-07-31 (records reviewed + activation reached)
+- Zone `oftmw.com` created on Cloudflare (free plan); all Phase A records rebuilt + verified on the review screen (A ×4 grey, admin/gallery/www proxied, map grey, Google MX, all TXT incl. `_github-pages-challenge` + new `_dmarc` TXT; Wix `_dmarc`/`s1`/`s2` DKIM CNAMEs deleted).
+- **Assigned Cloudflare nameservers (set these at GoDaddy after transfer lands):**
+  - `albert.ns.cloudflare.com`
+  - `anita.ns.cloudflare.com`
+- ⚠️ **DNSSEC:** confirm it is OFF at Wix before the transfer finalizes — an active DS record + NS change = domain goes dark until it clears. Re-enable via Cloudflare later if wanted.
+- Still to add post-activation (Resend): MX `send` → feedback-smtp.us-east-1.amazonses.com pri 10 (not added yet — do it when finalizing Resend).
+
+### ⚠️ Google Workspace is Wix-resold — BLOCKS Phase D
+Email (media@oftmw.com etc.) is bought THROUGH Wix as a Google Workspace reseller — mailboxes live at Google, but billing/ownership is Wix. The DNS move + transfer do NOT touch it (MX → Google, already in Cloudflare), so mail survives cutover. BUT deleting the Wix account (Phase D) would cancel the resold subscription → mailboxes suspended → data wiped. **Before Phase D:** move the Workspace subscription off Wix — either (1) transfer to direct Google billing (transfer token in Admin console; simplest, higher price), (2) transfer to another reseller (GoDaddy/discount reseller — price-compare), or (3) keep only the Workspace line on Wix if Wix allows it without the domain (confirm with Wix support). Rule: Workspace subscription off Wix BEFORE deleting Wix.
+
 ## Phase B — Domain + DNS move (July 31+)
 
 - [ ] At Wix: **unlock the domain** + get the **auth/EPP transfer code**.
