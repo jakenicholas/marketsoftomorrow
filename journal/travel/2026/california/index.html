@@ -326,6 +326,9 @@
   .jpr.jpr-mini{padding:3px 8px 3px 7px;gap:5px;font-size:9.5px;letter-spacing:.04em}
   .jpr.jpr-mini svg{width:10px;height:10px}
   .jpr.jpr-mini .jpr-k{font-size:8px;letter-spacing:.1em}
+  /* Accolade (star) pill: wraps + capped width so the long praise stays a neat corner badge */
+  .jpr.jpr-star{white-space:normal;line-height:1.22;text-align:left;max-width:150px;font-weight:700}
+  .jpr.jpr-star svg{flex:0 0 auto}
   .todo-tile.noimg .todo-body{padding:18px 16px}
   @media(max-width:560px){ .todo-grid{grid-template-columns:1fr 1fr;gap:11px} .todo-t{font-size:14.5px} }
 
@@ -369,7 +372,7 @@
       <div class="wrap">
         <div class="hero-eyebrow">August 1 – 9, 2026</div>
         <h1>The Bay, Big Sur<br><em>&amp;</em> Napa Valley</h1>
-        <div class="hero-dates">5 Stays · California</div>
+        <div class="hero-dates">4 Stays · California</div>
       </div>
     </header>
   </div>
@@ -468,13 +471,19 @@ function jprPill(label, key, pulse, cls){
   var k = key ? '<span class="jpr-k">'+key+'</span>' : '';
   return '<span class="jpr'+(pulse?' jpr-pulse':'')+(cls?' '+cls:'')+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v2h16v-2c0-3.3-3.6-6-8-6Z"/></svg>'+k+label+'</span>';
 }
+// Accolade variant: a star (not the person avatar) + a bit of praise, styled like
+// the mini partner pill but allowed to wrap since the text runs long.
+function starPill(text){
+  return '<span class="jpr jpr-mini jpr-star"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>'+text+'</span>';
+}
 function todoHtml(list){
   if(!list || !list.length) return '';
   return '<div class="todo"><div class="todo-k">While we\'re here</div><div class="todo-grid">'
     + list.map(function(x){
         // Partner pill overlays the top-left of the photo (falls back into the
         // body only for the rare image-less tile).
-        var pill = x.partner ? '<div class="todo-partner'+(x.img?'':' todo-partner-body')+'">'+jprPill(x.partner,'Partner',false,'jpr-mini')+'</div>' : '';
+        var pillInner = x.partner ? jprPill(x.partner,'Partner',false,'jpr-mini') : (x.star ? starPill(x.star) : '');
+        var pill = pillInner ? '<div class="todo-partner'+(x.img?'':' todo-partner-body')+'">'+pillInner+'</div>' : '';
         var ph = x.img ? '<div class="todo-ph">'+pill+'<img loading="lazy" src="'+g(x.img)+'" alt="" '
                        + 'onload="this.classList.add(\'loaded\')" onerror="this.closest(\'.todo-ph\').remove()"></div>' : '';
         return '<div class="todo-tile'+(x.img?'':' noimg')+'">'+ph
