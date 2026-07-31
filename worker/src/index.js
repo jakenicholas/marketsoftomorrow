@@ -14545,6 +14545,152 @@ async function handleAdminProIncome(env, origin, url) {
   } catch (e) { return json({ error: 'pro-income: ' + e.message }, { status: 500 }, env, origin); }
 }
 
+// ── Studio push notifications (Web Push / VAPID) ──────────────────────────────
+// Jake's phone gets a push when someone goes Pro. The admin PWA
+// (admin.oftmw.com added to the home screen) subscribes via
+// POST /admin/push/subscribe; the minute cron watches Stripe for new
+// active/trialing subscriptions and pushes to every stored subscription.
+// VAPID public key pairs with the VAPID_PRIVATE_JWK secret.
+const VAPID_PUBLIC = 'BFMUhJ4z-FxafqUZUMdJ9GjvACozrrnfGD8FCoj0UI-jOY2di_Hs6b2U0uAr1-Oz53Wllf6ulLTQslUK2uHAzA8';
+const VAPID_SUBJECT = 'mailto:jake@oftmw.com';
+function pushB64uToBytes(s) {
+  s = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+  const pad = s.length % 4 ? '===='.slice(s.length % 4) : '';
+  const bin = atob(s + pad);
+  const a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function pushBytesToB64u(b) {
+  let s = '';
+  const a = new Uint8Array(b);
+  for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function ensurePushTables(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS push_subs (endpoint TEXT PRIMARY KEY, sub_json TEXT, created_at INTEGER)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS pro_subs_seen (sub_id TEXT PRIMARY KEY, ts INTEGER)').run();
+}
+async function vapidJwt(env, aud) {
+  const jwk = JSON.parse(env.VAPID_PRIVATE_JWK);
+  const key = await crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const enc = (o) => pushBytesToB64u(new TextEncoder().encode(JSON.stringify(o)));
+  const h = enc({ typ: 'JWT', alg: 'ES256' });
+  const p = enc({ aud: aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: VAPID_SUBJECT });
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(h + '.' + p));
+  return h + '.' + p + '.' + pushBytesToB64u(sig);
+}
+async function pushHkdf(salt, ikm, info, len) {
+  const key = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: salt, info: info }, key, len * 8));
+}
+// RFC 8291 aes128gcm payload encryption.
+async function pushEncrypt(sub, plaintext) {
+  const uaPub = pushB64uToBytes(sub.keys.p256dh), authSecret = pushB64uToBytes(sub.keys.auth);
+  const asKeys = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const uaKey = await crypto.subtle.importKey('raw', uaPub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const ecdh = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, asKeys.privateKey, 256));
+  const asPubRaw = new Uint8Array(await crypto.subtle.exportKey('raw', asKeys.publicKey));
+  const te = new TextEncoder();
+  const keyInfo = new Uint8Array([...te.encode('WebPush: info\0'), ...uaPub, ...asPubRaw]);
+  const ikm = await pushHkdf(authSecret, ecdh, keyInfo, 32);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await pushHkdf(salt, ikm, te.encode('Content-Encoding: aes128gcm\0'), 16);
+  const nonce = await pushHkdf(salt, ikm, te.encode('Content-Encoding: nonce\0'), 12);
+  const padded = new Uint8Array([...te.encode(plaintext), 2]);
+  const aesKey = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, padded));
+  const header = new Uint8Array(16 + 4 + 1 + asPubRaw.length);
+  header.set(salt, 0);
+  new DataView(header.buffer).setUint32(16, 4096);
+  header[20] = asPubRaw.length;
+  header.set(asPubRaw, 21);
+  return new Uint8Array([...header, ...ct]);
+}
+async function sendWebPush(env, sub, payloadObj) {
+  const aud = new URL(sub.endpoint).origin;
+  const jwt = await vapidJwt(env, aud);
+  const body = await pushEncrypt(sub, JSON.stringify(payloadObj));
+  return fetch(sub.endpoint, {
+    method: 'POST',
+    headers: {
+      'TTL': '86400', 'Urgency': 'high',
+      'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream',
+      'Authorization': 'vapid t=' + jwt + ',k=' + VAPID_PUBLIC,
+    },
+    body: body,
+  });
+}
+// Push to every stored subscription; expired endpoints (404/410) are pruned.
+async function pushAll(env, payloadObj) {
+  await ensurePushTables(env);
+  const rs = await env.DB.prepare('SELECT endpoint, sub_json FROM push_subs').all();
+  let sent = 0, pruned = 0, failed = 0;
+  for (const row of (rs.results || [])) {
+    try {
+      const sub = JSON.parse(row.sub_json);
+      const r = await sendWebPush(env, sub, payloadObj);
+      if (r.status === 404 || r.status === 410) {
+        await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(row.endpoint).run();
+        pruned++;
+      } else if (r.ok || r.status === 201) sent++;
+      else failed++;
+    } catch (_) { failed++; }
+  }
+  return { sent, pruned, failed, total: (rs.results || []).length };
+}
+// POST /admin/push/subscribe { subscription } — store a device.
+async function handlePushSubscribe(request, env, origin) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const sub = b && b.subscription;
+  if (!sub || !sub.endpoint || !sub.keys || !sub.keys.p256dh || !sub.keys.auth) {
+    return json({ error: 'subscription with endpoint + keys required' }, { status: 400 }, env, origin);
+  }
+  await ensurePushTables(env);
+  await env.DB.prepare('INSERT OR REPLACE INTO push_subs (endpoint, sub_json, created_at) VALUES (?,?,?)')
+    .bind(String(sub.endpoint).slice(0, 500), JSON.stringify(sub), Math.floor(Date.now() / 1000)).run();
+  return json({ ok: true }, {}, env, origin);
+}
+// POST /admin/push/test — fire a test push to every device.
+async function handlePushTest(request, env, origin) {
+  if (!env.VAPID_PRIVATE_JWK) return json({ error: 'VAPID key not configured' }, { status: 500 }, env, origin);
+  const r = await pushAll(env, { title: 'TMW Studio', body: 'Test notification. Pushes are working.', url: '/analytics' });
+  return json(r, {}, env, origin);
+}
+// Cron: new active/trialing Stripe subscriptions → a push per new member.
+// First run seeds the seen-table silently so the backlog never floods the phone.
+async function maybeNotifyNewPro(env) {
+  if (!env.DB || !env.STRIPE_SECRET_KEY || !env.VAPID_PRIVATE_JWK) return;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = await env.DB.prepare("SELECT ts FROM events WHERE event_name='pro_push_check' ORDER BY ts DESC LIMIT 1").first();
+    if (last && last.ts && (now - last.ts) < 240) return;   // ~every 4 min
+    await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)')
+      .bind(now, 'system:pro-push', 'pro_push_check', '{}').run();
+    await ensurePushTables(env);
+    const page = await stripeGet(env, '/subscriptions?status=all&limit=10&expand[]=data.customer');
+    const subs = (page.data || []).filter(s => s.status === 'active' || s.status === 'trialing');
+    if (!subs.length) return;
+    const seeded = await env.DB.prepare('SELECT COUNT(*) AS n FROM pro_subs_seen').first();
+    const firstRun = !(seeded && +seeded.n);
+    for (const s of subs) {
+      const seen = await env.DB.prepare('SELECT sub_id FROM pro_subs_seen WHERE sub_id = ?').bind(s.id).first();
+      if (seen) continue;
+      await env.DB.prepare('INSERT OR REPLACE INTO pro_subs_seen (sub_id, ts) VALUES (?,?)').bind(s.id, now).run();
+      if (firstRun) continue;   // seed silently
+      const c = s.customer && typeof s.customer === 'object' ? s.customer : {};
+      const who = c.name || c.email || 'A new member';
+      const item = ((s.items || {}).data || [])[0];
+      const amt = item && item.price && item.price.unit_amount ? item.price.unit_amount / 100 : null;
+      const iv = item && item.price && item.price.recurring ? item.price.recurring.interval : null;
+      const plan = amt ? ('$' + amt + (iv === 'year' ? '/yr' : '/mo')) : 'Pro';
+      const body = who + (c.name && c.email ? ' (' + c.email + ')' : '')
+        + (s.status === 'trialing' ? ' started the ' + plan + ' trial.' : ' went Pro at ' + plan + '.');
+      await pushAll(env, { title: s.status === 'trialing' ? 'New Pro trial' : 'New Pro member', body: body, url: '/analytics' });
+    }
+  } catch (_) {}
+}
+
 // ── QuickBooks Online: OAuth + reconciliation sync for the Flows ledger ──
 // Secrets: QBO_CLIENT_ID + QBO_CLIENT_SECRET (Intuit developer app; Jake owns).
 // Flow: GET /qbo/connect (admin, via the Studio proxy) → Intuit consent →
@@ -15235,6 +15381,17 @@ export default {
         if (denied) return denied;
         if (request.method === 'GET') return await handleAdminProIncome(env, origin, url);
       }
+      // ── Studio push notifications (admin) ──
+      if (url.pathname === '/admin/push/subscribe' && request.method === 'POST') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handlePushSubscribe(request, env, origin);
+      }
+      if (url.pathname === '/admin/push/test' && request.method === 'POST') {
+        const denied = await requireAdminToken(request, env, origin);
+        if (denied) return denied;
+        return await handlePushTest(request, env, origin);
+      }
       // ── QuickBooks OAuth + sync ──
       if (url.pathname === '/qbo/connect' && request.method === 'GET') {
         // Browser-clickable alternative to the admin bearer: a single-use
@@ -15661,6 +15818,7 @@ export default {
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
+    ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
     ctx.waitUntil(maybeReindex(env));            // re-embed projects + journal into Vectorize ~daily
     ctx.waitUntil(maybeSocialSync(env));         // persist the Instagram post archive (captions + engagement) ~daily
     ctx.waitUntil(maybeBrainReindex(env));       // re-embed brand-brain pool notes ~daily
