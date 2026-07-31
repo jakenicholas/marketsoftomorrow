@@ -566,7 +566,9 @@ var COORDS = {
   'Santa Cruz, California':[36.9741,-122.0308],
   'Sonoma, California':[38.2919,-122.4580],
   'Napa Valley, California':[38.30,-122.29],
-  'Sacramento, California':[38.58,-121.49]
+  'Sacramento, California':[38.58,-121.49],
+  // Labelled "Lake Tahoe" but pinned at Truckee, CA (Martis Camp's town).
+  'Lake Tahoe, California':[39.3280,-120.1833]
 };
 // The drawn route is the full drive, not just where we sleep — day trips and
 // pass-through towns get a pin too. Only rendered once unlocked (routeMapHtml
@@ -579,7 +581,8 @@ var ROUTE = [
   { loc:'Santa Cruz, California',       nights:'En route' },
   { loc:'Sonoma, California',           nights:'Aug 5 → 7' },
   { loc:'Napa Valley, California',      nights:'Day trip' },
-  { loc:'Sacramento, California',       nights:'Aug 7 → 9' }
+  { loc:'Sacramento, California',       nights:'Aug 7 → 9' },
+  { loc:'Lake Tahoe, California',       nights:'Day trip' }
 ];
 function routePoints(){
   var pts = [];
