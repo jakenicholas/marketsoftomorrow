@@ -11,11 +11,11 @@
 
 export const TRAVEL_STOPS = {
   california: [
-  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', client:'Quinn', confirmed:true, imgPos:'center 72%',
+  { loc:'Palo Alto, California', nights:'3 Nights · Aug 1 → 4', stay:'Nobu Hotel Palo Alto', rate:'$1,300/night', client:'Quinn', confirmed:true, imgPos:'center 72%',
     in:{ start:true, date:'August 1', mode:'flight', note:'Touchdown, the journey begins' },
     vibe:'Opening in the heart of Silicon Valley, a sleek, design-forward base with Nobu’s signature dining and easy reach of the Peninsula and the city.',
     todo:[
-      { a:'Dinner', t:'Nobu Restaurant', img:'https://www.nobuhotels.com/palo-alto/content/uploads/2024/11/twilight-nobu-garden-overview.jpg' },
+      { a:'Dinner', t:'Nobu Restaurant', partner:'Quinn', img:'https://www.nobuhotels.com/palo-alto/content/uploads/2024/11/twilight-nobu-garden-overview.jpg' },
       { a:'Explore', t:'Palo Alto', img:'https://media-production.lp-cdn.com/cdn-cgi/image/format=auto,quality=85,fit=scale-down,width=1280/https://media-production.lp-cdn.com/media/ece5959e-deaf-4894-b0ee-a834a42e3f94' },
       { a:'Explore', t:'Stanford University', img:'https://www.tclf.org/sites/default/files/styles/crop_2000x700/public/thumbnails/image/CA_Stanford_StanfordUniversity_courtesyWikimediaCommons_2011_005_Hero.jpg?itok=B8YAapxD' },
       { a:'Dinner', t:'Macarena', img:'https://www.paloaltoonline.com/wp-content/uploads/2024/12/PA_Macarena_DEC2024_03-1.png' },
@@ -38,14 +38,14 @@ export const TRAVEL_STOPS = {
     ],
     imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
 
-  { loc:'Sonoma, California', nights:'2 Nights · Aug 5 → 7', stay:'MacArthur Place Sonoma', client:'J/PR', confirmed:true,
+  { loc:'Sonoma, California', nights:'2 Nights · Aug 5 → 7', stay:'MacArthur Place Sonoma', rate:'$890/night', client:'J/PR', confirmed:true,
     in:{ date:'Aug 5', mode:'car', note:'Big Sur → Sonoma' },
     vibe:'A historic six-acre estate at the edge of Sonoma’s plaza, where garden cottages, a spa, and the wine country’s ease set the tone for the valley.',
     logi:[],
     todo:[
       { a:'Explore', t:'Napa Valley', img:'https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg' },
-      { a:'Dinner', t:'Layla', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/LaylaPatio_3B2B90EA-DDAA-4A4D-BA8AB6EEA23F2FF7_8d47d839-c905-4f0d-900f6c1aa4afc377.jpg' },
-      { a:'Winery Tour', t:'Chateau St. Jean Winery', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' }
+      { a:'Dinner', t:'Layla', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/LaylaPatio_3B2B90EA-DDAA-4A4D-BA8AB6EEA23F2FF7_8d47d839-c905-4f0d-900f6c1aa4afc377.jpg' },
+      { a:'Winery Tour', t:'Chateau St. Jean Winery', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' }
     ],
     imgs:['https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
 

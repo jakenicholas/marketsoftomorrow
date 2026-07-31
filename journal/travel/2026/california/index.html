@@ -106,6 +106,7 @@
 
   .stop-stay{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,38px);line-height:1.1;letter-spacing:-.01em;color:var(--white);margin-top:10px}
   .stop-date{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--purple-soft);margin-top:4px}
+  .stop-rate{font-family:var(--sans);font-style:normal;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--terra);margin-left:11px;padding-left:12px;border-left:1px solid var(--hair2);white-space:nowrap;vertical-align:middle}
   .vibe{margin-top:15px;font-size:15.5px;color:var(--mute2);line-height:1.72;max-width:64ch}
   .logi{margin-top:16px;display:flex;flex-direction:column;gap:9px}
   .logi-row{display:flex;gap:11px;align-items:baseline;font-size:13.5px;color:var(--mute)}
@@ -300,6 +301,10 @@
   .todo-body{padding:12px 14px 14px}
   .todo-a{font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--terra);margin-bottom:5px}
   .todo-t{font-family:var(--serif,Georgia,serif);font-size:16px;font-weight:600;color:var(--brown);line-height:1.25}
+  .todo-partner{margin-top:9px}
+  .jpr.jpr-mini{padding:3px 8px 3px 7px;gap:5px;font-size:9.5px;letter-spacing:.04em}
+  .jpr.jpr-mini svg{width:10px;height:10px}
+  .jpr.jpr-mini .jpr-k{font-size:8px;letter-spacing:.1em}
   .todo-tile.noimg .todo-body{padding:18px 16px}
   @media(max-width:560px){ .todo-grid{grid-template-columns:1fr 1fr;gap:11px} .todo-t{font-size:14.5px} }
 
@@ -449,7 +454,9 @@ function todoHtml(list){
         var ph = x.img ? '<div class="todo-ph"><img loading="lazy" src="'+g(x.img)+'" alt="" '
                        + 'onload="this.classList.add(\'loaded\')" onerror="this.closest(\'.todo-ph\').remove()"></div>' : '';
         return '<div class="todo-tile'+(x.img?'':' noimg')+'">'+ph
-          + '<div class="todo-body"><div class="todo-a">'+x.a+'</div><div class="todo-t">'+x.t+'</div></div></div>';
+          + '<div class="todo-body"><div class="todo-a">'+x.a+'</div><div class="todo-t">'+x.t+'</div>'
+          + (x.partner?'<div class="todo-partner">'+jprPill(x.partner,'Partner',false,'jpr-mini')+'</div>':'')
+          + '</div></div>';
       }).join('')
     + '</div></div>';
 }
@@ -490,7 +497,7 @@ function stopHtml(s, marker){
     +     '<span class="stop-tools">'+pill+'</span>'
     +   '</div>'
     +   '<div class="stop-stay">'+stayLine+'</div>'
-    +   '<div class="stop-date">'+s.loc+'</div>'
+    +   '<div class="stop-date">'+s.loc+(s.rate?'<span class="stop-rate">'+s.rate+'</span>':'')+'</div>'
     +   (s.vibe ? '<p class="vibe">'+s.vibe+'</p>' : '')
     +   logiHtml(s.logi)
     +   todoHtml(s.todo)
