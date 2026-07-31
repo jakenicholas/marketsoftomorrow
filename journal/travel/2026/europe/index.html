@@ -33,9 +33,9 @@
   .wrap{max-width:920px;margin:0 auto;padding:0 22px}
 
   /* ── Header: the image IS the background; the title overlays its washed top ── */
-  .topwrap{position:relative;overflow:hidden;min-height:88vh;background:var(--ink)}
+  .topwrap{position:relative;overflow:hidden;min-height:64vh;background:var(--ink)}
   /* pull the content up so the first box sits over the lower edge of the hero image */
-  #tl{position:relative;z-index:5;margin-top:-6vh}
+  #tl{position:relative;z-index:5;margin-top:-16vh}
   header.hero{position:relative;z-index:3;padding:clamp(40px,8vh,96px) 0 0;text-align:center;background:transparent}
   /* soft cream halo so the title reads over any image behind it */
   .hero-eyebrow,.hero h1,.hero-dates,.hero-meta{text-shadow:0 1px 22px rgba(243,235,220,.92),0 0 4px rgba(243,235,220,.6)}
@@ -51,7 +51,7 @@
   /* Crossfading image is dropped to the lower ~60% of the taller header, leaving a
      beige upper band for the title to breathe. Its top edge melts into that beige and
      its bottom melts into the page below: cream veil, no harsh edge either end. */
-  .topshow{position:absolute;left:0;right:0;bottom:0;height:66%;overflow:hidden;background:var(--cream)}
+  .topshow{position:absolute;left:0;right:0;bottom:0;height:56%;overflow:hidden;background:var(--cream)}
   .topshow .ts-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;filter:saturate(.95) brightness(1.02)}
   .topshow .ts-img.on{opacity:1}
   .topshow::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
@@ -140,12 +140,12 @@
   .leg-line{display:flex;align-items:center;gap:14px}
   .leg-wave{flex:1;height:16px;opacity:.7;background-repeat:repeat-x;background-position:center;
             background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16'%3E%3Cpath d='M0 8 Q10 2 20 8 T40 8' fill='none' stroke='%23B0603A' stroke-width='1.6' stroke-linecap='round' stroke-dasharray='1.5 5'/%3E%3C/svg%3E")}
-  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid rgba(176,96,58,.3);
-            background:linear-gradient(180deg,rgba(176,96,58,.10),rgba(176,96,58,.04))}
-  .leg-ic{display:flex;color:var(--purple-soft)}
+  .leg-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:99px;border:1px solid var(--terra);
+            background:var(--terra);box-shadow:0 6px 18px rgba(176,96,58,.30)}
+  .leg-ic{display:flex;color:#FBF6EC}
   .leg-ic svg{width:17px;height:17px}
-  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--white)}
-  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft)}
+  .leg-date{font-family:var(--serif);font-style:italic;font-size:15px;color:#FBF6EC}
+  .leg-mode{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(251,246,236,.85)}
   .leg-note{display:block;text-align:center;font-family:var(--sans);font-size:11px;color:var(--mute);margin-top:9px;letter-spacing:.03em}
   @media(max-width:560px){ .leg-line .leg-wave:first-child{display:none} .leg-line{justify-content:center} }
 
