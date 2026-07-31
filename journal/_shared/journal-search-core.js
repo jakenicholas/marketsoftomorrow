@@ -399,11 +399,18 @@
     var qn = String(now.q || '').trim().toLowerCase().replace(/[?!.]+$/, '');
     var wc = qn ? qn.split(/\s+/).length : 0;
     var isFragment = wc > 0 && (wc <= 3 || /^(and|or|but|what about|how about|whatabout|ok|okay|now|also|plus|then|in|for)\b/.test(qn));
-    if (!isFragment) return now;
+    // SUBJECTLESS CONTINUATION: however long, a query naming NO place and NO
+    // topic/firm of its own ("whats the total count of units in the pipeline")
+    // reads as a follow-up inside a live thread — inherit like a fragment.
+    var _subjectless = !(!!(now.types && now.types.size) || !!now.iconic || !!now.firm || !!now.firmRank)
+      && !(!!(now.cities && now.cities.length) || !!now.region || !!now.area || !!now.stateCode);
+    if (!isFragment && !_subjectless) return now;
     // A query carrying its OWN forward/status/time intent is a standalone ask,
     // not an elliptical follow-up — never inherit. ("new projects in austin" is
-    // pipeline+place; it must not pick up a prior "golf courses" topic.)
-    if (now.pipeline || (now.statuses && now.statuses.size) || now.yearMin != null) return now;
+    // pipeline+place; it must not pick up a prior "golf courses" topic.) A
+    // SUBJECTLESS pipeline ask ("total units in pipeline") still needs the
+    // prior place, so the gate only applies when a subject was named.
+    if (!_subjectless && (now.pipeline || (now.statuses && now.statuses.size) || now.yearMin != null)) return now;
     var hasTopic = !!(now.types && now.types.size) || !!now.iconic || !!now.firm;
     var hasPlace = !!(now.cities && now.cities.length) || !!now.region || !!now.area;
     if (hasTopic && hasPlace) return now;   // complete query — nothing to inherit
@@ -426,9 +433,10 @@
     }
     // Inherit the PLACE when this turn only changed the topic — or set neither.
     if (!hasPlace) {
-      if (prior.cities && prior.cities.length && !(now.cities && now.cities.length)) now.cities = prior.cities;
-      if (prior.region && !now.region) now.region = prior.region;
-      if (prior.area && !now.area) now.area = prior.area;
+      if (prior.cities && prior.cities.length && !(now.cities && now.cities.length)) { now.cities = prior.cities; now._inheritedPlace = true; }
+      if (prior.region && !now.region) { now.region = prior.region; now._inheritedPlace = true; }
+      if (prior.area && !now.area) { now.area = prior.area; now._inheritedPlace = true; }
+      if (prior.stateCode && !now.stateCode && !(now.cities && now.cities.length)) { now.stateCode = prior.stateCode; now._inheritedPlace = true; }
     }
     return now;
   }

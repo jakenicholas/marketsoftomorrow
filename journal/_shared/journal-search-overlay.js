@@ -4339,7 +4339,9 @@
     var Core = window.TmwSearchCore;
     if (!Core) return;
     var facts = attachPlaceScope(Core.buildSmartFacts(s, rows, iconicHits), q);
-    var hist = _isFollowupQ(q) ? threadHistory() : [];       // context only for real follow-ups
+    // History rides along for real follow-ups AND any turn that inherited the
+    // thread's place — the LLM then knows what "the pipeline" refers to.
+    var hist = (_isFollowupQ(q) || (s && s._inheritedPlace) || facts._inheritedPlace) ? threadHistory() : [];
     var _intelSlot = slotIntel;                              // capture THIS turn's slot (it moves per turn)
     var _turnRec = _thread.length ? _thread[_thread.length - 1] : null;
     var _turnCtx = _currentTurnCtx;                          // article context for THIS turn (if opened from an article)
@@ -5525,11 +5527,33 @@
     }
     return cities.length ? { name: ph.name, cities: cities } : null;
   }
-  // Attach the resolved place scope to a facts object (no-op when none).
+  // Latest place the conversation referenced (walking back over turns).
+  function _priorPlaceName(){
+    for (var i = _thread.length - 2; i >= 0; i--){
+      var t = _thread[i];
+      if (t && t.place) return t.place;
+    }
+    return null;
+  }
+  // Attach the resolved place scope to a facts object. When THIS query names no
+  // place but the thread already has one, inherit it — a follow-up ("whats the
+  // total unit count in the pipeline") stays scoped to the market being
+  // discussed instead of going cold. Skipped when the turn is about a FIRM
+  // (firm portfolios span markets). The resolved place is recorded on the turn
+  // so the chain keeps flowing forward.
   function attachPlaceScope(facts, q){
     if (!facts) return facts;
     var ps = placeScopeFor(q);
-    if (ps) { facts.placeName = ps.name; facts.placeCities = ps.cities; }
+    if (!ps){
+      var cur = _thread.length ? _thread[_thread.length - 1] : null;
+      var isFirmTurn = !!(cur && cur.parsed && (cur.parsed.firm || cur.parsed.firmRank));
+      var pp = isFirmTurn ? null : _priorPlaceName();
+      if (pp){ ps = placeScopeFor(pp); if (ps) facts._inheritedPlace = true; }
+    }
+    if (ps) {
+      facts.placeName = ps.name; facts.placeCities = ps.cities;
+      if (_thread.length) _thread[_thread.length - 1].place = ps.name;
+    }
     return facts;
   }
 
@@ -5566,7 +5590,8 @@
     clearTimeout(_intelDebounce);
     _intelDebounce = setTimeout(function(){
       if (myToken !== _intelToken) return;
-      Core.askIntelligence(q, facts, [], { deep: _deepActive(), member: _memberId(), article: _turnCtx }).then(function(res){
+      var _fuHist = (_isFollowupQ(q) || (facts && facts._inheritedPlace)) ? threadHistory() : [];
+      Core.askIntelligence(q, facts, _fuHist, { deep: _deepActive(), member: _memberId(), article: _turnCtx }).then(function(res){
         if (myToken !== _intelToken) return;
         // The 'Thinking' live-pip was relocated into the feedback row by setState
         // BEFORE this async answer arrived; rebuilding the panel below makes a new
