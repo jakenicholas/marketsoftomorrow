@@ -251,9 +251,10 @@
         // Primary CTA — purple-glow "Dive Deeper" (matches the SEO project page's btn-dive).
         '<a class="pc-btn dive" href="' + projectUrl(slug) + '">Dive Deeper ' +
           '<svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></a>' +
-        // Watch — eye + "Watch" label, toggles the same Memberstack favorites the map/SEO pages use.
+        // Watch — bell + "Watch" label (check when watching), toggles the same Memberstack favorites the map/SEO pages use.
         '<button class="pc-btn watch" type="button" data-watch="' + esc(slug) + '" aria-label="Watch this project">' +
-          '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+          '<svg class="ic-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>' +
+          '<svg class="ic-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' +
           '<span class="pc-watch-lbl">Watch</span></button>' +
       '</div>' +
     '</div>';
@@ -420,6 +421,9 @@
       '.tmw-pcard .pc-btn.watch{background:rgba(255,255,255,.06); color:var(--cream); border:1px solid rgba(255,255,255,.16)}',
       '.tmw-pcard .pc-btn.watch:hover{background:rgba(255,255,255,.11); color:#fff}',
       '.tmw-pcard .pc-btn.watch svg{width:16px;height:16px;stroke-width:1.8}',
+      '.tmw-pcard .pc-btn.watch .ic-check{display:none;stroke-width:2.4}',
+      '.tmw-pcard .pc-btn.watch.watching .ic-bell{display:none}',
+      '.tmw-pcard .pc-btn.watch.watching .ic-check{display:inline-block}',
       '.tmw-pcard .pc-btn.watch.watching{background:rgba(31,223,103,.12); border-color:rgba(31,223,103,.5); color:var(--grn)}',
       '.tmw-pcard .pc-btn.watch.watching:hover{background:rgba(31,223,103,.18)}',
       // Official Website — subtle text link with arrow, below the CTAs (mirrors .btn-website).

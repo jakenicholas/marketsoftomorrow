@@ -1810,8 +1810,9 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     watch_btn = (
         f'<button class="btn-watch" id="watchBtn" type="button" aria-label="Watch this project" '
         f'data-slug="{slug}" data-title="{esc_attr_title}">'
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>'
-        '<circle cx="12" cy="12" r="3"/></svg>'
+        '<svg class="ic-bell" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>'
+        '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>'
+        '<svg class="ic-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>'
         '<span class="btn-watch-label" id="watchBtnLabel">Watch</span>'
         '<span class="btn-watch-dot" aria-hidden="true"></span></button>'
     )
@@ -2675,6 +2676,9 @@ def build_page(row, articles=None, nearby=None, parent_title='', siblings=None, 
     }}
     .btn-watch:hover {{ background: rgba(255,255,255,0.10); color: #fff; }}
     .btn-watch svg {{ width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }}
+    .btn-watch .ic-check {{ display: none; stroke-width: 2.4; }}
+    .btn-watch.watching .ic-bell {{ display: none; }}
+    .btn-watch.watching .ic-check {{ display: inline-block; }}
     .btn-watch.watching {{
       background: rgba(31,223,103,0.12);
       border-color: rgba(31,223,103,0.4);

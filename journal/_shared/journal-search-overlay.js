@@ -675,6 +675,9 @@
     + '.tmw-ov-watch-btn svg{flex:0 0 auto}'
     + '.tmw-ov-watch-btn:hover{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.55);transform:translateY(-1px)}'
     + '.tmw-ov-watch-btn svg{width:15px;height:15px}'
+    + '.tmw-ov-watch-btn .ic-check{display:none}'
+    + '.tmw-ov-watch-btn.on .ic-bell{display:none}'
+    + '.tmw-ov-watch-btn.on .ic-check{display:inline-block}'
     + '.tmw-ov-watch-btn.on{background:rgba(230,197,116,.14);border-color:rgba(230,197,116,.62);color:#f0d68a;box-shadow:0 0 16px rgba(230,197,116,.5),0 0 3px rgba(230,197,116,.4)}'
     + '.tmw-ov-watch-btn.on:hover{background:rgba(230,197,116,.2);border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.7)}'
     /* Grounding byline relocated into the feedback row (by relocateBylines): the
@@ -1088,6 +1091,9 @@
     + '.tmw-pv-btn.watch:hover{border-color:rgba(167,139,250,.7);transform:translateY(-1px)}'
     + '.tmw-pv-btn.watch.on{background:rgba(230,197,116,.14);color:#f0d68a;border:1px solid rgba(230,197,116,.6);box-shadow:0 0 16px rgba(230,197,116,.45)}'
     + '.tmw-pv-btn.watch.on:hover{border-color:rgba(230,197,116,.85);box-shadow:0 0 22px rgba(230,197,116,.65)}'
+    + '.tmw-pv-btn.watch .ic-check{display:none}'
+    + '.tmw-pv-btn.watch.on .ic-bell{display:none}'
+    + '.tmw-pv-btn.watch.on .ic-check{display:inline-block}'
     /* Developer / architect firm chips — clickable pill + arrow (matches SEO pages) */
     + '.tmw-pv-firms{display:flex;flex-wrap:wrap;gap:16px}'
     + '.tmw-pv-fgroup{min-width:0}'
@@ -1318,7 +1324,7 @@
     +     '<div class="tmw-ov-fb-actions">'
     +       '<span class="tmw-ov-fb-thanks">Noted</span>'
     +       '<button class="tmw-ov-watch-btn" type="button" aria-label="Watch this — get proactive alerts on this">'
-    +         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+    +         '<svg class=\"ic-bell\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9\"/><path d=\"M13.7 21a2 2 0 0 1-3.4 0\"/></svg><svg class=\"ic-check\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6L9 17l-5-5\"/></svg>'
     +         '<span class="tmw-ov-watch-txt">Watch this</span>'
     +       '</button>'
     +       '<button class="tmw-ov-fb-btn" type="button" data-rating="up" aria-label="Helpful">'
@@ -2439,7 +2445,7 @@
       +   '<div class="tmw-pv-cta">'
       +     (hasGeo ? '<a class="tmw-pv-btn primary" href="https://www.oftmw.com/map/?project=' + esc(slug.replace(/-/g, '')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 7v13M15 4v13"/></svg>View on map</a>' : '')
       +     '<a class="tmw-pv-btn ghost" href="https://www.oftmw.com/projects/' + esc(slug) + '/">Full details <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>'
-      +     (slug ? '<button class="tmw-pv-btn watch" type="button" data-pvwatch data-slug="' + esc(slug) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="tmw-pv-watch-txt">Watch</span></button>' : '')
+      +     (slug ? '<button class="tmw-pv-btn watch" type="button" data-pvwatch data-slug="' + esc(slug) + '"><svg class="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span class="tmw-pv-watch-txt">Watch</span></button>' : '')
       +   '</div>'
       + '</div></div>';
   }

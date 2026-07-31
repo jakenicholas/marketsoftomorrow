@@ -3384,6 +3384,9 @@
     .favorite:hover { background: var(--accent); transform: scale(1.12); }
     .favorite:hover svg { stroke: #fff; }
     /* Watching state -- green pill, white eye. */
+    .favorite .ic-check { display: none; }
+    .favorite.favorited .ic-bell { display: none; }
+    .favorite.favorited .ic-check { display: block; }
     .favorite.favorited { background: var(--accent); }
     .favorite.favorited svg { stroke: #fff; }
     .favorite.favorited:hover { transform: scale(1.12); }
@@ -5084,6 +5087,9 @@
     stroke: currentColor; fill: none; stroke-width: 1.8;
     flex-shrink: 0;
   }
+  #projectModal .pm-watch-btn .ic-check { display: none; }
+  #projectModal .pm-watch-btn.watching .ic-bell { display: none; }
+  #projectModal .pm-watch-btn.watching .ic-check { display: inline-block; }
   #projectModal .pm-watch-btn.watching {
     background: rgba(31,223,103,0.12);
     border-color: rgba(31,223,103,0.4);
@@ -12688,9 +12694,12 @@
                  button. The underlying isFavorited()/toggleFavorite() data
                  layer is unchanged -- only the UI is rebranded to "Watch". -->
             <button class="pm-watch-btn" id="pmLikeBtn" type="button" aria-label="Watch this project">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+              <svg class="ic-bell" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+              </svg>
+              <svg class="ic-check" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"/>
               </svg>
               <span class="pm-watch-btn-label" id="pmWatchBtnLabel">Watch</span>
               <span class="pm-watch-btn-dot" aria-hidden="true"></span>
@@ -17101,10 +17110,10 @@
             ${deliveryBarHTML(f.properties.delivery)}
             <div class="popup-intel-mount"></div>
             <button class="favorite${window.isFavorited && window.isFavorited(f.properties.title) ? ' favorited' : ''}" data-fav-slug="${window.projectSlugify(f.properties.title)}" type="button" aria-label="Watch this project" onclick="event.stopPropagation();this.classList.remove('blink');void this.offsetWidth;this.classList.add('blink');window.toggleFavorite&&window.toggleFavorite('${(f.properties.title || '').replace(/'/g, "\\'")}', this);">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
+              <svg class="ic-bell" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+              </svg><svg class="ic-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
             </button>
             <div class="popup-buttons">
               <a href="#" class="popup-learn-more" data-project-city="${(f.properties.city || '').replace(/"/g, '&quot;')}">Learn More</a>
