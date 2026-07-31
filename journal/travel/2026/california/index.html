@@ -278,6 +278,11 @@
 
   footer.f{text-align:center;padding:56px 0 70px;color:var(--mute);font-size:12px;letter-spacing:.04em}
   footer.f .fm{font-family:var(--serif);font-style:italic;color:var(--mute2);font-size:14px;margin-bottom:6px}
+  .more-trips-wrap{text-align:center;margin:24px 0 0}
+  .more-trips{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;background:var(--panel);border:1px solid var(--hair2);color:var(--brown);font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .18s,color .18s,transform .18s,border-color .18s}
+  .more-trips:hover{background:var(--terra);border-color:var(--terra);color:#FBF6EC;transform:translateY(-1px)}
+  .more-trips .mt-arw{transition:transform .18s}
+  .more-trips:hover .mt-arw{transform:translateX(3px)}
 
   /* ── Lightbox ── */
   #lb{position:fixed;inset:0;z-index:90;background:rgba(6,7,8,.94);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:28px;cursor:zoom-out}
@@ -301,7 +306,9 @@
   .todo-body{padding:12px 14px 14px}
   .todo-a{font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--terra);margin-bottom:5px}
   .todo-t{font-family:var(--serif,Georgia,serif);font-size:16px;font-weight:600;color:var(--brown);line-height:1.25}
-  .todo-partner{margin-top:9px}
+  .todo-partner{position:absolute;top:9px;left:9px;z-index:2}
+  .todo-partner-body{position:static;margin-top:9px}
+  .todo-ph .jpr.jpr-mini{background:rgba(243,235,220,.92);border-color:rgba(176,96,58,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(74,57,43,.28)}
   .jpr.jpr-mini{padding:3px 8px 3px 7px;gap:5px;font-size:9.5px;letter-spacing:.04em}
   .jpr.jpr-mini svg{width:10px;height:10px}
   .jpr.jpr-mini .jpr-k{font-size:8px;letter-spacing:.1em}
@@ -451,11 +458,14 @@ function todoHtml(list){
   if(!list || !list.length) return '';
   return '<div class="todo"><div class="todo-k">While we\'re here</div><div class="todo-grid">'
     + list.map(function(x){
-        var ph = x.img ? '<div class="todo-ph"><img loading="lazy" src="'+g(x.img)+'" alt="" '
+        // Partner pill overlays the top-left of the photo (falls back into the
+        // body only for the rare image-less tile).
+        var pill = x.partner ? '<div class="todo-partner'+(x.img?'':' todo-partner-body')+'">'+jprPill(x.partner,'Partner',false,'jpr-mini')+'</div>' : '';
+        var ph = x.img ? '<div class="todo-ph">'+pill+'<img loading="lazy" src="'+g(x.img)+'" alt="" '
                        + 'onload="this.classList.add(\'loaded\')" onerror="this.closest(\'.todo-ph\').remove()"></div>' : '';
         return '<div class="todo-tile'+(x.img?'':' noimg')+'">'+ph
           + '<div class="todo-body"><div class="todo-a">'+x.a+'</div><div class="todo-t">'+x.t+'</div>'
-          + (x.partner?'<div class="todo-partner">'+jprPill(x.partner,'Partner',false,'jpr-mini')+'</div>':'')
+          + (x.img?'':pill)
           + '</div></div>';
       }).join('')
     + '</div></div>';
@@ -672,6 +682,7 @@ function render(){
   });
   html += '</div>';
   html += routeMapHtml();
+  html += '<div class="more-trips-wrap"><a class="more-trips" href="/travel">More upcoming trips<span class="mt-arw">→</span></a></div>';
   html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
   document.getElementById('tl').innerHTML = html;
 

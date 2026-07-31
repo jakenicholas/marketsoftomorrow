@@ -45,7 +45,9 @@ export const TRAVEL_STOPS = {
     todo:[
       { a:'Explore', t:'Napa Valley', img:'https://wineinternationalassociation.org/wp-content/uploads/2026/01/napa-valley-winery-gpt1.jpg' },
       { a:'Dinner', t:'Layla', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/LaylaPatio_3B2B90EA-DDAA-4A4D-BA8AB6EEA23F2FF7_8d47d839-c905-4f0d-900f6c1aa4afc377.jpg' },
-      { a:'Winery Tour', t:'Chateau St. Jean Winery', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' }
+      { a:'Winery Tour', t:'Chateau St. Jean Winery', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' },
+      { a:'Dinner', t:'BOA Steakhouse', partner:'C&R', img:'https://casamaniresortnapavalley-cdn.zambezimarketing.io/assets/files/53687/casamani_napa2_boa_frontfacade-0009_rf.2000x1028.jpg?2iqokl' },
+      { a:'Experience', t:'The Spa at Casa Mani', partner:'C&R', img:'https://casamaniresortnapavalley-cdn.zambezimarketing.io/assets/files/47914/casamani_napa2_spa_singletreatmentroom-0035_rf.jpg' }
     ],
     imgs:['https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
 

@@ -278,6 +278,11 @@
 
   footer.f{text-align:center;padding:56px 0 70px;color:var(--mute);font-size:12px;letter-spacing:.04em}
   footer.f .fm{font-family:var(--serif);font-style:italic;color:var(--mute2);font-size:14px;margin-bottom:6px}
+  .more-trips-wrap{text-align:center;margin:24px 0 0}
+  .more-trips{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:999px;background:var(--panel);border:1px solid var(--hair2);color:var(--brown);font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .18s,color .18s,transform .18s,border-color .18s}
+  .more-trips:hover{background:var(--terra);border-color:var(--terra);color:#FBF6EC;transform:translateY(-1px)}
+  .more-trips .mt-arw{transition:transform .18s}
+  .more-trips:hover .mt-arw{transform:translateX(3px)}
 
   /* ── Lightbox ── */
   #lb{position:fixed;inset:0;z-index:90;background:rgba(6,7,8,.94);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:28px;cursor:zoom-out}
@@ -625,6 +630,7 @@ function render(){
   });
   html += '</div>';
   html += routeMapHtml();
+  html += '<div class="more-trips-wrap"><a class="more-trips" href="/travel">More upcoming trips<span class="mt-arw">→</span></a></div>';
   html += '<footer class="f"><div class="fm">Bon voyage.</div>Markets of Tomorrow · Private Itinerary</footer>';
   document.getElementById('tl').innerHTML = html;
 
