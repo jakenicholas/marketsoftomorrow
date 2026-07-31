@@ -54,6 +54,9 @@ export const TRAVEL_STOPS = {
   { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
     vibe:'Closing the loop in the capital, a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
+    todo:[
+      { a:'Golf', t:'Martis Camp Golf Club', partner:'C&R', img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/martis-camp-golf-club.webp' }
+    ],
     logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
 ],
 
