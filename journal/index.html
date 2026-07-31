@@ -1203,16 +1203,15 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         #homeAtlasIntel .hai-psf{font-size:17px;font-weight:700;color:#fff;filter:blur(6px);user-select:none;opacity:.85}
         #homeAtlasIntel .hai-unit{font-size:10.5px;color:rgba(255,255,255,.45)}
         #homeAtlasIntel .hai-conf{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.06em;color:rgba(167,139,250,.8);border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:2px 8px}
-        #homeAtlasIntel .hai-cta{display:inline-block;margin-top:12px;text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.04em;color:#A78BFA}
+        #homeAtlasIntel .hai-cta{display:inline-block;margin-top:0;text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.04em;color:#A78BFA;white-space:nowrap}
         #homeAtlasIntel .hai-cta:hover{color:#fff}
       </style>
       <div class="hai-head">
         <span class="hai-eyebrow"><i></i>Onyx projections</span>
-        <span class="hai-sub" id="haiSub"></span>
+        <a class="hai-cta" href="/atlas/">Check supply pressure →</a>
       </div>
       <div class="hai-supply" id="haiSupply" hidden></div>
       <div class="hai-grid" id="haiGrid"></div>
-      <a class="hai-cta" href="/atlas/">Projected pricing, scenarios and supply pressure — inside the Atlas &rarr;</a>
     </div>
     <script>
     (function(){
@@ -1255,10 +1254,15 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         var mkts=Object.keys(byMkt).map(function(k){
           return { slug:k, list:byMkt[k], m:(intel&&intel.markets)?intel.markets[k]:null };
         }).filter(function(x){return x.m;})
-          .sort(function(a,b){return b.list.length-a.list.length||((b.m.score||0)-(a.m.score||0));})
-          .slice(0,3);
-        if(mkts.length<3) return;
-        document.getElementById('haiSub').textContent='Market-average modeled pricing · '+all.length+' pre-construction projects across '+Object.keys(byMkt).length+' markets';
+          .sort(function(a,b){return b.list.length-a.list.length||((b.m.score||0)-(a.m.score||0));});
+        // Two cards: the deepest-modeled market + the next one from a DIFFERENT
+        // state, so the pair reads national (Miami + NYC, not Miami + WPB).
+        if(mkts.length<2) return;
+        var second=null;
+        for(var mi2=1; mi2<mkts.length; mi2++){
+          if((mkts[mi2].m.state||mkts[mi2].m.country)!==(mkts[0].m.state||mkts[0].m.country)){ second=mkts[mi2]; break; }
+        }
+        mkts=[mkts[0], second||mkts[1]];
         document.getElementById('haiGrid').innerHTML=mkts.map(function(x){
           var m=x.m;
           var href=pageSlugs.indexOf(x.slug)>=0?('/markets/'+encodeURIComponent(x.slug)+'/'):'/atlas/';
