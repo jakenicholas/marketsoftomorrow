@@ -28,6 +28,37 @@ rehost the apex homepage, then delete Wix.
       redirect to the journal, or a simple landing. (Whatever it is, it can't stay on Wix.)
 - [ ] **Lower DNS TTLs** on records you'll move (to ~300s) a day before cutover for fast rollback.
 
+### CAPTURED Wix DNS snapshot — 2026-07-31 (the master list to rebuild in Cloudflare)
+
+Apex `oftmw.com` is on **GitHub Pages** (the 185.199.x IPs), NOT Wix — so the apex "rehost" is smaller than assumed.
+
+RECREATE EXACTLY (live infra):
+- A ×4  `oftmw.com` → 185.199.108.153 / .109.153 / .110.153 / .111.153  (GitHub Pages) — Cloudflare **grey/DNS-only**
+- CNAME `www` → marketsoftomorrow.pages.dev   — add as a Pages **custom domain** (proxied)
+- CNAME `admin` → tmw-admin.pages.dev          — Pages custom domain (proxied) + Access
+- CNAME `gallery` → tmw-gallery.pages.dev       — Pages custom domain (proxied)
+- CNAME `map` → jakenicholas.github.io          — **grey/DNS-only** (GitHub Pages SSL)
+- MX ×5 `oftmw.com` → aspmx / alt1–4.aspmx.l.google.com (10/20/30/40/50)  (Google Workspace — inbound mail, critical)
+- TXT `oftmw.com` → `v=spf1 include:_spf.google.com ~all`
+- TXT `oftmw.com` → both `google-site-verification=…` values
+- TXT `resend._domainkey` → `p=MIGfMA0GCSqGSIb3D…` (Resend DKIM, already staged)
+- TXT `send` → `v=spf1 include:amazonses.com ~all` (Resend SPF, already staged)
+- TXT `_github-pages-challenge-…` → `9acf641b126dce6648cf7f…` (apex/map GH Pages verification)
+
+ADD at cutover (new):
+- MX `send` → `feedback-smtp.us-east-1.amazonses.com` **pri 10** (Resend return-path — the one missing piece)
+- TXT `_dmarc` → `v=DMARC1; p=none; rua=mailto:media@oftmw.com` (replaces the Wix DMARC CNAME)
+
+DROP (Wix legacy — verify the ⚠ two before dropping):
+- CNAME `_dmarc` → _dmarc.wixemails.com (replaced by the DMARC TXT above)
+- CNAME `s1._domainkey`, `s2._domainkey` (Wix mail DKIM — safe if no mail sends via Wix)
+- ⚠ CNAME `sel1._domainkey` (NOT a Wix selector — confirm no live ESP signs with it, then drop)
+- CNAME `en`, `es` → cdn1.wixdns.net (old Wix multilingual site)
+- ⚠ CNAME `sg` → …ascend… (Wix Ascend email marketing — drop unless still used)
+- NS `ns6/ns7.wixdns.net` → replaced by Cloudflare's two nameservers at the registrar
+
+Two Cloudflare gotchas: (1) www/admin/gallery must be registered as **Custom Domains inside their Pages projects**, not just raw CNAMEs to *.pages.dev (else a proxied record 404s + no cert). (2) `map` + the apex A records stay **grey-cloud** — GitHub Pages serves its own SSL; proxying breaks it.
+
 ## Phase B — Domain + DNS move (July 31+)
 
 - [ ] At Wix: **unlock the domain** + get the **auth/EPP transfer code**.
