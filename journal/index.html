@@ -1123,8 +1123,8 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
 .tlb-val{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--cream);font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
 .tlb-val2{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--mute);font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
 .tlb-val .u,.tlb-val2 .u{color:var(--mute);font-weight:400;font-size:11px}
-.tlb-hex{display:inline-flex;width:17px;height:17px;flex:0 0 auto}
-.tlb-hex svg{width:17px;height:17px;transform-origin:50% 50%;animation:tlbHexSpin 3.4s ease-in-out infinite}
+.tlb-hex{display:inline-flex;width:13px;height:13px;flex:0 0 auto}
+.tlb-hex svg{width:13px;height:13px;transform-origin:50% 50%;animation:tlbHexSpin 3.4s ease-in-out infinite}
 .tlb-hex polygon{fill:none;stroke:var(--purple-glow);stroke-width:8;stroke-linejoin:round}
 @keyframes tlbHexSpin{0%{transform:rotate(0)}55%{transform:rotate(810deg)}70%{transform:rotate(900deg)}100%{transform:rotate(1080deg)}}
 .tlb-mv{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:5px;white-space:nowrap}
@@ -1137,10 +1137,13 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
 .tlb-pnum{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--green-soft);font-variant-numeric:tabular-nums}
 .tlb-pbar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
 .tlb-pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(31,223,103,.5),var(--green))}
-.tlb-trend{margin-top:14px;border:1px solid var(--hair);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--ink-2);padding:16px 18px}
-.tlb-th{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.tlb-trend{position:relative;margin-top:52px;border:1px solid var(--hair);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--ink-2);padding:16px 18px}
+.tlb-th{display:flex;align-items:center;gap:8px;margin-bottom:13px}
+.tlb-trend::before,.tlb-wrap>[data-tmw-money]::before{content:"";position:absolute;top:-26px;left:0;right:0;height:1px;background:var(--hair)}
+.tlb-wrap>[data-tmw-money]{position:relative;margin-top:52px}
+.tlb-wrap>[data-tmw-money] .tmw-money--teaser{margin-top:0}
 .tlb-th .tlb-ico{background:rgba(167,139,250,.16);color:var(--purple-glow)}
-.tlb-thh{font-size:14px;font-weight:700;color:var(--white)}
+.tlb-thh{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--purple-glow)}
 .tlb-thh b{color:var(--purple-glow)}
 .tlb-thh .k{font-family:var(--sans);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);margin-left:8px;font-weight:600}
 .tlb-trow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 0 4px 18px;scrollbar-width:none;-ms-overflow-style:none}
@@ -1173,7 +1176,7 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
          are a Pro surface and are never in this page's payload) -->
     <div id="homeAtlasIntel" hidden>
       <style>
-        #homeAtlasIntel{margin-top:14px;background:radial-gradient(700px 240px at 10% 0%, rgba(167,139,250,.11), transparent 60%), rgba(167,139,250,.04);border:1px solid rgba(167,139,250,.26);border-radius:16px;padding:18px 20px;box-shadow:0 0 44px rgba(167,139,250,.10), inset 0 0 32px rgba(167,139,250,.04)}
+        #homeAtlasIntel{position:relative;margin-top:52px;background:radial-gradient(700px 240px at 10% 0%, rgba(167,139,250,.11), transparent 60%), rgba(167,139,250,.04);border:1px solid rgba(167,139,250,.26);border-radius:16px;padding:18px 20px;box-shadow:0 0 44px rgba(167,139,250,.10), inset 0 0 32px rgba(167,139,250,.04)}
         #homeAtlasIntel .hai-supply{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 12px;padding-bottom:2px}
         #homeAtlasIntel .hai-supply::-webkit-scrollbar{display:none}
         #homeAtlasIntel .hai-sp{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;text-decoration:none;font-size:11.5px;color:rgba(255,255,255,.8);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 12px;transition:border-color .15s}
@@ -1190,7 +1193,8 @@ a.tlb-row:hover .tlb-name{color:var(--gold-soft)}
         #homeAtlasIntel .hai-blur{filter:blur(5px);user-select:none;opacity:.85}
         #homeAtlasIntel .hai-scn b.on{filter:none;opacity:1;color:#A78BFA}
         #homeAtlasIntel .hai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-        #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#A78BFA;font-weight:700}
+        #homeAtlasIntel .hai-eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#A78BFA;font-weight:700}
+        #homeAtlasIntel::before{content:"";position:absolute;top:-26px;left:0;right:0;height:1px;background:var(--hair)}
         #homeAtlasIntel .hai-eyebrow i{width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 10px 1px #A78BFA}
         #homeAtlasIntel .hai-sub{font-size:12px;color:rgba(255,255,255,.55)}
         #homeAtlasIntel .hai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
