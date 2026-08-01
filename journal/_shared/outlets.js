@@ -51,15 +51,17 @@
     '.tmw-outlets h2{font-family:Fraunces,Georgia,serif;font-weight:600;letter-spacing:-.015em;color:#fff;font-size:clamp(26px,3.2vw,40px);line-height:1.08;margin:0 0 14px}' +
     '.tmw-outlets .tmo-lede{font-size:clamp(15px,1.4vw,18px);color:#C2C9C3;max-width:64ch;line-height:1.55;font-weight:300}' +
     '.tmw-outlets .tmo-lede .g{color:#e6c574;text-shadow:0 0 18px rgba(230,197,116,.35)}' +
-    '.tmw-outlets .tmo-umb{margin-top:28px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;' +
-      'padding:22px 28px;border-radius:18px;border:1px solid rgba(230,197,116,.32);background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(230,197,116,.02));box-shadow:0 0 44px -20px rgba(230,197,116,.5)}' +
+    '.tmw-outlets .tmo-umb{margin-top:26px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;' +
+      'padding:15px 30px;border-radius:16px;border:1px solid rgba(230,197,116,.32);background:linear-gradient(180deg,rgba(230,197,116,.08),rgba(230,197,116,.02));box-shadow:0 0 44px -20px rgba(230,197,116,.5)}' +
+    '.tmw-outlets .tmo-umb-left{display:flex;flex-direction:column;gap:10px;align-items:flex-start}' +
     '.tmw-outlets .tmo-umb-lab{font-family:Inter,sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f0d68a;font-weight:600}' +
-    '.tmw-outlets .tmo-umb-stats{display:flex;gap:34px;flex-wrap:wrap}' +
+    '.tmw-outlets .tmo-umb-stats{display:flex;gap:clamp(28px,4vw,64px);flex-wrap:wrap}' +
     '.tmw-outlets .tmo-us{display:flex;flex-direction:column;gap:3px}' +
     '.tmw-outlets .tmo-uv{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:26px;color:#f0d68a;line-height:1}' +
     '.tmw-outlets .tmo-uk{font-family:Inter,sans-serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C}' +
-    '.tmw-outlets .tmo-ugrow{font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.01em;color:#1FDF67;margin-top:6px;white-space:nowrap}' +
-    '.tmw-outlets .tmo-ugrow.down{color:#ff6b6b}' +
+    '.tmw-outlets .tmo-ugrow{display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:.01em;color:#42EB81;white-space:nowrap;' +
+      'background:rgba(31,223,103,.12);border:1px solid rgba(31,223,103,.34);border-radius:999px;padding:4px 12px}' +
+    '.tmw-outlets .tmo-ugrow.down{color:#ff8a8a;background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.34)}' +
     /* full-bleed coverflow */
     '.tmw-outlets .tmo-vp{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-top:30px;overflow:hidden;padding:16px 0}' +
     '.tmw-outlets .tmo-track{display:flex;gap:22px;transition:transform .7s cubic-bezier(.22,1,.36,1);will-change:transform}' +
@@ -133,9 +135,12 @@
       +   '<h2>Seven outlets, one network</h2>'
       +   '<p class="tmo-lede"><span class="g">Florida of Tomorrow</span> leads as our <span class="g">flagship</span>, with co-posting across the network where relevant. Together they roll up under the Markets of Tomorrow umbrella.</p>'
       +   '<div class="tmo-umb">'
-      +     '<div class="tmo-umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>'
+      +     '<div class="tmo-umb-left">'
+      +       '<div class="tmo-umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>'
+      +       '<span class="tmo-ugrow" data-growth hidden></span>'
+      +     '</div>'
       +     '<div class="tmo-umb-stats">'
-      +       '<div class="tmo-us"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span><span class="tmo-ugrow" data-growth hidden></span></div>'
+      +       '<div class="tmo-us"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">8.1M</span><span class="tmo-uk">Mo. Social</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">593K</span><span class="tmo-uk">Mo. Web</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">260K</span><span class="tmo-uk">Interactions</span></div>'
@@ -204,14 +209,12 @@
     var all = [].slice.call(track.querySelectorAll('.tmo-card'));
 
     var cur = 1;              // real c0 (Florida) centered; lastClone peeks left
-    var teleporting = false;
-    var T = 720;
 
     realCards.forEach(function (_, i) {
       var b = document.createElement('button');
       b.className = 'tmo-dot' + (i === 0 ? ' is-active' : '');
       b.setAttribute('aria-label', 'Go to outlet ' + (i + 1));
-      b.addEventListener('click', function () { if (!teleporting) { goTo(i + 1); resume(); } });
+      b.addEventListener('click', function () { goTo(i + 1); resume(); });
       dotsBox.appendChild(b);
     });
     var dots = [].slice.call(dotsBox.children);
@@ -225,20 +228,25 @@
       var di = cur === 0 ? n - 1 : (cur === n + 1 ? 0 : cur - 1);
       dots.forEach(function (d, i) { d.classList.toggle('is-active', i === di); });
     }
-    function goTo(i) {
-      if (teleporting) return;
-      cur = i; place(true);
-      if (cur === 0 || cur === n + 1) {
-        teleporting = true;
-        setTimeout(function () { cur = (cur === 0) ? n : 1; place(false); teleporting = false; }, T);
-      }
+    // Lock-free infinite loop: whenever we're parked on a clone (edge), snap to
+    // its real twin with no animation. Called before every move AND on each
+    // transition end, so rapid clicks never hit a dead window — it cycles as
+    // fast as you can click, forever.
+    function normalize() {
+      if (cur === 0) { cur = n; place(false); }
+      else if (cur === n + 1) { cur = 1; place(false); }
     }
-    function next() { goTo(cur + 1); }
-    function prev() { goTo(cur - 1); }
+    track.addEventListener('transitionend', function (e) {
+      if (e.target === track && e.propertyName === 'transform') normalize();
+    });
+    function move(dir) { normalize(); cur += dir; place(true); }
+    function goTo(i) { normalize(); cur = i; place(true); }
+    function next() { move(1); }
+    function prev() { move(-1); }
 
-    var timer = setInterval(next, 6000);
-    function pause() { clearInterval(timer); }
-    function resume() { clearInterval(timer); timer = setInterval(next, 6000); }
+    var timer = null;
+    function pause() { if (timer) { clearInterval(timer); timer = null; } }
+    function resume() { pause(); timer = setInterval(next, 6000); }
     root.addEventListener('mouseenter', pause);
     root.addEventListener('mouseleave', resume);
 
@@ -248,13 +256,22 @@
 
     all.forEach(function (card, i) {
       card.addEventListener('click', function (e) {
-        if (i === cur || teleporting) return;
+        if (i === cur) return;
         if (e.target.closest('a')) return;   // let the social links through
         e.preventDefault();
         goTo(card.classList.contains('is-clone') ? (i === 0 ? n : 1) : i);
         resume();
       });
     });
+
+    // Auto-advance only starts once the section scrolls into view, so Florida
+    // (cur = 1) is always the first centered card the reader sees.
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (ents) {
+        ents.forEach(function (en) { if (en.isIntersecting) { resume(); io.disconnect(); } });
+      }, { threshold: 0.3 });
+      io.observe(root);
+    } else { resume(); }
 
     var rt;
     window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { place(false); }, 120); });
