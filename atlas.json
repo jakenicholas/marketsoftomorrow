@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-07-31",
+  "generated_at": "2026-08-01",
   "available_types": [
     {
       "type": "Residences",
-      "count": 420
+      "count": 418
     },
     {
       "type": "Hotel",
-      "count": 227
+      "count": 229
     },
     {
       "type": "Mixed-Use",
-      "count": 84
+      "count": 85
     },
     {
       "type": "Golf",
@@ -23,7 +23,7 @@
     },
     {
       "type": "Entertainment",
-      "count": 25
+      "count": 24
     },
     {
       "type": "Museum",
@@ -4271,7 +4271,7 @@
     },
     {
       "st": "FL",
-      "ty": "Residences",
+      "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": 2028,
       "sm": "2026-06",
@@ -4964,7 +4964,7 @@
     },
     {
       "st": "FL",
-      "ty": "Entertainment",
+      "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": null,
       "sm": null,
@@ -7258,7 +7258,7 @@
     },
     {
       "st": "FL",
-      "ty": "Residences",
+      "ty": "Hotel",
       "sl": "Construction",
       "yr": 2027,
       "sm": "2023-12",
@@ -7501,13 +7501,13 @@
     },
     {
       "st": "TX",
-      "ty": "Residences",
+      "ty": "Mixed-Use",
       "sl": "Announced",
       "yr": 2029,
       "sm": null,
       "ci": "Houston",
       "u": 112,
-      "k": 150,
+      "k": 156,
       "fl": 45,
       "dv": [
         [
@@ -9512,7 +9512,7 @@
     },
     {
       "st": "Other",
-      "ty": "Hotel",
+      "ty": "Residences",
       "sl": "Construction",
       "yr": 2028,
       "sm": null,
@@ -11294,7 +11294,7 @@
     {
       "st": "FL",
       "ty": "Residences",
-      "sl": "Breaking Ground",
+      "sl": "Construction",
       "yr": null,
       "sm": null,
       "ci": "Miami",
@@ -15460,7 +15460,7 @@
     },
     {
       "st": "Other",
-      "ty": "Mixed-Use",
+      "ty": "Hotel",
       "sl": "Opening Soon",
       "yr": 2026,
       "sm": "2014-12",
@@ -18501,7 +18501,7 @@
       "ty": "Mixed-Use",
       "sl": "Construction",
       "yr": 2046,
-      "sm": null,
+      "sm": "2026-03",
       "ci": "Phoenix",
       "u": 9000,
       "k": 0,
@@ -18552,7 +18552,7 @@
     },
     {
       "st": "TN",
-      "ty": "Mixed-Use",
+      "ty": "Hotel",
       "sl": "Announced",
       "yr": null,
       "sm": null,
@@ -23265,7 +23265,7 @@
     {
       "st": "Other",
       "ty": "Residences",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": 2028,
       "sm": null,
       "ci": "Greenwich",
@@ -23299,7 +23299,7 @@
   },
   "scale": {
     "units": 333659,
-    "keys": 61607,
+    "keys": 61613,
     "floors": 16791
   },
   "leaderboards": {
@@ -24159,7 +24159,7 @@
       {
         "name": "Residences",
         "sub": "45% of pipeline",
-        "count": 420,
+        "count": 418,
         "states": [
           "FL",
           "Other",
@@ -24175,7 +24175,7 @@
       {
         "name": "Hotel",
         "sub": "24% of pipeline",
-        "count": 227,
+        "count": 229,
         "states": [
           "Other",
           "FL",
@@ -24193,15 +24193,15 @@
       {
         "name": "Mixed-Use",
         "sub": "9% of pipeline",
-        "count": 84,
+        "count": 85,
         "states": [
           "Other",
           "FL",
-          "JP",
-          "TN",
           "TX",
+          "JP",
           "NC",
           "AE",
+          "TN",
           "UK",
           "GA"
         ]
@@ -24235,7 +24235,7 @@
       {
         "name": "Entertainment",
         "sub": "3% of pipeline",
-        "count": 25,
+        "count": 24,
         "states": [
           "FL",
           "Other",
@@ -25176,8 +25176,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "68% of pipeline",
-          "count": 230,
+          "sub": "67% of pipeline",
+          "count": 228,
           "states": [
             "FL",
             "Other",
@@ -25193,7 +25193,7 @@
         {
           "name": "Hotel",
           "sub": "6% of pipeline",
-          "count": 19,
+          "count": 20,
           "states": [
             "Other",
             "FL",
@@ -25210,30 +25210,18 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "5% of pipeline",
-          "count": 17,
+          "sub": "6% of pipeline",
+          "count": 19,
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
-          ]
-        },
-        {
-          "name": "Entertainment",
-          "sub": "5% of pipeline",
-          "count": 16,
-          "states": [
-            "FL",
-            "Other",
-            "TN",
-            "AE",
-            "NC"
           ]
         },
         {
@@ -25248,6 +25236,18 @@
             "FR",
             "AE",
             "UK"
+          ]
+        },
+        {
+          "name": "Entertainment",
+          "sub": "4% of pipeline",
+          "count": 15,
+          "states": [
+            "FL",
+            "Other",
+            "TN",
+            "AE",
+            "NC"
           ]
         },
         {
@@ -26002,11 +26002,11 @@
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -27366,8 +27366,8 @@
       "types": [
         {
           "name": "Hotel",
-          "sub": "37% of pipeline",
-          "count": 11,
+          "sub": "40% of pipeline",
+          "count": 12,
           "states": [
             "Other",
             "FL",
@@ -27400,16 +27400,16 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "13% of pipeline",
-          "count": 4,
+          "sub": "10% of pipeline",
+          "count": 3,
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -28103,8 +28103,8 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "52% of pipeline",
-          "count": 14,
+          "sub": "48% of pipeline",
+          "count": 13,
           "states": [
             "FL",
             "Other",
@@ -28137,16 +28137,16 @@
         },
         {
           "name": "Mixed-Use",
-          "sub": "15% of pipeline",
-          "count": 4,
+          "sub": "19% of pipeline",
+          "count": 5,
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -28691,11 +28691,11 @@
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -29038,11 +29038,11 @@
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -29532,11 +29532,11 @@
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -29795,11 +29795,11 @@
           "states": [
             "Other",
             "FL",
-            "JP",
-            "TN",
             "TX",
+            "JP",
             "NC",
             "AE",
+            "TN",
             "UK",
             "GA"
           ]
@@ -29811,7 +29811,7 @@
     "FL": {
       "hero_stats": {
         "total_projects": 338,
-        "under_construction": 119
+        "under_construction": 120
       },
       "scale": {
         "units": 82228,
@@ -29825,11 +29825,11 @@
         },
         {
           "label": "Breaking Ground",
-          "count": 14
+          "count": 13
         },
         {
           "label": "Construction",
-          "count": 119
+          "count": 120
         },
         {
           "label": "Opening Soon",
@@ -29841,11 +29841,6 @@
         }
       ],
       "momentum": [
-        {
-          "month": "Aug",
-          "year": 2025,
-          "count": 5
-        },
         {
           "month": "Sep",
           "year": 2025,
@@ -29900,6 +29895,11 @@
           "month": "Jul",
           "year": 2026,
           "count": 2
+        },
+        {
+          "month": "Aug",
+          "year": 2026,
+          "count": 3
         }
       ]
     },
@@ -29932,11 +29932,6 @@
         }
       ],
       "momentum": [
-        {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
         {
           "month": "Sep",
           "year": 2025,
@@ -29989,6 +29984,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30028,11 +30028,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 1
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30086,6 +30081,11 @@
           "month": "Jul",
           "year": 2026,
           "count": 1
+        },
+        {
+          "month": "Aug",
+          "year": 2026,
+          "count": 0
         }
       ]
     },
@@ -30123,11 +30123,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 1
@@ -30181,6 +30176,11 @@
           "month": "Jul",
           "year": 2026,
           "count": 0
+        },
+        {
+          "month": "Aug",
+          "year": 2026,
+          "count": 1
         }
       ]
     },
@@ -30191,7 +30191,7 @@
       },
       "scale": {
         "units": 7131,
-        "keys": 1545,
+        "keys": 1551,
         "floors": 740
       },
       "status_distribution": [
@@ -30218,11 +30218,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30274,6 +30269,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30309,11 +30309,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30365,6 +30360,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30400,11 +30400,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30456,6 +30451,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30491,11 +30491,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30549,6 +30544,11 @@
           "month": "Jul",
           "year": 2026,
           "count": 0
+        },
+        {
+          "month": "Aug",
+          "year": 2026,
+          "count": 0
         }
       ]
     },
@@ -30577,11 +30577,6 @@
         }
       ],
       "momentum": [
-        {
-          "month": "Aug",
-          "year": 2025,
-          "count": 1
-        },
         {
           "month": "Sep",
           "year": 2025,
@@ -30634,6 +30629,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30669,11 +30669,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30725,6 +30720,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -30756,11 +30756,6 @@
       ],
       "momentum": [
         {
-          "month": "Aug",
-          "year": 2025,
-          "count": 0
-        },
-        {
           "month": "Sep",
           "year": 2025,
           "count": 0
@@ -30812,6 +30807,11 @@
         },
         {
           "month": "Jul",
+          "year": 2026,
+          "count": 0
+        },
+        {
+          "month": "Aug",
           "year": 2026,
           "count": 0
         }
@@ -31105,11 +31105,11 @@
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 247
+      "count": 248
     },
     {
       "label": "Breaking Ground",
-      "count": 38
+      "count": 37
     },
     {
       "label": "Construction",
@@ -31125,11 +31125,6 @@
     }
   ],
   "momentum": [
-    {
-      "month": "Aug",
-      "year": 2025,
-      "count": 8
-    },
     {
       "month": "Sep",
       "year": 2025,
@@ -31163,7 +31158,7 @@
     {
       "month": "Mar",
       "year": 2026,
-      "count": 8
+      "count": 9
     },
     {
       "month": "Apr",
@@ -31184,6 +31179,11 @@
       "month": "Jul",
       "year": 2026,
       "count": 4
+    },
+    {
+      "month": "Aug",
+      "year": 2026,
+      "count": 6
     }
   ],
   "openings_by_year": [
@@ -31266,6 +31266,34 @@
     }
   ],
   "recent_activity": [
+    {
+      "id": "ms-ikonic-scottsdale-financing-2026-08-01",
+      "type": "status_change",
+      "tag": "Financing secured",
+      "title": "IKONIC Scottsdale  Financing secured",
+      "project_slug": "ikonic-scottsdale",
+      "project_title": "IKONIC Scottsdale",
+      "city": "Scottsdale",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/scottsdale/ikonic-scottsdale.jpg",
+      "event_date": "2026-06",
+      "source_url": "https://www.globenewswire.com/news-release/2026/06/03/3306091/30865/en/Greystone-Arranges-141-Million-Construction-Loan-for-245-Unit-Luxury-Rental-Tower-in-Scottsdale-AZ.html",
+      "link": "https://www.oftmw.com/map/?project=ikonicscottsdale",
+      "timestamp": "2026-08-01T01:12:37.134Z"
+    },
+    {
+      "id": "ms-costa-palmas-bookings-2026-08-01",
+      "type": "status_change",
+      "tag": "Bookings open",
+      "title": "Costa Palmas  Bookings open",
+      "project_slug": "costa-palmas",
+      "project_title": "Costa Palmas",
+      "city": "La Ribera",
+      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/la-ribera/costa-palmas.jpg",
+      "event_date": "2026-05",
+      "source_url": "https://onemileatatime.com/news/amanvari-mexico/",
+      "link": "https://www.oftmw.com/map/?project=costapalmas",
+      "timestamp": "2026-08-01T01:12:21.185Z"
+    },
     {
       "id": "track-chilston-court",
       "type": "tracking",
@@ -31921,34 +31949,6 @@
       "source_url": "https://www.connectcre.com/stories/related-urban-nears-debut-of-200m-miami-affordable-housing/",
       "link": "https://www.oftmw.com/map/?project=theresidencesclaudepepper",
       "timestamp": "2026-07-26T13:20:07.467Z"
-    },
-    {
-      "id": "ms-edge-house-going-vertical-2026-07-26",
-      "type": "status_change",
-      "tag": "Going vertical",
-      "title": "Edge House  Going vertical",
-      "project_slug": "edge-house",
-      "project_title": "Edge House",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/edge-house.webp",
-      "event_date": "2026-07",
-      "source_url": "https://floridayimby.com/2026/07/edge-house-miami-completes-foundation-pour-begins-vertical-construction.html",
-      "link": "https://www.oftmw.com/map/?project=edgehouse",
-      "timestamp": "2026-07-26T13:19:50.429Z"
-    },
-    {
-      "id": "ms-cipriani-residences-miami-topping-out-2026-07-26",
-      "type": "status_change",
-      "tag": "Topped out",
-      "title": "Cipriani Residences Miami  Topped out",
-      "project_slug": "cipriani-residences-miami",
-      "project_title": "Cipriani Residences Miami",
-      "city": "Miami",
-      "image": "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/miami/cipriani-residences-brickell.webp",
-      "event_date": "2026-07-15",
-      "source_url": "https://profilemiamire.com/miamirealestate/2026/7/23/cipriani-residences-miami-tops-off-construction-surpasses-80-sold-ahead-of-summer-2027-delivery",
-      "link": "https://www.oftmw.com/map/?project=ciprianiresidencesmiami",
-      "timestamp": "2026-07-26T12:25:17.699Z"
     }
   ],
   "most_covered": [
@@ -32064,10 +32064,10 @@
       "title": "Amanvari",
       "city": "Los Cabos",
       "delivery_date": "2026-08-01",
-      "days_out": 1,
+      "days_out": 0,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "1d",
+      "display_label": "0d",
       "display_precision": "day"
     },
     {
@@ -32075,7 +32075,7 @@
       "title": "1 Hotel Austin",
       "city": "Austin",
       "delivery_date": "2026-08-15",
-      "days_out": 15,
+      "days_out": 14,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -32086,7 +32086,7 @@
       "title": "Faraway Jackson Hole",
       "city": "Teton Village",
       "delivery_date": "2026-08-15",
-      "days_out": 15,
+      "days_out": 14,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -32097,7 +32097,7 @@
       "title": "Costa Palmas",
       "city": "La Ribera",
       "delivery_date": "2026-08-15",
-      "days_out": 15,
+      "days_out": 14,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -32108,7 +32108,7 @@
       "title": "SpaceX Gigabay",
       "city": "Merritt Island",
       "delivery_date": "2026-08-15",
-      "days_out": 15,
+      "days_out": 14,
       "bucket": "30d",
       "status": "Opening Soon",
       "display_label": "Aug",
@@ -32119,10 +32119,10 @@
       "title": "Four Seasons Hotel Danieli",
       "city": "Venice",
       "delivery_date": "2026-08-26",
-      "days_out": 26,
+      "days_out": 25,
       "bucket": "30d",
       "status": "Opening Soon",
-      "display_label": "26d",
+      "display_label": "25d",
       "display_precision": "day"
     },
     {
@@ -32130,7 +32130,7 @@
       "title": "Fort\u00e9 Luxe",
       "city": "Jupiter",
       "delivery_date": "2026-09-01",
-      "days_out": 32,
+      "days_out": 31,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -32141,7 +32141,7 @@
       "title": "Malabar Residences",
       "city": "New York City",
       "delivery_date": "2026-09-01",
-      "days_out": 32,
+      "days_out": 31,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -32152,7 +32152,7 @@
       "title": "Marcella Club",
       "city": "Park City",
       "delivery_date": "2026-09-01",
-      "days_out": 32,
+      "days_out": 31,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Summer",
@@ -32163,10 +32163,10 @@
       "title": "The Shepherd Mayfair",
       "city": "London",
       "delivery_date": "2026-09-01",
-      "days_out": 32,
+      "days_out": 31,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "32d",
+      "display_label": "31d",
       "display_precision": "day"
     },
     {
@@ -32174,10 +32174,10 @@
       "title": "Nobu Hotel Madrid",
       "city": "Madrid",
       "delivery_date": "2026-09-01",
-      "days_out": 32,
+      "days_out": 31,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "32d",
+      "display_label": "31d",
       "display_precision": "day"
     },
     {
@@ -32185,10 +32185,10 @@
       "title": "Wild Spring Dunes",
       "city": "Mount Enterprise",
       "delivery_date": "2026-09-08",
-      "days_out": 39,
+      "days_out": 38,
       "bucket": "90d",
       "status": "Opening Soon",
-      "display_label": "39d",
+      "display_label": "38d",
       "display_precision": "day"
     },
     {
@@ -32196,7 +32196,7 @@
       "title": "The Brook Tennis and Pickleball",
       "city": "Boynton Beach",
       "delivery_date": "2026-09-15",
-      "days_out": 46,
+      "days_out": 45,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -32207,7 +32207,7 @@
       "title": "2200 Brickell",
       "city": "Miami",
       "delivery_date": "2026-09-15",
-      "days_out": 46,
+      "days_out": 45,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
@@ -32218,7 +32218,7 @@
       "title": "9900 West",
       "city": "Bay Harbor Islands",
       "delivery_date": "2026-09-15",
-      "days_out": 46,
+      "days_out": 45,
       "bucket": "90d",
       "status": "Opening Soon",
       "display_label": "Sep",
