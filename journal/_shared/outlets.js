@@ -58,6 +58,8 @@
     '.tmw-outlets .tmo-us{display:flex;flex-direction:column;gap:3px}' +
     '.tmw-outlets .tmo-uv{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:26px;color:#f0d68a;line-height:1}' +
     '.tmw-outlets .tmo-uk{font-family:Inter,sans-serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C}' +
+    '.tmw-outlets .tmo-ugrow{font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.01em;color:#1FDF67;margin-top:6px;white-space:nowrap}' +
+    '.tmw-outlets .tmo-ugrow.down{color:#ff6b6b}' +
     /* full-bleed coverflow */
     '.tmw-outlets .tmo-vp{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-top:30px;overflow:hidden;padding:16px 0}' +
     '.tmw-outlets .tmo-track{display:flex;gap:22px;transition:transform .7s cubic-bezier(.22,1,.36,1);will-change:transform}' +
@@ -133,7 +135,7 @@
       +   '<div class="tmo-umb">'
       +     '<div class="tmo-umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>'
       +     '<div class="tmo-umb-stats">'
-      +       '<div class="tmo-us"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span></div>'
+      +       '<div class="tmo-us"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span><span class="tmo-ugrow" data-growth hidden></span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">8.1M</span><span class="tmo-uk">Mo. Social</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">593K</span><span class="tmo-uk">Mo. Web</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">260K</span><span class="tmo-uk">Interactions</span></div>'
@@ -155,6 +157,11 @@
     if (n >= 1e3) return (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'K';
     return String(n);
   }
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function fmtSince(iso) {
+    var m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? (MONTHS[+m[2] - 1] + ' ' + (+m[3])) : '';
+  }
   function liveFollowers(root) {
     fetch(WORKER + '/followers', { cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -165,6 +172,15 @@
         root.querySelectorAll('.tmo-sv[data-fk]').forEach(function (el) {
           var k = el.getAttribute('data-fk'); if (k && k !== 'umbrella' && m[k] != null) el.textContent = fmt(m[k]);
         });
+        // Growth line: "+4,060 since July 1" — driven live off the snapshot history so
+        // it advances on its own as new snapshots are saved.
+        var g = root.querySelector('[data-growth]');
+        if (g && d.growth && Number(d.growth.delta)) {
+          var delta = Number(d.growth.delta) || 0;
+          g.textContent = (delta > 0 ? '+' : '−') + Math.abs(delta).toLocaleString() + ' since ' + fmtSince(d.growth.since);
+          g.classList.toggle('down', delta < 0);
+          g.hidden = false;
+        } else if (g) { g.hidden = true; }
       }).catch(function () {});
   }
 
