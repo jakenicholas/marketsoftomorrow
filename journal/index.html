@@ -659,6 +659,36 @@ nav.main.tmw-nav-ready .nav-links, nav.main.tmw-nav-ready .nav-cta{opacity:1; an
 #focus-markets .ocities{display:flex; gap:7px; flex-wrap:wrap; margin-top:8px}
 #focus-markets .ochip{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; color:var(--mute2); background:rgba(255,255,255,.05);
   border:1px solid var(--hair); padding:4px 9px; border-radius:5px}
+
+/* ── Outlet slider: one full-width row, coverflow-lite, sheen on centered card ── */
+#focus-markets .omk-vp{position:relative; width:100vw; margin-left:calc(50% - 50vw); margin-top:6px}
+#focus-markets .omk-scroll{display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:26px calc(50vw - 200px)}
+#focus-markets .omk-scroll::-webkit-scrollbar{display:none}
+/* No transform/opacity transitions here on purpose: this scroll-snap row wedges
+   in-flight transitions off-screen (they stick at the start value). State flips
+   instantly instead; the scroll itself carries the motion. */
+#focus-markets .omk-vp .ocard{position:relative; flex:0 0 auto; width:clamp(300px,30vw,400px); scroll-snap-align:center; opacity:.5}
+#focus-markets .omk-vp .ocard.is-center{opacity:1; border-color:rgba(230,197,116,.32);
+  box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(230,197,116,.2), 0 0 62px -18px rgba(230,197,116,.42)}
+/* reflective sheen sweep on the centered card (mirrors the dashboard card glare) */
+#focus-markets .omk-vp .ocard.is-center::before{content:""; position:absolute; top:-35%; left:-95%; width:75%; height:170%; z-index:4;
+  pointer-events:none; transform:skewX(-20deg); filter:blur(13px);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.05) 28%,rgba(255,255,255,.22) 50%,rgba(255,255,255,.05) 72%,transparent);
+  animation:omkGlare 6s ease-in-out infinite}
+@keyframes omkGlare{0%{left:-95%}45%{left:165%}100%{left:165%}}
+#focus-markets .omk-nav{position:absolute; top:calc(50% + 6px); transform:translateY(-50%); z-index:6; width:46px; height:46px; border-radius:50%;
+  background:rgba(15,17,15,.72); border:1px solid var(--hair-2); color:#fff; display:flex; align-items:center; justify-content:center;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); cursor:pointer; transition:background .15s, border-color .15s, opacity .15s}
+#focus-markets .omk-nav:hover{background:rgba(30,33,30,.92); border-color:rgba(230,197,116,.45)}
+#focus-markets .omk-nav.prev{left:max(18px, calc(50vw - 648px))}
+#focus-markets .omk-nav.next{right:max(18px, calc(50vw - 648px))}
+#focus-markets .omk-nav svg{width:18px; height:18px}
+@media(prefers-reduced-motion:reduce){ #focus-markets .omk-vp .ocard.is-center::before{animation:none; opacity:0} }
+@media(max-width:640px){
+  #focus-markets .omk-scroll{gap:16px; padding:18px 12vw}
+  #focus-markets .omk-vp .ocard{width:76vw; transform:scale(.94)}
+  #focus-markets .omk-nav{display:none}
+}
 @media(max-width:900px){
   #focus-markets .ocards{grid-template-columns:1fr}
   #focus-markets .umbrella{flex-direction:column; align-items:stretch; gap:18px}
@@ -1400,7 +1430,9 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="us"><span class="uv">260K</span><span class="uk">Interactions</span></div>
       </div>
     </div>
-    <div class="ocards">
+    <div class="omk-vp">
+    <button class="omk-nav prev" type="button" aria-label="Previous outlet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="omk-scroll" id="omkScroll">
       <div class="ocard glass flag">
       <div class="obanner"><img src="/media/img/9998de3ca8af.jpg" alt="Florida of Tomorrow" loading="lazy"><span class="oflag">Flagship</span></div>
       <div class="obody">
@@ -1487,8 +1519,55 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
 
     </div>
+    <button class="omk-nav next" type="button" aria-label="Next outlet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
   </div>
 </section>
+<script>
+(function(){
+  var vp = document.getElementById('omkScroll');
+  if (!vp) return;
+  var cards = [].slice.call(vp.querySelectorAll('.ocard'));
+  if (!cards.length) return;
+  function updateCenter(){
+    var vr = vp.getBoundingClientRect(), cx = vr.left + vr.width / 2;
+    var best = null, bestD = Infinity;
+    cards.forEach(function(c){ var r = c.getBoundingClientRect(); var d = Math.abs((r.left + r.width / 2) - cx); if (d < bestD){ bestD = d; best = c; } });
+    cards.forEach(function(c){ c.classList.toggle('is-center', c === best); });
+  }
+  // Direct call (not rAF-throttled): updateCenter is 6 rect reads, cheap, and
+  // rAF can be starved mid-scroll in some contexts, leaving the center stale.
+  var ticking = false;
+  function onScroll(){ if (ticking) return; ticking = true; updateCenter(); setTimeout(function(){ ticking = false; }, 40); }
+  vp.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', updateCenter);
+  function step(dir){
+    var w = cards[0].offsetWidth + 22;
+    vp.scrollBy({ left: dir * w, behavior: 'smooth' });
+    // Re-center after the nav, independent of the scroll event (belt + braces).
+    setTimeout(updateCenter, 90);
+    setTimeout(updateCenter, 460);
+  }
+  var prev = document.querySelector('#focus-markets .omk-nav.prev');
+  var next = document.querySelector('#focus-markets .omk-nav.next');
+  if (prev) prev.addEventListener('click', function(){ step(-1); });
+  if (next) next.addEventListener('click', function(){ step(1); });
+  // Center the flagship card, then mark the centered one. Run it across a few
+  // settle points (rAF, load, a short timeout) because the section sits far
+  // down the page and its layout/CSS isn't final at parse time — a single
+  // parse-time pass would center against a half-laid-out row and never stick.
+  function centerFlag(){
+    var flag = vp.querySelector('.ocard.flag') || cards[0];
+    var r = flag.getBoundingClientRect(), vr = vp.getBoundingClientRect();
+    var delta = (r.left + r.width / 2) - (vr.left + vr.width / 2);
+    if (Math.abs(delta) > 1) vp.scrollLeft += delta;
+    updateCenter();
+  }
+  requestAnimationFrame(centerFlag);
+  window.addEventListener('load', function(){ setTimeout(centerFlag, 80); });
+  setTimeout(centerFlag, 600);
+})();
+</script>
 
 <!-- ==================== NEWSLETTER ==================== -->
 <section class="nlstrip" id="newsletter">
@@ -2827,7 +2906,7 @@ async function updateMapCounter() {
       });
       var g=d.growth;
       if(g && g.delta!=null && g.delta!==0){
-        var oc=document.querySelector('.ocards'); if(!oc) return;
+        var oc=document.querySelector('#focus-markets .omk-vp'); if(!oc) return;
         var up=g.delta>=0, dt=new Date(g.since+'T00:00:00');
         var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         var since=MON[dt.getMonth()]+' '+dt.getDate();
