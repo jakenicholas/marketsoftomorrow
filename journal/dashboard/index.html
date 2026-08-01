@@ -1063,7 +1063,7 @@ main.wrap{padding-bottom:70px}
         // Map this week's moves by project so the book can flag what changed.
         var movesBySlug={};
         order.forEach(function(id){
-          var ev=moves[id].ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
+          var x=moves[id], ev=x.ev, k=projectSlugify(ev.project_title||ev.project_slug||'');
           if(k && !movesBySlug[k]) movesBySlug[k]={tag:ev.tag||ev.type||'Moved', when:fmtEventDate(x.rdate)};
         });
         // The container owns everything now: book -> Onyx brief -> cards.
