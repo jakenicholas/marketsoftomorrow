@@ -130,7 +130,7 @@
       + '<div class="tmo-wrap">'
       +   '<div class="tmo-eyebrow">' + esc(eyebrow) + '</div>'
       +   '<h2>Seven outlets, one network</h2>'
-      +   '<p class="tmo-lede"><span class="g">Florida of Tomorrow</span> leads as our <span class="g">flagship</span>, with co-posting across the network where relevant. Together they roll up under the Markets of Tomorrow umbrella.</p>'
+      +   '<p class="tmo-lede">Markets of Tomorrow is a real-time journal and data platform tracking the world\'s most significant new developments in hospitality, residential, golf, and dining. We reach <span class="g">8M+ people a month</span>, with focus markets in Florida, New York, Tennessee, the Caribbean, and the Rockies, plus <span class="g">Hotels of Tomorrow</span>, our global travel arm.</p>'
       +   '<div class="tmo-umb">'
       +     '<div class="tmo-umb-left">'
       +       '<div class="tmo-umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>'
