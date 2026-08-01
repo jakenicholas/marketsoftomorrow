@@ -3939,10 +3939,6 @@
       [[0,'#1FBF6C'],[0.44,'#2FC06B'],[0.52,'#E9B60E'],[0.72,'#E7A114'],[0.80,'#E5484D'],[1,'#E5484D']]
         .forEach(function(s){grad.appendChild(mcEl('stop',{offset:(s[0]*100)+'%','stop-color':s[1]}));});
       defs.appendChild(grad);
-      var agrad=mcEl('linearGradient',{id:'mcPressArea',gradientUnits:'userSpaceOnUse',x1:0,y1:yAt(0),x2:0,y2:yAt(100)});
-      [[0,'#1FBF6C',0.02],[0.5,'#E9B60E',0.12],[1,'#E5484D',0.30]]
-        .forEach(function(s){agrad.appendChild(mcEl('stop',{offset:(s[0]*100)+'%','stop-color':s[1],'stop-opacity':s[2]}));});
-      defs.appendChild(agrad);
       svg.appendChild(defs);
       // faint zone bands so height reads as meaning
       MC_PRESS_BANDS.forEach(function(z){svg.appendChild(mcEl('rect',
@@ -3951,22 +3947,15 @@
       [0,50,75,100].forEach(function(t){var y=yAt(t);
         svg.appendChild(mcEl('line',{x1:PL,y1:y,x2:W-PR,y2:y,class:'mc-gl'}));
         svg.appendChild(mcTxt(String(t),{x:0,y:y+3,class:'mc-axt'}));});
-      // non-null indices, in order
-      var idx=[];pts.forEach(function(p,i){if(p.v!=null)idx.push(i);});
-      // area fill under the line (only when it's an actual line)
-      if(idx.length>=2){
-        var ap='M'+xAt(idx[0])+','+yAt(0)+' ';
-        idx.forEach(function(i){ap+='L'+xAt(i)+','+yAt(pts[i].v)+' ';});
-        ap+='L'+xAt(idx[idx.length-1])+','+yAt(0)+' Z';
-        svg.appendChild(mcEl('path',{d:ap,fill:'url(#mcPressArea)',stroke:'none'}));
-        var lp=idx.map(function(i,j){return (j?'L':'M')+xAt(i)+','+yAt(pts[i].v);}).join(' ');
-        svg.appendChild(mcEl('path',{d:lp,fill:'none',stroke:'url(#mcPressGrad)','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}));
-      }
-      // dots, score labels, and market names on the x-axis
+      // One vertical gradient line per market: it starts green at the base and
+      // climbs through yellow into red the higher the score sits. Each compared
+      // market is its own line, so Miami, WPB and Nashville read distinctly.
       pts.forEach(function(p,i){
         svg.appendChild(mcTxt(mcUnslug(p.k),{x:xAt(i),y:H-16,class:'mc-axt','text-anchor':'middle'}));
         if(p.v==null){svg.appendChild(mcTxt('no data',{x:xAt(i),y:yAt(50),class:'mc-axt','text-anchor':'middle'}));return;}
         var c=mcPressBand(p.v);
+        svg.appendChild(mcEl('line',{x1:xAt(i),y1:yAt(0),x2:xAt(i),y2:yAt(p.v),
+          stroke:'url(#mcPressGrad)','stroke-width':4.5,'stroke-linecap':'round'}));
         svg.appendChild(mcEl('circle',{cx:xAt(i),cy:yAt(p.v),r:5.5,fill:'#0c0e0c',stroke:c,'stroke-width':2.5}));
         var vt=mcTxt(String(Math.round(p.v)),{x:xAt(i),y:yAt(p.v)-13,'text-anchor':'middle',class:'mc-vlt'});
         vt.style.fill=c;svg.appendChild(vt);});
