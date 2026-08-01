@@ -3363,20 +3363,32 @@
 
     // Sticky-bar filter chips: active filters (with ✕) when set, quick
     // dial-in state shortcuts when not — mirrors the search-bar selects.
+    // Master filter → comparison chart. The chart always mirrors the page's
+    // markets: active markets REPLACE the chart (its scored subset), and with
+    // no market filter it falls back to the default 3-market seed comparison.
+    // This is the reverse of the chart's "+ Add market" pills, which feed the
+    // master filter — now both directions stay in lockstep.
+    function syncCompareToMarkets() {
+      try {
+        if (!(supplyIntel && supplyIntel.markets)) return;
+        if (atlasMarkets.length) {
+          const scored = atlasMarkets.map(c => mcSlug(c)).filter(k => supplyIntel.markets[k]);
+          MC.set = scored.map((k, i) => ({ k: k, slot: i }));
+        } else {
+          MC.set = [];
+          ['miami', 'west-palm-beach', 'nashville'].forEach(k => {
+            if (MC.set.length < MC_MAX && supplyIntel.markets[k]) MC.set.push({ k: k, slot: MC.set.length });
+          });
+        }
+        mcSync();
+      } catch (e) {}
+    }
     function atlasSetMarkets(list) {
       atlasMarkets = (list || []).filter(Boolean).slice(0, 5);
       currentCityFilter = atlasMarkets[0] || 'ALL';
       if (atlasMarkets.length) currentStateFilter = 'ALL';
-      // the master chart compares the page's markets (scored ones)
-      try {
-        if (supplyIntel && supplyIntel.markets) {
-          const scored = atlasMarkets.map(c => mcSlug(c)).filter(k => supplyIntel.markets[k]);
-          if (scored.length) MC.set = scored.map((k, i) => ({ k: k, slot: i }));
-          else if (!atlasMarkets.length) MC.set = [];
-        }
-      } catch (e) {}
+      syncCompareToMarkets();   // chart mirrors the page's markets
       syncSharedFilters();
-      try { mcSync(); } catch (e) {}
       _pcardShown = PCARD_STEP;
       renderAll();
     }
@@ -3414,13 +3426,15 @@
       const chip = e.target.closest('#atlasStickyFilters .ash-chip');
       if (!chip) return;
       if (chip.dataset.clear === 'mkt') { atlasDropMarket(chip.dataset.city); return; }
-      if (chip.dataset.state) { currentStateFilter = chip.dataset.state; currentCityFilter = 'ALL'; atlasMarkets = []; }
+      let mktsChanged = false;
+      if (chip.dataset.state) { currentStateFilter = chip.dataset.state; currentCityFilter = 'ALL'; atlasMarkets = []; mktsChanged = true; }
       else if (chip.dataset.clear === 'state') currentStateFilter = 'ALL';
-      else if (chip.dataset.clear === 'city') { currentCityFilter = 'ALL'; atlasMarkets = []; }
+      else if (chip.dataset.clear === 'city') { currentCityFilter = 'ALL'; atlasMarkets = []; mktsChanged = true; }
       else if (chip.dataset.clear === 'type') currentTypeFilter = 'ALL';
       else if (chip.dataset.clear === 'status') currentStatusFilter = 'ALL';
       else if (chip.dataset.clear === 'year') currentYearFilter = '';
-      else if (chip.dataset.clear === 'all') { atlasMarkets = []; currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentStatusFilter = 'ALL'; currentYearFilter = ''; }
+      else if (chip.dataset.clear === 'all') { atlasMarkets = []; currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; currentTypeFilter = 'ALL'; currentStatusFilter = 'ALL'; currentYearFilter = ''; mktsChanged = true; }
+      if (mktsChanged) syncCompareToMarkets();   // markets cleared → chart returns to the default comparison
       syncStateUrl();
       renderAll();
     });
@@ -4080,6 +4094,7 @@
         else { currentStateFilter = 'ALL'; currentCityFilter = 'ALL'; atlasMarkets = []; }
         currentTypeFilter = (cat && cat.value) ? cat.value : 'ALL';
         currentYearFilter = (yr && yr.value) ? yr.value : '';
+        syncCompareToMarkets();   // the main search bar drives the compare chart
         syncSharedFilters();
         _pcardShown = PCARD_STEP;
         Object.keys(lbState).forEach(k => { lbState[k].showAll = false; });

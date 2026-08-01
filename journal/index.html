@@ -2712,9 +2712,13 @@ function categoryCardHtml(t) {
   // eyebrow ("WORLDWIDE"), type name (serif), purple "N tracked →" count.
   const count = (typeof t.count === 'number') ? t.count
               : Number((t.count || '').toString().match(/\d+/)?.[0] || 0);
+  // Display-only pluralization: the canonical category tag stays "Hotel"
+  // (URL, eyebrow, data), only the card's main label reads "Hotels".
+  const CAT_DISPLAY = { 'Hotel': 'Hotels' };
+  const displayLabel = CAT_DISPLAY[t.label] || t.label;
   return `<a class="cat-card" href="${escapeAttr(t.url)}">
     <div class="cat-eye">${escapeHtml(t.eyebrow || 'Worldwide')}</div>
-    <h3 class="cat-name">${escapeHtml(t.label)}</h3>
+    <h3 class="cat-name">${escapeHtml(displayLabel)}</h3>
     ${count ? `<span class="cat-count">${count} tracked →</span>` : ''}
   </a>`;
 }
