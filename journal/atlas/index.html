@@ -3645,11 +3645,17 @@
          return qs.map(function(q){rows.forEach(function(r){var m=String(r.FinancingDate||'').match(/(\d{4})-(\d{2})/);
            if(m&&(m[1]+'-Q'+Math.ceil(+m[2]/3))===q)cum+=mcMoney(r);});return Math.round(cum);});}},
       {id:'pressure',name:'Supply pressure',unit:'score 0-100, higher = more saturated',kind:'scalar',fmt:mcNf,max:100,
-       info:function(){var lines=['<b>Modeled judgment, not a listing metric.</b> Pipeline weighed against delivered stock, 0-100.'];
+       info:function(){var lines=['<b>Modeled judgment, not a listing metric.</b> Pipeline weighed against delivered stock, 0-100. The line is a <b>forward trajectory</b>: the same model run at each half-year, climbing as a wave of deliveries approaches and easing after it lands.'];
          MC.set.forEach(function(m){var mk=supplyIntel.markets[m.k];
            if(mk&&mk.confidence)lines.push(mcUnslug(m.k)+' model confidence: '+mk.confidence+'.');});
          return lines;},
-       val:function(k){var m=supplyIntel.markets[k];return m?m.score:null;}},
+       val:function(k){var m=supplyIntel.markets[k];return m?m.score:null;},
+       xs:function(){var any=null,ms=supplyIntel.markets;
+         Object.keys(ms).some(function(k){var s=ms[k]&&ms[k].score_series;if(s&&s.length){any=s;return true;}return false;});
+         return (any||[]).map(function(pt){var mm=String(pt.half).match(/(\d{4})H(\d)/),h2=mm&&mm[2]==='2';
+           return {m:h2?'Jul':'Jan',y:mm?mm[1]:'',tip:(h2?'Second half ':'First half ')+(mm?mm[1]:'')};});},
+       series:function(k){var m=supplyIntel.markets[k];
+         return m&&m.score_series?m.score_series.map(function(pt){return pt.score;}):null;}},
       {id:'pipeline',name:'Pipeline units',unit:'residential units tracked',kind:'scalar',fmt:mcNf,
        info:function(){return ['<b>Curated count.</b> Residential units across tracked projects, dated and undated. Unit counts come from sourced coverage and filings, not estimates.'];},
        val:function(k){var m=supplyIntel.markets[k];return m?m.pipeline_units:null;}},
@@ -3772,7 +3778,7 @@
       MC_METRICS.forEach(function(mx){
         var d=document.createElement('div');d.className='mc-seli'+(mx.id===MC.metric?' on':'');
         var t=document.createElement('span');t.textContent=mx.name;d.appendChild(t);
-        var kk=document.createElement('span');kk.className='k';kk.textContent=mx.kind==='series'?'trend':'now';d.appendChild(kk);
+        var kk=document.createElement('span');kk.className='k';kk.textContent=(mx.kind==='series'||mx.id==='pressure')?'trend':'now';d.appendChild(kk);
         d.addEventListener('click',function(){MC.metric=mx.id;mcSync();mountMaster();});
         sm.appendChild(d);});
       sb.addEventListener('click',function(e){e.stopPropagation();sm.classList.toggle('on');});
@@ -3914,10 +3920,12 @@
         svg.appendChild(mcTxt(M.fmt(d.v),{x:LBL+w+10,y:y+BH/2+4,class:'mc-vlt'}));});
       host.appendChild(svg);
     }
-    // Supply pressure reads as a health scale, so it gets its own line: markets on
-    // x, score 0-100 on y, and a single line whose stroke is a VERTICAL gradient —
-    // the colour is driven purely by height. Low sits green, it warms through
-    // yellow across the mid band, and it turns red up in the saturated zone.
+    // Supply pressure reads as a health scale, so it gets its own line chart:
+    // time on x, score 0-100 on y, one line per market whose stroke is a VERTICAL
+    // gradient — colour is driven purely by height. A segment sits green when the
+    // score is low, warms through yellow across the mid band, and turns red up in
+    // the saturated zone, so each line shows the market climbing into (or easing
+    // out of) saturation over the coming half-years.
     var MC_PRESS_BANDS=[
       {lo:0, hi:50,  c:'#1FBF6C', label:'Healthy'},
       {lo:50,hi:75,  c:'#E9B60E', label:'Balanced'},
@@ -3925,21 +3933,30 @@
     ];
     function mcPressBand(v){for(var i=0;i<MC_PRESS_BANDS.length;i++){var z=MC_PRESS_BANDS[i];
       if(v<z.hi||i===MC_PRESS_BANDS.length-1)return z.c;}return MC_PRESS_BANDS[0].c;}
+    function mcPressZone(v){return v==null?'no data':(MC_PRESS_BANDS.filter(function(z){return v<z.hi;})[0]||MC_PRESS_BANDS[2]).label;}
     function mcPressureLine(host,M){
-      var pts=MC.set.map(function(m){return {k:m.k,v:M.val(m.k)};});
-      var n=pts.length;
-      var W=1120,H=300,PL=42,PR=40,PT=22,PB=50;
+      var xs=M.xs();
+      var data=MC.set.map(function(m){return {k:m.k,ys:M.series(m.k)};})
+        .filter(function(d){return d.ys&&d.ys.length;});
+      if(!xs.length||!data.length){var e0=document.createElement('div');e0.className='mc-unit';
+        e0.style.padding='30px 0';e0.textContent='No trajectory for the selected markets yet.';host.appendChild(e0);return;}
+      // Trim trailing periods where every line has emptied out (score 0) — lines
+      // marching to the floor read as collapse, not as the pipeline running dry.
+      var lastNz=0;
+      data.forEach(function(d){d.ys.forEach(function(v,i){if(v>0&&i>lastNz)lastNz=i;});});
+      if(lastNz<xs.length-1){xs=xs.slice(0,lastNz+1);data.forEach(function(d){d.ys=d.ys.slice(0,lastNz+1);});}
+      var W=1120,H=300,PL=42,PR=118,PT=20,PB=40;
       var svg=mcEl('svg',{viewBox:'0 0 '+W+' '+H,class:'mc-svg',role:'img'});
       svg.style.width='100%';svg.style.overflow='visible';svg.style.display='block';
-      var xAt=function(i){return PL+(W-PL-PR)*(n<2?0.5:i/(n-1));};
+      var xAt=function(i){return PL+(W-PL-PR)*(xs.length<2?0:i/(xs.length-1));};
       var yAt=function(v){return PT+(H-PT-PB)*(1-(+v||0)/100);};
-      // vertical gradients: same green->yellow->red ramp, keyed to score height.
+      // vertical gradient: green->yellow->red keyed to score height. Shared by
+      // every line, so any high segment is red and any low segment is green.
       var defs=mcEl('defs');
       var grad=mcEl('linearGradient',{id:'mcPressGrad',gradientUnits:'userSpaceOnUse',x1:0,y1:yAt(0),x2:0,y2:yAt(100)});
       [[0,'#1FBF6C'],[0.44,'#2FC06B'],[0.52,'#E9B60E'],[0.72,'#E7A114'],[0.80,'#E5484D'],[1,'#E5484D']]
         .forEach(function(s){grad.appendChild(mcEl('stop',{offset:(s[0]*100)+'%','stop-color':s[1]}));});
-      defs.appendChild(grad);
-      svg.appendChild(defs);
+      defs.appendChild(grad);svg.appendChild(defs);
       // faint zone bands so height reads as meaning
       MC_PRESS_BANDS.forEach(function(z){svg.appendChild(mcEl('rect',
         {x:PL,y:yAt(z.hi),width:W-PL-PR,height:yAt(z.lo)-yAt(z.hi),fill:z.c,opacity:0.05}));});
@@ -3947,35 +3964,39 @@
       [0,50,75,100].forEach(function(t){var y=yAt(t);
         svg.appendChild(mcEl('line',{x1:PL,y1:y,x2:W-PR,y2:y,class:'mc-gl'}));
         svg.appendChild(mcTxt(String(t),{x:0,y:y+3,class:'mc-axt'}));});
-      // One vertical gradient line per market: it starts green at the base and
-      // climbs through yellow into red the higher the score sits. Each compared
-      // market is its own line, so Miami, WPB and Nashville read distinctly.
-      pts.forEach(function(p,i){
-        svg.appendChild(mcTxt(mcUnslug(p.k),{x:xAt(i),y:H-16,class:'mc-axt','text-anchor':'middle'}));
-        if(p.v==null){svg.appendChild(mcTxt('no data',{x:xAt(i),y:yAt(50),class:'mc-axt','text-anchor':'middle'}));return;}
-        var c=mcPressBand(p.v);
-        svg.appendChild(mcEl('line',{x1:xAt(i),y1:yAt(0),x2:xAt(i),y2:yAt(p.v),
-          stroke:'url(#mcPressGrad)','stroke-width':4.5,'stroke-linecap':'round'}));
-        svg.appendChild(mcEl('circle',{cx:xAt(i),cy:yAt(p.v),r:5.5,fill:'#0c0e0c',stroke:c,'stroke-width':2.5}));
-        var vt=mcTxt(String(Math.round(p.v)),{x:xAt(i),y:yAt(p.v)-13,'text-anchor':'middle',class:'mc-vlt'});
-        vt.style.fill=c;svg.appendChild(vt);});
-      // hover crosshair + tooltip snapping to the nearest market
+      // x axis (half-year ticks)
+      xs.forEach(function(x,i){
+        svg.appendChild(mcTxt(x.m,{x:xAt(i),y:H-20,class:'mc-axt','text-anchor':'middle'}));
+        svg.appendChild(mcTxt(x.y,{x:xAt(i),y:H-6,class:'mc-axty','text-anchor':'middle'}));});
+      // one gradient line per market
+      data.forEach(function(d){
+        var pd=d.ys.map(function(v,i){return (i?'L':'M')+xAt(i)+','+yAt(v);}).join(' ');
+        svg.appendChild(mcEl('path',{d:pd,fill:'none',stroke:'url(#mcPressGrad)','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}));
+        var li=d.ys.length-1,lv=d.ys[li];
+        svg.appendChild(mcEl('circle',{cx:xAt(li),cy:yAt(lv),r:4.5,fill:'#0c0e0c',stroke:mcPressBand(lv),'stroke-width':2}));});
+      // right-edge labels: market + latest score, colour-coded by zone, de-collided
+      var ends=data.map(function(d){var lv=d.ys[d.ys.length-1];return {d:d,v:lv,y:yAt(lv)};}).sort(function(a,b){return a.y-b.y;});
+      for(var i=1;i<ends.length;i++){if(ends[i].y-ends[i-1].y<15)ends[i].y=ends[i-1].y+15;}
+      ends.forEach(function(e2){
+        var t=mcTxt(mcUnslug(e2.d.k)+'  '+Math.round(e2.v),{x:W-PR+14,y:e2.y+4,class:'mc-vlt'});
+        t.style.fill=mcPressBand(e2.v);svg.appendChild(t);
+        svg.appendChild(mcEl('line',{x1:W-PR+2,y1:yAt(e2.v),x2:W-PR+11,y2:e2.y,stroke:mcPressBand(e2.v),'stroke-width':1,opacity:.7}));});
+      // hover crosshair + tooltip snapping to the nearest half-year
       var cross=mcEl('line',{x1:0,y1:PT,x2:0,y2:H-PB,class:'mc-gl',opacity:0});
       svg.appendChild(cross);
       var over=mcEl('rect',{x:PL,y:PT,width:W-PL-PR,height:H-PT-PB,class:'mc-hit'});
       over.addEventListener('pointermove',function(e){
         var b=svg.getBoundingClientRect(),rel=(e.clientX-b.left)/b.width*W,best=0,bd=1e9;
-        pts.forEach(function(_,i){var dd=Math.abs(xAt(i)-rel);if(dd<bd){bd=dd;best=i;}});
+        xs.forEach(function(_,i){var dd=Math.abs(xAt(i)-rel);if(dd<bd){bd=dd;best=i;}});
         cross.setAttribute('x1',xAt(best));cross.setAttribute('x2',xAt(best));cross.setAttribute('opacity',1);
         var f=document.createDocumentFragment();
-        var l=document.createElement('div');l.className='tl';l.textContent=mcUnslug(pts[best].k);f.appendChild(l);
-        var r=document.createElement('div');r.className='tr';
-        var v=pts[best].v;
-        var kk=document.createElement('span');kk.className='tk';kk.style.background=v==null?'#555':mcPressBand(v);r.appendChild(kk);
-        var zn=v==null?'no data':(MC_PRESS_BANDS.filter(function(z){return v<z.hi;})[0]||MC_PRESS_BANDS[2]).label;
-        var sp=document.createElement('span');sp.textContent=zn;r.appendChild(sp);
-        var tv=document.createElement('span');tv.className='tv';tv.textContent=v==null?'—':Math.round(v);r.appendChild(tv);
-        f.appendChild(r);mcShowTip(e,f);});
+        var l=document.createElement('div');l.className='tl';l.textContent=xs[best].tip;f.appendChild(l);
+        data.forEach(function(d){var v=d.ys[best];var r=document.createElement('div');r.className='tr';
+          var kk=document.createElement('span');kk.className='tk';kk.style.background=mcPressBand(v);r.appendChild(kk);
+          var sp=document.createElement('span');sp.textContent=mcUnslug(d.k)+' · '+mcPressZone(v);r.appendChild(sp);
+          var tv=document.createElement('span');tv.className='tv';tv.textContent=Math.round(v);r.appendChild(tv);
+          f.appendChild(r);});
+        mcShowTip(e,f);});
       over.addEventListener('pointerleave',function(){cross.setAttribute('opacity',0);mcHideTip();});
       svg.appendChild(over);
       host.appendChild(svg);

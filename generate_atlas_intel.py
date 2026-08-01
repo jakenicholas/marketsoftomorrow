@@ -49,6 +49,8 @@ CONC_DAMP  = 600    # pipeline units at which concentration carries full weight
 W_PROJECTS, W_UNITS, W_CONC = 0.42, 0.40, 0.18
 WINDOW_HALVES = 6   # forward half-year windows (36 months)
 MIN_PIPELINE  = 2   # markets below this many forward projects get no score
+SERIES_HALVES = 10  # horizon for the forward score trajectory (5 years)
+SERIES_LOOK   = 4   # 24-month (4-half) lookahead re-applied at each point
 
 LEVELS = [(40, "Balanced"), (70, "Elevated"), (101, "Saturated")]
 
@@ -168,6 +170,42 @@ def compute_all(projects: list[dict], today: datetime.date | None = None) -> dic
         score = round(100 * (W_PROJECTS * a + W_UNITS * b + W_CONC * c))
         score = max(0, min(100, score))
 
+        # Forward trajectory: the SAME score model evaluated at each half-year
+        # reference point, sliding the 24-month (4-half) lookahead across a
+        # longer horizon. It's an honest forward view of how saturation evolves
+        # given the known delivery schedule (it climbs as a wave of deliveries
+        # approaches and eases after it lands), not reconstructed history. Point
+        # zero is pinned to the published headline score so "now" always agrees.
+        horizon_s = _halves_from(today, SERIES_HALVES)
+        hidx_s = {yh: i for i, yh in enumerate(horizon_s)}
+        sw_u = [0] * SERIES_HALVES
+        sw_p = [0] * SERIES_HALVES
+        for p in plist:
+            dh = delivery_half(p)
+            if not dh:
+                continue
+            yy, hh, _ = dh
+            idx = hidx_s.get((yy, hh))
+            if idx is None:
+                if (yy, hh) > horizon_s[-1]:
+                    continue
+                idx = 0  # past-dated but not open → nearest window
+            sw_u[idx] += inventory_of(p)
+            sw_p[idx] += 1
+        series = []
+        for j in range(0, SERIES_HALVES - SERIES_LOOK + 1):
+            seg_u = sw_u[j:j + SERIES_LOOK]
+            seg_p = sw_p[j:j + SERIES_LOOK]
+            uj, pj = sum(seg_u), sum(seg_p)
+            concj = (max(seg_u) / uj) if uj else 0.0
+            aj = min(1.0, pj / P24_CEIL)
+            bj = min(1.0, uj / U24_CEIL)
+            cj = concj * min(1.0, total_units / CONC_DAMP)
+            sj = max(0, min(100, round(100 * (W_PROJECTS * aj + W_UNITS * bj + W_CONC * cj))))
+            series.append({"half": _half_label(*horizon_s[j]), "score": sj})
+        if series:
+            series[0]["score"] = score
+
         dated_share = dated / len(plist)
         inv_share = with_inv / len(plist)
         if dated_share >= 0.75 and inv_share >= 0.6 and len(plist) >= 4:
@@ -196,6 +234,7 @@ def compute_all(projects: list[dict], today: datetime.date | None = None) -> dic
             "pipeline_units": total_units,
             "delivering_24mo": {"projects": p24, "units": u24},
             "windows": windows,
+            "score_series": series,
             "later": later,
             "undated_projects": undated,
             "confidence": confidence,
