@@ -1265,19 +1265,56 @@ def records_html(city: str, projects: list[dict], market_slug: str) -> str:
             + _mod_head('Market records', 'The <em>superlatives</em>', "The pipeline's outer edges.")
             + f'<div class="rc-row">{html_cards}</div></section>')
 
+# Broad geographic groups so a market that is the ONLY one in its country
+# (e.g. London) compares to real neighbours (Paris, Lisbon) instead of a
+# same-score market an ocean away. US markets are omitted on purpose — the state
+# is already the neighbour granularity (Florida cities vs Florida cities).
+REGION_CONTINENT = {
+    'United Kingdom': 'Europe', 'France': 'Europe', 'Spain': 'Europe', 'Italy': 'Europe',
+    'Portugal': 'Europe', 'Germany': 'Europe', 'Netherlands': 'Europe', 'Switzerland': 'Europe',
+    'Greece': 'Europe', 'Ireland': 'Europe', 'Monaco': 'Europe', 'Austria': 'Europe', 'Belgium': 'Europe',
+    'Saudi Arabia': 'Middle East', 'United Arab Emirates': 'Middle East', 'Qatar': 'Middle East',
+    'Bahrain': 'Middle East', 'Kuwait': 'Middle East', 'Oman': 'Middle East',
+    'China': 'Asia', 'Japan': 'Asia', 'Singapore': 'Asia', 'South Korea': 'Asia', 'Thailand': 'Asia',
+    'Hong Kong': 'Asia', 'Vietnam': 'Asia', 'India': 'Asia', 'Indonesia': 'Asia', 'Malaysia': 'Asia',
+    'Bahamas': 'Caribbean', 'Turks and Caicos Islands': 'Caribbean', 'Cayman Islands': 'Caribbean',
+    'Barbados': 'Caribbean', 'Jamaica': 'Caribbean', 'Dominican Republic': 'Caribbean',
+    'Mexico': 'Latin America', 'Brazil': 'Latin America', 'Argentina': 'Latin America', 'Colombia': 'Latin America',
+    'Australia': 'Oceania', 'New Zealand': 'Oceania', 'Fiji': 'Oceania',
+    'Canada': 'North America',
+}
+
 def compare_city_html(city: str, market_slug: str, atlas_intel: dict) -> str:
     me = atlas_intel['markets'].get(market_slug)
     if not me: return ''
-    peers = [(s, m) for s, m in atlas_intel['markets'].items()
-             if s != market_slug and m.get('region') == me.get('region')
-             and s in MARKETS_WITH_PAGES and m.get('pipeline_projects', 0) >= 4]
-    peers.sort(key=lambda kv: -kv[1]['score'])
-    if len(peers) < 2:
+    my_region = me.get('region')
+    my_cont = REGION_CONTINENT.get(my_region)
+    def _elig(s, m):
+        return s != market_slug and s in MARKETS_WITH_PAGES and m.get('pipeline_projects', 0) >= 1
+    # Tier 1 — same region (US state or country): the tightest neighbours.
+    geo = [(s, m) for s, m in atlas_intel['markets'].items()
+           if _elig(s, m) and m.get('region') == my_region and m.get('pipeline_projects', 0) >= 4]
+    geo.sort(key=lambda kv: -kv[1]['score'])
+    # Tier 2 — same continent (only for lone-in-their-country international markets):
+    # still a genuine geographic neighbour (London → Paris, Lisbon), just smaller.
+    if len(geo) < 2 and my_cont:
+        have = {s for s, _ in geo}
+        cont = [(s, m) for s, m in atlas_intel['markets'].items()
+                if _elig(s, m) and s not in have and m.get('region') != my_region
+                and REGION_CONTINENT.get(m.get('region')) == my_cont]
+        cont.sort(key=lambda kv: -kv[1]['score'])
+        geo += cont[: 2 - len(geo)]
+    geographic = len(geo) >= 2
+    if geographic:
+        peers = geo[:2]
+    else:
+        # No real neighbours with pages — compare by supply pressure instead, and
+        # say so (these are not geographic neighbours).
+        have = {s for s, _ in geo}
         extra = [(s, m) for s, m in atlas_intel['markets'].items()
-                 if s != market_slug and s in MARKETS_WITH_PAGES
-                 and m.get('pipeline_projects', 0) >= 6 and (s, m) not in peers]
+                 if _elig(s, m) and s not in have and m.get('pipeline_projects', 0) >= 6]
         extra.sort(key=lambda kv: abs(kv[1]['score'] - me['score']))
-        peers += extra[: 2 - len(peers)]
+        peers = (geo + extra)[:2]
     if len(peers) < 2: return ''
     def peak_of(m):
         ws = m.get('windows') or []
@@ -1304,9 +1341,12 @@ def compare_city_html(city: str, market_slug: str, atlas_intel: dict) -> str:
                 f'<div class="cmp-r"><span class="k">Peak window</span><span class="v">{esc(peak_of(m))}</span></div>'
                 f'{band}</div></a>')
     cards = card(market_slug, me, True) + ''.join(card(s, m) for s, m in peers[:2])
+    title = (f'{esc(city)} vs. <em>the neighbors</em>' if geographic
+             else f'{esc(city)} vs. <em>comparable markets</em>')
+    sub = ('Supply pressure, pipeline scale and modeled pricing, side by side.' if geographic
+           else 'Markets with similar supply pressure, side by side on pipeline scale and modeled pricing.')
     return (f'<section class="section cm-mod" id="m-neighbors">'
-            + _mod_head('How it compares', f'{esc(city)} vs. <em>the neighbors</em>',
-                        'Supply pressure, pipeline scale and modeled pricing, side by side.')
+            + _mod_head('How it compares', title, sub)
             + f'<div class="cmp-grid">{cards}</div>'
             + f'<div class="cmp-foot">{_atlas_link_html(me)}</div></section>')
 
