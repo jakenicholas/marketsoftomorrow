@@ -59,8 +59,8 @@
     '.tmw-outlets .tmo-us{display:flex;flex-direction:column;gap:3px}' +
     '.tmw-outlets .tmo-uv{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:26px;color:#f0d68a;line-height:1}' +
     '.tmw-outlets .tmo-uk{font-family:Inter,sans-serif;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA39C}' +
-    '.tmw-outlets .tmo-ugrow{display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:.01em;color:#42EB81;white-space:nowrap;' +
-      'background:rgba(31,223,103,.12);border:1px solid rgba(31,223,103,.34);border-radius:999px;padding:4px 12px}' +
+    '.tmw-outlets .tmo-ugrow{align-self:flex-start;margin-top:8px;display:inline-flex;align-items:center;font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.01em;color:#42EB81;white-space:nowrap;' +
+      'background:rgba(31,223,103,.12);border:1px solid rgba(31,223,103,.34);border-radius:999px;padding:3px 10px}' +
     '.tmw-outlets .tmo-ugrow.down{color:#ff8a8a;background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.34)}' +
     /* full-bleed coverflow */
     '.tmw-outlets .tmo-vp{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-top:30px;overflow:hidden;padding:16px 0}' +
@@ -137,10 +137,9 @@
       +   '<div class="tmo-umb">'
       +     '<div class="tmo-umb-left">'
       +       '<div class="tmo-umb-lab">Markets of Tomorrow &middot; Umbrella Total</div>'
-      +       '<span class="tmo-ugrow" data-growth hidden></span>'
       +     '</div>'
       +     '<div class="tmo-umb-stats">'
-      +       '<div class="tmo-us"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span></div>'
+      +       '<div class="tmo-us tmo-us-foll"><span class="tmo-uv" data-fk="umbrella">205K</span><span class="tmo-uk">Followers</span><span class="tmo-ugrow" data-growth hidden></span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">8.1M</span><span class="tmo-uk">Mo. Social</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">593K</span><span class="tmo-uk">Mo. Web</span></div>'
       +       '<div class="tmo-us"><span class="tmo-uv">260K</span><span class="tmo-uk">Interactions</span></div>'
@@ -199,22 +198,21 @@
     var n = realCards.length;
     if (!n) return;
 
-    // Clone last→front and first→end so both edges always show a neighbour and
-    // the row wraps like a circle: [lastClone, c0..cN-1, firstClone].
-    var firstClone = realCards[0].cloneNode(true);
-    var lastClone = realCards[n - 1].cloneNode(true);
-    firstClone.classList.add('is-clone'); lastClone.classList.add('is-clone');
-    track.insertBefore(lastClone, realCards[0]);
-    track.appendChild(firstClone);
+    // Clone the FULL set on both sides so a full screen of neighbours always
+    // flanks the centre — no blank edge is ever possible, at any position.
+    // Track = [ copyL(0..n-1), real(0..n-1), copyR(0..n-1) ], 3n cards.
+    // The real set lives at indices n .. 2n-1; the copies are the wrap buffer.
+    for (var s = 0; s < n; s++) { var cl = realCards[s].cloneNode(true); cl.classList.add('is-clone'); track.insertBefore(cl, realCards[0]); }
+    for (var e2 = 0; e2 < n; e2++) { var cr = realCards[e2].cloneNode(true); cr.classList.add('is-clone'); track.appendChild(cr); }
     var all = [].slice.call(track.querySelectorAll('.tmo-card'));
 
-    var cur = 1;              // real c0 (Florida) centered; lastClone peeks left
+    var cur = n;              // real c0 (Florida) centered; a full copy peeks left
 
     realCards.forEach(function (_, i) {
       var b = document.createElement('button');
       b.className = 'tmo-dot' + (i === 0 ? ' is-active' : '');
       b.setAttribute('aria-label', 'Go to outlet ' + (i + 1));
-      b.addEventListener('click', function () { goTo(i + 1); resume(); });
+      b.addEventListener('click', function () { goTo(n + i); resume(); });
       dotsBox.appendChild(b);
     });
     var dots = [].slice.call(dotsBox.children);
@@ -225,16 +223,16 @@
       if (animate === false) { track.style.transition = 'none'; track.style.transform = 'translateX(' + x + 'px)'; void track.offsetWidth; track.style.transition = ''; }
       else track.style.transform = 'translateX(' + x + 'px)';
       all.forEach(function (c, i) { c.classList.toggle('is-active', i === cur); });
-      var di = cur === 0 ? n - 1 : (cur === n + 1 ? 0 : cur - 1);
+      var di = ((cur - n) % n + n) % n;
       dots.forEach(function (d, i) { d.classList.toggle('is-active', i === di); });
     }
-    // Lock-free infinite loop: whenever we're parked on a clone (edge), snap to
-    // its real twin with no animation. Called before every move AND on each
-    // transition end, so rapid clicks never hit a dead window — it cycles as
-    // fast as you can click, forever.
+    // Lock-free infinite loop: whenever the centre drifts out of the real band
+    // ([n, 2n-1]) into a copy, snap back by one full set with no animation.
+    // A full copy flanks each side, so the snap is invisible AND the edges stay
+    // populated — called before every move and on transitionend, so rapid
+    // clicks never hit a dead window. It cycles as fast as you click, forever.
     function normalize() {
-      if (cur === 0) { cur = n; place(false); }
-      else if (cur === n + 1) { cur = 1; place(false); }
+      if (cur < n || cur >= 2 * n) { cur = ((cur - n) % n + n) % n + n; place(false); }
     }
     track.addEventListener('transitionend', function (e) {
       if (e.target === track && e.propertyName === 'transform') normalize();
@@ -259,7 +257,7 @@
         if (i === cur) return;
         if (e.target.closest('a')) return;   // let the social links through
         e.preventDefault();
-        goTo(card.classList.contains('is-clone') ? (i === 0 ? n : 1) : i);
+        goTo(n + (i % n));                    // centre this outlet's real twin
         resume();
       });
     });
