@@ -182,9 +182,10 @@
   }
 
   // One tap = check in (or un-check). No dialog: we default the visit date to
-  // this month and, on a member's first-ever check-in, auto-set their leaderboard
-  // handle from their profile (they can rename / hide it in the dashboard). Just
-  // a toast — fast. Optimistic flip, reverted if the write fails.
+  // this month. The leaderboard handle always follows the member's current
+  // Memberstack name, so we send the freshly-derived handle on every check-in
+  // (keeps the board in sync when they rename in their account). Just a toast —
+  // fast. Optimistic flip, reverted if the write fails.
   function quickToggle(id, name, loc) {
     var remove = !!STATE.mine[id];
     var payload = {
@@ -193,7 +194,7 @@
     };
     if (!remove) {
       payload.visited_on = thisMonth();
-      if (!HAS_HANDLE && MEMBER.handle) payload.display_name = MEMBER.handle;
+      if (MEMBER.handle) payload.display_name = MEMBER.handle;
     }
     if (remove) { delete STATE.mine[id]; } else { STATE.mine[id] = true; }
     decorate(); // optimistic repaint

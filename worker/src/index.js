@@ -624,6 +624,62 @@ async function handleMemberPrefs(request, env, origin, url) {
   return json({ ok: true, prefs: { display_name: dn != null ? dn : undefined, hidden: hidden != null ? !!hidden : undefined } }, {}, env, origin);
 }
 
+// ── Passport name sync ───────────────────────────────────────────────────────
+// One source of truth for a member's name: their Memberstack profile. The
+// leaderboard handle (member_prefs.display_name) is always derived from it as
+// "First L." — so editing the name in the account tab OR manually in Memberstack
+// propagates to the leaderboard. Three sync points: the account-tab save (client
+// POSTs the fresh handle), every check-in (client sends the current handle), and
+// this hourly cron (catches manual Memberstack/Studio edits with no site visit).
+
+// Leaderboard handle from a Memberstack profile's customFields: "First L.".
+function deriveLeaderboardName(cf) {
+  cf = cf || {};
+  const first = String(cf['first-name'] || '').trim();
+  const last = String(cf['last-name'] || '').trim();
+  if (first && last) return (first + ' ' + last.charAt(0).toUpperCase() + '.').slice(0, 40);
+  if (first) return first.slice(0, 40);
+  return '';
+}
+
+// Pull each check-in member's CURRENT Memberstack name and refresh their
+// leaderboard handle. Never touches leaderboard_hidden (the privacy opt-out).
+async function syncCheckinNames(env) {
+  if (!env.MEMBERSTACK_SECRET_KEY || !env.DB) return { synced: 0 };
+  await ensureCheckinTables(env);
+  let ids = [];
+  try {
+    const rs = await env.DB.prepare('SELECT DISTINCT member_id FROM checkins').all();
+    ids = ((rs && rs.results) || []).map(r => r.member_id).filter(id => id && String(id).indexOf('mem_') === 0);
+  } catch (_) { return { synced: 0 }; }
+  let synced = 0;
+  for (const id of ids) {
+    try {
+      const r = await fetch(MS_API + '/members/' + encodeURIComponent(id), { headers: msHeaders(env) });
+      if (!r.ok) continue;
+      const j = await r.json();
+      const m = j.data || j;
+      const name = deriveLeaderboardName((m && m.customFields) || {});
+      if (!name) continue;
+      await env.DB.prepare(`INSERT INTO member_prefs (member_id, display_name, updated_at)
+        VALUES (?1,?2,?3) ON CONFLICT(member_id) DO UPDATE SET display_name=?2, updated_at=?3`)
+        .bind(id, name, Date.now()).run();
+      synced++;
+    } catch (_) {}
+  }
+  return { synced };
+}
+
+async function maybeSyncCheckinNames(env) {
+  try {
+    const last = parseInt(await metaGet(env, 'checkin_name_sync_last') || '0', 10) || 0;
+    const now = Math.floor(Date.now() / 1000);
+    if (now - last < 3600) return;              // hourly — catches manual Memberstack edits
+    await metaSet(env, 'checkin_name_sync_last', now);
+    await syncCheckinNames(env);
+  } catch (_) {}
+}
+
 // ── Topaz Gigapixel upscale proxy ───────────────────────────────────────────
 // Admin-only (the Studio Design editor reaches it via /api/topaz/* with the
 // admin token). The Topaz API key lives ONLY here as the TOPAZ_API_KEY secret —
@@ -16107,6 +16163,7 @@ export default {
     ctx.waitUntil(migrationTick(env));
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
+    ctx.waitUntil(maybeSyncCheckinNames(env));   // refresh Passport leaderboard handles from Memberstack names (hourly)
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro

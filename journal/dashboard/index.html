@@ -1407,6 +1407,12 @@ main.wrap{padding-bottom:70px}
       $('saveMsg').textContent='Saved ✓';
       var cm=$('cardMarket'); var st=stateFromPlace(based); if(cm){cm.textContent=st;cm.style.display=st?'':'none';}
       var nm=((cf['first-name']||'')+' '+(cf['last-name']||'')).trim(); if(nm){$('nm').textContent=nm;$('cardName').textContent=tc(nm);$('av').textContent=ini(nm);}
+      // Keep the Passport leaderboard handle in sync with the profile name.
+      try {
+        var f=(cf['first-name']||'').trim(), l=(cf['last-name']||'').trim();
+        var handle = (f && l) ? (f+' '+l.charAt(0).toUpperCase()+'.') : f;
+        if(handle){ m.getCurrentMember().then(function(r){ var id=r&&r.data&&r.data.id; if(id) fetch(WORKER+'/member-prefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:id,display_name:handle})}).catch(function(){}); }).catch(function(){}); }
+      } catch(_){}
       setTimeout(function(){$('saveMsg').textContent='';},2500);
     }).catch(function(){ $('saveMsg').textContent='Could not save'; });
   });
@@ -1429,8 +1435,7 @@ main.wrap{padding-bottom:70px}
         var T=[['golf','Golf'],['hotels','Hotels'],['restaurants','Restaurants'],['overall','Total']];
         var tiles=T.map(function(t){ var n=c[t[0]]||0, rk=ranks[t[0]]; return '<div class="stat"><div class="v">'+n+'</div><div class="k">'+t[1]+(rk?' &middot; #'+rk:'')+'</div></div>'; }).join('');
         var vis='<div class="pp-vis">'+
-          (hidden?'<span class="pp-hidden">You&rsquo;re hidden from public leaderboards</span>':'<span>Leaderboard name <b id="ppHandle">'+esc(handle||'&mdash;')+'</b></span>')+
-          '<button type="button" class="pp-mini" id="ppEdit">Edit name</button>'+
+          (hidden?'<span class="pp-hidden">You&rsquo;re hidden from public leaderboards</span>':'<span>Leaderboard name <b id="ppHandle">'+esc(handle||'&mdash;')+'</b> <i style="opacity:.6;font-style:normal">&middot; from your account name</i></span>')+
           '<button type="button" class="pp-mini" id="ppHide">'+(hidden?'Show me':'Hide me')+'</button>'+
           '<button type="button" class="pp-mini pp-lb" id="ppLb">Full leaderboard &rarr;</button></div>';
         var rows=items.map(function(it){
@@ -1441,7 +1446,6 @@ main.wrap{padding-bottom:70px}
         host.innerHTML='<div class="stats pp-stats">'+tiles+'</div>'+vis+'<div class="pp-places">'+rows+'</div>';
         $('ppLb').onclick=function(){ location.href='/passport/'; };
         $('ppHide').onclick=function(){ var h=!hidden; ppSetPref(mem.id,{leaderboard_hidden:h},function(){ renderPassport(mem); }); };
-        $('ppEdit').onclick=function(){ var v=window.prompt('Your leaderboard name', handle); if(v!=null){ ppSetPref(mem.id,{display_name:v.trim().slice(0,40)},function(){ renderPassport(mem); }); } };
       });
   }
 
