@@ -35,6 +35,8 @@
   var KEY = 'tmw-sub-lightbox-v1';
   var SUB_EMAIL_KEY = 'tmw-sub-email';
   var GOPRO_SESSION_KEY = 'tmw-gopro-shown';   // sessionStorage: the Pro/trial upsell has fired this session
+  var GOPRO_FIRST_KEY = 'tmw-gopro-firstdone'; // localStorage: the first-session Pro upsell has fired at least once
+  var GOPRO_FIRST_DELAY_MS = 120000;           // first session after signup: breathe 2 min before the upsell
   var DELAY_MS = OPTS.delayMs || 3000;
   var SOURCE = OPTS.source || 'market_page';
   var EYEBROW = OPTS.eyebrow || 'The Future Is Here';
@@ -257,8 +259,17 @@
       // every visit, until they have an account (then signedIn flips true).
       if (!signedIn && !subEmail) { build(); return; }
       // Already a lead (email on file) or a signed-in free member → the TMW Pro
-      // trial upsell, but only ONCE per session so it isn't shown on every page.
-      showGoProOncePerSession();
+      // trial upsell, once per session. On the FIRST session after signup we let
+      // the user breathe — the upsell waits 2 minutes instead of popping right
+      // after the welcome. Every RETURNING visit shows it at the normal delay.
+      if (goProShownThisSession()) return;
+      var firstDone = false;
+      try { firstDone = localStorage.getItem(GOPRO_FIRST_KEY) === '1'; } catch (e) {}
+      if (firstDone) { showGoProOncePerSession(); return; }
+      var gp = setTimeout(function () {
+        if (showGoProOncePerSession()) { try { localStorage.setItem(GOPRO_FIRST_KEY, '1'); } catch (e) {} }
+      }, GOPRO_FIRST_DELAY_MS);
+      window.addEventListener('pagehide', function () { clearTimeout(gp); });
     });
   }
 

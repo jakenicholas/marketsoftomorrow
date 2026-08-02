@@ -109,6 +109,11 @@
       '.paywall-title-glow{color:#C4B5FD; animation:tmwProGlow 2.4s ease-in-out infinite}',
       '@keyframes tmwProGlow{0%,100%{text-shadow:0 0 6px rgba(167,139,250,.4),0 0 14px rgba(167,139,250,.22)} 50%{text-shadow:0 0 12px rgba(167,139,250,.75),0 0 28px rgba(167,139,250,.5)}}',
       '.paywall-subtitle{font-size:13px; color:rgba(255,255,255,.55); line-height:1.5; margin-bottom:22px}',
+      '.paywall-billing{display:inline-flex; gap:4px; padding:4px; margin:0 auto 12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:999px}',
+      '.paywall-bill{font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:.01em; padding:8px 18px; border-radius:999px; border:0; background:transparent; color:rgba(255,255,255,.6); cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:background .16s,color .16s}',
+      '.paywall-bill.on{background:#A78BFA; color:#0a0a12}',
+      '.paywall-bill-save{font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 6px; border-radius:999px; background:rgba(31,223,103,.22); color:#42EB81}',
+      '.paywall-bill.on .paywall-bill-save{background:rgba(10,10,18,.18); color:#0a5a24}',
       '.paywall-plans{display:flex; flex-direction:column; gap:10px; margin-bottom:18px}',
       '.paywall-plan{position:relative; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.08); border-radius:12px; padding:16px 18px; color:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s, transform .1s; font-family:inherit}',
       '.paywall-plan:hover{border-color:rgba(167,139,250,.5); background:rgba(255,255,255,.06)}',
@@ -177,14 +182,17 @@
         '<h2 class="paywall-title">Try <span class="paywall-title-glow">TMW Pro</span> free for 2 weeks</h2>' +
         '<p class="paywall-subtitle">Open every project, the full development map, Atlas, and unlock TMW Intelligence. Free for 14 days, then it’s just:</p>' +
         '<div class="paywall-trialused" id="paywallTrialUsed" style="display:none;align-items:center;gap:9px;justify-content:center;margin:0 0 18px;padding:11px 16px;border-radius:12px;background:rgba(230,197,116,.10);border:1px solid rgba(230,197,116,.4);color:#f0d68a;font-size:13.5px;line-height:1.4;text-align:center"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>You’ve already tried the free trial — choose a plan to subscribe now.</span></div>' +
+        '<div class="paywall-billing" role="tablist">' +
+          '<button type="button" class="paywall-bill" data-bill="monthly" role="tab">Monthly</button>' +
+          '<button type="button" class="paywall-bill on" data-bill="annual" role="tab">Annual<span class="paywall-bill-save">Save 17%</span></button>' +
+        '</div>' +
         '<div class="paywall-plans">' +
           '<button class="paywall-plan paywall-plan-annual" data-price-id="' + PRICE_ID_ANNUAL + '">' +
-            '<div class="paywall-plan-tag">BEST VALUE</div>' +
             '<div class="paywall-plan-name">Annual</div>' +
             '<div class="paywall-plan-price">$150<span class="paywall-plan-per">/year</span></div>' +
             '<div class="paywall-plan-note">$12.50/month &middot; save 17% &middot; 14 days free</div>' +
           '</button>' +
-          '<button class="paywall-plan paywall-plan-monthly" data-price-id="' + PRICE_ID_MONTHLY + '">' +
+          '<button class="paywall-plan paywall-plan-monthly" data-price-id="' + PRICE_ID_MONTHLY + '" style="display:none">' +
             '<div class="paywall-plan-name">Monthly</div>' +
             '<div class="paywall-plan-price">$15<span class="paywall-plan-per">/month</span></div>' +
             '<div class="paywall-plan-note">14 days free</div>' +
@@ -208,6 +216,17 @@
     modal.querySelectorAll('.paywall-plan').forEach(function (btn) {
       btn.addEventListener('click', function () { startCheckout(btn.getAttribute('data-price-id')); });
     });
+    // Billing toggle — show ONE plan box at a time (both stay in the DOM so the
+    // trial-used / grandfathered note logic still finds each note). Annual default.
+    var bills = modal.querySelectorAll('.paywall-bill');
+    var pAnnual = modal.querySelector('.paywall-plan-annual');
+    var pMonthly = modal.querySelector('.paywall-plan-monthly');
+    function setBilling(b) {
+      bills.forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-bill') === b); });
+      if (pAnnual) pAnnual.style.display = (b === 'monthly') ? 'none' : '';
+      if (pMonthly) pMonthly.style.display = (b === 'monthly') ? '' : 'none';
+    }
+    bills.forEach(function (x) { x.addEventListener('click', function () { setBilling(x.getAttribute('data-bill')); }); });
     modal.querySelector('.paywall-backdrop').addEventListener('click', hide);
     modal.querySelector('.paywall-close').addEventListener('click', hide);
     modal.querySelector('#tmwPaywallSignin').addEventListener('click', function (e) {

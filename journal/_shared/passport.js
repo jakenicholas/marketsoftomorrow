@@ -26,7 +26,9 @@
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function toast(msg) {
-    if (window.tmwWatchToast) { try { window.tmwWatchToast(msg); return; } catch (_) {} }
+    // Use the GENERIC site toast — NOT tmwWatchToast, which appends
+    // "added to your watchlist / You'll get the alert when it moves".
+    if (window.tmwCelebrateToast) { try { window.tmwCelebrateToast({ title: msg }); return; } catch (_) {} }
     var t = el('div', 'tmw-pp-toast', esc(msg)); document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add('on'); });
     setTimeout(function () { t.classList.remove('on'); setTimeout(function () { t.remove(); }, 300); }, 2600);

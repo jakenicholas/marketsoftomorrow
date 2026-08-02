@@ -146,28 +146,10 @@
     modal.className = 'tmwc-modal';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
-    modal.innerHTML =
-      '<div class="tmwc-backdrop"></div>' +
-      '<div class="tmwc-card">' +
-        '<button class="tmwc-close" type="button" aria-label="Close">&times;</button>' +
-        '<div class="tmwc-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
-        '<div class="tmwc-eyebrow">You&rsquo;re in</div>' +
-        '<h2 class="tmwc-title">Welcome to Markets of Tomorrow</h2>' +
-        '<p class="tmwc-sub">Your free account is ready. Here&rsquo;s what you can do:</p>' +
-        '<div class="tmwc-perks">' +
-          '<div class="tmwc-perk">' + CHK + '<span>Ask <b>Onyx</b> &mdash; <b>5 intelligence searches</b> every month</span></div>' +
-          '<div class="tmwc-perk">' + CHK + '<span><b>Save up to 3 projects</b> to your watchlist</span></div>' +
-          '<div class="tmwc-perk">' + CHK + '<span>Explore the <b>full development map</b> &amp; read every story</span></div>' +
-        '</div>' +
-        '<div class="tmwc-pro">' +
-          '<div class="tmwc-pro-h">' + SPARK + 'Go unlimited with TMW Pro</div>' +
-          '<div class="tmwc-pro-b">Unlimited Onyx &amp; saves, the full Atlas, side-by-side comparisons, and live alerts on the projects you follow. <b style="color:rgba(255,255,255,.85)">Free for 2 weeks.</b></div>' +
-        '</div>' +
-        '<button class="tmwc-cta" type="button">Start your 2-week free trial</button>' +
-        '<button class="tmwc-later" type="button">Explore for now</button>' +
-      '</div>';
+    modal.innerHTML = '<div class="tmwc-backdrop"></div><div class="tmwc-card" id="tmwcCard"></div>';
     document.body.appendChild(modal);
     document.documentElement.style.overflow = 'hidden';
+    var card = modal.querySelector('#tmwcCard');
     function close() {
       modal.classList.remove('active');
       document.documentElement.style.overflow = '';
@@ -176,23 +158,90 @@
     // Dismissing the welcome (X / backdrop / "Explore for now") RELOADS the current
     // page. The account was just created, so a reload hands the user a clean
     // logged-in state — recurring signup/paywall popups stop, the account UI
-    // populates — and lands them right back where they were (same URL, same map
-    // spot via ?project=). Falls back to a plain close if reload is unavailable.
+    // populates — and lands them right back where they were.
     function dismissAndRefresh() {
       try { window.location.reload(); } catch (e) { close(); }
     }
-    modal.querySelector('.tmwc-backdrop').addEventListener('click', dismissAndRefresh);
-    modal.querySelector('.tmwc-close').addEventListener('click', dismissAndRefresh);
-    modal.querySelector('.tmwc-later').addEventListener('click', dismissAndRefresh);
-    modal.querySelector('.tmwc-cta').addEventListener('click', function () {
-      close();
-      try { if (window.gtag) gtag('event', 'welcome_go_pro_clicked', { surface: 'journal' }); } catch (e) {}
-      setTimeout(function () { if (window.tmwShowPaywall) window.tmwShowPaywall('welcome'); }, 200);
-    });
+
+    function renderWelcome() {
+      card.innerHTML =
+        '<button class="tmwc-close" type="button" aria-label="Close">&times;</button>' +
+        '<div class="tmwc-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
+        '<div class="tmwc-eyebrow">You&rsquo;re in</div>' +
+        '<h2 class="tmwc-title">Welcome to Markets of Tomorrow</h2>' +
+        '<p class="tmwc-sub">Your free account is ready. Here&rsquo;s what you can do:</p>' +
+        '<div class="tmwc-perks">' +
+          '<div class="tmwc-perk">' + CHK + '<span>Ask Onyx five intelligence searches every month</span></div>' +
+          '<div class="tmwc-perk">' + CHK + '<span>Save three projects to your watchlist</span></div>' +
+          '<div class="tmwc-perk">' + CHK + '<span>View unlimited articles and our Iconic Lists</span></div>' +
+          '<div class="tmwc-perk">' + CHK + '<span>Earn rewards and rankings</span></div>' +
+        '</div>' +
+        '<div class="tmwc-pro">' +
+          '<div class="tmwc-pro-h">' + SPARK + 'Go unlimited with TMW Pro</div>' +
+          '<div class="tmwc-pro-b">Unlimited Onyx &amp; saves, the full Atlas, side-by-side comparisons, and live alerts on the projects you follow. <b style="color:rgba(255,255,255,.85)">Free for 2 weeks.</b></div>' +
+        '</div>' +
+        '<button class="tmwc-cta" type="button">Start your 2-week free trial</button>' +
+        '<button class="tmwc-later" type="button">Explore for now</button>';
+      card.querySelector('.tmwc-close').addEventListener('click', dismissAndRefresh);
+      card.querySelector('.tmwc-later').addEventListener('click', dismissAndRefresh);
+      card.querySelector('.tmwc-cta').addEventListener('click', function () {
+        close();
+        try { if (window.gtag) gtag('event', 'welcome_go_pro_clicked', { surface: 'journal' }); } catch (e) {}
+        setTimeout(function () { if (window.tmwShowPaywall) window.tmwShowPaywall('welcome'); }, 200);
+      });
+      try { if (window.gtag) gtag('event', 'welcome_popup_shown', { surface: 'journal' }); } catch (e) {}
+      setTimeout(function () { confetti({ count: 110 }); }, 260);
+    }
+
+    // "One Last Step" — collect first + last name (required) before the welcome,
+    // for signup paths that only took email + password. No skip: they must add a
+    // name to continue. Saves to Memberstack customFields + syncs to the CRM.
+    var IN = 'width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:13px 14px;color:#fff;font-size:15px;font-family:inherit;outline:none';
+    function renderNameStep(member) {
+      var email = (member && member.auth && member.auth.email) || (member && member.email) || '';
+      card.innerHTML =
+        '<div class="tmwc-icon"><img src="' + ICON + '" alt="Markets of Tomorrow"></div>' +
+        '<div class="tmwc-eyebrow">One last step</div>' +
+        '<h2 class="tmwc-title">What should we call you?</h2>' +
+        '<p class="tmwc-sub">Add your name to finish setting up your account.</p>' +
+        '<form class="tmwc-nameform" novalidate>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 12px">' +
+            '<input name="first" autocomplete="given-name" placeholder="First name" required style="' + IN + '">' +
+            '<input name="last" autocomplete="family-name" placeholder="Last name" required style="' + IN + '">' +
+          '</div>' +
+          '<div class="tmwc-nameerr" aria-live="polite" style="min-height:16px;color:#ff8f8f;font-size:13px;margin-bottom:6px"></div>' +
+          '<button type="submit" class="tmwc-cta">Continue</button>' +
+        '</form>';
+      var form = card.querySelector('.tmwc-nameform');
+      var err = card.querySelector('.tmwc-nameerr');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var first = ((form.querySelector('input[name="first"]') || {}).value || '').trim();
+        var last = ((form.querySelector('input[name="last"]') || {}).value || '').trim();
+        if (!first || !last) { err.textContent = 'Please enter your first and last name.'; return; }
+        var btn = form.querySelector('.tmwc-cta'); btn.disabled = true; btn.textContent = 'Saving…';
+        var ms = window.$memberstackDom;
+        var done = function () { renderWelcome(); };
+        try {
+          fetch('https://tmw-subscribe.jake-ab7.workers.dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, update: true, first_name: first, last_name: last }) }).catch(function () {});
+        } catch (_) {}
+        if (ms && ms.updateMember) {
+          ms.updateMember({ customFields: { 'first-name': first, 'last-name': last } }).then(done).catch(done);
+        } else { done(); }
+      });
+      setTimeout(function () { try { form.querySelector('input[name="first"]').focus(); } catch (_) {} }, 80);
+    }
+
     requestAnimationFrame(function () { modal.classList.add('active'); });
-    try { if (window.gtag) gtag('event', 'welcome_popup_shown', { surface: 'journal' }); } catch (e) {}
-    // a beat after the pop so the burst reads as a reward, not a page load
-    setTimeout(function () { confetti({ count: 110 }); }, 260);
+    // Decide: name step first (if the account has no name yet), else the welcome.
+    var ms = window.$memberstackDom;
+    if (ms && ms.getCurrentMember) {
+      ms.getCurrentMember().then(function (r) {
+        var m = r && r.data, cf = (m && m.customFields) || {};
+        if (m && (!String(cf['first-name'] || '').trim() || !String(cf['last-name'] || '').trim())) renderNameStep(m);
+        else renderWelcome();
+      }).catch(renderWelcome);
+    } else { renderWelcome(); }
   }
 
   // ── celebratory toast ──────────────────────────────────────────────────

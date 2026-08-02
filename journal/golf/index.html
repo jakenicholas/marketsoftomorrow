@@ -206,6 +206,8 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   .tabs-bar .actions{justify-content:center}
   .ctlbar{width:100%; justify-content:center; gap:0}
   .ctlbar .sort{flex:1 1 0; min-width:0; text-align:right; text-align-last:right; padding-right:16px}
+  /* the sort <select> renders oversized on iOS — shrink it on phones */
+  #sortSel{font-size:9.5px; letter-spacing:.04em; padding-right:17px; background-position:right 3px center}
   .ctlbar .iv-toggle{flex:1 1 0; justify-content:flex-start; margin-left:0}
 }
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
@@ -2258,7 +2260,7 @@ function formatDate(s) {
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/iconic-view.js?v=20260730" defer></script>
-<script src="/_shared/passport.js?v=20260802e" defer></script>
+<script src="/_shared/passport.js?v=20260802f" defer></script>
 
 <script>
 /* Deep-link: /<list>/#<item-id> (e.g. from TMW Intelligence search) scrolls to
