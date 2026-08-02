@@ -138,13 +138,16 @@
     if (mod) mod.remove(); // rebuild so counts stay fresh
     mod = el('section', 'tmw-pp-community');
     var lt = listTotal();
-    var chips = STATE.community.slice(0, 5).map(function (m) {
-      return '<span class="tmw-pp-mchip"><i>#' + (m.rank || '') + '</i>' + esc(m.name) + '<b>' + (m.count || 0) + (lt ? '/' + lt : '') + '</b></span>';
+    var rowsHtml = STATE.community.slice(0, 5).map(function (m) {
+      return '<div class="tmw-pp-mrow">' +
+        '<span class="tmw-pp-rk">' + (m.rank || '') + '</span>' +
+        '<span class="tmw-pp-nm">' + esc(m.name) + '</span>' +
+        '<span class="tmw-pp-ct">' + (m.count || 0) + (lt ? '<i>/' + lt + '</i>' : '') + '</span></div>';
     }).join('');
     var body = STATE.total > 0
       ? '<p class="tmw-pp-sub">' + STATE.total.toLocaleString() + ' member' + (STATE.total === 1 ? '' : 's') + ' ' +
         (STATE.total === 1 ? 'has' : 'have') + ' checked in on this list.</p>' +
-        (chips ? '<div class="tmw-pp-mchips">' + chips + '</div>' : '')
+        (rowsHtml ? '<div class="tmw-pp-mrows">' + rowsHtml + '</div>' : '')
       : '<p class="tmw-pp-sub">No one has checked in here yet. Be the first — tap “I’ve been” on any place above.</p>';
     mod.innerHTML =
       '<div class="tmw-pp-eyebrow">TMW Members · The Passport</div>' +
@@ -231,10 +234,13 @@
       '.tmw-pp-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--green,#7bd88f)}',
       '.tmw-pp-h{font-family:var(--serif,Georgia);font-size:22px;font-weight:500;margin:7px 0 6px;color:var(--white,#fff)}',
       '.tmw-pp-sub{color:var(--mute-2,#b7bdb6);font-size:14px;line-height:1.55;margin:0 0 14px;font-weight:300}',
-      '.tmw-pp-mchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}',
-      '.tmw-pp-mchip{font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--hair-2,rgba(255,255,255,.12));color:var(--mute-2,#b7bdb6);display:inline-flex;gap:7px;align-items:center}',
-      '.tmw-pp-mchip i{font-style:normal;color:var(--mute,#9aa39c);opacity:.75}',
-      '.tmw-pp-mchip b{color:var(--green,#7bd88f);font-weight:700}',
+      '.tmw-pp-mrows{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}',
+      '.tmw-pp-mrow{display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--hair-2,rgba(255,255,255,.1))}',
+      '.tmw-pp-mrow .tmw-pp-rk{font-family:var(--serif,Georgia);font-size:17px;color:var(--mute,#9aa39c);min-width:24px;text-align:center;font-variant-numeric:tabular-nums}',
+      '.tmw-pp-mrow:nth-child(1) .tmw-pp-rk,.tmw-pp-mrow:nth-child(2) .tmw-pp-rk,.tmw-pp-mrow:nth-child(3) .tmw-pp-rk{color:var(--gold,#e6c574);font-weight:600}',
+      '.tmw-pp-mrow .tmw-pp-nm{flex:1;min-width:0;color:#fff;font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.tmw-pp-mrow .tmw-pp-ct{font-family:var(--mono);font-size:14px;color:var(--green,#7bd88f);font-weight:700;font-variant-numeric:tabular-nums}',
+      '.tmw-pp-mrow .tmw-pp-ct i{color:var(--mute,#9aa39c);font-style:normal;font-weight:400;font-size:11.5px}',
       '.tmw-pp-lbbtn{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink,#0a0a0a);background:var(--green,#7bd88f);border:none;padding:11px 20px;border-radius:999px;cursor:pointer;transition:all .18s}',
       '.tmw-pp-lbbtn:hover{background:var(--green-soft,#9be7ac);transform:translateY(-1px)}',
       /* toast */
