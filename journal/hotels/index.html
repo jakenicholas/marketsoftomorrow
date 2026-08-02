@@ -216,7 +216,7 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   /* the sort <select> uses the -webkit-small-control system font (16px) which
      beats author font-size without !important — force it small so it fits the
      row and stops overflowing into the region pills */
-  #sortSel{font-size:10px!important; letter-spacing:.03em; padding-right:16px; background-position:right 2px center}
+  #sortSel{font-size:11px!important; letter-spacing:.03em; padding-right:16px; background-position:right 2px center}
   .ctlbar .iv-toggle{flex:1 1 0; justify-content:flex-start; margin-left:0}
 }
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
@@ -534,7 +534,8 @@ footer .tmw-wordmark{width:118px}
   /* Phones: stack the pills onto their own full-width scrolling row so the
      sort + view toggles (their own row below) never squeeze or cover them. */
   @media(max-width:760px){
-    .region-bar{flex-direction:column; align-items:stretch}
+    /* pull the controls up toward the tabs (the tab-panel adds 40px top pad) */
+    .region-bar{flex-direction:column; align-items:stretch; padding-top:4px; margin-top:-34px}
     /* sort + view toggles sit ABOVE the location pills, just under the tabs */
     .region-bar .rb-ctl{order:-1; margin-left:0; justify-content:space-between; width:100%}
   }
