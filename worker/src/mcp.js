@@ -4689,6 +4689,46 @@ export async function autoPromoteOpenedProjects(env) {
   }
 }
 
+// Linking a post to a project records the article as a COVERAGE date event on
+// that project's dossier (status_history), flagged as a POTENTIAL progress
+// update. Coverage events are factual (the article exists and is dated) — they
+// are NOT construction milestones, so we never fabricate a phase/topping-out on
+// a publish date (the hard invariant). A human/the construction-sweep confirms
+// the coverage into a real status advance with the event's true date. Deduped by
+// article link, so re-linking is a no-op. Fire-and-forget from the post handlers.
+export async function recordArticleCoverage(env, opts) {
+  const projectSlug = String((opts && opts.projectSlug) || '').toLowerCase().trim();
+  const postSlug = String((opts && opts.postSlug) || '').trim();
+  if (!projectSlug || !postSlug) return { ok: false, skipped: 'missing slug' };
+  const link = 'https://www.oftmw.com/post/' + postSlug;
+  const pubSec = Number(opts && opts.publishedAt) || 0;
+  const pubIso = pubSec ? new Date(pubSec * 1000).toISOString() : '';
+  const pubYmd = pubIso ? pubIso.slice(0, 10) : '';
+  try {
+    for (let attempt = 0; ; attempt++) {
+      const { sha, projects } = await readProjectsFile(env);
+      const p = projects.find((x) => String(x.slug || '').toLowerCase() === projectSlug);
+      if (!p) return { ok: false, skipped: 'project not found', projectSlug };
+      if (!Array.isArray(p.status_history)) p.status_history = [];
+      if (p.status_history.some((e) => e && e.type === 'coverage' && e.source_url === link)) return { ok: true, deduped: true };
+      const ev = {
+        at: new Date().toISOString(),
+        type: 'coverage',
+        source_url: link,
+        note: String((opts && opts.postTitle) || '').slice(0, 200) || 'TMW coverage',
+        potential_progress_update: true,
+      };
+      if (pubIso) ev.source_published = pubIso;
+      if (pubYmd) ev.effective_date = pubYmd;
+      p.status_history.push(ev);
+      try {
+        await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Coverage: ${postSlug} → ${p.name || projectSlug} (potential progress update)`);
+      } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+      return { ok: true, projectSlug, link };
+    }
+  } catch (e) { return { ok: false, error: String((e && e.message) || e) }; }
+}
+
 const MCP_CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',

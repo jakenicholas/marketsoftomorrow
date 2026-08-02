@@ -15,7 +15,7 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
-import { handleMcp, autoPromoteOpenedProjects } from './mcp.js';
+import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
@@ -5563,6 +5563,12 @@ async function handlePostsCreate(req, env, origin) {
     return json({ error: 'insert failed', detail: e.message || String(e) }, { status: 500 }, env, origin);
   }
   const fresh = await env.DB.prepare(`SELECT * FROM posts WHERE id = ?1`).bind(row.id).first();
+  // Created already linked to a project → flag as a potential progress update and
+  // record a coverage/date event on the project dossier (best-effort).
+  if (projectSlug && fresh) {
+    try { await env.DB.prepare(`UPDATE posts SET progress_flagged = 1 WHERE id = ?1`).bind(row.id).run(); } catch (_) {}
+    try { await recordArticleCoverage(env, { projectSlug: projectSlug, postSlug: fresh.slug, postTitle: fresh.title, publishedAt: fresh.published_at }); } catch (_) {}
+  }
   return json({ ok: true, post: rowToPostFull(fresh) }, {}, env, origin);
 }
 
@@ -5605,6 +5611,9 @@ async function handlePostsUpdate(req, env, origin, id) {
   if ('income'       in body) patch.income       = body.income === '' || body.income == null ? null : Number(body.income);
   if ('contact_id'   in body) patch.contact_id   = body.contact_id || null;
   if ('project_slug' in body) patch.project_slug = body.project_slug ? String(body.project_slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 160) : null;
+  // A newly-set / changed project link flags the article as a POTENTIAL progress update.
+  const _newProjectLink = ('project_slug' in body) && !!patch.project_slug && patch.project_slug !== (existing.project_slug || null);
+  if (_newProjectLink) patch.progress_flagged = 1;
   if ('source'       in body) patch.source       = body.source === 'ai' ? 'ai' : null;   // only sent to (re)flag; normal edits omit it so AI drafts keep their tag
   if ('campaign_id'  in body) {
     await ensureCampaignsTable(env);
@@ -5655,6 +5664,12 @@ async function handlePostsUpdate(req, env, origin, id) {
   if (nowPublishing && updated && updated.ai_original_html) {
     try { await captureEditLesson(env, updated); } catch (_) { /* learning is best-effort */ }
     try { await env.DB.prepare(`UPDATE posts SET ai_original_html = ?1 WHERE id = ?2`).bind(updated.body_html || '', id).run(); } catch (_) {}
+  }
+  // Newly linked to a project → record the article as a coverage/date event on
+  // the project's dossier, flagged as a potential progress update. Best-effort:
+  // never blocks or fails the save (it's a GitHub write to projects.json).
+  if (_newProjectLink && updated) {
+    try { await recordArticleCoverage(env, { projectSlug: updated.project_slug, postSlug: updated.slug, postTitle: updated.title, publishedAt: updated.published_at }); } catch (_) {}
   }
   return json({ ok: true, post: rowToPostFull(updated) }, {}, env, origin);
 }
@@ -6039,6 +6054,9 @@ export async function ensureContactsTable(env) {
     // Gold-standard voice exemplar: articles the editor pins as "this IS our
     // voice." The article writer few-shots the best-matching pinned pieces.
     `ALTER TABLE posts ADD COLUMN voice_exemplar INTEGER DEFAULT 0`,
+    // Set when the post is linked to a project — flags the article as a potential
+    // progress update on that project (the sweep/human confirms it into a real advance).
+    `ALTER TABLE posts ADD COLUMN progress_flagged INTEGER DEFAULT 0`,
   ]) {
     try { await env.DB.prepare(sql).run(); } catch (_) { /* already exists */ }
   }
