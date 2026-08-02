@@ -343,6 +343,27 @@ main.wrap{padding-bottom:70px}
 .brief-lock .bl-cta:hover{background:rgba(167,139,250,.18)}
 
 @media(max-width:820px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.badges,.earn,.frm{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.tabs .wrap{overflow-x:auto}}
+/* Passport */
+.pp-stats{margin-bottom:16px}
+.pp-vis{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;font-family:var(--sans);font-size:13px;color:var(--mute)}
+.pp-vis b{color:#fff;font-weight:600}
+.pp-hidden{color:var(--mute)}
+.pp-mini{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
+.pp-mini:hover{border-color:#7bd88f;color:#7bd88f}
+.pp-mini.pp-lb{background:#7bd88f;border-color:#7bd88f;color:#0a120c;font-weight:700}
+.pp-mini.pp-lb:hover{background:#9be7ac}
+.pp-places{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.pp-place{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:15px 16px}
+.pp-pl-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pp-pl-top b{color:#fff;font-size:15px;font-weight:600;flex:1;min-width:0}
+.pp-when{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+.pp-tag{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:999px;font-weight:700}
+.pp-tag.pp-golf{background:rgba(123,216,143,.14);color:#7bd88f}
+.pp-tag.pp-hotels{background:rgba(230,197,116,.14);color:var(--gold)}
+.pp-tag.pp-restaurants{background:rgba(167,139,250,.16);color:var(--purple-glow,#B9A6FF)}
+.pp-loc{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-top:6px}
+.pp-note{color:var(--mute);font-size:13px;line-height:1.5;margin-top:8px;font-style:italic}
+@media(max-width:820px){.pp-places{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -383,6 +404,8 @@ main.wrap{padding-bottom:70px}
     <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
     <div class="ladder" id="ladder"></div>
+    <div class="sechead"><h2>Passport</h2><span class="lbl">Places you&rsquo;ve been</span></div>
+    <div id="passportBody"><div class="empty">Loading&hellip;</div></div>
     <div class="sechead"><h2>Achievements</h2></div>
     <div class="badges" id="badges"></div>
     <div class="sechead"><h2>Earn the most</h2></div>
@@ -497,6 +520,7 @@ main.wrap{padding-bottom:70px}
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/journal-auth.js" defer></script>
 <script src="/_shared/tmw-celebrate.js" defer></script>
+<script src="/_shared/passport.js?v=20260802" defer></script>
 <script>
 (function(){
   var WORKER='https://tmw.jake-ab7.workers.dev';
@@ -1384,6 +1408,41 @@ main.wrap{padding-bottom:70px}
     }).catch(function(){ $('saveMsg').textContent='Could not save'; });
   });
 
+  // ── Passport (member "I've been" check-ins) ────────────────────────────────
+  function ppFmtWhen(s){ var m=/^(\d{4})-(\d{2})/.exec(s||''); if(m){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1]+' '+m[1]; } return s||''; }
+  function ppSetPref(id, patch, cb){ patch.member_id=id; fetch(WORKER+'/member-prefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)}).then(function(r){return r.ok?r.json():null}).then(function(){cb&&cb();}).catch(function(){}); }
+  function renderPassport(mem){
+    var host=$('passportBody'); if(!host||!mem) return;
+    fetch(WORKER+'/checkins?member_id='+encodeURIComponent(mem.id),{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():null}).catch(function(){return null})
+      .then(function(d){
+        if(!d||!d.ok){ host.innerHTML='<div class="empty">Could not load your passport.</div>'; return; }
+        var c=d.counts||{}, ranks=d.ranks||{}, items=d.items||[], prefs=d.prefs||{};
+        var handle=prefs.display_name||'', hidden=!!prefs.hidden;
+        if(!items.length){
+          host.innerHTML='<div class="empty">You haven&rsquo;t checked in anywhere yet. Tap &ldquo;I&rsquo;ve been&rdquo; on any place in the <a href="/golf/">golf</a>, <a href="/hotels/">hotels</a> or <a href="/restaurants/">restaurants</a> lists.</div>';
+          return;
+        }
+        var T=[['golf','Golf'],['hotels','Hotels'],['restaurants','Restaurants'],['overall','Total']];
+        var tiles=T.map(function(t){ var n=c[t[0]]||0, rk=ranks[t[0]]; return '<div class="stat"><div class="v">'+n+'</div><div class="k">'+t[1]+(rk?' &middot; #'+rk:'')+'</div></div>'; }).join('');
+        var vis='<div class="pp-vis">'+
+          (hidden?'<span class="pp-hidden">You&rsquo;re hidden from public leaderboards</span>':'<span>Leaderboard name <b id="ppHandle">'+esc(handle||'&mdash;')+'</b></span>')+
+          '<button type="button" class="pp-mini" id="ppEdit">Edit name</button>'+
+          '<button type="button" class="pp-mini" id="ppHide">'+(hidden?'Show me':'Hide me')+'</button>'+
+          '<button type="button" class="pp-mini pp-lb" id="ppLb">Full leaderboard &rarr;</button></div>';
+        var rows=items.map(function(it){
+          var when=ppFmtWhen(it.visited_on);
+          return '<div class="pp-place"><div class="pp-pl-top"><span class="pp-tag pp-'+esc(it.entity_type||'')+'">'+esc(it.entity_type||'')+'</span><b>'+esc(it.item_name||'&mdash;')+'</b>'+(when?'<span class="pp-when">'+esc(when)+'</span>':'')+'</div>'+
+            (it.item_location?'<div class="pp-loc">'+esc(it.item_location)+'</div>':'')+
+            (it.note?'<div class="pp-note">&ldquo;'+esc(it.note)+'&rdquo;</div>':'')+'</div>';
+        }).join('');
+        host.innerHTML='<div class="stats pp-stats">'+tiles+'</div>'+vis+'<div class="pp-places">'+rows+'</div>';
+        $('ppLb').onclick=function(){ if(window.tmwPassport){ tmwPassport.setMember({id:mem.id}); tmwPassport.openLeaderboard('overall'); } };
+        $('ppHide').onclick=function(){ var h=!hidden; ppSetPref(mem.id,{leaderboard_hidden:h},function(){ renderPassport(mem); }); };
+        $('ppEdit').onclick=function(){ var v=window.prompt('Your leaderboard name', handle); if(v!=null){ ppSetPref(mem.id,{display_name:v.trim().slice(0,40)},function(){ renderPassport(mem); }); } };
+      });
+  }
+
   whenMember(function(mem){
     if(!mem) return;
     var cf=mem.customFields||{};
@@ -1412,6 +1471,7 @@ main.wrap{padding-bottom:70px}
       if(fm.length) firmCatalog().then(function(){ renderFollows(j.markets_followed||[], fm); });
       loadProjectWatches(); loadSmartWatches();
     });
+    renderPassport(mem);
   });
 
   // Home market — live place suggestions via Mapbox (same as the signup lightbox)

@@ -360,6 +360,258 @@ async function handleIntelThread(request, env, origin, url) {
   return json({ ok: true, ts }, {}, env, origin);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// THE PASSPORT — member "I've been" check-ins on the iconic lists (golf, hotels,
+// restaurants) + per-category and overall leaderboards. Consumer gamification,
+// NOT Atlas market data. Free + Pro members both. Same trust model as the rest
+// of the member layer: first-party Origin only, and the member_id (mem_…) is
+// client-asserted (no token crypto) — this is low-stakes vanity data, and the
+// whole account layer already trusts the client-supplied id.
+//
+//   POST /checkin            { member_id, entity_type, list_slug, item_id,
+//                              item_name?, item_location?, visited_on, note?,
+//                              display_name?, remove? }  → toggle one check-in
+//   GET  /checkins?member_id=mem_…                       → a member's passport
+//   GET  /checkin-counts?list_slug=…[&me=mem_…]          → per-item counts + the
+//                                                          community module rows
+//   GET  /leaderboard?scope=golf|hotels|restaurants|overall[&me=mem_…][&limit=]
+//   GET/POST /member-prefs   { member_id, display_name?, leaderboard_hidden? }
+//
+// visited_on is REQUIRED on a check-in (the one bit of friction that keeps the
+// board feeling earned); it's stored as free text but sanitized to YYYY[-MM[-DD]].
+// Leaderboards are public-by-default: everyone appears unless they've set
+// leaderboard_hidden=1. We NEVER surface a member's email or raw id publicly —
+// only their chosen display_name.
+// ---------------------------------------------------------------------------
+
+const CHECKIN_ENTITY_TYPES = ['golf', 'hotels', 'restaurants'];
+
+function checkinFirstPartyOk(request, env) {
+  const reqOrigin = request.headers.get('Origin') || '';
+  const allowList = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  return !!reqOrigin && (allowList.includes(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*pages\.dev$/i.test(reqOrigin)
+    || /^https:\/\/([a-z0-9-]+\.)*oftmw\.com$/i.test(reqOrigin));
+}
+
+async function ensureCheckinTables(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS checkins (
+    member_id TEXT NOT NULL, entity_type TEXT NOT NULL, list_slug TEXT NOT NULL,
+    item_id TEXT NOT NULL, item_name TEXT, item_location TEXT,
+    visited_on TEXT, note TEXT, created_at INTEGER,
+    PRIMARY KEY (member_id, list_slug, item_id)
+  )`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_checkins_item ON checkins(list_slug, item_id)`).run();
+  await env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_checkins_type ON checkins(entity_type, member_id)`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS member_prefs (
+    member_id TEXT PRIMARY KEY, display_name TEXT,
+    leaderboard_hidden INTEGER DEFAULT 0, updated_at INTEGER
+  )`).run();
+}
+
+// Sanitize a member's chosen leaderboard handle: strip markup/control chars, cap
+// length, and never let a raw email leak through (fall back to the local part).
+function sanitizeHandle(raw) {
+  let s = String(raw || '').replace(/<[^>]*>/g, '').replace(/[\u0000-\u001f]/g, '').trim();
+  if (/@[^\s@]+\.[^\s@]+/.test(s)) s = s.split('@')[0];   // looks like an email → local part only
+  s = s.replace(/\s+/g, ' ').slice(0, 40).trim();
+  return s;
+}
+
+// YYYY / YYYY-MM / YYYY-MM-DD only; anything else → ''.
+function sanitizeVisitedOn(raw) {
+  const s = String(raw || '').trim().slice(0, 10);
+  return /^\d{4}(-\d{2}(-\d{2})?)?$/.test(s) ? s : '';
+}
+
+async function handleCheckinToggle(request, env, origin) {
+  if (!checkinFirstPartyOk(request, env)) return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const memberId = String(body.member_id || '');
+  if (memberId.indexOf('mem_') !== 0) return json({ ok: true, skipped: 'not a member account' }, {}, env, origin);
+  const entityType = String(body.entity_type || '').toLowerCase();
+  if (!CHECKIN_ENTITY_TYPES.includes(entityType)) return json({ error: 'bad entity_type' }, { status: 400 }, env, origin);
+  const listSlug = String(body.list_slug || '').slice(0, 42);
+  const itemId = String(body.item_id || '').slice(0, 80);
+  if (!listSlug || !itemId) return json({ error: 'list_slug and item_id required' }, { status: 400 }, env, origin);
+
+  await ensureCheckinTables(env);
+
+  // Optional handle set alongside the first check-in (the confirm-your-name moment).
+  if (body.display_name != null) {
+    const dn = sanitizeHandle(body.display_name);
+    if (dn) {
+      try {
+        await env.DB.prepare(`INSERT INTO member_prefs (member_id, display_name, updated_at)
+          VALUES (?1, ?2, ?3)
+          ON CONFLICT(member_id) DO UPDATE SET display_name = ?2, updated_at = ?3`)
+          .bind(memberId, dn, Date.now()).run();
+      } catch (_) {}
+    }
+  }
+
+  const remove = body.remove === true || body.remove === 'true';
+  try {
+    if (remove) {
+      await env.DB.prepare('DELETE FROM checkins WHERE member_id=?1 AND list_slug=?2 AND item_id=?3')
+        .bind(memberId, listSlug, itemId).run();
+    } else {
+      const visitedOn = sanitizeVisitedOn(body.visited_on);
+      if (!visitedOn) return json({ error: 'visited_on required (YYYY, YYYY-MM or YYYY-MM-DD)' }, { status: 400 }, env, origin);
+      const itemName = String(body.item_name || '').replace(/<[^>]*>/g, '').slice(0, 160);
+      const itemLoc = String(body.item_location || '').replace(/<[^>]*>/g, '').slice(0, 160);
+      const note = String(body.note || '').replace(/<[^>]*>/g, '').slice(0, 400);
+      await env.DB.prepare(`INSERT INTO checkins
+        (member_id, entity_type, list_slug, item_id, item_name, item_location, visited_on, note, created_at)
+        VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+        ON CONFLICT(member_id, list_slug, item_id) DO UPDATE SET
+          entity_type=?2, item_name=?5, item_location=?6, visited_on=?7, note=?8`)
+        .bind(memberId, entityType, listSlug, itemId, itemName, itemLoc, visitedOn, note, Date.now()).run();
+    }
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+
+  // Return the fresh count for this item so the button can update its "N been" chip.
+  let cnt = 0;
+  try {
+    const r = await env.DB.prepare('SELECT COUNT(*) AS c FROM checkins WHERE list_slug=?1 AND item_id=?2')
+      .bind(listSlug, itemId).first();
+    cnt = (r && r.c) || 0;
+  } catch (_) {}
+  return json({ ok: true, checked: !remove, count: cnt }, {}, env, origin);
+}
+
+async function handleCheckinsGet(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const memberId = url.searchParams.get('member_id') || '';
+  if (memberId.indexOf('mem_') !== 0) return json({ ok: true, items: [], counts: {}, ranks: {}, prefs: null }, {}, env, origin);
+  await ensureCheckinTables(env);
+
+  let items = [];
+  try {
+    const rs = await env.DB.prepare(`SELECT entity_type, list_slug, item_id, item_name, item_location, visited_on, note, created_at
+      FROM checkins WHERE member_id=?1 ORDER BY created_at DESC`).bind(memberId).all();
+    items = (rs && rs.results) || [];
+  } catch (_) {}
+
+  const counts = { golf: 0, hotels: 0, restaurants: 0, overall: 0 };
+  for (const it of items) { if (counts[it.entity_type] != null) counts[it.entity_type]++; counts.overall++; }
+
+  // Rank per scope = 1 + (members with a strictly higher count in that scope).
+  const ranks = {};
+  for (const scope of ['golf', 'hotels', 'restaurants', 'overall']) {
+    const mine = counts[scope];
+    if (!mine) { ranks[scope] = null; continue; }
+    try {
+      const r = await env.DB.prepare(`SELECT COUNT(*) AS ahead FROM (
+        SELECT member_id, COUNT(*) AS cnt FROM checkins
+        WHERE (?1 = 'overall' OR entity_type = ?1) GROUP BY member_id HAVING cnt > ?2)`)
+        .bind(scope, mine).first();
+      ranks[scope] = ((r && r.ahead) || 0) + 1;
+    } catch (_) { ranks[scope] = null; }
+  }
+
+  let prefs = null;
+  try {
+    const p = await env.DB.prepare('SELECT display_name, COALESCE(leaderboard_hidden,0) AS hidden FROM member_prefs WHERE member_id=?1')
+      .bind(memberId).first();
+    if (p) prefs = { display_name: p.display_name || '', hidden: !!p.hidden };
+  } catch (_) {}
+
+  return json({ ok: true, items, counts, ranks, prefs }, {}, env, origin);
+}
+
+async function handleCheckinCounts(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  const listSlug = (url.searchParams.get('list_slug') || '').slice(0, 42);
+  if (!listSlug) return json({ error: 'list_slug required' }, { status: 400 }, env, origin);
+  const me = url.searchParams.get('me') || '';
+  await ensureCheckinTables(env);
+
+  const counts = {}; let mine = {}; let total = 0; let community = [];
+  try {
+    const rs = await env.DB.prepare('SELECT item_id, COUNT(*) AS c FROM checkins WHERE list_slug=?1 GROUP BY item_id').bind(listSlug).all();
+    for (const r of ((rs && rs.results) || [])) counts[r.item_id] = r.c;
+  } catch (_) {}
+  try {
+    const r = await env.DB.prepare('SELECT COUNT(DISTINCT member_id) AS m FROM checkins WHERE list_slug=?1').bind(listSlug).first();
+    total = (r && r.m) || 0;
+  } catch (_) {}
+  // The current member's own set of checked item_ids on this list (to paint buttons).
+  if (me.indexOf('mem_') === 0) {
+    try {
+      const rs = await env.DB.prepare('SELECT item_id FROM checkins WHERE list_slug=?1 AND member_id=?2').bind(listSlug, me).all();
+      for (const r of ((rs && rs.results) || [])) mine[r.item_id] = true;
+    } catch (_) {}
+  }
+  // Community module — top visible members on THIS list.
+  try {
+    const rs = await env.DB.prepare(`SELECT c.member_id AS mid, COUNT(*) AS cnt, p.display_name AS dn,
+        COALESCE(p.leaderboard_hidden,0) AS hidden
+      FROM checkins c LEFT JOIN member_prefs p ON p.member_id = c.member_id
+      WHERE c.list_slug=?1 GROUP BY c.member_id HAVING hidden=0
+      ORDER BY cnt DESC, MIN(c.created_at) ASC LIMIT 8`).bind(listSlug).all();
+    community = ((rs && rs.results) || []).map(r => ({ name: r.dn || 'TMW Member', count: r.cnt }));
+  } catch (_) {}
+
+  return json({ ok: true, counts, mine, total, community }, {}, env, origin);
+}
+
+async function handleLeaderboard(env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let scope = (url.searchParams.get('scope') || 'overall').toLowerCase();
+  if (scope !== 'overall' && !CHECKIN_ENTITY_TYPES.includes(scope)) scope = 'overall';
+  const me = url.searchParams.get('me') || '';
+  let limit = parseInt(url.searchParams.get('limit') || '20', 10);
+  if (!(limit > 0) || limit > 100) limit = 20;
+  await ensureCheckinTables(env);
+
+  let rows = [];
+  try {
+    const rs = await env.DB.prepare(`SELECT c.member_id AS mid, COUNT(*) AS cnt, MIN(c.created_at) AS firstAt,
+        p.display_name AS dn, COALESCE(p.leaderboard_hidden,0) AS hidden
+      FROM checkins c LEFT JOIN member_prefs p ON p.member_id = c.member_id
+      WHERE (?1 = 'overall' OR c.entity_type = ?1)
+      GROUP BY c.member_id HAVING hidden=0
+      ORDER BY cnt DESC, firstAt ASC LIMIT ?2`).bind(scope, limit).all();
+    rows = ((rs && rs.results) || []).map((r, i) => ({
+      rank: i + 1, name: r.dn || 'TMW Member', count: r.cnt,
+      is_me: !!(me && r.mid === me),
+    }));
+  } catch (_) {}
+  return json({ ok: true, scope, rows }, { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } }, env, origin);
+}
+
+async function handleMemberPrefs(request, env, origin, url) {
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  await ensureCheckinTables(env);
+  if (request.method === 'GET') {
+    const memberId = url.searchParams.get('member_id') || '';
+    if (memberId.indexOf('mem_') !== 0) return json({ ok: true, prefs: null }, {}, env, origin);
+    let prefs = null;
+    try {
+      const p = await env.DB.prepare('SELECT display_name, COALESCE(leaderboard_hidden,0) AS hidden FROM member_prefs WHERE member_id=?1').bind(memberId).first();
+      if (p) prefs = { display_name: p.display_name || '', hidden: !!p.hidden };
+    } catch (_) {}
+    return json({ ok: true, prefs }, {}, env, origin);
+  }
+  if (!checkinFirstPartyOk(request, env)) return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
+  let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const memberId = String(body.member_id || '');
+  if (memberId.indexOf('mem_') !== 0) return json({ ok: true, skipped: 'not a member account' }, {}, env, origin);
+  const dn = body.display_name != null ? sanitizeHandle(body.display_name) : null;
+  const hidden = body.leaderboard_hidden != null ? (body.leaderboard_hidden ? 1 : 0) : null;
+  try {
+    const existing = await env.DB.prepare('SELECT display_name, COALESCE(leaderboard_hidden,0) AS hidden FROM member_prefs WHERE member_id=?1').bind(memberId).first();
+    const nextDn = dn != null ? dn : (existing ? (existing.display_name || '') : '');
+    const nextHidden = hidden != null ? hidden : (existing ? existing.hidden : 0);
+    await env.DB.prepare(`INSERT INTO member_prefs (member_id, display_name, leaderboard_hidden, updated_at)
+      VALUES (?1,?2,?3,?4) ON CONFLICT(member_id) DO UPDATE SET display_name=?2, leaderboard_hidden=?3, updated_at=?4`)
+      .bind(memberId, nextDn, nextHidden, Date.now()).run();
+  } catch (e) { return json({ error: 'db: ' + e.message }, { status: 500 }, env, origin); }
+  return json({ ok: true, prefs: { display_name: dn != null ? dn : undefined, hidden: hidden != null ? !!hidden : undefined } }, {}, env, origin);
+}
+
 // ── Topaz Gigapixel upscale proxy ───────────────────────────────────────────
 // Admin-only (the Studio Design editor reaches it via /api/topaz/* with the
 // admin token). The Topaz API key lives ONLY here as the TOPAZ_API_KEY secret —
@@ -11583,7 +11835,7 @@ async function handleTrack(req, env, origin) {
   // surface 'journal'; 'newsletter' arrives via /r and /px, not here.
   const now = Math.floor(Date.now() / 1000);
   const day = new Date(now * 1000).toISOString().slice(0, 10);
-  const agg = new Map();  // "id surface" -> { id, surface, type, label, views, clicks }
+  const agg = new Map();  // "idsurface" -> { id, surface, type, label, views, clicks }
   for (const e of events.slice(0, 200)) {
     if (!e || typeof e !== 'object') continue;
     const id = String(e.id || '').trim();
@@ -11593,7 +11845,7 @@ async function handleTrack(req, env, origin) {
     const type = e.type === 'partner' ? 'partner' : 'ad';
     const surface = e.surface === 'newsletter' ? 'newsletter' : 'journal';
     const label = (e.label != null && String(e.label).trim()) ? String(e.label).slice(0, 160) : null;
-    const k = id + ' ' + surface;
+    const k = id + '' + surface;
     const cur = agg.get(k) || { id: id, surface: surface, type: type, label: null, views: 0, clicks: 0, clicks_bot: 0 };
     cur.type = type;
     if (label) cur.label = label;
@@ -15158,6 +15410,12 @@ export default {
       if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/intel-thread') {
         return await handleIntelThread(request, env, origin, url);
       }
+      // ── The Passport (member "I've been" check-ins + leaderboards) ──────────
+      if (request.method === 'POST' && url.pathname === '/checkin') return await handleCheckinToggle(request, env, origin);
+      if (request.method === 'GET' && url.pathname === '/checkins') return await handleCheckinsGet(env, origin, url);
+      if (request.method === 'GET' && url.pathname === '/checkin-counts') return await handleCheckinCounts(env, origin, url);
+      if (request.method === 'GET' && url.pathname === '/leaderboard') return await handleLeaderboard(env, origin, url);
+      if ((request.method === 'GET' || request.method === 'POST') && url.pathname === '/member-prefs') return await handleMemberPrefs(request, env, origin, url);
       // Topaz Gigapixel upscale proxy (admin-only — Studio Design export).
       if (url.pathname.startsWith('/topaz/')) {
         return await handleTopazUpscale(request, env, origin, url);

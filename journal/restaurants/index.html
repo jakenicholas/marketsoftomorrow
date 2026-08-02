@@ -1610,6 +1610,7 @@ let SORT_MODE = 'rank';
   loadAndRenderAd();          // house ad from ads.json — swaps GAM if one wins
   loadPulse();                // PULSE ticker reads pulse.json (mixes map events + articles)
   await loadList();
+  (function initPassport(){ if (window.tmwPassport) { tmwPassport.init({ listSlug: LIST_SLUG, entityType: LIST_SLUG }); } else { setTimeout(initPassport, 150); } })();
   loadNewsAndTicker();
   // Auto-enter edit mode if ?edit=1 in URL AND a token is stored.
   const params = new URLSearchParams(location.search);
@@ -2584,6 +2585,7 @@ function formatDate(s) {
 <script src="/_shared/journal-chrome.js" defer></script>
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/iconic-view.js?v=20260730" defer></script>
+<script src="/_shared/passport.js?v=20260802" defer></script>
 
 <script>
 /* Deep-link: /<list>/#<item-id> (e.g. from TMW Intelligence search) scrolls to
