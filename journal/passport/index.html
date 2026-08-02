@@ -19,7 +19,7 @@
 :root{
   --ink:#070807; --ink-2:#0d0f0e;
   --panel:#141714; --panel-2:#1a1d1a;
-  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14); --hair-3:rgba(255,255,255,.22);
   --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
   --green:#1FDF67; --green-soft:#42EB81;
   --gold:#e6c574; --gold-soft:#f0d68a;
@@ -31,53 +31,74 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.pp-wrap{max-width:760px;margin:0 auto;padding:40px 24px 90px}
-.pp-hero{padding:26px 0 30px;border-bottom:1px solid var(--hair)}
-.pp-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--green)}
-.pp-hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,7vw,58px);line-height:1.02;margin:14px 0 12px;color:#fff}
-.pp-lede{color:var(--mute-2);font-size:16px;line-height:1.6;font-weight:300;max-width:56ch;margin:0}
-.pp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 20px}
-.pp-tab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:10px 16px;border-radius:999px;border:1px solid var(--hair-2);background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
-.pp-tab:hover{color:#fff;border-color:var(--hair-3,rgba(255,255,255,.3))}
-.pp-tab.on{background:var(--green);border-color:var(--green);color:var(--ink);font-weight:700}
-.pp-board{display:flex;flex-direction:column;gap:6px}
-.pp-load,.pp-empty{color:var(--mute);font-size:15px;padding:40px 6px;text-align:center}
+
+/* ── Hero — image-first masthead, lifted from the Hotel Radar treatment ── */
+.rank-hero{position:relative;text-align:center;padding-bottom:10px}
+.rh-img{position:relative;height:min(52vh,480px);overflow:hidden}
+.rh-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(1.02);
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 40%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%)}
+.rh-inner{position:relative;z-index:2;margin-top:-58px;padding:0 22px;max-width:760px;margin-left:auto;margin-right:auto}
+.rh-kicker{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--green)}
+.rh-title{font-family:var(--serif);font-weight:500;font-size:clamp(44px,8vw,74px);line-height:1;margin:14px 0 14px;color:#fff}
+.rh-sub{color:var(--mute-2);font-size:16px;line-height:1.6;font-weight:300;max-width:52ch;margin:0 auto}
+.rh-tabs{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:26px}
+.tab-btn{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:10px 18px;border-radius:999px;border:1px solid var(--hair-2);background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
+.tab-btn:hover{color:#fff;border-color:var(--hair-3)}
+.tab-btn.on{background:var(--green);border-color:var(--green);color:var(--ink);font-weight:700}
+
+/* ── Board ── */
+.pp-wrap{max-width:760px;margin:0 auto;padding:6px 24px 90px}
+.pp-board{margin-top:22px;overflow-x:auto;scrollbar-width:thin}
+.pp-load,.pp-empty{color:var(--mute);font-size:15px;padding:44px 6px;text-align:center}
 .pp-empty a{color:var(--green);text-decoration:underline;text-underline-offset:3px}
-.pp-row{width:100%;display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);background:var(--panel);color:inherit;cursor:pointer;text-align:left;transition:all .16s;font:inherit}
-.pp-row:hover{border-color:var(--hair-2);background:var(--panel-2)}
-.pp-row.me{background:rgba(31,223,103,.09);border-color:rgba(31,223,103,.42)}
-.pp-rk{font-family:var(--serif);font-size:22px;color:var(--mute);width:40px;text-align:center;flex:none}
-.pp-row.top1 .pp-rk,.pp-row.top2 .pp-rk,.pp-row.top3 .pp-rk{color:var(--gold);font-weight:600}
-.pp-nm{flex:1;min-width:0;color:#fff;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pp-nm em{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-style:normal;margin-left:9px;vertical-align:middle}
-.pp-ct{font-family:var(--serif);font-size:26px;color:var(--green);flex:none}
-.pp-ct small{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);display:block;text-align:right;margin-top:-2px}
-.pp-caret{font-size:11px;color:var(--mute);flex:none;transition:transform .2s;width:14px}
-.pp-row[aria-expanded="true"] .pp-caret{transform:rotate(180deg)}
-.pp-break{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 18px 14px 74px;margin-top:-4px}
-.pp-break[hidden]{display:none}
-.pp-bchip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--hair);display:inline-flex;gap:8px;align-items:center;text-transform:uppercase;color:var(--mute-2)}
-.pp-bchip b{font-weight:700}
-.pp-bchip.pp-golf b{color:var(--green)}
-.pp-bchip.pp-hotels b{color:var(--gold)}
-.pp-bchip.pp-restaurants b{color:var(--purple-glow)}
-.pp-btotal{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.pp-table{width:100%;border-collapse:collapse;min-width:560px}
+.pp-table thead th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600;text-align:right;padding:0 14px 14px;border-bottom:1px solid var(--hair);white-space:nowrap}
+.pp-table th.c-rank{width:34px;padding-left:4px}
+.pp-table th.c-name{text-align:left}
+.pp-table th.c-num{cursor:pointer;transition:color .16s}
+.pp-table th.c-num:hover{color:var(--cream)}
+.pp-table th.c-num.act{color:var(--green)}
+.pp-table th .car{opacity:0;margin-left:5px}
+.pp-table th.c-num.act .car{opacity:1}
+.pp-table tbody td{padding:16px 14px;text-align:right;border-bottom:1px solid var(--hair);font-variant-numeric:tabular-nums}
+.pp-table tbody tr:last-child td{border-bottom:none}
+.pp-table td.c-rank{font-family:var(--serif);font-size:19px;color:var(--mute);text-align:center;padding-left:4px}
+.pp-table tbody tr:nth-child(1) td.c-rank,.pp-table tbody tr:nth-child(2) td.c-rank,.pp-table tbody tr:nth-child(3) td.c-rank{color:var(--gold);font-weight:600}
+.pp-table td.c-name{text-align:left;color:#fff;font-size:16px;font-weight:500;white-space:nowrap}
+.pp-table td.c-name em{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-style:normal;margin-left:9px}
+.pp-table td.c-num{font-family:var(--mono);font-size:15px;color:var(--mute-2)}
+.pp-table td.c-num.zero{color:var(--mute);opacity:.45}
+.pp-table td.c-total{font-family:var(--serif);font-size:21px;color:#fff}
+.pp-table td.act{color:var(--green)}
+.pp-table td.c-total.act{color:var(--green)}
+.pp-table tbody tr.me td{background:rgba(31,223,103,.08)}
+.pp-table tbody tr.me td.c-name{box-shadow:inset 3px 0 0 var(--green)}
+
 .pp-cta{margin-top:44px;padding:28px 24px;border:1px solid var(--hair);border-radius:18px;text-align:center;background:linear-gradient(180deg,rgba(31,223,103,.05),rgba(255,255,255,.012))}
 .pp-cta p{margin:0 0 14px;color:var(--cream);font-size:16px}
 .pp-cta-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .pp-cta-links a{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:11px 20px;border-radius:999px;border:1px solid var(--hair-2);color:var(--cream);text-decoration:none;transition:all .16s}
 .pp-cta-links a:hover{border-color:var(--green);color:var(--green)}
-@media(max-width:560px){.pp-break{padding-left:24px}.pp-ct{font-size:22px}.pp-rk{width:30px;font-size:19px}}
+@media(max-width:560px){.rh-inner{margin-top:-42px}.pp-table td.c-total{font-size:18px}}
 </style>
 </head>
 <body>
+  <section class="rank-hero" id="featured">
+    <div class="rh-img" aria-hidden="true"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt=""></div>
+    <div class="rh-inner">
+      <div class="rh-kicker">TMW Members &middot; The Passport</div>
+      <h1 class="rh-title">The Passport</h1>
+      <p class="rh-sub">The members who have explored the most of TMW&rsquo;s world &mdash; the iconic hotels, golf courses and restaurants on our lists. Tap &ldquo;I&rsquo;ve been&rdquo; anywhere to climb.</p>
+      <div class="rh-tabs" id="ppTabs">
+        <button type="button" class="tab-btn" data-k="hotels">Hotels</button>
+        <button type="button" class="tab-btn" data-k="restaurants">Restaurants</button>
+        <button type="button" class="tab-btn" data-k="golf">Golf</button>
+      </div>
+    </div>
+  </section>
+
   <main class="pp-wrap">
-    <header class="pp-hero">
-      <div class="pp-eyebrow">TMW Members &middot; The Passport</div>
-      <h1>The Passport</h1>
-      <p class="pp-lede">The members who have explored the most of TMW&rsquo;s world &mdash; the iconic hotels, golf courses and restaurants on our lists. Tap &ldquo;I&rsquo;ve been&rdquo; anywhere to climb the ranks.</p>
-    </header>
-    <div class="pp-tabs" id="ppTabs"></div>
     <div class="pp-board" id="ppBoard"><div class="pp-load">Loading the leaderboard&hellip;</div></div>
     <div class="pp-cta">
       <p>Start your passport &mdash; check in on the lists.</p>
@@ -90,83 +111,85 @@ a{color:inherit}
   <script>
   (function () {
     var WORKER = 'https://tmw.jake-ab7.workers.dev';
-    var TABS = [['overall', 'Overall'], ['golf', 'Golf'], ['hotels', 'Hotels'], ['restaurants', 'Restaurants']];
-    var MEMBER_ID = null, CACHE = {}, CUR = 'overall';
+    var MEMBER_ID = null, DATA = null, SORT = 'total';   // default sort = Total
 
     function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
     function q(id){ return document.getElementById(id); }
 
-    // Initial tab from ?cat= (set by a list page's "See the leaderboard").
+    // ?cat= from a list page preselects that column's sort.
     var cat = (new URLSearchParams(location.search).get('cat') || '').toLowerCase();
-    if (['golf','hotels','restaurants'].indexOf(cat) >= 0) CUR = cat;
+    if (['hotels','golf','restaurants'].indexOf(cat) >= 0) SORT = cat;
 
-    function renderTabs(){
-      q('ppTabs').innerHTML = TABS.map(function(t){
-        return '<button type="button" class="pp-tab'+(t[0]===CUR?' on':'')+'" data-scope="'+t[0]+'">'+t[1]+'</button>';
-      }).join('');
-      [].forEach.call(q('ppTabs').querySelectorAll('.pp-tab'), function(b){
-        b.onclick = function(){ CUR = b.getAttribute('data-scope'); renderTabs(); load(CUR); };
-      });
-    }
+    var COLS = [['hotels','Hotels'],['golf','Golf'],['restaurants','Restaurants'],['total','Total']];
 
-    function rowHtml(r, i){
-      var top = r.rank<=3 ? ' top'+r.rank : '';
-      var unit = CUR==='overall' ? 'places' : CUR;
-      return '<button type="button" class="pp-row'+(r.is_me?' me':'')+top+'" data-i="'+i+'" aria-expanded="false">'+
-        '<span class="pp-rk">'+r.rank+'</span>'+
-        '<span class="pp-nm">'+esc(r.name)+(r.is_me?' <em>you</em>':'')+'</span>'+
-        '<span class="pp-ct">'+r.count+'<small>'+esc(unit)+'</small></span>'+
-        '<span class="pp-caret" aria-hidden="true">&#9662;</span></button>'+
-        '<div class="pp-break" hidden>'+
-          '<span class="pp-bchip pp-golf">Golf <b>'+(r.golf||0)+'</b></span>'+
-          '<span class="pp-bchip pp-hotels">Hotels <b>'+(r.hotels||0)+'</b></span>'+
-          '<span class="pp-bchip pp-restaurants">Restaurants <b>'+(r.restaurants||0)+'</b></span>'+
-          '<span class="pp-btotal">'+(r.total||0)+' total</span></div>';
-    }
-
-    function paint(rows){
+    function paint(){
       var board = q('ppBoard');
-      if (!rows.length){
-        board.innerHTML = '<div class="pp-empty">No check-ins here yet. Be the first &mdash; tap &ldquo;I&rsquo;ve been&rdquo; on the <a href="/hotels/">hotels</a>, <a href="/golf/">golf</a> or <a href="/restaurants/">restaurants</a> lists.</div>';
+      if (!DATA || !DATA.length){
+        board.innerHTML = '<div class="pp-empty">No check-ins yet. Be the first &mdash; tap &ldquo;I&rsquo;ve been&rdquo; on the <a href="/hotels/">hotels</a>, <a href="/golf/">golf</a> or <a href="/restaurants/">restaurants</a> lists.</div>';
         return;
       }
-      board.innerHTML = rows.map(rowHtml).join('');
-      [].forEach.call(board.querySelectorAll('.pp-row'), function(btn){
-        btn.onclick = function(){
-          var open = btn.getAttribute('aria-expanded')==='true';
-          btn.setAttribute('aria-expanded', open?'false':'true');
-          var brk = btn.nextElementSibling;
-          if (brk && brk.classList.contains('pp-break')) brk.hidden = open;
-        };
+      // Sort by the active column (desc), then total, then name — and re-rank.
+      var rows = DATA.slice().sort(function(a,b){
+        return (b[SORT]-a[SORT]) || (b.total-a.total) || String(a.name).localeCompare(String(b.name));
+      });
+      var head = '<tr><th class="c-rank"></th><th class="c-name">Name</th>' +
+        COLS.map(function(c){
+          var isTot = c[0]==='total';
+          return '<th class="c-num'+(SORT===c[0]?' act':'')+(isTot?' c-total-h':'')+'" data-k="'+c[0]+'">'+c[1]+'<span class="car">&#9662;</span></th>';
+        }).join('') + '</tr>';
+      var body = rows.map(function(r,i){
+        function cell(k){ var v=r[k]||0; var cls='c-num'+(v?'':' zero')+(SORT===k?' act':'')+(k==='total'?' c-total':''); return '<td class="'+cls+'">'+v+'</td>'; }
+        return '<tr class="'+(r.is_me?'me':'')+'">'+
+          '<td class="c-rank">'+(i+1)+'</td>'+
+          '<td class="c-name">'+esc(r.name)+(r.is_me?' <em>you</em>':'')+'</td>'+
+          cell('hotels')+cell('golf')+cell('restaurants')+cell('total')+'</tr>';
+      }).join('');
+      board.innerHTML = '<table class="pp-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+      // Header cells are sortable too (Total included).
+      [].forEach.call(board.querySelectorAll('th.c-num'), function(th){
+        th.addEventListener('click', function(){ setSort(th.getAttribute('data-k')); });
       });
     }
 
-    function load(scope){
-      if (CACHE[scope]){ paint(CACHE[scope]); return; }
-      q('ppBoard').innerHTML = '<div class="pp-load">Loading the leaderboard&hellip;</div>';
-      var u = WORKER + '/leaderboard?scope=' + encodeURIComponent(scope) + '&limit=100';
-      if (MEMBER_ID) u += '&me=' + encodeURIComponent(MEMBER_ID);
-      fetch(u, { cache:'no-store' }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
-        var rows = (d && d.rows) || [];
-        CACHE[scope] = rows; if (scope===CUR) paint(rows);
-      }).catch(function(){ if (scope===CUR) q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the leaderboard.</div>'; });
+    function syncTabs(){
+      [].forEach.call(q('ppTabs').querySelectorAll('.tab-btn'), function(b){
+        b.classList.toggle('on', b.getAttribute('data-k') === SORT);
+      });
+    }
+    function setSort(k){
+      // Clicking the active category button returns to the default Total sort.
+      SORT = (SORT === k && k !== 'total') ? 'total' : k;
+      syncTabs(); paint();
     }
 
-    // Resolve the current member (for the "you" highlight); board loads either way.
+    [].forEach.call(q('ppTabs').querySelectorAll('.tab-btn'), function(b){
+      b.addEventListener('click', function(){ setSort(b.getAttribute('data-k')); });
+    });
+
+    function load(){
+      var u = WORKER + '/leaderboard?scope=overall&limit=100';
+      if (MEMBER_ID) u += '&me=' + encodeURIComponent(MEMBER_ID);
+      fetch(u, { cache:'no-store' }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+        DATA = (d && d.rows) || [];
+        syncTabs(); paint();
+      }).catch(function(){ q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the leaderboard.</div>'; });
+    }
+
+    // Resolve the member (for the "you" row); the board loads either way.
     var tries = 0;
     (function pollMember(){
       var ms = window.$memberstackDom;
       if (ms && ms.getCurrentMember){
         ms.getCurrentMember().then(function(r){
-          var m = r && r.data; if (m && m.id){ MEMBER_ID = m.id; CACHE = {}; load(CUR); }
+          var m = r && r.data; if (m && m.id){ MEMBER_ID = m.id; load(); }
         }).catch(function(){});
         return;
       }
       if (tries++ < 20) setTimeout(pollMember, 300);
     })();
 
-    renderTabs();
-    load(CUR);
+    syncTabs();
+    load();
   })();
   </script>
 </body>

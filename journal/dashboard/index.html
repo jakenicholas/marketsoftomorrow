@@ -369,6 +369,7 @@ main.wrap{padding-bottom:70px}
 <body>
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-tab="dashboard">Dashboard</button>
+  <button class="tab" data-tab="passport">Passport</button>
   <button class="tab" data-tab="articles">Articles</button>
   <button class="tab" data-tab="account">Account</button>
   <button class="tab" data-tab="security">Security</button>
@@ -404,8 +405,6 @@ main.wrap{padding-bottom:70px}
     <div class="streak" id="streakStrip"></div>
     <div class="sechead"><h2>Your climb</h2><span class="lbl" id="rankLbl">&nbsp;</span></div>
     <div class="ladder" id="ladder"></div>
-    <div class="sechead"><h2>Passport</h2><span class="lbl">Places you&rsquo;ve been</span></div>
-    <div id="passportBody"><div class="empty">Loading&hellip;</div></div>
     <div class="sechead"><h2>Achievements</h2></div>
     <div class="badges" id="badges"></div>
     <div class="sechead"><h2>Earn the most</h2></div>
@@ -414,6 +413,11 @@ main.wrap{padding-bottom:70px}
       <div class="ecard"><div class="ev">+400</div><div class="et">Add to the map</div><div class="es">Suggest a project or firm. Verified additions earn the most of any contribution.</div></div>
       <div class="ecard"><div class="ev">+10</div><div class="et">Comment</div><div class="es">Join the conversation on any article &mdash; your comments are public.</div></div>
     </div>
+  </section>
+
+  <section data-tab-panel="passport" hidden>
+    <div class="sechead"><h2>Passport</h2><span class="lbl">Places you&rsquo;ve been &mdash; hotels, golf &amp; restaurants</span></div>
+    <div id="passportBody"><div class="empty">Loading&hellip;</div></div>
   </section>
 
   <section data-tab-panel="dashboard">
