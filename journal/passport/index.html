@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<title>The Passport &mdash; Markets of Tomorrow</title>
+<link rel="icon" type="image/svg+xml" href="/media/img/favicon.svg">
+<meta name="description" content="The TMW Passport leaderboard — the members who have visited the most iconic hotels, golf courses and restaurants on our lists.">
+<link rel="canonical" href="https://www.oftmw.com/passport/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Passport · Markets of Tomorrow">
+<meta property="og:description" content="Who has explored the most of TMW's world.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#070807; --ink-2:#0d0f0e;
+  --panel:#141714; --panel-2:#1a1d1a;
+  --hair:rgba(255,255,255,.08); --hair-2:rgba(255,255,255,.14);
+  --white:#fff; --cream:#ECEAE5; --mute:#9AA39C; --mute-2:#C2C9C3;
+  --green:#1FDF67; --green-soft:#42EB81;
+  --gold:#e6c574; --gold-soft:#f0d68a;
+  --purple:#A78BFA; --purple-glow:#B9A6FF;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.pp-wrap{max-width:760px;margin:0 auto;padding:40px 24px 90px}
+.pp-hero{padding:26px 0 30px;border-bottom:1px solid var(--hair)}
+.pp-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--green)}
+.pp-hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,7vw,58px);line-height:1.02;margin:14px 0 12px;color:#fff}
+.pp-lede{color:var(--mute-2);font-size:16px;line-height:1.6;font-weight:300;max-width:56ch;margin:0}
+.pp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 20px}
+.pp-tab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:10px 16px;border-radius:999px;border:1px solid var(--hair-2);background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
+.pp-tab:hover{color:#fff;border-color:var(--hair-3,rgba(255,255,255,.3))}
+.pp-tab.on{background:var(--green);border-color:var(--green);color:var(--ink);font-weight:700}
+.pp-board{display:flex;flex-direction:column;gap:6px}
+.pp-load,.pp-empty{color:var(--mute);font-size:15px;padding:40px 6px;text-align:center}
+.pp-empty a{color:var(--green);text-decoration:underline;text-underline-offset:3px}
+.pp-row{width:100%;display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:14px;border:1px solid var(--hair);background:var(--panel);color:inherit;cursor:pointer;text-align:left;transition:all .16s;font:inherit}
+.pp-row:hover{border-color:var(--hair-2);background:var(--panel-2)}
+.pp-row.me{background:rgba(31,223,103,.09);border-color:rgba(31,223,103,.42)}
+.pp-rk{font-family:var(--serif);font-size:22px;color:var(--mute);width:40px;text-align:center;flex:none}
+.pp-row.top1 .pp-rk,.pp-row.top2 .pp-rk,.pp-row.top3 .pp-rk{color:var(--gold);font-weight:600}
+.pp-nm{flex:1;min-width:0;color:#fff;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-nm em{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-style:normal;margin-left:9px;vertical-align:middle}
+.pp-ct{font-family:var(--serif);font-size:26px;color:var(--green);flex:none}
+.pp-ct small{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);display:block;text-align:right;margin-top:-2px}
+.pp-caret{font-size:11px;color:var(--mute);flex:none;transition:transform .2s;width:14px}
+.pp-row[aria-expanded="true"] .pp-caret{transform:rotate(180deg)}
+.pp-break{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 18px 14px 74px;margin-top:-4px}
+.pp-break[hidden]{display:none}
+.pp-bchip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--hair);display:inline-flex;gap:8px;align-items:center;text-transform:uppercase;color:var(--mute-2)}
+.pp-bchip b{font-weight:700}
+.pp-bchip.pp-golf b{color:var(--green)}
+.pp-bchip.pp-hotels b{color:var(--gold)}
+.pp-bchip.pp-restaurants b{color:var(--purple-glow)}
+.pp-btotal{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.pp-cta{margin-top:44px;padding:28px 24px;border:1px solid var(--hair);border-radius:18px;text-align:center;background:linear-gradient(180deg,rgba(31,223,103,.05),rgba(255,255,255,.012))}
+.pp-cta p{margin:0 0 14px;color:var(--cream);font-size:16px}
+.pp-cta-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.pp-cta-links a{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:11px 20px;border-radius:999px;border:1px solid var(--hair-2);color:var(--cream);text-decoration:none;transition:all .16s}
+.pp-cta-links a:hover{border-color:var(--green);color:var(--green)}
+@media(max-width:560px){.pp-break{padding-left:24px}.pp-ct{font-size:22px}.pp-rk{width:30px;font-size:19px}}
+</style>
+</head>
+<body>
+  <main class="pp-wrap">
+    <header class="pp-hero">
+      <div class="pp-eyebrow">TMW Members &middot; The Passport</div>
+      <h1>The Passport</h1>
+      <p class="pp-lede">The members who have explored the most of TMW&rsquo;s world &mdash; the iconic hotels, golf courses and restaurants on our lists. Tap &ldquo;I&rsquo;ve been&rdquo; anywhere to climb the ranks.</p>
+    </header>
+    <div class="pp-tabs" id="ppTabs"></div>
+    <div class="pp-board" id="ppBoard"><div class="pp-load">Loading the leaderboard&hellip;</div></div>
+    <div class="pp-cta">
+      <p>Start your passport &mdash; check in on the lists.</p>
+      <div class="pp-cta-links"><a href="/hotels/">Hotels</a><a href="/golf/">Golf</a><a href="/restaurants/">Restaurants</a></div>
+    </div>
+  </main>
+
+  <script src="/_shared/journal-chrome.js" defer></script>
+  <script src="/_shared/journal-dock.js" defer></script>
+  <script>
+  (function () {
+    var WORKER = 'https://tmw.jake-ab7.workers.dev';
+    var TABS = [['overall', 'Overall'], ['golf', 'Golf'], ['hotels', 'Hotels'], ['restaurants', 'Restaurants']];
+    var MEMBER_ID = null, CACHE = {}, CUR = 'overall';
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+    function q(id){ return document.getElementById(id); }
+
+    // Initial tab from ?cat= (set by a list page's "See the leaderboard").
+    var cat = (new URLSearchParams(location.search).get('cat') || '').toLowerCase();
+    if (['golf','hotels','restaurants'].indexOf(cat) >= 0) CUR = cat;
+
+    function renderTabs(){
+      q('ppTabs').innerHTML = TABS.map(function(t){
+        return '<button type="button" class="pp-tab'+(t[0]===CUR?' on':'')+'" data-scope="'+t[0]+'">'+t[1]+'</button>';
+      }).join('');
+      [].forEach.call(q('ppTabs').querySelectorAll('.pp-tab'), function(b){
+        b.onclick = function(){ CUR = b.getAttribute('data-scope'); renderTabs(); load(CUR); };
+      });
+    }
+
+    function rowHtml(r, i){
+      var top = r.rank<=3 ? ' top'+r.rank : '';
+      var unit = CUR==='overall' ? 'places' : CUR;
+      return '<button type="button" class="pp-row'+(r.is_me?' me':'')+top+'" data-i="'+i+'" aria-expanded="false">'+
+        '<span class="pp-rk">'+r.rank+'</span>'+
+        '<span class="pp-nm">'+esc(r.name)+(r.is_me?' <em>you</em>':'')+'</span>'+
+        '<span class="pp-ct">'+r.count+'<small>'+esc(unit)+'</small></span>'+
+        '<span class="pp-caret" aria-hidden="true">&#9662;</span></button>'+
+        '<div class="pp-break" hidden>'+
+          '<span class="pp-bchip pp-golf">Golf <b>'+(r.golf||0)+'</b></span>'+
+          '<span class="pp-bchip pp-hotels">Hotels <b>'+(r.hotels||0)+'</b></span>'+
+          '<span class="pp-bchip pp-restaurants">Restaurants <b>'+(r.restaurants||0)+'</b></span>'+
+          '<span class="pp-btotal">'+(r.total||0)+' total</span></div>';
+    }
+
+    function paint(rows){
+      var board = q('ppBoard');
+      if (!rows.length){
+        board.innerHTML = '<div class="pp-empty">No check-ins here yet. Be the first &mdash; tap &ldquo;I&rsquo;ve been&rdquo; on the <a href="/hotels/">hotels</a>, <a href="/golf/">golf</a> or <a href="/restaurants/">restaurants</a> lists.</div>';
+        return;
+      }
+      board.innerHTML = rows.map(rowHtml).join('');
+      [].forEach.call(board.querySelectorAll('.pp-row'), function(btn){
+        btn.onclick = function(){
+          var open = btn.getAttribute('aria-expanded')==='true';
+          btn.setAttribute('aria-expanded', open?'false':'true');
+          var brk = btn.nextElementSibling;
+          if (brk && brk.classList.contains('pp-break')) brk.hidden = open;
+        };
+      });
+    }
+
+    function load(scope){
+      if (CACHE[scope]){ paint(CACHE[scope]); return; }
+      q('ppBoard').innerHTML = '<div class="pp-load">Loading the leaderboard&hellip;</div>';
+      var u = WORKER + '/leaderboard?scope=' + encodeURIComponent(scope) + '&limit=100';
+      if (MEMBER_ID) u += '&me=' + encodeURIComponent(MEMBER_ID);
+      fetch(u, { cache:'no-store' }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+        var rows = (d && d.rows) || [];
+        CACHE[scope] = rows; if (scope===CUR) paint(rows);
+      }).catch(function(){ if (scope===CUR) q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the leaderboard.</div>'; });
+    }
+
+    // Resolve the current member (for the "you" highlight); board loads either way.
+    var tries = 0;
+    (function pollMember(){
+      var ms = window.$memberstackDom;
+      if (ms && ms.getCurrentMember){
+        ms.getCurrentMember().then(function(r){
+          var m = r && r.data; if (m && m.id){ MEMBER_ID = m.id; CACHE = {}; load(CUR); }
+        }).catch(function(){});
+        return;
+      }
+      if (tries++ < 20) setTimeout(pollMember, 300);
+    })();
+
+    renderTabs();
+    load(CUR);
+  })();
+  </script>
+</body>
+</html>

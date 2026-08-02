@@ -115,12 +115,19 @@
     cnt.style.display = n > 0 ? '' : 'none';
   }
 
+  // Total items on this list (the leaderboard denominator: "4/50").
+  function listTotal() {
+    try { if (window.DATA && Array.isArray(window.DATA.items)) return window.DATA.items.length; } catch (_) {}
+    return document.querySelectorAll('#ranking .rank-item').length || 0;
+  }
+
   function ensureCommunityModule(wrap, rows) {
     var mod = wrap.querySelector('.tmw-pp-community');
     if (mod) mod.remove(); // rebuild so counts stay fresh
     mod = el('section', 'tmw-pp-community');
-    var chips = STATE.community.slice(0, 8).map(function (m) {
-      return '<span class="tmw-pp-mchip">' + esc(m.name) + '<b>' + (m.count || 0) + '</b></span>';
+    var lt = listTotal();
+    var chips = STATE.community.slice(0, 5).map(function (m) {
+      return '<span class="tmw-pp-mchip"><i>#' + (m.rank || '') + '</i>' + esc(m.name) + '<b>' + (m.count || 0) + (lt ? '/' + lt : '') + '</b></span>';
     }).join('');
     var body = STATE.total > 0
       ? '<p class="tmw-pp-sub">' + STATE.total.toLocaleString() + ' member' + (STATE.total === 1 ? '' : 's') + ' ' +
@@ -132,7 +139,7 @@
       '<h3 class="tmw-pp-h">Who’s been here</h3>' +
       body +
       '<button type="button" class="tmw-pp-lbbtn">See the leaderboard &rarr;</button>';
-    mod.querySelector('.tmw-pp-lbbtn').addEventListener('click', function () { openLeaderboard(CFG.entityType); });
+    mod.querySelector('.tmw-pp-lbbtn').addEventListener('click', function () { location.href = '/passport/?cat=' + encodeURIComponent(CFG.entityType); });
     // Insert after the top N visible rank items (or at the end for short lists).
     var anchor = rows[Math.min(COMMUNITY_AFTER, rows.length) - 1];
     if (anchor && anchor.nextSibling) wrap.insertBefore(mod, anchor.nextSibling);
@@ -202,31 +209,6 @@
       .catch(function (e) { toast(e.message || 'Could not save'); if (btn) { btn.disabled = false; btn.textContent = remove ? 'Remove check-in' : 'I’ve been here'; } });
   }
 
-  // ── leaderboard modal ───────────────────────────────────────────────────────
-  var LB_TABS = [['overall', 'Overall'], ['golf', 'Golf'], ['hotels', 'Hotels'], ['restaurants', 'Restaurants']];
-  function openLeaderboard(scope) {
-    var m = modal('Passport leaderboard',
-      '<div class="tmw-pp-lbtabs">' + LB_TABS.map(function (t) {
-        return '<button type="button" class="tmw-pp-lbtab' + (t[0] === scope ? ' on' : '') + '" data-scope="' + t[0] + '">' + t[1] + '</button>';
-      }).join('') + '</div><div class="tmw-pp-lbbody"><div class="tmw-pp-lbload">Loading…</div></div>', 'wide');
-    function load(sc) {
-      m.node.querySelectorAll('.tmw-pp-lbtab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-scope') === sc); });
-      var body = m.node.querySelector('.tmw-pp-lbbody'); body.innerHTML = '<div class="tmw-pp-lbload">Loading…</div>';
-      var u = WORKER + '/leaderboard?scope=' + encodeURIComponent(sc) + '&limit=25';
-      if (MEMBER) u += '&me=' + encodeURIComponent(MEMBER.id);
-      fetch(u, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-        var rows = (d && d.rows) || [];
-        if (!rows.length) { body.innerHTML = '<div class="tmw-pp-lbempty">No check-ins yet. Be the first.</div>'; return; }
-        body.innerHTML = '<ol class="tmw-pp-lb">' + rows.map(function (r) {
-          return '<li class="' + (r.is_me ? 'me' : '') + '"><span class="rk">' + r.rank + '</span>' +
-            '<span class="nm">' + esc(r.name) + (r.is_me ? ' <em>you</em>' : '') + '</span>' +
-            '<span class="ct">' + r.count + '</span></li>';
-        }).join('') + '</ol>';
-      }).catch(function () { body.innerHTML = '<div class="tmw-pp-lbempty">Could not load.</div>'; });
-    }
-    m.node.querySelectorAll('.tmw-pp-lbtab').forEach(function (b) { b.addEventListener('click', function () { load(b.getAttribute('data-scope')); }); });
-    load(scope || 'overall');
-  }
 
   // ── generic modal ────────────────────────────────────────────────────────────
   function modal(title, bodyHtml, size) {
@@ -267,7 +249,8 @@
       '.tmw-pp-h{font-family:var(--serif,Georgia);font-size:22px;font-weight:500;margin:7px 0 6px;color:var(--white,#fff)}',
       '.tmw-pp-sub{color:var(--mute-2,#b7bdb6);font-size:14px;line-height:1.55;margin:0 0 14px;font-weight:300}',
       '.tmw-pp-mchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}',
-      '.tmw-pp-mchip{font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--hair-2,rgba(255,255,255,.12));color:var(--mute-2,#b7bdb6);display:inline-flex;gap:8px;align-items:center}',
+      '.tmw-pp-mchip{font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--hair-2,rgba(255,255,255,.12));color:var(--mute-2,#b7bdb6);display:inline-flex;gap:7px;align-items:center}',
+      '.tmw-pp-mchip i{font-style:normal;color:var(--mute,#9aa39c);opacity:.75}',
       '.tmw-pp-mchip b{color:var(--green,#7bd88f);font-weight:700}',
       '.tmw-pp-lbbtn{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink,#0a0a0a);background:var(--green,#7bd88f);border:none;padding:11px 20px;border-radius:999px;cursor:pointer;transition:all .18s}',
       '.tmw-pp-lbbtn:hover{background:var(--green-soft,#9be7ac);transform:translateY(-1px)}',
@@ -293,19 +276,6 @@
       '.tmw-pp-save:hover{background:var(--green-soft,#9be7ac)}.tmw-pp-save:disabled{opacity:.6;cursor:default}',
       '.tmw-pp-remove{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute,#9aa39c);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}',
       '.tmw-pp-remove:hover{color:#e88}',
-      /* leaderboard */
-      '.tmw-pp-lbtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}',
-      '.tmw-pp-lbtab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--hair-2,rgba(255,255,255,.12));background:transparent;color:var(--mute,#9aa39c);cursor:pointer;transition:all .16s}',
-      '.tmw-pp-lbtab.on{background:var(--green,#7bd88f);border-color:var(--green,#7bd88f);color:var(--ink,#0a0a0a)}',
-      '.tmw-pp-lb{list-style:none;margin:0;padding:0}',
-      '.tmw-pp-lb li{display:flex;align-items:center;gap:14px;padding:12px 12px;border-radius:12px}',
-      '.tmw-pp-lb li:nth-child(odd){background:rgba(255,255,255,.025)}',
-      '.tmw-pp-lb li.me{background:rgba(123,216,143,.12);outline:1px solid rgba(123,216,143,.4)}',
-      '.tmw-pp-lb .rk{font-family:var(--mono);font-size:13px;color:var(--mute,#9aa39c);width:26px;text-align:center;flex:none}',
-      '.tmw-pp-lb li:nth-child(1) .rk,.tmw-pp-lb li:nth-child(2) .rk,.tmw-pp-lb li:nth-child(3) .rk{color:var(--gold,#e6c574);font-weight:700}',
-      '.tmw-pp-lb .nm{flex:1;color:#fff;font-size:15px}.tmw-pp-lb .nm em{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--green,#7bd88f);font-style:normal;margin-left:6px}',
-      '.tmw-pp-lb .ct{font-family:var(--serif,Georgia);font-size:20px;color:var(--green,#7bd88f)}',
-      '.tmw-pp-lbload,.tmw-pp-lbempty{color:var(--mute,#9aa39c);font-size:14px;padding:24px 6px;text-align:center}',
       /* fallback toast */
       '.tmw-pp-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);background:#12140f;border:1px solid rgba(123,216,143,.4);color:#fff;font-family:var(--sans,system-ui);font-size:14px;padding:12px 20px;border-radius:999px;z-index:10000;opacity:0;transition:all .3s}',
       '.tmw-pp-toast.on{opacity:1;transform:translate(-50%,0)}',
@@ -321,10 +291,6 @@
       CFG = cfg; injectStyles();
       observer = new MutationObserver(scheduleDecorate);
       resolveMember(function () { loadCounts(); });
-    },
-    openLeaderboard: openLeaderboard,
-    // Let another page (the dashboard) reuse the leaderboard modal with the
-    // "you" highlight, without running the list-page decoration path.
-    setMember: function (m) { MEMBER = m && m.id ? { id: m.id, handle: m.handle || 'TMW Member' } : null; }
+    }
   };
 })();

@@ -550,8 +550,8 @@ async function handleCheckinCounts(env, origin, url) {
         COALESCE(p.leaderboard_hidden,0) AS hidden
       FROM checkins c LEFT JOIN member_prefs p ON p.member_id = c.member_id
       WHERE c.list_slug=?1 GROUP BY c.member_id HAVING hidden=0
-      ORDER BY cnt DESC, MIN(c.created_at) ASC LIMIT 8`).bind(listSlug).all();
-    community = ((rs && rs.results) || []).map(r => ({ name: r.dn || 'TMW Member', count: r.cnt }));
+      ORDER BY cnt DESC, MIN(c.created_at) ASC LIMIT 5`).bind(listSlug).all();
+    community = ((rs && rs.results) || []).map((r, i) => ({ rank: i + 1, name: r.dn || 'TMW Member', count: r.cnt }));
   } catch (_) {}
 
   return json({ ok: true, counts, mine, total, community }, {}, env, origin);
@@ -566,19 +566,31 @@ async function handleLeaderboard(env, origin, url) {
   if (!(limit > 0) || limit > 100) limit = 20;
   await ensureCheckinTables(env);
 
-  let rows = [];
+  // Pull every visible member with their full per-category breakdown, then rank
+  // by the requested scope in JS. Returning the breakdown on each row lets the
+  // Passport page expand a profile into golf/hotels/restaurants counts WITHOUT
+  // exposing raw mem_ ids (which would weaken the client-asserted trust model).
+  let all = [];
   try {
-    const rs = await env.DB.prepare(`SELECT c.member_id AS mid, COUNT(*) AS cnt, MIN(c.created_at) AS firstAt,
-        p.display_name AS dn, COALESCE(p.leaderboard_hidden,0) AS hidden
+    const rs = await env.DB.prepare(`SELECT c.member_id AS mid, COUNT(*) AS total,
+        SUM(CASE WHEN c.entity_type='golf' THEN 1 ELSE 0 END) AS golf,
+        SUM(CASE WHEN c.entity_type='hotels' THEN 1 ELSE 0 END) AS hotels,
+        SUM(CASE WHEN c.entity_type='restaurants' THEN 1 ELSE 0 END) AS restaurants,
+        MIN(c.created_at) AS firstAt, p.display_name AS dn, COALESCE(p.leaderboard_hidden,0) AS hidden
       FROM checkins c LEFT JOIN member_prefs p ON p.member_id = c.member_id
-      WHERE (?1 = 'overall' OR c.entity_type = ?1)
-      GROUP BY c.member_id HAVING hidden=0
-      ORDER BY cnt DESC, firstAt ASC LIMIT ?2`).bind(scope, limit).all();
-    rows = ((rs && rs.results) || []).map((r, i) => ({
-      rank: i + 1, name: r.dn || 'TMW Member', count: r.cnt,
+      GROUP BY c.member_id HAVING hidden=0`).all();
+    all = (rs && rs.results) || [];
+  } catch (_) {}
+  const scoreOf = (r) => (scope === 'overall' ? r.total : (r[scope] || 0));
+  const rows = all
+    .filter(r => scoreOf(r) > 0)
+    .sort((a, b) => scoreOf(b) - scoreOf(a) || a.firstAt - b.firstAt)
+    .slice(0, limit)
+    .map((r, i) => ({
+      rank: i + 1, name: r.dn || 'TMW Member', count: scoreOf(r), total: r.total,
+      golf: r.golf, hotels: r.hotels, restaurants: r.restaurants,
       is_me: !!(me && r.mid === me),
     }));
-  } catch (_) {}
   return json({ ok: true, scope, rows }, { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } }, env, origin);
 }
 

@@ -1551,14 +1551,22 @@
       fmHotels.textContent = 'Hotels';
       if (/\/hotels(\/|$)/.test(location.pathname)) fmHotels.classList.add('active');
       var fmLists = makeFm('The Lists', theListsPanel());
+      // Passport — the members' check-in leaderboard, its own page. Sits right
+      // after News so it reads as a first-class destination, not a list sub-item.
+      var fmPassport = document.createElement('a');
+      fmPassport.className = 'tmw-fm-link';
+      fmPassport.href = '/passport/';
+      fmPassport.textContent = 'Passport';
+      if (/^\/passport(\/|$)/.test(location.pathname)) fmPassport.classList.add('active');
       // Rename the first nav item ("Read"/"Global") to "News".
       if (globalAnchor) globalAnchor.textContent = 'News';
       var ref = globalAnchor && globalAnchor.parentNode === nav ? globalAnchor : nav.firstElementChild;
       if (ref && ref.nextSibling) {
-        nav.insertBefore(fmExplore, ref.nextSibling);
+        nav.insertBefore(fmPassport, ref.nextSibling);
+        nav.insertBefore(fmExplore, fmPassport.nextSibling);
         nav.insertBefore(fmHotels, fmExplore.nextSibling);
         nav.insertBefore(fmLists, fmHotels.nextSibling);
-      } else { nav.appendChild(fmExplore); nav.appendChild(fmHotels); nav.appendChild(fmLists); }
+      } else { nav.appendChild(fmPassport); nav.appendChild(fmExplore); nav.appendChild(fmHotels); nav.appendChild(fmLists); }
 
       // Gold "Go Pro" nav item after The Lists — free/anon only. Hidden for
       // paid members via `html.tmw-paid .tmw-fm-gopro{display:none}` (same

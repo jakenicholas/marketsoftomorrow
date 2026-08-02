@@ -520,7 +520,6 @@ main.wrap{padding-bottom:70px}
 <script src="/_shared/journal-dock.js" defer></script>
 <script src="/_shared/journal-auth.js" defer></script>
 <script src="/_shared/tmw-celebrate.js" defer></script>
-<script src="/_shared/passport.js?v=20260802" defer></script>
 <script>
 (function(){
   var WORKER='https://tmw.jake-ab7.workers.dev';
@@ -1437,7 +1436,7 @@ main.wrap{padding-bottom:70px}
             (it.note?'<div class="pp-note">&ldquo;'+esc(it.note)+'&rdquo;</div>':'')+'</div>';
         }).join('');
         host.innerHTML='<div class="stats pp-stats">'+tiles+'</div>'+vis+'<div class="pp-places">'+rows+'</div>';
-        $('ppLb').onclick=function(){ if(window.tmwPassport){ tmwPassport.setMember({id:mem.id}); tmwPassport.openLeaderboard('overall'); } };
+        $('ppLb').onclick=function(){ location.href='/passport/'; };
         $('ppHide').onclick=function(){ var h=!hidden; ppSetPref(mem.id,{leaderboard_hidden:h},function(){ renderPassport(mem); }); };
         $('ppEdit').onclick=function(){ var v=window.prompt('Your leaderboard name', handle); if(v!=null){ ppSetPref(mem.id,{display_name:v.trim().slice(0,40)},function(){ renderPassport(mem); }); } };
       });
