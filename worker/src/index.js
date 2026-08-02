@@ -14138,6 +14138,54 @@ async function handleMemberVerify(env, url) {
   let bg = '';
   for (let r = 0; r < 60; r++) { let ln = ''; for (let c = 0; c < 46; c++) ln += BG[Math.floor(bgRnd() * BG.length)] + ' '; bg += ln + '\n'; }
 
+  // Passport (public "show off") — the places this member has checked into. Only
+  // when they're not hidden and have at least one check-in. Respects the same
+  // leaderboard_hidden opt-out used on the boards.
+  let passport = null;
+  try {
+    if (env.DB && ok && row && row.member_id) {
+      await ensureCheckinTables(env);
+      const pref = await env.DB.prepare('SELECT COALESCE(leaderboard_hidden,0) AS hidden FROM member_prefs WHERE member_id=?1').bind(row.member_id).first();
+      if (!(pref && pref.hidden)) {
+        const rs = await env.DB.prepare('SELECT entity_type, item_name, item_location FROM checkins WHERE member_id=?1 ORDER BY entity_type, item_name').bind(row.member_id).all();
+        const items = (rs && rs.results) || [];
+        if (items.length) {
+          const counts = { hotels: 0, golf: 0, restaurants: 0, total: items.length };
+          for (const it of items) if (counts[it.entity_type] != null) counts[it.entity_type]++;
+          let rank = 1;
+          try {
+            const r2 = await env.DB.prepare('SELECT COUNT(*)+1 AS rank FROM (SELECT member_id, COUNT(*) AS c FROM checkins GROUP BY member_id HAVING c > ?1)').bind(items.length).first();
+            rank = (r2 && r2.rank) || 1;
+          } catch (_) {}
+          passport = { items, counts, rank };
+        }
+      }
+    }
+  } catch (_) { passport = null; }
+
+  const CAT = { hotels: 'Hotels', golf: 'Courses', restaurants: 'Restaurants' };
+  let ppPanel = '';
+  if (passport) {
+    const groups = ['hotels', 'golf', 'restaurants'].map(function (k) {
+      const rows2 = passport.items.filter(function (it) { return it.entity_type === k; });
+      if (!rows2.length) return '';
+      return '<div class="pp-grp"><div class="pp-grp-h">' + CAT[k] + ' <span>' + rows2.length + '</span></div>' +
+        rows2.map(function (it) { return '<div class="pp-row"><b>' + esc(it.item_name || '—') + '</b>' + (it.item_location ? '<span>' + esc(it.item_location) + '</span>' : '') + '</div>'; }).join('') +
+        '</div>';
+    }).join('');
+    ppPanel =
+      '<div class="pp-stats">' +
+        '<div class="pp-big"><b>' + passport.counts.total + '</b><span>Places visited</span></div>' +
+        '<div class="pp-tri">' +
+          '<div><b>' + passport.counts.hotels + '</b><span>Hotels</span></div>' +
+          '<div><b>' + passport.counts.golf + '</b><span>Courses</span></div>' +
+          '<div><b>' + passport.counts.restaurants + '</b><span>Restaurants</span></div>' +
+        '</div>' +
+        '<div class="pp-rank">#' + passport.rank + ' on the Passport leaderboard</div>' +
+      '</div>' +
+      '<div class="pp-list">' + groups + '</div>';
+  }
+
   const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
@@ -14164,17 +14212,41 @@ body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:c
   letter-spacing:.24em;color:#e6c574;background:transparent;border:1px solid rgba(230,197,116,.55);border-radius:9px;padding:8px 18px}
 .foot{margin-top:26px;font-size:12px;color:#6b6f74}
 .foot a{color:#e6c574;text-decoration:none}
+.card.wide{max-width:460px}
+.tabs{display:flex;gap:6px;justify-content:center;margin:0 0 22px}
+.tab{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:8px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;color:#9AA39C;cursor:pointer;transition:all .16s}
+.tab.on{background:#34d27b;border-color:#34d27b;color:#062a15}
+.panel{display:none}
+.panel.on{display:block}
+.pp-big b{font-family:Georgia,serif;font-size:60px;font-weight:600;color:#fff;line-height:.9;display:block}
+.pp-big span{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#34d27b;display:block;margin-top:9px}
+.pp-tri{display:flex;justify-content:center;gap:28px;margin:20px 0 14px}
+.pp-tri>div b{font-family:Georgia,serif;font-size:26px;color:#fff;display:block;line-height:1}
+.pp-tri>div span{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#8d9098;display:block;margin-top:4px}
+.pp-rank{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.06em;color:#e6c574;margin-bottom:22px}
+.pp-list{text-align:left;max-height:320px;overflow-y:auto}
+.pp-grp{margin-bottom:16px}
+.pp-grp-h{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9AA39C;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.08)}
+.pp-grp-h span{color:#34d27b;margin-left:4px}
+.pp-row{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.pp-row b{color:#fff;font-size:14px;font-weight:600;display:block}
+.pp-row span{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#8d9098;display:block;margin-top:2px}
 </style></head>
 <body>
   <pre class="bg" aria-hidden="true">${bg}</pre>
-  <div class="card">
+  <div class="card${passport ? ' wide' : ''}">
     <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
-    <div class="status"><span class="dot"></span>${statusWord}</div>
-    ${ok ? `<div class="name">${name ? esc(name) : 'No.&nbsp;' + noStr}</div>` : `<div class="name" style="font-size:30px">&mdash;</div>`}
-    <div class="sub">${line}</div>
-    ${ok ? '<span class="pill">PRO</span>' : ''}
+    ${passport ? '<div class="tabs"><button class="tab on" data-p="mem">Membership</button><button class="tab" data-p="pp">Passport</button></div>' : ''}
+    <div class="panel on" data-panel="mem">
+      <div class="status"><span class="dot"></span>${statusWord}</div>
+      ${ok ? `<div class="name">${name ? esc(name) : 'No.&nbsp;' + noStr}</div>` : `<div class="name" style="font-size:30px">&mdash;</div>`}
+      <div class="sub">${line}</div>
+      ${ok ? '<span class="pill">PRO</span>' : ''}
+    </div>
+    ${passport ? `<div class="panel" data-panel="pp">${ppPanel}</div>` : ''}
     <div class="foot">${ok ? 'A verified member of <a href="https://oftmw.com">Markets of Tomorrow</a>.' : 'Visit <a href="https://oftmw.com">oftmw.com</a> to learn more.'}</div>
   </div>
+  ${passport ? '<script>document.querySelectorAll(".tab").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tab").forEach(function(x){x.classList.toggle("on",x===b)});var p=b.getAttribute("data-p");document.querySelectorAll(".panel").forEach(function(pn){pn.classList.toggle("on",pn.getAttribute("data-panel")===p)});});});</script>' : ''}
 </body></html>`;
 
   return new Response(page, {
