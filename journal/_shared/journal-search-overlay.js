@@ -175,6 +175,34 @@
     + '.tmw-ov-newchat:hover{background:rgba(167,139,250,.26);box-shadow:0 0 16px rgba(167,139,250,.6);color:#fff}'
     + '.tmw-ov-newchat svg{width:15px;height:15px;display:block}'
     + '@media(max-width:640px){.tmw-ov-newchat{right:56px;top:14px;height:34px;padding:0 12px;font-size:11px}}'
+    /* Past chats — button (left of New chat) + full-cover history panel */
+    + '.tmw-ov-history{position:absolute;top:18px;right:186px;z-index:3;display:inline-flex;align-items:center;gap:7px;'
+    + 'height:38px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;'
+    + 'letter-spacing:.02em;color:#C2C9C3;background:rgba(20,20,25,.62);border:1px solid rgba(255,255,255,.14);transition:all .18s;'
+    + '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}'
+    + '.tmw-ov-history:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(28,28,34,.85)}'
+    + '.tmw-ov-history svg{width:15px;height:15px;display:block;flex:0 0 auto}'
+    + '@media(max-width:640px){.tmw-ov-history{right:154px;top:14px;height:34px;padding:0;width:34px;justify-content:center;gap:0}.tmw-ov-history-lbl{display:none}}'
+    + '.tmw-ov-histpanel{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;background:#0a0c0a;border-radius:inherit;overflow:hidden}'
+    + '.tmw-ov-histpanel.open{display:flex}'
+    + '.tmw-ov-histpanel-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto}'
+    + '.tmw-ov-histpanel-ttl{font-family:Fraunces,Georgia,serif;font-size:20px;font-weight:600;color:#fff}'
+    + '.tmw-ov-histpanel-x{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(20,20,25,.7);color:#C2C9C3;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s}'
+    + '.tmw-ov-histpanel-x:hover{color:#fff;border-color:rgba(255,255,255,.28)}'
+    + '.tmw-ov-histpanel-x svg{width:14px;height:14px;display:block}'
+    + '.tmw-ov-histpanel-body{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 24px}'
+    + '.tmw-ov-hist-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;cursor:pointer;transition:background .15s,border-color .15s;border:1px solid transparent}'
+    + '.tmw-ov-hist-row:hover{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.22)}'
+    + '.tmw-ov-hist-ic{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.28);color:#C4B5FD}'
+    + '.tmw-ov-hist-ic svg{width:16px;height:16px}'
+    + '.tmw-ov-hist-main{flex:1 1 auto;min-width:0}'
+    + '.tmw-ov-hist-ttl{font-size:14px;color:#ECEAE5;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '.tmw-ov-hist-meta{font-family:ui-monospace,"JetBrains Mono",monospace;font-size:10.5px;color:#8b958d;margin-top:3px}'
+    + '.tmw-ov-hist-del{flex:0 0 auto;width:30px;height:30px;border-radius:7px;border:1px solid transparent;background:transparent;color:#6b736c;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:all .15s}'
+    + '.tmw-ov-hist-row:hover .tmw-ov-hist-del{opacity:1}'
+    + '.tmw-ov-hist-del:hover{color:#ff6b6b;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.1)}'
+    + '.tmw-ov-hist-del svg{width:14px;height:14px}'
+    + '.tmw-ov-hist-empty{padding:64px 20px;text-align:center;color:#6b736c;font-size:14px;line-height:1.6}'
     /* Hex animations kept under .tmw-ov-hxs-* because the spotlight teach
        card still renders the small spinning hexagon next to the label. */
     + '.tmw-ov-hxs-spin{transform-origin:50% 50%;animation:tmwOvHxsSpin 4.2s cubic-bezier(.16,1,.3,1) infinite}'
@@ -1352,6 +1380,7 @@
     +   '<div class="tmw-ov-glow" aria-hidden="true"><b class="a"></b><b class="b"></b><b class="c"></b></div>'
     +   '<button class="tmw-ov-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
     +   '<button class="tmw-ov-newchat" type="button" aria-label="New chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New chat</button>'
+    +   '<button class="tmw-ov-history" type="button" aria-label="Past chats" title="Past chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.3L2 8"/><path d="M2 3v5h5"/><path d="M12 8v4.5l3 1.8"/></svg><span class="tmw-ov-history-lbl">Past chats</span></button>'
     /* Deep toggle — MOBILE lives top-left, aligned with New chat (desktop uses the in-bar copy). */
     +   '<button type="button" class="tmw-ov-deep top" data-deep-toggle aria-pressed="false" title="Deep search — wide-context analysis across the whole pipeline (Pro)">'
     +     '<span class="dico">' + ICON_DEEP + '</span>'
@@ -1403,6 +1432,13 @@
     /* Embedded project view — clicking a project opens its full SEO page in a
        fixed-size frame here (incl. the "view on map" button) instead of leaving
        Onyx. The X returns to the query result. */
+    +   '<div class="tmw-ov-histpanel" aria-hidden="true">'
+    +     '<div class="tmw-ov-histpanel-head">'
+    +       '<span class="tmw-ov-histpanel-ttl">Past chats</span>'
+    +       '<button class="tmw-ov-histpanel-x" type="button" aria-label="Close past chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+    +     '</div>'
+    +     '<div class="tmw-ov-histpanel-body"></div>'
+    +   '</div>'
     +   '<div class="tmw-ov-projview" aria-hidden="true">'
     +     '<button class="tmw-ov-projview-x" type="button" aria-label="Close project view">'
     +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
@@ -3310,6 +3346,7 @@
       if (qs.length) sessionStorage.setItem(_THREAD_KEY, JSON.stringify({ qs: qs, ts: Date.now() }));
       else sessionStorage.removeItem(_THREAD_KEY);
     } catch(_){}
+    _liveWrite();   // mirror to the cross-session store so it can be filed into Past chats
   }
   function readThread(){
     try {
@@ -3318,6 +3355,50 @@
       if (o && Array.isArray(o.qs) && o.qs.length && (Date.now() - (o.ts || 0) < _RESUME_TTL)) return o.qs;
     } catch(_){}
     return null;
+  }
+  // ── Past chats (persistent history) ─────────────────────────────────────
+  // The LIVE conversation is mirrored to localStorage tagged with the browser
+  // session id (dock's 'tmw-sid', sessionStorage-scoped so it's fresh each
+  // browser session). When a NEW session opens, the previous session's mirror
+  // is filed into a capped history list the user reopens from "Past chats".
+  var _HIST_KEY = 'tmw_intel_history';   // [{id,title,qs,startedTs,updatedTs}]
+  var _LIVE_KEY = 'tmw_intel_live';      // {sid,id,title,qs,updatedTs} — this session's convo
+  var _HIST_CAP = 50;
+  var _liveId = null;                    // stable id for the current conversation
+  function _sid(){ try { return sessionStorage.getItem('tmw-sid') || ''; } catch(_){ return ''; } }
+  function _histRead(){ try { var a = JSON.parse(localStorage.getItem(_HIST_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(_){ return []; } }
+  function _histWrite(a){ try { localStorage.setItem(_HIST_KEY, JSON.stringify((a || []).slice(0, _HIST_CAP))); } catch(_){} }
+  function _histTitle(qs){ var t = (qs && qs[0]) || 'Conversation'; t = String(t).replace(/\s+/g, ' ').trim(); return t.length > 90 ? t.slice(0, 90) + '…' : t; }
+  function _histUpsert(entry){   // newest-first, dedupe by id
+    if (!entry || !entry.id || !entry.qs || !entry.qs.length) return;
+    var a = _histRead().filter(function(e){ return e.id !== entry.id; });
+    a.unshift(entry); _histWrite(a);
+  }
+  function _liveWrite(){         // mirror the current conversation for THIS session
+    try {
+      var qs = _threadQs();
+      if (!qs.length) { localStorage.removeItem(_LIVE_KEY); return; }
+      if (!_liveId) _liveId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      localStorage.setItem(_LIVE_KEY, JSON.stringify({ sid: _sid(), id: _liveId, title: _histTitle(qs), qs: qs, updatedTs: Date.now() }));
+    } catch(_){}
+  }
+  function _flushPrevSession(){  // move a previous (now-closed) session's convo into history
+    try {
+      var raw = localStorage.getItem(_LIVE_KEY); if (!raw) return;
+      var o = JSON.parse(raw);
+      if (o && o.qs && o.qs.length && o.sid && o.sid !== _sid()) {
+        _histUpsert({ id: o.id, title: o.title || _histTitle(o.qs), qs: o.qs, startedTs: o.updatedTs, updatedTs: o.updatedTs });
+        localStorage.removeItem(_LIVE_KEY);   // consumed; this session starts its own mirror
+      }
+    } catch(_){}
+  }
+  function _relTime(ts){
+    var s = Math.max(0, Math.floor((Date.now() - (ts || 0)) / 1000));
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+    try { return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch(_){ return ''; }
   }
   // Replay a saved query list into the thread (used by resume). Re-renders each
   // turn sequentially (so the global _renderToken doesn't invalidate earlier
@@ -3382,6 +3463,7 @@
   // One-time migration: history used to live in localStorage (persisted across
   // visits). Session-scoped now — clear any legacy copies.
   try { localStorage.removeItem('tmw_intel_thread'); localStorage.removeItem('tmw_intel_lastq'); } catch (_) {}
+  _flushPrevSession();   // a conversation left over from a closed browser session → move it into Past chats
   var _RESUME_TTL = 7 * 24 * 3600 * 1000;   // a week — long enough to "return", not forever
   function saveLastQuery(q){
     try {
@@ -5774,6 +5856,13 @@
   // "New chat": clear the conversation + return to the TMW Intelligence
   // homescreen (the teach/starter screen), keeping the overlay open.
   function newChat(){
+    // File the current conversation into Past chats before wiping it.
+    try {
+      if (_thread.length) { _liveWrite(); var _lr = localStorage.getItem(_LIVE_KEY);
+        if (_lr) { var _lo = JSON.parse(_lr); if (_lo && _lo.qs && _lo.qs.length) _histUpsert({ id: _lo.id, title: _lo.title, qs: _lo.qs, startedTs: _lo.updatedTs, updatedTs: _lo.updatedTs }); } }
+    } catch(_){}
+    _liveId = null;   // the next conversation is a fresh history record
+    try { localStorage.removeItem(_LIVE_KEY); } catch(_){}
     closeProj();   // park the embed out of the thread before we wipe it
     _pendingCtx = null; _currentTurnCtx = null;   // drop any source-article context
     _thread = [];
@@ -5786,6 +5875,46 @@
   }
   var newChatBtn = root.querySelector('.tmw-ov-newchat');
   if (newChatBtn) newChatBtn.addEventListener('click', newChat);
+
+  // ── Past chats panel ─────────────────────────────────────────────────────
+  var histBtn = root.querySelector('.tmw-ov-history');
+  var histPanel = root.querySelector('.tmw-ov-histpanel');
+  var histBody = root.querySelector('.tmw-ov-histpanel-body');
+  var histX = root.querySelector('.tmw-ov-histpanel-x');
+  var HIST_ROW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10h8M8 14h5"/><path d="M21 11.5a9 9 0 1 1-3-6.7"/></svg>';
+  var HIST_DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
+  function _histEsc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function renderHistory(){
+    if (!histBody) return;
+    var list = _histRead();
+    if (!list.length) { histBody.innerHTML = '<div class="tmw-ov-hist-empty">No past chats yet.<br>Conversations move here once you start a new chat or leave the site.</div>'; return; }
+    histBody.innerHTML = list.map(function(e){
+      var n = (e.qs ? e.qs.length : 0);
+      return '<div class="tmw-ov-hist-row" data-id="' + _histEsc(e.id) + '">'
+        + '<span class="tmw-ov-hist-ic">' + HIST_ROW_ICON + '</span>'
+        + '<span class="tmw-ov-hist-main"><span class="tmw-ov-hist-ttl">' + _histEsc(e.title || 'Conversation') + '</span>'
+        + '<span class="tmw-ov-hist-meta">' + n + ' message' + (n === 1 ? '' : 's') + ' · ' + _histEsc(_relTime(e.updatedTs || e.startedTs)) + '</span></span>'
+        + '<button class="tmw-ov-hist-del" type="button" aria-label="Delete conversation" title="Delete">' + HIST_DEL_ICON + '</button>'
+        + '</div>';
+    }).join('');
+  }
+  function openHistory(){ if (!histPanel) return; renderHistory(); histPanel.classList.add('open'); histPanel.setAttribute('aria-hidden', 'false'); }
+  function closeHistory(){ if (!histPanel) return; histPanel.classList.remove('open'); histPanel.setAttribute('aria-hidden', 'true'); }
+  if (histBtn) histBtn.addEventListener('click', openHistory);
+  if (histX) histX.addEventListener('click', closeHistory);
+  if (histBody) histBody.addEventListener('click', function(e){
+    var del = e.target.closest && e.target.closest('.tmw-ov-hist-del');
+    var row = e.target.closest && e.target.closest('.tmw-ov-hist-row');
+    if (!row) return;
+    var id = row.getAttribute('data-id');
+    if (del) { e.stopPropagation(); _histWrite(_histRead().filter(function(x){ return x.id !== id; })); renderHistory(); return; }
+    var entry = _histRead().filter(function(x){ return x.id === id; })[0];
+    if (!entry || !entry.qs || !entry.qs.length) return;
+    // Reopen and continue this conversation (later turns update the same record).
+    closeHistory(); closeProj();
+    _liveId = entry.id; _userInteracted = false;
+    _resumeReplay(entry.qs);
+  });
   input.addEventListener('input', onInput);
   input.addEventListener('keydown', function(e){
     if (e.key === 'Enter') {
