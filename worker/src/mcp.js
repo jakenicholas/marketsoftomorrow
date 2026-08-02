@@ -4605,8 +4605,11 @@ function deliveryPeriodEnd(dd) {
 // update_project_status would do — sets status, appends a status_history entry
 // (with effective_date = the stated delivery date so the dossier timeline lines
 // up), and writes projects.json back with one commit covering all promotions.
-// Skips projects flagged delivery_speculative=true (TMW estimate, not a
-// developer-committed date — never auto-promote on guesses).
+// Flips on the stated opening date REGARDLESS of delivery_speculative — the date
+// is set for a reason, so when it passes the marker must change (per product
+// decision). Each flip cites a matching TMW article if one exists, else the
+// project's official website, so 'Now Open' always links to something verifiable.
+// Propagation to the live map is via the hourly generate-pages rebuild.
 //
 // Called from the worker cron via maybeAutoPromoteOpenings() in index.js, which
 // throttles it to once per day using metaGet/metaSet (same pattern as the Wix
@@ -4615,6 +4618,27 @@ export async function autoPromoteOpenedProjects(env) {
   requireGhToken(env);
   const todayIso = new Date().toISOString().slice(0, 10);
 
+  // Newest published TMW article per project → the "Now open, see coverage" link.
+  // When a project has no matching article, we fall back to its official website
+  // so the flipped marker always cites SOMETHING the reader can open.
+  const coverageBySlug = new Map();
+  try {
+    if (env.DB) {
+      const cov = await env.DB.prepare(
+        `SELECT slug, published_at, project_slug FROM posts
+          WHERE project_slug IS NOT NULL AND project_slug != '' AND status = 'published'`
+      ).all();
+      for (const r of (cov.results || [])) {
+        if (!r.slug || !r.project_slug) continue;
+        const key = String(r.project_slug).toLowerCase();
+        const prev = coverageBySlug.get(key);
+        if (!prev || (r.published_at || 0) > (prev.pub || 0)) {
+          coverageBySlug.set(key, { link: 'https://www.oftmw.com/post/' + r.slug, pub: r.published_at || 0 });
+        }
+      }
+    }
+  } catch (_) {}
+
   for (let attempt = 0; ; attempt++) {
     const { sha, projects } = await readProjectsFile(env);
     const nowIso = new Date().toISOString();
@@ -4622,21 +4646,28 @@ export async function autoPromoteOpenedProjects(env) {
 
     for (const p of projects) {
       if (!p || String(p.status || '').toLowerCase() !== 'coming-soon') continue;
-      if (p.delivery_speculative === true) continue;
       const dd = String(p.delivery_date || '').trim();
       if (!dd) continue;
       const cutoff = deliveryPeriodEnd(dd);
       if (!cutoff || cutoff >= todayIso) continue;
+
+      // Cite a real TMW article if we cover this project, else its official website,
+      // so the flipped 'Now Open' marker always links to something to verify against.
+      const cov = coverageBySlug.get(String(p.slug || '').toLowerCase());
+      const link = (cov && cov.link) || p.official_website || '';
+      const note = cov ? `Now open — delivery ${dd} passed (coverage on TMW)`
+        : (p.official_website ? `Now open — delivery ${dd} passed (official site)`
+        : `Now open — delivery date ${dd} has passed`);
 
       const from = p.status;
       p.status = 'open';
       if (!Array.isArray(p.status_history)) p.status_history = [];
       p.status_history.push({
         at: nowIso,
-        source_url: 'tmw://auto-promote',
+        source_url: link || 'tmw://auto-promote',
         from, to: 'open',
         effective_date: dd,
-        note: `Auto-promoted: delivery date ${dd} has passed`,
+        note,
       });
       p.status_checked_at = nowIso;
       promoted.push({ slug: p.slug, name: p.name, delivery_date: dd });
