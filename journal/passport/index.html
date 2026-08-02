@@ -35,9 +35,10 @@ a{color:inherit}
 /* ── Hero — image-first masthead, lifted from the Hotel Radar treatment ── */
 .rank-hero{position:relative;text-align:center;padding-bottom:10px}
 .rh-img{position:relative;height:min(52vh,480px);overflow:hidden}
-.rh-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(1.02);
+.rh-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(1.02);opacity:0;transition:opacity 1.4s ease;
   -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 40%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%);
   mask-image:linear-gradient(to bottom,#000 0%,#000 40%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%)}
+.rh-img img.on{opacity:1}
 .rh-inner{position:relative;z-index:2;margin-top:-58px;padding:0 22px;max-width:760px;margin-left:auto;margin-right:auto}
 .rh-kicker{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--gold-soft)}
 .rh-title{font-family:var(--serif);font-weight:500;font-size:clamp(44px,8vw,74px);line-height:1;margin:14px 0 14px;color:#fff}
@@ -85,12 +86,17 @@ a{color:inherit}
 </head>
 <body>
   <section class="rank-hero" id="featured">
-    <div class="rh-img" aria-hidden="true"><img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt=""></div>
+    <div class="rh-img" aria-hidden="true">
+      <img class="on" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_63a8db158c3b46bca6872404ca719c6b~mv2.jpeg" alt="">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt="">
+      <img src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_829dcd8c0fc34ce3be4be20101831d64~mv2.webp" alt="">
+    </div>
     <div class="rh-inner">
       <div class="rh-kicker">TMW Members &middot; The Passport</div>
       <h1 class="rh-title">The Passport</h1>
       <p class="rh-sub">A leaderboard of who has explored the most of our world. The iconic hotels, golf courses and restaurants on our lists. Tap &ldquo;I&rsquo;ve been&rdquo; anywhere to climb.</p>
       <div class="rh-tabs" id="ppTabs">
+        <button type="button" class="tab-btn on" data-k="total">All</button>
         <button type="button" class="tab-btn" data-k="hotels">Hotels</button>
         <button type="button" class="tab-btn" data-k="restaurants">Restaurants</button>
         <button type="button" class="tab-btn" data-k="golf">Golf</button>
@@ -190,6 +196,18 @@ a{color:inherit}
 
     syncTabs();
     load();
+
+    // Hero slideshow — crossfade through the golf / hotels / restaurants heroes.
+    (function () {
+      var imgs = document.querySelectorAll('.rh-img img');
+      if (imgs.length < 2) return;
+      var i = 0;
+      setInterval(function () {
+        imgs[i].classList.remove('on');
+        i = (i + 1) % imgs.length;
+        imgs[i].classList.add('on');
+      }, 5000);
+    })();
   })();
   </script>
 </body>
