@@ -114,18 +114,15 @@
     var btn = el('button', 'tmw-been-btn', beenIcon() + '<span class="lbl"></span>');
     btn.type = 'button';
     btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onBeenClick(id, name, loc); });
-    var cnt = el('span', 'tmw-been-cnt', '');
-    g.appendChild(btn); g.appendChild(cnt);
+    g.appendChild(btn);
     g.__id = id; g.__name = name; g.__loc = loc;
     return g;
   }
   function paintBeenControl(g, id) {
-    var mine = !!STATE.mine[id], n = STATE.counts[id] || 0;
-    var btn = g.querySelector('.tmw-been-btn'), lbl = g.querySelector('.lbl'), cnt = g.querySelector('.tmw-been-cnt');
+    var mine = !!STATE.mine[id];
+    var btn = g.querySelector('.tmw-been-btn'), lbl = g.querySelector('.lbl');
     btn.classList.toggle('on', mine);
     lbl.textContent = mine ? 'Been' : "I've been";
-    cnt.textContent = n > 0 ? (n === 1 ? '1 been' : n.toLocaleString() + ' been') : '';
-    cnt.style.display = n > 0 ? '' : 'none';
   }
 
   // Total items on this list (the leaderboard denominator: "4/50").
@@ -264,7 +261,6 @@
       '.tmw-been-btn:hover svg{opacity:1}',
       '.tmw-been-btn.on{background:var(--green,#7bd88f);border-color:var(--green,#7bd88f);color:var(--ink,#0a0a0a)}',
       '.tmw-been-btn.on svg{opacity:1}',
-      '.tmw-been-cnt{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--mute,#9aa39c);text-transform:uppercase}',
       /* community module */
       '.tmw-pp-community{margin:14px 0;padding:26px 28px;border:1px solid var(--hair-2,rgba(255,255,255,.14));border-radius:18px;background:linear-gradient(180deg,rgba(123,216,143,.055),rgba(255,255,255,.015));position:relative}',
       '.tmw-pp-community:before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:3px;border-radius:3px;background:var(--green,#7bd88f);opacity:.65}',
