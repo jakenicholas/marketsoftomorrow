@@ -2423,6 +2423,21 @@ function formatDate(s) {
     var m = String(d || '').match(/^(\d{4})(?:-(\d{2}))?/);
     return m ? (+m[1]) * 100 + (+(m[2] || 13)) : 999999;
   }
+  // "Recently opened" → pinned to the TOP of the radar: Now Open + opening date
+  // within the last 4 months. Prefer the authoritative StatusHistory 'open' date,
+  // fall back to DeliveryDate. After 4 months it clears from the radar.
+  function recentOpenOf(p){
+    if (String(p.Delivery) !== 'Now Open') return false;
+    var od = '', sh = p.StatusHistory || p.status_history || [];
+    if (Array.isArray(sh)) for (var i = sh.length - 1; i >= 0; i--){ var e = sh[i]; if (e && String(e.to || '').toLowerCase() === 'open' && e.effective_date){ od = e.effective_date; break; } }
+    if (!od) od = p.DeliveryDate || '';
+    var m = String(od).match(/^(\d{4})-(\d{2})/);
+    if (!m) return false;
+    var openIdx = (+m[1]) * 12 + (+m[2]);
+    var now = new Date(), nowIdx = now.getFullYear() * 12 + (now.getMonth() + 1);
+    var ago = nowIdx - openIdx; if (ago < 0) ago = 0;   // future date = phase artifact → just opened
+    return ago <= 4;
+  }
   var ME_COUNTRIES = /saudi|united arab emirates|qatar|oman|bahrain|kuwait|israel|jordan|egypt|turkey|morocco/i;
   var CARIB = /bahamas|turks|antigua|jamaica|st\.? lucia|dominican|barbados|grenada|cayman|anguilla|barbuda|st\.? kitts|nevis|virgin islands|aruba|cura[cç]ao|puerto rico|bermuda/i;
   function regionOf(p){
@@ -2525,11 +2540,12 @@ function formatDate(s) {
       return { t: p.Title, city: p.City || '', country: p.Country || '', cs: p.CountyState || '', s: p.Delivery, d: p.DeliveryDate || '',
         img: p.ImageURL, dev: String(p.Developer || '').split(/[,;]/)[0], slug: p.Slug || '',
         region: regionOf(p),
-        brand: brandOf(String(p.Title || '') + ' ' + String(p.Developer || '') + ' ' + String(p.Architect || '')) };
+        brand: brandOf(String(p.Title || '') + ' ' + String(p.Developer || '') + ' ' + String(p.Architect || '')), recentOpen: recentOpenOf(p) };
     });
     hotels.sort(function (a, b) {
-      var ra = (a.s in STATUS_ORDER) ? STATUS_ORDER[a.s] : 4;
-      var rb = (b.s in STATUS_ORDER) ? STATUS_ORDER[b.s] : 4;
+      // Recently-opened (last 4mo) pin to the very top; everything else by stage.
+      var ra = a.recentOpen ? -1 : ((a.s in STATUS_ORDER) ? STATUS_ORDER[a.s] : 4);
+      var rb = b.recentOpen ? -1 : ((b.s in STATUS_ORDER) ? STATUS_ORDER[b.s] : 4);
       if (ra !== rb) return ra - rb;
       // Now Open reads newest-opening FIRST (undated sink to the end; future
       // dates are phase-completion artifacts and clamp to "now")
@@ -2732,7 +2748,7 @@ function formatDate(s) {
     var locDefs = state.locs.filter(function (d) { return state.loc.has(d.id); });
     var whenDefs = WHENS.filter(function (w) { return state.when.has(w.id); });
     return state.hotels.filter(function (h) {
-      if (h.s === 'Now Open' && !state.stage.has('Now Open')) return false;
+      if (h.s === 'Now Open' && !h.recentOpen) return false;   // Now Open shows only within 4mo of opening, then clears
       if (locDefs.length && !locDefs.some(function (d) { return d.test(h); })) return false;
       if (whenDefs.length && !whenDefs.some(function (w) { return w.test(h); })) return false;
       if (state.brand.size && !state.brand.has(h.brand)) return false;
