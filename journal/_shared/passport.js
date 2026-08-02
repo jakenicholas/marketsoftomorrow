@@ -34,26 +34,39 @@
   function thisMonth() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
 
   // ── Memberstack resolution (poll while the SDK boots) ──────────────────────
+  // We only ever READ the session (getCurrentMember) — never sign anyone out.
+  function applyMember(m) {
+    if (m && m.id) {
+      var cf = m.customFields || {};
+      var handle = (cf['first-name'] || '').trim();
+      if (handle && cf['last-name']) handle += ' ' + String(cf['last-name']).trim().charAt(0) + '.';
+      if (!handle && m.auth && m.auth.email) handle = String(m.auth.email).split('@')[0];
+      MEMBER = { id: m.id, handle: handle || 'TMW Member' };
+    } else { MEMBER = null; }
+    return MEMBER;
+  }
   function resolveMember(cb) {
     var tries = 0;
     (function poll() {
       var ms = window.$memberstackDom;
       if (ms && ms.getCurrentMember) {
-        ms.getCurrentMember().then(function (r) {
-          var m = r && r.data;
-          if (m && m.id) {
-            var cf = m.customFields || {};
-            var handle = (cf['first-name'] || '').trim();
-            if (handle && cf['last-name']) handle += ' ' + String(cf['last-name']).trim().charAt(0) + '.';
-            if (!handle && m.auth && m.auth.email) handle = String(m.auth.email).split('@')[0];
-            MEMBER = { id: m.id, handle: handle || 'TMW Member' };
-          } else { MEMBER = null; }
-          cb();
-        }).catch(function () { MEMBER = null; cb(); });
+        ms.getCurrentMember().then(function (r) { applyMember(r && r.data); cb(); })
+          .catch(function () { MEMBER = null; cb(); });
         return;
       }
       if (tries++ < 30) setTimeout(poll, 300); else { MEMBER = null; cb(); }
     })();
+  }
+  // A live re-check at click time. The initial poll can run before Memberstack
+  // has hydrated the cookie session, so MEMBER may be stale-null for a logged-in
+  // user; re-reading here prevents popping a login modal at someone who is in
+  // fact signed in (which reads as "I got logged out").
+  function withFreshMember(cb) {
+    if (MEMBER) return cb(true);
+    var ms = window.$memberstackDom;
+    if (ms && ms.getCurrentMember) {
+      ms.getCurrentMember().then(function (r) { cb(!!applyMember(r && r.data)); }).catch(function () { cb(false); });
+    } else cb(false);
   }
 
   // ── data ──────────────────────────────────────────────────────────────────
@@ -148,12 +161,22 @@
 
   // ── check-in flow ───────────────────────────────────────────────────────────
   function onBeenClick(id, name, loc) {
-    if (!MEMBER) return promptSignIn();
-    openCheckinDialog(id, name, loc, !!STATE.mine[id]);
+    // Re-check the live session first so a not-yet-hydrated member isn't treated
+    // as logged out (which would wrongly pop a login modal).
+    withFreshMember(function (signedIn) {
+      if (signedIn) openCheckinDialog(id, name, loc, !!STATE.mine[id]);
+      else promptSignIn();
+    });
   }
   function promptSignIn() {
     toast('Sign in to save where you’ve been');
-    try { if (window.$memberstackDom && window.$memberstackDom.openModal) window.$memberstackDom.openModal('LOGIN'); } catch (_) {}
+    // Use the site's own login flow (same as the header/paywall), and let the
+    // modal close itself on success — matches journal-auth.js exactly.
+    try {
+      if (typeof window.tmwAuthModal === 'function') { window.tmwAuthModal('login'); return; }
+      var ms = window.$memberstackDom;
+      if (ms && ms.openModal) ms.openModal('LOGIN').then(function () { try { ms.hideModal(); } catch (_) {} }).catch(function () {});
+    } catch (_) {}
   }
 
   function openCheckinDialog(id, name, loc, already) {
