@@ -674,7 +674,7 @@ async function maybeSyncCheckinNames(env) {
   try {
     const last = parseInt(await metaGet(env, 'checkin_name_sync_last') || '0', 10) || 0;
     const now = Math.floor(Date.now() / 1000);
-    if (now - last < 3600) return;              // hourly — catches manual Memberstack edits
+    if (now - last < 300) return;               // every ~5 min — catches manual Memberstack edits promptly
     await metaSet(env, 'checkin_name_sync_last', now);
     await syncCheckinNames(env);
   } catch (_) {}
