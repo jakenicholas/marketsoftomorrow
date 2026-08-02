@@ -432,7 +432,7 @@ main.wrap{padding-bottom:70px}
         <div class="ppcTotal"><b id="ppcTotal">0</b><span>Places Visited</span></div>
         <div class="ppcCats">
           <div><b id="ppcHotels">0</b><span>Hotels</span></div>
-          <div><b id="ppcGolf">0</b><span>Golf</span></div>
+          <div><b id="ppcGolf">0</b><span>Courses</span></div>
           <div><b id="ppcRest">0</b><span>Restaurants</span></div>
         </div>
         <div class="mcName" id="ppcName">&nbsp;</div>
@@ -1473,7 +1473,7 @@ main.wrap{padding-bottom:70px}
           host.innerHTML='<div class="empty">You haven&rsquo;t checked in anywhere yet. Tap &ldquo;I&rsquo;ve been&rdquo; on any place in the <a href="/golf/">golf</a>, <a href="/hotels/">hotels</a> or <a href="/restaurants/">restaurants</a> lists.</div>';
           return;
         }
-        var T=[['golf','Golf'],['hotels','Hotels'],['restaurants','Restaurants'],['overall','Total']];
+        var T=[['golf','Courses'],['hotels','Hotels'],['restaurants','Restaurants'],['overall','Total']];
         var tiles=T.map(function(t){ var n=c[t[0]]||0, rk=ranks[t[0]]; return '<div class="stat"><div class="v">'+n+'</div><div class="k">'+t[1]+(rk?' &middot; #'+rk:'')+'</div></div>'; }).join('');
         var vis='<div class="pp-vis">'+
           (hidden?'<span class="pp-hidden">You&rsquo;re hidden from public leaderboards</span>':'<span>Leaderboard name <b id="ppHandle">'+esc(handle||'&mdash;')+'</b> <i style="opacity:.6;font-style:normal">&middot; from your account name</i></span>')+

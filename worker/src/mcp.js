@@ -3883,6 +3883,19 @@ const IMPL = {
         p.status = newStatus;
         p.status_history.push({ ...base, from, to: newStatus, ...(statusEffective ? { effective_date: statusEffective } : {}), ...(isCorrection ? { correction: true } : {}) });
         changes.push(`${from}→${newStatus}${isCorrection ? ' (correction)' : ''}`);
+        // When a project OPENS, the opening date IS the completion date — sync
+        // delivery_date to it so the radar/card shows the real month, not a stale
+        // year-only or future estimate. Only when the opening date is concrete and
+        // at least as precise as what's there (never downgrade a day-precise date).
+        if (newStatus === 'open' && !newDelivery && statusEffective && /^\d{4}(-\d{2}(-\d{2})?)?$/.test(statusEffective)) {
+          const curD = clean(p.delivery_date);
+          const curConcrete = /^\d{4}(-\d{2}(-\d{2})?)?$/.test(curD || '');
+          if (statusEffective !== curD && (!curConcrete || statusEffective.length >= (curD || '').length)) {
+            p.delivery_date = statusEffective;
+            p.delivery_speculative = false;
+            changes.push(`delivery→${statusEffective} (opened)`);
+          }
+        }
       }
       if (startChanged) {
         const old = clean(p.start_date) || null;
@@ -4686,6 +4699,42 @@ export async function autoPromoteOpenedProjects(env) {
       throw e;
     }
     return { ok: true, promoted: promoted.length, slugs: promoted.map((p) => p.slug), date: todayIso };
+  }
+}
+
+// One-time reconciliation: for every OPENED project, make delivery_date match the
+// real opening date recorded in its dossier (the latest status_history to:'open'
+// with a concrete effective_date). Fixes projects opened with a vaguer/stale
+// delivery_date (year-only or a future estimate) so the radar shows the month.
+// Never downgrades a more-precise existing date.
+export async function syncOpenDeliveryDates(env) {
+  requireGhToken(env);
+  const concrete = (s) => /^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(s || ''));
+  for (let attempt = 0; ; attempt++) {
+    const { sha, projects } = await readProjectsFile(env);
+    const fixed = [];
+    for (const p of projects) {
+      if (!p || String(p.status || '').toLowerCase() !== 'open') continue;
+      const hist = Array.isArray(p.status_history) ? p.status_history : [];
+      let openDate = '';
+      for (let i = hist.length - 1; i >= 0; i--) {
+        const e = hist[i];
+        if (e && String(e.to || '').toLowerCase() === 'open' && concrete(e.effective_date)) { openDate = String(e.effective_date); break; }
+      }
+      if (!openDate) continue;
+      const cur = String(p.delivery_date || '').trim();
+      if (cur === openDate) continue;
+      // Adopt the opening date unless the current one is already MORE precise.
+      if (concrete(cur) && cur.length > openDate.length) continue;
+      p.delivery_date = openDate;
+      p.delivery_speculative = false;
+      fixed.push({ slug: p.slug, from: cur || '—', to: openDate });
+    }
+    if (!fixed.length) return { ok: true, fixed: 0 };
+    try {
+      await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha, `Backfill: sync ${fixed.length} opened projects' delivery_date to their real opening date`);
+    } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
+    return { ok: true, fixed: fixed.length, sample: fixed.slice(0, 12) };
   }
 }
 

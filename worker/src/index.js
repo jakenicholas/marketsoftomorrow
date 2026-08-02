@@ -15,7 +15,7 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
-import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage } from './mcp.js';
+import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage, syncOpenDeliveryDates } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
@@ -677,6 +677,16 @@ async function maybeSyncCheckinNames(env) {
     if (now - last < 300) return;               // every ~5 min — catches manual Memberstack edits promptly
     await metaSet(env, 'checkin_name_sync_last', now);
     await syncCheckinNames(env);
+  } catch (_) {}
+}
+
+// One-time backfill: reconcile every opened project's delivery_date with the real
+// opening date in its dossier. Runs once (flagged), then never again.
+async function maybeBackfillOpenDeliveryDates(env) {
+  try {
+    if (await metaGet(env, 'open_delivery_backfill_v1') === '1') return;
+    const r = await syncOpenDeliveryDates(env);
+    if (r && r.ok) await metaSet(env, 'open_delivery_backfill_v1', '1');
   } catch (_) {}
 }
 
@@ -16164,6 +16174,7 @@ export default {
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSyncCheckinNames(env));   // refresh Passport leaderboard handles from Memberstack names (hourly)
+    ctx.waitUntil(maybeBackfillOpenDeliveryDates(env)); // one-time: sync opened projects' delivery_date to their real opening date
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
     ctx.waitUntil(maybeNotifyNewPro(env));       // push a phone notification when someone goes Pro
