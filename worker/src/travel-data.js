@@ -21,6 +21,7 @@ export const TRAVEL_STOPS = {
       { a:'Dinner', t:'Macarena', img:'https://www.paloaltoonline.com/wp-content/uploads/2024/12/PA_Macarena_DEC2024_03-1.png' },
       { a:'Explore', t:'San Francisco', img:'https://lp-cms-production.imgix.net/2021-05/GettyRF_462144413.jpg?auto=format,compress&q=72&w=1920&fit=crop&crop=faces,edges' },
       { a:'Lunch', t:"Tony's Pizza Napoletana", star:'Ranked #3 Best Pizza in the World', img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/tonys-pizza-napoletana.webp' },
+      { a:'Dinner', t:'Kokkari Estiatorio', img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRwqoq33wUN4Y4llWeaSLVLKXVzp9cUKcHKrW_G_Ykaey5-rDtQeWv0apB&s=10' },
       { a:'Explore', t:'Muir Woods', img:'https://upload.wikimedia.org/wikipedia/commons/1/12/Muir_Woods_National_Monument_%2847879029461%29.jpg' }
     ],
     logi:[], imgs:['https://www.nobuhotels.com/palo-alto/content/uploads/2024/09/contact-us-scaled.jpg'] },
