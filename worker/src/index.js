@@ -12006,12 +12006,15 @@ export async function fableGenerate(env, { system, user, maxTokens = 2500 } = {}
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        // Cache the assembled-brain system block (default 5m TTL): a
-        // generate→revise loop on the same draft re-sends the identical brain
-        // within minutes, and Fable input is $10/MTok — the reads pay for the
-        // 1.25x write quickly. Below the cacheable minimum it silently no-ops.
+        // Cache the assembled-brain system block at 1h TTL: a generate→revise
+        // loop on the same draft, and the day's several article generations,
+        // re-send the identical large brain — but a human reviews between passes,
+        // so gaps routinely exceed the 5m default and the cache would expire
+        // unread (paying the write, never the read). 1h spans a real editing
+        // session. Fable input is $10/MTok, so reads repay the 2x write fast.
+        // Below the cacheable minimum it silently no-ops.
         body: JSON.stringify({ model, max_tokens: maxTokens,
-          system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral' } }] : undefined,
+          system: system ? [{ type: 'text', text: String(system), cache_control: { type: 'ephemeral', ttl: '1h' } }] : undefined,
           messages: [{ role: 'user', content: String(user) }] }),
       });
       if (!r.ok) continue;
