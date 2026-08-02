@@ -213,8 +213,10 @@ nav.main .wrap{display:flex; align-items:center; justify-content:space-between; 
   .tabs-bar .actions{justify-content:center}
   .ctlbar{width:100%; justify-content:center; gap:0}
   .ctlbar .sort{flex:1 1 0; min-width:0; text-align:right; text-align-last:right; padding-right:16px}
-  /* the sort <select> renders oversized on iOS — shrink it on phones */
-  #sortSel{font-size:9.5px; letter-spacing:.04em; padding-right:17px; background-position:right 3px center}
+  /* the sort <select> uses the -webkit-small-control system font (16px) which
+     beats author font-size without !important — force it small so it fits the
+     row and stops overflowing into the region pills */
+  #sortSel{font-size:10px!important; letter-spacing:.03em; padding-right:16px; background-position:right 2px center}
   .ctlbar .iv-toggle{flex:1 1 0; justify-content:flex-start; margin-left:0}
 }
 .edit-toggle{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; padding:9px 16px; border-radius:999px; border:1px solid var(--hair-2); color:var(--mute-2); display:inline-flex; align-items:center; gap:8px; transition:all .2s}
@@ -529,6 +531,12 @@ footer .tmw-wordmark{width:118px}
   .region-bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .region-pills{flex:1; min-width:0}
   .rb-ctl{display:flex; gap:10px; align-items:center; flex:none; margin-left:auto}
+  /* Phones: stack the pills onto their own full-width scrolling row so the
+     sort + view toggles (their own row below) never squeeze or cover them. */
+  @media(max-width:760px){
+    .region-bar{flex-direction:column; align-items:stretch}
+    .region-bar .rb-ctl{margin-left:0; justify-content:space-between; width:100%}
+  }
   /* page masthead — the /travel treatment, image-first: the photo touches the
      pulse ticker, washes down into cream, and the text + tab toggle sit below */
   .rank-hero{position:relative; background:transparent; text-align:center; padding-bottom:14px}
