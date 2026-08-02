@@ -524,7 +524,8 @@ footer .tmw-wordmark{width:118px}
      sort + view toggles (their own row below) never squeeze or cover them. */
   @media(max-width:760px){
     .region-bar{flex-direction:column; align-items:stretch}
-    .region-bar .rb-ctl{margin-left:0; justify-content:space-between; width:100%}
+    /* sort + view toggles sit ABOVE the location pills, just under the tabs */
+    .region-bar .rb-ctl{order:-1; margin-left:0; justify-content:space-between; width:100%}
   }
   /* page masthead — the /travel treatment, image-first: the photo touches the
      pulse ticker, washes down into cream, and the text + tab toggle sit below */
@@ -1754,7 +1755,15 @@ function setEditable(field, val) {
 function buildRegionPills() {
   const wrap = document.getElementById('regionPills');
   wrap.innerHTML = '';
-  const regions = ['*', ...(DATA.regions || []).filter(r => r !== 'All')];
+  var regionList = (DATA.regions || []).filter(r => r && r !== 'All');
+  if (!regionList.length) {
+    // No curated region list stored — derive from the items (most-common first)
+    // so the location pills still populate.
+    var _rc = {};
+    (DATA.items || []).forEach(it => { if (it.region) _rc[it.region] = (_rc[it.region] || 0) + 1; });
+    regionList = Object.keys(_rc).sort((a, b) => _rc[b] - _rc[a] || a.localeCompare(b));
+  }
+  const regions = ['*', ...regionList];
   regions.forEach(r => {
     const label = r === '*' ? 'All' : r;
     const count = r === '*' ? (DATA.items || []).length : (DATA.items || []).filter(it => it.region === r).length;
