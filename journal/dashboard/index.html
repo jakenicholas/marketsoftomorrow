@@ -352,7 +352,7 @@ main.wrap{padding-bottom:70px}
 .pp-mini:hover{border-color:#7bd88f;color:#7bd88f}
 .pp-mini.pp-lb{background:#7bd88f;border-color:#7bd88f;color:#0a120c;font-weight:700}
 .pp-mini.pp-lb:hover{background:#9be7ac}
-.pp-places{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.pp-places{display:grid;grid-template-columns:1fr;gap:12px}
 .pp-place{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:15px 16px}
 .pp-pl-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pp-pl-top b{color:#fff;font-size:15px;font-weight:600;flex:1;min-width:0}
@@ -1434,8 +1434,7 @@ main.wrap{padding-bottom:70px}
           '<button type="button" class="pp-mini" id="ppHide">'+(hidden?'Show me':'Hide me')+'</button>'+
           '<button type="button" class="pp-mini pp-lb" id="ppLb">Full leaderboard &rarr;</button></div>';
         var rows=items.map(function(it){
-          var when=ppFmtWhen(it.visited_on);
-          return '<div class="pp-place"><div class="pp-pl-top"><span class="pp-tag pp-'+esc(it.entity_type||'')+'">'+esc(it.entity_type||'')+'</span><b>'+esc(it.item_name||'&mdash;')+'</b>'+(when?'<span class="pp-when">'+esc(when)+'</span>':'')+'</div>'+
+          return '<div class="pp-place"><div class="pp-pl-top"><b>'+esc(it.item_name||'&mdash;')+'</b><span class="pp-tag pp-'+esc(it.entity_type||'')+'">'+esc(it.entity_type||'')+'</span></div>'+
             (it.item_location?'<div class="pp-loc">'+esc(it.item_location)+'</div>':'')+
             (it.note?'<div class="pp-note">&ldquo;'+esc(it.note)+'&rdquo;</div>':'')+'</div>';
         }).join('');
