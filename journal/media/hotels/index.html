@@ -230,7 +230,7 @@ a.tag:hover svg{transform:translateX(2px)}
 .xcard .xarrow svg{width:17px; height:17px}
 
 /* recent collaborations */
-.collab-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+.collab-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
 .collab{padding:28px 30px; display:flex; flex-direction:column; overflow:hidden}
 .collab-img{display:block; width:calc(100% + 60px); height:250px; object-fit:cover; margin:-28px -30px 22px; border-bottom:1px solid var(--hair); background:#11140f}
 /* "Iconic Hotels" feature tile — identical to the universal header Lists dropdown (.tmw-lc-feat) */
@@ -264,7 +264,8 @@ a.tag:hover svg{transform:translateX(2px)}
 .ctile.soon .cbd{font-style:italic}
 .collab-iconic{margin-top:auto; width:100%; justify-content:center}
 .collab-iconic svg{width:16px; height:16px}
-@media(max-width:880px){ .collab-grid{grid-template-columns:1fr} }
+@media(max-width:1080px){ .collab-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:720px){ .collab-grid{grid-template-columns:1fr} }
 
 /* CTA */
 .cta{min-height:auto; padding:72px 0 84px; display:flex; align-items:center; overflow:hidden; position:relative}
