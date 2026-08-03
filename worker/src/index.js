@@ -14430,8 +14430,16 @@ async function computeMemberGameStats(env, memberId) {
     }
   }
   const streak = _gameStreak(days);
+  // Passport travel check-ins feed the SAME XP as on-site activity — one unified
+  // Passport score. Self-reported (one tap), so weighted modestly, near a market follow.
+  let places = 0;
+  try {
+    await ensureCheckinTables(env);
+    const pr = await env.DB.prepare('SELECT COUNT(*) AS c FROM checkins WHERE member_id = ?1').bind(memberId).first();
+    places = (pr && pr.c) || 0;
+  } catch (_) {}
   const a = arts.size, sv = saved.size, mk = markets.size;
-  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 10;
+  let xp = a * 10 + sv * 5 + mk * 25 + visits * 500 + shares * 50 + feedback * 20 + comments * 10 + intel * 2 + cSub * 25 + cAcc * 150 + streak * 10 + places * 30;
   xp += Math.floor(streak / 7) * 50;   // +50 bonus for every full week kept
   const rec = await ensureMemberRecord(env, memberId, email, earliest);
   // achievements — unlock + bonus XP
@@ -14444,15 +14452,16 @@ async function computeMemberGameStats(env, memberId) {
     globetrotter: mk >= 5,
     tastemaker: reach >= 50000,
     centurion: visits >= 25,
-    contributor: cAcc >= 1
+    contributor: cAcc >= 1,
+    explorer: places >= 25
   };
-  xp += (ach.founding ? 100 : 0) + (ach.globetrotter ? 150 : 0) + (ach.centurion ? 250 : 0) + (ach.tastemaker ? 300 : 0) + (ach.contributor ? 200 : 0);
+  xp += (ach.founding ? 100 : 0) + (ach.globetrotter ? 150 : 0) + (ach.centurion ? 250 : 0) + (ach.tastemaker ? 300 : 0) + (ach.contributor ? 200 : 0) + (ach.explorer ? 250 : 0);
   const lvl = levelForXp(xp);
   return { name, xp, level: lvl.lvl, tier: lvl.tier,
     memberNo: rec ? rec.member_no : null,
     since: (rec && rec.joined_at) ? new Date(rec.joined_at * 1000).getUTCFullYear() : null,
     founding: _isFounding, market: (rec && rec.market) || null, achievements: ach,
-    stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv, comments } };
+    stats: { articles: a, markets: mk, visits, reach: _reachStr(reach), streak, saved: sv, comments, places } };
 }
 
 // GET /member-lists?id= — a member's watchlist (tracked projects) + saved/read
