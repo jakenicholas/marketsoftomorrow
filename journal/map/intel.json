@@ -8586,21 +8586,47 @@
       "delivery_speculative": true
     },
     "nikki-beach-resort-spa-antigua": {
-      "estimate_years": 2.5,
-      "estimate_label": "~2.5 years",
-      "days_out": 881,
-      "delivery_date": "2028-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "medium",
+      "estimate_years": 8.1,
+      "estimate_label": "~8.1 years",
+      "range_low": 4.3,
+      "range_high": 10.8,
+      "confidence": "low",
+      "comparable_count": 1,
+      "good_count": 0,
+      "exact_count": 0,
+      "used_relaxed": true,
+      "avg_match_score": 0.34,
+      "avg_distance_km": 2872.0,
+      "avg_distance_mi": 1784.6,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "HKS Architects",
+        "count": 1,
+        "median_years": 11.0,
+        "stddev_years": 0.0,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.4
+      },
+      "source": "comparables",
       "project_type": "Mixed-Use",
       "metro": "Other",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "comparables": [
+        {
+          "name": "520 Fifth Avenue",
+          "slug": "520-fifth-avenue",
+          "location": "New York City",
+          "years": 3.5,
+          "score": 0.34,
+          "distance_km": 2872.0,
+          "distance_mi": 1784.6
+        }
+      ],
+      "pattern_summary": "Mixed-use developments of this scale routinely span 4.3–10.8 years with phased delivery. Based on 1 completed mixed-use comparable, with an added complexity factor since cross-component coordination typically extends timelines.",
       "dates_speculative": true,
       "start_speculative": true,
-      "delivery_speculative": true
+      "delivery_speculative": true,
+      "is_mixed_use": true
     },
     "the-stockman-auberge-collection": {
       "estimate_years": 4.3,
@@ -16288,14 +16314,14 @@
   "stats": {
     "high": 7,
     "medium": 24,
-    "low": 81,
-    "known_date": 546,
+    "low": 82,
+    "known_date": 545,
     "completed": 68,
     "skipped": 109,
     "no_type": 0,
-    "firm_boosted": 46,
-    "speculative_softened": 219,
+    "firm_boosted": 47,
+    "speculative_softened": 218,
     "district": 13,
-    "mixed_use_adjusted": 29
+    "mixed_use_adjusted": 30
   }
 }
