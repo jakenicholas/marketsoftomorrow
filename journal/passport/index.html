@@ -50,6 +50,10 @@ a{color:inherit}
 
 /* ── Board ── */
 .pp-wrap{max-width:760px;margin:0 auto;padding:6px 24px 90px}
+.rh-modes{display:inline-flex;gap:4px;padding:4px;margin-top:22px;background:rgba(255,255,255,.05);border:1px solid var(--hair);border-radius:999px}
+.rh-modes .mode-btn{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:8px 22px;border-radius:999px;border:0;background:transparent;color:var(--mute);cursor:pointer;transition:all .16s}
+.rh-modes .mode-btn.on{background:#fff;color:#0a0a0a}
+.pp-table td.c-lvl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
 .pp-board{margin-top:22px;overflow-x:auto;scrollbar-width:thin}
 .pp-load,.pp-empty{color:var(--mute);font-size:15px;padding:44px 6px;text-align:center}
 .pp-empty a{color:var(--green);text-decoration:underline;text-underline-offset:3px}
@@ -95,6 +99,10 @@ a{color:inherit}
       <div class="rh-kicker">TMW Members &middot; The Passport</div>
       <h1 class="rh-title">The Passport</h1>
       <p class="rh-sub">A leaderboard of who has explored the most of our world. The iconic hotels, golf courses and restaurants on our lists. Tap &ldquo;I&rsquo;ve been&rdquo; anywhere to climb.</p>
+      <div class="rh-modes" id="ppModes">
+        <button type="button" class="mode-btn on" data-m="travel">Travel</button>
+        <button type="button" class="mode-btn" data-m="explorer">Explorer</button>
+      </div>
       <div class="rh-tabs" id="ppTabs">
         <button type="button" class="tab-btn on" data-k="total">All</button>
         <button type="button" class="tab-btn" data-k="hotels">Hotels</button>
@@ -127,6 +135,13 @@ a{color:inherit}
     if (['hotels','golf','restaurants'].indexOf(cat) >= 0) SORT = cat;
 
     var COLS = [['hotels','Hotels'],['golf','Golf'],['restaurants','Restaurants'],['total','Total']];
+
+    // Two boards under one Passport: Travel (most places visited) and Explorer
+    // (highest overall XP — travel + on-site market study combined).
+    var MODE = 'explorer' === (new URLSearchParams(location.search).get('board')||'').toLowerCase() ? 'explorer' : 'travel';
+    var EXPLORER = null;
+    var TRAVEL_SUB = (document.querySelector('.rh-sub') || {}).textContent || '';
+    var EXPLORER_SUB = 'The deepest members overall. Every place visited, article read and market followed adds up to one Explorer score.';
 
     function paint(){
       var board = q('ppBoard');
@@ -172,13 +187,53 @@ a{color:inherit}
       b.addEventListener('click', function(){ setSort(b.getAttribute('data-k')); });
     });
 
+    // ── Explorer board (ranked by total XP) ──
+    function paintExplorer(){
+      var board = q('ppBoard');
+      if (!EXPLORER){ board.innerHTML = '<div class="pp-load">Loading the leaderboard&hellip;</div>'; return; }
+      if (!EXPLORER.length){ board.innerHTML = '<div class="pp-empty">The Explorer board is warming up. Check back soon.</div>'; return; }
+      var head = '<tr><th class="c-rank"></th><th class="c-name">Name</th>'+
+        '<th class="c-num">Level</th><th class="c-num">Places</th>'+
+        '<th class="c-num c-total-h act">XP</th></tr>';
+      var body = EXPLORER.map(function(r,i){
+        return '<tr class="'+(r.is_me?'me':'')+'">'+
+          '<td class="c-rank">'+(i+1)+'</td>'+
+          '<td class="c-name">'+esc(r.name)+(r.is_me?' <em>you</em>':'')+'</td>'+
+          '<td class="c-num c-lvl">'+esc(r.tier || ('Level '+(r.level||1)))+'</td>'+
+          '<td class="c-num'+(r.places?'':' zero')+'">'+(r.places||0)+'</td>'+
+          '<td class="c-num c-total act">'+Number(r.xp||0).toLocaleString()+'</td></tr>';
+      }).join('');
+      board.innerHTML = '<table class="pp-table"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+    }
+
+    function loadExplorer(){
+      var u = WORKER + '/leaderboard?scope=explorer&limit=100';
+      if (MEMBER_ID) u += '&me=' + encodeURIComponent(MEMBER_ID);
+      fetch(u, { cache:'no-store' }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
+        EXPLORER = (d && d.rows) || [];
+        if (MODE === 'explorer') paintExplorer();
+      }).catch(function(){ if (MODE === 'explorer') q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the Explorer board.</div>'; });
+    }
+
+    function setMode(m){
+      MODE = m;
+      [].forEach.call(q('ppModes').querySelectorAll('.mode-btn'), function(b){ b.classList.toggle('on', b.getAttribute('data-m')===m); });
+      q('ppTabs').style.display = (m==='travel') ? '' : 'none';
+      var sub = document.querySelector('.rh-sub'); if (sub) sub.textContent = (m==='explorer') ? EXPLORER_SUB : TRAVEL_SUB;
+      if (m==='explorer'){ if (EXPLORER===null){ paintExplorer(); loadExplorer(); } else paintExplorer(); }
+      else { paint(); }
+    }
+    [].forEach.call(q('ppModes').querySelectorAll('.mode-btn'), function(b){
+      b.addEventListener('click', function(){ setMode(b.getAttribute('data-m')); });
+    });
+
     function load(){
       var u = WORKER + '/leaderboard?scope=overall&limit=100';
       if (MEMBER_ID) u += '&me=' + encodeURIComponent(MEMBER_ID);
       fetch(u, { cache:'no-store' }).then(function(r){ return r.ok?r.json():null; }).then(function(d){
         DATA = (d && d.rows) || [];
-        syncTabs(); paint();
-      }).catch(function(){ q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the leaderboard.</div>'; });
+        syncTabs(); if (MODE==='travel') paint();
+      }).catch(function(){ if (MODE==='travel') q('ppBoard').innerHTML = '<div class="pp-empty">Could not load the leaderboard.</div>'; });
     }
 
     // Resolve the member (for the "you" row); the board loads either way.
@@ -187,7 +242,7 @@ a{color:inherit}
       var ms = window.$memberstackDom;
       if (ms && ms.getCurrentMember){
         ms.getCurrentMember().then(function(r){
-          var m = r && r.data; if (m && m.id){ MEMBER_ID = m.id; load(); }
+          var m = r && r.data; if (m && m.id){ MEMBER_ID = m.id; load(); if (EXPLORER!==null||MODE==='explorer') loadExplorer(); }
         }).catch(function(){});
         return;
       }
@@ -196,6 +251,8 @@ a{color:inherit}
 
     syncTabs();
     load();
+    // Honor ?board=explorer on first paint; otherwise Travel is the default.
+    if (MODE === 'explorer') setMode('explorer');
 
     // Hero slideshow — crossfade through the golf / hotels / restaurants heroes.
     (function () {

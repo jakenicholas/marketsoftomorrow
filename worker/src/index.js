@@ -557,13 +557,49 @@ async function handleCheckinCounts(env, origin, url) {
   return json({ ok: true, counts, mine, total, community }, {}, env, origin);
 }
 
+// The Explorer XP cache. Recomputing each member's full XP live for a whole-board
+// ranking would be far too heavy (a per-member events scan), so a throttled cron
+// (maybeRefreshExplorerXp) precomputes it here and the board reads it cheaply.
+async function ensureExplorerTable(env) {
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS member_xp (
+      member_id TEXT PRIMARY KEY, display_name TEXT, xp INTEGER, level INTEGER,
+      tier TEXT, places INTEGER, updated_at INTEGER)`).run();
+  } catch (_) {}
+}
+
 async function handleLeaderboard(env, origin, url) {
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   let scope = (url.searchParams.get('scope') || 'overall').toLowerCase();
-  if (scope !== 'overall' && !CHECKIN_ENTITY_TYPES.includes(scope)) scope = 'overall';
   const me = url.searchParams.get('me') || '';
   let limit = parseInt(url.searchParams.get('limit') || '20', 10);
   if (!(limit > 0) || limit > 100) limit = 20;
+
+  // Explorer board — ranked by total XP (travel + on-site market study combined),
+  // read from the precomputed member_xp cache. No raw mem_ id is ever returned.
+  if (scope === 'explorer') {
+    await ensureExplorerTable(env);
+    let rows = [];
+    try {
+      const rs = await env.DB.prepare(`SELECT x.member_id AS mid, x.xp AS xp, x.level AS level,
+          x.tier AS tier, x.places AS places, x.updated_at AS ua,
+          COALESCE(p.display_name, x.display_name) AS dn, COALESCE(p.leaderboard_hidden,0) AS hidden
+        FROM member_xp x LEFT JOIN member_prefs p ON p.member_id = x.member_id
+        WHERE COALESCE(p.leaderboard_hidden,0)=0 AND x.xp > 0`).all();
+      rows = (rs && rs.results) || [];
+    } catch (_) {}
+    const out = rows
+      .sort((a, b) => (b.xp - a.xp) || (a.ua - b.ua))
+      .slice(0, limit)
+      .map((r, i) => ({
+        rank: i + 1, name: r.dn || 'TMW Member', xp: r.xp || 0,
+        level: r.level || 1, tier: r.tier || '', places: r.places || 0,
+        is_me: !!(me && r.mid === me),
+      }));
+    return json({ ok: true, scope: 'explorer', rows: out }, { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } }, env, origin);
+  }
+
+  if (scope !== 'overall' && !CHECKIN_ENTITY_TYPES.includes(scope)) scope = 'overall';
   await ensureCheckinTables(env);
 
   // Pull every visible member with their full per-category breakdown, then rank
@@ -677,6 +713,52 @@ async function maybeSyncCheckinNames(env) {
     if (now - last < 300) return;               // every ~5 min — catches manual Memberstack edits promptly
     await metaSet(env, 'checkin_name_sync_last', now);
     await syncCheckinNames(env);
+  } catch (_) {}
+}
+
+// Explorer leaderboard: recompute a rolling batch of members' total XP into the
+// member_xp cache. computeMemberGameStats is heavy (a per-member events scan), so
+// we refresh the stalest N seats each pass — the whole base cycles through over a
+// few minutes and self-heals. The board (scope=explorer) reads the cache cheaply.
+async function refreshExplorerXpBatch(env, batch) {
+  if (!env.DB) return { refreshed: 0 };
+  await ensureExplorerTable(env);
+  let ids = [];
+  try {
+    const rs = await env.DB.prepare(
+      `SELECT m.member_id AS id FROM members m
+       LEFT JOIN member_xp x ON x.member_id = m.member_id
+       WHERE m.member_id LIKE 'mem_%'
+       ORDER BY COALESCE(x.updated_at, 0) ASC
+       LIMIT ?1`).bind(batch || 25).all();
+    ids = ((rs && rs.results) || []).map(r => r.id).filter(Boolean);
+  } catch (_) { return { refreshed: 0 }; }
+  let n = 0;
+  for (const id of ids) {
+    try {
+      const s = await computeMemberGameStats(env, id);
+      let name = s.name || '';
+      try {
+        const p = await env.DB.prepare('SELECT display_name FROM member_prefs WHERE member_id=?1').bind(id).first();
+        if (p && p.display_name) name = p.display_name;
+      } catch (_) {}
+      await env.DB.prepare(`INSERT INTO member_xp (member_id, display_name, xp, level, tier, places, updated_at)
+        VALUES (?1,?2,?3,?4,?5,?6,?7)
+        ON CONFLICT(member_id) DO UPDATE SET display_name=?2, xp=?3, level=?4, tier=?5, places=?6, updated_at=?7`)
+        .bind(id, name, s.xp || 0, s.level || 1, s.tier || '', (s.stats && s.stats.places) || 0, Date.now()).run();
+      n++;
+    } catch (_) {}
+  }
+  return { refreshed: n };
+}
+
+async function maybeRefreshExplorerXp(env) {
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const last = parseInt(await metaGet(env, 'explorer_xp_last') || '0', 10) || 0;
+    if (now - last < 120) return;               // a batch every ~2 min
+    await metaSet(env, 'explorer_xp_last', now);
+    await refreshExplorerXpBatch(env, 25);
   } catch (_) {}
 }
 
@@ -16255,6 +16337,7 @@ export default {
     ctx.waitUntil(maybeBackfillWixViews(env));   // refresh Wix view baseline ~daily
     ctx.waitUntil(maybeAutoPromoteOpenings(env)); // flip Opening Soon → Now Open for past-due projects
     ctx.waitUntil(maybeSyncCheckinNames(env));   // refresh Passport leaderboard handles from Memberstack names (hourly)
+    ctx.waitUntil(maybeRefreshExplorerXp(env));  // roll the Explorer (total-XP) leaderboard cache forward, a batch every ~2 min
     ctx.waitUntil(maybeBackfillOpenDeliveryDates(env)); // one-time: sync opened projects' delivery_date to their real opening date
     ctx.waitUntil(maybeSnapshotSubs(env));       // weekly subscription snapshot (churn-aware history)
     ctx.waitUntil(maybeRollupProIncome(env));    // book monthly TMW Pro gross into the Flows ledger (self-healing backfill)
