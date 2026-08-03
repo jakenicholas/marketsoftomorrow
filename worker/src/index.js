@@ -14218,7 +14218,7 @@ async function handleMemberVerify(env, url) {
   const BG = ['LAX','WPB','LON','MIA','NYC','TYO','CHI','SLC','AUS','BNA','PAR','DXB','HKG','SIN','MIL','ASP','SFO','BOS','SEA','DFW','ATL','DEN','LAS','GVA','ZRH','MAD','ROM','SYD','DOH','SJD','JFK','LHR','CDG','HND','ORD','PBI','NAS','PHX','SAN','AUH','IST','BCN','VCE','MUC','AMS','VIE','CPH','DUB','MEX','SCL','BOM','DEL','BKK','ICN','PEK','MEL','CPT','TLV','RUH','JED','YYZ','YVR','HNL','MCO','NCE','LIS','ATH','PRG','KEF','NAP','MNL'];
   let bgSeed = 7; const bgRnd = () => { bgSeed = (bgSeed * 1103515245 + 12345) & 0x7fffffff; return bgSeed / 0x7fffffff; };
   let bg = '';
-  for (let r = 0; r < 60; r++) { let ln = ''; for (let c = 0; c < 46; c++) ln += BG[Math.floor(bgRnd() * BG.length)] + ' '; bg += ln + '\n'; }
+  for (let r = 0; r < 60; r++) { let ln = ''; for (let c = 0; c < 100; c++) ln += BG[Math.floor(bgRnd() * BG.length)] + ' '; bg += ln + '\n'; }
 
   // Passport (public "show off") — the places this member has checked into. Only
   // when they're not hidden and have at least one check-in. Respects the same
