@@ -277,6 +277,7 @@ def group_events(events):
         base = {
             "title": title,
             "city":  city,
+            "state": e.get("state") or proj.get("state") or proj.get("region") or "",
             "image": image,
             "url":   url,
             "_ts":   ts,
@@ -579,10 +580,12 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         t = (m.get("title") or "").strip()
         if not t:
             continue
-        tag  = (m.get("stage_label") or "").strip()
-        city = (m.get("city") or "").strip()
+        tag   = (m.get("stage_label") or "").strip()
+        city  = (m.get("city") or "").strip()
+        state = (m.get("state") or "").strip()
+        loc   = ", ".join(x for x in (city, state) if x)   # "Fort Lauderdale, Florida" so the brief can judge market
         when = (m.get("_ts") or "")[:10]   # the real event date (YYYY-MM-DD or coarser)
-        bits = " · ".join(x for x in (tag, city, when) if x)
+        bits = " · ".join(x for x in (tag, loc, when) if x)
         ups.append(f"- {t}" + (f" ({bits})" if bits else ""))
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -600,10 +603,15 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         "Tomorrow newsletter. TMW tracks luxury and hype real-estate developments "
         "worldwide (towers, hotels, resorts, golf, mixed-use districts, museums, "
         "airports).\n\n"
-        "Write a concrete brief of AT MOST 2 sentences (~45 words) on the most "
-        "notable recent developments — lead with the single most newsworthy item, "
-        "name specific projects, and you may note the breadth of new coverage "
-        "(how many projects / which markets).\n\n"
+        "FOCUS: this brief is Florida-first. Lead with and spend most of the brief on "
+        "the most notable recent FLORIDA developments (Miami, Fort Lauderdale, West "
+        "Palm Beach, Palm Beach, Naples, Tampa, Orlando and the rest of the state), "
+        "naming specific projects. Then CLOSE with one short final line that sprinkles "
+        "in the most notable news from other markets. If a week genuinely has no "
+        "Florida items, lead with the strongest available news instead but still end "
+        "with the other-markets line.\n\n"
+        "Write a concrete brief of AT MOST 3 sentences (~55 words): the Florida lead "
+        "first, the one-line other-markets sprinkle last. Name specific projects.\n\n"
         "ACCURACY (critical):\n"
         "- Each progress update carries its REAL event date. Respect it. Do NOT say "
         "or imply something happened 'this week', 'just', or 'recently' unless its "
@@ -612,8 +620,9 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
         "- Use ONLY the facts and dates given. Do not invent milestones or infer "
         "construction progress beyond what is stated.\n\n"
         "Editorial and confident; specific over generic. No hype filler, no 'this "
-        "week's brief covers', no emojis, no exclamation marks. Respond with ONLY "
-        "the brief itself — no preamble, no quotation marks, no labels, no reasoning."
+        "week's brief covers', no emojis, no exclamation marks, no em dashes or en "
+        "dashes (use commas or periods). Respond with ONLY the brief itself: no "
+        "preamble, no quotation marks, no labels, no reasoning."
     )
 
     try:
@@ -650,6 +659,19 @@ def llm_intel_brief(map_items, weekly_articles, app_updates):
 
     _brief_status(f"heuristic (all models failed; last: {last_err})", warn=True)
     return None
+
+
+# Known Florida markets, for the Florida-first heuristic brief. Matched against a
+# story's main_category / a market name (lowercased); _is_fl also catches any name
+# containing "florida" or "palm beach".
+_FL_MARKETS = {
+    "miami", "miami beach", "south beach", "brickell", "edgewater", "fort lauderdale",
+    "hollywood", "west palm beach", "palm beach", "the palm beaches", "palm beaches",
+    "boca raton", "delray beach", "naples", "tampa", "tampa bay", "st. petersburg",
+    "st petersburg", "orlando", "sarasota", "fort myers", "jupiter", "aventura",
+    "sunny isles", "sunny isles beach", "coral gables", "bal harbour", "key west",
+    "doral", "wellington", "pompano beach", "bay harbor islands", "fisher island",
+}
 
 
 def build_intel_summary(map_items, weekly_articles, app_updates):
@@ -695,39 +717,55 @@ def build_intel_summary(map_items, weekly_articles, app_updates):
         region_counts[r] += 1
     ranked = sorted(region_order, key=lambda r: (-region_counts[r], region_order.index(r)))
 
-    region_phrase = ""
-    if ranked:
-        top  = ranked[:4]
-        rest = len(ranked) - len(top)
+    def _phrase(names, cap=4):
+        top  = names[:cap]
+        rest = len(names) - len(top)
         if rest > 0:
-            region_phrase = ", ".join(top) + f", and {rest} more {pl(rest, 'market', 'markets')}"
-        else:
-            region_phrase = _join_clauses(top)
+            return ", ".join(top) + f", and {rest} more {pl(rest, 'market', 'markets')}"
+        return _join_clauses(top)
 
-    clauses = []
-    if story_count:
-        if region_phrase:
-            clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} across {region_phrase}")
-        else:
-            clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} from the journal")
-    if new_updates:
-        clauses.append(f"{new_updates} new database {pl(new_updates, 'update', 'updates')}")
+    # Florida-first: lead with Florida markets, then end on a short sprinkle of
+    # other-market news. (This is the fallback path; the LLM brief above is the
+    # primary one and is already Florida-first via its system prompt.)
+    def _is_fl(name):
+        n = (name or "").strip().lower()
+        return "florida" in n or "palm beach" in n or n in _FL_MARKETS
+    fl         = [r for r in ranked if _is_fl(r)]
+    other      = [r for r in ranked if not _is_fl(r)]
+    fl_stories = sum(region_counts[r] for r in fl)
 
-    # The stories clause already contains its own "and" (the region list), so
-    # join the two top-level clauses with "alongside" rather than another "and".
-    if len(clauses) == 2:
-        core = f"{clauses[0]}, alongside {clauses[1]}"
-    elif clauses:
-        core = clauses[0]
+    if fl:
+        body = (f"Florida leads this week: {fl_stories} new "
+                f"{pl(fl_stories, 'story', 'stories')} across {_phrase(fl)}")
+        if new_updates:
+            body += f", alongside {new_updates} new database {pl(new_updates, 'update', 'updates')}"
+        body += "."
+        if app_updates:
+            body += " Plus the latest from TMW Pro."
+        if other:
+            body += f" Elsewhere: {_phrase(other, 3)}."
     else:
-        core = ""
-
-    if core:
-        body = "This week's brief covers " + core + "."
-    else:
-        body = "Here's what's moving across the map of tomorrow this week."
-    if app_updates:
-        body += " Plus the latest from TMW Pro."
+        region_phrase = _phrase(ranked) if ranked else ""
+        clauses = []
+        if story_count:
+            if region_phrase:
+                clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} across {region_phrase}")
+            else:
+                clauses.append(f"{story_count} new {pl(story_count, 'story', 'stories')} from the journal")
+        if new_updates:
+            clauses.append(f"{new_updates} new database {pl(new_updates, 'update', 'updates')}")
+        # The stories clause already contains its own "and" (the region list), so
+        # join the two top-level clauses with "alongside" rather than another "and".
+        if len(clauses) == 2:
+            core = f"{clauses[0]}, alongside {clauses[1]}"
+        elif clauses:
+            core = clauses[0]
+        else:
+            core = ""
+        body = ("This week's brief covers " + core + ".") if core else \
+               "Here's what's moving across the map of tomorrow this week."
+        if app_updates:
+            body += " Plus the latest from TMW Pro."
 
     # Prefer a real LLM summary of the week's actual stories + updates; the
     # heuristic body above is the fallback when the API key/SDK/call isn't there.
