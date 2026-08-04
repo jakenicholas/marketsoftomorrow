@@ -474,6 +474,8 @@ def build_index():
 def build_story(ed):
     heads = [b[1] for b in ed["body"] if b[0] == "h"][:4]
     bullets = "".join(f'<div class="b"><span class="tick">0{i+1}</span><span>{e(h)}</span></div>' for i, h in enumerate(heads))
+    cover = f'<div class="cover"><img src="/releases/img/{e(ed["cover"])}" alt=""></div>' if ed.get("cover") else ''
+    klass = "story" if cover else "story nocover"
     h = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>{e(ed["title"])} · Story</title>
@@ -491,18 +493,22 @@ body{{min-height:100vh;display:flex;align-items:center;justify-content:center}}
 .kick{{position:relative;margin-top:96px;font-weight:700;font-size:22px;letter-spacing:.3em;text-transform:uppercase;color:#B9A6FF}}
 h1{{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:88px;line-height:1.04;letter-spacing:-.015em;color:#fff;margin-top:34px;text-wrap:balance}}
 .dek{{position:relative;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;font-size:33px;line-height:1.45;color:#C2C9C3;margin-top:36px;max-width:22ch}}
-.list{{position:relative;margin-top:auto;display:flex;flex-direction:column;gap:30px}}
+.cover{{position:relative;margin-top:auto;border:1px solid rgba(255,255,255,.14);border-radius:22px;overflow:hidden;background:#0b0c0b;box-shadow:0 30px 70px rgba(0,0,0,.55)}}
+.cover img{{display:block;width:100%;height:auto}}
+.list{{position:relative;margin-top:64px;display:flex;flex-direction:column;gap:30px}}
+.story.nocover .list{{margin-top:auto}}
 .b{{display:flex;gap:26px;align-items:flex-start;font-size:33px;font-weight:600;line-height:1.3;color:#ECEAE5}}
 .b .tick{{font-weight:800;font-size:24px;color:#B9A6FF;border:2px solid rgba(167,139,250,.45);border-radius:999px;padding:8px 18px;flex:0 0 auto}}
 .foot{{position:relative;margin-top:86px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.14);padding-top:44px}}
 .foot .u{{font-weight:800;font-size:28px;letter-spacing:.06em;color:#fff}}
 .foot .r{{font-weight:600;font-size:23px;letter-spacing:.14em;text-transform:uppercase;color:#9AA39C}}
 </style></head><body>
-<div class="story">
+<div class="{klass}">
   <div class="wm">MARKETS OF TMW<span>RELEASES · EDITION {ed["num"]}</span></div>
   <div class="kick">{e(ed["window"])}</div>
   <h1>{e(ed["title"])}</h1>
   <div class="dek">{e(ed["dek"])}</div>
+  {cover}
   <div class="list">{bullets}</div>
   <div class="foot"><span class="u">oftmw.com/releases</span><span class="r">Link in bio</span></div>
 </div>

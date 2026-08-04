@@ -15,7 +15,10 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center}
 .kick{position:relative;margin-top:96px;font-weight:700;font-size:22px;letter-spacing:.3em;text-transform:uppercase;color:#B9A6FF}
 h1{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:88px;line-height:1.04;letter-spacing:-.015em;color:#fff;margin-top:34px;text-wrap:balance}
 .dek{position:relative;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;font-size:33px;line-height:1.45;color:#C2C9C3;margin-top:36px;max-width:22ch}
-.list{position:relative;margin-top:auto;display:flex;flex-direction:column;gap:30px}
+.cover{position:relative;margin-top:auto;border:1px solid rgba(255,255,255,.14);border-radius:22px;overflow:hidden;background:#0b0c0b;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.cover img{display:block;width:100%;height:auto}
+.list{position:relative;margin-top:64px;display:flex;flex-direction:column;gap:30px}
+.story.nocover .list{margin-top:auto}
 .b{display:flex;gap:26px;align-items:flex-start;font-size:33px;font-weight:600;line-height:1.3;color:#ECEAE5}
 .b .tick{font-weight:800;font-size:24px;color:#B9A6FF;border:2px solid rgba(167,139,250,.45);border-radius:999px;padding:8px 18px;flex:0 0 auto}
 .foot{position:relative;margin-top:86px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.14);padding-top:44px}
@@ -27,6 +30,7 @@ h1{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-s
   <div class="kick">The week of June 28, 2026</div>
   <h1>The model is the cheapest part</h1>
   <div class="dek">One shared brain that learns from every edit, Deep mode, and the day we deleted a 29,000-token prompt and the answers got better.</div>
+  <div class="cover"><img src="/releases/img/ed1-0.jpg" alt=""></div>
   <div class="list"><div class="b"><span class="tick">01</span><span>The brain that grades its own homework</span></div><div class="b"><span class="tick">02</span><span>Deep mode, or the difference between a fact and a brief</span></div><div class="b"><span class="tick">03</span><span>You can just go use it</span></div><div class="b"><span class="tick">04</span><span>What this compounds toward</span></div></div>
   <div class="foot"><span class="u">oftmw.com/releases</span><span class="r">Link in bio</span></div>
 </div>
