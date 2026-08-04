@@ -72,6 +72,42 @@ def discover_digests():
 # ── Editions (newest FIRST) ───────────────────────────────────────────────
 EDITIONS = [
   {
+    "slug": "edition4", "num": 4,
+    "title": "Four things you can go open right now",
+    "dek": "The Atlas became an instrument, saved views and My Book, the Opening Radar, and The Passport.",
+    "date_iso": "2026-08-04", "date_label": "August 4, 2026",
+    "window": "The week of July 28, 2026",
+    "cover": "ed4-0.png",
+    "linkedin": "https://www.linkedin.com/pulse/four-things-you-can-open-right-now-jake-nicholas-kyuyf/",
+    "body": [
+      ("p", "West Palm Beach's supply-pressure line climbs to 100 and stays pinned there. Nashville's dips back into balanced in 2028 and eases off. Until this week you could see one number per market. Now you can put five markets on a single chart and watch the lines cross."),
+      ("p", "Most weeks here I write about plumbing: the ontology, the learning loop, the verification gates. This week was the other kind. Four things shipped that anyone can go open, and they are the clearest picture yet of what the database is actually for."),
+      ("h", "The Atlas became an instrument"),
+      ("p", "The Atlas is our data surface, and it used to read like a report. Now it reads like a tool you operate. Eight views, each its own page: Overview, Markets, Projects, Firms, Supply, Pricing, Capital, Pipeline."),
+      ("p", "At the top sits the master chart. The markets are the series and the metric is the lens, so you add up to five markets as purple pills and swap what the chart is measuring underneath them, with a 6-month, 1-year, 2-year, or all-time range toggle. Search a market and it becomes a pill that filters the entire page, tiles, leaderboards, supply cards and chart together."),
+      ("img", "ed4-0.png"),
+      ("p", "The best thing on it is supply pressure over time. A month ago we shipped it as a single score per market, how crowded a delivery calendar is getting. This week it became a trajectory: the same model run at every forward half-year across a five-year horizon, so you see saturation build as a wave of towers approaches and ease after it lands. Each line's color runs on a gradient keyed to its own height, green through yellow into deep red, so a market climbing into trouble looks like it. Zone bands behind it, a crosshair that names every market's zone at that point in time."),
+      ("p", "And every metric carries a truth label. Tap the (i) and it tells you plainly what the number is, whether it's a modeled judgment or a curated count or a sourced floor, what it excludes, how confident the model is, and the as-of date. I care about that more than the chart. A number without its provenance is a vibe."),
+      ("p", "Two smaller ones I like. The market picker now groups by region instead of dumping eighty cities in a wall, backed by a region table for 75 countries that lives in our ontology, so the map, the Atlas and our automated routines all agree on what continent something is on. And market pages now compare a market to its real geographic neighbors. London used to get compared to Coral Gables because their supply scores were close. Now London gets Paris and Lisbon, and when a market genuinely has no peers the module says \"comparable markets\" instead of pretending they're neighbors."),
+      ("h", "Your own instrument: saved views and My Book"),
+      ("p", "Any slice of the Atlas can be saved as a view, and a saved view isn't a bookmark. It lands on your dashboard as a live module that recomputes its own count through the same matching logic the Atlas and the map use, so a tile can never disagree with the page it links to. And because an empty grid is the standard failure of a build-your-own dashboard, there are three one-click starting bundles: Developer, Broker, Investor, each seeded from the markets you already follow."),
+      ("p", "Under that is My Book, which is the thing I open most. Tap the bell on any project anywhere on the site, on the map, on the radar, inside an Onyx answer, in an article, and it goes into your book. The book is a table: every project you track with a progress bar against its delivery, the delivery date itself, and a movement column showing its last dated move. Above it, four live reads: how many projects you're tracking and how many moved this week, the supply pressure of your top market, the total construction capital tracked across your book, and your next delivery. Market chips filter the whole thing to one city."),
+      ("p", "Then every Monday you get a brief. Week of the 3rd, the moves on your watchlist, pulled from what actually happened on your projects, your followed markets and your followed firms in the last seven days, written up by Onyx."),
+      ("p", "That is the honest pitch for the whole platform: not \"here is a database,\" but \"here is your book, and here is what moved in it while you were busy.\""),
+      ("h", "The Opening Radar"),
+      ("p", "Then we turned the pipeline into something you'd browse for fun. Hotels of Tomorrow got the Opening Radar, a live board of every tracked hotel in the forward pipeline, 304 with photography across 37 countries, sorted by what opens next. Filter rows for location, opening window (next 6 months, 2026, 2027, 2028 and beyond), brand, and stage, with the brand list derived from the live data rather than a list I maintain. Gold means opening soon, green means building, purple means announced. Every card has a bell."),
+      ("p", "Golf of Tomorrow got the same build a day later with a filter row of course designers and developers, so you can pull up everything Cabot or a specific architect has coming. Restaurants too."),
+      ("p", "The pipeline maintains itself underneath. A project flips from Opening Soon to Now Open on its stated opening date, and the flip has to cite something, our own coverage of that project if we have it, the developer's official site if we don't, so the marker always links to something you can verify. Freshly opened properties pin to the top of the radar for four months and then clear out on their own."),
+      ("h", "The Passport"),
+      ("p", "The one I did not expect to enjoy this much. We publish iconic lists of hotels, golf courses and restaurants. Now you tap \"I've been\" on any of them and it saves to your account, one tap, no form. Those check-ins feed a single running level along with your travel, and there's a public leaderboard ranking everyone by hotels, courses, restaurants and total. Opt out any time, and no email is ever shown, only the name you chose."),
+      ("p", "For two years we've written about these places. Now the people who have actually walked into them write back, and that record of where our audience has been is a layer nobody else has."),
+      ("h", "What this compounds toward"),
+      ("p", "All four of those are one idea wearing four faces. We spend most weeks on the unglamorous part: a verified database of 1,600+ developments, the ontology that encodes what our categories actually mean, and the verification gates that make sure nothing enters it that can't be proven. That work is invisible on purpose. This week is what it was for. A chart that can be trusted enough to argue with, a book that tells you what moved, a radar you can browse over coffee, a passport worth filling in."),
+      ("p", "The everyday layer is free, so go open the map, filter a market, and ask Onyx something in plain English. TMW Pro is where it opens all the way: Deep mode reasoning across a hundred-plus verified projects at once, the full dossier on every building, the whole radar instead of the first screen, and the supply and pricing read underneath a market. Worth ten minutes of poking around."),
+      ("p", "The model is still the rented part. The chart, the book, the radar and the graph underneath them are ours."),
+    ],
+  },
+  {
     "slug": "edition3", "num": 3,
     "title": "The record became a forecast",
     "dek": "A projection layer on the verified pipeline, pricing bands comped to delivery, and a learning loop that grades its own homework.",
@@ -430,9 +466,55 @@ def build_index():
     with open(f"{OUT_DIR}/index.html", "w", encoding="utf-8") as f:
         f.write(h + body + FOOT_SCRIPTS)
 
+
+# ── IG story graphic: one 1080x1920 page per edition ─────────────────────────
+# The standing convention: every edition's story graphic lives at
+# /releases/<slug>/story/ — open it, screenshot at native size, post it.
+# Exports worth keeping go to the Studio media folder "Social / LinkedIn Stories".
+def build_story(ed):
+    heads = [b[1] for b in ed["body"] if b[0] == "h"][:4]
+    bullets = "".join(f'<div class="b"><span class="tick">0{i+1}</span><span>{e(h)}</span></div>' for i, h in enumerate(heads))
+    h = f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>{e(ed["title"])} · Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+html,body{{background:#171a17}}
+body{{min-height:100vh;display:flex;align-items:center;justify-content:center}}
+/* 1080x1920 story canvas, export at native size */
+.story{{width:1080px;height:1920px;background:#070807;color:#ECEAE5;font-family:'Inter',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:110px 92px 100px}}
+.story::before{{content:"";position:absolute;inset:0;background:radial-gradient(700px 520px at 82% -6%,rgba(167,139,250,.16),transparent 60%),radial-gradient(640px 520px at 0% 104%,rgba(31,223,103,.08),transparent 60%)}}
+.wm{{font-weight:800;font-size:30px;letter-spacing:.02em;color:#fff;position:relative}}
+.wm span{{display:block;font-size:15px;letter-spacing:.34em;color:#9AA39C;margin-top:4px}}
+.kick{{position:relative;margin-top:96px;font-weight:700;font-size:22px;letter-spacing:.3em;text-transform:uppercase;color:#B9A6FF}}
+h1{{position:relative;font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:88px;line-height:1.04;letter-spacing:-.015em;color:#fff;margin-top:34px;text-wrap:balance}}
+.dek{{position:relative;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:400;font-size:33px;line-height:1.45;color:#C2C9C3;margin-top:36px;max-width:22ch}}
+.list{{position:relative;margin-top:auto;display:flex;flex-direction:column;gap:30px}}
+.b{{display:flex;gap:26px;align-items:flex-start;font-size:33px;font-weight:600;line-height:1.3;color:#ECEAE5}}
+.b .tick{{font-weight:800;font-size:24px;color:#B9A6FF;border:2px solid rgba(167,139,250,.45);border-radius:999px;padding:8px 18px;flex:0 0 auto}}
+.foot{{position:relative;margin-top:86px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.14);padding-top:44px}}
+.foot .u{{font-weight:800;font-size:28px;letter-spacing:.06em;color:#fff}}
+.foot .r{{font-weight:600;font-size:23px;letter-spacing:.14em;text-transform:uppercase;color:#9AA39C}}
+</style></head><body>
+<div class="story">
+  <div class="wm">MARKETS OF TMW<span>RELEASES · EDITION {ed["num"]}</span></div>
+  <div class="kick">{e(ed["window"])}</div>
+  <h1>{e(ed["title"])}</h1>
+  <div class="dek">{e(ed["dek"])}</div>
+  <div class="list">{bullets}</div>
+  <div class="foot"><span class="u">oftmw.com/releases</span><span class="r">Link in bio</span></div>
+</div>
+</body></html>"""
+    os.makedirs(f"{OUT_DIR}/{ed['slug']}/story", exist_ok=True)
+    with open(f"{OUT_DIR}/{ed['slug']}/story/index.html", "w", encoding="utf-8") as f:
+        f.write(h)
+
 if __name__ == "__main__":
     os.makedirs(OUT_DIR, exist_ok=True)
     for ed in EDITIONS:
         build_reader(ed)
+        build_story(ed)
     build_index()
     print(f"Wrote /releases index + {len(EDITIONS)} editions: " + ", ".join(x['slug'] for x in EDITIONS))
