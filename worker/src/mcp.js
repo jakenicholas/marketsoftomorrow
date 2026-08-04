@@ -93,7 +93,7 @@ const TOOLS = [
   },
   {
     name: 'list_post_drafts',
-    description: 'List article drafts (status=draft) waiting in the Studio.',
+    description: 'List article drafts (status=draft) waiting in the Studio — BOTH the "AI" tab and the human "Drafts" tab (each row carries `tab` and, when the draft is about a tracked project, `project_slug`). Call this FIRST when picking a story to write: if a draft already covers the same project (matching project_slug) or the same story, do NOT write another — a duplicate draft is the #1 failure. generate_article_draft also hard-refuses a second draft on an already-drafted project.',
     inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Max results (default 50)' } } },
   },
   {
@@ -2016,9 +2016,18 @@ const IMPL = {
   async list_post_drafts(args, env) {
     const limit = Math.min(Math.max(parseInt(args.limit, 10) || 50, 1), 100);
     const rows = (await env.DB.prepare(
-      `SELECT slug, title, excerpt, updated_at FROM posts WHERE status='draft' ORDER BY updated_at DESC LIMIT ${limit}`
+      `SELECT slug, title, excerpt, project_slug, body_html, source, updated_at FROM posts WHERE status='draft' ORDER BY updated_at DESC LIMIT ${limit}`
     ).all()).results || [];
-    return { count: rows.length, drafts: rows.map((r) => ({ slug: r.slug, title: r.title, excerpt: r.excerpt || '', updated: iso(r.updated_at), edit_url: 'https://admin.oftmw.com/post.html?id=&slug=' + r.slug })) };
+    return { count: rows.length, drafts: rows.map((r) => {
+      // Which project this draft covers — the structured column, else the in-body
+      // project-card embed. This is the key the daily-articles routine dedups on
+      // (an existing draft on the same project means DON'T write another).
+      let proj = r.project_slug || '';
+      if (!proj) { const m = String(r.body_html || '').match(/data-project=["']([a-z0-9-]+)["']/); if (m) proj = m[1]; }
+      return { slug: r.slug, title: r.title, excerpt: r.excerpt || '', project_slug: proj || undefined,
+        tab: r.source === 'ai' ? 'AI' : 'Drafts', updated: iso(r.updated_at),
+        edit_url: 'https://admin.oftmw.com/post.html?id=&slug=' + r.slug };
+    }) };
   },
 
   // ── Social-media carousels ───────────────────────────────────────────────
@@ -2418,6 +2427,27 @@ const IMPL = {
     // in the last ~4 months, refuse — pick a DIFFERENT story instead.
     const rej = await topicRejected(env, topic + ' ' + String(args.angle || ''));
     if (rej) throw new Error('TOPIC REJECTED BY EDITOR: a draft on this story ("' + rej.title + '") was deleted on ' + new Date(rej.rejected_at * 1000).toISOString().slice(0, 10) + ' — it is suppressed until ' + new Date(rej.until * 1000).toISOString().slice(0, 10) + '. Do NOT redraft it or a close variant; choose a different story.');
+    // ── DUPLICATE-DRAFT GUARD (the #1 failure mode). If a draft on the SAME
+    // tracked project already sits in EITHER tab (AI or human Drafts), refuse —
+    // a second draft on a project we've already drafted is a duplicate, no matter
+    // the angle. This is airtight (exact project match, no false positives); the
+    // nuanced "published recently unless it's genuinely major fresh news" call
+    // stays with the routine. A same-project draft found here means: refine that
+    // draft instead, or pick a different project.
+    const guardSlug = String(args.linked_project || args.project_slug || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (guardSlug) {
+      try {
+        const drs = (await env.DB.prepare(
+          "SELECT slug, title, project_slug, body_html, source FROM posts WHERE status='draft' ORDER BY updated_at DESC LIMIT 200"
+        ).all()).results || [];
+        const embed = new RegExp('data-project=["\']' + guardSlug + '["\']');
+        const dup = drs.find((r) => String(r.project_slug || '').toLowerCase() === guardSlug || embed.test(String(r.body_html || '')));
+        if (dup) throw new Error('DUPLICATE DRAFT EXISTS: "' + dup.title + '" (' + (dup.source === 'ai' ? 'AI' : 'Drafts') + ' tab) already covers this project (' + guardSlug + '). Do NOT write a second draft — refine that one with revise_article_draft, or choose a different project.');
+      } catch (e) {
+        if (String(e.message || '').startsWith('DUPLICATE DRAFT')) throw e;
+        // A DB read hiccup must never block a legitimate first draft.
+      }
+    }
     const brain = await assembleBrain(env, { topic, place: String(args.place || ''), surface: 'article' });
     // ── THE DATABASE DOSSIER: our own tracked data is AUTHORITATIVE and free —
     // the subject project's full record, the local pipeline, and the developer's
