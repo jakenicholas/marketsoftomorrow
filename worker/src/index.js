@@ -2673,15 +2673,21 @@ async function handleReviseDraft(req, env, origin) {
 
   // Apply only unambiguous edits (find matches exactly once). Literal splice,
   // never String.replace (article HTML/prices contain $ and other specials).
+  // `changes` = the plain-text of each inserted snippet, so the editor can flash
+  // a temporary highlight over exactly what moved.
   let out = body, applied = 0, skipped = 0;
+  const changes = [];
   for (const e of parsed.edits.slice(0, 16)) {
     const find = e && e.find != null ? String(e.find) : '';
     if (!find) { skipped++; continue; }
     let count = 0, idx = 0;
     while ((idx = out.indexOf(find, idx)) !== -1) { count++; idx += find.length; }
     if (count !== 1) { skipped++; continue; }
+    const rep = e.replace == null ? '' : String(e.replace);
     const at = out.indexOf(find);
-    out = out.slice(0, at) + (e.replace == null ? '' : String(e.replace)) + out.slice(at + find.length);
+    out = out.slice(0, at) + rep + out.slice(at + find.length);
+    const repText = stripTags(rep).slice(0, 400);
+    if (repText) changes.push(repText);
     applied++;
   }
   if (!applied) return json({ ok: false, error: 'Could not apply that cleanly (the edit targets did not match the current text). Try a more specific instruction, or edit inline.', summary: String(parsed.summary || '') }, {}, env, origin);
@@ -2689,7 +2695,56 @@ async function handleReviseDraft(req, env, origin) {
   const readingTime = Math.max(1, Math.round(stripTags(out).split(/\s+/).filter(Boolean).length / 200));
   await env.DB.prepare('UPDATE posts SET body_html=?1, reading_time_min=?2, updated_at=?3 WHERE slug=?4')
     .bind(out, readingTime, Math.floor(Date.now() / 1000), slug).run();
-  return json({ ok: true, summary: String(parsed.summary || 'Applied your edit.').slice(0, 240), applied, skipped, body_html: out }, {}, env, origin);
+  return json({ ok: true, summary: String(parsed.summary || 'Applied your edit.').slice(0, 240), applied, skipped, changes, body_html: out }, {}, env, origin);
+}
+
+// POST /admin/revise-feedback { slug, signal:'up'|'down'|'manual', before, after, instruction?, summary? }
+// The training signal behind the in-editor Polish chat. Every signal is banked
+// raw (event 'revise_feedback' = proof + corpus); the ones that carry a real
+// before→after correction ALSO flow into the exact same edit-pair pipeline the
+// publish-time learning loop uses (event 'edit_pair' + Vectorize embed), so
+// future generations retrieve them by topic relevance:
+//   • manual = the human tweaked what Fable wrote → before=Fable, after=human.
+//   • up     = the human endorsed Fable's edit    → before=pre-edit, after=Fable.
+//   • down   = a negative signal only (never banked as a positive pair).
+async function handleReviseFeedback(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim().toLowerCase();
+  const signal = ['up', 'down', 'manual'].includes(b.signal) ? b.signal : '';
+  if (!slug || !signal) return json({ error: 'slug + signal required' }, { status: 400 }, env, origin);
+  const strip = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const before = strip(b.before).slice(0, 600);
+  const after = strip(b.after).slice(0, 600);
+  const instruction = String(b.instruction || '').slice(0, 300);
+  const summary = String(b.summary || '').slice(0, 300);
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)')
+      .bind(now, 'revise:' + slug, 'revise_feedback', JSON.stringify({ slug, signal, instruction, summary, before, after })).run();
+  } catch (_) {}
+  let learned = false;
+  if ((signal === 'manual' || signal === 'up') && before && after && before !== after) {
+    try {
+      await env.DB.prepare('INSERT INTO events (ts, member_id, event_name, props_json) VALUES (?,?,?,?)')
+        .bind(now, slug, 'edit_pair', JSON.stringify({ slug, before: before.slice(0, 420), after: after.slice(0, 420), src: signal === 'manual' ? 'studio-tweak' : 'studio-endorse' })).run();
+      if (retrievalReady(env)) {
+        try {
+          const t = await env.DB.prepare('SELECT title FROM posts WHERE slug=?1').bind(slug).first();
+          const [vec] = await embedTexts(env, [((t && t.title || '') + '\n' + before).slice(0, 1500)]);
+          if (Array.isArray(vec)) {
+            await env.VECTORIZE.upsert([{ id: vecId('epair', slug + '-' + now), values: vec,
+              metadata: { kind: 'edit_pair', slug: slug.slice(0, 200), before: before.slice(0, 420), after: after.slice(0, 420) } }]);
+          }
+        } catch (_) {}
+      }
+      learned = true;
+    } catch (_) {}
+  }
+  const notes = { up: 'Endorsed — banked as a positive example.', down: 'Noted — I will steer away from that.', manual: 'Learning from your edit — banked the before and after.' };
+  return json({ ok: true, learned, note: notes[signal] }, {}, env, origin);
 }
 
 async function handleMember(env, origin, url) {
@@ -15809,6 +15864,7 @@ export default {
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/revise-feedback')     return await handleReviseFeedback(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/answer-web')                return await handleAnswerWeb(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/atlas/projection-full')     return await handleAtlasProjectionFull(request, env, origin);
