@@ -4657,13 +4657,16 @@ async function handleTravelAccessLog(req, env, origin, url) {
         domain: p.domain || ((p.identity || p.to || '').split('@')[1] || ''),
         slug: p.slug || '', country: p.country || '', city: p.city || '',
         region: p.region || '', ip: p.ip || '',
-        // "Nashville, TN" — what actually lets you recognise a password-holder.
+        // "Nashville, TN" — what actually lets you recognise a viewer.
         // Deliberately EMPTY when the edge gave no city: falling back to the
         // country would mix a bare "US" into the per-person place list and make
         // one person look like they opened it from two different places.
         place: [p.city, p.region].filter(Boolean).join(', '),
       };
-    });
+    })
+    // Passwords are gone: drop legacy anonymous 'password-holder' rows so they
+    // never surface in the feed, people count, or firm rollups again.
+    .filter(r => r.identity !== 'password-holder');
     const byDomain = {}, byPerson = {};
     for (const r of rows) {
       const d = r.domain || '(no email)';
@@ -4694,7 +4697,10 @@ async function handleTravelItinerary(req, env, origin, url) {
   if (!slug || !TRAVEL_STOPS[slug]) return json({ error: 'unknown trip' }, { status: 404 }, env, origin);
   let tok = null;
   try { if (k) tok = await verifyPayload(k, travelSecret(env)); } catch (_) {}
-  const okToken = !!(tok && tok.t === 'travel' && (tok.slug === '*' || tok.slug === slug));
+  // Email-bound tokens only. Legacy shared-password tokens carry to:'password-holder'
+  // (no email) — reject them so the visitor is signed out and re-prompted for an
+  // email, and so they stop logging anonymous 'password-holder' views.
+  const okToken = !!(tok && tok.t === 'travel' && (tok.slug === '*' || tok.slug === slug) && validEmail(tok.to || ''));
   if (!okToken) {
     // Admins can always read it (Studio preview); everyone else gets the teaser.
     const denied = await requireAdminToken(req, env, origin);
@@ -4714,7 +4720,7 @@ async function handleTravelItinerary(req, env, origin, url) {
           ip: req.headers.get('CF-Connecting-IP') || '',
           country: (req.cf && req.cf.country) || '',
           // Approx city/region from Cloudflare's edge — the practical way to tell
-          // WHICH password-holder this is ("that's the Nashville contact").
+          // WHICH recipient this is ("that's the Nashville contact").
           city: (req.cf && req.cf.city) || '',
           region: (req.cf && (req.cf.regionCode || req.cf.region)) || '',
           ua: (req.headers.get('User-Agent') || '').slice(0, 200),
