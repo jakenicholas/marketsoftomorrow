@@ -865,21 +865,65 @@
       "delivery_speculative": true
     },
     "ora-by-casa-tua": {
-      "estimate_years": 3.5,
-      "estimate_label": "~3.5 years",
-      "days_out": 1245,
-      "delivery_date": "2029-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
+      "estimate_years": 3.1,
+      "estimate_label": "~3.1 years",
+      "range_low": 2.0,
+      "range_high": 4.6,
+      "confidence": "medium",
+      "comparable_count": 7,
+      "good_count": 2,
+      "exact_count": 2,
+      "used_relaxed": false,
+      "avg_match_score": 0.49,
+      "avg_distance_km": 121.1,
+      "avg_distance_mi": 75.2,
+      "scale_used": true,
+      "firm_signal": {
+        "firm": "Arquitectonica",
+        "count": 12,
+        "median_years": 3.07,
+        "stddev_years": 1.75,
+        "role": "architect",
+        "consistent": false,
+        "blend_weight": 0.65
+      },
+      "source": "comparables",
       "project_type": "Residences",
       "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3.5 years.",
+      "comparables": [
+        {
+          "name": "E11EVEN® Club Hotel & Residences",
+          "slug": "e11even-club-hotel-residences",
+          "location": "Miami",
+          "years": 4.6,
+          "score": 1.0,
+          "distance_km": 2.5,
+          "distance_mi": 1.5
+        },
+        {
+          "name": "Casa Bella Residences Miami",
+          "slug": "casa-bella-residences-miami",
+          "location": "Miami",
+          "years": 2.5,
+          "score": 0.85,
+          "distance_km": 3.0,
+          "distance_mi": 1.9
+        },
+        {
+          "name": "The Residence at 400 Central",
+          "slug": "the-residence-at-400-central",
+          "location": "St. Petersburg",
+          "years": 3.1,
+          "score": 0.34,
+          "distance_km": 330.0,
+          "distance_mi": 205.0
+        }
+      ],
+      "pattern_summary": "Among 7 regional residences projects in TMW's data, the median build time is 3.1 years (range 2–4.6). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
-      "delivery_speculative": false
+      "delivery_speculative": false,
+      "is_mixed_use": false
     },
     "one-twenty-brickell-residences": {
       "estimate_years": 2.5,
@@ -905,15 +949,15 @@
       "delivery_date": "2028-12-15",
       "source": "known_date",
       "precision": "month",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~2.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~2.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "the-residence-at-400-central": {
       "estimate_years": 3.1,
@@ -3064,10 +3108,10 @@
     "colette-residences-by-meta-development": {
       "estimate_years": 2.5,
       "estimate_label": "~2.5 years",
-      "days_out": 864,
-      "delivery_date": "2028-12-15",
+      "days_out": 880,
+      "delivery_date": "2028-12-31",
       "source": "known_date",
-      "precision": "month",
+      "precision": "year",
       "confidence": "medium",
       "project_type": "Residences",
       "metro": "South Florida",
@@ -16313,14 +16357,14 @@
   },
   "stats": {
     "high": 7,
-    "medium": 24,
+    "medium": 25,
     "low": 82,
-    "known_date": 545,
+    "known_date": 544,
     "completed": 68,
     "skipped": 109,
     "no_type": 0,
-    "firm_boosted": 47,
-    "speculative_softened": 219,
+    "firm_boosted": 48,
+    "speculative_softened": 220,
     "district": 13,
     "mixed_use_adjusted": 30
   }
