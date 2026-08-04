@@ -2624,6 +2624,74 @@ async function handleWatchDelete(req, env, origin) {
     return json({ ok: true }, {}, env, origin);
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
 }
+// POST /admin/revise-draft { slug, instruction, context? } — the in-Studio
+// "polish" chat that lives in the article editor, so the team never has to leave
+// Studio for the Claude app. Applies the editor's instruction to a DRAFT as a
+// small set of SURGICAL find/replace edits on the prose (Fable-authored, voice-
+// grounded), so embedded images, galleries, and project cards are PRESERVED —
+// unlike revise_article_draft's full body_markdown rewrite, which flattens them.
+// Any pasted reference material is treated as verified facts to incorporate.
+// Admin-token gated. Returns a one-line summary + the updated body_html.
+async function handleReviseDraft(req, env, origin) {
+  const denied = await requireAdminToken(req, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
+  const slug = String(b.slug || '').trim().toLowerCase();
+  const instruction = String(b.instruction || '').trim();
+  const context = String(b.context || '').trim().slice(0, 8000);
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  if (!instruction) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
+  const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug=?1').bind(slug).first();
+  if (!row) return json({ error: 'no draft with that slug' }, { status: 404 }, env, origin);
+  if (row.status !== 'draft') return json({ error: 'only drafts can be revised here' }, { status: 400 }, env, origin);
+  const body = String(row.body_html || '');
+  const stripTags = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!stripTags(body)) return json({ error: 'this draft has no body text to edit yet' }, { status: 400 }, env, origin);
+
+  const brain = await assembleBrain(env, { topic: String(row.title || ''), place: '', surface: 'article' });
+  const sys = [
+    'You are the senior staff editor for Markets of Tomorrow (TMW). Apply the editor\'s instruction to the article DRAFT below as a small set of SURGICAL find/replace edits on the PROSE only.',
+    brain.text || '',
+    'OUTPUT: return ONLY JSON, no fences, no commentary: {"summary":"<one short sentence naming what you changed>","edits":[{"find":"<an EXACT, verbatim substring of the CURRENT BODY HTML, copied character-for-character including tags and whitespace, unique enough to match one place>","replace":"<the edited HTML>"}]}',
+    'HARD RULES:',
+    '- Every "find" MUST be copied verbatim from the CURRENT BODY HTML and match exactly ONE place. If you cannot copy it exactly, omit that edit.',
+    '- NEVER touch image, <figure>, <img>, gallery, slideshow, or project-card (data-project) markup. Edit prose text only; leave all media exactly where it sits.',
+    '- Preserve every verified fact, number, date, price, and firm name unless the instruction or the pasted REFERENCE MATERIAL explicitly corrects it. Do NOT invent facts beyond the reference material and what is genuinely, verifiably known. Never fabricate a quotation.',
+    '- Keep edits minimal and targeted; do not rewrite the whole article unless explicitly asked. TMW voice per the brain. Avoid em dashes.',
+  ].filter(Boolean).join('\n\n');
+  const usr = 'INSTRUCTION:\n' + instruction
+    + (context ? '\n\nREFERENCE MATERIAL the editor pasted (verified facts you may incorporate; do not exceed it):\n' + context : '')
+    + '\n\nCURRENT BODY HTML:\n' + body;
+  let raw = '';
+  try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3200 }); }
+  catch (e) { return json({ error: 'reviser model failed: ' + (e.message || e) }, { status: 502 }, env, origin); }
+  let parsed = null;
+  try { parsed = JSON.parse(raw); }
+  catch { try { parsed = JSON.parse(repairTruncatedJson(String(raw).replace(/^\s*```(?:json)?|```\s*$/g, ''))); } catch (_) {} }
+  if (!parsed || !Array.isArray(parsed.edits)) return json({ ok: false, error: 'The editor could not produce a clean edit. Try rephrasing the instruction.' }, {}, env, origin);
+
+  // Apply only unambiguous edits (find matches exactly once). Literal splice,
+  // never String.replace (article HTML/prices contain $ and other specials).
+  let out = body, applied = 0, skipped = 0;
+  for (const e of parsed.edits.slice(0, 16)) {
+    const find = e && e.find != null ? String(e.find) : '';
+    if (!find) { skipped++; continue; }
+    let count = 0, idx = 0;
+    while ((idx = out.indexOf(find, idx)) !== -1) { count++; idx += find.length; }
+    if (count !== 1) { skipped++; continue; }
+    const at = out.indexOf(find);
+    out = out.slice(0, at) + (e.replace == null ? '' : String(e.replace)) + out.slice(at + find.length);
+    applied++;
+  }
+  if (!applied) return json({ ok: false, error: 'Could not apply that cleanly (the edit targets did not match the current text). Try a more specific instruction, or edit inline.', summary: String(parsed.summary || '') }, {}, env, origin);
+  out = out.replace(/\s*—\s*/g, ', ');   // strip any stray em dashes
+  const readingTime = Math.max(1, Math.round(stripTags(out).split(/\s+/).filter(Boolean).length / 200));
+  await env.DB.prepare('UPDATE posts SET body_html=?1, reading_time_min=?2, updated_at=?3 WHERE slug=?4')
+    .bind(out, readingTime, Math.floor(Date.now() / 1000), slug).run();
+  return json({ ok: true, summary: String(parsed.summary || 'Applied your edit.').slice(0, 240), applied, skipped, body_html: out }, {}, env, origin);
+}
+
 async function handleMember(env, origin, url) {
   const memberId = url.searchParams.get('id');
   if (!memberId) return json({ error: 'id required' }, { status: 400 }, env, origin);
@@ -15740,6 +15808,7 @@ export default {
       if (request.method === 'GET'  && url.pathname === '/admin/member-history')      return await handleAdminMemberHistory(request, env, origin, url);
       if (request.method === 'POST' && url.pathname === '/admin/suggest-tags')        return await handleSuggestTags(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/admin/tag-feedback')        return await handleTagFeedback(request, env, origin);
+      if (request.method === 'POST' && url.pathname === '/admin/revise-draft')        return await handleReviseDraft(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/cancel-my-plan')            return await handleCancelMyPlan(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/answer-web')                return await handleAnswerWeb(request, env, origin);
       if (request.method === 'POST' && url.pathname === '/atlas/projection-full')     return await handleAtlasProjectionFull(request, env, origin);
