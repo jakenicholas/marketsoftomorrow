@@ -1,14 +1,20 @@
 name: Send Newsletter (Draft)
 
 on:
-  schedule:
-    # Tuesdays at 11:00 UTC (7 AM EDT / 6 AM EST)
-    - cron: '0 11 * * 2'
+  # Chained: runs when the Tuesday scheduled generate finishes, so the draft
+  # is always built from the digest generated MINUTES earlier, never stale.
+  workflow_run:
+    workflows: ["Generate Newsletter Digest"]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
   send:
     runs-on: ubuntu-latest
+    # Manual dispatch always runs; the chained trigger only follows a
+    # SUCCESSFUL run of the SCHEDULED generate (a manual regenerate mid-week
+    # must not mint a broadcast draft).
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'schedule') }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

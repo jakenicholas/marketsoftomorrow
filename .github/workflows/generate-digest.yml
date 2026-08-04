@@ -1,12 +1,16 @@
 # File: .github/workflows/generate-digest.yml
-# MANUAL ONLY. Refreshes digest-latest.html on demand — press "Run workflow"
-# Tuesday morning, then run send-digest.yml. Does NOT send anything.
+# Refreshes digest-latest.html. Runs on a Tuesday-morning cron (send-digest
+# chains off its completion, so the send always carries THIS run's content),
+# or on demand via "Run workflow" (manual runs do NOT trigger a send).
 # It reads the latest app_updates.md (image + bullets), ads.json, pulse.json
 # and posts API at run time, so the result is always current.
 
 name: Generate Newsletter Digest
 
 on:
+  schedule:
+    # Tuesdays at 10:00 UTC: 6 AM EDT (5 AM EST in winter; GitHub cron is UTC-only)
+    - cron: '0 10 * * 2'
   workflow_dispatch:
 
 # contents: write -> push the refreshed digest back to main
