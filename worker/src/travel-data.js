@@ -65,7 +65,7 @@ export const TRAVEL_STOPS = {
 
   europe: [
   // ── Part 0: Italy & the Adriatic (Sept 3 → 13) ──
-  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Airbnb', noClient:true, confirmed:true,
+  { loc:'Rome, Italy', nights:'3 Nights · Sept 4 → 7', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ start:true, date:'September 3', mode:'flight', note:'Depart home, arrive Rome the 4th' },
     vibe:'Opening nights in the Eternal City: a private base among the cobblestones, within walking reach of the Forum, the Pantheon, and Trastevere’s tables.',
     logi:[], imgs:[
