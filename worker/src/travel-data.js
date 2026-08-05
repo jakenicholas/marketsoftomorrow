@@ -93,6 +93,9 @@ export const TRAVEL_STOPS = {
     in:{ date:'Sept 14', mode:'flight', note:'Como or Dubrovnik → Mykonos' },
     vibe:'Set on a secluded cliffside overlooking Kalafati Beach, with a stunning 130-meter saltwater infinity pool, minimalist marble architecture, and a private dock, an ultra-exclusive escape away from the intense Mykonos crowds.',
     logi:[['Transit','Fly Aegean the morning of Sept 14, connecting through Athens (ATH), landing in Mykonos at <b>2:10 PM</b>.']],
+    todo:[
+      { a:'Dinner', t:'Apollo Bar', partner:'J/PR', img:'https://www.calimykonos.com/sites/default/files/2026-06/Cali-Apollo_dusk-1200x1600.jpg' }
+    ],
     imgs:[
       'https://www.calimykonos.com/sites/default/files/2025-06/Cali_hotel_mykonos-beach-Missoni_beach_resort.jpg',
       'https://images.trvl-media.com/lodging/79000000/78280000/78277600/78277523/46c088bb.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill'] },
