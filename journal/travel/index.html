@@ -109,6 +109,12 @@
 
   /* trips list */
   .trips{padding:12px 0 70px}
+  .trip.trip-older{display:none}
+  .trips.show-older .trip.trip-older{display:grid}
+  .trips-more{display:block;margin:28px auto 0;padding:13px 30px;border-radius:999px;border:1px solid rgba(176,96,58,.4);
+    background:transparent;color:#B0603A;font:700 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;
+    cursor:pointer;transition:background .18s,border-color .18s}
+  .trips-more:hover{background:rgba(176,96,58,.08);border-color:rgba(176,96,58,.6)}
   .trip{position:relative;display:grid;grid-template-columns:minmax(0,44%) 1fr;gap:30px;align-items:center;
         padding:26px;border:1px solid var(--hair);border-radius:20px;background:linear-gradient(180deg,#FBF6EC 0%,var(--cream) 100%);
         margin-top:22px;box-shadow:0 8px 30px rgba(74,57,43,.07)}
@@ -240,51 +246,67 @@ var TRIPS = [
     href:'/travel/2026/california/',
     img:'https://www.cultofmac.com/wp-content/uploads/2020/06/Apple-BigSur-Wallpaper5.jpg',
     partners:['Quinn','Nobu Hotels','J/PR','MacArthur Place Sonoma','C&R','Chateau St. Jean','Martis Camp'] },
-  { title:'Charleston', place:'Charleston, South Carolina', date:'July 17 – 21, 2026', upcoming:true, start:'2026-07-17', end:'2026-07-21',
+  { title:'Charleston', place:'Charleston, South Carolina', date:'July 2026', upcoming:true, start:'2026-07-17', end:'2026-07-21',
     href:'/travel/2026/charleston/',
     img:'https://www.charlestoncvb.com/assets/images/home/collage-1.jpg',
     partners:['Kate Hudson PR','Hotel Bennett'] },
-  { title:'Bimini', place:'Bimini, Bahamas', date:'May 27 — 30, 2026',
+  { title:'Bimini', place:'Bimini, Bahamas', date:'May 2026',
     img:'https://www.royalcaribbean.com/media-assets/pmc/content/dam/shore-x/bimini-bmi/2a19-exclusive-beach-cabana-for-4/private-beach-aerial-bimini.jpg?w=1920',
     partners:['Bimini Tides'] },
-  { title:'Four Seasons Fort Lauderdale', place:'Fort Lauderdale, Florida', date:'May 8 — 10, 2026',
+  { title:'Four Seasons Fort Lauderdale', place:'Fort Lauderdale, Florida', date:'May 2026',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/04a4e3ea5423-DJI_20250606074409_0238_F1.jpeg',
     partners:['Four Seasons'] },
-  { title:'Back in Tokyo', place:'Tokyo, Japan', date:'April 21 — 26, 2026',
+  { title:'Back in Tokyo', place:'Tokyo, Japan', date:'April 2026',
     img:'https://media.digitalnomads.world/wp-content/uploads/2021/02/20120635/tokyo-for-digital-nomads.jpg',
     partners:[] },
-  { title:'Maui, Kauai & Oahu', place:'Hawaii', date:'March 18 — April 21, 2026',
+  { title:'Maui, Kauai & Oahu', place:'Hawaii', date:'March – April 2026',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_bb843cc42cf247b4b9ad045666c4dd6d~mv2.webp',
     partners:['Quinn PR','C&R PR','REM Public Relations','Andaz Maui','Princeville Makai','Puakea','Alohalani','Koa Kea Resort','Hokuala'] },
-  { title:'New York City', place:'New York, New York', date:'March 5 — 8, 2026',
+  { title:'New York City', place:'New York, New York', date:'March 2026',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/db8e4a8c065e-iStock-178735930.jpg',
     partners:['Carli PR','Starlet PR','Slate Aviation'] },
-  { title:'Cabot Citrus Farms', place:'Brooksville, Florida', date:'December 11 — 14, 2025',
+  { title:'Cabot Citrus Farms', place:'Brooksville, Florida', date:'December 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/brooksville/cabot-citrus-farms.jpeg',
     partners:['Cabot'] },
-  { title:'The Florida Keys', place:'Florida, USA', date:'December 6 — 10, 2025',
+  { title:'The Florida Keys', place:'Florida, USA', date:'December 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_072eb313ecd645d8842f134ace8b34b8~mv2.jpeg',
     partners:['Bacchus','Little Palm Island','Three Waters Resort'] },
-  { title:'Paris', place:'Paris, France', date:'October 26 — 28, 2025',
+  { title:'Punta Cana', place:'Punta Cana, Dominican Republic', date:'December 2025',
+    img:'https://assets.dream.clubmed/pm_7531_792_792495-ox76li54l9-swhr.jpg', partners:[] },
+  { title:'Paris', place:'Paris, France', date:'October 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_4ec3d6c43a9f4a5a8f6ab633be791253~mv2.avif', partners:[] },
-  { title:'London', place:'London, United Kingdom', date:'October 22 — 25, 2025',
+  { title:'London', place:'London, United Kingdom', date:'October 2025',
     img:'https://res.klook.com/image/upload/fl_lossy.progressive,q_60/v1755071506/destination/f8u2ktjkdlnbyrif6yls.jpg', partners:['LDPR','One Aldwych'] },
-  { title:'A drive around Iceland', place:'Iceland', date:'October 14 — 21, 2025',
+  { title:'A drive around Iceland', place:'Iceland', date:'October 2025',
     img:'https://images.travelandleisureasia.com/wp-content/uploads/sites/3/2024/02/12190030/Kirkjufell.jpg', partners:[] },
-  { title:'New York City', place:'New York, New York', date:'October 11 — 13, 2025',
+  { title:'New York City', place:'New York, New York', date:'October 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/db8e4a8c065e-iStock-178735930.jpg', partners:['RE: Agency','Dream Global'] },
-  { title:'Orange County, Lake Tahoe\n& Yosemite', place:'California', date:'September 11 — 20, 2025',
+  { title:'Orange County, Lake Tahoe\n& Yosemite', place:'California', date:'September 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg', partners:['C&R PR','Clear Creek Tahoe'] },
-  { title:'Streamsong', place:'Bowling Green, Florida', date:'May 8 — 11, 2025',
+  { title:'Streamsong', place:'Bowling Green, Florida', date:'May 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/bowling-green/streamsong-resort-2.jpeg', partners:['Streamsong'] },
-  { title:'North & South New Zealand', place:'New Zealand', date:'April 7 — 15, 2025',
+  { title:'North & South New Zealand', place:'New Zealand', date:'April 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_908fe409d8c84a6db3f12bab2d5692e4~mv2.jpg', partners:[] },
-  { title:'Sydney & Great Barrier Reef', place:'Australia', date:'March 31 — April 7, 2025',
+  { title:'Sydney & Great Barrier Reef', place:'Australia', date:'March – April 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_f91b669784ee4dd7848914e05212d612~mv2.webp', partners:[] },
-  { title:'Tokyo & Kyoto', place:'Japan', date:'March 24 — 30, 2025',
+  { title:'Tokyo & Kyoto', place:'Japan', date:'March 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_1a8728377c2944b289dcbd42da62eebd~mv2.jpg', partners:[] },
-  { title:'Big Island, Kauai & Oahu', place:'Hawaii', date:'March 11 — 23, 2025',
+  { title:'Big Island, Kauai & Oahu', place:'Hawaii', date:'March 2025',
     img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e44b8ec79f074f3ea78c844f8f80f38f~mv2.jpg', partners:['Quinn','Koa Kea Resort','Princeville Makai','The Surfjack Waikiki'] },
+  { title:'The Islander', place:'Islamorada, Florida', date:'March 2025',
+    img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e8a7c148f72f4ebfaae34ae8afb6ca8e~mv2.jpeg', partners:[] },
+  // ── Pre-2025: hidden behind the "Load older trips" button ──
+  { title:'San Diego & Orange County', place:'California', date:'December 2024', older:true,
+    img:'https://media.cntraveler.com/photos/5a99b5c9b00933493b9a6d42/16:9/w_2560%2Cc_limit/SAN-DIEGO_Balboa-Park_2018_Balboa-Park_2018_Balboa-Park-Casa-del-Prado--Courtesy-Joanne-DiBona-SanDiego.jpg', partners:[] },
+  { title:'Tampa', place:'Tampa, Florida', date:'February 2024', older:true,
+    img:'https://cache.marriott.com/is/image/marriotts7prod/ak-tparo-outdoorpool--16214:Feature-Hor?wid=1920&fit=constrain',
+    partners:['Oxford Commons','Three Oaks Hospitality','Cabot Citrus Farms','Meat Market'] },
+  { title:'Washington D.C.', place:'Washington, D.C.', date:'January 2024', older:true,
+    img:'https://images.musement.com/cover/0001/43/washington_header-42349.jpeg', partners:[] },
+  { title:'Rome, Amalfi Coast & Florence', place:'Italy', date:'May 2023', older:true,
+    img:'https://assets.hiphotels.com/attachments/648af6459c0e1504cf0002d4/hd.jpg?1686828610', partners:[] },
+  { title:'Cairo & Luxor', place:'Egypt', date:'May 2023', older:true,
+    img:'https://orionmagazine.org/wp-content/uploads/2015/09/8589130570139-dusk-camel-pyramids-cairo-egypt-top-travel-lists-wallpaper-hd.jpg', partners:[] },
 ];
 
 // Warm Mediterranean gradients for placeholder tiles, cycled by index.
@@ -349,13 +371,20 @@ function tripHtml(t, i){
     +   partnersHtml(t.partners, t.openCTA)
     +   ((t.href && st !== 'ended') ? '<span class="trip-link">View itinerary <span class="arw">→</span></span>' : '')
     + '</div>';
-  var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '');
+  var cls = 'trip' + (st !== 'ended' ? ' upcoming' : '') + (t.older ? ' trip-older' : '');
   // Ended trips are non-clickable (no detail link, no "View itinerary") even if they still carry an href.
   return (t.href && st !== 'ended')
     ? '<a class="'+cls+'" href="'+esc(t.href)+'">'+inner+'</a>'
     : '<article class="'+cls+'">'+inner+'</article>';
 }
-document.getElementById('trips').innerHTML = TRIPS.map(tripHtml).join('');
+(function(){
+  var el = document.getElementById('trips');
+  var hasOlder = TRIPS.some(function(t){ return t.older; });
+  el.innerHTML = TRIPS.map(tripHtml).join('')
+    + (hasOlder ? '<button type="button" class="trips-more" id="tripsMore">Load older trips</button>' : '');
+  var btn = document.getElementById('tripsMore');
+  if (btn) btn.addEventListener('click', function(){ el.classList.add('show-older'); btn.remove(); });
+})();
 
 // ── Markets visited: single source for the grid + the world map. To make this
 // Studio-managed later, swap MARKETS for a fetch('/list/markets') and render the same. ──
