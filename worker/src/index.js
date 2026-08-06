@@ -9453,7 +9453,7 @@ async function buildReportCard(env) {
 async function sendBrainReportEmail(env, card) {
   if (!env.RESEND_API_KEY || !card) return false;
   const to = env.BRAIN_REPORT_TO || 'jake@oftmw.com';
-  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';
+  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const ret = card.retention || {}; const t = card.tiers || {};
   const pct = (v) => v == null ? 'n/a' : v + '%';
@@ -15732,7 +15732,7 @@ async function handleTravelPartner(request, env, origin) {
     lines.push('', 'Italy, The Isles & The Alps · Private Itinerary');
     return lines.join('\n');
   };
-  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@marketsoftomorrow.com>';
+  const FROM = env.RESEND_FROM || 'Markets of Tomorrow <media@oftmw.com>';
   const send = async (to, subject, introHtml, introText, replyTo) => {
     const payload = { from: FROM, to: Array.isArray(to) ? to : [to], subject, html: htmlShell(introHtml), text: textShell(introText) };
     if (replyTo) payload.reply_to = replyTo;

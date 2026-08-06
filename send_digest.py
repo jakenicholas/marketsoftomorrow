@@ -16,7 +16,7 @@ Subject format:
 Env vars (set in GitHub Actions secrets):
   - RESEND_API_KEY       Your Resend API key
   - RESEND_AUDIENCE_ID   The audience UUID to send to (Readers Subscribers)
-  - RESEND_FROM          Sender, e.g. "Markets of Tomorrow <media@marketsoftomorrow.com>"
+  - RESEND_FROM          Sender, e.g. "Markets of Tomorrow <media@oftmw.com>"
 """
 
 import os, sys, time
@@ -28,7 +28,7 @@ import requests
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 API_KEY     = os.environ.get("RESEND_API_KEY", "").strip()
 AUDIENCE_ID = os.environ.get("RESEND_AUDIENCE_ID", "").strip()
-FROM_ADDR   = os.environ.get("RESEND_FROM", "Markets of Tomorrow <media@marketsoftomorrow.com>").strip()
+FROM_ADDR   = os.environ.get("RESEND_FROM", "Markets of Tomorrow <media@oftmw.com>").strip()
 
 HTML_PATH    = "newsletter/digest-latest.html"
 SUBJECT_PATH = "newsletter/digest-subject.txt"

@@ -46,6 +46,10 @@ BLOG_FEED_URL = "https://www.oftmw.com/blog-feed.xml"
 # no re-migration needed since only the base changes.
 MEDIA_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
 
+# Resend sender (not a secret — just the visible From). Verified Resend domain is
+# oftmw.com; replies land in the media@oftmw.com Google Workspace mailbox.
+RESEND_FROM = "Markets of Tomorrow <media@oftmw.com>"
+
 # Onyx Deep credit packs — Stripe one-time price IDs (product "Onyx Deep Credits").
 # DEEP_PACK_10_PRICE = 10 deep searches for $5; DEEP_PACK_25_PRICE = 25 for $10.
 # Consumed by /deep-checkout (see DEEP_PACKS in src/index.js). Price IDs are not
