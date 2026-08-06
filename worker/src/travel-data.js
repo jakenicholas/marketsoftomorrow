@@ -35,7 +35,7 @@ export const TRAVEL_STOPS = {
       { a:'Explore', t:'Carmel-by-the-Sea', img:'https://sarahseeksadventure.com/wp-content/uploads/2023/11/IMG_2699-1024x683.jpg' },
       { a:'Explore', t:'Bixby Creek Bridge', img:'https://images.squarespace-cdn.com/content/v1/5a5986b2cf81e095e172ce87/1597531116722-41NP8HVUE7BPQI0DYJES/flyingdawnmarie-bixby-creek-bridge-04-banner.jpg' },
       { a:'Explore', t:'Pfeiffer Beach', img:'https://www.bemytravelmuse.com/wp-content/uploads/2020/05/Pfeiffer-Beach-3.jpg' },
-      { a:'Explore', t:'Julia Pfeiffer Burns State Park', img:'https://hotelin.com/storage/iF1eVECXG0Xbh3rQRW3krGRYQzZxyRFuFmLDmg72.jpg' },
+      { a:'Explore', t:'Julia Pfeiffer Burns State Park', img:'https://www.travelandleisure.com/thmb/h3YE-IFCMRTab85fNW0ir6JxP28=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-mcway-waterfall-julia-pfeiffer-burns-state-park-JULIAPFEIFFERBURNPARK0326-fce67b202d604b5981bd01969dea8cce.jpg' },
       { a:'Check-in', t:'Hotel Paradox', img:'https://www.visittheusa.com/wp-content/uploads/2025/11/Capitola-Village_Sunset-Venetians_credit-VSCC-and-Praveen-PN_20181920px.jpg' }
     ],
     imgs:['https://static01.nyt.com/images/2018/10/07/travel/07highwayone1/07highwayone1-superJumbo.jpg'] },
