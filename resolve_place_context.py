@@ -98,6 +98,23 @@ def geocode(q, proximity=None, types=None, country=None):
     return feats[0] if feats else None
 
 
+def sb_forward(q, proximity=None):
+    """POI lookup via Search Box (Geocoding v6 has no poi type). Returns a
+    geocode-shaped dict: {name, lat, lng, mapbox_id, full_address} or None."""
+    p = {"q": q, "limit": 1, "language": "en", "types": "poi"}
+    if proximity: p["proximity"] = f"{proximity[1]},{proximity[0]}"
+    j = mb_get("https://api.mapbox.com/search/searchbox/v1/forward", p)
+    feats = (j or {}).get("features") or []
+    if not feats: return None
+    f = feats[0]
+    c = (f.get("geometry") or {}).get("coordinates") or []
+    if len(c) != 2: return None
+    props = f.get("properties") or {}
+    return {"name": props.get("name"), "lat": c[1], "lng": c[0],
+            "mapbox_id": props.get("mapbox_id"),
+            "full_address": props.get("full_address") or props.get("place_formatted")}
+
+
 def resolve_project(p):
     """Canonical address + neighborhood + proposed point for one project."""
     lat, lng = float(p.get("Latitude") or 0), float(p.get("Longitude") or 0)
@@ -106,18 +123,32 @@ def resolve_project(p):
     iso = ISO2.get(country.lower())
     prox = (lat, lng) if lat and lng else None
 
-    feat = None
-    if street and city:
-        feat = geocode(f"{street}, {city}, {country}".strip(", "),
-                       proximity=prox, types="address", country=iso)
-    if not feat:  # no street (resorts/clubs) → try the project itself as a POI
-        feat = geocode(f"{p.get('Title','')}, {city}, {country}".strip(", "),
-                       proximity=prox, types="poi", country=iso)
-
     out = {"canonical": None, "neighborhood": (p.get("Neighborhood") or "").strip() or None,
            "mapbox_id": None, "confidence": 0.3,
            "point": {"lat": lat, "lng": lng, "status": "kept"},
            "proposed_point": None, "delta_m": None}
+
+    feat = None
+    if street and city:
+        feat = geocode(f"{street}, {city}, {country}".strip(", "),
+                       proximity=prox, types="address", country=iso)
+    if not feat:  # no street (resorts/clubs) → the project itself as a POI (Search Box)
+        poi = sb_forward(f"{p.get('Title','')}, {city}, {country}".strip(", "), proximity=prox)
+        if poi:
+            out["canonical"] = poi["full_address"]
+            out["mapbox_id"] = poi["mapbox_id"]
+            out["confidence"] = 0.75
+            if lat and lng:
+                delta = hav_km(lat, lng, poi["lat"], poi["lng"]) * 1000
+                out["delta_m"] = round(delta)
+                if delta <= REVIEW_DELTA_M:
+                    out["point"] = {"lat": poi["lat"], "lng": poi["lng"], "status": "snapped"}
+                else:
+                    out["proposed_point"] = {"lat": poi["lat"], "lng": poi["lng"]}
+                    out["point"]["status"] = "review"
+            else:
+                out["point"] = {"lat": poi["lat"], "lng": poi["lng"], "status": "snapped"}
+        return out
     if not feat:
         return out
 
@@ -208,17 +239,26 @@ def load_list_places(cache):
     for lslug, prov in LIST_SLUGS.items():
         try:
             doc = requests.get(f"{WORKER}/list/{lslug}", timeout=20).json()
+            doc = doc.get("data") or doc          # worker wraps the list under `data`
         except Exception:
             print(f"[warn] could not load /list/{lslug}"); continue
-        for it in (doc.get("items") or []):
+        items = doc.get("items") or []
+        if not items:
+            print(f"[warn] /list/{lslug}: 0 items — shape change?")
+        for it in items:
             key = f"{lslug}/{it.get('id') or it.get('name')}"
             got = cache.get(key)
             if not got or not got.get("lat"):
-                feat = geocode(f"{it.get('name','')}, {it.get('location','')}", types="poi") \
-                    or geocode(f"{it.get('name','')}, {it.get('location','')}")
-                c = ((feat or {}).get("properties") or {}).get("coordinates") or {}
-                got = {"name": it.get("name"), "location": it.get("location"),
-                       "lat": c.get("latitude"), "lng": c.get("longitude")}
+                q = f"{it.get('name','')}, {it.get('location','')}"
+                poi = sb_forward(q)               # POIs live in Search Box, not v6
+                if poi:
+                    got = {"name": it.get("name"), "location": it.get("location"),
+                           "lat": poi["lat"], "lng": poi["lng"]}
+                else:                             # fallback: place-level geocode
+                    feat = geocode(q)
+                    c = ((feat or {}).get("properties") or {}).get("coordinates") or {}
+                    got = {"name": it.get("name"), "location": it.get("location"),
+                           "lat": c.get("latitude"), "lng": c.get("longitude")}
                 cache[key] = got
             if got.get("lat"):
                 places.append({**got, "provenance": prov, "ref": key})
