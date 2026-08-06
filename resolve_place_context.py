@@ -135,19 +135,23 @@ def resolve_project(p):
     if not feat:  # no street (resorts/clubs) → the project itself as a POI (Search Box)
         poi = sb_forward(f"{p.get('Title','')}, {city}, {country}".strip(", "), proximity=prox)
         if poi:
+            delta = hav_km(lat, lng, poi["lat"], poi["lng"]) * 1000 if (lat and lng) else None
+            # A POI "match" far from our curated pin is a WRONG PLACE (name
+            # collision), not a better location — reject it, don't review-flag.
+            if delta is not None and delta > 2500:
+                return out
             out["canonical"] = poi["full_address"]
             out["mapbox_id"] = poi["mapbox_id"]
             out["confidence"] = 0.75
-            if lat and lng:
-                delta = hav_km(lat, lng, poi["lat"], poi["lng"]) * 1000
+            if delta is None:
+                out["point"] = {"lat": poi["lat"], "lng": poi["lng"], "status": "snapped"}
+            else:
                 out["delta_m"] = round(delta)
                 if delta <= REVIEW_DELTA_M:
                     out["point"] = {"lat": poi["lat"], "lng": poi["lng"], "status": "snapped"}
                 else:
                     out["proposed_point"] = {"lat": poi["lat"], "lng": poi["lng"]}
                     out["point"]["status"] = "review"
-            else:
-                out["point"] = {"lat": poi["lat"], "lng": poi["lng"], "status": "snapped"}
         return out
     if not feat:
         return out

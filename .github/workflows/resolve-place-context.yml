@@ -70,8 +70,10 @@ jobs:
             echo "No changes."
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            git pull --rebase --autostash origin main
+            # Commit BEFORE rebasing — autostash pops as unstaged and empties
+            # the commit; a committed change rebases cleanly instead.
             git commit -m "place-context: resolve refresh"
+            git pull --rebase origin main
             git push
           fi
 
