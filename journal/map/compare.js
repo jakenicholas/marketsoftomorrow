@@ -839,7 +839,7 @@
       <!-- FOOTER: brand mark + link back to main site -->
       <footer class="cv-footer">
         <div class="cv-footer-brand">
-          <img class="cv-footer-logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
+          <img class="cv-footer-logo" src="https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow" />
         </div>
         <a class="cv-footer-link" href="/" target="_blank" rel="noopener">View full map at oftmw.com →</a>
       </footer>

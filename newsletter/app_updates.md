@@ -1,5 +1,5 @@
 # TMW Pro is Here
-image: https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/08/268bfb3f81ec-ezgif.com-speed.gif
+image: https://media.oftmw.com/2026/08/268bfb3f81ec-ezgif.com-speed.gif
 
 • Member Status — Secure your member number, build your passport, and create your personalized dashboard
 

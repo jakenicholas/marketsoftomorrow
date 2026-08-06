@@ -23,7 +23,7 @@ RSS_URL = "https://www.oftmw.com/blog-feed.xml"
 SITE_URL = "https://www.oftmw.com/map"
 
 # Public R2 base — migrated Wix images serve from here (bypassing the Worker).
-R2_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
+R2_PUBLIC_BASE = "https://media.oftmw.com"
 _WIX_RE = re.compile(r'https?://static\.wixstatic\.com/media/([^/\s"\')?]+)(?:/[^\s"\')]*)?', re.I)
 def wix_to_r2(url):
     """Rewrite a Wix CDN image URL to our public R2 (strips transform suffix)."""

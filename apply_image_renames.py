@@ -13,7 +13,7 @@ the entries whose new key is confirmed live (consumed by the reference rewrite).
 import json, subprocess, argparse, tempfile, os, re, urllib.request, collections, sys, threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-BASE   = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
+BASE   = "https://media.oftmw.com"
 BUCKET = "tmw-media"
 CT = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
       'webp': 'image/webp', 'avif': 'image/avif', 'gif': 'image/gif'}

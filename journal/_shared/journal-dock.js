@@ -981,7 +981,7 @@
       var fav = document.createElement('link');
       fav.rel = 'icon';
       fav.type = 'image/png';
-      fav.href = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png';
+      fav.href = 'https://media.oftmw.com/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png';
       document.head.appendChild(fav);
     }
 
@@ -1231,7 +1231,7 @@
     { key: 'florida',   name: 'Florida of Tomorrow',   h: 'floridaoftomorrow',   img: '/media/img/9998de3ca8af.jpg', flag: true,  s: ['160K', '3.5M', '1.2M', '150K'] },
     // TODO(jake): stats below are placeholders — swap for the real Hotels of
     // Tomorrow media-kit numbers when available.
-    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg', flag: false, s: ['20K', '1.1M', '60K', '12K'] },
+    { key: 'hotels',    name: 'Hotels of Tomorrow',    h: 'hotelsoftomorrow',    img: 'https://media.oftmw.com/wix/ca3b83_d7cb537f27f14e05b15e4787e1fa7d29~mv2.jpg', flag: false, s: ['20K', '1.1M', '60K', '12K'] },
     { key: 'new-york',  name: 'New York of Tomorrow',  h: 'newyorkoftomorrow',   img: '/media/img/e3c8a4e4ff38.jpg', flag: false, s: ['10K', '297K', '22K', '19K'] },
     { key: 'tennessee', name: 'Tennessee of Tomorrow', h: 'tennesseeoftomorrow', img: '/media/img/d3ce63b84f46.jpg', flag: false, s: ['12K', '305K', '41K', '32K'] },
     { key: 'caribbean', name: 'Caribbean of Tomorrow', h: 'caribbeanoftomorrow', img: '/media/img/5d9804404207.jpg', flag: false, s: ['2.5K', '88K', '12K', '5.7K'] },
@@ -1439,9 +1439,9 @@
   }
 
   function theListsPanel() {
-    var IMG_H = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg';
-    var IMG_R = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
-    var IMG_G = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
+    var IMG_H = 'https://media.oftmw.com/wix/ca3b83_07e4600c7eb745c28897b90cbab6d7ff~mv2.jpeg';
+    var IMG_R = 'https://media.oftmw.com/wix/ca3b83_42e28b9d09364b0ca9b3c4d6ca2e9498~mv2.jpeg';
+    var IMG_G = 'https://media.oftmw.com/wix/ca3b83_d11891954f1f433f9d6a933b28d7cf5f~mv2.jpeg';
     return '<div class="tmw-nav-eyebrow">The definitive ranked guides</div><div class="tmw-ll">' +
       '<a class="tmw-lc-feat" href="/hotels/#list"><img src="' + IMG_H + '" alt="Iconic Hotels" loading="lazy">' +
         '<div class="tmw-lc-fm"><div class="tmw-lc-eye">The flagship guide</div><h3>Iconic Hotels</h3>' +

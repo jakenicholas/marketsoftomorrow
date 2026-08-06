@@ -5279,7 +5279,7 @@ async function handleCorpus(env, origin, url) {
 // Strips Wix CDN transform suffixes (…~mv2.jpg/v1/fill/…) back to the original.
 const WIX_IMG_RE = /https?:\/\/static\.wixstatic\.com\/media\/([^\/\s"')?]+)(?:\/[^\s"')]*)?/gi;
 // Public R2 base (r2.dev) — images serve straight from R2, bypassing the Worker.
-const R2_PUBLIC_BASE = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev';
+const R2_PUBLIC_BASE = 'https://media.oftmw.com';
 function wixImagesToR2(s) {
   if (!s) return s;
   // Also re-point any older worker-served /media URLs to the public R2 base.
@@ -8270,7 +8270,7 @@ async function handleDesignFromPost(req, env, origin) {
     'Caribbean': 'caribbeanoftomorrow', 'Rockies': 'rockiesoftomorrow', 'Hotels': 'hotelsoftomorrow', 'Markets': 'marketsoftomorrow',
   };
   const handle = ACCT_HANDLE[market] || 'marketsoftomorrow';
-  const DESIGN_DEFAULT_AVATAR = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_0aa909e8efc046dab5ce57c4481ca423~mv2.jpg';
+  const DESIGN_DEFAULT_AVATAR = 'https://media.oftmw.com/wix/ca3b83_0aa909e8efc046dab5ce57c4481ca423~mv2.jpg';
   // doc.market drives the per-market logo lockup on every slide (design editor
   // applies MARKET_LOGOS[market] on load).
   const doc = {
@@ -14494,7 +14494,7 @@ body{margin:0;min-height:100vh;display:flex;justify-content:center;padding:24px;
 <body>
   <pre class="bg" aria-hidden="true">${bg}</pre>
   <div class="card${passport ? ' wide' : ''}">
-    <img class="logo" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
+    <img class="logo" src="https://media.oftmw.com/wix/other/16f511-MARKETSOFTMW.svg" alt="Markets of TMW">
     ${passport ? '<div class="tabs"><button class="tab on" data-p="mem">Membership</button><button class="tab" data-p="pp">Passport</button></div>' : ''}
     <div class="panel on" data-panel="mem">
       <div class="status"><span class="dot"></span>${statusWord}</div>
@@ -14834,7 +14834,7 @@ async function handlePostComment(request, env, origin) {
 // Admin: CRUD + entry export. Entrants are added to the Resend newsletter
 // audience (RESEND_AUDIENCE_ID) — entering grows the list. Best-effort: a
 // Resend failure never blocks the recorded entry.
-const GIVEAWAY_R2 = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/';
+const GIVEAWAY_R2 = 'https://media.oftmw.com/wix/';
 async function ensureGiveawayTables(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS giveaways (
     id TEXT PRIMARY KEY, title TEXT NOT NULL, prize TEXT, sponsor TEXT, image TEXT,

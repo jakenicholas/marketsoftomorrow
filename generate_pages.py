@@ -15,8 +15,8 @@ SITE_URL = "https://www.oftmw.com/map"
 # map (/map/...). SITE_URL stays the map base for "View Map" links + ?project=
 # modal deep-links; ROOT_URL is the base for the project pages themselves.
 ROOT_URL = "https://www.oftmw.com"
-DEFAULT_IMAGE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
-LOGO_URL = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
+DEFAULT_IMAGE = "https://media.oftmw.com/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
+LOGO_URL = "https://media.oftmw.com/wix/ca3b83_71f3cd2ef61049028b2daf4e2ff71d52~mv2.png"
 
 # Mapbox static image config — used for the mini map preview at bottom of project pages
 MAPBOX_TOKEN = "pk.eyJ1IjoiZmxvcmlkYW9mdG9tb3Jyb3ciLCJhIjoiY2xrYmpmdGQ2MGdibTNzcXZjMnA4aXh3ZiJ9.uBeYS7jmKwWS6xAgY-R1UA"

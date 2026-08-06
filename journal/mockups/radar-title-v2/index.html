@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Radar kicker, 4 options · TMW mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#070807;--white:#fff;--cream:#ECEAE5;--mute:#9AA39C;--mute2:#C2C9C3;--green:#1FDF67;--gold:#e6c574;--gold-soft:#f0d68a;--red:#FF4D4D;--hair:rgba(255,255,255,.14);
+    --serif:'Fraunces',Georgia,serif;--mono:'Inter',-apple-system,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ink);color:var(--cream);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .top{position:sticky;top:0;z-index:50;background:rgba(7,8,7,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .top h1{font-size:14px;font-weight:800}
+  .top span{color:#6b736c;font-weight:500;font-size:13px}
+  .sw{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+  .sw button{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:9px 15px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer}
+  .sw button.on{color:#12091f;background:#B9A6FF;border-color:#B9A6FF}
+  .vt{display:flex;gap:6px;margin-left:14px}
+  .vt button{font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:9px 15px;border-radius:999px;border:1px solid var(--hair);background:transparent;color:var(--mute);cursor:pointer}
+  .vt button.on{color:#062a13;background:var(--green);border-color:var(--green)}
+
+  .rank-hero{position:relative;text-align:center;padding-bottom:40px}
+  .rh-img{position:relative;height:min(48vh,440px);overflow:hidden}
+  .rh-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(1.02);
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 42%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 42%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.42) 72%,rgba(0,0,0,.18) 84%,transparent 97%)}
+  .rh-inner{position:relative;z-index:2;margin-top:-34px;padding:0 22px}
+  .rh-kicker{font-size:11px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--gold-soft);display:flex;justify-content:center;align-items:center;gap:0;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+  .rh-title{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,62px);line-height:1.02;letter-spacing:-.02em;color:var(--white);max-width:920px;margin:18px auto 0;text-wrap:balance;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+  .rh-title em{font-style:italic;color:var(--gold-soft);font-weight:400}
+  .rh-sub{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(15px,1.6vw,19px);color:#E7DCC6;max-width:64ch;margin:16px auto 0;line-height:1.55;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+  .rh-tabs{display:flex;justify-content:center;gap:8px;margin-top:26px}
+  .rh-tabs .tb{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:10px 18px;border-radius:999px;border:1px solid var(--hair);color:var(--mute2)}
+  .rh-tabs .tb.on{color:#fff;font-weight:700;background:rgba(167,139,250,.10);box-shadow:inset 0 0 0 1px rgba(167,139,250,.55),0 0 15px rgba(167,139,250,.20)}
+
+  /* kicker pieces */
+  .kx{display:inline-flex;align-items:center}
+  .k-sep{padding:0 12px;color:rgba(240,214,138,.45)}
+  .k-live{color:var(--red);text-shadow:0 0 16px rgba(255,77,77,.55),0 0 4px rgba(255,77,77,.35)}
+  .k-dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 10px rgba(255,77,77,.9);margin:0 12px;animation:rec 1.5s ease-in-out infinite}
+  @keyframes rec{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+  .k-pill{display:inline-flex;align-items:center;gap:7px;margin-left:14px;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,77,77,.5);background:rgba(255,77,77,.09);color:var(--red);font-size:10px;letter-spacing:.2em;text-shadow:none;box-shadow:0 0 16px rgba(255,77,77,.2)}
+  .k-pill .k-dot{margin:0}
+  .k-green .k-dot{background:var(--green);box-shadow:0 0 10px rgba(31,223,103,.9)}
+  .k-green.k-live, .k-green .k-live{color:var(--green);text-shadow:0 0 16px rgba(31,223,103,.5),0 0 4px rgba(31,223,103,.3)}
+  /* radar sweep icon */
+  .k-radar{position:relative;width:16px;height:16px;margin:0 12px;flex:0 0 auto}
+  .k-radar .ring{position:absolute;inset:0;border-radius:50%;border:1.4px solid rgba(255,77,77,.55)}
+  .k-radar .ctr{position:absolute;left:50%;top:50%;width:3px;height:3px;border-radius:50%;background:var(--red);transform:translate(-50%,-50%);box-shadow:0 0 6px rgba(255,77,77,.9)}
+  .k-radar .sweep{position:absolute;inset:1.4px;border-radius:50%;background:conic-gradient(from 0deg, rgba(255,77,77,.75), rgba(255,77,77,.18) 70deg, transparent 110deg);animation:sweep 2.6s linear infinite}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.k-dot,.k-radar .sweep{animation:none}}
+
+  .note{max-width:860px;margin:0 auto;padding:26px 22px 60px;color:var(--mute);font-size:13.5px;line-height:1.65;border-top:1px solid rgba(255,255,255,.07)}
+  .note b{color:var(--cream)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>The live kicker, four ways</h1><span>title locked: "Openings, Tracked Live" · Ranking tab keeps "· 2026 Edition"</span>
+  <div class="vt"><button data-v="hotel" class="on">Hotels</button><button data-v="golf">Golf</button></div>
+  <div class="sw">
+    <button data-o="a" class="on">A · Red dot inline</button>
+    <button data-o="b">B · Live pill</button>
+    <button data-o="c">C · Radar sweep</button>
+    <button data-o="d">D · House green</button>
+  </div>
+</div>
+
+<section class="rank-hero">
+  <div class="rh-img"><img id="heroImg" src="https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg" alt=""></div>
+  <div class="rh-inner">
+    <div class="rh-kicker" id="kick"></div>
+    <h2 class="rh-title" id="ttl"></h2>
+    <p class="rh-sub" id="sub"></p>
+    <div class="rh-tabs"><span class="tb on">Openings</span><span class="tb">Ranking</span><span class="tb">Latest News</span></div>
+  </div>
+</section>
+
+<div class="note" id="noteBox"></div>
+
+<script>
+var VERT={
+  hotel:{name:'HOTELS OF TOMORROW',cat:'Hotel',one:'hotel',img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/los-cabos/amanvari.jpg'},
+  golf:{name:'GOLF OF TOMORROW',cat:'Golf',one:'course',img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_63a8db158c3b46bca6872404ca719c6b~mv2.jpeg'}
+};
+function title(v){ return v.cat+' Openings, <em>Tracked Live</em>'; }
+function sub(v){ return 'Every '+v.one+' on the way, from the first announcement to opening day. New projects land here the moment our database moves.'; }
+var OPTS={
+  a:{
+    k:function(v){return '<span class="kx">'+v.name+'</span><span class="k-dot"></span><span class="kx k-live">Tracking live</span>';},
+    note:'<b>A: the red dot inline.</b> Exactly your sketch: "HOTELS OF TOMORROW &bull; TRACKING LIVE" where the bullet is a pulsing recording-red dot and TRACKING LIVE carries a red glow. One line, broadcast energy. Note red is new to this palette (today it only means danger/unpaid), which is arguably perfect for a REC light, and arguably off-brand. D shows the same thing in house green for comparison.'
+  },
+  b:{
+    k:function(v){return '<span class="kx">'+v.name+'</span><span class="k-pill"><span class="k-dot"></span>Live</span>';},
+    note:'<b>B: the broadcast badge.</b> The kicker stays clean gold and a small bordered [&#9679; LIVE] pill rides beside it, the way networks badge a live feed. Quieter than A, reads instantly, and the pill is a reusable component (the same badge could sit on the radar stat tiles or the map).'
+  },
+  c:{
+    k:function(v){return '<span class="kx">'+v.name+'</span><span class="k-radar"><span class="ring"></span><span class="sweep"></span><span class="ctr"></span></span><span class="kx k-live">Tracking live</span>';},
+    note:'<b>C: the radar sweep.</b> Same line as A but the dot becomes a tiny rotating radar sweep. It quietly keeps the "radar" identity even though the title no longer says the word, and it is the most distinctive of the four. Slightly more visual weight; the sweep animation is subtle at 2.6s per rotation.'
+  },
+  d:{
+    k:function(v){return '<span class="kx k-green">'+v.name+'</span><span class="k-green kx"><span class="k-dot"></span></span><span class="kx k-live k-green">Tracking live</span>';},
+    note:'<b>D: house green.</b> Identical structure to A but in TMW live-green, matching the pulse ticker dot and every other "live" signal on the site. Most consistent with the design system; less of the REC-light drama. If red feels like too new a color for the brand, this is the fallback.'
+  }
+};
+var cur={o:'a',v:'hotel'};
+function paint(){
+  var v=VERT[cur.v],o=OPTS[cur.o];
+  document.getElementById('heroImg').src=v.img;
+  document.getElementById('kick').innerHTML=o.k(v);
+  document.getElementById('ttl').innerHTML=title(v);
+  document.getElementById('sub').innerHTML=sub(v);
+  document.getElementById('noteBox').innerHTML=o.note+'<br><br><b>Per-tab behavior:</b> this kicker belongs to the Openings and News tabs only. The Ranking tab keeps "'+(cur.v==='hotel'?'Hotels':'Golf')+' of Tomorrow &middot; 2026 Edition", which is where the annual-list framing actually belongs. The kicker swaps with the title in the existing setMastCopy mechanism, no new machinery.';
+}
+document.querySelectorAll('.sw button').forEach(function(b){b.addEventListener('click',function(){
+  cur.o=b.dataset.o;document.querySelectorAll('.sw button').forEach(function(x){x.classList.toggle('on',x===b)});paint();});});
+document.querySelectorAll('.vt button').forEach(function(b){b.addEventListener('click',function(){
+  cur.v=b.dataset.v;document.querySelectorAll('.vt button').forEach(function(x){x.classList.toggle('on',x===b)});paint();});});
+paint();
+</script>
+</body>
+</html>

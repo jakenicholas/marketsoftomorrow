@@ -20,7 +20,7 @@ export const TRAVEL_STOPS = {
       { a:'Explore', t:'Stanford University', img:'https://www.tclf.org/sites/default/files/styles/crop_2000x700/public/thumbnails/image/CA_Stanford_StanfordUniversity_courtesyWikimediaCommons_2011_005_Hero.jpg?itok=B8YAapxD' },
       { a:'Dinner', t:'Macarena', img:'https://www.paloaltoonline.com/wp-content/uploads/2024/12/PA_Macarena_DEC2024_03-1.png' },
       { a:'Explore', t:'San Francisco', img:'https://lp-cms-production.imgix.net/2021-05/GettyRF_462144413.jpg?auto=format,compress&q=72&w=1920&fit=crop&crop=faces,edges' },
-      { a:'Lunch', t:"Tony's Pizza Napoletana", star:'Ranked #3 Best Pizza in the World', img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/tonys-pizza-napoletana.webp' },
+      { a:'Lunch', t:"Tony's Pizza Napoletana", star:'Ranked #3 Best Pizza in the World', img:'https://media.oftmw.com/2026/07/tonys-pizza-napoletana.webp' },
       { a:'Dinner', t:'Kokkari Estiatorio', img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRwqoq33wUN4Y4llWeaSLVLKXVzp9cUKcHKrW_G_Ykaey5-rDtQeWv0apB&s=10' },
       { a:'Explore', t:'Muir Woods', img:'https://upload.wikimedia.org/wikipedia/commons/1/12/Muir_Woods_National_Monument_%2847879029461%29.jpg' }
     ],
@@ -51,13 +51,13 @@ export const TRAVEL_STOPS = {
       { a:'Winery Tour', t:'Chateau St. Jean Winery', partner:'J/PR', img:'https://assets.simpleviewinc.com/simpleview/image/upload/crm/sonomavalley/the-chateau-20-55e3c8e15056b3a_55e3ca69-5056-b3a8-49e8bba5d0f3d508.jpg' },
       { a:'Explore', t:'Sonoma', img:'https://www.sonomacounty.com/wp-content/uploads/2024/01/Kunde_Winery_Vineyards_Kenwood-1024x768.jpg' }
     ],
-    imgs:['https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
+    imgs:['https://media.oftmw.com/2026/07/90bf050f4cc7-macarthur-place-entrance-evening.jpg','https://media.oftmw.com/2026/07/73bcb18a80f9-macarthur-place-layla-interior.jpg','https://media.oftmw.com/2026/07/7ab0cbb6d61f-macarthur-place-grounds.jpg'] },
 
   { loc:'Sacramento, California', nights:'2 Nights · Aug 7 → 9', stay:'Private Stay', noClient:true, confirmed:true,
     in:{ date:'Aug 7', mode:'car', note:'Napa Valley → Sacramento' },
     vibe:'Closing the loop in the capital, a private base among the tree-lined grid, farm-to-fork tables, and the historic riverfront.',
     todo:[
-      { a:'Golf', t:'Martis Camp Golf Club', partner:'C&R', img:'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/07/martis-camp-golf-club.webp' }
+      { a:'Golf', t:'Martis Camp Golf Club', partner:'C&R', img:'https://media.oftmw.com/2026/07/martis-camp-golf-club.webp' }
     ],
     logi:[], imgs:['https://discovercaliforniawines.com/wp-content/uploads/2011/06/Sacramento-shutterstock_1476260747-scaled.jpg'] },
 ],

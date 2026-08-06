@@ -92,7 +92,7 @@ Email (media@oftmw.com etc.) is bought THROUGH Wix as a Google Workspace reselle
 
 - [ ] **R2 custom domain:** Cloudflare → R2 → `tmw-media` → Settings → Custom Domains →
       connect `media.oftmw.com` (now possible since the zone is on Cloudflare).
-- [ ] **Re-point all images** `pub-7da0281887564d10a10107987c7c6c0c.r2.dev` → `media.oftmw.com`:
+- [ ] **Re-point all images** `media.oftmw.com` → `media.oftmw.com`:
       one find/replace across the same surfaces we just migrated:
       - data files (tmw-data + marketsoftomorrow JSON/HTML/XML) — ~2,400 files
       - D1 `media` table `url` column (`UPDATE media SET url = REPLACE(...)`)

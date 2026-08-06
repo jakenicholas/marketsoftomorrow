@@ -132,7 +132,7 @@
     document.head.appendChild(s);
   }
 
-  var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
+  var ICON = 'https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg';
   var CHK = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#1FDF67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
   var SPARK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="#C4B5FD"><path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6z"/></svg>';
 

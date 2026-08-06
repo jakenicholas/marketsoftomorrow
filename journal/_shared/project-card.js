@@ -59,7 +59,7 @@
     });
   }
   // Serve migrated Wix images from our public R2 (drop CDN transform suffixes).
-  var R2_PUBLIC = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev';
+  var R2_PUBLIC = 'https://media.oftmw.com';
   function img(url) {
     if (!url) return '';
     var u = String(url);

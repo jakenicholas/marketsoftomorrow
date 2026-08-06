@@ -53,7 +53,7 @@ from generate_pages import atlas_intel_section_html as onyx_project_card, ATLAS_
 ROOT_URL   = "https://www.oftmw.com"
 SITE_NAME  = "Markets of Tomorrow"
 OUTPUT_DIR = "journal/markets"
-DEFAULT_IMAGE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
+DEFAULT_IMAGE = "https://media.oftmw.com/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
 
 # Status priority (lower = higher on the page)
 STATUS_PRIORITY = {
@@ -3700,11 +3700,11 @@ def render_featured_markets_json(by_city: dict[str, list[dict]], path: str) -> i
     # Keyed by city — use when a particular project's rendering is the one we
     # want to lead with on the homepage tile.
     MARKET_IMAGE_OVERRIDES = {
-        'Riviera Beach': 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_445dcb51bfab4b5f97729a55a31eca71~mv2.jpg',  # 123 Ocean
-        'Palm Beach':    'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_297b07c045bc4d1a9b0fbb166b176dee~mv2.webp',  # Palm Beach Residences
-        'Tampa':         'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg',  # hand-picked Tampa tile
-        'New York City': 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/2026/06/9ed74446045e-A-crop.jpg',  # hand-picked NYC tile
-        'Chicago':       'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg',  # hand-picked Chicago tile
+        'Riviera Beach': 'https://media.oftmw.com/wix/ca3b83_445dcb51bfab4b5f97729a55a31eca71~mv2.jpg',  # 123 Ocean
+        'Palm Beach':    'https://media.oftmw.com/wix/ca3b83_297b07c045bc4d1a9b0fbb166b176dee~mv2.webp',  # Palm Beach Residences
+        'Tampa':         'https://media.oftmw.com/wix/ca3b83_849dfca008d048fc8e457d6a3a684df6~mv2.jpg',  # hand-picked Tampa tile
+        'New York City': 'https://media.oftmw.com/2026/06/9ed74446045e-A-crop.jpg',  # hand-picked NYC tile
+        'Chicago':       'https://media.oftmw.com/wix/ca3b83_e85c6445394e48b481914a1d9ab75215~mv2.jpg',  # hand-picked Chicago tile
     }
     def pick_image(projects: list[dict]) -> str | None:
         # Featured > Under Construction > anything with an image. We want

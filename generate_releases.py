@@ -473,7 +473,7 @@ def build_index():
 # Exports worth keeping go to the Studio media folder "Social / LinkedIn Stories".
 # The design is the locked "New Edition" announcement (wordmark, purple glow,
 # The build log., edition tile, arrow pill) first shipped for edition 2.
-WORDMARK = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/16f511-MARKETSOFTMW.svg"
+WORDMARK = "https://media.oftmw.com/wix/other/16f511-MARKETSOFTMW.svg"
 
 def build_story(ed):
     h = f"""<!DOCTYPE html>

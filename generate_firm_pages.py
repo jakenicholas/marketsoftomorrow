@@ -870,7 +870,7 @@ def render_page(firm, firm_projects, stats, coverage_items):
     )
 
     canonical = f'{SITE_ORIGIN}/firm/{e(slug)}/'
-    og_image = (active_sorted[0].get('ImageURL') if active_sorted else '') or 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg'
+    og_image = (active_sorted[0].get('ImageURL') if active_sorted else '') or 'https://media.oftmw.com/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg'
 
     # ─── SEO: Organization schema + FAQPage + enriched meta ──────
     btn = market_by_the_numbers(firm_projects)

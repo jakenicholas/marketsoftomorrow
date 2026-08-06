@@ -13,8 +13,8 @@ public base are mapped (external URLs and the shared default are skipped).
 """
 import json, re, sys, collections
 
-MEDIA_PUBLIC_BASE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev"
-DEFAULT_IMAGE = "https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
+MEDIA_PUBLIC_BASE = "https://media.oftmw.com"
+DEFAULT_IMAGE = "https://media.oftmw.com/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg"
 IMG_FIELDS = ['ImageURL', 'Image2', 'Image3', 'Image4', 'Image5']
 VALID_EXT = {'jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'}
 

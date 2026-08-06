@@ -29,7 +29,7 @@
     'prc_pro-annual-2026-07--lnjj078s':  'prc_pro-annual-2026-07--ongi0rbn',
     'prc_pro-monthly-2026-07--96gd0r24': 'prc_pro-monthly-202607--pyjp07pv'
   };
-  var ICON = 'https://pub-7da0281887564d10a10107987c7c6c0c.r2.dev/wix/other/50822a-TMW_Logos-16.svg';
+  var ICON = 'https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
 
   var _trialUsed = false;   // set true once we learn this member already used their free trial
