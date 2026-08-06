@@ -240,33 +240,43 @@ def build_access(lat, lng):
 
 # ── First-party anchors (the signal) ────────────────────────────────────────
 
-LIST_GEO_V = 2   # bump to force re-geocode of cached list items (v2: location-validated)
+LIST_GEO_V = 3   # bump to force re-geocode of cached list items (v3: proximity-anchored)
+
+# TMW list locations end in a ranking REGION ("Eleuthera, Caribbean", "Zion,
+# Rockies") that wrecks geocoding ("…, Caribbean" landed in South Africa).
+# Strip trailing region words before deriving the location centroid.
+REGION_WORDS = {"caribbean", "rockies", "asia", "europe", "africa", "oceania",
+                "north america", "south america", "middle east", "united states",
+                "desert southwest", "pacific"}
 
 
 def load_list_places(cache):
     """Iconic list items, geocoded once and cached inside the output file.
 
-    Every geocode is VALIDATED against the item's own stated location — a POI
-    name-collision ("Jack's Bay, Eleuthera" landing in Daytona Beach) is worse
-    than no anchor at all, so implausible hits are dropped, not kept."""
+    Strategy: derive a centroid for the item's own stated location, then find
+    the POI BY NAME with proximity bias to that centroid (how Search Box is
+    meant to be used). A hit >100km from the centroid is a name collision and
+    is dropped — and an item we can't confidently place is EXCLUDED, never
+    stored as a place centroid (a wrong anchor distance is worse than none)."""
     places, loc_cache = [], {}
+
+    def clean_loc(loc):
+        parts = [p.strip() for p in (loc or "").split(",") if p.strip()]
+        while parts and parts[-1].lower() in REGION_WORDS:
+            parts.pop()
+        return ", ".join(parts) or (loc or "")
 
     def loc_centroid(loc):
         if loc in loc_cache: return loc_cache[loc]
         key = f"_loc/{loc}"
         got = cache.get(key)
         if not got or got.get("v") != LIST_GEO_V:
-            feat = geocode(loc)
+            feat = geocode(clean_loc(loc), types="place,locality,district,region")
             c = ((feat or {}).get("properties") or {}).get("coordinates") or {}
             got = {"lat": c.get("latitude"), "lng": c.get("longitude"), "v": LIST_GEO_V}
             cache[key] = got
         loc_cache[loc] = got
         return got
-
-    def plausible(lat, lng, loc):
-        cen = loc_centroid(loc)
-        if not cen.get("lat"): return True          # can't validate — accept
-        return hav_km(lat, lng, cen["lat"], cen["lng"]) <= 150
 
     for lslug, prov in LIST_SLUGS.items():
         try:
@@ -282,18 +292,16 @@ def load_list_places(cache):
             got = cache.get(key)
             if not got or got.get("v") != LIST_GEO_V:
                 name, loc = it.get("name", ""), it.get("location", "")
-                q = f"{name}, {loc}"
                 got = {"name": name, "location": loc, "lat": None, "lng": None, "v": LIST_GEO_V}
-                poi = sb_forward(q)               # POIs live in Search Box, not v6
-                if poi and plausible(poi["lat"], poi["lng"], loc):
-                    got.update(lat=poi["lat"], lng=poi["lng"])
+                cen = loc_centroid(loc)
+                if cen.get("lat"):
+                    poi = sb_forward(name, proximity=(cen["lat"], cen["lng"]))
+                    if poi and hav_km(cen["lat"], cen["lng"], poi["lat"], poi["lng"]) <= 100:
+                        got.update(lat=poi["lat"], lng=poi["lng"])
+                    else:
+                        print(f"[warn] list item unresolved (excluded): {name} · {loc}")
                 else:
-                    if poi:
-                        print(f"[warn] list geocode rejected (name collision): {q}")
-                    feat = geocode(q)             # fallback: place-level geocode
-                    c = ((feat or {}).get("properties") or {}).get("coordinates") or {}
-                    if c.get("latitude") and plausible(c["latitude"], c["longitude"], loc):
-                        got.update(lat=c["latitude"], lng=c["longitude"])
+                    print(f"[warn] no centroid for location '{loc}' — {name} excluded")
                 cache[key] = got
             if got.get("lat"):
                 places.append({**got, "provenance": prov, "ref": key})
