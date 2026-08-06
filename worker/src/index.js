@@ -11407,6 +11407,35 @@ async function requireAdminToken(req, env, origin) {
   return json({ error: 'unauthorized' }, { status: 401 }, env, origin);
 }
 
+// POST /admin/resolve — queue a Location Caliber place-context resolve for
+// specific projects (body: {slugs:[...]}; empty = the stale set). ONE
+// IMPLEMENTATION RULE: resolve_place_context.py, run by the "Resolve Place
+// Context" GitHub workflow, is the only resolver — this route just dispatches
+// that workflow so the Studio button and the monthly batch share a code path.
+async function handleAdminResolve(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  if (!env.GH_TOKEN) return json({ error: 'GH_TOKEN not configured' }, { status: 503 }, env, origin);
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const slugs = Array.isArray(body.slugs) ? body.slugs.filter(s => typeof s === 'string' && s.trim()).slice(0, 50) : [];
+  const inputs = { slugs: slugs.join(',') };
+  if (slugs.length) inputs.force = 'true';   // named slugs always re-resolve; blank runs only refresh stale
+  const r = await fetch('https://api.github.com/repos/jakenicholas/marketsoftomorrow/actions/workflows/resolve-place-context.yml/dispatches', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + env.GH_TOKEN, 'User-Agent': 'tmw-studio',
+               'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ref: 'main', inputs }),
+  });
+  if (r.status === 204) {
+    return json({ ok: true, queued: slugs.length || 'stale set',
+      note: 'resolve dispatched — place-context.json lands on main in a few minutes' }, {}, env, origin);
+  }
+  const txt = (await r.text()).slice(0, 300);
+  return json({ error: 'dispatch failed: HTTP ' + r.status, detail: txt,
+    hint: r.status === 403 || r.status === 404 ? 'GH_TOKEN may lack Actions (workflow dispatch) permission on marketsoftomorrow' : undefined },
+    { status: 502 }, env, origin);
+}
+
 // GET /admin/auth/login?redirect=<page> — kick off GitHub OAuth.
 async function handleAuthLogin(env, url) {
   if (!env.GITHUB_CLIENT_ID || !env.SESSION_SECRET) return new Response('GitHub OAuth not configured on the worker.', { status: 500 });
@@ -16437,6 +16466,7 @@ export default {
       // /brain — shared brand-brain notes (admin read/write; same brand_notes
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
       if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
+      if (url.pathname === '/admin/resolve' && request.method === 'POST') return await handleAdminResolve(request, env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
       if (url.pathname === '/admin/brain/garden' && request.method === 'POST') return await handleBrainGarden(request, env, origin);
       if (url.pathname === '/admin/brain/dial-in' && request.method === 'POST') return await handleBrainDialIn(request, env, origin);

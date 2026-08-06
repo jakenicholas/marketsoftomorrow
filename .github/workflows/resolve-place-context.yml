@@ -1,0 +1,102 @@
+# File: .github/workflows/resolve-place-context.yml
+# Location Caliber Phase 1: builds journal/map/place-context.json — the cached
+# Mapbox-resolved record per project (canonical address, neighborhood, snapped
+# point, access minutes, first-party anchors). Derived file only; never touches
+# projects.json. Monthly refresh cron + on-demand runs (the Studio "Resolve"
+# button dispatches this workflow via the worker's /admin/resolve route).
+
+name: Resolve Place Context
+
+on:
+  schedule:
+    # 3rd of the month, 07:00 UTC — access geometry + anchors barely change
+    - cron: '0 7 3 * *'
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: 'Comma-separated project slugs (empty = stale set)'
+        required: false
+        default: ''
+      limit:
+        description: 'Max projects to resolve this run (0 = no cap)'
+        required: false
+        default: '0'
+      force:
+        description: 'Re-resolve even fresh records'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Resolve place context
+        env:
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+        run: |
+          FLAGS=""
+          [ -n "${{ github.event.inputs.slugs }}" ] && FLAGS="$FLAGS --slugs ${{ github.event.inputs.slugs }}"
+          [ "${{ github.event.inputs.limit }}" != "0" ] && [ -n "${{ github.event.inputs.limit }}" ] && FLAGS="$FLAGS --limit ${{ github.event.inputs.limit }}"
+          [ "${{ github.event.inputs.force }}" = "true" ] && FLAGS="$FLAGS --force"
+          python3 resolve_place_context.py $FLAGS
+
+      - name: Commit if changed
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal/map/place-context.json
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            git pull --rebase --autostash origin main
+            git commit -m "place-context: resolve refresh"
+            git push
+          fi
+
+      - name: Configure Pages
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/configure-pages@v6
+      - name: Upload Pages artifact
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: '.'
+
+  # A GITHUB_TOKEN push does not trigger pages.yml, so deploy in-workflow —
+  # same pattern (and same `pages` concurrency group) as generate-digest.yml.
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
