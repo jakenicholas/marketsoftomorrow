@@ -138,18 +138,20 @@
       else { n.innerHTML = BELL_SVG; n.classList.add('db-zero'); }
       n.hidden = false;
     }
-    // ── The split pill (2026-07-30) ──
-    // The label/avatar navigate to /dashboard/ as before; the COUNT is its own
+    // ── The split pill (2026-07-30, mobile flip 2026-08-05) ──
+    // Desktop: the label/avatar navigate to /dashboard/; the COUNT is its own
     // button that opens the Pulse dropdown (journal-dock.js still builds it —
-    // it just became unreachable when this button hid the bell). On mobile the
-    // label is hidden, so the whole pill opens the drop and the drop's footer
-    // carries the way into /dashboard/.
+    // it just became unreachable when this button hid the bell). Mobile: the
+    // truncated pill made "which part did I hit" a guess, so the WHOLE pill —
+    // avatar, count, everything — navigates to /dashboard/, where the Pulse
+    // feed lives in "Your moves".
     a.addEventListener('click', function (ev) {
+      var mobile = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
+      if (mobile) return;   // whole pill is the dashboard link
       var pop = document.getElementById('tmw-pulse-pop');
       if (!pop) return;   // dropdown not built (yet) → navigate as before
       var onBadge = ev.target.closest && ev.target.closest('.db-n');
-      var mobile = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
-      if (onBadge || mobile) {
+      if (onBadge) {
         ev.preventDefault(); ev.stopPropagation();
         pop.hidden = !pop.hidden;
       }
