@@ -49,7 +49,10 @@ SLOTS = [
 ]
 
 LIST_SLUGS = {"golf": "iconic_golf", "hotels": "iconic_hotels", "restaurants": "iconic_dining"}
-ANCHOR_LIST_KM, ANCHOR_PROJ_KM, ANCHOR_CAP = 20.0, 4.0, 6
+# Urban joins are tight (a Miami anchor 20km away is another market); when the
+# tight pass runs thin the radius widens — in a resort corridor like Riviera
+# Nayarit "the area" is legitimately a 20-minute coastline.
+ANCHOR_LIST_KM, ANCHOR_PROJ_KM, ANCHOR_WIDE_KM, ANCHOR_CAP = 20.0, 4.0, 25.0, 6
 
 MI_COUNTRIES = {"united states", "usa", "us"}
 
@@ -284,18 +287,24 @@ def build_anchors(p, projects, list_places):
                       "provenance": lp["provenance"], "ref": lp["ref"]})
 
     me, my_parent = p.get("Slug"), p.get("ParentSlug") or None
-    for q in projects:                                       # tracked projects, tight radius
-        if q.get("Slug") == me: continue
-        if my_parent and (q.get("Slug") == my_parent or q.get("ParentSlug") == my_parent): continue
-        qlat, qlng = float(q.get("Latitude") or 0), float(q.get("Longitude") or 0)
-        if not (qlat and qlng): continue
-        d = hav_km(lat, lng, qlat, qlng)
-        if d > ANCHOR_PROJ_KM: continue
-        n = (q.get("Title") or "").strip().lower()
-        if not n or n in seen: continue
-        seen.add(n)
-        cands.append({"name": q.get("Title"), "type": q.get("PreferredType") or q.get("ProjectType") or "Development",
-                      "dist_km": round(d, 2), "provenance": "tracked_project", "ref": q.get("Slug")})
+
+    def join_projects(radius_km):
+        for q in projects:
+            if q.get("Slug") == me: continue
+            if my_parent and (q.get("Slug") == my_parent or q.get("ParentSlug") == my_parent): continue
+            qlat, qlng = float(q.get("Latitude") or 0), float(q.get("Longitude") or 0)
+            if not (qlat and qlng): continue
+            d = hav_km(lat, lng, qlat, qlng)
+            if d > radius_km: continue
+            n = (q.get("Title") or "").strip().lower()
+            if not n or n in seen: continue
+            seen.add(n)
+            cands.append({"name": q.get("Title"), "type": q.get("PreferredType") or q.get("ProjectType") or "Development",
+                          "dist_km": round(d, 2), "provenance": "tracked_project", "ref": q.get("Slug")})
+
+    join_projects(ANCHOR_PROJ_KM)                            # tight urban pass
+    if len(cands) < 2:
+        join_projects(ANCHOR_WIDE_KM)                        # resort-corridor pass
 
     cands.sort(key=lambda a: a["dist_km"])
     return cands[:ANCHOR_CAP]
