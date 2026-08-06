@@ -3,11 +3,11 @@
   "available_types": [
     {
       "type": "Residences",
-      "count": 418
+      "count": 419
     },
     {
       "type": "Hotel",
-      "count": 229
+      "count": 231
     },
     {
       "type": "Mixed-Use",
@@ -31,7 +31,7 @@
     },
     {
       "type": "Stadium",
-      "count": 17
+      "count": 18
     },
     {
       "type": "Travel",
@@ -6645,7 +6645,7 @@
     {
       "st": "Other",
       "ty": "Golf",
-      "sl": "Construction",
+      "sl": "Opening Soon",
       "yr": 2027,
       "sm": "2025-12",
       "ci": "Jefferson",
@@ -18850,7 +18850,7 @@
     {
       "st": "Other",
       "ty": "Mixed-Use",
-      "sl": "Construction",
+      "sl": "Announced",
       "yr": null,
       "sm": null,
       "ci": "Ho Chi Minh City",
@@ -23332,19 +23332,141 @@
           "hoerr-schaudt"
         ]
       ]
+    },
+    {
+      "st": "FL",
+      "ty": "Stadium",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Orlando",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Orlando Dreamers",
+          "orlando-dreamers"
+        ]
+      ],
+      "ar": [
+        [
+          "Populous",
+          "populous"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Opening Soon",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Courchevel",
+      "u": 0,
+      "k": 31,
+      "fl": 0,
+      "dv": [
+        [
+          "Chapitre Six",
+          "chapitre-six"
+        ]
+      ],
+      "ar": [
+        [
+          "Studio Henry",
+          "studio-henry"
+        ]
+      ]
+    },
+    {
+      "st": "NY",
+      "ty": "",
+      "sl": "Construction",
+      "yr": null,
+      "sm": null,
+      "ci": "New York",
+      "u": 0,
+      "k": 0,
+      "fl": 0,
+      "dv": [
+        [
+          "Citadel",
+          "citadel"
+        ],
+        [
+          "Vornado Realty Trust",
+          "vornado-realty-trust"
+        ],
+        [
+          "Rudin",
+          "rudin"
+        ]
+      ],
+      "ar": []
+    },
+    {
+      "st": "Other",
+      "ty": "Residences",
+      "sl": "Announced",
+      "yr": null,
+      "sm": null,
+      "ci": "Sydney",
+      "u": 592,
+      "k": 158,
+      "fl": 80,
+      "dv": [
+        [
+          "Billbergia Group",
+          "billbergia-group"
+        ],
+        [
+          "Metrics Credit Partners",
+          "metrics-credit-partners"
+        ]
+      ],
+      "ar": [
+        [
+          "FJMT",
+          "fjmt"
+        ]
+      ]
+    },
+    {
+      "st": "Other",
+      "ty": "Hotel",
+      "sl": "Construction",
+      "yr": 2026,
+      "sm": null,
+      "ci": "Melbourne",
+      "u": 30,
+      "k": 97,
+      "fl": 0,
+      "dv": [
+        [
+          "DCF Property Group",
+          "dcf-property-group"
+        ]
+      ],
+      "ar": [
+        [
+          "YOO Studio",
+          "yoo-studio"
+        ]
+      ]
     }
   ],
   "hero_stats": {
-    "total_projects": 939,
+    "total_projects": 944,
     "total_dollars_short": "$0",
     "total_dollars_raw": 0,
     "under_construction": 375,
-    "opening_this_year": 125
+    "opening_this_year": 127
   },
   "scale": {
-    "units": 334974,
-    "keys": 61734,
-    "floors": 16801
+    "units": 335596,
+    "keys": 62020,
+    "floors": 16881
   },
   "leaderboards": {
     "developers": [
@@ -23754,6 +23876,17 @@
         ]
       },
       {
+        "name": "Populous",
+        "slug": "populous",
+        "sub": "Tampa",
+        "count": 9,
+        "states": [
+          "Other",
+          "FL",
+          "TN"
+        ]
+      },
+      {
         "name": "Behar Font & Partners",
         "slug": "behar-font-partners",
         "sub": "Miami",
@@ -23770,17 +23903,6 @@
         "count": 8,
         "states": [
           "FL"
-        ]
-      },
-      {
-        "name": "Populous",
-        "slug": "populous",
-        "sub": "Tampa",
-        "count": 8,
-        "states": [
-          "Other",
-          "FL",
-          "TN"
         ]
       },
       {
@@ -24157,6 +24279,14 @@
         ]
       },
       {
+        "name": "New York",
+        "sub": "7 developments \u00b7 11 developers",
+        "count": 7,
+        "states": [
+          "NY"
+        ]
+      },
+      {
         "name": "Scottsdale",
         "sub": "7 developments \u00b7 8 developers",
         "count": 7,
@@ -24187,21 +24317,13 @@
         "states": [
           "FL"
         ]
-      },
-      {
-        "name": "Wellington",
-        "sub": "6 developments \u00b7 7 developers",
-        "count": 6,
-        "states": [
-          "FL"
-        ]
       }
     ],
     "types": [
       {
         "name": "Residences",
-        "sub": "45% of pipeline",
-        "count": 418,
+        "sub": "44% of pipeline",
+        "count": 419,
         "states": [
           "FL",
           "Other",
@@ -24217,7 +24339,7 @@
       {
         "name": "Hotel",
         "sub": "24% of pipeline",
-        "count": 229,
+        "count": 231,
         "states": [
           "Other",
           "FL",
@@ -24303,7 +24425,7 @@
       {
         "name": "Stadium",
         "sub": "2% of pipeline",
-        "count": 17,
+        "count": 18,
         "states": [
           "Other",
           "FL",
@@ -25079,6 +25201,14 @@
           ]
         },
         {
+          "name": "Orlando",
+          "sub": "6 developments \u00b7 7 developers",
+          "count": 6,
+          "states": [
+            "FL"
+          ]
+        },
+        {
           "name": "Wellington",
           "sub": "6 developments \u00b7 7 developers",
           "count": 6,
@@ -25089,14 +25219,6 @@
         {
           "name": "St. Petersburg",
           "sub": "5 developments \u00b7 10 developers",
-          "count": 5,
-          "states": [
-            "FL"
-          ]
-        },
-        {
-          "name": "Orlando",
-          "sub": "5 developments \u00b7 6 developers",
           "count": 5,
           "states": [
             "FL"
@@ -25311,6 +25433,16 @@
           ]
         },
         {
+          "name": "Stadium",
+          "sub": "2% of pipeline",
+          "count": 6,
+          "states": [
+            "Other",
+            "FL",
+            "TN"
+          ]
+        },
+        {
           "name": "Golf",
           "sub": "1% of pipeline",
           "count": 5,
@@ -25330,16 +25462,6 @@
             "FL",
             "FR",
             "Other"
-          ]
-        },
-        {
-          "name": "Stadium",
-          "sub": "1% of pipeline",
-          "count": 5,
-          "states": [
-            "Other",
-            "FL",
-            "TN"
           ]
         },
         {
@@ -26153,6 +26275,15 @@
           ]
         },
         {
+          "name": "Vornado Realty Trust",
+          "slug": "vornado-realty-trust",
+          "sub": "New York City",
+          "count": 2,
+          "states": [
+            "NY"
+          ]
+        },
+        {
           "name": "Legion Investment Group",
           "slug": "legion-investment-group",
           "sub": "New York City",
@@ -26357,15 +26488,6 @@
         {
           "name": "The Studio Museum in Harlem",
           "slug": "the-studio-museum-in-harlem",
-          "sub": "New York City",
-          "count": 1,
-          "states": [
-            "NY"
-          ]
-        },
-        {
-          "name": "Rockefeller Group",
-          "slug": "rockefeller-group",
           "sub": "New York City",
           "count": 1,
           "states": [
@@ -26697,8 +26819,8 @@
         },
         {
           "name": "New York",
-          "sub": "6 developments \u00b7 8 developers",
-          "count": 6,
+          "sub": "7 developments \u00b7 11 developers",
+          "count": 7,
           "states": [
             "NY"
           ]
@@ -26723,7 +26845,7 @@
       "types": [
         {
           "name": "Residences",
-          "sub": "64% of pipeline",
+          "sub": "63% of pipeline",
           "count": 27,
           "states": [
             "FL",
@@ -26739,7 +26861,7 @@
         },
         {
           "name": "Office",
-          "sub": "17% of pipeline",
+          "sub": "16% of pipeline",
           "count": 7,
           "states": [
             "FL",
@@ -29852,7 +29974,7 @@
   "by_state": {
     "FL": {
       "hero_stats": {
-        "total_projects": 339,
+        "total_projects": 340,
         "under_construction": 120
       },
       "scale": {
@@ -29863,7 +29985,7 @@
       "status_distribution": [
         {
           "label": "Announced",
-          "count": 134
+          "count": 135
         },
         {
           "label": "Breaking Ground",
@@ -30038,8 +30160,8 @@
     },
     "NY": {
       "hero_stats": {
-        "total_projects": 42,
-        "under_construction": 12
+        "total_projects": 43,
+        "under_construction": 13
       },
       "scale": {
         "units": 9658,
@@ -30057,7 +30179,7 @@
         },
         {
           "label": "Construction",
-          "count": 12
+          "count": 13
         },
         {
           "label": "Opening Soon",
@@ -31142,12 +31264,14 @@
     "West Hollywood": "Other",
     "Sydney": "Other",
     "Kangaroo Island": "Other",
-    "Greenwich": "Other"
+    "Greenwich": "Other",
+    "Courchevel": "Other",
+    "Melbourne": "Other"
   },
   "status_distribution": [
     {
       "label": "Announced",
-      "count": 248
+      "count": 251
     },
     {
       "label": "Breaking Ground",
@@ -31159,7 +31283,7 @@
     },
     {
       "label": "Opening Soon",
-      "count": 114
+      "count": 116
     },
     {
       "label": "Now Open",
@@ -31231,7 +31355,7 @@
   "openings_by_year": [
     {
       "year": 2026,
-      "count": 125
+      "count": 127
     },
     {
       "year": 2027,
@@ -31254,7 +31378,7 @@
     {
       "code": "FL",
       "label": "Florida",
-      "count": 339
+      "count": 340
     },
     {
       "code": "AE",
@@ -31264,7 +31388,7 @@
     {
       "code": "NY",
       "label": "New York",
-      "count": 42
+      "count": 43
     },
     {
       "code": "TN",
