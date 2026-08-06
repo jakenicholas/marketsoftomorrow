@@ -2624,44 +2624,48 @@ async function handleWatchDelete(req, env, origin) {
     return json({ ok: true }, {}, env, origin);
   } catch (e) { return json({ error: String(e && e.message || e) }, { status: 500 }, env, origin); }
 }
-// POST /admin/revise-draft { slug, instruction, context? } — the in-Studio
-// "polish" chat that lives in the article editor, so the team never has to leave
-// Studio for the Claude app. Applies the editor's instruction to a DRAFT as a
-// small set of SURGICAL find/replace edits on the prose (Fable-authored, voice-
-// grounded), so embedded images, galleries, and project cards are PRESERVED —
-// unlike revise_article_draft's full body_markdown rewrite, which flattens them.
-// Any pasted reference material is treated as verified facts to incorporate.
-// Admin-token gated. Returns a one-line summary + the updated body_html.
+// POST /admin/revise-draft { slug, instruction, context?, target? } — the in-Studio
+// "Polish" chat in the article editor, so the team never leaves Studio for the
+// Claude app. It's a real conversation: the editor decides whether the message is
+// a QUESTION / brainstorm (reply only), a BODY change (surgical find/replace edits
+// that PRESERVE images/galleries/cards, unlike the flattening full rewrite), or a
+// TITLE change. `target` is a passage the user selected to focus on. Pasted
+// `context` is treated as verified facts. Admin-token gated. Returns a chat
+// `reply` plus, when applicable, the updated title and/or body_html.
 async function handleReviseDraft(req, env, origin) {
   const denied = await requireAdminToken(req, env, origin);
   if (denied) return denied;
   if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
   let b; try { b = await req.json(); } catch { return json({ error: 'bad json' }, { status: 400 }, env, origin); }
   const slug = String(b.slug || '').trim().toLowerCase();
-  const instruction = String(b.instruction || '').trim();
+  let instruction = String(b.instruction || '').trim();
   const context = String(b.context || '').trim().slice(0, 8000);
+  const target = String(b.target || '').trim().slice(0, 4000);   // text the editor selected to work on
   if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
-  if (!instruction) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
+  if (!instruction && !target) return json({ error: 'instruction required' }, { status: 400 }, env, origin);
+  if (!instruction && target) instruction = 'Rewrite the selected passage in TMW voice — tighter and more on-brand, same facts.';
   const row = await env.DB.prepare('SELECT id, title, status, body_html FROM posts WHERE slug=?1').bind(slug).first();
   if (!row) return json({ error: 'no draft with that slug' }, { status: 404 }, env, origin);
   if (row.status !== 'draft') return json({ error: 'only drafts can be revised here' }, { status: 400 }, env, origin);
   const body = String(row.body_html || '');
+  const title = String(row.title || '');
   const stripTags = (s) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!stripTags(body)) return json({ error: 'this draft has no body text to edit yet' }, { status: 400 }, env, origin);
 
-  const brain = await assembleBrain(env, { topic: String(row.title || ''), place: '', surface: 'article' });
+  const brain = await assembleBrain(env, { topic: title, place: '', surface: 'article' });
   const sys = [
-    'You are the senior staff editor for Markets of Tomorrow (TMW). Apply the editor\'s instruction to the article DRAFT below as a small set of SURGICAL find/replace edits on the PROSE only.',
+    'You are the senior staff editor for Markets of Tomorrow (TMW), talking with a colleague in a chat INSIDE the article editor. Reply like a sharp, friendly editor: warm, brief, specific, in TMW voice.',
     brain.text || '',
-    'OUTPUT: return ONLY JSON, no fences, no commentary: {"summary":"<one short sentence naming what you changed>","edits":[{"find":"<an EXACT, verbatim substring of the CURRENT BODY HTML, copied character-for-character including tags and whitespace, unique enough to match one place>","replace":"<the edited HTML>"}]}',
-    'HARD RULES:',
-    '- Every "find" MUST be copied verbatim from the CURRENT BODY HTML and match exactly ONE place. If you cannot copy it exactly, omit that edit.',
-    '- NEVER touch image, <figure>, <img>, gallery, slideshow, or project-card (data-project) markup. Edit prose text only; leave all media exactly where it sits.',
-    '- Preserve every verified fact, number, date, price, and firm name unless the instruction or the pasted REFERENCE MATERIAL explicitly corrects it. Do NOT invent facts beyond the reference material and what is genuinely, verifiably known. Never fabricate a quotation.',
-    '- Keep edits minimal and targeted; do not rewrite the whole article unless explicitly asked. TMW voice per the brain. Avoid em dashes.',
+    'Read the colleague\'s message and decide what it needs:',
+    '- A QUESTION, discussion, or a request for IDEAS/OPTIONS (e.g. "why is X the focus?", "give me 3 title ideas", "what do you think of the intro?"): just answer in `reply` — give the take or the options. Return NO edits and NO title unless they clearly asked you to APPLY one.',
+    '- A change to the BODY: return surgical find/replace `edits` on the prose PLUS a short `reply` telling them what you did.',
+    '- A change to the TITLE / headline: return a new `title` PLUS a `reply`. Only when they want it changed, not while brainstorming.',
+    (target ? 'THE COLLEAGUE SELECTED THIS EXACT PASSAGE to work on — focus on it, and any `find` MUST come from within it:\n"""\n' + target + '\n"""' : ''),
+    'OUTPUT: return ONLY JSON, no fences, no commentary: {"reply":"<your chat message>","title":"<new title, ONLY if changing it>","edits":[{"find":"<EXACT verbatim substring of the CURRENT BODY HTML, character-for-character incl tags/whitespace, matching exactly ONE place>","replace":"<edited HTML>"}]}. `title` and `edits` are OPTIONAL; `reply` is ALWAYS present.',
+    'EDIT RULES (only when you actually edit the body): every `find` copied verbatim and matching exactly one place, or omit it. NEVER touch image / <figure> / <img> / gallery / slideshow / project-card (data-project) markup — prose text only, leave all media where it sits. Preserve every verified fact, number, date, price, and firm name unless the message or REFERENCE MATERIAL corrects it; never invent facts or fabricate a quotation. Keep edits minimal; do not rewrite the whole article unless asked. Avoid em dashes.',
   ].filter(Boolean).join('\n\n');
-  const usr = 'INSTRUCTION:\n' + instruction
-    + (context ? '\n\nREFERENCE MATERIAL the editor pasted (verified facts you may incorporate; do not exceed it):\n' + context : '')
+  const usr = 'MESSAGE:\n' + instruction
+    + (context ? '\n\nREFERENCE MATERIAL the colleague pasted (verified facts you may use; do not exceed it):\n' + context : '')
+    + '\n\nCURRENT TITLE: ' + title
     + '\n\nCURRENT BODY HTML:\n' + body;
   let raw = '';
   try { raw = await fableGenerate(env, { system: sys, user: usr, maxTokens: 3200 }); }
@@ -2669,15 +2673,21 @@ async function handleReviseDraft(req, env, origin) {
   let parsed = null;
   try { parsed = JSON.parse(raw); }
   catch { try { parsed = JSON.parse(repairTruncatedJson(String(raw).replace(/^\s*```(?:json)?|```\s*$/g, ''))); } catch (_) {} }
-  if (!parsed || !Array.isArray(parsed.edits)) return json({ ok: false, error: 'The editor could not produce a clean edit. Try rephrasing the instruction.' }, {}, env, origin);
+  if (!parsed || typeof parsed.reply !== 'string') {
+    const fb = stripTags(String(raw)).slice(0, 600);
+    if (fb) return json({ ok: true, reply: fb, applied: 0 }, {}, env, origin);
+    return json({ ok: false, error: 'The editor could not respond. Try rephrasing.' }, {}, env, origin);
+  }
+  const reply = String(parsed.reply || '').slice(0, 800);
+  const edits = Array.isArray(parsed.edits) ? parsed.edits : [];
+  const newTitle = (parsed.title != null && stripTags(String(parsed.title)) && stripTags(String(parsed.title)) !== title)
+    ? stripTags(String(parsed.title)).slice(0, 200) : '';
 
-  // Apply only unambiguous edits (find matches exactly once). Literal splice,
+  // Apply only unambiguous body edits (find matches exactly once). Literal splice,
   // never String.replace (article HTML/prices contain $ and other specials).
-  // `changes` = the plain-text of each inserted snippet, so the editor can flash
-  // a temporary highlight over exactly what moved.
   let out = body, applied = 0, skipped = 0;
   const changes = [];
-  for (const e of parsed.edits.slice(0, 16)) {
+  for (const e of edits.slice(0, 16)) {
     const find = e && e.find != null ? String(e.find) : '';
     if (!find) { skipped++; continue; }
     let count = 0, idx = 0;
@@ -2690,12 +2700,21 @@ async function handleReviseDraft(req, env, origin) {
     if (repText) changes.push(repText);
     applied++;
   }
-  if (!applied) return json({ ok: false, error: 'Could not apply that cleanly (the edit targets did not match the current text). Try a more specific instruction, or edit inline.', summary: String(parsed.summary || '') }, {}, env, origin);
-  out = out.replace(/\s*—\s*/g, ', ');   // strip any stray em dashes
-  const readingTime = Math.max(1, Math.round(stripTags(out).split(/\s+/).filter(Boolean).length / 200));
-  await env.DB.prepare('UPDATE posts SET body_html=?1, reading_time_min=?2, updated_at=?3 WHERE slug=?4')
-    .bind(out, readingTime, Math.floor(Date.now() / 1000), slug).run();
-  return json({ ok: true, summary: String(parsed.summary || 'Applied your edit.').slice(0, 240), applied, skipped, changes, body_html: out }, {}, env, origin);
+  const bodyChanged = applied > 0;
+  if (bodyChanged) out = out.replace(/\s*—\s*/g, ', ');
+  if (bodyChanged || newTitle) {
+    const sets = [], binds = [];
+    if (bodyChanged) { sets.push('body_html=?' + (binds.length + 1)); binds.push(out);
+      sets.push('reading_time_min=?' + (binds.length + 1)); binds.push(Math.max(1, Math.round(stripTags(out).split(/\s+/).filter(Boolean).length / 200))); }
+    if (newTitle) { sets.push('title=?' + (binds.length + 1)); binds.push(newTitle); }
+    sets.push('updated_at=?' + (binds.length + 1)); binds.push(Math.floor(Date.now() / 1000));
+    binds.push(slug);
+    try { await env.DB.prepare('UPDATE posts SET ' + sets.join(', ') + ' WHERE slug=?' + binds.length).bind(...binds).run(); } catch (_) {}
+  }
+  return json({ ok: true, reply, applied, skipped, changes,
+    title: newTitle || undefined,
+    body_html: bodyChanged ? out : undefined,
+    unmatched: (edits.length > 0 && applied === 0) || undefined }, {}, env, origin);
 }
 
 // POST /admin/revise-feedback { slug, signal:'up'|'down'|'manual', before, after, instruction?, summary? }
