@@ -25,6 +25,17 @@ name = "tmw"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
+# Branded custom domains on this worker. workers.dev stays enabled FOREVER —
+# old shared links (client previews, QR codes, emails) must never break; the
+# branded hosts are for NEW links only. passport.oftmw.com = QR/member profile
+# links; go.oftmw.com = client-facing share links (carousel previews, and later
+# /r tracking links).
+workers_dev = true
+routes = [
+  { pattern = "passport.oftmw.com", custom_domain = true },
+  { pattern = "go.oftmw.com", custom_domain = true },
+]
+
 # Custom route — the existing worker is already published at this subdomain.
 # Wrangler will keep using it on deploy. If you want a different name, change
 # `name` above and the WORKER_URL in analytics.html / index.html will need to
@@ -33,6 +44,10 @@ compatibility_date = "2025-01-01"
 [vars]
 # Non-secret config. Edit if your GA4 property changes.
 GA4_PROPERTY_ID = "467692471"
+
+# Public host for client-facing carousel preview links (branded; workers.dev
+# links already in the wild keep working — this only changes NEW links).
+CAROUSEL_PUBLIC_HOST = "https://go.oftmw.com"
 ALLOWED_ORIGINS = "https://map.oftmw.com,https://oftmw.com,https://www.oftmw.com,https://studio.oftmw.com,http://localhost:8000,http://127.0.0.1:8000"
 
 # Wix RSS feed for the journal. After cutover, point this at whatever subdomain

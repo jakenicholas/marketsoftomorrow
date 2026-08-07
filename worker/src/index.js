@@ -8013,7 +8013,7 @@ async function handleCarouselPreviewToken(req, env, origin, url) {
     { slug, t: 'carousel', exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60 },
     previewSecret(env),
   );
-  const workerHost = new URL(req.url).origin;
+  const workerHost = (env.CAROUSEL_PUBLIC_HOST || new URL(req.url).origin).replace(/\/$/, '');
   return json({
     token,
     url: `${workerHost}/c/${encodeURIComponent(slug)}?preview=${encodeURIComponent(token)}`,
