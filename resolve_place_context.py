@@ -177,6 +177,13 @@ def resolve_project(p):
 
     if glat and glng and lat and lng:
         delta = hav_km(lat, lng, glat, glng) * 1000
+        # An address geocode tens of km from the curated pin is a WRONG MATCH
+        # (wrong city/name interpretation), not a proposal — the Andaz Turks &
+        # Caicos "address" landed 6,800km away. Keep the pin, don't ask a human.
+        if delta > 25000:
+            out["confidence"] = min(out["confidence"], 0.4)
+            out["canonical"] = None
+            return out
         out["delta_m"] = round(delta)
         if delta <= REVIEW_DELTA_M:
             out["point"] = {"lat": glat, "lng": glng, "status": "snapped"}
@@ -400,6 +407,8 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--slugs", default="")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--review-only", action="store_true",
+                    help="re-resolve only records currently flagged status=review")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -430,7 +439,10 @@ def main():
         if not slug: continue
         if only and slug not in only: continue
         old = out["projects"].get(slug)
-        if old and not args.force and not only and old.get("resolved_at", 0) > fresh_cutoff:
+        if args.review_only:
+            if not (old and (old.get("point") or {}).get("status") == "review"):
+                continue
+        elif old and not args.force and not only and old.get("resolved_at", 0) > fresh_cutoff:
             continue
         todo.append(p)
     if args.limit: todo = todo[:args.limit]

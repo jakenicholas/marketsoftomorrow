@@ -26,6 +26,11 @@ on:
         type: boolean
         required: false
         default: false
+      review_only:
+        description: 'Re-resolve only review-flagged records'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -57,6 +62,7 @@ jobs:
           [ -n "${{ github.event.inputs.slugs }}" ] && FLAGS="$FLAGS --slugs ${{ github.event.inputs.slugs }}"
           [ "${{ github.event.inputs.limit }}" != "0" ] && [ -n "${{ github.event.inputs.limit }}" ] && FLAGS="$FLAGS --limit ${{ github.event.inputs.limit }}"
           [ "${{ github.event.inputs.force }}" = "true" ] && FLAGS="$FLAGS --force"
+          [ "${{ github.event.inputs.review_only }}" = "true" ] && FLAGS="$FLAGS --review-only"
           python3 resolve_place_context.py $FLAGS
 
       - name: Commit if changed
