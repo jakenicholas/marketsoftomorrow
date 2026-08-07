@@ -2029,9 +2029,9 @@ async function fetchStripeIncome(env) {
       // revenue. Their committed value lives in trial_mrr as separate upside.
       if (isTrial) {
         trialMrr += subPerMonth; trialCount++;
-        // Current-lineup trials only ($15/mo or $150/yr) — legacy grandfathered
-        // trials ($9/$90) must not drag the forward per-sub value down.
-        if ((subIv === 'month' && Math.round(subAmt) === 15) || (subIv === 'year' && Math.round(subAmt) === 150)) {
+        // Current-lineup trials only ($32/mo or $300/yr) — older-lineup trials
+        // ($9/$90, $15/$150) must not drag the forward per-sub value down.
+        if ((subIv === 'month' && Math.round(subAmt) === 32) || (subIv === 'year' && Math.round(subAmt) === 300)) {
           trialNewMrr += subPerMonth; trialNewCount++;
         }
       }
@@ -2124,9 +2124,9 @@ async function fetchStripeIncome(env) {
   let ncSubs = 0, ncMrr = 0;
   for (const s of subLedger) if (s.created && s.created >= PRICE_CUTOVER) { ncSubs++; ncMrr += s.perMonth; }
   // Forward per-sub value = the CURRENT price lineup only: average of trials
-  // on $15/mo or $150/yr (real plan choices at today's prices). With none in
-  // flight, assume list monthly ($15). Legacy trials/conversions never count.
-  const newSubMrr = trialNewCount >= 1 ? trialNewMrr / trialNewCount : 15;
+  // on $32/mo or $300/yr (real plan choices at today's prices). With none in
+  // flight, assume list monthly ($32). Older-lineup trials never count.
+  const newSubMrr = trialNewCount >= 1 ? trialNewMrr / trialNewCount : 32;
   const growth = {
     window_weeks: GROW_WEEKS,
     subs_per_week: Math.round(recentSubs / GROW_WEEKS * 100) / 100,

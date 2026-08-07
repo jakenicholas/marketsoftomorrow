@@ -20380,7 +20380,7 @@
     // ‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê‚ïê
     // TWO-TIER PAYWALL
     //   ‚Ä¢ Anonymous users: 5 clicks ‚Üí email signup wall
-    //   ‚Ä¢ Free signed-in users: 30 clicks ‚Üí subscription paywall ($15/mo or $150/yr)
+    //   ‚Ä¢ Free signed-in users: 30 clicks ‚Üí subscription paywall ($32/mo or $300/yr)
     //   ‚Ä¢ Paid subscribers: unlimited
     // Click count for signed-in users persists on Memberstack member record,
     // so closing tabs / opening incognito doesn't reset it.
@@ -20401,8 +20401,8 @@
       // "dead" on the first click. Per-browser lifetime count in localStorage.
       const FREE_OPEN_LIMIT = 3;
       const FREE_OPENS_KEY = 'mot_free_opens';
-      const PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-07--96gd0r24';   // $15/mo, 14-day trial
-      const PRICE_ID_ANNUAL  = 'prc_pro-annual-2026-07--lnjj078s';    // $150/yr, 14-day trial
+      const PRICE_ID_MONTHLY = 'prc_pro-monthly-2026-08--rewl0anz';   // $32/mo, 14-day trial
+      const PRICE_ID_ANNUAL  = 'prc_pro-annual-trial-2026-08--rast0ag0';    // $300/yr, 14-day trial
       const MEMBER_FIELD = 'clickCount';  // Memberstack custom field name
 
       // ── 24-hour preview window (replaces the old click-count gating) ──────
@@ -20825,12 +20825,12 @@
               <button class="paywall-plan paywall-plan-annual" data-price-id="${PRICE_ID_ANNUAL}">
                 <div class="paywall-plan-tag">BEST VALUE</div>
                 <div class="paywall-plan-name">Annual</div>
-                <div class="paywall-plan-price">$150<span class="paywall-plan-per">/year</span></div>
-                <div class="paywall-plan-note">$12.50/month &middot; save 17% &middot; 14 days free</div>
+                <div class="paywall-plan-price">$300<span class="paywall-plan-per">/year</span></div>
+                <div class="paywall-plan-note">$25/month &middot; save 22% &middot; 14 days free</div>
               </button>
               <button class="paywall-plan paywall-plan-monthly" data-price-id="${PRICE_ID_MONTHLY}">
                 <div class="paywall-plan-name">Monthly</div>
-                <div class="paywall-plan-price">$15<span class="paywall-plan-per">/month</span></div>
+                <div class="paywall-plan-price">$32<span class="paywall-plan-per">/month</span></div>
                 <div class="paywall-plan-note">14 days free</div>
               </button>
             </div>
