@@ -19,16 +19,15 @@
   var PRICE_ID_ANNUAL  = 'prc_pro-annual-trial-2026-08--rast0ag0';
   // No-trial equivalents for returning members who already used their free trial.
   // LEGACY = old $9/$90 (members grandfathered from before the 2026-07-02 price
-  // change); CURRENT = the $15/$150 no-trial objects. TODO: once $32/$300
-  // no-trial prices exist in Memberstack, point NOTRIAL_CURRENT at those. The
-  // worker's /trial-eligible returns `grandfathered`; startCheckout picks the map.
+  // change); CURRENT = the $32/$300 no-trial objects. The worker's
+  // /trial-eligible returns `grandfathered`; startCheckout picks the map.
   var NOTRIAL_LEGACY = {
     'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_annual-9i2e0eab',
     'prc_pro-monthly-2026-08--rewl0anz':      'prc_monthly-86u0uyc'
   };
   var NOTRIAL_CURRENT = {
-    'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_pro-annual-2026-07--ongi0rbn',
-    'prc_pro-monthly-2026-08--rewl0anz':      'prc_pro-monthly-202607--pyjp07pv'
+    'prc_pro-annual-trial-2026-08--rast0ag0': 'prc_pro-annual-trial-2026-08--0ywr0acz',
+    'prc_pro-monthly-2026-08--rewl0anz':      'prc_pro-monthly-2026-08--3gws0ap4'
   };
   var ICON = 'https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg';
   var WORKER = 'https://tmw.jake-ab7.workers.dev';
