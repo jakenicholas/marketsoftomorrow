@@ -880,9 +880,9 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 12,
-        "median_years": 3.07,
-        "stddev_years": 1.74,
+        "count": 13,
+        "median_years": 3.04,
+        "stddev_years": 1.68,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -919,7 +919,7 @@
           "distance_mi": 205.0
         }
       ],
-      "pattern_summary": "Among 7 regional residences projects in TMW's data, the median build time is 3.1 years (range 2–4.6). Adjusted to ~3.1 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
+      "pattern_summary": "Among 7 regional residences projects in TMW's data, the median build time is 3.1 years (range 2–4.6). Adjusted to ~3.1 years for Arquitectonica's own track record (~3-year typical pace across 13 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -1993,9 +1993,9 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 12,
-        "median_years": 3.07,
-        "stddev_years": 1.74,
+        "count": 13,
+        "median_years": 3.04,
+        "stddev_years": 1.68,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -2023,7 +2023,7 @@
           "distance_mi": 65.3
         }
       ],
-      "pattern_summary": "Among 2 comparable hotel projects in TMW's data, the median build time is 4.8 years (range 1.6–8.1). Adjusted to ~3.7 years for Arquitectonica's own track record (~3.1-year typical pace across 12 prior projects).",
+      "pattern_summary": "Among 2 comparable hotel projects in TMW's data, the median build time is 4.8 years (range 1.6–8.1). Adjusted to ~3.7 years for Arquitectonica's own track record (~3-year typical pace across 13 prior projects).",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -2242,15 +2242,15 @@
       "delivery_date": "2029-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
-      "project_type": "Residences",
+      "confidence": "medium",
+      "project_type": "Mixed-Use",
       "metro": "South Florida",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~3.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~3.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "rosewood-hillsboro-beach": {
       "estimate_years": 1.5,
@@ -2380,23 +2380,6 @@
       "start_speculative": false,
       "delivery_speculative": false,
       "is_mixed_use": false
-    },
-    "natiivo-fort-lauderdale": {
-      "estimate_years": 1.5,
-      "estimate_label": "~1.5 years",
-      "days_out": 511,
-      "delivery_date": "2027-12-31",
-      "source": "known_date",
-      "precision": "year",
-      "confidence": "high",
-      "project_type": "Residences",
-      "metro": "South Florida",
-      "comparables": [],
-      "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
     },
     "633-se-third-avenue": {
       "estimate_years": 2.9,
@@ -2543,15 +2526,15 @@
       "delivery_date": "2027-12-31",
       "source": "known_date",
       "precision": "year",
-      "confidence": "high",
+      "confidence": "medium",
       "project_type": "Residences",
       "metro": "Tampa Bay",
       "comparables": [],
       "comparable_count": 0,
-      "pattern_summary": "Targeted for opening in ~1.5 years.",
-      "dates_speculative": false,
-      "start_speculative": false,
-      "delivery_speculative": false
+      "pattern_summary": "TMW estimates an opening in ~1.5 years based on project type and current stage.",
+      "dates_speculative": true,
+      "start_speculative": true,
+      "delivery_speculative": true
     },
     "wellington-sports-academy": {
       "estimate_years": 1.3,
@@ -3808,9 +3791,9 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Arquitectonica",
-        "count": 12,
-        "median_years": 3.07,
-        "stddev_years": 1.74,
+        "count": 13,
+        "median_years": 3.04,
+        "stddev_years": 1.68,
         "role": "architect",
         "consistent": false,
         "blend_weight": 0.65
@@ -4267,11 +4250,11 @@
       "is_mixed_use": false
     },
     "rosewood-residences-west-palm-beach": {
-      "estimate_years": 2.9,
-      "estimate_label": "~2.9 years",
+      "estimate_years": 3.0,
+      "estimate_label": "~3 years",
       "range_low": 1.7,
       "range_high": 4.8,
-      "confidence": "medium",
+      "confidence": "high",
       "comparable_count": 19,
       "good_count": 4,
       "exact_count": 4,
@@ -4282,12 +4265,12 @@
       "scale_used": true,
       "firm_signal": {
         "firm": "Related Group",
-        "count": 2,
-        "median_years": 2.73,
+        "count": 3,
+        "median_years": 3.0,
         "stddev_years": 0.27,
         "role": "developer",
-        "consistent": false,
-        "blend_weight": 0.55
+        "consistent": true,
+        "blend_weight": 0.65
       },
       "source": "comparables",
       "project_type": "Residences",
@@ -4321,7 +4304,7 @@
           "distance_mi": 2.0
         }
       ],
-      "pattern_summary": "Among 19 comparable residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Adjusted to ~2.9 years for Related Group's own track record (~2.7-year typical pace across 2 prior projects).",
+      "pattern_summary": "Among 19 comparable residences projects in TMW's data, the median build time is 3 years (range 1.7–4.8). Related Group delivers a consistent ~3-year pace across 3 projects, adjusting this estimate to ~3 years.",
       "dates_speculative": false,
       "start_speculative": false,
       "delivery_speculative": false,
@@ -16425,15 +16408,15 @@
     }
   },
   "stats": {
-    "high": 7,
-    "medium": 24,
+    "high": 8,
+    "medium": 23,
     "low": 84,
-    "known_date": 545,
+    "known_date": 544,
     "completed": 68,
-    "skipped": 112,
+    "skipped": 113,
     "no_type": 0,
     "firm_boosted": 49,
-    "speculative_softened": 221,
+    "speculative_softened": 223,
     "district": 13,
     "mixed_use_adjusted": 30
   }
