@@ -14445,10 +14445,32 @@ async function handleMemberVerify(env, url) {
       '<div class="pp-list">' + groups + '</div>';
   }
 
+  // Social share (the /m/<no> page is shared via the dashboard QR + Share button).
+  const ogTitle = esc((ok ? ((name ? name + ' · ' : '') + 'Member No. ' + noStr) : 'Membership') + ' · Markets of Tomorrow');
+  const ogDesc = esc(ok
+    ? ('Verified member of Markets of Tomorrow' + (founding ? ', a founding member,' : '') + ' since ' + year + '.')
+    : 'Markets of Tomorrow membership.');
+  const ogImg = 'https://media.oftmw.com/wix/ca3b83_93ffb2f000f94a12aa874fe44153be18~mv2.jpg';
+
   const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>${ok ? 'Member No. ' + noStr : 'Membership'} &middot; Markets of TMW</title>
+<link rel="icon" href="https://www.oftmw.com/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="https://www.oftmw.com/media/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="https://www.oftmw.com/media/img/favicon-512.png">
+<link rel="icon" type="image/svg+xml" href="https://www.oftmw.com/media/img/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="https://www.oftmw.com/media/img/favicon-180.png">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Markets of Tomorrow">
+<meta property="og:title" content="${ogTitle}">
+<meta property="og:description" content="${ogDesc}">
+<meta property="og:image" content="${ogImg}">
+<meta property="og:url" content="https://passport.oftmw.com/m/${no}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${ogTitle}">
+<meta name="twitter:description" content="${ogDesc}">
+<meta name="twitter:image" content="${ogImg}">
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:flex;justify-content:center;padding:24px;position:relative;overflow-x:hidden;overflow-y:auto;
