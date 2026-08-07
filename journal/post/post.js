@@ -1597,7 +1597,7 @@ function initSuggestMode(post) {
     var w = who();
     banner.innerHTML = '<b>' + PEN + 'Suggest edits</b><span>Select any text, or tap a photo, to propose a change.</span>' +
       '<span class="sug-note-btn" id="sugGeneralBtn">+ general note</span>' +
-      '<span class="sug-who">Reviewing as <b>' + escapeHtml((w && (w.name || w.email)) || 'Anonymous') + '</b> · <a id="sugWhoBtn">' + (w && w.email ? 'change' : 'add your email') + '</a></span>';
+      '<span class="sug-who">Reviewing as <b>' + escapeHtml((w && w.name) || 'Anonymous') + '</b> · <a id="sugWhoBtn">' + (w && w.email ? 'change' : 'add your email') + '</a></span>';
     var wb = banner.querySelector('#sugWhoBtn');
     if (wb) wb.onclick = function () { askWho(function () { paintBanner(); }); };
     var gb = banner.querySelector('#sugGeneralBtn');
@@ -1818,10 +1818,15 @@ function initSuggestMode(post) {
   }
   function hookField(el, code) {
     if (!el) return;
-    el.addEventListener('mouseover', function () {
+    // mouseENTER (not mouseover): fires once on entry, not on every move inside
+    // the field. Guard so re-entry from the pen doesn't recreate it — otherwise
+    // the pen flickers/jumps as the cursor moves over the multi-line title.
+    el.addEventListener('mouseenter', function () {
+      if (imgPen && imgPen._forEl === el) return;
       killImgPen();
       var rect = el.getBoundingClientRect();
       imgPen = document.createElement('div');
+      imgPen._forEl = el;
       imgPen.className = 'sug-imgpen';
       imgPen.innerHTML = PEN;
       imgPen.title = code === FIELD_HERO ? 'Suggest a different photo' : 'Suggest an edit';
@@ -1830,10 +1835,9 @@ function initSuggestMode(post) {
       imgPen.style.top = (rect.top + 8 + window.scrollY) + 'px';
       imgPen.onclick = function (ev) { ev.preventDefault(); ev.stopPropagation(); killImgPen(); openFieldDialog(el, code); };
       document.body.appendChild(imgPen);
-      el.addEventListener('mouseleave', function h() {
-        el.removeEventListener('mouseleave', h);
-        setTimeout(function () { if (imgPen && !imgPen.matches(':hover')) killImgPen(); }, 250);
-      });
+    });
+    el.addEventListener('mouseleave', function () {
+      setTimeout(function () { if (imgPen && imgPen._forEl === el && !imgPen.matches(':hover')) killImgPen(); }, 250);
     });
     el.addEventListener('click', function (e) {
       // a field with a pending suggestion revises it; otherwise open fresh
