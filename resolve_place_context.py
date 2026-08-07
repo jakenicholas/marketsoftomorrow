@@ -362,25 +362,8 @@ def tier_of(access, anchors):
     return "emerging"
 
 
-def load_overrides():
-    """Human review decisions from the worker (Studio Apply/Keep buttons).
-    Dismissed pins stop re-flagging; applied ones converge naturally once the
-    corrected coords land in projects.json."""
-    try:
-        j = requests.get(f"{WORKER}/resolve-overrides", timeout=15).json()
-        return set(j.get("dismissed") or [])
-    except Exception:
-        print("[warn] could not load /resolve-overrides — review flags unfiltered")
-        return set()
-
-
-def build_record(p, projects, list_places, dismissed=frozenset()):
+def build_record(p, projects, list_places):
     res = resolve_project(p)
-    if res["point"]["status"] == "review" and p.get("Slug") in dismissed:
-        # A human already chose to keep this pin — honor it quietly.
-        res["point"]["status"] = "kept"
-        res["proposed_point"] = None
-        res["_override"] = "keep_pin"
     lat, lng = res["point"]["lat"], res["point"]["lng"]
     access  = build_access(lat, lng) if (lat and lng) else []
     anchors = build_anchors(p, projects, list_places)
@@ -389,7 +372,7 @@ def build_record(p, projects, list_places, dismissed=frozenset()):
         "schema": SCHEMA_V, "resolved_at": int(time.time()),
         "confidence": res["confidence"],
         "coverage": "full" if len(anchors) >= 2 else ("access-only" if access else "thin"),
-        "override": res.get("_override"),
+        "override": None,
         "address": {"line": (p.get("Street") or "").strip() or None,
                     "city": p.get("City"), "country": p.get("Country"),
                     "canonical": res["canonical"]},
@@ -428,8 +411,6 @@ def main():
 
     list_places = load_list_places(out["_lists"])
     print(f"[info] {len(list_places)} iconic-list anchors geocoded (cached)")
-    dismissed = load_overrides()
-    if dismissed: print(f"[info] {len(dismissed)} review dismissals honored")
 
     only = {s.strip() for s in args.slugs.split(",") if s.strip()}
     now, fresh_cutoff = time.time(), time.time() - MAX_AGE_DAYS * 86400
@@ -452,7 +433,7 @@ def main():
     for p in todo:
         slug = p.get("Slug")
         try:
-            rec = build_record(p, projects, list_places, dismissed)
+            rec = build_record(p, projects, list_places)
         except Exception as e:
             print(f"[warn] {slug}: {type(e).__name__}: {e}"); continue
         out["projects"][slug] = rec

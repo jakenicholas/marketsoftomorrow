@@ -4768,31 +4768,6 @@ export async function syncOpenDeliveryDates(env) {
   }
 }
 
-// Apply a Mapbox-resolved pin from the Location Caliber review lane: move one
-// project's coordinates to the proposed_point a human approved in the Studio.
-// Same optimistic-locking write as every other projects.json mutation; the
-// hourly map build then carries the corrected pin to every surface.
-export async function applyResolvedPin(env, slug, lat, lng) {
-  requireGhToken(env);
-  slug = String(slug || '').trim().toLowerCase();
-  lat = Number(lat); lng = Number(lng);
-  if (!slug || !Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('slug, lat, lng required');
-  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) throw new Error('coordinates out of range');
-  for (let attempt = 0; ; attempt++) {
-    const { sha, projects } = await readProjectsFile(env);
-    const p = projects.find((x) => x && String(x.slug || '').toLowerCase() === slug);
-    if (!p) throw new Error('No project with slug "' + slug + '" in projects.json');
-    const before = { lat: p.lat ?? null, lng: p.lng ?? null };
-    p.lat = Math.round(lat * 1e6) / 1e6;
-    p.lng = Math.round(lng * 1e6) / 1e6;
-    try {
-      await ghPutFile(env, GH_PROJECTS_PATH, serializeProjects(projects), sha,
-        `Pin resolve: ${p.name || slug} → ${p.lat}, ${p.lng} (reviewed)`);
-      return { ok: true, slug, before, after: { lat: p.lat, lng: p.lng } };
-    } catch (e) { if (e && e.status === 409 && attempt < 4) continue; throw e; }
-  }
-}
-
 // Linking a post to a project records the article as a COVERAGE date event on
 // that project's dossier (status_history), flagged as a POTENTIAL progress
 // update. Coverage events are factual (the article exists and is dated) — they
