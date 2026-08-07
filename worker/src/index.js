@@ -15,7 +15,7 @@
 //   account acts as a non-human principal granted read-only access to one
 //   specific GA4 property. The README walks through the GCP-side setup.
 
-import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage, syncOpenDeliveryDates } from './mcp.js';
+import { handleMcp, autoPromoteOpenedProjects, recordArticleCoverage, syncOpenDeliveryDates, applyResolvedPin } from './mcp.js';
 import { handleOAuth } from './oauth.js';
 import { handleGallery } from './gallery.js';
 import { ONTOLOGY, ONTOLOGY_VERSION, ontologyText } from './ontology.js';
@@ -11455,6 +11455,65 @@ async function handleAdminResolve(request, env, origin) {
     { status: 502 }, env, origin);
 }
 
+// ── Location Caliber pin-review lane ─────────────────────────────────────────
+// place-context.json flags pins whose Mapbox-resolved point moved >150m
+// (status:"review" + proposed_point) but never moves them. These routes are the
+// human decision: apply the proposed pin (writes lat/lng to tmw-data
+// projects.json) or keep the current one. Decisions land in D1 so the Studio
+// list stays clean across refreshes, and GET /resolve-overrides lets the
+// resolver skip re-flagging dismissed pins on its monthly run.
+async function ensurePlaceReviewTable(env) {
+  try {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS place_review (
+      slug TEXT PRIMARY KEY, action TEXT, delta_m INTEGER, ts INTEGER)`).run();
+  } catch (_) {}
+}
+
+async function handleApplyPin(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const { slug, lat, lng } = body || {};
+  try {
+    const res = await applyResolvedPin(env, slug, lat, lng);
+    if (env.DB) {
+      await ensurePlaceReviewTable(env);
+      await env.DB.prepare(`INSERT INTO place_review (slug, action, delta_m, ts) VALUES (?1,'applied',?2,?3)
+        ON CONFLICT(slug) DO UPDATE SET action='applied', delta_m=?2, ts=?3`)
+        .bind(res.slug, Number(body.delta_m) || null, Date.now()).run();
+    }
+    return json(res, {}, env, origin);
+  } catch (e) { return json({ error: String(e && e.message || e) }, { status: 400 }, env, origin); }
+}
+
+async function handleDismissPin(request, env, origin) {
+  const denied = await requireAdminToken(request, env, origin);
+  if (denied) return denied;
+  if (!env.DB) return json({ error: 'D1 not configured' }, { status: 500 }, env, origin);
+  let body = {}; try { body = await request.json(); } catch (_) {}
+  const slug = String(body.slug || '').trim().toLowerCase();
+  if (!slug) return json({ error: 'slug required' }, { status: 400 }, env, origin);
+  await ensurePlaceReviewTable(env);
+  await env.DB.prepare(`INSERT INTO place_review (slug, action, delta_m, ts) VALUES (?1,'dismissed',?2,?3)
+    ON CONFLICT(slug) DO UPDATE SET action='dismissed', delta_m=?2, ts=?3`)
+    .bind(slug, Number(body.delta_m) || null, Date.now()).run();
+  return json({ ok: true, slug, action: 'dismissed' }, {}, env, origin);
+}
+
+// Public read (slugs + decisions only — nothing sensitive): the resolver pulls
+// this on each run so dismissed pins stop re-flagging, and the Studio page
+// filters its pending list with it.
+async function handleResolveOverrides(env, origin) {
+  if (!env.DB) return json({ applied: [], dismissed: [] }, {}, env, origin);
+  await ensurePlaceReviewTable(env);
+  let rows = [];
+  try { rows = (await env.DB.prepare('SELECT slug, action FROM place_review').all()).results || []; } catch (_) {}
+  return json({
+    applied:   rows.filter(r => r.action === 'applied').map(r => r.slug),
+    dismissed: rows.filter(r => r.action === 'dismissed').map(r => r.slug),
+  }, { headers: { 'Cache-Control': 'public, max-age=60' } }, env, origin);
+}
+
 // GET /admin/auth/login?redirect=<page> — kick off GitHub OAuth.
 async function handleAuthLogin(env, url) {
   if (!env.GITHUB_CLIENT_ID || !env.SESSION_SECRET) return new Response('GitHub OAuth not configured on the worker.', { status: 500 });
@@ -16486,6 +16545,9 @@ export default {
       // table the MCP connector uses, so the Studio UI and Claude stay in sync).
       if (url.pathname === '/admin/model-check' && request.method === 'GET') return await handleModelCheck(request, env, origin);
       if (url.pathname === '/admin/resolve' && request.method === 'POST') return await handleAdminResolve(request, env, origin);
+      if (url.pathname === '/admin/apply-pin' && request.method === 'POST') return await handleApplyPin(request, env, origin);
+      if (url.pathname === '/admin/dismiss-pin' && request.method === 'POST') return await handleDismissPin(request, env, origin);
+      if (url.pathname === '/resolve-overrides' && request.method === 'GET') return await handleResolveOverrides(env, origin);
       if (url.pathname === '/brain/proposed' && request.method === 'GET')  return await handleBrainProposed(request, env, origin);
       if (url.pathname === '/admin/brain/garden' && request.method === 'POST') return await handleBrainGarden(request, env, origin);
       if (url.pathname === '/admin/brain/dial-in' && request.method === 'POST') return await handleBrainDialIn(request, env, origin);
