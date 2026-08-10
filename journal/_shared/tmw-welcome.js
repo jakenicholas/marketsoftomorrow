@@ -134,6 +134,12 @@
       '.tmww .p-feat{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:4px 0 20px;max-width:560px}',
       '.tmww .p-ft{display:flex;align-items:center;gap:7px;font-size:12px;color:#C2C9C3}',
       '.tmww .p-form{width:min(560px,100%);display:flex;flex-direction:column;gap:10px}',
+      /* pro screen in the cinematic bottom-left column */
+      '.tmww .g-inner.pro{max-width:620px}',
+      '.tmww .g-inner.pro .plans{margin:0 0 12px}',
+      '.tmww .g-inner.pro .p-feat{justify-content:flex-start;margin:2px 0 18px;max-width:none}',
+      '.tmww .g-inner.pro .p-form{width:min(560px,100%)}',
+      '.tmww .g-inner.pro .fine{margin-top:2px}',
       '@media(max-width:560px){.tmww .plans{flex-direction:column}.tmww .p-feat{display:none}}',
       '@media(prefers-reduced-motion:reduce){.tmww .ring,.tmww .eyeb.purple{animation:none}.tmww .scr.on{animation:none}}'
     ].join('');
@@ -142,6 +148,12 @@
   }
 
   var LOGO_IMG = '<img src="https://media.oftmw.com/wix/other/50822a-TMW_Logos-16.svg" alt="Markets of Tomorrow">';
+  var TICKER =
+    '<div class="g-ticker">' +
+      '<div class="tk"><div class="v">1,600+</div><div class="k">Tracked projects</div></div>' +
+      '<div class="tk"><div class="v">8.1M</div><div class="k">Monthly views</div></div>' +
+      '<div class="tk"><div class="v">40+</div><div class="k">Markets</div></div>' +
+    '</div>';
 
   var IS_MAP_SURFACE = (location.hostname === 'map.oftmw.com') || /^\/map(\/|$)/.test(location.pathname);
 
@@ -215,11 +227,7 @@
           '<div class="msg" aria-live="polite"></div>' +
         '</form>' +
       '</div>' +
-      '<div class="g-ticker">' +
-        '<div class="tk"><div class="v">1,600+</div><div class="k">Tracked projects</div></div>' +
-        '<div class="tk"><div class="v">8.1M</div><div class="k">Monthly views</div></div>' +
-        '<div class="tk"><div class="v">40+</div><div class="k">Markets</div></div>' +
-      '</div>'
+      TICKER
     );
     track('welcome_gate_shown', { source: source });
     var form = s.querySelector('form'), msg = s.querySelector('.msg');
@@ -353,10 +361,11 @@
       (opts.hard
         ? (opts.source === 'atlas' ? '<button class="skip" data-w="gohome">Maybe later</button>' : '')
         : '<button class="skip" data-w="close">Maybe later</button>') +
-      '<div class="c-wrap">' +
+      '<div class="g-inner pro">' +
+        '<div class="wm">' + LOGO_IMG + '</div>' +
         '<div class="eyeb purple">TMW Pro</div>' +
-        '<h2 class="p-h">' + copy[0] + '</h2>' +
-        '<p class="p-sub">' + copy[1] + '</p>' +
+        '<h2 class="g-h">' + copy[0] + '</h2>' +
+        '<p class="g-sub">' + copy[1] + '</p>' +
         '<div class="plans">' +
           '<button class="plan sel" data-price="' + PRICE_ANNUAL + '"><span class="tag">Save 22%</span><div class="nm">Annual</div><div class="pr">$300<small>/yr</small></div><div class="nt">$25/month &middot; 14 days free</div></button>' +
           '<button class="plan" data-price="' + PRICE_MONTHLY + '"><div class="nm">Monthly</div><div class="pr">$32<small>/mo</small></div><div class="nt">14 days free</div></button>' +
@@ -372,7 +381,8 @@
             (window._tmwSignedIn === true ? '' : ' &middot; Already a subscriber? <a data-w="login">Sign in</a>') + '</p>' +
           '<div class="msg" aria-live="polite"></div>' +
         '</div>' +
-      '</div>'
+      '</div>' +
+      TICKER
     );
     track('welcome_pro_shown', { source: opts.source || '' });
     s.querySelectorAll('.plan').forEach(function (p) {
