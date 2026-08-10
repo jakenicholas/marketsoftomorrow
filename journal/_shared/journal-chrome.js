@@ -40,7 +40,10 @@
     '<path d="M219.2,324.1v-90h49.1v20.2h-27.1v15.3h26.2v20.2h-26.2v34.3h-22Z"/>' +
     '</g></svg></div>';
 
-  var LOGO = '<a href="/" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
+  // On worker-served hosts (gallery.oftmw.com) "/" is that host's own index,
+  // not the site home — the logo must always land on www.
+  var HOME = (location.hostname === 'www.oftmw.com' || location.hostname === 'oftmw.com') ? '/' : 'https://www.oftmw.com/';
+  var LOGO = '<a href="' + HOME + '" class="tmw-logo-lockup" aria-label="Markets of Tomorrow">' + HEX + WORDMARK + '</a>';
 
   var NAV = [
     ['Read', '/', 'global'],
@@ -81,7 +84,7 @@
 
   var footerHtml =
     '<footer class="tmw-chrome-foot"><div class="wrap"><div class="ft-grid">' +
-      '<div>' + '<a href="/" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
+      '<div>' + '<a href="' + HOME + '" class="tmw-logo-lockup">' + HEX + WORDMARK + '</a>' +
         '<p class="blurb">A powerhouse news network + data platform for hospitality, real estate, and lifestyle &mdash; powered by a real-time project database and TMW Intelligence, our AI for predictive forecasting.</p></div>' +
       // Data takes the slot the Focus Markets column used to occupy.
       '<div><h4>Data</h4><ul>' +
@@ -320,10 +323,10 @@
     if (yr) yr.textContent = String(new Date().getFullYear());
 
     // Shared Memberstack login — drops the account avatar into the header.
-    // NOT on gallery.oftmw.com: client galleries are PIN-gated deliverables,
-    // and that origin isn't registered with the Memberstack app, so the SDK
-    // would boot in Test Mode there.
-    if (location.hostname !== 'gallery.oftmw.com' && !document.querySelector('script[data-tmw-auth-loader]')) {
+    // Runs on gallery.oftmw.com too (universal header incl. the Dashboard
+    // pill / Pro state) — that host must stay registered in the Memberstack
+    // app's domains list or the SDK boots in Test Mode there.
+    if (!document.querySelector('script[data-tmw-auth-loader]')) {
       var authScript = document.createElement('script');
       authScript.src = '/_shared/journal-auth.js';
       authScript.defer = true;
