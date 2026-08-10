@@ -117,8 +117,8 @@
   var MAP_URL = 'https://www.oftmw.com/map/';
   var HOMEBASE = [
     { ic: 'news', t: 'News', act: go('https://www.oftmw.com/'), on: MATCH.news },
-    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
     { ic: 'atlas', t: 'Atlas', act: go('https://www.oftmw.com/atlas/'), on: MATCH.atlas },
+    { ic: 'map', t: 'Map', act: go(MAP_URL), on: MATCH.map },
     { ic: 'user', t: 'Dashboard', act: go('/dashboard/'), on: MATCH.dashboard }
   ];
   var LISTS = [

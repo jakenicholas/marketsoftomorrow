@@ -588,8 +588,8 @@
   function buildToggle(active, mini) {
     var segs = [
       ['journal', 'Journal', surfaceHref('journal', 'https://www.oftmw.com/')],
-      ['map', 'Map', surfaceHref('map', 'https://www.oftmw.com/map')],
-      ['atlas', 'Atlas', surfaceHref('atlas', 'https://www.oftmw.com/atlas')]
+      ['atlas', 'Atlas', surfaceHref('atlas', 'https://www.oftmw.com/atlas')],
+      ['map', 'Map', surfaceHref('map', 'https://www.oftmw.com/map')]
     ];
     return '<div class="tmw-st' + (mini ? ' mini' : '') + '" role="tablist" aria-label="Switch interface">' +
       segs.map(function (s) {
@@ -1052,7 +1052,7 @@
       // BUMP DOCK_V whenever tmw-mobile-dock.js changes — same reason as
       // SEARCH_V: aggressive mobile caches (and any zone-level Browser Cache
       // TTL) hold the old file for hours otherwise.
-      var DOCK_V = '20260810d';
+      var DOCK_V = '20260810e';
       var d = document.createElement('script');
       d.src = '/_shared/tmw-mobile-dock.js?v=' + DOCK_V;
       d.defer = true;
