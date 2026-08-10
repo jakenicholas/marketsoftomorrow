@@ -1137,6 +1137,16 @@
     + '.tmw-pv-firm.is-plain{color:#C2C9C3;cursor:default}'
     /* ── Native map card ── */
     + '@media(max-width:700px){.tmw-pv-hero{flex-basis:170px;min-height:130px}.tmw-pv-title{font-size:24px}.tmw-pv-body{padding:4px 16px 18px;gap:11px}.tmw-pv-stat .v{font-size:16px}.tmw-pv-desc{-webkit-line-clamp:2}}'
+    /* Desktop: the inline answer card goes 2-column — image fills the left
+       half at full card height, content on the right. Scoped to .tmw-ov-sec
+       so the fullscreen project view panel (tall hero already) is untouched. */
+    + '@media(min-width:860px){'
+    +   '.tmw-ov-sec .tmw-pv{display:grid;grid-template-columns:1.08fr 1fr;align-items:stretch;border-radius:20px;overflow:hidden;background:#0f120f;border:1px solid rgba(255,255,255,.08)}'
+    +   '.tmw-ov-sec .tmw-pv .tmw-pv-hero{flex:initial;height:100%;min-height:440px}'
+    +   '.tmw-ov-sec .tmw-pv .tmw-pv-hero .scrim{background:linear-gradient(to top,rgba(8,9,8,.72) 0%,rgba(8,9,8,.28) 22%,transparent 48%)}'
+    +   '.tmw-ov-sec .tmw-pv .tmw-pv-body{padding:26px 28px;justify-content:center;gap:15px;min-width:0}'
+    +   '.tmw-ov-sec .tmw-pv .tmw-pv-desc{-webkit-line-clamp:4}'
+    + '}'
     + '[data-state="results"].tmw-ov-proj-open{position:relative;height:min(660px,78vh)!important;min-height:0!important;padding:0!important;overflow:hidden;border-radius:18px!important}'
     /* Mobile: cap the embed so its bottom sits ABOVE the floating Onyx search
        bar (the dock) instead of scrolling behind it — leave room for the dock
