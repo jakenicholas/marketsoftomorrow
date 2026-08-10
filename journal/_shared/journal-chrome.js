@@ -320,7 +320,10 @@
     if (yr) yr.textContent = String(new Date().getFullYear());
 
     // Shared Memberstack login — drops the account avatar into the header.
-    if (!document.querySelector('script[data-tmw-auth-loader]')) {
+    // NOT on gallery.oftmw.com: client galleries are PIN-gated deliverables,
+    // and that origin isn't registered with the Memberstack app, so the SDK
+    // would boot in Test Mode there.
+    if (location.hostname !== 'gallery.oftmw.com' && !document.querySelector('script[data-tmw-auth-loader]')) {
       var authScript = document.createElement('script');
       authScript.src = '/_shared/journal-auth.js';
       authScript.defer = true;

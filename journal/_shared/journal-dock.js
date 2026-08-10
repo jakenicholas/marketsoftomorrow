@@ -29,7 +29,9 @@
 
   // Identify a logged-in member to analytics (loads /_shared/member-track.js once).
   // Self-contained there; covers every journal page that includes this dock.
-  if (!document.querySelector('script[data-tmw-membertrack]')) {
+  // Skipped on gallery.oftmw.com — member-track loads Memberstack itself, and
+  // that origin isn't registered with the app (SDK would boot in Test Mode).
+  if (location.hostname !== 'gallery.oftmw.com' && !document.querySelector('script[data-tmw-membertrack]')) {
     var _mt = document.createElement('script');
     _mt.src = '/_shared/member-track.js';
     _mt.defer = true;
@@ -1212,6 +1214,7 @@
   var PAYWALL_NATIVE = true;
 
   function loadAuth() {
+    if (location.hostname === 'gallery.oftmw.com') return;   // PIN-gated client pages, no Memberstack (unregistered origin = Test Mode)
     if (!document.querySelector('script[src*="journal-auth.js"], script[data-tmw-auth-loader]')) {
       var s = document.createElement('script');
       s.src = '/_shared/journal-auth.js';
