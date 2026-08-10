@@ -324,4 +324,7 @@
 
   window.tmwShowPaywall = show;
   window.tmwHidePaywall = hide;
+  // Direct checkout for the full-screen welcome flow (tmw-welcome.js) — same
+  // trial-eligibility + grandfathered no-trial routing as the paywall's plans.
+  window.tmwProCheckout = function (priceId) { checkTrialEligibility(); startCheckout(priceId); };
 })();

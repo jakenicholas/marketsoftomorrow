@@ -104,6 +104,10 @@
   // ── Step 1: email + password in ONE step → creates the account ───────────
   // The auto-funnel is just two slides: (1) email + password (this), (2) Go-Pro.
   function build() {
+    // Full-screen welcome (tmw-welcome.js, loaded by journal-chrome.js) is the
+    // elevated experience; the slide-up panel below survives only as the
+    // fallback when that module hasn't loaded.
+    if (window.tmwWelcome && !document.querySelector('.tmww') && window.tmwWelcome.gate({ source: SOURCE })) return;
     if (document.querySelector('.tmw-sub')) return;     // max one at a time
     var el = document.createElement('div');
     el.className = 'tmw-sub';
@@ -188,6 +192,7 @@
   //    "add a password" step, NOT re-asked to subscribe. ─────────────────────
   function buildAccountMode(email) {
     if (window._tmwSignedIn === true) return false;
+    if (window.tmwWelcome && !document.querySelector('.tmww') && window.tmwWelcome.gate({ email: email, source: SOURCE })) return true;
     if (document.querySelector('.tmw-sub')) return false;
     var el = document.createElement('div');
     el.className = 'tmw-sub';
@@ -244,6 +249,11 @@
   function goProShownThisSession() { try { return sessionStorage.getItem(GOPRO_SESSION_KEY) === '1'; } catch (e) { return false; } }
   function showGoProOncePerSession() {
     if (goProShownThisSession()) return false;
+    // Prefer the full-screen Go-Pro moment; the paywall lightbox is the fallback.
+    if (window.tmwWelcome && window.tmwWelcome.pro) {
+      try { sessionStorage.setItem(GOPRO_SESSION_KEY, '1'); } catch (e) {}
+      if (window.tmwWelcome.pro({ source: 'session_upsell' })) return true;
+    }
     if (typeof window.tmwShowPaywall !== 'function') return false;   // paywall not ready — don't burn the session slot
     try { sessionStorage.setItem(GOPRO_SESSION_KEY, '1'); } catch (e) {}
     window.tmwShowPaywall('go-pro');

@@ -677,6 +677,18 @@
   document.head.appendChild(s);
 })();
 
+// Full-screen welcome flow (gate / member # / Go Pro) — the signup funnel and
+// paywall route through it when present. Deferred; the funnel falls back to
+// its slide-up panel if this hasn't loaded by trigger time.
+(function () {
+  if (window.tmwWelcome || document.querySelector('script[data-tmw-welcome]')) return;
+  var s = document.createElement('script');
+  s.src = '/_shared/tmw-welcome.js?v=20260810a';
+  s.defer = true;
+  s.setAttribute('data-tmw-welcome', '1');
+  document.head.appendChild(s);
+})();
+
 (function () {
   if (document.querySelector('script[data-tmw-dashbtn]')) return;
   var s = document.createElement('script');
