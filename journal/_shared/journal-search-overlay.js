@@ -378,6 +378,7 @@
        Related-projects, From-the-journal, Firms, and the count tabs so a
        semi-arbitrary card doesn\'t cheapen a written answer. */
     + '[data-state="results"][data-answer-only="1"] .tmw-ov-hero,'
+    + '[data-state="results"][data-answer-only="1"] .tmw-ov-exacthero .tmw-pv,'
     + '[data-state="results"][data-answer-only="1"] [data-cat="projects"],'
     + '[data-state="results"][data-answer-only="1"] [data-cat="articles"],'
     + '[data-state="results"][data-answer-only="1"] [data-cat="firms"],'
@@ -1107,7 +1108,9 @@
     + '.tmw-pv-stat .v{font-size:18px;font-weight:600;color:#fff;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
     + '.tmw-pv-stat .k{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#8b938b;margin-top:3px}'
     + '.tmw-pv-desc{font-size:14.5px;line-height:1.55;color:#d7ddd7;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
-    + '.tmw-pv-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}'
+    + '.tmw-pv-cta{display:flex;gap:8px;flex-wrap:nowrap;margin-top:2px}'
+    + '.tmw-pv-cta .tmw-pv-btn{flex:1 1 0;min-width:0;justify-content:center;white-space:nowrap;padding:11px 8px}'
+    + '@media(max-width:430px){.tmw-pv-cta .tmw-pv-btn{font-size:12px;gap:5px}.tmw-pv-cta .tmw-pv-btn svg{width:13px;height:13px}}'
     + '.tmw-pv-btn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:11px 16px;border-radius:12px;cursor:pointer;text-decoration:none;transition:transform .15s,background .15s,border-color .15s}'
     + '.tmw-pv-btn.primary{background:#fff;color:#0b0d0b;border:1px solid #fff}'
     + '.tmw-pv-btn.primary:hover{transform:translateY(-1px)}'
@@ -2465,7 +2468,7 @@
     }
     var firms = firmGroup('Developer', p.Developer, p.DeveloperSlugs) + firmGroup('Design', p.Architect, p.ArchitectSlugs);
     var desc = clipBio(firstField(p, ['DescriptionLong','description_long','Description','description']) || '', 300);
-    var type = firstField(p, ['ProjectType','PreferredType']);
+    var type = String(firstField(p, ['PreferredType','ProjectType']) || '').split(',')[0].trim();
     var slug = p.Slug || p.slug || '';
     var spine = '<div class="tmw-pv-spine"><div class="tmw-pv-spine-bar"><div class="tmw-pv-spine-fill" style="width:' + _spinePct(st) + '%"></div></div>'
       + '<div class="tmw-pv-spine-stages">' + SPINE_ORDER.map(function(s){ return '<span class="' + (s === st ? 'on' : '') + '">' + esc(SPINE_SHORT[s] || s) + '</span>'; }).join('') + '</div></div>';
@@ -5164,7 +5167,7 @@
     if (hero){
       var heroHtml = '';
       var heroCat = 'projects';
-      if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjectHero(heroProject); heroCat = 'projects'; }
+      if      (hero.kind === 'project') { heroProject = hero.item; heroHtml = renderProjView(heroProject); heroCat = 'projects'; }
       else if (hero.kind === 'article') { heroArticle = hero.item; heroHtml = renderArticleHero(heroArticle); heroCat = 'articles'; }
       // Perfect database match (exact project name) → render the FULL hero card,
       // not the compacted overview row. A journal hero is ALWAYS the full card
