@@ -13049,6 +13049,40 @@
       // Expose so a ?city=<name> deep-link (from the universal dock search on
       // journal/atlas pages) can open the same city overview on arrival.
       window.openCityInSidebar = openCityInSidebar;
+
+      // Open a whole STATE/COUNTRY: filter to every project whose city sits in
+      // that region and frame them all at once. Same sidebar + fitBounds path as
+      // a single city, just over a set of cities (from window._regionIndex).
+      function openStateInSidebar(code){
+        var reg = window._regionIndex && window._regionIndex[code];
+        if (!reg){ return; }
+        dismissMapLanding();
+        document.body.classList.remove('v2-sidebar-collapsed');
+        var sb = document.getElementById('desktopSidebar');
+        if (sb && !sb.classList.contains('open')) sb.classList.add('open');
+        var pm = document.getElementById('projectModal');
+        if (pm && pm.classList.contains('open')){ var cb = document.getElementById('pmCloseBtn'); if (cb) cb.click(); }
+        var dtab = document.querySelector('.v2-desktop-tabs button[data-v2d-tab="discover"]');
+        if (dtab && !dtab.classList.contains('active')) dtab.click();
+        if (typeof map === 'undefined' || !map.getSource) return;
+        var src = map.getSource('projects');
+        var allFeats = window.allProjectFeatures || (src && src._data && src._data.features) || [];
+        var citySet = {}; reg.cities.forEach(function(c){ citySet[c] = 1; });
+        var regFeats = allFeats.filter(function(p){ return p.properties && citySet[p.properties.city]; });
+        var _gd = document.getElementById('gridDesktop');
+        if (_gd) _gd.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading…</div></div>';
+        function paint(){ if (typeof renderFilteredGrid === 'function') renderFilteredGrid('gridDesktop', regFeats); }
+        if (!regFeats.length){ paint(); return; }
+        window._mapFlyingTo = true;
+        try {
+          var b = new mapboxgl.LngLatBounds();
+          regFeats.forEach(function(p){ if (p.geometry && p.geometry.coordinates) b.extend(p.geometry.coordinates); });
+          var leftPad = Math.round(window.innerWidth * 0.35) + 40;   // clear the 35% sidebar
+          map.fitBounds(b, { padding: { top: 90, bottom: 90, left: leftPad, right: 60 }, maxZoom: 12, duration: 900 });
+        } catch(e){ map.flyTo({ center: regFeats[0].geometry.coordinates, zoom: 6 }); }
+        map.once('moveend', paint);
+      }
+      window.openStateInSidebar = openStateInSidebar;
       // The floating results are the ONLY desktop search UI now (no in-sidebar
       // list), so they show no matter what's on screen — Discover, a project page,
       // or a collapsed sidebar. Picking a project flies to it; a city opens the
@@ -13069,6 +13103,11 @@
               if (isCity === 'geo'){
                 if (di) di.value = f._geoLabel || q;
                 openCityInSidebar(null, f._geoFeature);
+                return;
+              }
+              if (isCity === 'state'){
+                if (di) di.value = f._stateLabel || q;
+                openStateInSidebar(f._stateCode);
                 return;
               }
               if (isCity){
@@ -18260,7 +18299,28 @@
         return matched.slice(0, 4);
       })();
 
-      const hasLocal = twmCities.length > 0 || projects.length > 0;
+      // Regions (states / countries) matching the query. A region matches when
+      // its label ("Colorado", "Turks & Caicos") contains the query, or the
+      // query is exactly its code ("CO"). We only surface regions that actually
+      // have projects on the map. Matching on the label/code (not the member
+      // cities) means a city name like "Aspen" shows under Places, not here.
+      const regionMatches = (() => {
+        const idx = window._regionIndex;
+        if (!idx || ql.length < 2) return [];
+        const out = [];
+        Object.keys(idx).forEach(code => {
+          const reg = idx[code];
+          const labelHit = normalizeForSearch(reg.label).includes(ql);
+          const codeHit = code.toLowerCase() === ql;   // exact code match only ("co")
+          if (!labelHit && !codeHit) return;
+          const citySet = {}; reg.cities.forEach(c => { citySet[c] = 1; });
+          const count = allFeatures.reduce((n, f) => n + (f.properties && citySet[f.properties.city] ? 1 : 0), 0);
+          if (count > 0) out.push({ code, label: reg.label, count });
+        });
+        return out.sort((a, b) => b.count - a.count).slice(0, 3);
+      })();
+
+      const hasLocal = twmCities.length > 0 || projects.length > 0 || regionMatches.length > 0;
 
       if (query.length < 2 && !hasLocal) { container.classList.add('hidden'); return; }
 
@@ -18328,11 +18388,35 @@
         });
       };
 
-      // Order: Projects FIRST (most direct match for what users type),
-      // then Places SECOND. Previously Places led; users sorting by city
-      // name still get those results -- they're just below the project
-      // hits where the primary user intent lives.
+      // Helper: render Region items (states / countries). A pick frames every
+      // project in that region at once — the map equivalent of the Atlas state
+      // filter. Rendered between Projects and Places.
+      const renderRegions = () => {
+        if (!regionMatches.length) return;
+        if (container.children.length > 0) {
+          const d = document.createElement('div'); d.className = 'autocomplete-divider'; container.appendChild(d);
+        }
+        const label = document.createElement('div');
+        label.className = 'autocomplete-section-label';
+        label.textContent = 'Regions';
+        container.appendChild(label);
+        const GRID_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`;
+        regionMatches.forEach((reg, i) => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.style.animationDelay = `${i * 0.04}s`;
+          item.innerHTML = `<div class="autocomplete-icon location">${GRID_SVG}</div><div class="autocomplete-text"><strong>${highlight(reg.label, ql)}</strong><span>${reg.count} project${reg.count !== 1 ? 's' : ''} across the region</span></div>`;
+          item.addEventListener('mousedown', () => onSelect({ _stateCode: reg.code, _stateLabel: reg.label }, 'state'));
+          container.appendChild(item);
+        });
+      };
+
+      // Order: Projects FIRST (most direct match for what users type), then
+      // Regions (states/countries), then Places (cities). Previously Places led;
+      // users sorting by city name still get those results -- just below the
+      // project + region hits where the primary user intent lives.
       renderProjects();
+      renderRegions();
       renderTMWCities();
       if (!hasLocal) container.classList.add('hidden');
 
@@ -18599,6 +18683,31 @@
                 window.mobileLoadedCount = 12;
                 renderFilteredGrid('gridMobile', allFeats);
               });
+              return;
+            }
+            if (isCity === 'state') {
+              // Whole state / country: frame every project in the region.
+              const reg = window._regionIndex && window._regionIndex[f._stateCode];
+              mobileSearchBar.value = f._stateLabel || query;
+              if (mobileClearBtn) mobileClearBtn.style.display = 'flex';
+              const allFeats = window.allProjectFeatures || source._data.features;
+              window.mobileSearchFeatures = allFeats;
+              window.mobileLoadedCount = 12;
+              const citySet = {}; (reg ? reg.cities : []).forEach(c => { citySet[c] = 1; });
+              const regFeats = allFeats.filter(p => p.properties && citySet[p.properties.city]);
+              const g = document.getElementById('gridMobile');
+              if (g) g.innerHTML = '<div class="grid-loading"><div class="grid-loading-spinner"></div><div class="grid-loading-text">Loading...</div></div>';
+              if (regFeats.length) {
+                try {
+                  const b = new mapboxgl.LngLatBounds();
+                  regFeats.forEach(p => { if (p.geometry && p.geometry.coordinates) b.extend(p.geometry.coordinates); });
+                  window._mapFlyingTo = true;
+                  map.fitBounds(b, { padding: 50, maxZoom: 12, duration: 900 });
+                } catch (e) { if (regFeats[0]) { window._mapFlyingTo = true; map.flyTo({ center: regFeats[0].geometry.coordinates, zoom: 6 }); } }
+                map.once('moveend', () => { window.mobileLoadedCount = 12; renderFilteredGrid('gridMobile', allFeats); });
+              } else {
+                renderFilteredGrid('gridMobile', allFeats);
+              }
               return;
             }
             mobileSearchBar.value = isCity ? f._cityLabel : f.properties.title;
@@ -18970,6 +19079,12 @@
             const allFeats = window.allProjectFeatures || source._data.features;
             flyToGeoFeature(gf);
             map.once('moveend', () => { renderFilteredGrid('gridDesktop', allFeats); });
+            return;
+          }
+          if (isCity === 'state') {
+            searchBar.value = f._stateLabel || query;
+            if (clearBtn) clearBtn.style.display = 'flex';
+            if (typeof window.openStateInSidebar === 'function') window.openStateInSidebar(f._stateCode);
             return;
           }
           searchBar.value = isCity ? f._cityLabel : f.properties.title;
@@ -20288,6 +20403,32 @@
               const res = await fetch('cityStateMap.json', { cache: 'force-cache' });
               if (res.ok) Object.assign(window.cityStateMap, await res.json());
             } catch (e) { /* labels just fall back to the city name */ }
+          })();
+
+          // ── Region search index ─────────────────────────────────────────
+          // region-search.json is the small (city -> code, code -> label) map
+          // built from the same data-driven geography as the Atlas. It lets the
+          // map search resolve a state/country name ("Colorado", "China") to
+          // EVERY city inside it, then frame all those projects at once —
+          // mirroring the Atlas state filter. Purely additive: city + project
+          // search is untouched.
+          (async () => {
+            try {
+              const res = await fetch('region-search.json', { cache: 'no-cache' });
+              if (!res.ok) return;
+              const rs = await res.json();
+              const cityCode = rs.cities || {};      // "Aspen" -> "CO"
+              const labels = rs.labels || {};        // "CO" -> "Colorado"
+              // code -> { label, cities:Set } built from cities that actually
+              // have projects on the map (drives counts + a real fitBounds).
+              const byCode = {};
+              Object.keys(cityCode).forEach(city => {
+                const code = cityCode[city];
+                if (!code || !labels[code]) return;
+                (byCode[code] || (byCode[code] = { code, label: labels[code], cities: [] })).cities.push(city);
+              });
+              window._regionIndex = byCode;
+            } catch (e) { /* region search just stays off */ }
           })();
 
           let updateTimeout;

@@ -4701,6 +4701,18 @@ def main():
         n_cities = len(atlas['leaderboards']['cities'])
         n_types = len(atlas['leaderboards']['types'])
         print(f"  ✓ atlas.json (devs:{n_devs} arch:{n_arch} cities:{n_cities} types:{n_types})")
+        # region-search.json — the small (city -> code, code -> label) index the
+        # live map loads so its search box can resolve a state/country name to
+        # every city inside it (mirrors the Atlas state filter). Derived from the
+        # same data-driven geography as atlas.json, but tiny (no aggregates), so
+        # the map can fetch it eagerly without pulling the full 1MB atlas.json.
+        region_search = {
+            'cities': atlas.get('city_state_map', {}),
+            'labels': {s['code']: s['label'] for s in atlas.get('available_states', [])},
+        }
+        with open('region-search.json', 'w', encoding='utf-8') as f:
+            json.dump(region_search, f, indent=2)
+        print(f"  ✓ region-search.json (cities:{len(region_search['cities'])} regions:{len(region_search['labels'])})")
     except Exception as e:
         print(f"  ✗ Could not build atlas.json: {e}")
 
