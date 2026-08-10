@@ -70,6 +70,7 @@
     trophy: '<path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a4 4 0 0 0 3 3.9M18 5h3v2a4 4 0 0 1-3 3.9"/>',
     passport: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 14h4"/>',
     map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    mapsearch: '<path d="M9 4 3 6v14l6-2 3.2 1.1"/><path d="M9 4v14"/><path d="M15 6v5"/><path d="m15 6 6-2v7.2"/><circle cx="17" cy="16.5" r="3.4"/><path d="m21.6 21.1-2.2-2.2"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/>',
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
     golf: '<path d="M12 18v-15l7 4-7 4"/><path d="M5 21c1.5-1.4 4-2.2 7-2.2s5.5.8 7 2.2"/>',
@@ -113,6 +114,23 @@
       { ic: 'share', t: 'Share', act: share }
     ] };
   }
+
+  /* ---------- the SMART action ----------
+     One purple, glowing quick action appended to the anchored pill — the tool
+     you most likely want on THIS page. Story pages get "Favorite", the map
+     gets its spatial search, the Atlas gets its market search, project pages
+     get Watch. Pages with no obvious winner get none (the pill stays clean). */
+  function atlasSearch() {
+    closeNow();
+    var inp = document.getElementById('acs-input');
+    if (inp) { inp.focus(); try { inp.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} return; }
+    openSearch('');
+  }
+  var SMART = null;
+  if (/^\/post\//.test(path))          SMART = { ic: 'heart',     t: 'Favorite this story',  act: contractWatch('#fav-btn') };
+  else if (IS_MAP)                      SMART = { ic: 'mapsearch', t: 'Search the map',       act: mapSearch };
+  else if (/^\/atlas/.test(path))       SMART = { ic: 'search',    t: 'Search the Atlas',     act: atlasSearch };
+  else if (/^\/projects?\//.test(path)) SMART = { ic: 'watch',     t: 'Watch this project',   act: contractWatch('#watchBtn') };
 
   var MAP_URL = 'https://www.oftmw.com/map/';
   var HOMEBASE = [
@@ -197,7 +215,23 @@
     '/* the GL-heavy map page stalls CSS transitions (they hold their START frame '+
     'forever) - run every dock state change instantly there */',
     'html.tmwx-instant .tmwx-tray,html.tmwx-instant .tmwx-fab svg,html.tmwx-instant .tmwx-in,html.tmwx-instant .tmwx-pill,html.tmwx-instant .tmwx-scrim,html.tmwx-instant .tmwx-wrap{transition:none !important}',
-    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}}'
+    /* custom hover tooltips — DESKTOP ONLY (hover-capable, fine pointer) */
+    '@media (hover:hover) and (pointer:fine){',
+    '.tmwx-pbtn,.tmwx-fab{position:relative}',
+    '.tmwx-pbtn[data-tip]::after,.tmwx-fab[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 11px);left:50%;',
+    'transform:translateX(-50%) translateY(5px);white-space:nowrap;padding:8px 12px;border-radius:10px;',
+    'background:rgba(9,11,9,.94);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.5);',
+    'color:#ECEAE5;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;line-height:1;',
+    'opacity:0;pointer-events:none;z-index:9006;transition:opacity .16s ease, transform .2s ease}',
+    '.tmwx-pbtn[data-tip]:hover::after,.tmwx-fab[data-tip]:hover::after{opacity:1;transform:translateX(-50%) translateY(0);transition-delay:.22s}',
+    '}',
+    /* the smart action — purple, glowing, unmistakably the suggested tool */
+    '.tmwx-pbtn.smart{color:#C4B5FD;background:rgba(167,139,250,.13);margin-left:3px;',
+    'box-shadow:inset 0 0 0 1px rgba(167,139,250,.42), 0 0 14px rgba(167,139,250,.32);',
+    'animation:tmwxSmartGlow 2.6s ease-in-out infinite}',
+    '.tmwx-pbtn.smart:hover{background:rgba(167,139,250,.22)}',
+    '@keyframes tmwxSmartGlow{0%,100%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.42),0 0 10px rgba(167,139,250,.26)}50%{box-shadow:inset 0 0 0 1px rgba(167,139,250,.7),0 0 22px rgba(167,139,250,.55)}}',
+    '@media (prefers-reduced-motion:reduce){.tmwx-search::before{animation:none}.tmwx-tray,.tmwx-fab svg,.tmwx-in,.tmwx-pill{transition:none!important}.tmwx-pbtn.smart{animation:none}}'
   ].join('');
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -240,14 +274,25 @@
     var b = document.createElement('button');
     b.className = 'tmwx-pbtn' + (t.on ? ' on' : '');
     b.setAttribute('aria-label', t.t);
+    b.setAttribute('data-tip', t.t);
     b.innerHTML = svg(I[t.ic]);
     b.addEventListener('click', t.act);
     pill.appendChild(b);
   });
+  if (SMART) {
+    var sb = document.createElement('button');
+    sb.className = 'tmwx-pbtn smart';
+    sb.setAttribute('aria-label', SMART.t);
+    sb.setAttribute('data-tip', SMART.t);
+    sb.innerHTML = svg(I[SMART.ic]);
+    sb.addEventListener('click', SMART.act);
+    pill.appendChild(sb);
+  }
 
   var fab = document.createElement('button');
   fab.className = 'tmwx-fab';
   fab.setAttribute('aria-label', 'All tools');
+  fab.setAttribute('data-tip', 'All tools');
   fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
   /* FLIP the fab so it slides between its center-cluster and right-edge spots */
