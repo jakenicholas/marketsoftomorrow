@@ -1148,6 +1148,12 @@
        full-bleed. */
     + '.tmw-ov-sec .tmw-pv{height:auto;border-radius:20px;overflow:hidden;background:#0f120f;border:1px solid rgba(255,255,255,.08)}'
     + '.tmw-ov-sec .tmw-pv .tmw-pv-body{padding-top:16px}'
+    /* The status badge is redundant on the answer card — the timeline spine
+       right below the photo already says it. (Fullscreen panel keeps it.) */
+    + '.tmw-ov-sec .tmw-pv .tmw-pv-badge{display:none}'
+    /* Mobile: the answer card's photo was clamping to the generic 170px
+       basis — give it real height. */
+    + '@media(max-width:700px){.tmw-ov-sec .tmw-pv .tmw-pv-hero{flex-basis:250px;min-height:250px}}'
     /* Desktop: the inline answer card goes 2-column — image fills the left
        half at full card height, content on the right. */
     + '@media(min-width:860px){'
@@ -5196,6 +5202,17 @@
       var _fullHero = !!(hero.kind === 'project' && typeof _exactName !== 'undefined' && _exactName);
       var _heroClass = _fullHero ? ' tmw-ov-exacthero' : (heroCat === 'articles' ? ' tmw-ov-arthero' : '');
       slotHero.innerHTML = '<div class="tmw-ov-sec'+_heroClass+'" data-cat="'+heroCat+'">' + heroHtml + '</div>';
+      // The inline pv card needs the same wiring the fullscreen panel gets in
+      // _paintProjCard: the 1/N counter follows the track scroll, and the Watch
+      // button paints its saved state. (Arrow + Watch CLICKS ride the delegated
+      // root handler.)
+      var _hpv = slotHero.querySelector('.tmw-pv');
+      if (_hpv){
+        var _htk = _hpv.querySelector('.tmw-pv-track'), _hix = _hpv.querySelector('[data-pvidx]');
+        if (_htk && _hix) _htk.addEventListener('scroll', function(){ _hix.textContent = String(Math.round(_htk.scrollLeft / Math.max(1, _htk.clientWidth)) + 1); }, { passive: true });
+        var _hwb = _hpv.querySelector('[data-pvwatch]');
+        if (_hwb) loadFavs().then(function(set){ var s = _hwb.getAttribute('data-slug'); if (s && set.has(s.toLowerCase())){ _hwb.classList.add('on'); var t = _hwb.querySelector('.tmw-pv-watch-txt'); if (t) t.textContent = 'Watching'; } });
+      }
     } else {
       slotHero.innerHTML = '';
     }
@@ -6062,17 +6079,19 @@
     // Never treat a feedback-row click as a query submission (the thumbs live
     // inside the answer; a stray data-* there must not re-run the query).
     if (e.target.closest && e.target.closest('.tmw-ov-feedback')) return;
-    // Inside the open card: Watch button, then carousel arrows.
-    if (projview && projview.classList.contains('open')) {
-      var pvw = e.target.closest('[data-pvwatch]');
-      if (pvw) { e.preventDefault(); e.stopPropagation(); handlePvWatch(pvw); return; }
-      var arrow = e.target.closest('[data-pvprev],[data-pvnext]');
-      if (arrow) {
-        e.preventDefault();
-        var track = projbody.querySelector('.tmw-pv-track');
-        if (track) track.scrollBy({ left: (arrow.hasAttribute('data-pvnext') ? 1 : -1) * track.clientWidth, behavior: 'smooth' });
-        return;
-      }
+    // Watch button + carousel arrows. The pv card renders both in the
+    // fullscreen project panel AND inline as the answer hero, so resolve
+    // the track against the nearest .tmw-pv instead of assuming the panel
+    // is open (the inline card's arrows were dead under that guard).
+    var pvw = e.target.closest('[data-pvwatch]');
+    if (pvw) { e.preventDefault(); e.stopPropagation(); handlePvWatch(pvw); return; }
+    var arrow = e.target.closest('[data-pvprev],[data-pvnext]');
+    if (arrow) {
+      e.preventDefault();
+      var pvCard = arrow.closest('.tmw-pv');
+      var track = pvCard && pvCard.querySelector('.tmw-pv-track');
+      if (track) track.scrollBy({ left: (arrow.hasAttribute('data-pvnext') ? 1 : -1) * track.clientWidth, behavior: 'smooth' });
+      return;
     }
     // Project card/row → open the native project card in THIS answer bubble.
     var projLink = e.target.closest && e.target.closest('[data-projslug]');
