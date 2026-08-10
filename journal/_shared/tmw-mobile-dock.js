@@ -27,14 +27,14 @@
     closeNow();
     document.documentElement.classList.add('tmwx-mapsearch');
     var w = document.querySelector('.tmwx-wrap');
-    if (w) { w.style.opacity = '0'; w.style.pointerEvents = 'none'; }
+    if (w) w.style.display = 'none';
     var inp = document.querySelector('.tmw-dock-search input');
     if (inp) setTimeout(function () { inp.focus(); }, 60);
   }
   function exitMapSearch() {
     document.documentElement.classList.remove('tmwx-mapsearch');
     var w = document.querySelector('.tmwx-wrap');
-    if (w) { w.style.opacity = ''; w.style.pointerEvents = ''; }
+    if (w) w.style.display = '';
   }
   function openSearch(q) {
     closeNow();
