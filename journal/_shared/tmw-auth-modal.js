@@ -584,12 +584,20 @@
   }
 
   window.tmwAuthModal = function (view, opts) {
+    // Plain join/login (no checkout priceId attached) is a full-screen moment
+    // now — the welcome splash owns it. This lightbox remains for
+    // checkout-attached signup, password reset, and the account views.
+    if (window.tmwWelcome && (!opts || !opts.priceId)) {
+      if (view === 'signup' && window.tmwWelcome.gate && window.tmwWelcome.gate({ source: 'auth_modal' })) return;
+      if ((view === 'login' || view == null) && window.tmwWelcome.login && window.tmwWelcome.login(opts || {})) return;
+    }
     if (!ms()) return;
     var host = openShell();
     if (view === 'profile' || view === 'account') viewAccount(host, 'profile');
     else if (view === 'security') viewAccount(host, 'security');
     else if (view === 'watchlist') viewAccount(host, 'watchlist');
     else if (view === 'articles') viewAccount(host, 'articles');
+    else if (view === 'forgot') viewForgot(host, opts);
     else if (view === 'signup') viewSignup(host, opts);
     else viewLogin(host, opts);
   };

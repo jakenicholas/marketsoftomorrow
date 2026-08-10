@@ -68,6 +68,9 @@
       '.tmww.instant{transition:none}',
       '.tmww.instant .bg img{transition:none}',
       '.tmww.instant .scr.on{animation:none}',
+      /* host pages differ on resets (the map keeps UA default h2/p margins,
+         which ballooned the spacing there) — normalize inside the overlay */
+      '.tmww h1,.tmww h2,.tmww h3,.tmww p{margin:0;padding:0}',
       '.tmww .bg{position:absolute;inset:0}',
       '.tmww .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.4s ease}',
       '.tmww .bg img.on{opacity:1}',
@@ -146,7 +149,7 @@
       '.tmww .p-ft{display:flex;align-items:center;gap:7px;font-size:12px;color:#C2C9C3}',
       '.tmww .p-form{width:min(560px,100%);display:flex;flex-direction:column;gap:10px}',
       /* pro screen in the cinematic bottom-left column */
-      '.tmww .g-inner.pro{max-width:620px}',
+      '.tmww .g-inner.pro{max-width:620px;padding-bottom:44px}',
       /* the pro column is tall — pin the logo to the corner instead of letting
          the bottom-anchored flex push it off the top of the frame */
       '.tmww .g-inner.pro .wm{position:absolute;top:calc(20px + env(safe-area-inset-top));left:clamp(22px,6vw,70px);margin:0;padding:0}',
@@ -373,7 +376,7 @@
     var copy = PRO_COPY[opts.source] || ['Try everything, free for 2 weeks', 'The full Map and Atlas, unlimited Onyx with Deep mode, projected pricing, watchlists and your weekly brief. Cancel anytime during the trial and pay nothing.'];
     var s = screen(
       (opts.hard
-        ? (opts.source === 'atlas' ? '<button class="skip" data-w="gohome">Maybe later</button>' : '')
+        ? '<button class="skip" data-w="gohome">Maybe later</button>'
         : '<button class="skip" data-w="close">Maybe later</button>') +
       '<div class="g-inner pro">' +
         '<div class="wm">' + LOGO_IMG + '</div>' +
@@ -386,7 +389,7 @@
         '</div>' +
         '<div class="p-feat">' +
           '<span class="p-ft">&#10003; Full Map &amp; Atlas</span><span class="p-ft">&#10003; Unlimited Onyx + Deep</span>' +
-          '<span class="p-ft">&#10003; Projected pricing</span><span class="p-ft">&#10003; Watchlist &amp; weekly brief</span>' +
+          '<span class="p-ft">&#10003; Watchlist &amp; weekly brief</span>' +
         '</div>' +
         '<div class="p-form">' +
           '<button class="cta purple" data-w="checkout">Start my free trial</button>' +
