@@ -26,10 +26,16 @@
     /* reveal the native map dock (the spatial search) and focus it */
     closeNow();
     document.documentElement.classList.add('tmwx-mapsearch');
+    var w = document.querySelector('.tmwx-wrap');
+    if (w) { w.style.opacity = '0'; w.style.pointerEvents = 'none'; }
     var inp = document.querySelector('.tmw-dock-search input');
     if (inp) setTimeout(function () { inp.focus(); }, 60);
   }
-  function exitMapSearch() { document.documentElement.classList.remove('tmwx-mapsearch'); }
+  function exitMapSearch() {
+    document.documentElement.classList.remove('tmwx-mapsearch');
+    var w = document.querySelector('.tmwx-wrap');
+    if (w) { w.style.opacity = ''; w.style.pointerEvents = ''; }
+  }
   function openSearch(q) {
     closeNow();
     if (IS_MAP) { mapSearch(); return; }
