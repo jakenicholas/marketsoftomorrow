@@ -812,7 +812,6 @@ def supply_pressure_html(m: dict | None) -> str:
         <span class="sp-conf" data-conf="{esc(m['confidence'])}">Confidence: <em>{esc(conf)}</em> · {dated_pct}% of deliveries dated</span>
         {_atlas_link_html(m)}
       </div>
-      {market_band_html(m)}
     </section>'''
 
 
@@ -879,28 +878,34 @@ def region_compare_html(label: str, cities_in_state) -> str:
 PROJECTS_BY_SLUG = {}   # filled in main()
 
 def onyx_flagship_html(market_slug: str) -> str:
-    """The full Surface A+B project card (same module as the SEO project
-    pages) for the market's highest-confidence modeled project."""
+    """City-led projected pricing: the submarket median + band on top, with the
+    market's modeled projects as the comparable set below. (Replaces the old
+    single-flagship-project card so the headline reads as the CITY, not one
+    pet project — the projects now live in the comparable set.)"""
     cands = [(s, v) for s, v in ONYX_PUB.items() if v.get('modeled') and v.get('market') == market_slug]
     if not cands: return ''
+    m = (ATLAS_INTEL.get('markets') or {}).get(market_slug) or {}
+    band = market_band_html(m)          # the city median + band (Pro-gated, /atlas/market-band)
+    if not band: return ''              # needs 2+ modeled projections
     cands.sort(key=lambda kv: ((kv[1].get('confidence') == 'high'), kv[1].get('comp_count', 0)), reverse=True)
-    row = PROJECTS_BY_SLUG.get(cands[0][0])
-    if not row: return ''
-    card = onyx_project_card(row)
-    # "More Onyx projections" — the market's other modeled projects as compact
-    # teasers so the section never reads as one pet project.
-    more = ''
-    for s, v in cands[1:4]:
+    cards = ''
+    for s, v in cands:
         p = PROJECTS_BY_SLUG.get(s)
         if not p: continue
-        more += (f'<a class="om-card" data-slug="{esc(s)}" href="/projects/{esc(s)}/">'
-                 f'<span class="om-name">{esc(p.get("Title") or s)}</span>'
-                 f'<span class="om-meta">{esc(v.get("delivery_label") or "")} · {esc((v.get("confidence") or "").capitalize())} · {v.get("comp_count", 0)} comps</span>'
-                 f'<span class="om-psf">$•,•••<i>/ sq ft</i></span></a>')
-    if more:
-        card += (f'<div class="om-more"><div class="om-more-l">More Onyx projections in this market</div>'
-                 f'<div class="om-row">{more}</div></div>')
-    return card
+        cards += (f'<a class="om-card" data-slug="{esc(s)}" href="/projects/{esc(s)}/">'
+                  f'<span class="om-name">{esc(p.get("Title") or s)}</span>'
+                  f'<span class="om-meta">{esc(v.get("delivery_label") or "")} · {esc((v.get("confidence") or "").capitalize())} · {v.get("comp_count", 0)} comps</span>'
+                  f'<span class="om-psf">$•,•••<i>/ sq ft</i></span></a>')
+    comps = (f'<div class="om-more"><div class="om-more-l">Comparable set — the market’s modeled projects</div>'
+             f'<div class="om-row">{cards}</div></div>') if cards else ''
+    return (f'<section class="section cm-mod mk-cityproj" id="atlasIntel">'
+            f'<div class="cm-eyebrow">Projected pricing at delivery</div>'
+            f'<div class="cm-title">Where {esc(m.get("city") or market_slug)} <em>prices out</em></div>'
+            f'<div class="cm-sub">The submarket median at delivery — and the modeled projects behind it.</div>'
+            f'{band}{comps}'
+            f'<style>.mk-cityproj .sp-band{{border-top:0;margin-top:14px;padding-top:0}}'
+            f'.mk-cityproj .om-more{{margin-top:22px}}</style>'
+            f'</section>')
 
 
 _TOP_CACHE = {}
