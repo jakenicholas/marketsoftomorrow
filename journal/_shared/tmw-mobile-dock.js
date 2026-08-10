@@ -32,7 +32,12 @@
        back on the next touch via the exit handler). */
     if (window.matchMedia('(max-width: 800px)').matches) {
       try { if (typeof window.closeProjectModal === 'function') window.closeProjectModal(); } catch (e) {}
-      try { if (typeof window.mobileDrawerExpand === 'function') window.mobileDrawerExpand(); } catch (e) {}
+      try { if (typeof window._dismissMapLanding === 'function') window._dismissMapLanding(); } catch (e) {}
+      /* the v2 discovery sheet opens via the capsule; legacy drawer is the fallback */
+      var cap = document.getElementById('v2Capsule');
+      if (cap) { try { cap.click(); } catch (e) {} }
+      else if (typeof window.mobileDrawerExpand === 'function') { try { window.mobileDrawerExpand(); } catch (e) {} }
+      else { document.body.classList.add('v2-sheet-open'); }
       var minp = document.getElementById('v2SearchInput') || document.getElementById('mobileSearchBar');
       if (minp) {
         /* focus synchronously inside the tap gesture so iOS raises the
