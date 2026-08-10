@@ -125,7 +125,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
 .lever .lp{font-size:14.5px; color:var(--mute2); line-height:1.6; font-weight:300}
 
 /* license tiers */
-.tiers{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:920px; margin:0 auto}
+.tiers{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
 .tier{padding:28px 26px 30px; display:flex; flex-direction:column}
 .tier-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px}
 .tier .tname{font-family:var(--serif); font-weight:600; font-size:21px; color:var(--white); letter-spacing:-.01em}
@@ -194,8 +194,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
 .foot{margin-top:64px; padding-top:26px; border-top:1px solid var(--hair); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mute); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px}
 .foot a{color:var(--green); text-decoration:none}
 
-.disclaimer{padding:34px 0 60px}
-.disclaimer .wrap{font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--mute); line-height:1.7; text-align:center; max-width:760px}
 
 .reveal{opacity:0; transform:translateY(28px); transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1)}
 .reveal.in{opacity:1; transform:none}
@@ -324,7 +322,7 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
     <div class="pricing-block">
       <div class="subhead reveal">Photography</div>
       <table class="otable reveal d1">
-        <thead><tr><th>Package</th><th>What you get</th><th>Fee</th></tr></thead>
+        <thead><tr><th>Package</th><th></th><th>Fee</th></tr></thead>
         <tbody>
           <tr><td>10 Photos</td><td class="scope">A focused set &mdash; perfect for a refresh or a single space.</td><td>$2,500</td></tr>
           <tr><td>25 Photos</td><td class="scope">Room to tell a fuller story across the property.</td><td>$6,250</td></tr>
@@ -337,66 +335,24 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
     <div class="pricing-block">
       <div class="subhead reveal">Videography</div>
       <table class="otable reveal d1">
-        <thead><tr><th>Package</th><th>What you get</th><th>Fee</th></tr></thead>
+        <thead><tr><th>Package</th><th></th><th>Fee</th></tr></thead>
         <tbody>
-          <tr><td>10 Clips</td><td class="scope">A focused set of finished, edited clips.</td><td>$1,000</td></tr>
-          <tr><td>25 Clips</td><td class="scope">Room to tell a fuller story in motion.</td><td>$2,000</td></tr>
-          <tr><td>50 Clips</td><td class="scope">Comprehensive coverage for web and social.</td><td>$4,000</td></tr>
-          <tr><td>100+ Clips</td><td class="scope">A complete motion library for the property.</td><td>$8,000</td></tr>
+          <tr><td>10 Clips</td><td class="scope">A focused set of finished, edited clips.</td><td>$3,000</td></tr>
+          <tr><td>25 Clips</td><td class="scope">Room to tell a fuller story in motion.</td><td>$7,500</td></tr>
+          <tr><td>50 Clips</td><td class="scope">Comprehensive coverage for web and social.</td><td>$15,000</td></tr>
+          <tr><td>100+ Clips</td><td class="scope">A complete motion library for the property.</td><td>$30,000</td></tr>
         </tbody>
       </table>
-      <p class="tier-note reveal">Video packages are priced as shown, license included. <b>Aerial / drone</b> can be added to any video package &mdash; subject to weather and location, which we'll confirm together before the shoot.</p>
+      <p class="tier-note reveal">Video is <b>$300 per finished clip</b>, license included. <b>Aerial / drone</b> can be added to any video package &mdash; subject to weather and location, which we'll confirm together before the shoot.</p>
     </div>
 
     <div class="example glass reveal">
       <div class="ex-lab">A Typical Engagement</div>
-      <p>A <b>25-photo</b> package = <span class="ex-total">$6,250 total</span> &mdash; the shoot, the edit, and the full commercial license on every photo, with organic social use included free. Want it in motion too? Add the matching 25-clip video for <b>$2,000</b>. Nothing more to license, ever.</p>
+      <p>A <b>25-photo</b> package = <span class="ex-total">$6,250 total</span> &mdash; the shoot, the edit, and the full commercial license on every photo, with organic social use included free. Want it in motion too? Add the matching 25-clip video for <b>$7,500</b>. Nothing more to license, ever.</p>
     </div>
   </div>
 </section>
 
-<!-- THE TERMS -->
-<section id="terms" style="padding-top:0">
-  <div class="wrap">
-    <div class="shead">
-      <div class="eyebrow reveal">The Fine Print, Made Clear</div>
-      <h2 class="reveal d1">How we work together</h2>
-      <p class="lede reveal d2">The protections that keep every engagement clean &mdash; summarized here, and set out in full in the agreement provided with your Statement of Work.</p>
-    </div>
-    <div class="clauses">
-      <div class="clause glass reveal d1">
-        <div class="cn">01</div>
-        <div class="ch">Travel &amp; Extras</div>
-        <div class="cp">Local shoots have no travel cost. For anything beyond 50 miles, travel and lodging are simply passed through at cost &mdash; agreed up front, never a surprise. Same for any special add-ons like licensed music or permits.</div>
-      </div>
-      <div class="clause glass reveal d2">
-        <div class="cn">02</div>
-        <div class="ch">Payment Terms</div>
-        <div class="cp">A <b>50% deposit</b> holds your shoot date; the balance and license fee are due on delivery (net 15). Your rights switch on the moment the invoice is settled. Plans change &mdash; just give us a heads-up more than 72 hours out and rescheduling is easy.</div>
-      </div>
-      <div class="clause glass reveal d3">
-        <div class="cn">03</div>
-        <div class="ch">Delivery &amp; Credit</div>
-        <div class="cp">You'll receive finished, color-graded edits, ready to publish. The only ask for the free Social license is a little love back &mdash; credit <b>"Markets of Tomorrow ©"</b> or tag <b>@marketsoftomorrow</b> when you post. That's what keeps social free.</div>
-      </div>
-      <div class="clause glass reveal d1">
-        <div class="cn">04</div>
-        <div class="ch">Keeping It Consistent</div>
-        <div class="cp">The license is yours to use freely across what it covers. If you'd like to pass it to a new owner, or heavily edit / AI-alter the work so the property looks different, just run it by us first &mdash; a quick written OK is all it takes, and we're glad to help.</div>
-      </div>
-      <div class="clause glass reveal d2">
-        <div class="cn">05</div>
-        <div class="ch">Peace of Mind</div>
-        <div class="cp">Everything we deliver is original work, made by us. You'll handle property access and any guest / staff releases on site, and we'll handle the craft. Standard liability terms keep both sides protected &mdash; nothing surprising.</div>
-      </div>
-      <div class="clause glass reveal d3">
-        <div class="cn">06</div>
-        <div class="ch">If Plans Shift</div>
-        <div class="cp">If something isn't working, either side can step back with 10 days' written notice. Weather or events outside anyone's control? We simply reschedule in good faith. Everything here is governed by the laws of <b>Florida</b>.</div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- CTA -->
 <section class="cta cta-pattern" id="cta">
@@ -423,11 +379,6 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:1
   </div>
 </section>
 
-<div class="disclaimer">
-  <div class="wrap">
-    This page summarizes the Markets of Tomorrow Photography &amp; Videography Licensing Agreement and is provided for convenience. It does not constitute legal advice, is not itself a binding offer, and is superseded by the executed agreement and Statement of Work for each engagement. Pricing reflects 2026 market-aligned ranges and may vary by scope.
-  </div>
-</div>
 
 <script>
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:"0px 0px -8% 0px"});
